@@ -1,0 +1,9 @@
+#ifndef C_CDD_CONFIG_H
+#define C_CDD_CONFIG_H
+
+#define C_CDD_VERSION_MAJOR @c_cdd_VERSION_MAJOR@
+#define C_CDD_VERSION_MINOR @c_cdd_VERSION_MINOR@
+#define C_CDD_VERSION_PATCH @c_cdd_VERSION_PATCH@
+#define C_CDD_VERSION       "@c_cdd_VERSION@"
+
+#endif /* !C_CDD_CONFIG_H */
