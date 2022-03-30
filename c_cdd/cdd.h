@@ -9,12 +9,7 @@
 namespace cdd {
 namespace emit {
 
-std::unique_ptr<clang::RecordDecl> struct_from_json_schema(/*json_schema*/) {
-  auto record_decl = std::unique_ptr<clang::RecordDecl>();
-  record_decl->setFreeStanding(true);
-  record_decl->setAnonymousStructOrUnion(true);
-  return record_decl;
-}
+std::unique_ptr<clang::RecordDecl> struct_from_json_schema(/*json_schema*/);
 
 }; // namespace emit
 }; // namespace cdd
