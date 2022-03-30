@@ -28,3 +28,9 @@ set_target_properties(
 target_link_libraries("${EXEC_NAME}" PUBLIC "${gtest_lib}" "${PROJECT_NAME}")
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
+
+#################################
+# Additional tests and/or mocks #
+#################################
+
+add_subdirectory("mocks")
