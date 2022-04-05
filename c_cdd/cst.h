@@ -1,28 +1,28 @@
 #ifndef C_CDD_CST_H
 #define C_CDD_CST_H
 
-#include <cstdlib>
-#include <list>
-#include <string>
-#include <unordered_map>
+#include <stdlib.h>
+#include <string.h>
 
-namespace cdd {
-namespace cst {
+#include <c_cdd_export.h>
 
-struct CstNode {
-  size_t line_no_start, line_no_end;
-  std::list<CstNode *> scope;
-  std::string value;
-};
+#define CstNode_base_properties                                                \
+  size_t line_no_start, line_no_end;                                           \
+  struct CstNode *scope;                                                       \
+  const char *value
 
 /* two phase parser */
-const std::vector<std::string> scanner(const std::string &);
-std::vector<CstNode> parser(const std::vector<std::string> &);
+extern C_CDD_EXPORT const char **scanner(const char *);
+extern C_CDD_EXPORT const struct CstNode **parser(const char **);
 
 /* mostly from reviewing http://www.quut.com/c/ANSI-C-grammar-y.html */
 
-struct CppComment : CstNode {};
-struct CComment : CstNode {};
+struct CppComment {
+  CstNode_base_properties;
+};
+struct CComment {
+  CstNode_base_properties;
+};
 
 enum Keywords {
   AUTO,
@@ -72,6 +72,7 @@ enum Keywords {
   FUNC_NAME
 };
 
+/*
 static const std::unordered_map<std::string, enum Keywords> keyword2enum {
   {"auto", AUTO},
   {"break", BREAK},
@@ -119,6 +120,7 @@ static const std::unordered_map<std::string, enum Keywords> keyword2enum {
   {"_Thread_local", THREAD_LOCAL},
   {"__func__", FUNC_NAME}
 };
+*/
 
 // enum StorageClassSpecifier {
 //   TYPEDEF, /* identifiers must be flagged as TYPEDEF_NAME */
@@ -149,87 +151,114 @@ static const std::unordered_map<std::string, enum Keywords> keyword2enum {
 //   TYPEDEF_NAME   */     /* after it has been defined as such */
 // };
 
-struct Expression : CstNode {}; /* fallback if nothing else matches */
-struct Label : CstNode {
-  std::string label;
+struct Expression {
+  CstNode_base_properties;
+}; /* fallback if nothing else matches */
+struct Label {
+  CstNode_base_properties;
+  const char *label;
 };
-struct Case : CstNode {
-  std::string val;
+struct Case {
+  CstNode_base_properties;
+  const char *val;
 };
-struct Switch : CstNode {
-  std::string condition;
+struct Switch {
+  CstNode_base_properties;
+  const char *condition;
 };
-struct If : CstNode {
-  std::string condition;
+struct If {
+  CstNode_base_properties;
+  const char *condition;
 };
-struct Else : CstNode {};
-struct ElseIf : CstNode {
-  std::string condition;
+struct Else {
+  CstNode_base_properties;
 };
-struct While : CstNode {
-  std::string condition;
+struct ElseIf {
+  CstNode_base_properties;
+  const char *condition;
 };
-struct Do : CstNode {};
-// struct DoWhile : CstNode {};
-struct For : CstNode {
-  std::string decl_or_expr0, decl_or_expr1, expr;
+struct While {
+  CstNode_base_properties;
+  const char *condition;
 };
-struct GoTo : CstNode {
-  std::string label;
+struct Do {
+  CstNode_base_properties;
 };
-struct Continue : CstNode {};
-struct Break : CstNode {};
-struct Return : CstNode {
-  std::string val;
+// struct DoWhile { CstNode_base_properties; };
+struct For {
+  CstNode_base_properties;
+  const char *decl_or_expr0, decl_or_expr1, expr;
 };
-struct Declaration : CstNode {
-  std::list<Keywords> specifiers;
-  std::string name;
+struct GoTo {
+  CstNode_base_properties;
+  const char *label;
 };
-struct Struct : CstNode {
-  std::string name;
-  std::list<Declaration> fields;
+struct Continue {
+  CstNode_base_properties;
 };
-struct Union : CstNode {
-  std::string name;
-  std::list<Declaration> fields;
+struct Break {
+  CstNode_base_properties;
 };
-struct Enum : CstNode {
-  std::string name;
-  std::list<Declaration> fields;
+struct Return {
+  CstNode_base_properties;
+  const char *val;
 };
-struct FunctionPrototype : CstNode {
-  std::string name;
-  std::list<Declaration> args;
+struct Declaration {
+  CstNode_base_properties;
+  enum Keywords **specifiers;
+  const char *name;
 };
-struct Function : CstNode {
-  std::list<Keywords> specifiers;
-  std::string name;
-  std::list<Declaration> args;
-  std::list<CstNode> body;
+struct Struct {
+  CstNode_base_properties;
+  const char *name;
+  struct Declaration **fields;
+};
+struct Union {
+  CstNode_base_properties;
+  const char *name;
+  struct Declaration **fields;
+};
+struct Enum {
+  CstNode_base_properties;
+  const char *name;
+  struct Declaration **fields;
+};
+struct FunctionPrototype {
+  CstNode_base_properties;
+  const char *name;
+  struct Declaration **args;
+};
+struct Function {
+  CstNode_base_properties;
+  enum Keywords **specifiers;
+  const char *name;
+  struct Declaration **args;
+  struct CstNode **body;
 };
 
-namespace macro {
-struct MacroIf : CstNode {
-  std::string expr;
+struct MacroIf {
+  CstNode_base_properties;
+  const char *expr;
 };
-struct MacroElif : CstNode {
-  std::string expr;
+struct MacroElif {
+  CstNode_base_properties;
+  const char *expr;
 };
-struct MacroIfDef : CstNode {
-  std::string expr;
+struct MacroIfDef {
+  CstNode_base_properties;
+  const char *expr;
 };
-struct MacroDefine : CstNode {
-  std::string expr;
+struct MacroDefine {
+  CstNode_base_properties;
+  const char *expr;
 };
-struct MacroInclude : CstNode {
-  std::string val;
+struct MacroInclude {
+  CstNode_base_properties;
+  const char *val;
 };
-struct MacroPragma : CstNode {
-  std::string val;
+struct MacroPragma {
+  CstNode_base_properties;
+  const char *val;
 };
-}; // namespace macro
-}; // namespace cst
-}; // namespace cdd
 
 #endif /* !C_CDD_CST_H */

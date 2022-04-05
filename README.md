@@ -3,7 +3,7 @@ c-cdd
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-[LLVM](https://llvm.org) [LibClang](https://clang.llvm.org/doxygen/group__CINDEX.html) / [LibTooling](https://clang.llvm.org/docs/LibTooling.html) solution to generate C `struct`s—and `free` code for them—using JSON-schema as input.
+Solution to generate C `struct`s—and `free` code for them—using JSON-schema as input.
 
 ---
 

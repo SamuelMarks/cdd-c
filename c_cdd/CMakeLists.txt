@@ -4,35 +4,26 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}")
 
-set(Header_Files "cst.h" "cdd.h")
+set(Header_Files "cst.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "cdd.cpp")
+set(Source_Files "cst.c")
 source_group("Source Files" FILES "${Source_Files}")
 
-add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
+add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
 target_include_directories(
         "${LIBRARY_NAME}"
         PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:include>"
 )
 target_link_libraries(
         "${LIBRARY_NAME}"
-        PUBLIC
-        "LLVMSupport"
-        "clangTooling"
-)
-target_link_libraries(
-        "${LIBRARY_NAME}"
         INTERFACE
-        "${PROJECT_NAME}_cxx_compiler_flags"
+        "${PROJECT_NAME}_compiler_flags"
 )
-if (BUILD_TESTING)
-    target_compile_definitions("${LIBRARY_NAME}" PUBLIC "C_CDD_DEBUG=1" #"C_CDD_TEST=1"
-            )
-endif (BUILD_TESTING)
+set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 #######
 # CLI #
@@ -40,13 +31,13 @@ endif (BUILD_TESTING)
 
 set(EXEC_NAME "${LIBRARY_NAME}_cli")
 
-set(Cli_Source_Files "main.cpp")
+set(Cli_Source_Files "main.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
-set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
@@ -63,7 +54,7 @@ set_property(TARGET "${LIBRARY_NAME}" PROPERTY VERSION "1.0.0")
 set_property(TARGET "${LIBRARY_NAME}" PROPERTY SOVERSION "1")
 
 set(installable_libs # "${EXEC_NAME}"
-        "${LIBRARY_NAME}" "${PROJECT_NAME}_cxx_compiler_flags")
+        "${LIBRARY_NAME}" "${PROJECT_NAME}_compiler_flags")
 if (TARGET "${DEPENDANT_LIBRARY}")
     list(APPEND installable_libs "${DEPENDANT_LIBRARY}")
 endif ()
