@@ -15,23 +15,38 @@ TEST x_test_function_scanned(void) {
 
 TEST x_test_function_parsed(void) {
   const char **scanned = scanner(sum_func_src);
-  const union CstNode **parsed = parser(scanned);
-  struct Return _return = {/* line_no_start */ 0, /* line_no_end */ 0, /* scope */ NULL,
-                           /* value */ "return a + b;", /* val */ "a + b"};
-  const struct Function sum_func = {
-      /* line_no_start */ 0,
-      /* line_no_end */ 0,
-      /* scope */ NULL,
-      /* value */ sum_func_src,
-      /* specifiers */ {INT},
-      /* name */ "sum",
-      /* args */{
-          {/* specifiers */ {INT}, /* name */ "a"},
-          {/* specifiers */ {INT}, /* name */ "b"},
-      },
-      /* body */ {_return}
-  };
+  const struct CstNode **parsed = parser(scanned);
+  enum Keywords int_specifier[] = {INT};
+  struct Arg a_arg = {/* pos_start */ 0,
+                      /* scope */ NULL,
+                      /* value */ "int a",
+                      /* specifiers */ int_specifier,
+                      /* name */ "a"};
+  struct Arg b_arg = {/* pos_start */ 0,
+                      /* scope */ NULL,
+                      /* value */ "int b",
+                      /* specifiers */ int_specifier,
+                      /* name */ "b"};
+  struct Arg args[] = {&a_arg, &b_arg};
+  struct Return _return = {/* pos_start */ 0,
+                           /* scope */ NULL,
+                           /* value */ "return a + b;",
+                           /* val */ "a + b"};
+
+  const struct Function sum_func = {/* pos_start */ 0,
+                                    /* scope */ NULL,
+                                    /* value */ sum_func_src,
+                                    /* specifiers */ int_specifier,
+                                    /* name */ "sum",
+                                    /* args */
+                                    {
+                                        a_arg,
+                                        b_arg,
+                                    },
+                                    /* body */ {_return}};
   ASSERT_EQ(parsed, NULL);
+  /* TODO: loop through scanned, assert contents contain expected information */
+  /* TODO: loop through parsed, assert contents contain expected information */
   PASS();
 }
 

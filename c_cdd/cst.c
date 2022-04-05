@@ -2,4 +2,4 @@
 
 const char **scanner(const char *source) { return NULL; }
 
-const union CstNode **parser(const char **scanned) { return NULL; }
+const struct CstNode **parser(const char **scanned) { return NULL; }
