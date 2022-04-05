@@ -4,7 +4,7 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}")
 
-set(Header_Files "cdd.h")
+set(Header_Files "cst.h" "cdd.h")
 source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files "cdd.cpp")
