@@ -251,11 +251,16 @@ struct FunctionPrototype {
   struct Declaration **args;
 };
 
+struct Arg {
+  enum Keywords *specifiers;
+  const char *name;
+};
+
 struct Function {
   CstNode_base_properties;
-  enum Keywords **specifiers;
+  enum Keywords *specifiers;
   const char *name;
-  struct Declaration **args;
+  struct Arg **args;
   union CstNode **body;
 };
 
