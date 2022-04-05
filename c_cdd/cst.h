@@ -2,6 +2,7 @@
 #define C_CDD_CST_H
 
 #include <cstdlib>
+#include <list>
 #include <string>
 #include <unordered_map>
 
@@ -10,7 +11,8 @@ namespace cst {
 
 struct CstNode {
   size_t line_no_start, line_no_end;
-  const char *value;
+  std::list<CstNode *> scope;
+  std::string value;
 };
 
 /* two phase parser */
@@ -148,34 +150,84 @@ static const std::unordered_map<std::string, enum Keywords> keyword2enum {
 // };
 
 struct Expression : CstNode {}; /* fallback if nothing else matches */
-struct Label : CstNode {};
-struct Switch : CstNode {};
-struct If : CstNode {};
+struct Label : CstNode {
+  std::string label;
+};
+struct Case : CstNode {
+  std::string val;
+};
+struct Switch : CstNode {
+  std::string condition;
+};
+struct If : CstNode {
+  std::string condition;
+};
 struct Else : CstNode {};
-struct ElseIf : CstNode {};
-struct While : CstNode {};
+struct ElseIf : CstNode {
+  std::string condition;
+};
+struct While : CstNode {
+  std::string condition;
+};
 struct Do : CstNode {};
-struct DoWhile : CstNode {};
-struct For : CstNode {};
-struct GoTo : CstNode {};
+// struct DoWhile : CstNode {};
+struct For : CstNode {
+  std::string decl_or_expr0, decl_or_expr1, expr;
+};
+struct GoTo : CstNode {
+  std::string label;
+};
 struct Continue : CstNode {};
 struct Break : CstNode {};
-struct Return : CstNode {};
-struct Declaration : CstNode {};
-struct Struct : CstNode {};
-struct Union : CstNode {};
-struct Emum : CstNode {};
-struct FunctionPrototype : CstNode {};
-struct Function : CstNode {};
-struct FunctionArgs : CstNode {};
+struct Return : CstNode {
+  std::string val;
+};
+struct Declaration : CstNode {
+  std::list<Keywords> specifiers;
+  std::string name;
+};
+struct Struct : CstNode {
+  std::string name;
+  std::list<Declaration> fields;
+};
+struct Union : CstNode {
+  std::string name;
+  std::list<Declaration> fields;
+};
+struct Enum : CstNode {
+  std::string name;
+  std::list<Declaration> fields;
+};
+struct FunctionPrototype : CstNode {
+  std::string name;
+  std::list<Declaration> args;
+};
+struct Function : CstNode {
+  std::list<Keywords> specifiers;
+  std::string name;
+  std::list<Declaration> args;
+  std::list<CstNode> body;
+};
 
 namespace macro {
-struct MacroIf : CstNode {};
-struct MacroElif : CstNode {};
-struct MacroIfDef : CstNode {};
-struct MacroDefine : CstNode {};
-struct MacroInclude : CstNode {};
-struct MacroPragma : CstNode {};
+struct MacroIf : CstNode {
+  std::string expr;
+};
+struct MacroElif : CstNode {
+  std::string expr;
+};
+struct MacroIfDef : CstNode {
+  std::string expr;
+};
+struct MacroDefine : CstNode {
+  std::string expr;
+};
+struct MacroInclude : CstNode {
+  std::string val;
+};
+struct MacroPragma : CstNode {
+  std::string val;
+};
 }; // namespace macro
 }; // namespace cst
 }; // namespace cdd
