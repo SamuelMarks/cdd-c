@@ -16,6 +16,21 @@ TEST x_test_function_scanned(void) {
 TEST x_test_function_parsed(void) {
   const char **scanned = scanner(sum_func_src);
   const union CstNode **parsed = parser(scanned);
+  struct Return _return = {/* line_no_start */ 0, /* line_no_end */ 0, /* scope */ NULL,
+                           /* value */ "return a + b;", /* val */ "a + b"};
+  const struct Function sum_func = {
+      /* line_no_start */ 0,
+      /* line_no_end */ 0,
+      /* scope */ NULL,
+      /* value */ sum_func_src,
+      /* specifiers */ {INT},
+      /* name */ "sum",
+      /* args */{
+          {/* specifiers */ {INT}, /* name */ "a"},
+          {/* specifiers */ {INT}, /* name */ "b"},
+      },
+      /* body */ {_return}
+  };
   ASSERT_EQ(parsed, NULL);
   PASS();
 }
