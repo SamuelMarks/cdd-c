@@ -1,6 +1,6 @@
 c_cdd
 
-LLVM LibClang / LibTooling solution to generate C `struct`s—and `free` code for them—using JSON-schema as input.
+Solution to generate C `struct`s—and `free` code for them—using JSON-schema as input.
 
 ------------------------------------------------------------------------
 
