@@ -7,6 +7,7 @@
 #include "c_cdd_export.h"
 
 namespace cdd {
+
 namespace emit {
 
 std::unique_ptr<clang::RecordDecl> struct_from_json_schema(/*json_schema*/);
