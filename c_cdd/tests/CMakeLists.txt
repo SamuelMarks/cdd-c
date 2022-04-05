@@ -29,13 +29,17 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 
 set(EXEC_NAME "test_c_cdd")
 
+set(Header_Files "test_function.h")
+source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
+
 set(Source_Files "${EXEC_NAME}.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
-add_executable("${EXEC_NAME}" "${Source_Files}")
+add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
 target_include_directories(
         "${EXEC_NAME}"
         PRIVATE
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
 )
 set_target_properties(
