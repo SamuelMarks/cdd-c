@@ -6,16 +6,24 @@
 
 #include <c_cdd_export.h>
 
-union CstNode;
+struct CstNode;
 
 #define CstNode_base_properties                                                \
-  size_t line_no_start, line_no_end;                                           \
-  union CstNode *scope;                                                        \
+  size_t pos_start; /* where in full-source `value` starts */                  \
+  struct CstNode *scope;                                                       \
   const char *value
 
 /* two phase parser */
 extern C_CDD_EXPORT const char **scanner(const char *);
-extern C_CDD_EXPORT const union CstNode **parser(const char **);
+extern C_CDD_EXPORT const struct CstNode **parser(const char **);
+
+struct BlockStart {
+  CstNode_base_properties;
+};
+
+struct BlockEnd {
+  CstNode_base_properties;
+};
 
 /* mostly from reviewing http://www.quut.com/c/ANSI-C-grammar-y.html */
 
@@ -252,8 +260,13 @@ struct FunctionPrototype {
 };
 
 struct Arg {
+  CstNode_base_properties;
   enum Keywords *specifiers;
   const char *name;
+};
+
+struct FunctionStart {
+  CstNode_base_properties;
 };
 
 struct Function {
@@ -261,7 +274,7 @@ struct Function {
   enum Keywords *specifiers;
   const char *name;
   struct Arg **args;
-  union CstNode **body;
+  struct CstNode **body;
 };
 
 struct MacroIf {
@@ -294,35 +307,73 @@ struct MacroPragma {
   const char *val;
 };
 
-union CstNode {
-  struct Expression expression;
+enum CstNodeType {
+  Expression,
+  BlockStart,
+  BlockEnd,
 
-  struct Label label;
-  struct Case _case;
-  struct Switch _switch;
-  struct If _if;
-  struct Else _else;
-  struct ElseIf elseif;
-  struct While _while;
-  struct Do _do;
-  struct For _for;
-  struct GoTo _goto;
-  struct Continue _continue;
-  struct Break _break;
-  struct Return _return;
-  struct Declaration declaration;
-  struct Struct _struct;
-  struct Union _union;
-  struct Enum _enum;
-  struct FunctionPrototype function_prototype;
-  struct Function function;
+  Label,
+  Case,
+  Switch,
+  If,
+  Else,
+  ElseIf,
+  While,
+  Do,
+  For,
+  GoTo,
+  Continue,
+  Break,
+  Return,
+  Declaration,
+  Struct,
+  Union,
+  Enum,
+  FunctionPrototype,
+  Function,
 
-  struct MacroIf macro_if;
-  struct MacroElif macro_elif;
-  struct MacroIfDef macro_if_def;
-  struct MacroDefine macro_define;
-  struct MacroInclude macro_include;
-  struct MacroPragma macro_pragma;
+  MacroIf,
+  MacroElif,
+  MacroIfDef,
+  MacroDefine,
+  MacroInclude,
+  MacroPragma
+};
+
+struct CstNode {
+  enum CstNodeType kind;
+  union {
+    struct Expression expression;
+    struct BlockStart block_start;
+    struct BlockEnd block_end;
+
+    struct Label label;
+    struct Case _case;
+    struct Switch _switch;
+    struct If _if;
+    struct Else _else;
+    struct ElseIf elseif;
+    struct While _while;
+    struct Do _do;
+    struct For _for;
+    struct GoTo _goto;
+    struct Continue _continue;
+    struct Break _break;
+    struct Return _return;
+    struct Declaration declaration;
+    struct Struct _struct;
+    struct Union _union;
+    struct Enum _enum;
+    struct FunctionPrototype function_prototype;
+    struct Function function;
+
+    struct MacroIf macro_if;
+    struct MacroElif macro_elif;
+    struct MacroIfDef macro_if_def;
+    struct MacroDefine macro_define;
+    struct MacroInclude macro_include;
+    struct MacroPragma macro_pragma;
+  };
 };
 
 #endif /* !C_CDD_CST_H */
