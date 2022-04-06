@@ -8,6 +8,8 @@
 
 struct CstNode;
 
+#define CST_WITH_BODY
+
 #define CstNode_base_properties                                                \
   size_t pos_start; /* where in full-source `value` starts */                  \
   struct CstNode *scope;                                                       \
@@ -179,29 +181,47 @@ struct Case {
 struct Switch {
   CstNode_base_properties;
   const char *condition;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct If {
   CstNode_base_properties;
   const char *condition;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct Else {
   CstNode_base_properties;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct ElseIf {
   CstNode_base_properties;
   const char *condition;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct While {
   CstNode_base_properties;
   const char *condition;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct Do {
   CstNode_base_properties;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 // struct DoWhile { CstNode_base_properties; };
@@ -209,6 +229,9 @@ struct Do {
 struct For {
   CstNode_base_properties;
   const char *decl_or_expr0, *decl_or_expr1, *expr;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct GoTo {
@@ -239,18 +262,21 @@ struct Struct {
   CstNode_base_properties;
   const char *name;
   struct Declaration **fields;
+  const char **declaration_list;
 };
 
 struct Union {
   CstNode_base_properties;
   const char *name;
   struct Declaration **fields;
+  const char **declaration_list;
 };
 
 struct Enum {
   CstNode_base_properties;
   const char *name;
   struct Declaration **fields;
+  const char **enumerator_list;
 };
 
 struct FunctionPrototype {
@@ -262,6 +288,8 @@ struct FunctionPrototype {
 struct Arg {
   CstNode_base_properties;
   enum Keywords *specifiers;
+  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,
+                       builtin type] */
   const char *name;
 };
 
@@ -272,24 +300,37 @@ struct FunctionStart {
 struct Function {
   CstNode_base_properties;
   enum Keywords *specifiers;
+  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,
+                       builtin type] */
   const char *name;
   struct Arg *args;
+#ifdef CST_WITH_BODY
   struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct MacroIf {
   CstNode_base_properties;
   const char *expr;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct MacroElif {
   CstNode_base_properties;
   const char *expr;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct MacroIfDef {
   CstNode_base_properties;
   const char *expr;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
 };
 
 struct MacroDefine {
@@ -307,7 +348,7 @@ struct MacroPragma {
   const char *val;
 };
 
-enum CstNodeType {
+enum CstNodeKind {
   Expression,
   BlockStart,
   BlockEnd,
@@ -340,40 +381,42 @@ enum CstNodeType {
   MacroPragma
 };
 
+union CstNodeType {
+  struct Expression expression;
+  struct BlockStart block_start;
+  struct BlockEnd block_end;
+
+  struct Label label;
+  struct Case _case;
+  struct Switch _switch;
+  struct If _if;
+  struct Else _else;
+  struct ElseIf elseif;
+  struct While _while;
+  struct Do _do;
+  struct For _for;
+  struct GoTo _goto;
+  struct Continue _continue;
+  struct Break _break;
+  struct Return _return;
+  struct Declaration declaration;
+  struct Struct _struct;
+  struct Union _union;
+  struct Enum _enum;
+  struct FunctionPrototype function_prototype;
+  struct Function function;
+
+  struct MacroIf macro_if;
+  struct MacroElif macro_elif;
+  struct MacroIfDef macro_if_def;
+  struct MacroDefine macro_define;
+  struct MacroInclude macro_include;
+  struct MacroPragma macro_pragma;
+};
+
 struct CstNode {
-  enum CstNodeType kind;
-  union {
-    struct Expression expression;
-    struct BlockStart block_start;
-    struct BlockEnd block_end;
-
-    struct Label label;
-    struct Case _case;
-    struct Switch _switch;
-    struct If _if;
-    struct Else _else;
-    struct ElseIf elseif;
-    struct While _while;
-    struct Do _do;
-    struct For _for;
-    struct GoTo _goto;
-    struct Continue _continue;
-    struct Break _break;
-    struct Return _return;
-    struct Declaration declaration;
-    struct Struct _struct;
-    struct Union _union;
-    struct Enum _enum;
-    struct FunctionPrototype function_prototype;
-    struct Function function;
-
-    struct MacroIf macro_if;
-    struct MacroElif macro_elif;
-    struct MacroIfDef macro_if_def;
-    struct MacroDefine macro_define;
-    struct MacroInclude macro_include;
-    struct MacroPragma macro_pragma;
-  };
+  enum CstNodeKind kind;
+  union CstNodeType type;
 };
 
 #endif /* !C_CDD_CST_H */
