@@ -208,7 +208,7 @@ struct Do {
 
 struct For {
   CstNode_base_properties;
-  const char *decl_or_expr0, decl_or_expr1, expr;
+  const char *decl_or_expr0, *decl_or_expr1, *expr;
 };
 
 struct GoTo {
@@ -273,8 +273,8 @@ struct Function {
   CstNode_base_properties;
   enum Keywords *specifiers;
   const char *name;
-  struct Arg **args;
-  struct CstNode **body;
+  struct Arg *args;
+  struct CstNode *body;
 };
 
 struct MacroIf {
