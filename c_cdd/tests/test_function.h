@@ -22,20 +22,22 @@ TEST x_test_function_parsed(void) {
                                    /* scope */ NULL,
                                    /* value */ "int a",
                                    /* specifiers */ int_specifier,
+                                   /* type */ NULL,
                                    /* name */ "a"};
   static const struct Arg b_arg = {/* pos_start */ 0,
                                    /* scope */ NULL,
                                    /* value */ "int b",
                                    /* specifiers */ int_specifier,
+                                   /* type */ NULL,
                                    /* name */ "b"};
-  struct Arg args[2] = {a_arg, b_arg};
+  struct Arg args[2];
   struct Return _return = {/* pos_start */ 0,
                            /* scope */ NULL,
                            /* value */ "return a + b;",
                            /* val */ "a + b"};
   struct CstNode return_cst_node = {Return};
   struct CstNode sum_func_body[1];
-  return_cst_node._return = _return;
+  return_cst_node.type._return = _return;
   sum_func_body[0] = return_cst_node;
 
   args[0] = a_arg;
