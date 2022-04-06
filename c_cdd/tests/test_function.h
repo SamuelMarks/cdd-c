@@ -17,18 +17,18 @@ TEST x_test_function_scanned(void) {
 TEST x_test_function_parsed(void) {
   const char **scanned = scanner(sum_func_src);
   const struct CstNode **parsed = parser(scanned);
-  enum Keywords int_specifier[] = {INT};
-  struct Arg a_arg = {/* pos_start */ 0,
-                      /* scope */ NULL,
-                      /* value */ "int a",
-                      /* specifiers */ NULL,
-                      /* name */ "a"};
-  struct Arg b_arg = {/* pos_start */ 0,
-                      /* scope */ NULL,
-                      /* value */ "int b",
-                      /* specifiers */ NULL,
-                      /* name */ "b"};
-  struct Arg args[2];
+  static enum Keywords int_specifier[] = {INT};
+  static const struct Arg a_arg = {/* pos_start */ 0,
+                                   /* scope */ NULL,
+                                   /* value */ "int a",
+                                   /* specifiers */ int_specifier,
+                                   /* name */ "a"};
+  static const struct Arg b_arg = {/* pos_start */ 0,
+                                   /* scope */ NULL,
+                                   /* value */ "int b",
+                                   /* specifiers */ int_specifier,
+                                   /* name */ "b"};
+  struct Arg args[2] = {a_arg, b_arg};
   struct Return _return = {/* pos_start */ 0,
                            /* scope */ NULL,
                            /* value */ "return a + b;",
@@ -38,8 +38,6 @@ TEST x_test_function_parsed(void) {
   return_cst_node._return = _return;
   sum_func_body[0] = return_cst_node;
 
-  a_arg.specifiers = int_specifier;
-  b_arg.specifiers = int_specifier;
   args[0] = a_arg;
   args[1] = b_arg;
 
@@ -47,11 +45,10 @@ TEST x_test_function_parsed(void) {
     struct Function sum_func = {/* pos_start */ 0,
                                 /* scope */ NULL,
                                 /* value */ sum_func_src,
-                                /* specifiers */ NULL,
+                                /* specifiers */ int_specifier,
                                 /* name */ "sum",
                                 /* args */ NULL,
                                 /* body */ NULL};
-    sum_func.specifiers = int_specifier;
     sum_func.args = args;
     sum_func.body = sum_func_body;
     ASSERT_EQ(parsed, NULL);
