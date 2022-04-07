@@ -37,6 +37,7 @@ configure_file(
 # available for the sub-projects.
 #===============================================================================
 add_subdirectory("${PROJECT_NAME}")
+add_subdirectory("c")
 
 option(BUILD_TESTS "Build tests" ON)
 include(CTest)
