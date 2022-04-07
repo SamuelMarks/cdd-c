@@ -63,8 +63,6 @@ install(TARGETS ${installable_libs}
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-install(FILES "${_export_file}" ${Header_Files}
-        TYPE "INCLUDE")
 install(EXPORT "${LIBRARY_NAME}Targets" DESTINATION "${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}")
 
 install(FILES ${Header_Files} "${_export_file}"

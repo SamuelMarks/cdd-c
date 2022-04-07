@@ -128,6 +128,16 @@ const struct str_elem *scanner(const char *source) {
         break;
       case ';':
       case '\n':
+      {
+        const size_t substr_length = i - scan_from + 1;
+
+        char *substr = malloc(sizeof(char) * substr_length);
+        sprintf(substr, "%.*s", (int) substr_length, source + scan_from);
+        substr[substr_length] = '\0';
+        printf("[%s] substr: \"%s\"\n", lbrace == rbrace? "true": "false", substr);
+        free(substr);
+      }
+
         if (lbrace == rbrace) {
           const char *expr = process_as_expression(
               source, i, &scan_from, line_continuation_at, in_comment,
@@ -141,13 +151,25 @@ const struct str_elem *scanner(const char *source) {
         }
       }
   }
+  printf("i = %ld ; scan_from = %ld ; n = %ld\n", i, scan_from, n);
+  {
+    const size_t substr_length = i - scan_from + 1;
+
+    char *substr = malloc(sizeof(char) * substr_length);
+    sprintf(substr, "%.*s", (int) substr_length, source + scan_from);
+    substr[substr_length] = '\0';
+    printf("leftover substr: \"%s\"\n", substr);
+    free(substr);
+  }
   {
     const char *expr = process_as_expression(
-        source, i, &scan_from, line_continuation_at, in_comment, in_single,
-        in_double, &c_comment_char_at, &cpp_comment_char_at, &spaces, &lparen,
-        &rparen, &lsquare, &rsquare, &lbrace, &rbrace, &rchev, &lchev);
+        source, i, &scan_from, line_continuation_at, in_comment,
+        in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
+        &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
+        &rchev, &lchev);
     if (expr != NULL)
-      scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+      scanned_cur_ptr =
+          push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
   }
   return scanned_ll;
 }
@@ -181,13 +203,16 @@ const char *process_as_expression(
       line_continuation_at != i - 1 && (*lparen) == (*rparen) &&
       (*lsquare) == (*rsquare) && (*lchev) == (*rchev)) {
     const size_t substr_length = i - *scan_from + 1;
-    char *substr = malloc(substr_length + 1);
-    strncpy(substr, source + *scan_from, substr_length);
+
+    char *substr = malloc(sizeof(char) * substr_length);
+    sprintf(substr, "%.*s", (int)substr_length, source + *scan_from);
     substr[substr_length] = '\0';
+    printf("process_as_expression: \"%s\"\n", substr);
+
     (*cpp_comment_char_at) = -1;
     (*c_comment_char_at) = -1;
     (*spaces) = 0, (*lparen) = 0, (*rparen) = 0, (*lsquare) = 0, (*rsquare) = 0,
-    (*lbrace) = 0, (*rbrace) = 0, (*rchev) = 0, (*lchev) = 0;
+    (*rbrace) = 0, (*rchev) = 0, (*lchev) = 0;
     *scan_from = i + 1;
     return substr;
   }
