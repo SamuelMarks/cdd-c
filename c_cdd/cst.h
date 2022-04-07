@@ -1,10 +1,30 @@
 #ifndef C_CDD_CST_H
 #define C_CDD_CST_H
 
+#ifdef __cplusplus
+#include <cstdbool>
+#include <cstdlib>
+#include <cstring>
+extern "C" {
+#else
 #include <stdlib.h>
 #include <string.h>
 
+#if __STDC_VERSION__ >= 199901L
+#include <stdbool.h>
+#else
+#include <c_cdd_stdbool.h>
+#endif /* __STDC_VERSION__ >= 199901L */
+
+#endif /* __cplusplus */
+
 #include <c_cdd_export.h>
+
+struct str_elem {
+  const char *s;
+  size_t n;
+  struct str_elem *next;
+};
 
 struct CstNode;
 
@@ -16,8 +36,8 @@ struct CstNode;
   const char *value
 
 /* two phase parser */
-extern C_CDD_EXPORT const char **scanner(const char *);
-extern C_CDD_EXPORT const struct CstNode **parser(const char **);
+extern C_CDD_EXPORT const struct str_elem *scanner(const char *);
+extern C_CDD_EXPORT const struct CstNode **parser(struct str_elem *);
 
 struct BlockStart {
   CstNode_base_properties;
@@ -252,10 +272,21 @@ struct Return {
   const char *val;
 };
 
+#define Declaration_properties                                                 \
+  enum Keywords *specifiers;                                                   \
+  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,   \
+                       builtin type] */                                        \
+  const char *name
+
 struct Declaration {
   CstNode_base_properties;
-  enum Keywords **specifiers;
-  const char *name;
+  Declaration_properties;
+};
+
+struct Definition {
+  CstNode_base_properties;
+  Declaration_properties;
+  const char *value_assigned;
 };
 
 struct Struct {
@@ -285,14 +316,6 @@ struct FunctionPrototype {
   struct Declaration **args;
 };
 
-struct Arg {
-  CstNode_base_properties;
-  enum Keywords *specifiers;
-  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,
-                       builtin type] */
-  const char *name;
-};
-
 struct FunctionStart {
   CstNode_base_properties;
 };
@@ -303,7 +326,7 @@ struct Function {
   const char *type; /* set to NULL if `specifiers` has the right type [i.e.,
                        builtin type] */
   const char *name;
-  struct Arg *args;
+  struct Declaration *args;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -318,6 +341,14 @@ struct MacroIf {
 };
 
 struct MacroElif {
+  CstNode_base_properties;
+  const char *expr;
+#ifdef CST_WITH_BODY
+  struct CstNode *body;
+#endif /* CST_WITH_BODY */
+};
+
+struct MacroElse {
   CstNode_base_properties;
   const char *expr;
 #ifdef CST_WITH_BODY
@@ -367,6 +398,7 @@ enum CstNodeKind {
   Break,
   Return,
   Declaration,
+  Definition,
   Struct,
   Union,
   Enum,
@@ -376,6 +408,7 @@ enum CstNodeKind {
   MacroIf,
   MacroElif,
   MacroIfDef,
+  MacroElse,
   MacroDefine,
   MacroInclude,
   MacroPragma
@@ -400,6 +433,7 @@ union CstNodeType {
   struct Break _break;
   struct Return _return;
   struct Declaration declaration;
+  struct Definition definition;
   struct Struct _struct;
   struct Union _union;
   struct Enum _enum;
@@ -409,6 +443,7 @@ union CstNodeType {
   struct MacroIf macro_if;
   struct MacroElif macro_elif;
   struct MacroIfDef macro_if_def;
+  struct MacroElse macro_else;
   struct MacroDefine macro_define;
   struct MacroInclude macro_include;
   struct MacroPragma macro_pragma;
@@ -418,5 +453,9 @@ struct CstNode {
   enum CstNodeKind kind;
   union CstNodeType type;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !C_CDD_CST_H */
