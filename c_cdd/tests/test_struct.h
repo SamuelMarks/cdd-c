@@ -28,7 +28,7 @@ TEST x_test_one_structs_scanned(void) {
                                          "\n};\n"};
 
   for (iter = scanned; iter != NULL; iter = iter->next) {
-    printf("iter->s = \"%s\";\n", iter->s);
+    print_escaped("iter->s", (char *)iter->s);
     ASSERT_STR_EQ(iter->s, scanned_str_l[i++]);
   }
   PASS();
@@ -49,7 +49,7 @@ TEST x_test_two_structs_scanned(void) {
                                          "};\n"};
 
   for (iter = scanned; iter != NULL; iter = iter->next) {
-    printf("iter->s = \"%s\";\n", iter->s);
+    print_escaped("iter->s", (char *)iter->s);
     ASSERT_STR_EQ(iter->s, scanned_str_l[i++]);
   }
   PASS();

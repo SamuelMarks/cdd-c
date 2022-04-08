@@ -2,6 +2,23 @@
 #include <printf.h>
 #include <sys/errno.h>
 
+void print_escaped(const char *name, char *s) {
+#define MIN_NAME 22
+  char *ch;
+  size_t i;
+  printf("%s", name);
+  for (i = 0; i < MIN_NAME - strlen(name); i++)
+    putchar(' ');
+  printf("= \"");
+  for (ch = s; *ch; (ch)++)
+    if (iscntrl(*ch) || *ch == '\\' || *ch == '\"' || *ch == '\'')
+      printf("\\%03o", *ch);
+    else
+      putchar(ch[0]);
+  puts("\"");
+#undef MIN_NAME
+}
+
 struct str_elem **append(struct str_elem **root, const char *s) {
   struct str_elem **insert = &*root;
   while (*insert)
@@ -13,7 +30,6 @@ struct str_elem **append(struct str_elem **root, const char *s) {
   insert[0]->n = strlen(s);
   insert[0]->next = NULL;
   return insert;
-  /* return root; */
 }
 
 const char *process_as_expression(
@@ -127,14 +143,15 @@ const struct str_elem *scanner(const char *source) {
           line_continuation_at = (ssize_t)i;
         break;
       case ';':
-      case '\n':
-      {
+      case '\n': {
         const size_t substr_length = i - scan_from + 1;
 
         char *substr = malloc(sizeof(char) * substr_length);
-        sprintf(substr, "%.*s", (int) substr_length, source + scan_from);
+        sprintf(substr, "%.*s", (int)substr_length, source + scan_from);
         substr[substr_length] = '\0';
-        printf("[%s] substr: \"%s\"\n", lbrace == rbrace? "true": "false", substr);
+        print_escaped("{;\\n} substr", substr);
+        /*printf("[%s] substr:\t\t\t\"%s\"\n", lbrace == rbrace? "true":
+         * "false", substr);*/
         free(substr);
       }
 
@@ -151,25 +168,22 @@ const struct str_elem *scanner(const char *source) {
         }
       }
   }
-  printf("i = %ld ; scan_from = %ld ; n = %ld\n", i, scan_from, n);
   {
     const size_t substr_length = i - scan_from + 1;
 
     char *substr = malloc(sizeof(char) * substr_length);
-    sprintf(substr, "%.*s", (int) substr_length, source + scan_from);
+    sprintf(substr, "%.*s", (int)substr_length, source + scan_from);
     substr[substr_length] = '\0';
-    printf("leftover substr: \"%s\"\n", substr);
+    print_escaped("leftover::substr", substr);
     free(substr);
   }
   {
     const char *expr = process_as_expression(
-        source, i, &scan_from, line_continuation_at, in_comment,
-        in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
-        &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-        &rchev, &lchev);
+        source, i, &scan_from, line_continuation_at, in_comment, in_single,
+        in_double, &c_comment_char_at, &cpp_comment_char_at, &spaces, &lparen,
+        &rparen, &lsquare, &rsquare, &lbrace, &rbrace, &rchev, &lchev);
     if (expr != NULL)
-      scanned_cur_ptr =
-          push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+      scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
   }
   return scanned_ll;
 }
@@ -207,7 +221,7 @@ const char *process_as_expression(
     char *substr = malloc(sizeof(char) * substr_length);
     sprintf(substr, "%.*s", (int)substr_length, source + *scan_from);
     substr[substr_length] = '\0';
-    printf("process_as_expression: \"%s\"\n", substr);
+    print_escaped("process_as_expression", substr);
 
     (*cpp_comment_char_at) = -1;
     (*c_comment_char_at) = -1;

@@ -37,13 +37,20 @@ configure_file(
 # available for the sub-projects.
 #===============================================================================
 add_subdirectory("${PROJECT_NAME}")
-add_subdirectory("c")
+option(BUILD_C "Build C (with flex and bison)" OFF)
+if (BUILD_C)
+    add_subdirectory("c")
+endif (BUILD_C)
 
 option(BUILD_TESTS "Build tests" ON)
 include(CTest)
 if (BUILD_TESTING)
     add_subdirectory("${PROJECT_NAME}/tests")
 endif (BUILD_TESTING)
+
+###########
+# Install #
+###########
 
 include(GNUInstallDirs)
 

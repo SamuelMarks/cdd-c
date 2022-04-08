@@ -1,15 +1,13 @@
 #include <stdio.h>
 
 extern int yyparse();
-extern FILE* yyin;
+extern FILE *yyin;
 extern int yylex();
 extern void yyerror(const char *);
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   yyin = fopen(argv[1], "r");
-  if(!yyin)
-  {
+  if (!yyin) {
     printf("couldn't open file for reading\n");
     return 1;
   }

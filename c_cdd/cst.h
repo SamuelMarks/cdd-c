@@ -20,6 +20,8 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
+extern C_CDD_EXPORT void print_escaped(const char *name, char *s);
+
 struct str_elem {
   const char *s;
   size_t n;
