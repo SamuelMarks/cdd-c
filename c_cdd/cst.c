@@ -1,6 +1,11 @@
 #include <ctype.h>
 #include <stdio.h>
+
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#include <errno.h>
+#else
 #include <sys/errno.h>
+#endif
 
 #include "cst.h"
 
@@ -172,8 +177,6 @@ const struct str_elem *scanner(const char *source) {
         sprintf(substr, "%.*s", (int)substr_length, source + scan_from);
         substr[substr_length] = '\0';
         print_escaped("{;\\n} substr", substr);
-        /*printf("[%s] substr:\t\t\t\"%s\"\n", lbrace == rbrace? "true":
-         * "false", substr);*/
         free(substr);
       }
 
