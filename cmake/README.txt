@@ -1,6 +1,6 @@
 c_cdd
 
-Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (prettyprinting).
+Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).
 
 ------------------------------------------------------------------------
 
