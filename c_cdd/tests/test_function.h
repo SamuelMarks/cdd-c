@@ -10,9 +10,9 @@ static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 TEST x_test_function_scanned(void) {
   struct str_elem *scanned = (struct str_elem *)scanner(sum_func_src);
   struct str_elem *iter;
-  enum { n = 3 };
+  enum { n = 4 };
   size_t i = 0;
-  static const char *scanned_str_l[n] = {"int sum(int a, int b) {",
+  static const char *scanned_str_l[n] = {"int sum(int a, int b) ", "{",
                                          " return a + b;", " }"};
 
   for (iter = scanned; iter != NULL; iter = iter->next)
