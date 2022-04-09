@@ -1,6 +1,8 @@
-#include "cst.h"
-#include <printf.h>
+#include <ctype.h>
+#include <stdio.h>
 #include <sys/errno.h>
+
+#include "cst.h"
 
 void print_escaped(const char *name, char *s) {
 #define MIN_NAME 22
@@ -38,7 +40,8 @@ const char *process_as_expression(
     bool in_double, ssize_t *c_comment_char_at, ssize_t *cpp_comment_char_at,
     unsigned int *spaces, unsigned int *lparen, unsigned int *rparen,
     unsigned int *lsquare, unsigned int *rsquare, unsigned int *lbrace,
-    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev);
+    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev,
+    bool always_make_expr);
 
 struct str_elem **push_expr_to_ll(size_t *scanned_n,
                                   struct str_elem ***scanned_ll,
@@ -110,10 +113,29 @@ const struct str_elem *scanner(const char *source) {
           rsquare++;
         break;
       case '{':
+      case '}':
+        /* TODO: Handle `static int a[][] = {{5,6}, {7,8}};`, maybe just if an
+         * '=' is present? */
+        if (i != 0 && spaces != i - scan_from) {
+          const char *expr = process_as_expression(
+              source, i - 1, &scan_from, line_continuation_at, in_comment,
+              in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
+              &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
+              &rchev, &lchev, /* always_make_expr */ true);
+          scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+        }
+        { /* Push just the '{' | '}' to its own node */
+          const char *expr = process_as_expression(
+              source, i, &scan_from, line_continuation_at, in_comment,
+              in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
+              &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
+              &rchev, &lchev, /* always_make_expr */ true);
+          scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+        }
+        break;
+      /*case '{':
         if (!in_single && !in_double && !in_comment) {
           lbrace++;
-          /* printf("{ found: %ld -> \"%.*s\"\n",
-           *        i, (int)(scan_from-i), source+i); */
           {
             const char *expr = process_as_expression(
                 source, i, &scan_from, line_continuation_at, in_comment,
@@ -129,7 +151,7 @@ const struct str_elem *scanner(const char *source) {
       case '}':
         if (!in_single && !in_double && !in_comment)
           rbrace++;
-        break;
+        break;*/
       case '<':
         if (!in_single && !in_double && !in_comment)
           lchev++;
@@ -160,7 +182,7 @@ const struct str_elem *scanner(const char *source) {
               source, i, &scan_from, line_continuation_at, in_comment,
               in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
               &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-              &rchev, &lchev);
+              &rchev, &lchev, /* always_make_expr */ false);
           if (expr != NULL)
             scanned_cur_ptr =
                 push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
@@ -177,11 +199,12 @@ const struct str_elem *scanner(const char *source) {
     print_escaped("leftover::substr", substr);
     free(substr);
   }
-  {
+  if (i < n) {
     const char *expr = process_as_expression(
         source, i, &scan_from, line_continuation_at, in_comment, in_single,
         in_double, &c_comment_char_at, &cpp_comment_char_at, &spaces, &lparen,
-        &rparen, &lsquare, &rsquare, &lbrace, &rbrace, &rchev, &lchev);
+        &rparen, &lsquare, &rsquare, &lbrace, &rbrace, &rchev, &lchev,
+        /* always_make_expr */ false);
     if (expr != NULL)
       scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
   }
@@ -212,10 +235,12 @@ const char *process_as_expression(
     bool in_double, ssize_t *c_comment_char_at, ssize_t *cpp_comment_char_at,
     unsigned int *spaces, unsigned int *lparen, unsigned int *rparen,
     unsigned int *lsquare, unsigned int *rsquare, unsigned int *lbrace,
-    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev) {
-  if (!in_single && !in_double && !in_comment &&
-      line_continuation_at != i - 1 && (*lparen) == (*rparen) &&
-      (*lsquare) == (*rsquare) && (*lchev) == (*rchev)) {
+    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev,
+    bool always_make_expr) {
+  if (always_make_expr ||
+      !in_single && !in_double && !in_comment &&
+          line_continuation_at != i - 1 && (*lparen) == (*rparen) &&
+          (*lsquare) == (*rsquare) && (*lchev) == (*rchev)) {
     const size_t substr_length = i - *scan_from + 1;
 
     char *substr = malloc(sizeof(char) * substr_length);
