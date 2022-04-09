@@ -2,7 +2,9 @@
 #include <stdio.h>
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#include <BaseTsd.h>
 #include <errno.h>
+typedef SSIZE_T ssize_t;
 #else
 #include <sys/errno.h>
 #endif
