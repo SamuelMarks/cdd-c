@@ -1,6 +1,6 @@
 c_cdd
 
-Solution to generate C `struct`s—and `free` code for them—using JSON-schema as input.
+Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (prettyprinting).
 
 ------------------------------------------------------------------------
 
