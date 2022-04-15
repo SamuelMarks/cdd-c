@@ -1,266 +1,234 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#include <BaseTsd.h>
-#include <errno.h>
-typedef SSIZE_T ssize_t;
-#else
-#include <sys/errno.h>
-#endif
-
+#include "c_cdd_utils.h"
 #include "cst.h"
 
-void print_escaped(const char *name, char *s) {
-#define MIN_NAME 22
-  char *ch;
-  size_t i;
-  printf("%s", name);
-  for (i = 0; i < MIN_NAME - strlen(name); i++)
-    putchar(' ');
-  printf("= \"");
-  for (ch = s; *ch; (ch)++)
-    if (iscntrl(*ch) || *ch == '\\' || *ch == '\"' || *ch == '\'')
-      printf("\\%03o", *ch);
-    else
-      putchar(ch[0]);
-  puts("\"");
-#undef MIN_NAME
-}
+struct ScannerVars {
+  ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
+  unsigned spaces;
+  unsigned lparen, rparen, lsquare, rsquare, lbrace, rbrace, lchev, rchev;
+  bool in_c_comment, in_cpp_comment, in_single, in_double, in_macro, in_init;
+};
 
-struct str_elem **append(struct str_elem **root, const char *s) {
-  struct str_elem **insert = &*root;
-  while (*insert)
-    insert = &insert[0]->next;
-  *insert = malloc(sizeof **insert);
-  if (!*insert)
-    exit(ENOMEM);
-  insert[0]->s = s;
-  insert[0]->n = strlen(s);
-  insert[0]->next = NULL;
-  return insert;
-}
+void clear_sv(struct ScannerVars *);
 
-const char *process_as_expression(
-    const char *source, size_t i, size_t *scan_from,
-    ssize_t line_continuation_at, bool in_comment, bool in_single,
-    bool in_double, ssize_t *c_comment_char_at, ssize_t *cpp_comment_char_at,
-    unsigned int *spaces, unsigned int *lparen, unsigned int *rparen,
-    unsigned int *lsquare, unsigned int *rsquare, unsigned int *lbrace,
-    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev,
-    bool always_make_expr);
-
-struct str_elem **push_expr_to_ll(size_t *scanned_n,
-                                  struct str_elem ***scanned_ll,
-                                  const char *expr);
+const char *add_word_clear_vars(const char *source, size_t i, size_t *scan_from,
+                                struct ScannerVars *sv, bool always_make_expr);
 
 const struct str_elem *scanner(const char *source) {
-  size_t i, n = strlen(source), scan_from, scanned_n = 0;
-  ssize_t c_comment_char_at, cpp_comment_char_at = -1,
-                             line_continuation_at = -1;
-  unsigned spaces = 0, lparen = 0, rparen = 0, lsquare = 0, rsquare = 0,
-           lbrace = 0, rbrace = 0, rchev = 0, lchev = 0;
-  bool in_comment = false, in_single = false, in_double = false,
-       in_macro = false;
+  struct ScannerVars sv;
 
   struct str_elem *scanned_ll = NULL;
   struct str_elem **scanned_cur_ptr = &scanned_ll;
 
+  size_t i, n = strlen(source), scan_from, scanned_n = 0;
+
+  clear_sv(&sv);
+
+  /* Scanner algorithm:
+   *   0. Read one char at a time;
+   *   1. Handle cases: space | '\' | ';' | '\n' | char | string | comment;
+   *   2. Handle cases: conditioned by `in_{char || string || comment}`;
+   *   3. Handle any remaining char | string;
+   *   4. Finish with a linked-list.
+   */
   for (i = 0, scan_from = 0; i < n; i++) {
+    bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
     if (isspace(source[i]))
-      spaces++;
+      sv.spaces++;
     else
       switch (source[i]) {
       case '/':
-        if (!in_single && !in_double) {
-          if (cpp_comment_char_at == i - 1)
-            in_comment = true;
-          else if (c_comment_char_at == i - 1)
-            in_comment = false;
-          else {
-            cpp_comment_char_at = (ssize_t)i;
-            c_comment_char_at = (ssize_t)i;
-          }
+        if (!sv.in_single && !sv.in_double) {
+          if (sv.cpp_comment_char_at == i - 1)
+            sv.in_cpp_comment = true;
+          else if (sv.c_comment_char_at == i - 1)
+            sv.in_c_comment = false;
+          else
+            sv.cpp_comment_char_at = (ssize_t)i,
+            sv.c_comment_char_at = (ssize_t)i;
         }
         break;
       case '*':
-        if (!in_single && !in_double) {
+        if (!sv.in_single && !sv.in_double) {
           if (in_comment)
-            c_comment_char_at = (ssize_t)i;
-          else if (c_comment_char_at == i - 1)
-            in_comment = true;
+            sv.c_comment_char_at = (ssize_t)i;
+          else if (sv.c_comment_char_at == i - 1)
+            sv.in_c_comment = true;
         }
         break;
       case '"':
-        if (!in_single)
-          in_double = !in_double;
+        if (!sv.in_single)
+          sv.in_double = !sv.in_double;
         break;
       case '\'':
-        if (!in_double)
-          in_single = !in_single;
-        break;
-      case '#':
-        if (!in_single && !in_double && !in_comment)
-          in_macro = true;
-        break;
-      case '(':
-        if (!in_single && !in_double && !in_comment)
-          lparen++;
-        break;
-      case ')':
-        if (!in_single && !in_double && !in_comment)
-          rparen++;
-        break;
-      case '[':
-        if (!in_single && !in_double && !in_comment)
-          lsquare++;
-        break;
-      case ']':
-        if (!in_single && !in_double && !in_comment)
-          rsquare++;
-        break;
-      case '{':
-      case '}':
-        /* TODO: Handle `static int a[][] = {{5,6}, {7,8}};`, maybe just if an
-         * '=' is present? */
-        if (i != 0 && spaces != i - scan_from) {
-          const char *expr = process_as_expression(
-              source, i - 1, &scan_from, line_continuation_at, in_comment,
-              in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
-              &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-              &rchev, &lchev, /* always_make_expr */ true);
-          scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
-        }
-        { /* Push just the '{' | '}' to its own node */
-          const char *expr = process_as_expression(
-              source, i, &scan_from, line_continuation_at, in_comment,
-              in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
-              &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-              &rchev, &lchev, /* always_make_expr */ true);
-          scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
-        }
-        break;
-      /*case '{':
-        if (!in_single && !in_double && !in_comment) {
-          lbrace++;
-          {
-            const char *expr = process_as_expression(
-                source, i, &scan_from, line_continuation_at, in_comment,
-                in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
-                &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-                &rchev, &lchev);
-            if (expr != NULL)
-              scanned_cur_ptr =
-                  push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
-          }
-        }
-        break;
-      case '}':
-        if (!in_single && !in_double && !in_comment)
-          rbrace++;
-        break;*/
-      case '<':
-        if (!in_single && !in_double && !in_comment)
-          lchev++;
-        break;
-      case '>':
-        if (!in_single && !in_double && !in_comment)
-          rchev++;
-        break;
-      case '\\':
-        if (!in_single && !in_double && !in_comment)
-          line_continuation_at = (ssize_t)i;
+        if (!sv.in_double)
+          sv.in_single = !sv.in_single;
         break;
       case ';':
-      case '\n': {
-        const size_t substr_length = i - scan_from + 1;
-
-        char *substr = malloc(sizeof(char) * substr_length);
-        sprintf(substr, "%.*s", (int)substr_length, source + scan_from);
-        substr[substr_length] = '\0';
-        print_escaped("{;\\n} substr", substr);
-        free(substr);
-      }
-
-        if (lbrace == rbrace) {
-          const char *expr = process_as_expression(
-              source, i, &scan_from, line_continuation_at, in_comment,
-              in_single, in_double, &c_comment_char_at, &cpp_comment_char_at,
-              &spaces, &lparen, &rparen, &lsquare, &rsquare, &lbrace, &rbrace,
-              &rchev, &lchev, /* always_make_expr */ false);
+      case '\n':
+        if (sv.lbrace == sv.rbrace || in_comment) {
+          const char *expr = add_word_clear_vars(source, i, &scan_from, &sv,
+                                                 /* always_make_expr */ false);
           if (expr != NULL)
             scanned_cur_ptr =
-                push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+                str_push_to_ll(&scanned_n, &scanned_cur_ptr, expr);
           break;
+        }
+      default:
+        if (!sv.in_single && !sv.in_double && !in_comment) {
+          switch (source[i]) {
+          case '=':
+            sv.in_init = true;
+            break;
+          case '#':
+            sv.in_macro = true;
+            break;
+          case '(':
+            sv.lparen++;
+            break;
+          case ')':
+            sv.rparen++;
+            break;
+          case '[':
+            sv.lsquare++;
+            break;
+          case ']':
+            sv.rsquare++;
+            break;
+          case '<':
+            sv.lchev++;
+            break;
+          case '>':
+            sv.rchev++;
+            break;
+          case '\\':
+            sv.line_continuation_at = (ssize_t)i;
+            break;
+          case '{':
+          case '}':
+            /* TODO: Handle `f({{5,6}, {7,8}});` */
+            if (!sv.in_init) {
+              if (i != 0 && sv.spaces != i - scan_from) {
+
+                clear_sv(&sv);
+
+                const char *expr =
+                    add_word_clear_vars(source, i - 1, &scan_from, &sv,
+                                        /* always_make_expr */ true);
+                scanned_cur_ptr =
+                    str_push_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+              }
+              { /* Push just the '{' | '}' to its own node */
+                const char *expr =
+                    add_word_clear_vars(source, i, &scan_from, &sv,
+                                        /* always_make_expr */ true);
+                scanned_cur_ptr =
+                    str_push_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+              }
+            }
+            break;
+          }
         }
       }
   }
-  {
-    const size_t substr_length = i - scan_from + 1;
-
-    char *substr = malloc(sizeof(char) * substr_length);
-    sprintf(substr, "%.*s", (int)substr_length, source + scan_from);
-    substr[substr_length] = '\0';
-    print_escaped("leftover::substr", substr);
-    free(substr);
-  }
   if (i < n) {
-    const char *expr = process_as_expression(
-        source, i, &scan_from, line_continuation_at, in_comment, in_single,
-        in_double, &c_comment_char_at, &cpp_comment_char_at, &spaces, &lparen,
-        &rparen, &lsquare, &rsquare, &lbrace, &rbrace, &rchev, &lchev,
-        /* always_make_expr */ false);
+    const char *expr = add_word_clear_vars(source, i, &scan_from, &sv,
+                                           /* always_make_expr */ false);
     if (expr != NULL)
-      scanned_cur_ptr = push_expr_to_ll(&scanned_n, &scanned_cur_ptr, expr);
+      scanned_cur_ptr = str_push_to_ll(&scanned_n, &scanned_cur_ptr, expr);
   }
   return scanned_ll;
 }
 
-struct str_elem **push_expr_to_ll(size_t *scanned_n,
-                                  struct str_elem ***scanned_ll,
-                                  const char *expr) {
-  if (expr != NULL) {
-    /* struct StrNode cur_node = {expr, strlen(expr), NULL}; */
-    /*struct str_elem *cur_node = malloc(sizeof (struct StrNode));
-    cur_node->s = strdup(expr);
-    cur_node->n = strlen(expr);
-    cur_node->next = NULL;*/
-    (*scanned_n)++;
-    return append(*scanned_ll, expr);
-
-    /* scanned = realloc(scanned, ++scanned_n * sizeof(*scanned)); */
-    /* strncpy(scanned[scanned_n], = expr; */
-  }
-  return *scanned_ll;
+void clear_sv(struct ScannerVars *sv) {
+  (*sv) = (struct ScannerVars){-1,    -1,    -1,    0,     0,     0,
+                               0,     0,     0,     0,     0,     0,
+                               false, false, false, false, false, false};
 }
 
-const char *process_as_expression(
-    const char *source, size_t i, size_t *scan_from,
-    ssize_t line_continuation_at, bool in_comment, bool in_single,
-    bool in_double, ssize_t *c_comment_char_at, ssize_t *cpp_comment_char_at,
-    unsigned int *spaces, unsigned int *lparen, unsigned int *rparen,
-    unsigned int *lsquare, unsigned int *rsquare, unsigned int *lbrace,
-    unsigned int *rbrace, unsigned int *rchev, unsigned int *lchev,
-    bool always_make_expr) {
+const char *add_word_clear_vars(const char *source, size_t i, size_t *scan_from,
+                                struct ScannerVars *sv, bool always_make_expr) {
   if (always_make_expr ||
-      !in_single && !in_double && !in_comment &&
-          line_continuation_at != i - 1 && (*lparen) == (*rparen) &&
-          (*lsquare) == (*rsquare) && (*lchev) == (*rchev)) {
-    const size_t substr_length = i - *scan_from + 1;
-
-    char *substr = malloc(sizeof(char) * substr_length);
-    sprintf(substr, "%.*s", (int)substr_length, source + *scan_from);
-    substr[substr_length] = '\0';
-    print_escaped("process_as_expression", substr);
-
-    (*cpp_comment_char_at) = -1;
-    (*c_comment_char_at) = -1;
-    (*spaces) = 0, (*lparen) = 0, (*rparen) = 0, (*lsquare) = 0, (*rsquare) = 0,
-    (*rbrace) = 0, (*rchev) = 0, (*lchev) = 0;
-    *scan_from = i + 1;
-    return substr;
+      !sv->in_single && !sv->in_double && !sv->in_c_comment &&
+          !sv->in_cpp_comment && sv->line_continuation_at != i - 1 &&
+          sv->lparen == sv->rparen && sv->lsquare == sv->rsquare &&
+          sv->lchev == sv->rchev) {
+    clear_sv(sv);
+    return add_word(source, i, scan_from);
   }
   return NULL;
 }
 
-const struct CstNode **parser(struct str_elem *scanned) { return NULL; }
+const struct CstNode **parser(struct str_elem *scanned) {
+  struct str_elem *iter;
+  putchar('\n');
+  for (iter = scanned; iter != NULL; iter = iter->next) {
+    char line[4095], *ch;
+    size_t i = 0, j = 0, scan_from = 0, comment_started = 0, last_space = 0;
+    struct ScannerVars sv;
+    struct str_elem *words = NULL;
+    struct str_elem **words_cur_ptr = &words;
+
+    clear_sv(&sv);
+
+    print_escaped("iter->s", (char *)iter->s);
+
+    // printf("c: \'%c\'\n", c);
+    /*
+     "<words><name><lparen"
+     sv.lparen could indicate:
+       - function call
+       - function prototype
+       - function definition
+       - declaration
+     */
+    for (ch = strdup(iter->s), i = 0; *ch; (ch)++, i++) {
+      bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
+      if (isspace(*ch) && i > 0 && !in_comment && !isspace(ch[i - 1])) {
+        words_cur_ptr = append(words_cur_ptr, add_word(iter->s, i, &scan_from));
+      } else
+        switch (*ch) {
+        case '(':
+          if (!in_comment) {
+            if (i > 0)
+              words_cur_ptr =
+                  append(words_cur_ptr, add_word(iter->s, i - 1, &scan_from));
+            words_cur_ptr =
+                append(words_cur_ptr, add_word(iter->s, i, &scan_from));
+          }
+          break;
+          /*case '\\':*/
+        case ',':
+          if (i > 0)
+            words_cur_ptr =
+                append(words_cur_ptr, add_word(iter->s, i - 1, &scan_from));
+          words_cur_ptr =
+              append(words_cur_ptr, add_word(iter->s, i, &scan_from));
+          break;
+        case '/':
+          if (in_comment)
+            in_comment = line[i - 1] == '*';
+          else if (i > 0 && (line[i - 1] == '/' || line[i - 1] == '*'))
+            in_comment = true, comment_started = i;
+          break;
+        }
+      /*escape:
+        line[i + 1] = '\0';
+        print_escaped("line", line);*/
+
+      /*{
+        char *rest = NULL;
+        char *token;
+        for (token = strtok_r(strdup(iter->s), " ", &rest);
+             token != NULL;
+             token = strtok_r(NULL, " ", &rest)) {
+          print_escaped("token", token);
+        }
+      }*/
+      putchar('\n');
+    }
+  }
+  return NULL;
+}

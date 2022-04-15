@@ -42,7 +42,6 @@ if (BUILD_C)
     add_subdirectory("c")
 endif (BUILD_C)
 
-option(BUILD_TESTS "Build tests" ON)
 include(CTest)
 if (BUILD_TESTING)
     add_subdirectory("${PROJECT_NAME}/tests")
