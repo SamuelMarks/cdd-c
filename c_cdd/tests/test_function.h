@@ -21,8 +21,8 @@ TEST x_test_function_scanned(void) {
 }
 
 TEST x_test_function_parsed(void) {
-  struct str_elem *scanned = scanner(sum_func_src);
-  const struct CstNode **parsed = parser(scanned);
+  const struct str_elem *scanned = scanner(sum_func_src);
+  const struct CstNode **parsed = parser((struct str_elem *)scanned);
   static enum Keywords int_specifier[] = {INT};
   static const struct Declaration a_arg = {/* pos_start */ 0,
                                            /* scope */ NULL,
@@ -59,6 +59,7 @@ TEST x_test_function_parsed(void) {
                                 /* body */ NULL};
     sum_func.args = args;
     sum_func.body = sum_func_body;
+
     ASSERT_EQ(parsed, NULL);
     /* TODO: loop through parsed, assert contents contain expected information
      */
@@ -66,10 +67,9 @@ TEST x_test_function_parsed(void) {
   }
 }
 
-/* Suites can group multiple tests with common setup. */
 SUITE(function_suite) {
   RUN_TEST(x_test_function_scanned);
-  /* RUN_TEST(x_test_function_parsed); */
+  RUN_TEST(x_test_function_parsed);
 }
 
 #endif /* !C_CDD_TESTS_TEST_FUNCTION_H */

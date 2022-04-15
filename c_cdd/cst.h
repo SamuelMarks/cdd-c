@@ -18,15 +18,17 @@ extern "C" {
 
 #endif /* __cplusplus */
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#include <BaseTsd.h>
+#include <errno.h>
+typedef SSIZE_T ssize_t;
+#else
+#include <sys/errno.h>
+#endif
+
 #include <c_cdd_export.h>
 
-extern C_CDD_EXPORT void print_escaped(const char *name, char *s);
-
-struct str_elem {
-  const char *s;
-  size_t n;
-  struct str_elem *next;
-};
+#include "ll.h"
 
 struct CstNode;
 
@@ -59,51 +61,53 @@ struct CComment {
   CstNode_base_properties;
 };
 
+enum StorageClass { EXTERN, STATIC, THREAD_LOCAL, AUTO, REGISTER };
+static const char *storage_classes[] = {"extern", "static", "thread_local",
+                                        "auto", "register"};
+
+enum TypeSpecifier {
+  VOID,
+  CHAR,
+  SHORT,
+  INT,
+  LONG,
+  FLOAT,
+  DOUBLE,
+  SIGNED,
+  UNSIGNED,
+  BOOL,
+  COMPLEX,
+  IMAGINARY
+};
+
 enum Keywords {
-  AUTO,
   BREAK,
   CASE,
-  CHAR,
   CONST,
   CONTINUE,
   DEFAULT,
   DO,
-  DOUBLE,
   ELSE,
   ENUM,
-  EXTERN,
-  FLOAT,
   FOR,
   GOTO,
   IF,
   INLINE,
-  INT,
-  LONG,
-  REGISTER,
   RESTRICT,
   RETURN,
-  SHORT,
-  SIGNED,
   SIZEOF,
-  STATIC,
   STRUCT,
   SWITCH,
   TYPEDEF,
   UNION,
-  UNSIGNED,
-  VOID,
   VOLATILE,
   WHILE,
   ALIGNAS,
   ALIGNOF,
   ATOMIC,
-  BOOL,
-  COMPLEX,
   GENERIC,
-  IMAGINARY,
   NORETURN,
   STATIC_ASSERT,
-  THREAD_LOCAL,
   FUNC_NAME
 };
 

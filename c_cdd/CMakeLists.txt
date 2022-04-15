@@ -4,19 +4,20 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}")
 
-set(Header_Files "c_cdd_stdbool.h" "cst.h")
+set(Header_Files "c_cdd_stdbool.h" "c_cdd_utils.h" "ll.h" "cst.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "cst.c")
+set(Source_Files "c_cdd_utils.c" "ll.c" "cst.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+include(GNUInstallDirs)
 target_include_directories(
         "${LIBRARY_NAME}"
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-        "$<INSTALL_INTERFACE:include>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 target_link_libraries(
         "${LIBRARY_NAME}"
