@@ -41,6 +41,7 @@ struct CstNode;
 
 /* two phase parser */
 extern C_CDD_EXPORT const struct str_elem *scanner(const char *);
+extern C_CDD_EXPORT const struct str_elem *tokenizer(struct str_elem *);
 extern C_CDD_EXPORT const struct CstNode **parser(struct str_elem *);
 
 struct BlockStart {
@@ -65,7 +66,7 @@ enum StorageClass { EXTERN, STATIC, THREAD_LOCAL, AUTO, REGISTER };
 static const char *storage_classes[] = {"extern", "static", "thread_local",
                                         "auto", "register"};
 
-enum TypeSpecifier {
+enum TypeSpecifier /* & TypeQualifier */ {
   VOID,
   CHAR,
   SHORT,
@@ -77,13 +78,19 @@ enum TypeSpecifier {
   UNSIGNED,
   BOOL,
   COMPLEX,
-  IMAGINARY
+  IMAGINARY,
+  /*}; enum TypeQualifier {*/
+  CONST,
+  RESTRICT,
+  VOLATILE,
+  ATOMIC
 };
+
+enum FunctionSpecifier { INLINE, NORETURN };
 
 enum Keywords {
   BREAK,
   CASE,
-  CONST,
   CONTINUE,
   DEFAULT,
   DO,
@@ -92,21 +99,16 @@ enum Keywords {
   FOR,
   GOTO,
   IF,
-  INLINE,
-  RESTRICT,
   RETURN,
   SIZEOF,
   STRUCT,
   SWITCH,
   TYPEDEF,
   UNION,
-  VOLATILE,
   WHILE,
   ALIGNAS,
   ALIGNOF,
-  ATOMIC,
   GENERIC,
-  NORETURN,
   STATIC_ASSERT,
   FUNC_NAME
 };
@@ -279,6 +281,8 @@ struct Return {
 };
 
 #define Declaration_properties                                                 \
+  enum StorageClass storage_class;                                             \
+  enum TypeSpecifier *type_specifier;                                          \
   enum Keywords *specifiers;                                                   \
   const char *type; /* set to NULL if `specifiers` has the right type [i.e.,   \
                        builtin type] */                                        \
@@ -318,6 +322,7 @@ struct Enum {
 
 struct FunctionPrototype {
   CstNode_base_properties;
+  enum FunctionSpecifier function_specifier;
   const char *name;
   struct Declaration **args;
 };

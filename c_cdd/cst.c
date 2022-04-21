@@ -161,15 +161,21 @@ const char *add_word_clear_vars(const char *source, size_t i, size_t *scan_from,
   return NULL;
 }
 
-const struct CstNode **parser(struct str_elem *scanned) {
+const struct str_elem *tokenizer(struct str_elem *scanned) {
+  /* tokenizes into words, from "unsigned long/ *stuff*\f()";
+   * to {"unsigned long", "/ *stuff*\", "f", "(", ")", ";"} */
   struct str_elem *iter;
+  struct str_elem *words = NULL;
+  struct str_elem **words_cur_ptr = &words;
+  printf("const struct str_elem *tokenizer(struct str_elem *scanned)");
   putchar('\n');
+#define SUBSTR_PRINT 1
+#include "c_cdd_utils.h"
   for (iter = scanned; iter != NULL; iter = iter->next) {
     char line[4095], *ch;
-    size_t i = 0, j = 0, scan_from = 0, comment_started = 0, last_space = 0;
+    size_t i = 0, j = 0, scan_from = 0;
+    ssize_t comment_started = -1, comment_ended = -1, last_space = -1;
     struct ScannerVars sv;
-    struct str_elem *words = NULL;
-    struct str_elem **words_cur_ptr = &words;
 
     clear_sv(&sv);
 
@@ -186,32 +192,40 @@ const struct CstNode **parser(struct str_elem *scanned) {
      */
     for (ch = strdup(iter->s), i = 0; *ch; (ch)++, i++) {
       bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
-      if (isspace(*ch) && i > 0 && !in_comment && !isspace(ch[i - 1])) {
-        words_cur_ptr = append(words_cur_ptr, add_word(iter->s, i, &scan_from));
+      size_t words_n=0;
+      if (i > 0 && !in_comment && !isspace(ch[i - 1]) && !isspace(*ch)) {
+        words_cur_ptr = str_push_to_ll(&words_n, &words_cur_ptr, add_word(iter->s, i, &scan_from));
       } else
         switch (*ch) {
+          /*case '\\':*/
         case '(':
+        case '[':
+        case '{':
+        case '}':
+        case ']':
+        case ')':
+        case ',': /* TODO: Handle `int a, *b` */
           if (!in_comment) {
             if (i > 0)
               words_cur_ptr =
-                  append(words_cur_ptr, add_word(iter->s, i - 1, &scan_from));
+                  str_push_to_ll(&words_n, &words_cur_ptr, add_word(iter->s, i - 1, &scan_from));
             words_cur_ptr =
-                append(words_cur_ptr, add_word(iter->s, i, &scan_from));
+                str_push_to_ll(&words_n, &words_cur_ptr, add_word(iter->s, i, &scan_from));
           }
           break;
-          /*case '\\':*/
-        case ',':
-          if (i > 0)
-            words_cur_ptr =
-                append(words_cur_ptr, add_word(iter->s, i - 1, &scan_from));
-          words_cur_ptr =
-              append(words_cur_ptr, add_word(iter->s, i, &scan_from));
-          break;
         case '/':
-          if (in_comment)
+          if (in_comment) {
             in_comment = line[i - 1] == '*';
-          else if (i > 0 && (line[i - 1] == '/' || line[i - 1] == '*'))
-            in_comment = true, comment_started = i;
+            if (!in_comment)
+              comment_ended = (ssize_t)i - 1;
+          } else if (i > 0 && (line[i - 1] == '/' || line[i - 1] == '*'))
+            in_comment = true, comment_started = (ssize_t)i - 1;
+          break;
+        case '\n':
+          if (sv.in_cpp_comment) {
+            sv.in_cpp_comment = false;
+            comment_ended = (ssize_t)i - 1;
+          }
           break;
         }
       /*escape:
@@ -227,8 +241,10 @@ const struct CstNode **parser(struct str_elem *scanned) {
           print_escaped("token", token);
         }
       }*/
-      putchar('\n');
+      // putchar('\n');
     }
   }
-  return NULL;
+  return words;
 }
+
+const struct CstNode **parser(struct str_elem *scanned) { return NULL; }
