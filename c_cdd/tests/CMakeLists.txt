@@ -29,7 +29,7 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 
 set(EXEC_NAME "test_c_cdd")
 
-set(Header_Files "test_function.h" "test_struct.h")
+set(Header_Files "test_function.h" "test_struct.h" "test_tokenizer.h")
 source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
 
 set(Source_Files "${EXEC_NAME}.c")
