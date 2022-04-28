@@ -20,21 +20,32 @@ static const char two_structs_src[] = "struct Haz {\n"
                                       "};\n";
 
 TEST x_test_one_structs_scanned(void) {
-  struct str_elem *scanned = (struct str_elem *)scanner(one_structs_src);
-  struct str_elem *iter;
+  const az_span one_structs_span =
+      az_span_create_from_str((char *)sum_func_src);
+  struct az_span_elem *scanned =
+      (struct az_span_elem *)scanner(one_structs_span);
+  struct az_span_elem *iter;
   enum { n = 5 };
   size_t i = 0;
   static const char *scanned_str_l[n] = {
       "struct Haz ", "{", "\012  const char *bzr;", "\012}", ";"};
 
-  for (iter = scanned; iter != NULL; iter = iter->next)
-    ASSERT_STR_EQ(iter->s, scanned_str_l[i++]);
+  for (iter = scanned; iter != NULL; iter = iter->next) {
+    const size_t n = az_span_size(iter->span);
+    char *iter_s = malloc(n + 1);
+    az_span_to_str(iter_s, (int32_t)n, iter->span);
+    ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);
+    free(iter_s);
+  }
   PASS();
 }
 
 TEST x_test_two_structs_scanned(void) {
-  struct str_elem *scanned = (struct str_elem *)scanner(two_structs_src);
-  struct str_elem *iter;
+  const az_span two_structs_span =
+      az_span_create_from_str((char *)two_structs_src);
+  struct az_span_elem *scanned =
+      (struct az_span_elem *)scanner(two_structs_span);
+  struct az_span_elem *iter;
   enum { n = 12 };
   size_t i = 0;
   static const char *scanned_str_l[n] = {"struct Haz ",
@@ -50,8 +61,13 @@ TEST x_test_two_structs_scanned(void) {
                                          "\012}",
                                          ";"};
 
-  for (iter = scanned; iter != NULL; iter = iter->next)
-    ASSERT_STR_EQ(iter->s, scanned_str_l[i++]);
+  for (iter = scanned; iter != NULL; iter = iter->next) {
+    const size_t n = az_span_size(iter->span);
+    char *iter_s = malloc(n + 1);
+    az_span_to_str(iter_s, (int32_t)n, iter->span);
+    ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);
+    free(iter_s);
+  }
   PASS();
 }
 

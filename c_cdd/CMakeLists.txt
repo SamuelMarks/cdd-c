@@ -19,12 +19,23 @@ target_include_directories(
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+find_package(c_str_span CONFIG REQUIRED)
+
 target_link_libraries(
         "${LIBRARY_NAME}"
-        INTERFACE
+        PUBLIC
+        c_str_span c_str_span_compiler_flags
+)
+
+target_link_libraries(
+        "${LIBRARY_NAME}"
+        PRIVATE
         "${PROJECT_NAME}_compiler_flags"
 )
+
 set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
+
 
 #######
 # CLI #

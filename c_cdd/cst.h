@@ -26,6 +26,8 @@ typedef SSIZE_T ssize_t;
 #include <sys/errno.h>
 #endif
 
+#include <c_str_span.h>
+
 #include <c_cdd_export.h>
 
 #include "ll.h"
@@ -37,12 +39,12 @@ struct CstNode;
 #define CstNode_base_properties                                                \
   size_t pos_start; /* where in full-source `value` starts */                  \
   struct CstNode *scope;                                                       \
-  const char *value
+  const az_span value
 
 /* two phase parser */
-extern C_CDD_EXPORT const struct str_elem *scanner(const char *);
-extern C_CDD_EXPORT const struct str_elem *tokenizer(struct str_elem *);
-extern C_CDD_EXPORT const struct CstNode **parser(struct str_elem *);
+extern C_CDD_EXPORT const struct az_span_elem *scanner(az_span);
+extern C_CDD_EXPORT const struct az_span_elem *tokenizer(struct az_span_elem *);
+extern C_CDD_EXPORT const struct CstNode **parser(struct az_span_elem *);
 
 struct BlockStart {
   CstNode_base_properties;
@@ -198,17 +200,17 @@ struct Expression {
 
 struct Label {
   CstNode_base_properties;
-  const char *label;
+  const az_span label;
 };
 
 struct Case {
   CstNode_base_properties;
-  const char *val;
+  const az_span val;
 };
 
 struct Switch {
   CstNode_base_properties;
-  const char *condition;
+  const az_span condition;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -216,7 +218,7 @@ struct Switch {
 
 struct If {
   CstNode_base_properties;
-  const char *condition;
+  const az_span condition;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -231,7 +233,7 @@ struct Else {
 
 struct ElseIf {
   CstNode_base_properties;
-  const char *condition;
+  const az_span condition;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -239,7 +241,7 @@ struct ElseIf {
 
 struct While {
   CstNode_base_properties;
-  const char *condition;
+  const az_span condition;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -256,7 +258,7 @@ struct Do {
 
 struct For {
   CstNode_base_properties;
-  const char *decl_or_expr0, *decl_or_expr1, *expr;
+  const az_span decl_or_expr0, *decl_or_expr1, *expr;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -264,7 +266,7 @@ struct For {
 
 struct GoTo {
   CstNode_base_properties;
-  const char *label;
+  const az_span label;
 };
 
 struct Continue {
@@ -277,16 +279,16 @@ struct Break {
 
 struct Return {
   CstNode_base_properties;
-  const char *val;
+  const az_span val;
 };
 
 #define Declaration_properties                                                 \
   enum StorageClass storage_class;                                             \
   enum TypeSpecifier *type_specifier;                                          \
   enum Keywords *specifiers;                                                   \
-  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,   \
+  const az_span type; /* set to NULL if `specifiers` has the right type [i.e., \
                        builtin type] */                                        \
-  const char *name
+  const az_span name
 
 struct Declaration {
   CstNode_base_properties;
@@ -296,34 +298,34 @@ struct Declaration {
 struct Definition {
   CstNode_base_properties;
   Declaration_properties;
-  const char *value_assigned;
+  const az_span value_assigned;
 };
 
 struct Struct {
   CstNode_base_properties;
-  const char *name;
+  const az_span name;
   struct Declaration **fields;
-  const char **declaration_list;
+  const az_span *declaration_list;
 };
 
 struct Union {
   CstNode_base_properties;
-  const char *name;
+  const az_span name;
   struct Declaration **fields;
-  const char **declaration_list;
+  const az_span *declaration_list;
 };
 
 struct Enum {
   CstNode_base_properties;
-  const char *name;
+  const az_span name;
   struct Declaration **fields;
-  const char **enumerator_list;
+  const az_span *enumerator_list;
 };
 
 struct FunctionPrototype {
   CstNode_base_properties;
   enum FunctionSpecifier function_specifier;
-  const char *name;
+  const az_span name;
   struct Declaration **args;
 };
 
@@ -334,9 +336,9 @@ struct FunctionStart {
 struct Function {
   CstNode_base_properties;
   enum Keywords *specifiers;
-  const char *type; /* set to NULL if `specifiers` has the right type [i.e.,
+  const az_span type; /* set to NULL if `specifiers` has the right type [i.e.,
                        builtin type] */
-  const char *name;
+  const az_span name;
   struct Declaration *args;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
@@ -345,7 +347,7 @@ struct Function {
 
 struct MacroIf {
   CstNode_base_properties;
-  const char *expr;
+  const az_span expr;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -353,7 +355,7 @@ struct MacroIf {
 
 struct MacroElif {
   CstNode_base_properties;
-  const char *expr;
+  const az_span expr;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -361,7 +363,7 @@ struct MacroElif {
 
 struct MacroElse {
   CstNode_base_properties;
-  const char *expr;
+  const az_span expr;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -369,7 +371,7 @@ struct MacroElse {
 
 struct MacroIfDef {
   CstNode_base_properties;
-  const char *expr;
+  const az_span expr;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
 #endif /* CST_WITH_BODY */
@@ -377,17 +379,17 @@ struct MacroIfDef {
 
 struct MacroDefine {
   CstNode_base_properties;
-  const char *expr;
+  const az_span expr;
 };
 
 struct MacroInclude {
   CstNode_base_properties;
-  const char *val;
+  const az_span val;
 };
 
 struct MacroPragma {
   CstNode_base_properties;
-  const char *val;
+  const az_span val;
 };
 
 enum CstNodeKind {
