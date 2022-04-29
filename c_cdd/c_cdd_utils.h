@@ -23,10 +23,10 @@ extern "C" {
 #include <errno.h>
 typedef SSIZE_T ssize_t;
 #else
-#include <c_str_span.h>
 #include <sys/errno.h>
 #endif
 #include "c_cdd_export.h"
+#include <c_str_span.h>
 
 extern C_CDD_EXPORT void print_escaped(const char *name, char *s);
 

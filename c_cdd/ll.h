@@ -49,7 +49,7 @@ extern C_CDD_EXPORT struct az_span_elem **
 ll_append_span(struct az_span_elem **root, az_span);
 
 extern C_CDD_EXPORT struct az_span_elem **
-ll_push_span(size_t *, struct az_span_elem ***, az_span);
+ll_push_span(int32_t *, struct az_span_elem ***, az_span);
 
 #ifdef __cplusplus
 } /* extern "C" */
