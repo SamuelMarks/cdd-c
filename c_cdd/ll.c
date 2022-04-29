@@ -90,7 +90,7 @@ struct az_span_elem **ll_append_span(struct az_span_elem **p, az_span span) {
   return ll_prepend_span(list_end(p), span);
 }
 
-struct az_span_elem **ll_push_span(size_t *ll_n, struct az_span_elem ***ll_root,
+struct az_span_elem **ll_push_span(int32_t *ll_n, struct az_span_elem ***ll_root,
                                    const az_span span) {
   if (az_span_ptr(span) != NULL && az_span_size(span) > 0) {
     (*ll_n)++;
