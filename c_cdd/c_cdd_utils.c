@@ -11,26 +11,30 @@ void print_escaped(const char *name, char *s) {
   for (i = 0; i < MIN_NAME - strlen(name); i++)
     putchar(' ');
   printf("= \"");
-  for (ch = s; *ch; (ch)++)
-    if (iscntrl(*ch) || *ch == '\\' || *ch == '\"' || *ch == '\'')
-      printf("\\%03o", *ch);
-    else
-      putchar(ch[0]);
+  if (s == NULL)
+    printf("(null)");
+  else
+    for (ch = s; *ch; (ch)++)
+      if (iscntrl(*ch) || *ch == '\\' || *ch == '\"' || *ch == '\'')
+        printf("\\%03o", *ch);
+      else
+        putchar(ch[0]);
   puts("\"");
 }
 
-void print_escaped_span(const char *name, az_span span) {
+void print_escaped_span(const char *const name, const az_span span) {
+  const uint8_t *const span_ptr = az_span_ptr(span);
   size_t i;
   printf("%s", name);
   for (i = 0; i < MIN_NAME - strlen(name); i++)
     putchar(' ');
   printf("= \"");
   for (i = 0; i < az_span_size(span); i++)
-    if (iscntrl(az_span_ptr(span)[i]) || az_span_ptr(span)[i] == '\\' ||
-        az_span_ptr(span)[i] == '\"' || az_span_ptr(span)[i] == '\'')
-      printf("\\%03o", az_span_ptr(span)[i]);
+    if (iscntrl(span_ptr[i]) || span_ptr[i] == '\\' ||
+        span_ptr[i] == '\"' || span_ptr[i] == '\'')
+      printf("\\%03o", span_ptr[i]);
     else
-      putchar(az_span_ptr(span)[i]);
+      putchar(span_ptr[i]);
   puts("\"");
 }
 

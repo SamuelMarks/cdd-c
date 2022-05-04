@@ -32,7 +32,7 @@ TEST x_test_one_structs_scanned(void) {
 
   for (iter = scanned; iter != NULL; iter = iter->next) {
     const size_t n = az_span_size(iter->span);
-    char *iter_s = malloc(n + 1);
+    char *iter_s = malloc(n);
     az_span_to_str(iter_s, (int32_t)n, iter->span);
     ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);
     free(iter_s);
@@ -63,7 +63,7 @@ TEST x_test_two_structs_scanned(void) {
 
   for (iter = scanned; iter != NULL; iter = iter->next) {
     const size_t n = az_span_size(iter->span);
-    char *iter_s = malloc(n + 1);
+    char *iter_s = malloc(n);
     az_span_to_str(iter_s, (int32_t)n, iter->span);
     ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);
     free(iter_s);

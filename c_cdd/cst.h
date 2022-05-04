@@ -42,8 +42,9 @@ struct CstNode;
   const az_span value
 
 /* two phase parser */
-extern C_CDD_EXPORT const struct az_span_elem *scanner(az_span);
-extern C_CDD_EXPORT const struct az_span_elem *tokenizer(struct az_span_elem *);
+extern C_CDD_EXPORT struct az_span_list *scanner(az_span);
+extern C_CDD_EXPORT const struct az_span_elem *
+tokenizer(const struct az_span_elem *);
 extern C_CDD_EXPORT const struct CstNode **parser(struct az_span_elem *);
 
 struct BlockStart {
