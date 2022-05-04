@@ -13,17 +13,20 @@ struct ScannerVars {
 
 struct ScannerVars *clear_sv(struct ScannerVars *);
 
-az_span add_word_clear_vars(az_span source, int32_t i, const int32_t *scan_from,
-                            struct ScannerVars *sv, bool always_make_expr);
+az_span make_slice_clear_vars(const az_span source, int32_t i, int32_t *start_index,
+                              struct ScannerVars *sv, bool always_make_expr);
 
-const struct az_span_elem *scanner(const az_span source) {
+struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
 
   struct az_span_elem *scanned_ll = NULL;
   struct az_span_elem **scanned_cur_ptr = &scanned_ll;
 
-  int32_t i, scan_from, scanned_n = 0;
+  struct az_span_list *ll = malloc(sizeof(struct az_span_list));
+
+  int32_t i, start_index;
   const uint32_t source_n = az_span_size(source);
+  ll->size = 0;
 
   clear_sv(&sv);
 
@@ -34,7 +37,7 @@ const struct az_span_elem *scanner(const az_span source) {
    *   3. Handle any remaining char | string;
    *   4. Finish with a linked-list.
    */
-  for (i = 0, scan_from = 0; i < source_n; i++) {
+  for (i = 0, start_index = 0; i < source_n; i++) {
     bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
     const uint8_t ch = az_span_ptr(source)[i];
     if (isspace(ch))
@@ -70,12 +73,12 @@ const struct az_span_elem *scanner(const az_span source) {
         break;
       case ';':
       case '\n':
-        if (sv.lbrace == sv.rbrace || in_comment) {
+        if (/*sv.lbrace == sv.rbrace || */sv.in_cpp_comment) {
           const az_span expr =
-              add_word_clear_vars(source, i, &scan_from, &sv,
-                                  /* always_make_expr */ false);
+              make_slice_clear_vars(source, i, &start_index, &sv,
+                  /* always_make_expr */ true);
           if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-            scanned_cur_ptr = ll_push_span(&scanned_n, &scanned_cur_ptr, expr);
+            scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
           break;
         }
       default:
@@ -112,33 +115,38 @@ const struct az_span_elem *scanner(const az_span source) {
           case '}':
             /* TODO: Handle `f({{5,6}, {7,8}});` */
             if (!sv.in_init) {
-              if (i != 0 && sv.spaces != i - scan_from) {
-                const az_span expr = add_word_clear_vars(
-                    source, i - 1, &scan_from, clear_sv(&sv),
+              //if (i != 0 && sv.spaces != i - start_index) {
+                const az_span expr0 = make_slice_clear_vars(
+                    source, i - 1, &start_index, clear_sv(&sv),
                     /* always_make_expr */ true);
+                print_escaped_span("expr0", expr0);
                 scanned_cur_ptr =
-                    ll_push_span(&scanned_n, &scanned_cur_ptr, expr);
-              }
+                    ll_push_span(&ll->size, &scanned_cur_ptr, expr0);
+              //}
               { /* Push just the '{' | '}' to its own node */
-                const az_span expr =
-                    add_word_clear_vars(source, i, &scan_from, &sv,
-                                        /* always_make_expr */ true);
+                const az_span expr1 =
+                    make_slice_clear_vars(source, i, &start_index, &sv,
+                        /* always_make_expr */ true);
+                print_escaped_span("expr1", expr1);
                 scanned_cur_ptr =
-                    ll_push_span(&scanned_n, &scanned_cur_ptr, expr);
+                    ll_push_span(&ll->size, &scanned_cur_ptr, expr1);
               }
             }
+            break;
+          default:
             break;
           }
         }
       }
   }
   if (i < source_n) {
-    const az_span expr = add_word_clear_vars(source, i, &scan_from, &sv,
-                                             /* always_make_expr */ false);
+    const az_span expr = make_slice_clear_vars(source, i, &start_index, &sv,
+        /* always_make_expr */ false);
     if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-      scanned_cur_ptr = ll_push_span(&scanned_n, &scanned_cur_ptr, expr);
+      scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
   }
-  return scanned_ll;
+  ll->list = scanned_ll;
+  return ll;
 }
 
 struct ScannerVars *clear_sv(struct ScannerVars *sv) {
@@ -152,33 +160,35 @@ struct ScannerVars *clear_sv(struct ScannerVars *sv) {
   return sv;
 }
 
-az_span add_word_clear_vars(const az_span source, int32_t i,
-                            const int32_t *scan_from, struct ScannerVars *sv,
-                            bool always_make_expr) {
+az_span make_slice_clear_vars(const az_span source, int32_t i,
+                              int32_t *start_index, struct ScannerVars *sv,
+                              bool always_make_expr) {
   if (always_make_expr ||
       (!sv->in_single && !sv->in_double && !sv->in_c_comment &&
        !sv->in_cpp_comment && sv->line_continuation_at != i - 1 &&
        sv->lparen == sv->rparen && sv->lsquare == sv->rsquare &&
        sv->lchev == sv->rchev)) {
+    const az_span slice = az_span_slice(source, *start_index, i);
     clear_sv(sv);
-    return az_span_slice(source, *scan_from, i);
+    *start_index = i;
+    return slice;
   }
   return az_span_empty();
 }
 
-const struct az_span_elem *tokenizer(struct az_span_elem *scanned) {
-  /* tokenizes into words, from "unsigned long/ *stuff*\f()";
+const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
+  /* tokenizes into slices, from "unsigned long/ *stuff*\f()";
    * to {"unsigned long", "/ *stuff*\", "f", "(", ")", ";"} */
   struct az_span_elem *iter;
-  struct az_span_elem *words = NULL;
-  struct az_span_elem **words_cur_ptr = &words;
+  struct az_span_elem *slices = NULL;
+  struct az_span_elem **slice_cur_ptr = &slices;
   printf("const struct str_elem *tokenizer(struct str_elem *scanned)");
   putchar('\n');
 #define SUBSTR_PRINT 1
 #include "c_cdd_utils.h"
-  for (iter = scanned; iter != NULL; iter = iter->next) {
+  for (iter = (struct az_span_elem *)scanned; iter != NULL; iter = iter->next) {
     char line[4095];
-    int32_t i = 0, scan_from = 0;
+    int32_t i = 0, start_index = 0;
     ssize_t comment_started = -1, comment_ended = -1 /*, last_space = -1*/;
     struct ScannerVars sv;
 
@@ -188,7 +198,7 @@ const struct az_span_elem *tokenizer(struct az_span_elem *scanned) {
 
     // printf("c: \'%c\'\n", c);
     /*
-     "<words><name><lparen"
+     "<slices><name><lparen"
      sv.lparen could indicate:
        - function call
        - function prototype
@@ -197,13 +207,12 @@ const struct az_span_elem *tokenizer(struct az_span_elem *scanned) {
      */
     for (i = 0; i < az_span_size(iter->span); i++) {
       bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
-      int32_t words_n = 0;
+      uint32_t ll_n = 0;
       uint8_t ch = az_span_ptr(iter->span)[i];
       if (i > 0 && !in_comment && !isspace(az_span_ptr(iter->span)[i - 1]) &&
           !isspace(ch)) {
-        words_cur_ptr = ll_push_span(
-            &words_n, &words_cur_ptr,
-            az_span_slice(iter->span, scan_from, i));
+        slice_cur_ptr = ll_push_span(&ll_n, &slice_cur_ptr,
+                                     az_span_slice(iter->span, start_index, i));
       } else
         switch (ch) {
           /*case '\\':*/
@@ -216,13 +225,12 @@ const struct az_span_elem *tokenizer(struct az_span_elem *scanned) {
         case ',': /* TODO: Handle `int a, *b` */
           if (!in_comment) {
             if (i > 0)
-              words_cur_ptr =
-                  ll_push_span(&words_n, &words_cur_ptr,
-                               az_span_slice(iter->span, scan_from,
-                                             i - 1));
-            words_cur_ptr = ll_push_span(
-                &words_n, &words_cur_ptr,
-                az_span_slice(iter->span, scan_from, i));
+              slice_cur_ptr =
+                  ll_push_span(&ll_n, &slice_cur_ptr,
+                               az_span_slice(iter->span, start_index, i - 1));
+            slice_cur_ptr =
+                ll_push_span(&ll_n, &slice_cur_ptr,
+                             az_span_slice(iter->span, start_index, i));
           }
           break;
         case '/':
@@ -258,7 +266,7 @@ const struct az_span_elem *tokenizer(struct az_span_elem *scanned) {
       // putchar('\n');
     }
   }
-  return words;
+  return slices;
 }
 
 const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }

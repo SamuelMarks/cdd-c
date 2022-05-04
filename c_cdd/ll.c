@@ -31,34 +31,34 @@ struct str_elem **ll_push_str(size_t *ll_n, struct str_elem ***ll_root,
   return *ll_root;
 }
 
-const char *slice(const char *s, const size_t i, size_t *scan_from) {
-  const size_t substr_length = i + *scan_from + 1;
+const char *slice_(const char *s, const size_t i, size_t *start_index) {
+  const size_t substr_length = i + *start_index + 1;
   if (substr_length > 0) {
     char *substr = (char *)malloc(sizeof(char) * substr_length);
     assert(snprintf(substr, substr_length + 1, "%.*s", (int)substr_length,
-                    s + *scan_from) -
+                    s + *start_index) -
                1 ==
            substr_length);
-    *scan_from = i + 1;
+    *start_index = i + 1;
     return substr;
   }
   return NULL;
 }
 
-const char *add_word(const char *s, const size_t i, size_t *scan_from) {
-  const size_t substr_length = i - *scan_from + 1;
+const char *make_slice(const char *s, const size_t i, size_t *start_index) {
+  const size_t substr_length = i - *start_index + 1;
   if (substr_length > 0) {
     char *substr = (char *)malloc(sizeof(char) * substr_length);
     const int sn = snprintf(substr, substr_length + 1, "%.*s",
-                            (int)substr_length, s + *scan_from);
-    printf("add_word::n           = %ld\n"
-           "add_word::snprintf    = %d\n",
+                            (int)substr_length, s + *start_index);
+    printf("make_slice::n           = %ld\n"
+           "make_slice::snprintf    = %d\n",
            substr_length, sn);
     assert(sn == substr_length);
     substr[substr_length] = '\0';
-    print_escaped("add_word::substr", substr);
-    //*scan_from = i + 1;
-    *scan_from = substr_length + i;
+    print_escaped("make_slice::substr", substr);
+    //*start_index = i + 1;
+    *start_index = substr_length + i;
     return substr;
   }
   return NULL;
@@ -90,7 +90,8 @@ struct az_span_elem **ll_append_span(struct az_span_elem **p, az_span span) {
   return ll_prepend_span(list_end(p), span);
 }
 
-struct az_span_elem **ll_push_span(int32_t *ll_n, struct az_span_elem ***ll_root,
+struct az_span_elem **ll_push_span(uint32_t *ll_n,
+                                   struct az_span_elem ***ll_root,
                                    const az_span span) {
   if (az_span_ptr(span) != NULL && az_span_size(span) > 0) {
     (*ll_n)++;

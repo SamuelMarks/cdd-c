@@ -31,7 +31,8 @@ struct str_elem {
 extern C_CDD_EXPORT struct str_elem **ll_append_str(struct str_elem **root,
                                                     const char *s);
 
-extern C_CDD_EXPORT const char *add_word(const char *, size_t, size_t *);
+extern C_CDD_EXPORT const char *make_slice(const char *s, const size_t i,
+                                           size_t *start_index);
 
 extern C_CDD_EXPORT struct str_elem **
 ll_push_str(size_t *ll_n, struct str_elem ***ll_root, const char *s);
@@ -45,11 +46,17 @@ struct az_span_elem {
   struct az_span_elem *next;
 };
 
+/* List structure requiring manual bookkeeping for size */
+struct az_span_list {
+  uint32_t size;
+  const struct az_span_elem *list;
+};
+
 extern C_CDD_EXPORT struct az_span_elem **
 ll_append_span(struct az_span_elem **root, az_span);
 
 extern C_CDD_EXPORT struct az_span_elem **
-ll_push_span(int32_t *, struct az_span_elem ***, az_span);
+ll_push_span(uint32_t *, struct az_span_elem ***, az_span);
 
 #ifdef __cplusplus
 } /* extern "C" */
