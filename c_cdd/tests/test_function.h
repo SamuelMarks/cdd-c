@@ -62,10 +62,10 @@ TEST x_test_function_scanned(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   const struct az_span_list *scanned = scanner(sum_func_span);
   struct az_span_elem *iter;
-  enum { n = 5 };
+  enum { n = 4 };
   size_t i = 0;
-  static const char *scanned_str_l[n] = {"int sum(int a, int b)", " ", "{",
-                                         " return a + b;", " }"};
+  static const char *scanned_str_l[n] = {"int sum(int a, int b)", " ",
+                                         "{ return a + b;", " "};
 
   printf("scanned->size: %u\n\n", scanned->size);
   ASSERT_EQ(scanned->size, n);
