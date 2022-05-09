@@ -35,10 +35,10 @@ const char *slice_(const char *s, const size_t i, size_t *start_index) {
   const size_t substr_length = i + *start_index + 1;
   if (substr_length > 0) {
     char *substr = (char *)malloc(sizeof(char) * substr_length);
-    assert(snprintf(substr, substr_length + 1, "%.*s", (int)substr_length,
-                    s + *start_index) -
-               1 ==
-           substr_length);
+    const size_t wrote_length = snprintf(substr, substr_length + 1, "%.*s",
+                                         (int)substr_length, s + *start_index) -
+                                1;
+    assert(wrote_length == substr_length);
     *start_index = i + 1;
     return substr;
   }
@@ -51,9 +51,6 @@ const char *make_slice(const char *s, const size_t i, size_t *start_index) {
     char *substr = (char *)malloc(sizeof(char) * substr_length);
     const int sn = snprintf(substr, substr_length + 1, "%.*s",
                             (int)substr_length, s + *start_index);
-    printf("make_slice::n           = %ld\n"
-           "make_slice::snprintf    = %d\n",
-           substr_length, sn);
     assert(sn == substr_length);
     substr[substr_length] = '\0';
     print_escaped("make_slice::substr", substr);
