@@ -166,34 +166,35 @@ static const std::unordered_map<std::string, enum Keywords> keyword2enum {
 };
 */
 
-// enum StorageClassSpecifier {
-//   TYPEDEF, /* identifiers must be flagged as TYPEDEF_NAME */
-//   EXTERN,
-//   STATIC,
-//   THREAD_LOCAL,
-//   AUTO,
-//   REGISTER
-// };
-//
-// enum TypeSpecifier {
-//   VOID,
-//   CHAR,
-//   SHORT,
-//   INT,
-//   LONG,
-//   FLOAT,
-//   DOUBLE,
-//   SIGNED,
-//   UNSIGNED,
-//   BOOL,
-//   COMPLEX,
-//   IMAGINARY        /* non-mandated extension */
-//   ,
-//   /*atomic_type_specifier,
-//   struct_or_union_specifier,
-//   enum_specifier,
-//   TYPEDEF_NAME   */     /* after it has been defined as such */
-// };
+/* enum StorageClassSpecifier {
+   TYPEDEF, // identifiers must be flagged as TYPEDEF_NAME
+   EXTERN,
+   STATIC,
+   THREAD_LOCAL,
+   AUTO,
+   REGISTER
+ };
+
+ enum TypeSpecifier {
+   VOID,
+   CHAR,
+   SHORT,
+   INT,
+   LONG,
+   FLOAT,
+   DOUBLE,
+   SIGNED,
+   UNSIGNED,
+   BOOL,
+   COMPLEX,
+   IMAGINARY        // non-mandated extension
+   ,
+   / atomic_type_specifier,
+   struct_or_union_specifier,
+   enum_specifier,
+   TYPEDEF_NAME   /     // after it has been defined as such
+ };
+*/
 
 struct Expression {
   CstNode_base_properties;

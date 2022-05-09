@@ -26,7 +26,7 @@ struct az_span_list *scanner(const az_span source) {
   struct az_span_list *ll = malloc(sizeof(struct az_span_list));
 
   int32_t i, start_index;
-  const uint32_t source_n = az_span_size(source);
+  const int32_t source_n = az_span_size(source);
   ll->size = 0;
 
   clear_sv(&sv);
@@ -116,14 +116,14 @@ struct az_span_list *scanner(const az_span source) {
           case '}':
             /* TODO: Handle `f({{5,6}, {7,8}});` */
             if (!sv.in_init) {
-              // if (i != 0 && sv.spaces != i - start_index) {
+              /* if (i != 0 && sv.spaces != i - start_index) { */
               const az_span expr0 = make_slice_clear_vars(
                   source, i - 1, &start_index, clear_sv(&sv),
                   /* always_make_expr */ true);
               print_escaped_span("expr0", expr0);
               scanned_cur_ptr =
                   ll_push_span(&ll->size, &scanned_cur_ptr, expr0);
-              //}
+              /*}*/
               { /* Push just the '{' | '}' to its own node */
                 const az_span expr1 =
                     make_slice_clear_vars(source, i, &start_index, &sv,
@@ -197,7 +197,7 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
 
     print_escaped_span("iter->s", iter->span);
 
-    // printf("c: \'%c\'\n", c);
+    /* printf("c: \'%c\'\n", c); */
     /*
      "<slices><name><lparen"
      sv.lparen could indicate:
@@ -264,7 +264,7 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
           print_escaped("token", token);
         }
       }*/
-      // putchar('\n');
+      /* putchar('\n'); */
     }
   }
   return slices;
