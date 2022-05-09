@@ -13,8 +13,9 @@ struct ScannerVars {
 
 struct ScannerVars *clear_sv(struct ScannerVars *);
 
-az_span make_slice_clear_vars(const az_span source, int32_t i, int32_t *start_index,
-                              struct ScannerVars *sv, bool always_make_expr);
+az_span make_slice_clear_vars(const az_span source, int32_t i,
+                              int32_t *start_index, struct ScannerVars *sv,
+                              bool always_make_expr);
 
 struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
@@ -73,10 +74,10 @@ struct az_span_list *scanner(const az_span source) {
         break;
       case ';':
       case '\n':
-        if (/*sv.lbrace == sv.rbrace || */sv.in_cpp_comment) {
+        if (/*sv.lbrace == sv.rbrace || */ sv.in_cpp_comment) {
           const az_span expr =
               make_slice_clear_vars(source, i, &start_index, &sv,
-                  /* always_make_expr */ true);
+                                    /* always_make_expr */ true);
           if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
             scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
           break;
@@ -115,18 +116,18 @@ struct az_span_list *scanner(const az_span source) {
           case '}':
             /* TODO: Handle `f({{5,6}, {7,8}});` */
             if (!sv.in_init) {
-              //if (i != 0 && sv.spaces != i - start_index) {
-                const az_span expr0 = make_slice_clear_vars(
-                    source, i - 1, &start_index, clear_sv(&sv),
-                    /* always_make_expr */ true);
-                print_escaped_span("expr0", expr0);
-                scanned_cur_ptr =
-                    ll_push_span(&ll->size, &scanned_cur_ptr, expr0);
+              // if (i != 0 && sv.spaces != i - start_index) {
+              const az_span expr0 = make_slice_clear_vars(
+                  source, i - 1, &start_index, clear_sv(&sv),
+                  /* always_make_expr */ true);
+              print_escaped_span("expr0", expr0);
+              scanned_cur_ptr =
+                  ll_push_span(&ll->size, &scanned_cur_ptr, expr0);
               //}
               { /* Push just the '{' | '}' to its own node */
                 const az_span expr1 =
                     make_slice_clear_vars(source, i, &start_index, &sv,
-                        /* always_make_expr */ true);
+                                          /* always_make_expr */ true);
                 print_escaped_span("expr1", expr1);
                 scanned_cur_ptr =
                     ll_push_span(&ll->size, &scanned_cur_ptr, expr1);
@@ -141,7 +142,7 @@ struct az_span_list *scanner(const az_span source) {
   }
   if (i < source_n) {
     const az_span expr = make_slice_clear_vars(source, i, &start_index, &sv,
-        /* always_make_expr */ false);
+                                               /* always_make_expr */ false);
     if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
       scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
   }

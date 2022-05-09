@@ -30,8 +30,8 @@ void print_escaped_span(const char *const name, const az_span span) {
     putchar(' ');
   printf("= \"");
   for (i = 0; i < az_span_size(span); i++)
-    if (iscntrl(span_ptr[i]) || span_ptr[i] == '\\' ||
-        span_ptr[i] == '\"' || span_ptr[i] == '\'')
+    if (iscntrl(span_ptr[i]) || span_ptr[i] == '\\' || span_ptr[i] == '\"' ||
+        span_ptr[i] == '\'')
       printf("\\%03o", span_ptr[i]);
     else
       putchar(span_ptr[i]);
