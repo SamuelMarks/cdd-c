@@ -21,9 +21,35 @@ jobs:
       - name: mkdir
         run: mkdir build
 
-      - name: configure
+      - name: checkout vcpkg
+        uses: actions/checkout@v2
+        with:
+          repository: "offscale/vcpkg"
+          ref: c-str-span
+          path: vcpkg
+
+      - name: Setup vcpkg (Windows)
+        run: vcpkg\bootstrap-vcpkg.bat
+        shell: cmd
+        if: matrix.os == 'windows-latest'
+
+      - name: Setup vcpkg (non-Windows)
+        run: ./vcpkg/bootstrap-vcpkg.sh
+        if: matrix.os != 'windows-latest'
+
+      - name: configure (with vcpkg on Windows)
         working-directory: ./build
-        run: cmake -DCMAKE_BUILD_TYPE='Debug' ..
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="vcpkg\scripts\buildsystems\vcpkg.cmake" ..
+        shell: cmd
+        if: matrix.os == 'windows-latest'
+
+      - name: configure (with vcpkg on non-Windows)
+        working-directory: ./build
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+        shell: cmd
+        if: matrix.os == 'windows-latest'
 
       - name: build
         working-directory: ./build
