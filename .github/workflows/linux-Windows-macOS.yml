@@ -21,12 +21,20 @@ jobs:
       - name: mkdir
         run: mkdir build
 
+      - name: Cache vcpkg
+        id: cache-vcpkg
+        uses: actions/cache@v2
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-c-str-span-0
+
       - name: checkout vcpkg
         uses: actions/checkout@v2
         with:
           repository: "offscale/vcpkg"
           ref: c-str-span
           path: vcpkg
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
 
       - name: Setup vcpkg (Windows)
         run: vcpkg\bootstrap-vcpkg.bat
@@ -48,7 +56,6 @@ jobs:
         working-directory: ./build
         run: |
           cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" ..
-        shell: cmd
         if: matrix.os != 'windows-latest'
 
       - name: build
