@@ -8,7 +8,7 @@
 #include <c_cdd_utils.h>
 #include <cst.h>
 
-#include "tests/test_c_cdd_lib_export.h"
+#include "cdd_helpers.h"
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
@@ -138,8 +138,6 @@ TEST x_test_function_parsed(void) {
   //     */ }
   PASS();
 }
-
-extern TEST_C_CDD_LIB_EXPORT void cdd_precondition_failed(void);
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
