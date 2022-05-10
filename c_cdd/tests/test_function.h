@@ -3,12 +3,11 @@
 
 #include <greatest.h>
 
-#include "c_str_precondition_internal.h"
-
 #include <c_str_precondition_internal.h>
 
-#include "c_cdd_utils.h"
-#include "cst.h"
+#include "tests/test_c_cdd_lib_export.h"
+#include <c_cdd_utils.h>
+#include <cst.h>
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
@@ -139,7 +138,7 @@ TEST x_test_function_parsed(void) {
   PASS();
 }
 
-static void cdd_precondition_failed(void) {
+static TEST_C_CDD_LIB_EXPORT void cdd_precondition_failed(void) {
   fputs("cdd_precondition_failed", stderr);
 }
 
