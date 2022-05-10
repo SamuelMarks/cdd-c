@@ -1,6 +1,7 @@
-#include "c_cdd_utils.h"
 #include <ctype.h>
 #include <stdio.h>
+
+#include "c_cdd_utils.h"
 
 #define MIN_NAME 22
 
