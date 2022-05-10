@@ -5,9 +5,10 @@
 
 #include <c_str_precondition_internal.h>
 
-#include "tests/test_c_cdd_lib_export.h"
 #include <c_cdd_utils.h>
 #include <cst.h>
+
+#include "tests/test_c_cdd_lib_export.h"
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
@@ -139,10 +140,6 @@ TEST x_test_function_parsed(void) {
 }
 
 extern TEST_C_CDD_LIB_EXPORT void cdd_precondition_failed(void);
-
-void cdd_precondition_failed(void) {
-  fputs("cdd_precondition_failed", stderr);
-}
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
