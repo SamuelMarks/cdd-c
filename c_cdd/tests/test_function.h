@@ -138,7 +138,9 @@ TEST x_test_function_parsed(void) {
   PASS();
 }
 
-extern TEST_C_CDD_LIB_EXPORT void cdd_precondition_failed(void) {
+extern TEST_C_CDD_LIB_EXPORT void cdd_precondition_failed(void);
+
+void cdd_precondition_failed(void) {
   fputs("cdd_precondition_failed", stderr);
 }
 
