@@ -32,7 +32,7 @@ set(LIBRARY_NAME "test_c_cdd_lib")
 set(Header_Files "cdd_helpers.h" "test_function.h" "test_struct.h" "test_tokenizer.h")
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
-set(Source_Files "cdd_helpers.c" "test_function.c")
+set(Source_Files "cdd_helpers.c")
 source_group("${LIBRARY_NAME} Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
