@@ -67,18 +67,20 @@ TEST x_test_function_scanned(void) {
   static const char *scanned_str_l[n] = {"int sum(int a, int b)", " ",
                                          "{ return a + b;", " "};
 
-  printf("scanned->size: %u\n\n", scanned->size);
+  printf("scanned->size         = %u\n\n", scanned->size);
   ASSERT_EQ(scanned->size, n);
 
   for (iter = (struct az_span_elem *)scanned->list; iter != NULL;
        iter = iter->next, i++) {
     const int32_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    char *s;
     az_span_to_str(iter_s, n, iter->span);
-    print_escaped("iter_s", iter_s);
-    print_escaped("scanned_str_l[i]", (char *)scanned_str_l[i]);
+    asprintf(&s, "scanned_str_l[%lu]", i);
+    print_escaped(s, (char *)scanned_str_l[i]);
     putchar('\n');
     /*ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);*/
+    free(s);
     free(iter_s);
   }
   PASS();
