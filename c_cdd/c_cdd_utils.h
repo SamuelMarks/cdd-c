@@ -34,4 +34,6 @@ extern C_CDD_EXPORT void print_escaped(const char *name, char *s);
 
 extern C_CDD_EXPORT void print_escaped_span(const char *, az_span);
 
+extern C_CDD_EXPORT void print_escaped_spans(uint8_t *, ...);
+
 #endif /* C_CDD_C_CDD_UTILS_H */
