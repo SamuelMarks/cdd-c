@@ -23,6 +23,39 @@ set(GREATEST_URL "https://raw.githubusercontent.com/silentbicycle/greatest/11a6a
 file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
         EXPECTED_HASH "SHA256=${GREATEST_SHA256}")
 
+################
+# Test library #
+################
+
+set(LIBRARY_NAME "test_c_cdd_lib")
+
+set(Header_Files "cdd_helpers.h" "test_function.h" "test_struct.h" "test_tokenizer.h")
+source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
+
+set(Source_Files "cdd_helpers.c")
+source_group("${LIBRARY_NAME} Source Files" FILES "${Source_Files}")
+
+add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
+
+include(GenerateExportHeader)
+set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
+generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
+
+target_include_directories(
+        "${LIBRARY_NAME}"
+        PRIVATE
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+)
+set_target_properties(
+        "${LIBRARY_NAME}"
+        PROPERTIES
+        LINKER_LANGUAGE
+        C
+)
+target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}")
+
 ##################
 # Top-level test #
 ##################
@@ -39,17 +72,13 @@ target_include_directories(
         PRIVATE
         "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
 )
-target_link_libraries(
-        "${EXEC_NAME}"
-        PRIVATE
-        "${PROJECT_NAME}"
-)
 set_target_properties(
         "${EXEC_NAME}"
         PROPERTIES
         LINKER_LANGUAGE
         C
 )
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
