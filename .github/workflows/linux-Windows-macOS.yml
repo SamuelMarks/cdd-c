@@ -18,58 +18,45 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup (macOS)
-        run: brew install tree-sitter
-        if: matrix.os == 'macos-latest'
-
-#      - name: Setup vcpkg (Windows)
-#        run: vcpkg\bootstrap-vcpkg.bat
-#        shell: cmd
-#        if: matrix.os == 'macos-latest'
-
       - name: mkdir
         run: mkdir build
 
-#      - name: Cache vcpkg
-#        id: cache-vcpkg
-#        uses: actions/cache@v2
-#        with:
-#          path: vcpkg
-#          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-c-str-span-0
+      - name: Cache vcpkg
+        id: cache-vcpkg
+        uses: actions/cache@v2
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-c-str-span-0
 
-#      - name: checkout vcpkg
-#        uses: actions/checkout@v2
-#        with:
-#          repository: "offscale/vcpkg"
-#          ref: c-str-span
-#          path: vcpkg
-#        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+      - name: checkout vcpkg
+        uses: actions/checkout@v2
+        with:
+          repository: "offscale/vcpkg"
+          ref: c-str-span
+          path: vcpkg
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
 
-#      - name: Setup vcpkg (Windows)
-#        run: vcpkg\bootstrap-vcpkg.bat
-#        shell: cmd
-#        if: matrix.os == 'windows-latest'
+      - name: Setup vcpkg (Windows)
+        run: vcpkg\bootstrap-vcpkg.bat
+        shell: cmd
+        if: matrix.os == 'windows-latest'
 
-#      - name: Setup vcpkg (non-Windows)
-#        run: ./vcpkg/bootstrap-vcpkg.sh
-#        if: matrix.os != 'windows-latest'
+      - name: Setup vcpkg (non-Windows)
+        run: ./vcpkg/bootstrap-vcpkg.sh
+        if: matrix.os != 'windows-latest'
 
-#      - name: configure (with vcpkg on Windows)
-#        working-directory: ./build
-#        run: |
-#          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" ..
-#        shell: cmd
-#        if: matrix.os == 'windows-latest'
-
-#      - name: configure (with vcpkg on non-Windows)
-#        working-directory: ./build
-#        run: |
-#          cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" ..
-#        if: matrix.os != 'windows-latest'
+      - name: configure (with vcpkg on Windows)
+        working-directory: ./build
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" ..
+        shell: cmd
+        if: matrix.os == 'windows-latest'
 
       - name: configure (with vcpkg on non-Windows)
         working-directory: ./build
-        run: cmake ..
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+        if: matrix.os != 'windows-latest'
 
       - name: build
         working-directory: ./build

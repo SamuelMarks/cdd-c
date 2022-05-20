@@ -4,10 +4,10 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}")
 
-set(Header_Files "c_cdd_stdbool.h" "scanner.h")
+set(Header_Files "c_cdd_stdbool.h" "c_cdd_utils.h" "ll.h" "cst.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "scanner.c")
+set(Source_Files "c_cdd_utils.c" "ll.c" "cst.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
@@ -20,36 +20,19 @@ target_include_directories(
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-find_package(tree-sitter CONFIG REQUIRED)
+find_package(c_str_span CONFIG REQUIRED)
+
+target_link_libraries(
+        "${LIBRARY_NAME}"
+        PUBLIC
+        c_str_span c_str_span_compiler_flags
+)
+
 target_link_libraries(
         "${LIBRARY_NAME}"
         PRIVATE
-
-        #"tree-sitter"
-        "tree_sitter"
+        "${PROJECT_NAME}_compiler_flags"
 )
-
-#find_package(tree-sitter-json CONFIG REQUIRED)
-#
-#target_link_libraries(
-#        "${LIBRARY_NAME}"
-#        PRIVATE
-#        # "${PROJECT_NAME}_compiler_flags"
-#        "tree-sitter-json"
-#        "tree-sitter-json_compiler_flags"
-#
-#        #"tree-sitter"
-#        "tree_sitter"
-#        #"tree-sitter_compiler_flags"
-#)
-
-#include("${CMAKE_HOME_DIRECTORY}/cmake/modules/FindTreeSitter.cmake")
-#target_link_libraries("${LIBRARY_NAME}" PUBLIC "$<BUILD_INTERFACE:${TreeSitter_LIBRARIES}>")
-#target_include_directories("${LIBRARY_NAME}" PUBLIC "${TreeSitter_INCLUDE_DIRS}")
-
-include(GenerateExportHeader)
-set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
-generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
 
 set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
@@ -68,6 +51,10 @@ add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
+include(GenerateExportHeader)
+set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
+generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
+
 #################
 # Install rules #
 #################
@@ -75,8 +62,8 @@ set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 include(GNUInstallDirs)
 
 # setup the version numbering
-set_property(TARGET "${LIBRARY_NAME}" PROPERTY VERSION "${${PROJECT_NAME}_VERSION}")
-set_property(TARGET "${LIBRARY_NAME}" PROPERTY SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}")
+set_property(TARGET "${LIBRARY_NAME}" PROPERTY VERSION "1.0.0")
+set_property(TARGET "${LIBRARY_NAME}" PROPERTY SOVERSION "1")
 
 set(installable_libs # "${EXEC_NAME}"
         "${LIBRARY_NAME}" "${PROJECT_NAME}_compiler_flags")

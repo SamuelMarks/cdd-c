@@ -4,15 +4,16 @@
 
 #include <greatest.h>
 
-#include "scanner.h"
+#include "test_function.h"
+#include "test_struct.h"
+#include "test_tokenizer.h"
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
-  run();
-  /*RUN_SUITE(function_suite);*/
+  RUN_SUITE(function_suite);
   /*RUN_SUITE(struct_suite);*/
   /*RUN_SUITE(tokenizer_suite);*/
   GREATEST_MAIN_END();
