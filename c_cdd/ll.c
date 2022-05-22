@@ -34,7 +34,7 @@ struct str_elem **ll_push_str(size_t *ll_n, struct str_elem ***ll_root,
 const char *slice_(const char *s, const size_t i, size_t *start_index) {
   const size_t substr_length = i + *start_index + 1;
   if (substr_length > 0) {
-    char *substr = (char *)malloc(sizeof(char) * substr_length);
+    char *substr = malloc(sizeof *substr * substr_length);
     const size_t wrote_length = snprintf(substr, substr_length + 1, "%.*s",
                                          (int)substr_length, s + *start_index) -
                                 1;
@@ -48,7 +48,7 @@ const char *slice_(const char *s, const size_t i, size_t *start_index) {
 const char *make_slice(const char *s, const size_t i, size_t *start_index) {
   const size_t substr_length = i - *start_index + 1;
   if (substr_length > 0) {
-    char *substr = (char *)malloc(sizeof(char) * substr_length);
+    char *substr = malloc(sizeof *substr * substr_length);
     const int sn = snprintf(substr, substr_length + 1, "%.*s",
                             (int)substr_length, s + *start_index);
     assert(sn == substr_length);
@@ -62,37 +62,81 @@ const char *make_slice(const char *s, const size_t i, size_t *start_index) {
 }
 
 /*
- * `az_span`
+ * `size_t`
  */
 
-struct az_span_elem **list_end(struct az_span_elem **p) {
-  assert(p);
-  while (*p)
-    p = &p[0]->next;
-  return p;
+struct size_t_elem **size_t_list_end(struct size_t_elem **size_t_elem) {
+  assert(size_t_elem);
+  while (*size_t_elem)
+    size_t_elem = &size_t_elem[0]->next;
+  return size_t_elem;
 }
 
-struct az_span_elem **ll_prepend_span(struct az_span_elem **p, az_span span) {
-  struct az_span_elem *x = malloc(sizeof *x);
-  assert(p);
+struct size_t_elem **size_t_list_prepend(struct size_t_elem **size_t_elem,
+                                         const size_t lu) {
+  struct size_t_elem *x = malloc(sizeof *x);
+  assert(size_t_elem);
   if (!x)
     return NULL;
-  x->span = span;
-  x->next = *p;
-  *p = x;
+  x->lu = lu;
+  x->next = *size_t_elem;
+  *size_t_elem = x;
   return &x->next;
 }
 
-struct az_span_elem **ll_append_span(struct az_span_elem **p, az_span span) {
-  return ll_prepend_span(list_end(p), span);
+struct size_t_elem **size_t_list_append(struct size_t_elem **p,
+                                        const size_t lu) {
+  return size_t_list_prepend(size_t_list_end(p), lu);
 }
 
-struct az_span_elem **ll_push_span(uint32_t *ll_n,
-                                   struct az_span_elem ***ll_root,
-                                   const az_span span) {
+void size_t_list_push(uint32_t *ll_n, struct size_t_elem ***ll_root,
+                      const size_t lu) {
+  (*ll_n)++;
+  *ll_root = size_t_list_append(*ll_root, lu);
+}
+
+struct size_t_elem **size_t_cleanup(struct size_t_elem **size_t_elem) {
+  if (size_t_elem == NULL) return size_t_elem;
+  while (*size_t_elem) {
+    struct size_t_elem *cur = size_t_elem[0];
+    size_t_elem = &size_t_elem[0]->next;
+    free(cur);
+  }
+  return size_t_elem;
+}
+
+/*
+ * `az_span`
+ */
+
+struct az_span_elem **az_span_list_end(struct az_span_elem **span_elem) {
+  assert(span_elem);
+  while (*span_elem)
+    span_elem = &span_elem[0]->next;
+  return span_elem;
+}
+
+struct az_span_elem **az_span_list_prepend(struct az_span_elem **span_elem,
+                                           const az_span span) {
+  struct az_span_elem *x = malloc(sizeof *x);
+  assert(span_elem);
+  if (!x)
+    return NULL;
+  x->span = span;
+  x->next = *span_elem;
+  *span_elem = x;
+  return &x->next;
+}
+
+struct az_span_elem **az_span_list_append(struct az_span_elem **p,
+                                          const az_span span) {
+  return az_span_list_prepend(az_span_list_end(p), span);
+}
+
+void az_span_list_push(uint32_t *ll_n, struct az_span_elem ***ll_root,
+                       const az_span span) {
   if (az_span_ptr(span) != NULL && az_span_size(span) > 0) {
     (*ll_n)++;
-    return ll_append_span(*ll_root, span);
+    *ll_root = az_span_list_append(*ll_root, span);
   }
-  return *ll_root;
 }

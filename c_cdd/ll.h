@@ -31,11 +31,39 @@ struct str_elem {
 extern C_CDD_EXPORT struct str_elem **ll_append_str(struct str_elem **root,
                                                     const char *s);
 
-extern C_CDD_EXPORT const char *make_slice(const char *s, const size_t i,
+extern C_CDD_EXPORT const char *make_slice(const char *s, size_t i,
                                            size_t *start_index);
 
 extern C_CDD_EXPORT struct str_elem **
 ll_push_str(size_t *ll_n, struct str_elem ***ll_root, const char *s);
+
+/*
+ * `size_t`
+ */
+
+struct size_t_elem {
+  size_t lu;
+  struct size_t_elem *next;
+};
+
+/* List structure requiring manual bookkeeping for size */
+struct size_t_list {
+  uint32_t size;
+  const struct size_t_elem *list;
+};
+
+extern C_CDD_EXPORT struct size_t_elem **size_t_list_end(struct size_t_elem **);
+
+extern C_CDD_EXPORT struct size_t_elem **
+size_t_list_prepend(struct size_t_elem **, size_t);
+
+extern C_CDD_EXPORT struct size_t_elem **
+size_t_list_append(struct size_t_elem **, size_t);
+
+extern C_CDD_EXPORT void size_t_list_push(uint32_t *, struct size_t_elem ***,
+                                          size_t);
+
+extern C_CDD_EXPORT struct size_t_elem **size_t_cleanup(struct size_t_elem **);
 
 /*
  * `az_span`
@@ -53,10 +81,16 @@ struct az_span_list {
 };
 
 extern C_CDD_EXPORT struct az_span_elem **
-ll_append_span(struct az_span_elem **root, az_span);
+az_span_list_end(struct az_span_elem **);
 
 extern C_CDD_EXPORT struct az_span_elem **
-ll_push_span(uint32_t *, struct az_span_elem ***, az_span);
+az_span_list_prepend(struct az_span_elem **, az_span);
+
+extern C_CDD_EXPORT struct az_span_elem **
+az_span_list_append(struct az_span_elem **, az_span);
+
+extern C_CDD_EXPORT void az_span_list_push(uint32_t *, struct az_span_elem ***,
+                                           az_span);
 
 #ifdef __cplusplus
 } /* extern "C" */
