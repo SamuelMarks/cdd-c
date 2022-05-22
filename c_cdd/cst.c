@@ -22,7 +22,7 @@ struct az_span_list *scanner(const az_span source) {
   struct az_span_elem *scanned_ll = NULL;
   struct az_span_elem **scanned_cur_ptr = &scanned_ll;
 
-  struct az_span_list *ll = malloc(sizeof(struct az_span_list));
+  struct az_span_list *ll = malloc(sizeof *ll);
 
   int32_t i, start_index;
   const int32_t source_n = az_span_size(source);
@@ -37,6 +37,12 @@ struct az_span_list *scanner(const az_span source) {
    *   3. Handle any remaining char | string;
    *   4. Finish with a linked-list.
    */
+
+  /* Maybe restrict to the following types?
+   * - macro{if,endif,ifndef,elif,include,define}
+   * - comment{c,cpp}
+   * - noncomment nonmacro nonliteral chars before {'{', '}', ';', '\n'}
+   * */
   for (i = 0, start_index = 0; i < source_n; i++) {
     bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
     const uint8_t ch = az_span_ptr(source)[i];
@@ -71,17 +77,32 @@ struct az_span_list *scanner(const az_span source) {
         if (!sv.in_double)
           sv.in_single = !sv.in_single;
         break;
-      case '\n':
-        if (/*sv.lbrace == sv.rbrace || */ sv.in_cpp_comment) {
+      /*sv.lbrace == sv.rbrace || */
+      /*case '\n':
+        if ( sv.in_cpp_comment) {
           const az_span expr =
               make_slice_clear_vars(source, i, &start_index, &sv,
-                                    /* always_make_expr */ true);
-          if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-            scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
-          break;
-        }
+                                    */
+      /* always_make_expr */ /* true);
+if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
+scanned_cur_ptr = az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
+break;
+}*/
       default:
         if (!sv.in_single && !sv.in_double && !in_comment) {
+          switch (ch) {
+          case ';': {
+            const az_span expr =
+                make_slice_clear_vars(source, i, &start_index, &sv,
+                                      /* always_make_expr */ true);
+            if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
+              az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
+            break;
+          }
+          default:
+            break;
+          }
+        } else if (/*!sv.in_single && !sv.in_double && !in_comment &&*/ false) {
           switch (ch) {
           case '=':
             sv.in_init = true;
@@ -114,9 +135,9 @@ struct az_span_list *scanner(const az_span source) {
             if (sv.lbrace == sv.rbrace) {
               const az_span expr =
                   make_slice_clear_vars(source, i, &start_index, &sv,
-                      /* always_make_expr */ true);
+                                        /* always_make_expr */ true);
               if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-                scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
+                az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
               break;
             }
           case '{':
@@ -137,8 +158,7 @@ struct az_span_list *scanner(const az_span source) {
                   source, i - 1, &start_index, clear_sv(&sv),
                   /* always_make_expr */ true);
 
-              scanned_cur_ptr =
-                  ll_push_span(&ll->size, &scanned_cur_ptr, expr0);
+              az_span_list_push(&ll->size, &scanned_cur_ptr, expr0);
               /*}*/
               {
                 char *s;
@@ -150,8 +170,7 @@ struct az_span_list *scanner(const az_span source) {
                 const az_span expr1 =
                     make_slice_clear_vars(source, i, &start_index, &sv,
                                           /* always_make_expr */ true);
-                scanned_cur_ptr =
-                    ll_push_span(&ll->size, &scanned_cur_ptr, expr1);
+                az_span_list_push(&ll->size, &scanned_cur_ptr, expr1);
               }
             }
             break;
@@ -161,12 +180,21 @@ struct az_span_list *scanner(const az_span source) {
         }
       }
   }
-  if (i < source_n) {
+  /*
+  printf("i = %d ;\n"
+         "source_n = %d\n", i, source_n);
+  if (i < source_n)*/
+  {
     const az_span expr = make_slice_clear_vars(source, i, &start_index, &sv,
                                                /* always_make_expr */ false);
-    if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-      scanned_cur_ptr = ll_push_span(&ll->size, &scanned_cur_ptr, expr);
+    puts("i < source_n");
+    print_escaped_span("last_expr", expr);
+    if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0) {
+      az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
+      puts("here");
+    }
   }
+  // ll->list->next->next = NULL;
   ll->list = scanned_ll;
   return ll;
 }
@@ -234,8 +262,8 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
       uint8_t ch = az_span_ptr(iter->span)[i];
       if (i > 0 && !in_comment && !isspace(az_span_ptr(iter->span)[i - 1]) &&
           !isspace(ch)) {
-        slice_cur_ptr = ll_push_span(&ll_n, &slice_cur_ptr,
-                                     az_span_slice(iter->span, start_index, i));
+        az_span_list_push(&ll_n, &slice_cur_ptr,
+                          az_span_slice(iter->span, start_index, i));
       } else
         switch (ch) {
           /*case '\\':*/
@@ -249,24 +277,23 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
           if (!in_comment) {
             if (i > 0) {
               char *s;
-              slice_cur_ptr =
-                  ll_push_span(&ll_n, &slice_cur_ptr,
-                               az_span_slice(iter->span, start_index, i - 1));
+              az_span_list_push(&ll_n, &slice_cur_ptr,
+                                az_span_slice(iter->span, start_index, i - 1));
               asprintf(&s, "[%d-1] slice_cur_ptr", i);
               print_escaped_span(s,
                                  az_span_slice(iter->span, start_index, i - 1));
+              free(s);
             }
             {
               char *s;
-              slice_cur_ptr =
-                  ll_push_span(&ll_n, &slice_cur_ptr,
-                               az_span_slice(iter->span, start_index, i));
+              az_span_list_push(&ll_n, &slice_cur_ptr,
+                                az_span_slice(iter->span, start_index, i));
               asprintf(&s, "[%d] slice_cur_ptr", i);
               print_escaped_span(s, az_span_slice(iter->span, start_index, i));
+              free(s);
             }
-            slice_cur_ptr =
-                ll_push_span(&ll_n, &slice_cur_ptr,
-                             az_span_slice(iter->span, start_index, i));
+            az_span_list_push(&ll_n, &slice_cur_ptr,
+                              az_span_slice(iter->span, start_index, i));
           }
           break;
         case '/':
