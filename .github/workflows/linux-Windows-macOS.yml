@@ -64,4 +64,4 @@ jobs:
 
       - name: test
         working-directory: ./build
-        run: ctest -C Debug .
+        run: ctest -C Debug --rerun-failed --output-on-failure .
