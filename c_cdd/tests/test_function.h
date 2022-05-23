@@ -4,11 +4,18 @@
 #include <greatest.h>
 
 #include <c_str_precondition_internal.h>
+#include <c89stringutils_string_extras.h>
 
 #include <c_cdd_utils.h>
 #include <cst.h>
 
-#include "cdd_helpers.h"
+#include <cdd_helpers.h>
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define NUM_LONG_FMT "z"
+#else
+#define NUM_LONG_FMT "l"
+#endif
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
@@ -77,7 +84,7 @@ TEST x_test_function_scanned(void) {
     char *iter_s = malloc(n);
     char *s;
     az_span_to_str(iter_s, n, iter->span);
-    asprintf(&s, "scanned_str_l[%lu]", i);
+    asprintf(&s, "scanned_str_l[%"NUM_LONG_FMT"u]", i);
     print_escaped(s, (char *)scanned_str_l[i]);
     putchar('\n');
     /*ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);*/
@@ -151,11 +158,12 @@ TEST x_size_t_ll() {
   const size_t l[] = {5, 6, 10, 44};
   size_t i;
 
-  for(i=0; i<sizeof l/sizeof l[0]; i++)
+  for (i = 0; i < sizeof l / sizeof l[0]; i++)
     size_t_list_push(&ll->size, &ll_cur_ptr, l[i]);
 
-  for (iter = (struct size_t_elem *)ll->list, i=0; iter != NULL; iter = iter->next, i++)
-    printf("ll->list[%lu] = %lu\n", i, iter->lu);
+  for (iter = (struct size_t_elem *)ll->list, i = 0; iter != NULL;
+       iter = iter->next, i++)
+    printf("ll->list[%"NUM_LONG_FMT"u] = %"NUM_LONG_FMT"u\n", i, iter->lu);
 
   PASS();
 }

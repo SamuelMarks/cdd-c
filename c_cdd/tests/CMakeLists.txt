@@ -29,21 +29,14 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 
 set(LIBRARY_NAME "test_c_cdd_lib")
 
-set(Header_Files "cdd_helpers.h" "test_function.h" "test_struct.h" "test_tokenizer.h")
+set(Header_Files "test_function.h" "test_struct.h" "test_tokenizer.h")
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
-set(Source_Files "cdd_helpers.c")
-source_group("${LIBRARY_NAME} Source Files" FILES "${Source_Files}")
-
-add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
-
-include(GenerateExportHeader)
-set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
-generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
+add_library("${LIBRARY_NAME}" INTERFACE "${Header_Files}")
 
 target_include_directories(
         "${LIBRARY_NAME}"
-        PRIVATE
+        INTERFACE
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
         "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
@@ -54,7 +47,9 @@ set_target_properties(
         LINKER_LANGUAGE
         C
 )
-target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}")
+
+add_subdirectory("cdd_test_helpers")
+target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 
 ##################
 # Top-level test #
@@ -79,6 +74,13 @@ set_target_properties(
         C
 )
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
+
+find_package(c_str_span CONFIG REQUIRED)
+target_link_libraries(
+        "${EXEC_NAME}"
+        PRIVATE
+        c_str_span c_str_span_compiler_flags
+)
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 

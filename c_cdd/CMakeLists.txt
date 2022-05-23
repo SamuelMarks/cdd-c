@@ -21,7 +21,6 @@ target_include_directories(
 )
 
 find_package(c_str_span CONFIG REQUIRED)
-
 target_link_libraries(
         "${LIBRARY_NAME}"
         PUBLIC

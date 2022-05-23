@@ -96,7 +96,8 @@ void size_t_list_push(uint32_t *ll_n, struct size_t_elem ***ll_root,
 }
 
 struct size_t_elem **size_t_cleanup(struct size_t_elem **size_t_elem) {
-  if (size_t_elem == NULL) return size_t_elem;
+  if (size_t_elem == NULL)
+    return size_t_elem;
   while (*size_t_elem) {
     struct size_t_elem *cur = size_t_elem[0];
     size_t_elem = &size_t_elem[0]->next;
