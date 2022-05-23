@@ -20,6 +20,11 @@ target_include_directories(
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
+if (WIN32)
+    find_path(C89STRINGUTILS_INCLUDE_DIRS "c89stringutils_string_extras.h")
+    target_include_directories("${LIBRARY_NAME}" PRIVATE "${C89STRINGUTILS_INCLUDE_DIRS}")
+endif (WIN32)
+
 find_package(c_str_span CONFIG REQUIRED)
 target_link_libraries(
         "${LIBRARY_NAME}"

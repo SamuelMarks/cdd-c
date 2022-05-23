@@ -3,7 +3,11 @@
 
 #include <greatest.h>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #include <c89stringutils_string_extras.h>
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
+          defined(__NT__) */
+
 #include <c_str_precondition_internal.h>
 
 #include <c_cdd_utils.h>
