@@ -2,9 +2,13 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #ifndef MIN
-#define MIN(a, b) (a) > (b) ? (a) : (b)
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif /* !MIN */
+#else
+#include <sys/param.h>
+#endif /* defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__) */
 
 #include "c_cdd_utils.h"
 

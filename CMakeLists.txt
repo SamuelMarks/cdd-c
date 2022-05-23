@@ -5,7 +5,7 @@ project(c_cdd VERSION 0.0.2 LANGUAGES C)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
-set(CMAKE_C_STANDARD 90 CACHE STRING "")
+set(CMAKE_C_STANDARD 90)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
