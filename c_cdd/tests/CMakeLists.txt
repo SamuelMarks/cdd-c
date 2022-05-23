@@ -48,6 +48,11 @@ set_target_properties(
         C
 )
 
+if (WIN32)
+    find_path(C89STRINGUTILS_INCLUDE_DIRS "c89stringutils_string_extras.h")
+    target_include_directories("${LIBRARY_NAME}" INTERFACE "${C89STRINGUTILS_INCLUDE_DIRS}")
+endif (WIN32)
+
 add_subdirectory("cdd_test_helpers")
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 

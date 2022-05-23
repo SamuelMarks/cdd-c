@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "c_cdd_utils.h"
 #include "cst.h"
@@ -7,7 +8,8 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define C89STRINGUTILS_IMPLEMENTATION
 #include <c89stringutils_string_extras.h>
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) */
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
+          defined(__NT__) */
 
 struct ScannerVars {
   ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
