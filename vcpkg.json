@@ -5,6 +5,7 @@
   "homepage": "https://github.com/SamuelMarks/cdd-c",
   "description": "Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).",
   "dependencies": [
-    "c-str-span"
+    "c-str-span",
+    {"name": "c89stringutils", "platform": "windows"}
   ]
 }

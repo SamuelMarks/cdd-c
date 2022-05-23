@@ -26,13 +26,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: vcpkg
-          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-c-str-span-0
+          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-project0-0
 
       - name: checkout vcpkg
         uses: actions/checkout@v2
         with:
           repository: "offscale/vcpkg"
-          ref: c-str-span
+          ref: project0
           path: vcpkg
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
 

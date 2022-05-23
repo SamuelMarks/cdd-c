@@ -1,7 +1,10 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <sys/param.h>
+
+#ifndef MIN
+#define MIN(a, b) (a) > (b) ? (a) : (b)
+#endif /* !MIN */
 
 #include "c_cdd_utils.h"
 
