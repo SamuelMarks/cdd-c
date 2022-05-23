@@ -3,8 +3,8 @@
 
 #include <greatest.h>
 
-#include <c_str_precondition_internal.h>
 #include <c89stringutils_string_extras.h>
+#include <c_str_precondition_internal.h>
 
 #include <c_cdd_utils.h>
 #include <cst.h>
@@ -84,7 +84,7 @@ TEST x_test_function_scanned(void) {
     char *iter_s = malloc(n);
     char *s;
     az_span_to_str(iter_s, n, iter->span);
-    asprintf(&s, "scanned_str_l[%"NUM_LONG_FMT"u]", i);
+    asprintf(&s, "scanned_str_l[%" NUM_LONG_FMT "u]", i);
     print_escaped(s, (char *)scanned_str_l[i]);
     putchar('\n');
     /*ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);*/
@@ -163,7 +163,7 @@ TEST x_size_t_ll() {
 
   for (iter = (struct size_t_elem *)ll->list, i = 0; iter != NULL;
        iter = iter->next, i++)
-    printf("ll->list[%"NUM_LONG_FMT"u] = %"NUM_LONG_FMT"u\n", i, iter->lu);
+    printf("ll->list[%" NUM_LONG_FMT "u] = %" NUM_LONG_FMT "u\n", i, iter->lu);
 
   PASS();
 }
