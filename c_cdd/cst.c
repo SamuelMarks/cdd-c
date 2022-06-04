@@ -1,6 +1,6 @@
 #include <ctype.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "c_cdd_utils.h"
 #include "cst.h"
@@ -242,8 +242,6 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
   printf("const struct az_span_elem *tokenizer(const struct az_span_elem "
          "*const scanned)");
   putchar('\n');
-#define SUBSTR_PRINT 1
-#include "c_cdd_utils.h"
   for (iter = (struct az_span_elem *)scanned; iter != NULL; iter = iter->next) {
     char line[4095];
     int32_t i = 0, start_index = 0;

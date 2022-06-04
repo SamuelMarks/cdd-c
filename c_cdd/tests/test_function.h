@@ -24,9 +24,8 @@
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
 void az_PRECONDITION(int32_t destination_max_size) {
-  if (!(destination_max_size > 0)) {
+  if (destination_max_size <= 0)
     az_precondition_failed_get_callback()();
-  }
 }
 
 void span_to_str(char *destination, int32_t destination_max_size,
@@ -161,6 +160,8 @@ TEST x_size_t_ll() {
 
   const size_t l[] = {5, 6, 10, 44};
   size_t i;
+
+  ll->list = full_ll;
 
   for (i = 0; i < sizeof l / sizeof l[0]; i++)
     size_t_list_push(&ll->size, &ll_cur_ptr, l[i]);
