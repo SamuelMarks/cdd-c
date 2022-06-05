@@ -63,7 +63,9 @@ size_t_list_append(struct size_t_elem **, size_t);
 extern C_CDD_EXPORT void size_t_list_push(uint32_t *, struct size_t_elem ***,
                                           size_t);
 
-extern C_CDD_EXPORT struct size_t_elem **size_t_cleanup(struct size_t_elem **);
+extern C_CDD_EXPORT void size_t_elem_cleanup(struct size_t_elem **);
+
+extern C_CDD_EXPORT void size_t_list_cleanup(struct size_t_list *);
 
 /*
  * `az_span`
@@ -91,6 +93,10 @@ az_span_list_append(struct az_span_elem **, az_span);
 
 extern C_CDD_EXPORT void az_span_list_push(uint32_t *, struct az_span_elem ***,
                                            az_span);
+
+extern C_CDD_EXPORT void az_span_elem_cleanup(struct az_span_elem **);
+
+extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 
 #ifdef __cplusplus
 } /* extern "C" */

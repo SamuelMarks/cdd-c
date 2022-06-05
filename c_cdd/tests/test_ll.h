@@ -23,9 +23,43 @@ TEST x_size_t_ll() {
        iter = iter->next, i++)
     ASSERT_EQ(iter->lu, l[i]);
 
+  size_t_list_cleanup(ll);
+
+  ASSERT_EQ(ll->list, NULL);
+  ASSERT_EQ(ll->size, 0);
+
   PASS();
 }
 
-SUITE(ll_suite) { RUN_TEST(x_size_t_ll); }
+TEST x_az_span_ll() {
+  struct az_span_elem *full_ll = malloc(sizeof *full_ll);
+  struct az_span_elem **ll_cur_ptr = &full_ll, *iter;
+
+  struct az_span_list *ll = malloc(sizeof *ll);
+
+  const az_span l[] = {AZ_SPAN_FROM_STR("foo"), AZ_SPAN_FROM_STR("bar")};
+  size_t i;
+
+  ll->list = full_ll->next;
+
+  for (i = 0; i < sizeof l / sizeof l[0]; i++)
+    az_span_list_push(&ll->size, &ll_cur_ptr, l[i]);
+
+  for (iter = (struct az_span_elem *)ll->list, i = 0; iter != NULL;
+       iter = iter->next, i++)
+    ASSERT_FALSE(!az_span_is_content_equal(iter->span, l[0]));
+
+  az_span_list_cleanup(ll);
+
+  ASSERT_EQ(ll->list, NULL);
+  ASSERT_EQ(ll->size, 0);
+
+  PASS();
+}
+
+SUITE(ll_suite) {
+  RUN_TEST(x_size_t_ll);
+  RUN_TEST(x_az_span_ll);
+}
 
 #endif /* !C_CDD_TESTS_TEST_LL_H */
