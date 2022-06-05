@@ -95,15 +95,20 @@ void size_t_list_push(uint32_t *ll_n, struct size_t_elem ***ll_root,
   *ll_root = size_t_list_append(*ll_root, lu);
 }
 
-struct size_t_elem **size_t_cleanup(struct size_t_elem **size_t_elem) {
+void size_t_elem_cleanup(struct size_t_elem **size_t_elem) {
   if (size_t_elem == NULL)
-    return size_t_elem;
+    return;
   while (*size_t_elem) {
     struct size_t_elem *cur = size_t_elem[0];
     size_t_elem = &size_t_elem[0]->next;
     free(cur);
   }
-  return size_t_elem;
+}
+
+void size_t_list_cleanup(struct size_t_list *size_t_ll) {
+  struct size_t_elem *list = (struct size_t_elem *)size_t_ll->list;
+  size_t_elem_cleanup(&list);
+  size_t_ll->list = NULL, size_t_ll->size = 0;
 }
 
 /*
@@ -140,4 +145,20 @@ void az_span_list_push(uint32_t *ll_n, struct az_span_elem ***ll_root,
     (*ll_n)++;
     *ll_root = az_span_list_append(*ll_root, span);
   }
+}
+
+void az_span_elem_cleanup(struct az_span_elem **az_span_element) {
+  if (az_span_element == NULL)
+    return;
+  while (*az_span_element) {
+    struct az_span_elem *cur = az_span_element[0];
+    az_span_element = &az_span_element[0]->next;
+    free(cur);
+  }
+}
+
+void az_span_list_cleanup(struct az_span_list *size_t_ll) {
+  struct az_span_elem *list = (struct az_span_elem *)size_t_ll->list;
+  az_span_elem_cleanup(&list);
+  size_t_ll->list = NULL, size_t_ll->size = 0;
 }
