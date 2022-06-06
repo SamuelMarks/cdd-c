@@ -29,7 +29,7 @@ struct az_span_list *scanner(const az_span source) {
   struct az_span_elem *scanned_ll = NULL;
   struct az_span_elem **scanned_cur_ptr = &scanned_ll;
 
-  struct az_span_list *ll = malloc(sizeof *ll);
+  struct az_span_list *ll = calloc(1, sizeof *ll);
 
   int32_t i, start_index;
   const int32_t source_n = az_span_size(source);
