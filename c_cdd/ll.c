@@ -66,7 +66,8 @@ const char *make_slice(const char *s, const size_t i, size_t *start_index) {
  */
 
 struct size_t_elem **size_t_list_end(struct size_t_elem **size_t_elem) {
-  assert(size_t_elem);
+  if (!size_t_elem)
+    return size_t_elem;
   while (*size_t_elem)
     size_t_elem = &size_t_elem[0]->next;
   return size_t_elem;
@@ -75,8 +76,7 @@ struct size_t_elem **size_t_list_end(struct size_t_elem **size_t_elem) {
 struct size_t_elem **size_t_list_prepend(struct size_t_elem **size_t_elem,
                                          const size_t lu) {
   struct size_t_elem *x = malloc(sizeof *x);
-  assert(size_t_elem);
-  if (!x)
+  if (!x || !size_t_elem)
     return NULL;
   x->lu = lu;
   x->next = *size_t_elem;
