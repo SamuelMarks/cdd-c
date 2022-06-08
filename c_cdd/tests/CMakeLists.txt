@@ -33,6 +33,7 @@ set(Header_Files
         "test_comment.h"
         "test_function.h"
         "test_ll.h"
+        "test_macro.h"
         "test_struct.h"
         "test_tokenizer.h")
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
