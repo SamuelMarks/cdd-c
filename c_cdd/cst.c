@@ -36,6 +36,9 @@ int eatCComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
 int eatCppComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
                   struct az_span_list *);
 
+int eatMacro(const az_span *, int32_t, int32_t, struct az_span_elem ***,
+             struct az_span_list *);
+
 struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
 
@@ -65,10 +68,11 @@ struct az_span_list *scanner(const az_span source) {
    * */
 
   for (i = 0, start_index = 0; i < source_n; i++) {
-    /* Handle comments */
     if (i > 0) {
       const uint8_t ch = az_span_ptr(source)[i];
       const uint8_t last_ch = az_span_ptr(source)[i - 1];
+
+      /* Handle comments */
       if (last_ch == '/' && (i < 2 || az_span_ptr(source)[i - 2] != '\\')) {
         /*const az_span *source, const int32_t start_index, const int32_t n,
         struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll*/
@@ -80,6 +84,12 @@ struct az_span_list *scanner(const az_span source) {
           i = start_index = eatCppComment(&source, start_index, source_n,
                                           &scanned_cur_ptr, ll);
       }
+
+      /* Handle macros */
+      if (ch == '#' && last_ch != '\\')
+        i = start_index =
+            eatMacro(&source, start_index, source_n, &scanned_cur_ptr, ll);
+      /* Handle literals (single and double-quoted) */
     }
   }
 
@@ -262,6 +272,22 @@ int eatCppComment(const az_span *source, const int32_t start_index,
         az_span_ptr(*source)[end_index - 1] != '\\')
       break;
   } while (end_index != n);
+
+  if (end_index > start_index)
+    az_span_list_push(&ll->size, scanned_cur_ptr,
+                      az_span_slice(*source, start_index, ++end_index));
+  return end_index;
+}
+
+int eatMacro(const az_span *source, const int32_t start_index, const int32_t n,
+             struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll) {
+  int32_t end_index = start_index;
+  while (end_index != n) {
+    if (az_span_ptr(*source)[end_index] == '\n' &&
+        az_span_ptr(*source)[end_index - 1] != '\\')
+      break;
+    end_index++;
+  }
 
   if (end_index > start_index)
     az_span_list_push(&ll->size, scanned_cur_ptr,
