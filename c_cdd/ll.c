@@ -139,6 +139,7 @@ struct az_span_elem **az_span_list_prepend(struct az_span_elem **span_elem,
 
 struct az_span_elem **az_span_list_append(struct az_span_elem **p,
                                           const az_span span) {
+  // print_escaped_span("az_span_list_append::span", span);
   return az_span_list_prepend(az_span_list_end(p), span);
 }
 

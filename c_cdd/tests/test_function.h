@@ -74,7 +74,8 @@ TEST x_test_function_scanned(void) {
   struct az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  static const char *scanned_str_l[n] = {"int sum(int a, int b) ", "{ return a + b", "; ", "}"};
+  static const char *scanned_str_l[n] = {"int sum(int a, int b) ",
+                                         "{ return a + b", "; ", "}"};
 
   printf("scanned->size         = %u\n\n", scanned->size);
 

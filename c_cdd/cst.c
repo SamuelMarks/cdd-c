@@ -15,7 +15,7 @@ struct ScannerVars {
   ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
   uint32_t spaces;
   uint32_t lparen, rparen, lsquare, rsquare, lbrace, rbrace, lchev, rchev;
-  bool in_c_comment, in_cpp_comment, in_single, in_double, in_macro, in_init;
+  bool in_c_comment, in_cpp_comment, in_single, in_double, in_macro, in_init, is_digit;
 };
 
 struct ScannerVars *clear_sv(struct ScannerVars *);
@@ -84,14 +84,16 @@ struct az_span_list *scanner(const az_span source) {
         break;
       case '"':
         if (sv.in_double) {
-          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
+          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                  &start_index);
           sv.in_double = false;
         } else
           sv.in_double = true;
         break;
       case '\'':
         if (sv.in_single) {
-          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
+          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                  &start_index);
           sv.in_single = false;
         } else
           sv.in_single = true;
@@ -124,9 +126,27 @@ struct az_span_list *scanner(const az_span source) {
             case '>':
               sv.rchev++;
               break;
-            case ';':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            ZERO:
+            case '9':
+              sv.is_digit = true;
+              break;
             case '{':
             case '}':
+              az_span_list_push_valid(&source, ll, i - 1, &sv, &scanned_cur_ptr,
+                                      &start_index);
+              /*az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                      &start_index);*/
+              break;
+            case ';':
               az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
                                       &start_index);
               break;
@@ -148,8 +168,7 @@ struct az_span_list *scanner(const az_span source) {
       }
   }
 
-  az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                          &start_index);
+  az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
 
   ll->list = scanned_ll;
   return ll;
