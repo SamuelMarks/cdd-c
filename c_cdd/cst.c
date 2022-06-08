@@ -15,7 +15,8 @@ struct ScannerVars {
   ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
   uint32_t spaces;
   uint32_t lparen, rparen, lsquare, rsquare, lbrace, rbrace, lchev, rchev;
-  bool in_c_comment, in_cpp_comment, in_single, in_double, in_macro, in_init, is_digit;
+  bool in_c_comment, in_cpp_comment, in_single, in_double, in_macro, in_init,
+      is_digit;
 };
 
 struct ScannerVars *clear_sv(struct ScannerVars *);
@@ -28,7 +29,12 @@ void az_span_list_push_valid(const az_span *source,
                              struct ScannerVars *sv,
                              struct az_span_elem ***scanned_cur_ptr,
                              int32_t *start_index);
-void eatComment() {}
+
+int eatCComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
+                struct az_span_list *);
+
+int eatCppComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
+                  struct az_span_list *);
 
 struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
@@ -59,286 +65,31 @@ struct az_span_list *scanner(const az_span source) {
    * */
 
   for (i = 0, start_index = 0; i < source_n; i++) {
-    bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
-    const uint8_t ch = az_span_ptr(source)[i];
-    if (ch == '\\')
-      sv.line_continuation_at = i;
-    else if (sv.line_continuation_at != i - 1)
-      switch (ch) {
-      case '/':
-        if (i > 0)
-          switch (az_span_ptr(source)[i - 1]) {
-          case '*':
-            sv.in_c_comment = false;
-            az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                    &start_index);
-            break;
-          case '/':
-            sv.in_cpp_comment = true;
-            break;
-          }
-        break;
-      case '*':
-        if (i > 0 && az_span_ptr(source)[i - 1] == '/')
-          sv.in_c_comment = true;
-        break;
-      case '"':
-        if (sv.in_double) {
-          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                  &start_index);
-          sv.in_double = false;
-        } else
-          sv.in_double = true;
-        break;
-      case '\'':
-        if (sv.in_single) {
-          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                  &start_index);
-          sv.in_single = false;
-        } else
-          sv.in_single = true;
-        break;
-      default:
-        if (!sv.in_single && !sv.in_double) {
-          if (!in_comment) {
-            switch (ch) {
-            case '=':
-              sv.in_init = true;
-              break;
-            case '#':
-              sv.in_macro = true;
-              break;
-            case '(':
-              sv.lparen++;
-              break;
-            case ')':
-              sv.rparen++;
-              break;
-            case '[':
-              sv.lsquare++;
-              break;
-            case ']':
-              sv.rsquare++;
-              break;
-            case '<':
-              sv.lchev++;
-              break;
-            case '>':
-              sv.rchev++;
-              break;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            ZERO:
-            case '9':
-              sv.is_digit = true;
-              break;
-            case '{':
-            case '}':
-              az_span_list_push_valid(&source, ll, i - 1, &sv, &scanned_cur_ptr,
-                                      &start_index);
-              /*az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                      &start_index);*/
-              break;
-            case ';':
-              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                      &start_index);
-              break;
-            default:
-              break;
-            }
-          } else if (ch == '\n') {
-            if (sv.in_cpp_comment) {
-              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                      &start_index);
-              sv.in_cpp_comment = false;
-            } else if (sv.in_macro) {
-              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                      &start_index);
-              sv.in_macro = false;
-            }
-          }
-        }
+    /* Handle comments */
+    if (i > 0) {
+      const uint8_t ch = az_span_ptr(source)[i];
+      const uint8_t last_ch = az_span_ptr(source)[i - 1];
+      if (last_ch == '/' && (i < 2 || az_span_ptr(source)[i - 2] != '\\')) {
+        /*const az_span *source, const int32_t start_index, const int32_t n,
+        struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll*/
+
+        if (ch == '*')
+          i = start_index =
+              eatCComment(&source, start_index, source_n, &scanned_cur_ptr, ll);
+        else if (ch == '/')
+          i = start_index = eatCppComment(&source, start_index, source_n,
+                                          &scanned_cur_ptr, ll);
       }
-  }
-
-  az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
-
-  ll->list = scanned_ll;
-  return ll;
-}
-
-struct az_span_list *old_scanner(const az_span source) {
-  struct ScannerVars sv;
-
-  struct az_span_elem *scanned_ll = NULL;
-  struct az_span_elem **scanned_cur_ptr = &scanned_ll;
-
-  struct az_span_list *ll = calloc(1, sizeof *ll);
-
-  int32_t i, start_index;
-  const int32_t source_n = az_span_size(source);
-  ll->size = 0;
-
-  clear_sv(&sv);
-
-  for (i = 0, start_index = 0; i < source_n; i++) {
-    bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
-    const uint8_t ch = az_span_ptr(source)[i];
-    if (isspace(ch))
-      sv.spaces++;
-    else
-      switch (ch) {
-      case '/':
-        if (!sv.in_single && !sv.in_double) {
-          if (sv.cpp_comment_char_at == i - 1)
-            sv.in_cpp_comment = true;
-          else if (sv.c_comment_char_at == i - 1)
-            sv.in_c_comment = false;
-          else
-            sv.cpp_comment_char_at = (ssize_t)i,
-            sv.c_comment_char_at = (ssize_t)i;
-        }
-        break;
-      case '*':
-        if (!sv.in_single && !sv.in_double) {
-          if (in_comment)
-            sv.c_comment_char_at = (ssize_t)i;
-          else if (sv.c_comment_char_at == i - 1)
-            sv.in_c_comment = true;
-        }
-        break;
-      case '"':
-        if (!sv.in_single)
-          sv.in_double = !sv.in_double;
-        break;
-      case '\'':
-        if (!sv.in_double)
-          sv.in_single = !sv.in_single;
-        break;
-      /*sv.lbrace == sv.rbrace || */
-      /*case '\n':
-        if ( sv.in_cpp_comment) {
-          const az_span expr =
-              make_slice_clear_vars(source, i, &start_index, &sv,
-                                    */
-      /* always_make_expr */ /* true);
-if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-scanned_cur_ptr = az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
-break;
-}*/
-      default:
-        if (!sv.in_single && !sv.in_double && !in_comment) {
-          switch (ch) {
-          case ';': {
-            az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
-                                    &start_index);
-            break;
-          }
-          default:
-            break;
-          }
-        } else if (/*!sv.in_single && !sv.in_double && !in_comment &&*/ false) {
-          switch (ch) {
-          case '=':
-            sv.in_init = true;
-            break;
-          case '#':
-            sv.in_macro = true;
-            break;
-          case '(':
-            sv.lparen++;
-            break;
-          case ')':
-            sv.rparen++;
-            break;
-          case '[':
-            sv.lsquare++;
-            break;
-          case ']':
-            sv.rsquare++;
-            break;
-          case '<':
-            sv.lchev++;
-            break;
-          case '>':
-            sv.rchev++;
-            break;
-          case '\\':
-            sv.line_continuation_at = (ssize_t)i;
-            break;
-          case ';':
-            if (sv.lbrace == sv.rbrace) {
-              const az_span expr =
-                  make_slice_clear_vars(source, i, &start_index, &sv,
-                                        /* always_make_expr */ true);
-              if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-                az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
-              break;
-            }
-          case '{':
-          case '}':
-            /* TODO: Handle `f({{5,6}, {7,8}});` */
-            if (!sv.in_init) {
-              char *s;
-              asprintf(&s, "\nsource[%02d:%02d]        ", start_index, i - 1);
-              print_escaped_span(s, az_span_slice(source, start_index, i - 1));
-              free(s);
-              printf("sv.spaces             = %d\n"
-                     "i-start_index (%02d-%02d) = %d\n",
-                     sv.spaces, i, start_index, i - start_index);
-            }
-            if (!sv.in_init) {
-              /* if (i != 0 && sv.spaces != i - start_index) { */
-              const az_span expr0 = make_slice_clear_vars(
-                  source, i - 1, &start_index, clear_sv(&sv),
-                  /* always_make_expr */ true);
-
-              az_span_list_push(&ll->size, &scanned_cur_ptr, expr0);
-              /*}*/
-              {
-                char *s;
-                asprintf(&s, "source[%d:%d]", start_index, i);
-                print_escaped_span(s, az_span_slice(source, start_index, i));
-                free(s);
-              }
-              { /* Push just the '{' | '}' to its own node */
-                const az_span expr1 =
-                    make_slice_clear_vars(source, i, &start_index, &sv,
-                                          /* always_make_expr */ true);
-                az_span_list_push(&ll->size, &scanned_cur_ptr, expr1);
-              }
-            }
-            break;
-          default:
-            break;
-          }
-        }
-      }
-  }
-  /*
-  printf("i = %d ;\n"
-         "source_n = %d\n", i, source_n);
-  if (i < source_n)*/
-  {
-    const az_span expr = make_slice_clear_vars(source, i, &start_index, &sv,
-                                               /* always_make_expr */ false);
-    puts("i < source_n");
-    print_escaped_span("last_expr", expr);
-    if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0) {
-      az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
-      puts("here");
     }
   }
+
+  /*az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+   * &start_index);*/
+
   ll->list = scanned_ll;
   return ll;
 }
+
 void az_span_list_push_valid(const az_span *source,
                              const struct az_span_list *ll, int32_t i,
                              struct ScannerVars *sv,
@@ -482,3 +233,38 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
 }
 
 const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }
+
+int eatCComment(const az_span *source, const int32_t start_index,
+                const int32_t n, struct az_span_elem ***scanned_cur_ptr,
+                struct az_span_list *ll) {
+  int32_t end_index = start_index;
+  do {
+    end_index++;
+    if (az_span_ptr(*source)[end_index] == '/' &&
+        az_span_ptr(*source)[end_index - 1] == '*' &&
+        az_span_ptr(*source)[end_index - 2] != '\\')
+      break;
+  } while (end_index != n);
+
+  if (end_index > start_index)
+    az_span_list_push(&ll->size, scanned_cur_ptr,
+                      az_span_slice(*source, start_index, ++end_index));
+  return end_index;
+}
+
+int eatCppComment(const az_span *source, const int32_t start_index,
+                  const int32_t n, struct az_span_elem ***scanned_cur_ptr,
+                  struct az_span_list *ll) {
+  int32_t end_index = start_index;
+  do {
+    end_index++;
+    if (az_span_ptr(*source)[end_index] == '\n' &&
+        az_span_ptr(*source)[end_index - 1] != '\\')
+      break;
+  } while (end_index != n);
+
+  if (end_index > start_index)
+    az_span_list_push(&ll->size, scanned_cur_ptr,
+                      az_span_slice(*source, start_index, ++end_index));
+  return end_index;
+}
