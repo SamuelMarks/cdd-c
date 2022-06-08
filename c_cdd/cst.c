@@ -23,6 +23,13 @@ struct ScannerVars *clear_sv(struct ScannerVars *);
 az_span make_slice_clear_vars(az_span source, int32_t i, int32_t *start_index,
                               struct ScannerVars *sv, bool always_make_expr);
 
+void az_span_list_push_valid(const az_span *source,
+                             const struct az_span_list *ll, int32_t i,
+                             struct ScannerVars *sv,
+                             struct az_span_elem ***scanned_cur_ptr,
+                             int32_t *start_index);
+void eatComment() {}
+
 struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
 
@@ -50,6 +57,118 @@ struct az_span_list *scanner(const az_span source) {
    * - comment{c,cpp}
    * - noncomment nonmacro nonliteral chars before {'{', '}', ';', '\n'}
    * */
+
+  for (i = 0, start_index = 0; i < source_n; i++) {
+    bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
+    const uint8_t ch = az_span_ptr(source)[i];
+    if (ch == '\\')
+      sv.line_continuation_at = i;
+    else if (sv.line_continuation_at != i - 1)
+      switch (ch) {
+      case '/':
+        if (i > 0)
+          switch (az_span_ptr(source)[i - 1]) {
+          case '*':
+            sv.in_c_comment = false;
+            az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                    &start_index);
+            break;
+          case '/':
+            sv.in_cpp_comment = true;
+            break;
+          }
+        break;
+      case '*':
+        if (i > 0 && az_span_ptr(source)[i - 1] == '/')
+          sv.in_c_comment = true;
+        break;
+      case '"':
+        if (sv.in_double) {
+          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
+          sv.in_double = false;
+        } else
+          sv.in_double = true;
+        break;
+      case '\'':
+        if (sv.in_single) {
+          az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr, &start_index);
+          sv.in_single = false;
+        } else
+          sv.in_single = true;
+        break;
+      default:
+        if (!sv.in_single && !sv.in_double) {
+          if (!in_comment) {
+            switch (ch) {
+            case '=':
+              sv.in_init = true;
+              break;
+            case '#':
+              sv.in_macro = true;
+              break;
+            case '(':
+              sv.lparen++;
+              break;
+            case ')':
+              sv.rparen++;
+              break;
+            case '[':
+              sv.lsquare++;
+              break;
+            case ']':
+              sv.rsquare++;
+              break;
+            case '<':
+              sv.lchev++;
+              break;
+            case '>':
+              sv.rchev++;
+              break;
+            case ';':
+            case '{':
+            case '}':
+              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                      &start_index);
+              break;
+            default:
+              break;
+            }
+          } else if (ch == '\n') {
+            if (sv.in_cpp_comment) {
+              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                      &start_index);
+              sv.in_cpp_comment = false;
+            } else if (sv.in_macro) {
+              az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                      &start_index);
+              sv.in_macro = false;
+            }
+          }
+        }
+      }
+  }
+
+  az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                          &start_index);
+
+  ll->list = scanned_ll;
+  return ll;
+}
+
+struct az_span_list *old_scanner(const az_span source) {
+  struct ScannerVars sv;
+
+  struct az_span_elem *scanned_ll = NULL;
+  struct az_span_elem **scanned_cur_ptr = &scanned_ll;
+
+  struct az_span_list *ll = calloc(1, sizeof *ll);
+
+  int32_t i, start_index;
+  const int32_t source_n = az_span_size(source);
+  ll->size = 0;
+
+  clear_sv(&sv);
+
   for (i = 0, start_index = 0; i < source_n; i++) {
     bool in_comment = sv.in_c_comment || sv.in_cpp_comment;
     const uint8_t ch = az_span_ptr(source)[i];
@@ -99,11 +218,8 @@ break;
         if (!sv.in_single && !sv.in_double && !in_comment) {
           switch (ch) {
           case ';': {
-            const az_span expr =
-                make_slice_clear_vars(source, i, &start_index, &sv,
-                                      /* always_make_expr */ true);
-            if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-              az_span_list_push(&ll->size, &scanned_cur_ptr, expr);
+            az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+                                    &start_index);
             break;
           }
           default:
@@ -201,9 +317,18 @@ break;
       puts("here");
     }
   }
-  // ll->list->next->next = NULL;
   ll->list = scanned_ll;
   return ll;
+}
+void az_span_list_push_valid(const az_span *source,
+                             const struct az_span_list *ll, int32_t i,
+                             struct ScannerVars *sv,
+                             struct az_span_elem ***scanned_cur_ptr,
+                             int32_t *start_index) {
+  const az_span expr = make_slice_clear_vars((*source), i, start_index, sv,
+                                             /* always_make_expr */ true);
+  if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
+    az_span_list_push(&ll->size, scanned_cur_ptr, expr);
 }
 
 struct ScannerVars *clear_sv(struct ScannerVars *sv) {

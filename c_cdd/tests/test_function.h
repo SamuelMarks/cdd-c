@@ -73,25 +73,36 @@ TEST x_test_function_scanned(void) {
   const struct az_span_list *scanned = scanner(sum_func_span);
   struct az_span_elem *iter;
   enum { n = 4 };
-  size_t i = 0;
-  static const char *scanned_str_l[n] = {"int sum(int a, int b)", " ",
-                                         "{ return a + b;", " "};
+  size_t i;
+  static const char *scanned_str_l[n] = {"int sum(int a, int b) ", "{ return a + b", "; ", "}"};
 
   printf("scanned->size         = %u\n\n", scanned->size);
 
   /*ASSERT_EQ(scanned->size, n);*/
 
-  for (iter = (struct az_span_elem *)scanned->list; iter != NULL;
+  for (i = 0; i < n; i++) {
+    char *s;
+    asprintf(&s, "scanned_str_l[%" NUM_LONG_FMT "u]", i);
+    print_escaped(s, (char *)scanned_str_l[i]);
+    free(s);
+  }
+
+  printf("\n************************\n\n");
+
+  for (iter = (struct az_span_elem *)scanned->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
     const int32_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
-    char *s;
+    char *s0, *s1;
     az_span_to_str(iter_s, n, iter->span);
-    asprintf(&s, "scanned_str_l[%" NUM_LONG_FMT "u]", i);
-    print_escaped(s, (char *)scanned_str_l[i]);
+    asprintf(&s0, "scanned_str_l[%" NUM_LONG_FMT "u]", i);
+    asprintf(&s1, "iter_s[%" NUM_LONG_FMT "u]       ", i);
+    print_escaped(s0, (char *)scanned_str_l[i]);
+    print_escaped(s1, iter_s);
     putchar('\n');
     /*ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);*/
-    free(s);
+    free(s0);
+    free(s1);
     free(iter_s);
   }
   PASS();
