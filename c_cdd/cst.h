@@ -26,6 +26,10 @@ typedef SSIZE_T ssize_t;
 #include <sys/errno.h>
 #endif
 
+#ifndef DEBUG_SCANNER
+#define DEBUG_SCANNER
+#endif
+
 #include <c_str_span.h>
 
 #include "ll.h"
