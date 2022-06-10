@@ -4,10 +4,13 @@
 #ifdef __cplusplus
 extern "C" {
 #else
-#include "c_cdd_export.h"
-#include "cst.h"
 #include <stdlib.h>
 #endif
+
+#include "c_cdd_export.h"
+
+#include "cst.h"
+#include "scanner_types.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #include <BaseTsd.h>
@@ -105,7 +108,7 @@ extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 
 struct scan_az_span_elem {
   az_span span;
-  enum CstNodeKind kind;
+  enum ScannerKind kind;
   struct scan_az_span_elem *next;
 };
 
@@ -119,13 +122,16 @@ extern C_CDD_EXPORT struct scan_az_span_elem **
 scan_az_span_list_end(struct scan_az_span_elem **);
 
 extern C_CDD_EXPORT struct scan_az_span_elem **
-scan_az_span_list_prepend(struct scan_az_span_elem **, az_span, enum CstNodeKind);
+scan_az_span_list_prepend(struct scan_az_span_elem **, enum ScannerKind,
+                          az_span);
 
 extern C_CDD_EXPORT struct scan_az_span_elem **
-scan_az_span_list_append(struct scan_az_span_elem **, az_span);
+scan_az_span_list_append(struct scan_az_span_elem **, enum ScannerKind,
+                         az_span);
 
-extern C_CDD_EXPORT void scan_az_span_list_push(uint32_t *, struct scan_az_span_elem ***,
-                                           az_span);
+extern C_CDD_EXPORT void scan_az_span_list_push(uint32_t *,
+                                                struct scan_az_span_elem ***,
+                                                enum ScannerKind, az_span);
 
 extern C_CDD_EXPORT void scan_az_span_elem_cleanup(struct scan_az_span_elem **);
 

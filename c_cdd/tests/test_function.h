@@ -70,8 +70,8 @@ void span_to_str(char *destination, int32_t destination_max_size,
 
 TEST x_test_function_scanned(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct az_span_list *scanned = scanner(sum_func_span);
-  struct az_span_elem *iter;
+  const struct scan_az_span_list *scanned = scanner(sum_func_span);
+  struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
   static const char *scanned_str_l[n] = {"int sum(int a, int b) ",
@@ -90,7 +90,7 @@ TEST x_test_function_scanned(void) {
 
   printf("\n************************\n\n");
 
-  for (iter = (struct az_span_elem *)scanned->list, i = 0; iter != NULL;
+  for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
     const int32_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
@@ -111,14 +111,14 @@ TEST x_test_function_scanned(void) {
 
 TEST x_test_function_tokenizer(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct az_span_list *scanned = scanner(sum_func_span);
+  const struct scan_az_span_list *scanned = scanner(sum_func_span);
   const struct az_span_elem *tokens = tokenizer(scanned->list);
   PASS();
 }
 
 TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct az_span_list *scanned = scanner(sum_func_span);
+  const struct scan_az_span_list *scanned = scanner(sum_func_span);
   const struct CstNode **parsed = parser((struct az_span_elem *)scanned);
   //  static enum TypeSpecifier int_specifier[] = {INT};
   //  static const struct Declaration a_arg = {/* pos_start */ 0,

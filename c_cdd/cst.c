@@ -25,30 +25,31 @@ az_span make_slice_clear_vars(az_span source, int32_t i, int32_t *start_index,
                               struct ScannerVars *sv, bool always_make_expr);
 
 void az_span_list_push_valid(const az_span *source,
-                             const struct az_span_list *ll, int32_t i,
+                             const struct scan_az_span_list *ll, int32_t i,
                              struct ScannerVars *sv,
-                             struct az_span_elem ***scanned_cur_ptr,
+                             struct scan_az_span_elem ***scanned_cur_ptr,
                              int32_t *start_index);
 
-int eatCComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
-                struct az_span_list *);
+int eatCComment(const az_span *, int32_t, int32_t, struct scan_az_span_elem ***,
+                struct scan_az_span_list *);
 
-int eatCppComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
-                  struct az_span_list *);
+int eatCppComment(const az_span *, int32_t, int32_t,
+                  struct scan_az_span_elem ***, struct scan_az_span_list *);
 
-int eatMacro(const az_span *, int32_t, int32_t, struct az_span_elem ***,
-             struct az_span_list *);
+int eatMacro(const az_span *, int32_t, int32_t, struct scan_az_span_elem ***,
+             struct scan_az_span_list *);
 
-int eatStrLiteral(const az_span *, int32_t, int32_t, struct az_span_elem ***,
-                  struct az_span_list *, uint8_t);
+int eatStrLiteral(const az_span *, int32_t, int32_t,
+                  struct scan_az_span_elem ***, struct scan_az_span_list *,
+                  uint8_t);
 
-struct az_span_list *scanner(const az_span source) {
+struct scan_az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
 
-  struct az_span_elem *scanned_ll = NULL;
-  struct az_span_elem **scanned_cur_ptr = &scanned_ll;
+  struct scan_az_span_elem *scanned_ll = NULL;
+  struct scan_az_span_elem **scanned_cur_ptr = &scanned_ll;
 
-  struct az_span_list *ll = calloc(1, sizeof *ll);
+  struct scan_az_span_list *ll = calloc(1, sizeof *ll);
 
   int32_t i, start_index;
   const int32_t source_n = az_span_size(source);
@@ -125,14 +126,14 @@ struct az_span_list *scanner(const az_span source) {
 }
 
 void az_span_list_push_valid(const az_span *source,
-                             const struct az_span_list *ll, int32_t i,
+                             const struct scan_az_span_list *ll, int32_t i,
                              struct ScannerVars *sv,
-                             struct az_span_elem ***scanned_cur_ptr,
+                             struct scan_az_span_elem ***scanned_cur_ptr,
                              int32_t *start_index) {
   const az_span expr = make_slice_clear_vars((*source), i, start_index, sv,
                                              /* always_make_expr */ true);
   if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-    az_span_list_push(&ll->size, scanned_cur_ptr, expr);
+    scan_az_span_list_push(&ll->size, scanned_cur_ptr, UnknownScan, expr);
 }
 
 struct ScannerVars *clear_sv(struct ScannerVars *sv) {
@@ -162,16 +163,19 @@ az_span make_slice_clear_vars(const az_span source, int32_t i,
   return az_span_empty();
 }
 
-const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
+const struct az_span_elem *
+tokenizer(const struct scan_az_span_elem *const scanned) {
   /* tokenizes into slices, from "unsigned long/ *stuff*\f()";
    * to {"unsigned long", "/ *stuff*\", "f", "(", ")", ";"} */
-  struct az_span_elem *iter;
+  struct scan_az_span_elem *iter;
   struct az_span_elem *slices = NULL;
   struct az_span_elem **slice_cur_ptr = &slices;
-  printf("const struct az_span_elem *tokenizer(const struct az_span_elem "
+  printf("const struct scan_az_span_elem *tokenizer(const struct "
+         "scan_az_span_elem "
          "*const scanned)");
   putchar('\n');
-  for (iter = (struct az_span_elem *)scanned; iter != NULL; iter = iter->next) {
+  for (iter = (struct scan_az_span_elem *)scanned; iter != NULL;
+       iter = iter->next) {
     char line[4095];
     int32_t i = 0, start_index = 0;
     ssize_t comment_started = -1, comment_ended = -1 /*, last_space = -1*/;
@@ -269,8 +273,8 @@ const struct az_span_elem *tokenizer(const struct az_span_elem *const scanned) {
 const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }
 
 int eatCComment(const az_span *source, const int32_t start_index,
-                const int32_t n, struct az_span_elem ***scanned_cur_ptr,
-                struct az_span_list *ll) {
+                const int32_t n, struct scan_az_span_elem ***scanned_cur_ptr,
+                struct scan_az_span_list *ll) {
   int32_t end_index;
   for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '/' &&
@@ -283,15 +287,15 @@ int eatCComment(const az_span *source, const int32_t start_index,
     asprintf(&s, "eatCComment[%d:%d]", start_index, end_index);
     print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
     free(s);
-    az_span_list_push(&ll->size, scanned_cur_ptr,
-                      az_span_slice(*source, start_index, ++end_index));
+    scan_az_span_list_push(&ll->size, scanned_cur_ptr, CComment,
+                           az_span_slice(*source, start_index, ++end_index));
   }
   return end_index;
 }
 
 int eatCppComment(const az_span *source, const int32_t start_index,
-                  const int32_t n, struct az_span_elem ***scanned_cur_ptr,
-                  struct az_span_list *ll) {
+                  const int32_t n, struct scan_az_span_elem ***scanned_cur_ptr,
+                  struct scan_az_span_list *ll) {
   int32_t end_index;
   for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '\n' &&
@@ -303,14 +307,15 @@ int eatCppComment(const az_span *source, const int32_t start_index,
     asprintf(&s, "eatCppComment[%d:%d]", start_index, end_index);
     print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
     free(s);
-    az_span_list_push(&ll->size, scanned_cur_ptr,
-                      az_span_slice(*source, start_index, ++end_index));
+    scan_az_span_list_push(&ll->size, scanned_cur_ptr, CppComment,
+                           az_span_slice(*source, start_index, ++end_index));
   }
   return end_index;
 }
 
 int eatMacro(const az_span *source, const int32_t start_index, const int32_t n,
-             struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll) {
+             struct scan_az_span_elem ***scanned_cur_ptr,
+             struct scan_az_span_list *ll) {
   int32_t end_index;
   for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '\n' &&
@@ -322,19 +327,19 @@ int eatMacro(const az_span *source, const int32_t start_index, const int32_t n,
     asprintf(&s, "eatMacro[%d:%d]", start_index, end_index);
     print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
     free(s);
-    az_span_list_push(&ll->size, scanned_cur_ptr,
-                      az_span_slice(*source, start_index, ++end_index));
+    scan_az_span_list_push(&ll->size, scanned_cur_ptr, Macro,
+                           az_span_slice(*source, start_index, ++end_index));
   }
   return end_index;
 }
 
 int eatStrLiteral(const az_span *source, const int32_t start_index,
-                  const int32_t n, struct az_span_elem ***scanned_cur_ptr,
-                  struct az_span_list *ll, const uint8_t quote_mark) {
+                  const int32_t n, struct scan_az_span_elem ***scanned_cur_ptr,
+                  struct scan_az_span_list *ll, const uint8_t quote_mark) {
   int32_t end_index;
   for (end_index = start_index + 1; end_index < n; end_index++) {
     const uint8_t ch = az_span_ptr(*source)[end_index] == quote_mark,
-             last_ch = az_span_ptr(*source)[end_index - 1];
+                  last_ch = az_span_ptr(*source)[end_index - 1];
     if (ch == quote_mark && last_ch != '\\')
       break;
   }
@@ -344,8 +349,9 @@ int eatStrLiteral(const az_span *source, const int32_t start_index,
     asprintf(&s, "eatStrLiteral[%d:%d]", start_index, end_index);
     print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
     free(s);
-    az_span_list_push(&ll->size, scanned_cur_ptr,
-                      az_span_slice(*source, start_index, ++end_index));
+    scan_az_span_list_push(&ll->size, scanned_cur_ptr,
+                           quote_mark == '"' ? DoubleQuoted : SingleQuoted,
+                           az_span_slice(*source, start_index, ++end_index));
   }
   return end_index;
 }
