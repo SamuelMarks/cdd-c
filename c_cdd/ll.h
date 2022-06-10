@@ -5,7 +5,7 @@
 extern "C" {
 #else
 #include <stdlib.h>
-#endif
+#endif /* __cplusplus */
 
 #include "c_cdd_export.h"
 

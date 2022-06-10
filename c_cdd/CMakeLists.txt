@@ -15,7 +15,8 @@ source_group("Header Files" FILES "${Header_Files}")
 set(Source_Files
         "c_cdd_utils.c"
         "cst.c"
-        "ll.c")
+        "ll.c"
+        "scanner_types.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
