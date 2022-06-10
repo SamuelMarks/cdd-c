@@ -17,9 +17,9 @@ GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
-  /*RUN_SUITE(ll_suite);
+  RUN_SUITE(ll_suite);
   RUN_SUITE(comment_suite);
-  RUN_SUITE(macro_suite);*/
+  RUN_SUITE(macro_suite);
   RUN_SUITE(literal_str_suite);
   /*RUN_SUITE(function_suite);*/
   /*RUN_SUITE(struct_suite);*/

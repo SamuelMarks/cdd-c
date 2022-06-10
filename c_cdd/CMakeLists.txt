@@ -4,10 +4,18 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}")
 
-set(Header_Files "c_cdd_stdbool.h" "c_cdd_utils.h" "ll.h" "cst.h")
+set(Header_Files
+        "c_cdd_stdbool.h"
+        "c_cdd_utils.h"
+        "cst.h"
+        "ll.h"
+        "scanner_types.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "c_cdd_utils.c" "ll.c" "cst.c")
+set(Source_Files
+        "c_cdd_utils.c"
+        "cst.c"
+        "ll.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")

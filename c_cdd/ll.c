@@ -174,39 +174,41 @@ void az_span_list_cleanup(struct az_span_list *size_t_ll) {
  * `scan_az_span`
  */
 
-struct scan_az_span_elem **scan_az_span_list_end(struct scan_az_span_elem **span_elem) {
+struct scan_az_span_elem **
+scan_az_span_list_end(struct scan_az_span_elem **span_elem) {
   assert(span_elem);
   while (*span_elem)
     span_elem = &(**span_elem).next;
   return span_elem;
 }
 
-struct scan_az_span_elem **scan_az_span_list_prepend(struct scan_az_span_elem **span_elem,
-                                                     const az_span span,
-                                                     enum CstNodeKind kind) {
+struct scan_az_span_elem **
+scan_az_span_list_prepend(struct scan_az_span_elem **span_elem,
+                          enum ScannerKind kind, const az_span span) {
   struct scan_az_span_elem *new_span_elem = malloc(sizeof *new_span_elem);
   if (!new_span_elem || !span_elem)
     return span_elem;
-  new_span_elem->span = span,
-  new_span_elem->next = *span_elem,
+  new_span_elem->span = span, new_span_elem->next = *span_elem,
   new_span_elem->kind = kind;
   *span_elem = new_span_elem;
   return &new_span_elem->next;
 }
 
-struct scan_az_span_elem **scan_az_span_list_append(struct scan_az_span_elem **p,
-                                          const az_span span) {
+struct scan_az_span_elem **
+scan_az_span_list_append(struct scan_az_span_elem **p,
+                         const enum ScannerKind kind, const az_span span) {
   // print_escaped_span("az_span_list_append::span", span);
-  return scan_az_span_list_prepend(scan_az_span_list_end(p), span);
+  return scan_az_span_list_prepend(scan_az_span_list_end(p), kind, span);
 }
 
 void scan_az_span_list_push(uint32_t *ll_n, struct scan_az_span_elem ***ll_root,
-                       const az_span span) {
+                            const enum ScannerKind kind, const az_span span) {
   (*ll_n)++;
-  *ll_root = scan_az_span_list_append(*ll_root, span);
+  *ll_root = scan_az_span_list_append(*ll_root, kind, span);
 }
 
-void scan_az_span_elem_cleanup(struct scan_az_span_elem **scan_az_span_element) {
+void scan_az_span_elem_cleanup(
+    struct scan_az_span_elem **scan_az_span_element) {
   if (scan_az_span_element == NULL)
     return;
 
