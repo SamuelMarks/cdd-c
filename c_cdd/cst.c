@@ -39,6 +39,9 @@ int eatCppComment(const az_span *, int32_t, int32_t, struct az_span_elem ***,
 int eatMacro(const az_span *, int32_t, int32_t, struct az_span_elem ***,
              struct az_span_list *);
 
+int eatStrLiteral(const az_span *, int32_t, int32_t, struct az_span_elem ***,
+                  struct az_span_list *, uint8_t);
+
 struct az_span_list *scanner(const az_span source) {
   struct ScannerVars sv;
 
@@ -67,30 +70,51 @@ struct az_span_list *scanner(const az_span source) {
    * - noncomment nonmacro nonliteral chars before {'{', '}', ';', '\n'}
    * */
 
-  for (i = 0, start_index = 0; i < source_n; i++) {
-    if (i > 0) {
-      const uint8_t ch = az_span_ptr(source)[i];
-      const uint8_t last_ch = az_span_ptr(source)[i - 1];
+  for (i = 1, start_index = 0; i < source_n; i++) {
+    const uint8_t ch = az_span_ptr(source)[i],
+                  last_ch = az_span_ptr(source)[i - 1];
+    bool handled = false;
 
+    if (last_ch == '/' && (i < 2 || az_span_ptr(source)[i - 2] != '\\')) {
       /* Handle comments */
-      if (last_ch == '/' && (i < 2 || az_span_ptr(source)[i - 2] != '\\')) {
-        /*const az_span *source, const int32_t start_index, const int32_t n,
-        struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll*/
-
-        if (ch == '*')
-          i = start_index =
-              eatCComment(&source, start_index, source_n, &scanned_cur_ptr, ll);
-        else if (ch == '/')
-          i = start_index = eatCppComment(&source, start_index, source_n,
-                                          &scanned_cur_ptr, ll);
+      switch (ch) {
+      case '*':
+        i = start_index =
+            eatCComment(&source, start_index, source_n, &scanned_cur_ptr, ll);
+        handled = true;
+        break;
+      case '/':
+        i = start_index =
+            eatCppComment(&source, start_index, source_n, &scanned_cur_ptr, ll);
+        handled = true;
+        break;
+      default:
+        break;
       }
+    }
 
+    if (!handled && last_ch != '\\')
+      switch (ch) {
       /* Handle macros */
-      if (ch == '#' && last_ch != '\\')
+      case '#':
         i = start_index =
             eatMacro(&source, start_index, source_n, &scanned_cur_ptr, ll);
+        break;
+
       /* Handle literals (single and double-quoted) */
-    }
+      case '\'':
+        i = start_index = eatStrLiteral(&source, start_index, source_n,
+                                        &scanned_cur_ptr, ll, '\'');
+        break;
+
+      case '"':
+        i = start_index = eatStrLiteral(&source, start_index, source_n,
+                                        &scanned_cur_ptr, ll, '"');
+        break;
+
+      default:
+        break;
+      }
   }
 
   /*az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
@@ -247,50 +271,81 @@ const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }
 int eatCComment(const az_span *source, const int32_t start_index,
                 const int32_t n, struct az_span_elem ***scanned_cur_ptr,
                 struct az_span_list *ll) {
-  int32_t end_index = start_index;
-  do {
-    end_index++;
+  int32_t end_index;
+  for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '/' &&
         az_span_ptr(*source)[end_index - 1] == '*' &&
         az_span_ptr(*source)[end_index - 2] != '\\')
       break;
-  } while (end_index != n);
 
-  if (end_index > start_index)
+  if (end_index > start_index) {
+    char *s;
+    asprintf(&s, "eatCComment[%d:%d]", start_index, end_index);
+    print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
+    free(s);
     az_span_list_push(&ll->size, scanned_cur_ptr,
                       az_span_slice(*source, start_index, ++end_index));
+  }
   return end_index;
 }
 
 int eatCppComment(const az_span *source, const int32_t start_index,
                   const int32_t n, struct az_span_elem ***scanned_cur_ptr,
                   struct az_span_list *ll) {
-  int32_t end_index = start_index;
-  do {
-    end_index++;
+  int32_t end_index;
+  for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '\n' &&
         az_span_ptr(*source)[end_index - 1] != '\\')
       break;
-  } while (end_index != n);
 
-  if (end_index > start_index)
+  if (end_index > start_index) {
+    char *s;
+    asprintf(&s, "eatCppComment[%d:%d]", start_index, end_index);
+    print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
+    free(s);
     az_span_list_push(&ll->size, scanned_cur_ptr,
                       az_span_slice(*source, start_index, ++end_index));
+  }
   return end_index;
 }
 
 int eatMacro(const az_span *source, const int32_t start_index, const int32_t n,
              struct az_span_elem ***scanned_cur_ptr, struct az_span_list *ll) {
-  int32_t end_index = start_index;
-  while (end_index != n) {
+  int32_t end_index;
+  for (end_index = start_index; end_index < n; end_index++)
     if (az_span_ptr(*source)[end_index] == '\n' &&
         az_span_ptr(*source)[end_index - 1] != '\\')
       break;
-    end_index++;
-  }
 
-  if (end_index > start_index)
+  if (end_index > start_index) {
+    char *s;
+    asprintf(&s, "eatMacro[%d:%d]", start_index, end_index);
+    print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
+    free(s);
     az_span_list_push(&ll->size, scanned_cur_ptr,
                       az_span_slice(*source, start_index, ++end_index));
+  }
+  return end_index;
+}
+
+int eatStrLiteral(const az_span *source, const int32_t start_index,
+                  const int32_t n, struct az_span_elem ***scanned_cur_ptr,
+                  struct az_span_list *ll, const uint8_t quote_mark) {
+  int32_t end_index;
+  for (end_index = start_index + 1; end_index < n; end_index++) {
+    const uint8_t ch = az_span_ptr(*source)[end_index] == quote_mark,
+             last_ch = az_span_ptr(*source)[end_index - 1];
+    if (ch == quote_mark && last_ch != '\\')
+      break;
+  }
+
+  if (end_index > start_index) {
+    char *s;
+    asprintf(&s, "eatStrLiteral[%d:%d]", start_index, end_index);
+    print_escaped_span(s, az_span_slice(*source, start_index, end_index + 1));
+    free(s);
+    az_span_list_push(&ll->size, scanned_cur_ptr,
+                      az_span_slice(*source, start_index, ++end_index));
+  }
   return end_index;
 }

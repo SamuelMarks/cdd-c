@@ -10,12 +10,6 @@
 
 #include <cdd_helpers.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#endif
-
 static const char macro_src[] = "# define foo bar\n"
                                 "#ifdef FOO\n"
                                 "# define CAT(bar,foo)(bar ## foo)\n"
@@ -30,14 +24,6 @@ TEST x_test_macro_scanned(void) {
   static const char *scanned_str_l[n] = {"# define foo bar\n", "#ifdef FOO\n",
                                          "# define CAT(bar,foo)(bar ## foo)\n"};
 
-  for (iter = (struct az_span_elem *)scanned->list, i = 0; iter != NULL;
-       iter = iter->next, i++) {
-    const int32_t n = az_span_size(iter->span) + 1;
-    char *iter_s = malloc(n);
-    az_span_to_str(iter_s, n, iter->span);
-    print_escaped("iter_s", iter_s);
-    free(iter_s);
-  }
   ASSERT_EQ(scanned->size, n);
 
   for (iter = (struct az_span_elem *)scanned->list, i = 0; iter != NULL;
