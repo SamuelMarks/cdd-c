@@ -10,12 +10,6 @@
 
 #include <cdd_helpers.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#endif
-
 static const char comment_src[] = "// C++ comment\n"
                                   "/* C comment 0 */"
                                   "/* C comment 1 */"

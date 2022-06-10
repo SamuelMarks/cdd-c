@@ -5,6 +5,7 @@
 extern "C" {
 #else
 #include "c_cdd_export.h"
+#include "cst.h"
 #include <stdlib.h>
 #endif
 
@@ -97,6 +98,38 @@ extern C_CDD_EXPORT void az_span_list_push(uint32_t *, struct az_span_elem ***,
 extern C_CDD_EXPORT void az_span_elem_cleanup(struct az_span_elem **);
 
 extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
+
+/*
+ * `az_span`
+ */
+
+struct scan_az_span_elem {
+  az_span span;
+  enum CstNodeKind kind;
+  struct scan_az_span_elem *next;
+};
+
+/* List structure requiring manual bookkeeping for size */
+struct scan_az_span_list {
+  uint32_t size;
+  const struct scan_az_span_elem *list;
+};
+
+extern C_CDD_EXPORT struct scan_az_span_elem **
+scan_az_span_list_end(struct scan_az_span_elem **);
+
+extern C_CDD_EXPORT struct scan_az_span_elem **
+scan_az_span_list_prepend(struct scan_az_span_elem **, az_span, enum CstNodeKind);
+
+extern C_CDD_EXPORT struct scan_az_span_elem **
+scan_az_span_list_append(struct scan_az_span_elem **, az_span);
+
+extern C_CDD_EXPORT void scan_az_span_list_push(uint32_t *, struct scan_az_span_elem ***,
+                                           az_span);
+
+extern C_CDD_EXPORT void scan_az_span_elem_cleanup(struct scan_az_span_elem **);
+
+extern C_CDD_EXPORT void scan_az_span_list_cleanup(struct scan_az_span_list *);
 
 #ifdef __cplusplus
 } /* extern "C" */
