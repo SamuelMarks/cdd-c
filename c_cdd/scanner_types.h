@@ -21,6 +21,11 @@ enum ScannerKind {
   CppComment
 };
 
+struct StrScannerKind {
+  char *s;
+  enum ScannerKind kind;
+};
+
 extern C_CDD_EXPORT const char *ScannerKind_to_str(enum ScannerKind);
 
 #ifdef __cplusplus

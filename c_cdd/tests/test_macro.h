@@ -21,9 +21,10 @@ TEST x_test_macro_scanned(void) {
   struct scan_az_span_elem *iter;
   enum { n = 3 };
   size_t i;
-  static const char *scanned_str_l[n] = {"# define foo bar\n", "#ifdef FOO\n",
-                                         "# define CAT(bar,foo)(bar ## foo)\n"};
-  static enum ScannerKind scanned_kind_l[n] = {Macro, Macro, Macro};
+  struct StrScannerKind scanned_l[n] = {
+      {"# define foo bar\n", Macro},
+      {"#ifdef FOO\n", Macro},
+      {"# define CAT(bar,foo)(bar ## foo)\n", Macro}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -32,10 +33,11 @@ TEST x_test_macro_scanned(void) {
     const int32_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     az_span_to_str(iter_s, n, iter->span);
-    ASSERT_STR_EQ(iter_s, scanned_str_l[i]);
-    ASSERT_EQ(iter->kind, scanned_kind_l[i]);
+    ASSERT_STR_EQ(scanned_l[i].s, iter_s);
+    ASSERT_EQ(scanned_l[i].kind, iter->kind);
     free(iter_s);
   }
+  ASSERT_EQ(scanned->size, i);
   scan_az_span_list_cleanup(scanned);
   ASSERT_EQ(scanned->size, 0);
   ASSERT_EQ(scanned->list, NULL);
