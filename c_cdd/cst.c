@@ -393,5 +393,5 @@ int eatStrLiteral(const az_span *source, const int32_t start_index,
     scan_az_span_list_push(&ll->size, scanned_cur_ptr, DoubleQuoted,
                            az_span_slice(*source, start_index, ++end_index));
   }
-  return end_index;
+  return end_index - 1;
 }
