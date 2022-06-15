@@ -15,12 +15,14 @@ TEST x_test_double_literal_str_scanned(void) {
                                         "\"bar can\";\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct scan_az_span_list *scanned = scanner(literal_str_span);
+  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 2 };
+  enum { n = 4 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {{"\"foo\"", DoubleQuoted},
-                                        {"\"bar can\"", DoubleQuoted}};
+                                        {"\n", Whitespace},
+                                        {"\"bar can\"", DoubleQuoted},
+                                        {"\n", Whitespace}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -46,15 +48,13 @@ TEST x_test_single_literal_str_scanned(void) {
                                         "'\\'\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct scan_az_span_list *scanned = scanner(literal_str_span);
+  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 3 };
+  enum { n = 6 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
-      {"'a'", SingleQuoted},
-      {"'\\n'", SingleQuoted},
-      {"'\\'", SingleQuoted},
-  };
+      {"'a'", SingleQuoted}, {"\n", Whitespace},     {"'\\n'", SingleQuoted},
+      {"\n", Whitespace},    {"'\\'", SingleQuoted}, {"\n", Whitespace}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -79,15 +79,16 @@ TEST x_test_literal_str_concat_scanned(void) {
                                         "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct scan_az_span_list *scanned = scanner(literal_str_span);
+  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 4 };
+  enum { n = 7 };
   size_t i;
 
-  struct StrScannerKind scanned_l[n] = {{"\"catt\"", DoubleQuoted},
-                                        {"\"catt\"", DoubleQuoted},
-                                        {"\"cut\"", DoubleQuoted},
-                                        {"\"cut\"", DoubleQuoted}};
+  struct StrScannerKind scanned_l[n] = {
+      {"\"catt\"", DoubleQuoted}, {"\"catt\"", DoubleQuoted},
+      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
+      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
+      {"\n", Whitespace}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -118,18 +119,34 @@ TEST x_test_literal_str_scanned(void) {
                                           "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct scan_az_span_list *scanned = scanner(literal_str_span);
+  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 11 };
+  enum { n = 21 };
   size_t i;
 
   struct StrScannerKind scanned_l[n] = {
-      {"\"foo\"", DoubleQuoted},     {"'a'", SingleQuoted},
-      {"'\\n'", SingleQuoted},       {"'\\'", SingleQuoted},
-      {"\"bar can\"", DoubleQuoted}, {"\"cat\"", DoubleQuoted},
-      {"\"cat\"", DoubleQuoted},     {"\"catt\"", DoubleQuoted},
-      {"\"catt\"", DoubleQuoted},    {"\"cut\"", DoubleQuoted},
-      {"\"cut\"", DoubleQuoted}};
+      {"\"foo\"", DoubleQuoted},
+      {"\n", Whitespace},
+      {"'a'", SingleQuoted},
+      {"\n", Whitespace},
+      {"'\\n'", SingleQuoted},
+      {"\n", Whitespace},
+      {"'\\'", SingleQuoted},
+      {"\n", Whitespace},
+      {"\"bar can\"", DoubleQuoted},
+      {"\n", Whitespace},
+      {"\"cat\"", DoubleQuoted},
+      {" ", Whitespace},
+      {"\"cat\"", DoubleQuoted},
+      {"\n", Whitespace},
+      {"\"catt\"", DoubleQuoted},
+      {"\"catt\"", DoubleQuoted},
+      {"\n", Whitespace},
+      {"\"cut\"", DoubleQuoted},
+      {"\n", Whitespace},
+      {"\"cut\"", DoubleQuoted},
+      {"\n", Whitespace},
+  };
 
   ASSERT_EQ(scanned->size, n);
 

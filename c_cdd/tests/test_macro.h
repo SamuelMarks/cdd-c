@@ -15,16 +15,20 @@ static const char macro_src[] = "# define foo bar\n"
                                 "# define CAT(bar,foo)(bar ## foo)\n"
                                 "#define HAZ\\\nFOO\n";
 
-TEST x_test_macro_scanned(void) {
+x_test_macro_scanned(void) {
   const az_span macro_span = az_span_create_from_str((char *)macro_src);
-  struct scan_az_span_list *scanned = scanner(macro_span);
+  const struct scan_az_span_list *const scanned = scanner(macro_span);
   struct scan_az_span_elem *iter;
-  enum { n = 3 };
+  enum { n = 4 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
       {"# define foo bar\n", Macro},
       {"#ifdef FOO\n", Macro},
-      {"# define CAT(bar,foo)(bar ## foo)\n", Macro}};
+      {"# define CAT(bar,foo)(bar ## foo)\n", Macro},
+      {"#define HAZ\\\nFOO\n", Macro}};
+
+  debug_scanned_with_mock(scanned, &i, scanned_l, n);
+  ASSERT_GT(i, 0);
 
   ASSERT_EQ(scanned->size, n);
 

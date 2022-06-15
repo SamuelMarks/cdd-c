@@ -15,10 +15,11 @@
 #define MIN_NAME 22
 
 void print_escaped(const char *name, char *s) {
+  const size_t name_n = strlen(name);
   char *ch;
   size_t i;
   printf("%s", name);
-  for (i = 0; i < MIN(MIN_NAME - strlen(name), strlen(name)); i++)
+  for (i = 0; i < MIN(MIN_NAME - name_n, name_n); i++)
     putchar(' ');
   printf("= \"");
   if (s == NULL)
@@ -34,9 +35,10 @@ void print_escaped(const char *name, char *s) {
 
 void print_escaped_span(const char *const name, const az_span span) {
   const uint8_t *const span_ptr = az_span_ptr(span);
+  const size_t name_n = strlen(name);
   size_t i;
   printf("%s", name);
-  for (i = 0; i < MIN(MIN_NAME - strlen(name), strlen(name)); i++)
+  for (i = 0; i < MIN(MIN_NAME - name_n, name_n); i++)
     putchar(' ');
   printf("= \"");
   for (i = 0; i < az_span_size(span); i++)

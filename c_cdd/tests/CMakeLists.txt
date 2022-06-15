@@ -36,7 +36,8 @@ set(Header_Files
         "test_literal_str.h"
         "test_macro.h"
         "test_struct.h"
-        "test_tokenizer.h")
+        "test_tokenizer.h"
+        "test_whitespace.h")
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
 add_library("${LIBRARY_NAME}" INTERFACE "${Header_Files}")

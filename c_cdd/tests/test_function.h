@@ -69,14 +69,13 @@ void span_to_str(char *destination, size_t destination_max_size,
 
 TEST x_test_function_scanned(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct scan_az_span_list *scanned = scanner(sum_func_span);
-  struct scan_az_span_elem *iter;
+  const const struct scan_az_span_list *const scanned = scanner(sum_func_span);
   enum { n = 4 };
   size_t i;
   static const char *scanned_str_l[n] = {"int sum(int a, int b) ",
                                          "{ return a + b", "; ", "}"};
 
-  printf("scanned->size         = %u\n\n", scanned->size);
+  printf("scanned->size         = %lu\n\n", scanned->size);
 
   /*ASSERT_EQ(scanned->size, n);*/
 
@@ -89,35 +88,21 @@ TEST x_test_function_scanned(void) {
 
   printf("\n************************\n\n");
 
-  for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
-       iter = iter->next, i++) {
-    const size_t n = az_span_size(iter->span) + 1;
-    char *iter_s = malloc(n);
-    char *s0, *s1;
-    az_span_to_str(iter_s, n, iter->span);
-    asprintf(&s0, "scanned_str_l[%" NUM_LONG_FMT "u]", i);
-    asprintf(&s1, "iter_s[%" NUM_LONG_FMT "u]       ", i);
-    print_escaped(s0, (char *)scanned_str_l[i]);
-    print_escaped(s1, iter_s);
-    putchar('\n');
-    /*ASSERT_STR_EQ(iter_s, scanned_str_l[i++]);*/
-    free(s0);
-    free(s1);
-    free(iter_s);
-  }
+  /* debug_scanned_with_mock(scanned, &i, scanned_l); */
+
   PASS();
 }
 
 TEST x_test_function_tokenizer(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct scan_az_span_list *scanned = scanner(sum_func_span);
+  const const struct scan_az_span_list *const scanned = scanner(sum_func_span);
   const struct az_span_elem *tokens = tokenizer(scanned->list);
   PASS();
 }
 
 TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  const struct scan_az_span_list *scanned = scanner(sum_func_span);
+  const const struct scan_az_span_list *const scanned = scanner(sum_func_span);
   const struct CstNode **parsed = parser((struct az_span_elem *)scanned);
   //  static enum TypeSpecifier int_specifier[] = {INT};
   //  static const struct Declaration a_arg = {/* pos_start */ 0,
