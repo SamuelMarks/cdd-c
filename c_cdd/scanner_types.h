@@ -10,6 +10,9 @@ extern "C" {
 enum ScannerKind {
   UnknownScan,
 
+  /* except one newline char that terminates CppComment or Macro */
+  Whitespace,
+
   Macro,
 
   /*Integer,

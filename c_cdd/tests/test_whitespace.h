@@ -1,5 +1,5 @@
-#ifndef C_CDD_TESTS_TEST_COMMENT_H
-#define C_CDD_TESTS_TEST_COMMENT_H
+#ifndef C_CDD_TESTS_TEST_WHITESPACE_H
+#define C_CDD_TESTS_TEST_WHITESPACE_H
 
 #include <greatest.h>
 
@@ -10,24 +10,23 @@
 
 #include <cdd_helpers.h>
 
-static const char comment_src[] = "// C++ comment\n"
-                                  "/* C comment 0 */"
-                                  "/* C comment 1 */"
-                                  "/* C comment*\\/ fin */";
+static const char whitespace_src[] = "\n\r\v"
+                                     "/* C comment 0 */"
+                                     "\n"
+                                     "/* C comment*\\/ fin */";
 
-TEST x_test_comment_scanned(void) {
-  const az_span comment_span = az_span_create_from_str((char *)comment_src);
-  const struct scan_az_span_list *const scanned = scanner(comment_span);
+TEST x_test_whitespace_scanned(void) {
+  const az_span whitespace_span =
+      az_span_create_from_str((char *)whitespace_src);
+  const struct scan_az_span_list *const scanned = scanner(whitespace_span);
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind scanned_l[n] = {{"// C++ comment\n", CppComment},
+  struct StrScannerKind scanned_l[n] = {{"\n\r\v", Whitespace},
                                         {"/* C comment 0 */", CComment},
-                                        {"/* C comment 1 */", CComment},
+                                        {"\n", Whitespace},
                                         {"/* C comment*\\/ fin */", CComment}};
-
   debug_scanned_with_mock(scanned, &i, scanned_l, n);
-
   ASSERT_EQ(scanned->size, n);
 
   for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
@@ -46,9 +45,9 @@ TEST x_test_comment_scanned(void) {
   PASS();
 }
 
-SUITE(comment_suite) {
+SUITE(whitespace_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  RUN_TEST(x_test_comment_scanned);
+  RUN_TEST(x_test_whitespace_scanned);
 }
 
-#endif /* !C_CDD_TESTS_TEST_COMMENT_H */
+#endif /* !C_CDD_TESTS_TEST_WHITESPACE_H */
