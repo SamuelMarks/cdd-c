@@ -114,7 +114,7 @@ struct scan_az_span_elem {
 
 /* List structure requiring manual bookkeeping for size */
 struct scan_az_span_list {
-  uint32_t size;
+  size_t size;
   const struct scan_az_span_elem *list;
 };
 
@@ -129,7 +129,7 @@ extern C_CDD_EXPORT struct scan_az_span_elem **
 scan_az_span_list_append(struct scan_az_span_elem **, enum ScannerKind,
                          az_span);
 
-extern C_CDD_EXPORT void scan_az_span_list_push(uint32_t *,
+extern C_CDD_EXPORT void scan_az_span_list_push(size_t *,
                                                 struct scan_az_span_elem ***,
                                                 enum ScannerKind, az_span);
 
