@@ -23,15 +23,14 @@
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
-void az_PRECONDITION(int32_t destination_max_size) {
+void az_PRECONDITION(size_t destination_max_size) {
   if (destination_max_size <= 0)
     az_precondition_failed_get_callback()();
 }
 
-void span_to_str(char *destination, int32_t destination_max_size,
+void span_to_str(char *destination, size_t destination_max_size,
                  az_span source) {
   _az_PRECONDITION_NOT_NULL(destination);
-  _az_PRECONDITION(destination_max_size > 0);
 
   // Implementations of memmove generally do the right thing when number of
   // bytes to move is 0, even if the ptr is null, but given the behavior is
@@ -39,7 +38,7 @@ void span_to_str(char *destination, int32_t destination_max_size,
   _az_PRECONDITION_VALID_SPAN(source, 0, false);
 
   {
-    int32_t size_to_write = az_span_size(source);
+    size_t size_to_write = az_span_size(source);
 
     az_PRECONDITION(size_to_write < destination_max_size);
 
@@ -63,7 +62,7 @@ void span_to_str(char *destination, int32_t destination_max_size,
 
     // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     memmove((void *)destination, (void const *)az_span_ptr(source),
-            (size_t)size_to_write);
+            size_to_write);
     destination[size_to_write] = 0;
   }
 }
@@ -92,7 +91,7 @@ TEST x_test_function_scanned(void) {
 
   for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
-    const int32_t n = az_span_size(iter->span) + 1;
+    const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     char *s0, *s1;
     az_span_to_str(iter_s, n, iter->span);

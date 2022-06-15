@@ -30,7 +30,7 @@ TEST x_test_macro_scanned(void) {
 
   for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
-    const int32_t n = az_span_size(iter->span) + 1;
+    const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(scanned_l[i].s, iter_s);

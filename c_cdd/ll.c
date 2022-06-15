@@ -201,7 +201,7 @@ scan_az_span_list_append(struct scan_az_span_elem **p,
   return scan_az_span_list_prepend(scan_az_span_list_end(p), kind, span);
 }
 
-void scan_az_span_list_push(uint32_t *ll_n, struct scan_az_span_elem ***ll_root,
+void scan_az_span_list_push(size_t *ll_n, struct scan_az_span_elem ***ll_root,
                             const enum ScannerKind kind, const az_span span) {
   (*ll_n)++;
   *ll_root = scan_az_span_list_append(*ll_root, kind, span);
