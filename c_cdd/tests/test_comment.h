@@ -17,7 +17,7 @@ static const char comment_src[] = "// C++ comment\n"
 
 TEST x_test_comment_scanned(void) {
   const az_span comment_span = az_span_create_from_str((char *)comment_src);
-  const struct scan_az_span_list *const scanned = scanner(comment_span);
+  struct scan_az_span_list *const scanned = scanner(comment_span);
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;

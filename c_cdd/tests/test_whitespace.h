@@ -18,7 +18,7 @@ static const char whitespace_src[] = "\n\r\v"
 TEST x_test_whitespace_scanned(void) {
   const az_span whitespace_span =
       az_span_create_from_str((char *)whitespace_src);
-  const struct scan_az_span_list *const scanned = scanner(whitespace_span);
+  struct scan_az_span_list *const scanned = scanner(whitespace_span);
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;

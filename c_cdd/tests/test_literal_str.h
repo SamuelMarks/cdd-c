@@ -15,7 +15,7 @@ TEST x_test_double_literal_str_scanned(void) {
                                         "\"bar can\";\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
+  struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
@@ -48,7 +48,7 @@ TEST x_test_single_literal_str_scanned(void) {
                                         "'\\'\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
+  struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
   enum { n = 6 };
   size_t i;
@@ -79,7 +79,7 @@ TEST x_test_literal_str_concat_scanned(void) {
                                         "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
+  struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
   enum { n = 7 };
   size_t i;
@@ -119,7 +119,7 @@ TEST x_test_literal_str_scanned(void) {
                                           "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  const struct scan_az_span_list *const scanned = scanner(literal_str_span);
+  struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
   enum { n = 21 };
   size_t i;
