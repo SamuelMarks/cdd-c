@@ -26,8 +26,6 @@ TEST x_test_comment_scanned(void) {
                                         {"/* C comment 1 */", CComment},
                                         {"/* C comment*\\/ fin */", CComment}};
 
-  debug_scanned_with_mock(scanned, &i, scanned_l, n);
-
   ASSERT_EQ(scanned->size, n);
 
   for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
