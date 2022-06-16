@@ -24,7 +24,7 @@ struct ScannerVars *clear_sv(struct ScannerVars *);
 az_span make_slice_clear_vars(az_span source, size_t i, size_t *start_index,
                               struct ScannerVars *sv, bool always_make_expr);
 
-void az_span_list_push_valid(const az_span *source,
+void az_span_list_push_valid(const az_span *const source,
                              struct scan_az_span_list *ll, size_t i,
                              struct ScannerVars *sv,
                              struct scan_az_span_elem ***scanned_cur_ptr,
@@ -88,8 +88,12 @@ struct scan_az_span_list *scanner(const az_span source) {
         handled = true;
         break;
       case '/':
-        i = eatCppComment(&source, i - 1, source_n, &scanned_cur_ptr, ll);
-        handled = true;
+        if (span_ptr[i - 2] != '*') {
+          /* ^ handle multi nonseparated C-style comments `/\*bar*\//\*foo*\/`
+           */
+          i = eatCppComment(&source, i - 1, source_n, &scanned_cur_ptr, ll);
+          handled = true;
+        }
         break;
       default:
         break;
@@ -131,7 +135,7 @@ struct scan_az_span_list *scanner(const az_span source) {
   return ll;
 }
 
-void az_span_list_push_valid(const az_span *source,
+void az_span_list_push_valid(const az_span *const source,
                              struct scan_az_span_list *ll, size_t i,
                              struct ScannerVars *sv,
                              struct scan_az_span_elem ***scanned_cur_ptr,
@@ -278,7 +282,7 @@ tokenizer(const struct scan_az_span_elem *const scanned) {
 
 const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }
 
-size_t eatCComment(const az_span *source, const size_t start_index,
+size_t eatCComment(const az_span *const source, const size_t start_index,
                    const size_t n, struct scan_az_span_elem ***scanned_cur_ptr,
                    struct scan_az_span_list *ll) {
   size_t end_index;
@@ -302,14 +306,15 @@ size_t eatCComment(const az_span *source, const size_t start_index,
   return end_index - 1;
 }
 
-size_t eatCppComment(const az_span *source, const size_t start_index,
+size_t eatCppComment(const az_span *const source, const size_t start_index,
                      const size_t n,
                      struct scan_az_span_elem ***scanned_cur_ptr,
                      struct scan_az_span_list *ll) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index; end_index < n; end_index++) {
-    if (span_ptr[end_index] == '\n' && span_ptr[end_index - 1] != '\\')
+    const uint8_t ch = span_ptr[end_index], last_ch = span_ptr[end_index - 1];
+    if (ch == '\n' && last_ch != '\\')
       break;
   }
 
@@ -326,8 +331,8 @@ size_t eatCppComment(const az_span *source, const size_t start_index,
   return end_index;
 }
 
-size_t eatMacro(const az_span *source, const size_t start_index, const size_t n,
-                struct scan_az_span_elem ***scanned_cur_ptr,
+size_t eatMacro(const az_span *const source, const size_t start_index,
+                const size_t n, struct scan_az_span_elem ***scanned_cur_ptr,
                 struct scan_az_span_list *ll) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
@@ -349,7 +354,7 @@ size_t eatMacro(const az_span *source, const size_t start_index, const size_t n,
   return end_index - 1;
 }
 
-size_t eatCharLiteral(const az_span *source, const size_t start_index,
+size_t eatCharLiteral(const az_span *const source, const size_t start_index,
                       const size_t n,
                       struct scan_az_span_elem ***scanned_cur_ptr,
                       struct scan_az_span_list *ll) {
@@ -377,7 +382,7 @@ size_t eatCharLiteral(const az_span *source, const size_t start_index,
   return end_index - 1;
 }
 
-size_t eatStrLiteral(const az_span *source, const size_t start_index,
+size_t eatStrLiteral(const az_span *const source, const size_t start_index,
                      const size_t n,
                      struct scan_az_span_elem ***scanned_cur_ptr,
                      struct scan_az_span_list *ll) {
@@ -403,7 +408,7 @@ size_t eatStrLiteral(const az_span *source, const size_t start_index,
   return end_index - 1;
 }
 
-size_t eatWhitespace(const az_span *source, const size_t start_index,
+size_t eatWhitespace(const az_span *const source, const size_t start_index,
                      const size_t n,
                      struct scan_az_span_elem ***scanned_cur_ptr,
                      struct scan_az_span_list *ll) {

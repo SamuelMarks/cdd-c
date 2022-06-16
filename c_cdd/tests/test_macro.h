@@ -17,7 +17,7 @@ static const char macro_src[] = "# define foo bar\n"
 
 x_test_macro_scanned(void) {
   const az_span macro_span = az_span_create_from_str((char *)macro_src);
-  const struct scan_az_span_list *const scanned = scanner(macro_span);
+  struct scan_az_span_list *const scanned = scanner(macro_span);
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
