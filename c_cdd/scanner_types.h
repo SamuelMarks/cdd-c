@@ -21,7 +21,52 @@ enum ScannerKind {
   SingleQuoted,
 
   CComment,
-  CppComment
+  CppComment,
+
+  Lbrace,
+  Rbrace,
+  Lsquare,
+  Rsquare,
+  Lparen,
+  Rparen,
+
+  Equal,
+  Equality,
+  GreaterThan,
+  GreaterThanEqual,
+  LessThan,
+  LessThanEqual,
+
+  RightShift,
+  LeftShift,
+
+  /* unary */
+  And,
+  Asterisk,
+  Plus,
+  Sub,
+  Tilde,
+  Exclamation,
+
+  Increment,
+  Decrement,
+
+  Divide,
+  Caret,
+  Pipe,
+
+  LogicalAnd,
+  LogicalOr,
+
+  Question,
+  Colon,
+
+  Ellipsis,
+
+  Word,
+
+  Comma,
+  Terminator /* ; */
 };
 
 struct StrScannerKind {

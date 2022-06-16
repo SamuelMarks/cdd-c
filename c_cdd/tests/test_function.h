@@ -75,7 +75,7 @@ TEST x_test_function_scanned(void) {
   static const char *scanned_str_l[n] = {"int sum(int a, int b) ",
                                          "{ return a + b", "; ", "}"};
 
-  printf("scanned->size         = %lu\n\n", scanned->size);
+  printf("scanned->size         = %" NUM_LONG_FMT "u\n\n", scanned->size);
 
   /*ASSERT_EQ(scanned->size, n);*/
 
@@ -86,7 +86,7 @@ TEST x_test_function_scanned(void) {
     free(s);
   }
 
-  printf("\n************************\n\n");
+  puts("\n************************\n");
 
   /* debug_scanned_with_mock(scanned, &i, scanned_l); */
 

@@ -17,12 +17,11 @@ TEST x_test_double_literal_str_scanned(void) {
       az_span_create_from_str((char *)literal_str_src);
   struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 4 };
+  enum { n = 6 };
   size_t i;
-  struct StrScannerKind scanned_l[n] = {{"\"foo\"", DoubleQuoted},
-                                        {"\n", Whitespace},
-                                        {"\"bar can\"", DoubleQuoted},
-                                        {"\n", Whitespace}};
+  struct StrScannerKind scanned_l[n] = {
+      {"\"foo\"", DoubleQuoted},     {";", Terminator}, {"\n", Whitespace},
+      {"\"bar can\"", DoubleQuoted}, {";", Terminator}, {"\n", Whitespace}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -50,11 +49,12 @@ TEST x_test_single_literal_str_scanned(void) {
       az_span_create_from_str((char *)literal_str_src);
   struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 6 };
+  enum { n = 8 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
-      {"'a'", SingleQuoted}, {"\n", Whitespace},     {"'\\n'", SingleQuoted},
-      {"\n", Whitespace},    {"'\\'", SingleQuoted}, {"\n", Whitespace}};
+      {"'a'", SingleQuoted},   {";", Terminator}, {"\n", Whitespace},
+      {"'\\n'", SingleQuoted}, {";", Terminator}, {"\n", Whitespace},
+      {"'\\'", SingleQuoted},  {"\n", Whitespace}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -121,30 +121,22 @@ TEST x_test_literal_str_scanned(void) {
       az_span_create_from_str((char *)literal_str_src);
   struct scan_az_span_list *const scanned = scanner(literal_str_span);
   struct scan_az_span_elem *iter;
-  enum { n = 21 };
+  enum { n = 25 };
   size_t i;
 
   struct StrScannerKind scanned_l[n] = {
-      {"\"foo\"", DoubleQuoted},
-      {"\n", Whitespace},
-      {"'a'", SingleQuoted},
-      {"\n", Whitespace},
-      {"'\\n'", SingleQuoted},
-      {"\n", Whitespace},
-      {"'\\'", SingleQuoted},
-      {"\n", Whitespace},
-      {"\"bar can\"", DoubleQuoted},
-      {"\n", Whitespace},
-      {"\"cat\"", DoubleQuoted},
-      {" ", Whitespace},
-      {"\"cat\"", DoubleQuoted},
-      {"\n", Whitespace},
-      {"\"catt\"", DoubleQuoted},
-      {"\"catt\"", DoubleQuoted},
-      {"\n", Whitespace},
-      {"\"cut\"", DoubleQuoted},
-      {"\n", Whitespace},
-      {"\"cut\"", DoubleQuoted},
+      {"\"foo\"", DoubleQuoted},  {";", Terminator},
+      {"\n", Whitespace},         {"'a'", SingleQuoted},
+      {";", Terminator},          {"\n", Whitespace},
+      {"'\\n'", SingleQuoted},    {";", Terminator},
+      {"\n", Whitespace},         {"'\\'", SingleQuoted},
+      {"\n", Whitespace},         {"\"bar can\"", DoubleQuoted},
+      {";", Terminator},          {"\n", Whitespace},
+      {"\"cat\"", DoubleQuoted},  {" ", Whitespace},
+      {"\"cat\"", DoubleQuoted},  {"\n", Whitespace},
+      {"\"catt\"", DoubleQuoted}, {"\"catt\"", DoubleQuoted},
+      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
+      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
       {"\n", Whitespace},
   };
 

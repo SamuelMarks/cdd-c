@@ -27,7 +27,6 @@ x_test_macro_scanned(void) {
       {"# define CAT(bar,foo)(bar ## foo)\n", Macro},
       {"#define HAZ\\\nFOO\n", Macro}};
 
-  debug_scanned_with_mock(scanned, &i, scanned_l, n);
   ASSERT_GT(i, 0);
 
   ASSERT_EQ(scanned->size, n);
