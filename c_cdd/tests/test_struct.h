@@ -21,57 +21,83 @@ static const char two_structs_src[] = "struct Haz {\n"
 
 TEST x_test_one_structs_scanned(void) {
   const az_span one_structs_span =
-      az_span_create_from_str((char *)sum_func_src);
-  struct scan_az_span_elem *scanned =
-      (struct scan_az_span_elem *)scanner(one_structs_span);
-  struct scan_az_span_elem *iter;
-  enum { n = 5 };
-  size_t i = 0;
-  static const char *scanned_str_l[n] = {
-      "struct Haz ", "{", "\012  const char *bzr;", "\012}", ";"};
-  static enum ScannerKind scanned_kind_l[n] = {};
+      az_span_create_from_str((char *)one_structs_src);
+  struct scan_az_span_list *const scanned = scanner(one_structs_span);
+  enum { n = 17 };
+  size_t i;
 
-  for (iter = scanned; iter != NULL; iter = iter->next) {
-    const size_t n = az_span_size(iter->span);
+  struct scan_az_span_elem *iter;
+
+  struct StrScannerKind scanned_l[n] = {
+      {"struct", Word},  {" ", Whitespace},  {"Haz", Word},
+      {" ", Whitespace}, {"{", Lbrace},      {"\n  ", Whitespace},
+      {"const", Word},   {" ", Whitespace},  {"char", Word},
+      {" ", Whitespace}, {"*", Asterisk},    {"bzr", Word},
+      {";", Terminator}, {"\n", Whitespace}, {"}", Rbrace},
+      {";", Terminator}, {"\n", Whitespace}};
+
+  ASSERT_EQ(scanned->size, n);
+
+  for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
+       iter = iter->next, i++) {
+    const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     az_span_to_str(iter_s, n, iter->span);
-    ASSERT_STR_EQ(scanned_str_l[i++], iter_s);
-    ASSERT_EQ(iter->kind, scanned_kind_l[i]);
+    ASSERT_STR_EQ(scanned_l[i].s, iter_s);
+    ASSERT_EQ(scanned_l[i].kind, iter->kind);
     free(iter_s);
   }
+  ASSERT_EQ(scanned->size, i);
+  scan_az_span_list_cleanup(scanned);
+  ASSERT_EQ(scanned->size, 0);
+  ASSERT_EQ(scanned->list, NULL);
+
   PASS();
 }
 
 TEST x_test_two_structs_scanned(void) {
   const az_span two_structs_span =
       az_span_create_from_str((char *)two_structs_src);
-  struct scan_az_span_elem *scanned =
-      (struct scan_az_span_elem *)scanner(two_structs_span);
-  struct scan_az_span_elem *iter;
-  enum { n = 12 };
-  size_t i = 0;
-  static const char *scanned_str_l[n] = {"struct Haz ",
-                                         "{",
-                                         "\012  const char *bzr;",
-                                         "\012}",
-                                         ";",
-                                         "\012\012struct Foo ",
-                                         "{",
-                                         "\012  const char *bar;",
-                                         "\012  int can;",
-                                         "\012  struct Haz *haz;",
-                                         "\012}",
-                                         ";"};
-  static enum ScannerKind scanned_kind_l[n] = {/*TODO*/};
+  struct scan_az_span_list *const scanned = scanner(two_structs_span);
+  enum { n = 47 };
+  size_t i;
 
-  for (iter = scanned; iter != NULL; iter = iter->next) {
-    const size_t n = az_span_size(iter->span);
+  struct scan_az_span_elem *iter;
+
+  struct StrScannerKind scanned_l[n] = {
+      {"struct", Word},     {" ", Whitespace},    {"Haz", Word},
+      {" ", Whitespace},    {"{", Lbrace},        {"\n  ", Whitespace},
+      {"const", Word},      {" ", Whitespace},    {"char", Word},
+      {" ", Whitespace},    {"*", Asterisk},      {"bzr", Word},
+      {";", Terminator},    {"\n", Whitespace},   {"}", Rbrace},
+      {";", Terminator},    {"\n\n", Whitespace}, {"struct", Word},
+      {" ", Whitespace},    {"Foo", Word},        {" ", Whitespace},
+      {"{", Lbrace},        {"\n  ", Whitespace}, {"const", Word},
+      {" ", Whitespace},    {"char", Word},       {" ", Whitespace},
+      {"*", Asterisk},      {"bar", Word},        {";", Terminator},
+      {"\n  ", Whitespace}, {"int", Word},        {" ", Whitespace},
+      {"can", Word},        {";", Terminator},    {"\n  ", Whitespace},
+      {"struct", Word},     {" ", Whitespace},    {"Haz", Word},
+      {" ", Whitespace},    {"*", Asterisk},      {"haz", Word},
+      {";", Terminator},    {"\n", Whitespace},   {"}", Rbrace},
+      {";", Terminator},    {"\n", Whitespace}};
+
+  ASSERT_EQ(scanned->size, n);
+
+  for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
+       iter = iter->next, i++) {
+    const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     az_span_to_str(iter_s, n, iter->span);
-    ASSERT_STR_EQ(scanned_str_l[i++], iter_s);
-    ASSERT_EQ(iter->kind, scanned_kind_l[i]);
+    ASSERT_STR_EQ(scanned_l[i].s, iter_s);
+    ASSERT_EQ(scanned_l[i].kind, iter->kind);
     free(iter_s);
   }
+  ASSERT_EQ(scanned->size, i);
+  scan_az_span_list_cleanup(scanned);
+  ASSERT_EQ(scanned->size, 0);
+  ASSERT_EQ(scanned->list, NULL);
+
   PASS();
 }
 

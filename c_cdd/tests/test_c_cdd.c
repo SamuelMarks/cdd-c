@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(macro_suite);
   RUN_SUITE(literal_str_suite);
   RUN_SUITE(whitespace_suite);
-  /*RUN_SUITE(function_suite);*/
-  /*RUN_SUITE(struct_suite);*/
+  RUN_SUITE(function_suite);
+  RUN_SUITE(struct_suite);
   /*RUN_SUITE(tokenizer_suite);*/
   GREATEST_MAIN_END();
 }
