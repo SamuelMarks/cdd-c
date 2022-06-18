@@ -1,126 +1,167 @@
 #include "scanner_types.h"
 
 const char *ScannerKind_to_str(const enum ScannerKind kind) {
+  /* "\n".join(map(lambda s: "case {0}:\n\treturn \"{0}\";\n".format(s),
+   * map(str.strip, s.split(',')))) */
   switch (kind) {
-  case Whitespace:
-    return "Whitespace";
+  case WHITESPACE:
+    return "WHITESPACE";
 
-  case Macro:
-    return "Macro";
+  case MACRO:
+    return "MACRO";
 
-  case DoubleQuoted:
-    return "DoubleQuoted";
+  case DOUBLE_QUOTED:
+    return "DOUBLE_QUOTED";
 
-  case SingleQuoted:
-    return "SingleQuoted";
+  case SINGLE_QUOTED:
+    return "SINGLE_QUOTED";
 
-  case CComment:
-    return "CComment";
+  case C_COMMENT:
+    return "C_COMMENT";
 
-  case CppComment:
-    return "CppComment";
+  case CPP_COMMENT:
+    return "CPP_COMMENT";
 
-  case Lbrace:
-    return "Lbrace";
+  case LBRACE:
+    return "LBRACE";
 
-  case Rbrace:
-    return "Rbrace";
+  case RBRACE:
+    return "RBRACE";
 
-  case Lsquare:
-    return "Lsquare";
+  case LSQUARE:
+    return "LSQUARE";
 
-  case Rsquare:
-    return "Rsquare";
+  case RSQUARE:
+    return "RSQUARE";
 
-  case Lparen:
-    return "Lparen";
+  case LPAREN:
+    return "LPAREN";
 
-  case Rparen:
-    return "Rparen";
+  case RPAREN:
+    return "RPAREN";
 
-  case Equal:
-    return "Equal";
+  case EQUAL:
+    return "EQUAL";
 
-  case Equality:
-    return "Equality";
+  case EQ_OP:
+    return "EQ_OP";
 
-  case GreaterThan:
-    return "GreaterThan";
+  case GREATER_THAN:
+    return "GREATER_THAN";
 
-  case GreaterThanEqual:
-    return "GreaterThanEqual";
+  case GE_OP:
+    return "GE_OP";
 
-  case LessThan:
-    return "LessThan";
+  case LESS_THAN:
+    return "LESS_THAN";
 
-  case LessThanEqual:
-    return "LessThanEqual";
+  case LE_OP:
+    return "LE_OP";
 
-  case RightShift:
-    return "RightShift";
+  case NE_OP:
+    return "NE_OP";
 
-  case LeftShift:
-    return "LeftShift";
+  case RIGHT_SHIFT:
+    return "RIGHT_SHIFT";
 
-  case And:
-    return "And";
+  case LEFT_SHIFT:
+    return "LEFT_SHIFT";
 
-  case Asterisk:
-    return "Asterisk";
+  case AND:
+    return "AND";
 
-  case Plus:
-    return "Plus";
+  case ASTERISK:
+    return "ASTERISK";
 
-  case Sub:
-    return "Sub";
+  case PLUS:
+    return "PLUS";
 
-  case Tilde:
-    return "Tilde";
+  case SUB:
+    return "SUB";
 
-  case Exclamation:
-    return "Exclamation";
+  case TILDE:
+    return "TILDE";
 
-  case Increment:
-    return "Increment";
+  case EXCLAMATION:
+    return "EXCLAMATION";
 
-  case Decrement:
-    return "Decrement";
+  case MODULO:
+    return "MODULO";
 
-  case Divide:
-    return "Divide";
+  case INC_OP:
+    return "INC_OP";
 
-  case Caret:
-    return "Caret";
+  case DEC_OP:
+    return "DEC_OP";
 
-  case Pipe:
-    return "Pipe";
+  case PTR_OP:
+    return "PTR_OP";
 
-  case LogicalAnd:
-    return "LogicalAnd";
+  case DIVIDE:
+    return "DIVIDE";
 
-  case LogicalOr:
-    return "LogicalOr";
+  case CARET:
+    return "CARET";
 
-  case Question:
-    return "Question";
+  case PIPE:
+    return "PIPE";
 
-  case Colon:
-    return "Colon";
+  case AND_OP:
+    return "AND_OP";
 
-  case Ellipsis:
-    return "Ellipsis";
+  case OR_OP:
+    return "OR_OP";
 
-  case Word:
-    return "Word";
+  case MUL_ASSIGN:
+    return "MUL_ASSIGN";
 
-  case Comma:
-    return "Comma";
+  case DIV_ASSIGN:
+    return "DIV_ASSIGN";
 
-  case Terminator:
-    return "Terminator";
+  case MOD_ASSIGN:
+    return "MOD_ASSIGN";
 
-  case UnknownScan:
+  case ADD_ASSIGN:
+    return "ADD_ASSIGN";
+
+  case SUB_ASSIGN:
+    return "SUB_ASSIGN";
+
+  case LEFT_ASSIGN:
+    return "LEFT_ASSIGN";
+
+  case RIGHT_ASSIGN:
+    return "RIGHT_ASSIGN";
+
+  case AND_ASSIGN:
+    return "AND_ASSIGN";
+
+  case XOR_ASSIGN:
+    return "XOR_ASSIGN";
+
+  case OR_ASSIGN:
+    return "OR_ASSIGN";
+
+  case QUESTION:
+    return "QUESTION";
+
+  case COLON:
+    return "COLON";
+
+  case ELLIPSIS:
+    return "ELLIPSIS";
+
+  case WORD:
+    return "WORD";
+
+  case COMMA:
+    return "COMMA";
+
+  case TERMINATOR:
+    return "TERMINATOR";
+
+  case UNKNOWN_SCAN:
   default:
-    return "UnknownScan";
+    return "UNKNOWN_SCAN";
   }
 }

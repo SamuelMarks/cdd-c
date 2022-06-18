@@ -7,9 +7,9 @@ extern "C" {
 #include <stdlib.h>
 #endif /* __cplusplus */
 
-#include "c_cdd_export.h"
+#include <c_cdd_export.h>
 
-#include "cst.h"
+#include "cst_parser_helpers.h"
 #include "scanner_types.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
@@ -103,7 +103,7 @@ extern C_CDD_EXPORT void az_span_elem_cleanup(struct az_span_elem **);
 extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 
 /*
- * `az_span`
+ * `scan_az_span`
  */
 
 struct scan_az_span_elem {
@@ -136,6 +136,39 @@ extern C_CDD_EXPORT void scan_az_span_list_push(size_t *,
 extern C_CDD_EXPORT void scan_az_span_elem_cleanup(struct scan_az_span_elem **);
 
 extern C_CDD_EXPORT void scan_az_span_list_cleanup(struct scan_az_span_list *);
+
+/*
+ * `parse_cst`
+ */
+
+struct parse_cst_elem {
+  enum CstNodeKind kind;
+  union CstNodeType type;
+  struct parse_cst_elem *next;
+};
+
+/* List structure requiring manual bookkeeping for size */
+struct parse_cst_list {
+  size_t size;
+  const struct parse_cst_elem *list;
+};
+
+extern C_CDD_EXPORT struct parse_cst_elem **
+parse_cst_list_end(struct parse_cst_elem **);
+
+extern C_CDD_EXPORT struct parse_cst_elem **
+parse_cst_list_prepend(struct parse_cst_elem **, enum ScannerKind, az_span);
+
+extern C_CDD_EXPORT struct parse_cst_elem **
+parse_cst_list_append(struct parse_cst_elem **, enum ScannerKind, az_span);
+
+extern C_CDD_EXPORT void parse_cst_list_push(size_t *,
+                                             struct parse_cst_elem ***,
+                                             enum ScannerKind, az_span);
+
+extern C_CDD_EXPORT void parse_cst_elem_cleanup(struct parse_cst_elem **);
+
+extern C_CDD_EXPORT void parse_cst_list_cleanup(struct parse_cst_list *);
 
 #ifdef __cplusplus
 } /* extern "C" */

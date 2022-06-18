@@ -228,3 +228,61 @@ void scan_az_span_list_cleanup(struct scan_az_span_list *size_t_ll) {
   scan_az_span_elem_cleanup(&list);
   size_t_ll->list = NULL, size_t_ll->size = 0;
 }
+
+/*
+ * `parse_cst`
+ */
+
+struct parse_cst_elem **parse_cst_list_end(struct parse_cst_elem **span_elem) {
+  assert(span_elem);
+  while (*span_elem)
+    span_elem = &(**span_elem).next;
+  return span_elem;
+}
+
+struct parse_cst_elem **
+parse_cst_list_prepend(struct parse_cst_elem **span_elem, enum ScannerKind kind,
+                       const az_span span) {
+  struct parse_cst_elem *new_span_elem = malloc(sizeof *new_span_elem);
+  if (!new_span_elem || !span_elem)
+    return span_elem;
+  // new_span_elem->type = malloc(sizeof(struct Expression *));
+  new_span_elem->kind = Expression;
+  new_span_elem->next = *span_elem;
+  *span_elem = new_span_elem;
+  return &new_span_elem->next;
+}
+
+struct parse_cst_elem **parse_cst_list_append(struct parse_cst_elem **p,
+                                              const enum ScannerKind kind,
+                                              const az_span span) {
+  // print_escaped_span("az_span_list_append::span", span);
+  return parse_cst_list_prepend(parse_cst_list_end(p), kind, span);
+}
+
+void parse_cst_list_push(size_t *ll_n, struct parse_cst_elem ***ll_root,
+                         const enum ScannerKind kind, const az_span span) {
+  (*ll_n)++;
+  *ll_root = parse_cst_list_append(*ll_root, kind, span);
+}
+
+void parse_cst_elem_cleanup(struct parse_cst_elem **parse_cst_element) {
+  if (parse_cst_element == NULL)
+    return;
+
+  {
+    struct parse_cst_elem *cur = *parse_cst_element;
+    while (cur != NULL) {
+      struct parse_cst_elem *tmp = cur;
+      cur = cur->next;
+      free(tmp);
+    }
+  }
+  *parse_cst_element = NULL;
+}
+
+void parse_cst_list_cleanup(struct parse_cst_list *size_t_ll) {
+  struct parse_cst_elem *list = (struct parse_cst_elem *)size_t_ll->list;
+  parse_cst_elem_cleanup(&list);
+  size_t_ll->list = NULL, size_t_ll->size = 0;
+}

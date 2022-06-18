@@ -23,50 +23,6 @@
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
-void az_PRECONDITION(size_t destination_max_size) {
-  if (destination_max_size <= 0)
-    az_precondition_failed_get_callback()();
-}
-
-void span_to_str(char *destination, size_t destination_max_size,
-                 az_span source) {
-  _az_PRECONDITION_NOT_NULL(destination);
-
-  // Implementations of memmove generally do the right thing when number of
-  // bytes to move is 0, even if the ptr is null, but given the behavior is
-  // documented to be undefined, we disallow it as a precondition.
-  _az_PRECONDITION_VALID_SPAN(source, 0, false);
-
-  {
-    size_t size_to_write = az_span_size(source);
-
-    az_PRECONDITION(size_to_write < destination_max_size);
-
-    // Even though the contract of this function is that the
-    // destination_max_size must be larger than source to be able to copy all of
-    // the source to the char buffer including an extra null terminating
-    // character, cap the data move if the source is too large, to avoid memory
-    // corruption.
-    if (size_to_write >= destination_max_size) {
-      // Leave enough space for the null terminator.
-      size_to_write = destination_max_size - 1;
-
-      // If destination_max_size was 0, we don't want size_to_write to be
-      // negative and corrupt data before the destination pointer.
-      if (size_to_write < 0) {
-        size_to_write = 0;
-      }
-    }
-
-    az_PRECONDITION(size_to_write >= 0);
-
-    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memmove((void *)destination, (void const *)az_span_ptr(source),
-            size_to_write);
-    destination[size_to_write] = 0;
-  }
-}
-
 TEST x_test_function_scanned(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   struct scan_az_span_list *const scanned = scanner(sum_func_span);
@@ -78,15 +34,15 @@ TEST x_test_function_scanned(void) {
   struct scan_az_span_elem *iter;
 
   struct StrScannerKind scanned_l[n] = {
-      {"int", Word},     {" ", Whitespace}, {"sum", Word},
-      {"(", Lparen},     {"int", Word},     {" ", Whitespace},
-      {"a", Word},       {",", Comma},      {" ", Whitespace},
-      {"int", Word},     {" ", Whitespace}, {"b", Word},
-      {")", Rparen},     {" ", Whitespace}, {"{", Lbrace},
-      {" ", Whitespace}, {"return", Word},  {" ", Whitespace},
-      {"a", Word},       {" ", Whitespace}, {"+", Plus},
-      {" ", Whitespace}, {"b", Word},       {";", Terminator},
-      {" ", Whitespace}, {"}", Rbrace}};
+      {"int", WORD},     {" ", WHITESPACE}, {"sum", WORD},
+      {"(", LPAREN},     {"int", WORD},     {" ", WHITESPACE},
+      {"a", WORD},       {",", COMMA},      {" ", WHITESPACE},
+      {"int", WORD},     {" ", WHITESPACE}, {"b", WORD},
+      {")", RPAREN},     {" ", WHITESPACE}, {"{", LBRACE},
+      {" ", WHITESPACE}, {"return", WORD},  {" ", WHITESPACE},
+      {"a", WORD},       {" ", WHITESPACE}, {"+", PLUS},
+      {" ", WHITESPACE}, {"b", WORD},       {";", TERMINATOR},
+      {" ", WHITESPACE}, {"}", RBRACE}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -110,7 +66,9 @@ TEST x_test_function_scanned(void) {
 TEST x_test_function_tokenizer(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   struct scan_az_span_list *const scanned = scanner(sum_func_span);
-  const struct az_span_elem *tokens = tokenizer(scanned->list);
+  const struct az_span_elem *tokens =
+      tokenizer((struct scan_az_span_list *)scanned->list);
+  scan_az_span_list_cleanup(scanned);
   PASS();
 }
 

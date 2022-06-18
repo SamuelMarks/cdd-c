@@ -22,10 +22,10 @@ TEST x_test_whitespace_scanned(void) {
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind scanned_l[n] = {{"\n\r\v", Whitespace},
-                                        {"/* C comment 0 */", CComment},
-                                        {"\n", Whitespace},
-                                        {"/* C comment*\\/ fin */", CComment}};
+  struct StrScannerKind scanned_l[n] = {{"\n\r\v", WHITESPACE},
+                                        {"/* C comment 0 */", C_COMMENT},
+                                        {"\n", WHITESPACE},
+                                        {"/* C comment*\\/ fin */", C_COMMENT}};
   ASSERT_EQ(scanned->size, n);
 
   for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;

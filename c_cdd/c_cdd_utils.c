@@ -2,13 +2,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#ifndef MIN
+#if (defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)) &&         \
+    !defined(MIN)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#endif /* !MIN */
-#else
+#elif !defined(MIN)
 #include <sys/param.h>
-#endif /* defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__) */
+#endif
 
 #include "c_cdd_utils.h"
 
@@ -51,6 +50,12 @@ void print_escaped_span(const char *const name, const az_span span) {
 }
 
 void print_escaped_spans(uint8_t *format, ...) {
+  /* Quotes strings chars and indents first string param
+   * + appends " = " to it; supports `az_span`s with "%Q"
+   * doesn't support "%03d" or other fancier syntax
+   * Strings, chars, and spans are all escaped. */
+  bool first = true;
+  size_t i;
   va_list ap;
   va_start(ap, format);
 
@@ -59,7 +64,7 @@ void print_escaped_spans(uint8_t *format, ...) {
   while (*format) {
     switch (*format++) {
     case 'c':
-      putc((char)va_arg(ap, int), OUT);
+      fprintf(OUT, "\'%c\'", (char)va_arg(ap, int));
       break;
     case 'd':
     case 'i':
@@ -110,15 +115,40 @@ void print_escaped_spans(uint8_t *format, ...) {
     case 's':
     case 'S':
     case 'Z':
-      fputs(va_arg(ap, char *), OUT);
+      if (first) {
+        const char *s = va_arg(ap, char *);
+        const size_t n = strlen(s);
+        first = false;
+        fprintf(OUT, "%s", s);
+        for (i = 0; i < MIN(MIN_NAME - n, n); i++)
+          putc(' ', OUT);
+        fprintf(OUT, "= ");
+      } else
+        fprintf(OUT, "\"%s\"", va_arg(ap, char *));
       break;
     case '%':
       putc('%', OUT);
       break;
+    case 'Q': {
+      /* Custom for az_span */
+
+      const az_span span = va_arg(ap, az_span);
+      const uint8_t *const span_ptr = az_span_ptr(span);
+
+      fputc('"', OUT);
+      for (i = 0; i < az_span_size(span); i++)
+        if (iscntrl(span_ptr[i]) || span_ptr[i] == '\\' ||
+            span_ptr[i] == '\"' || span_ptr[i] == '\'')
+          fprintf(OUT, "\\%03o", span_ptr[i]);
+        else
+          fputc(span_ptr[i], OUT);
+      fputc('"', OUT);
+      break;
+    }
+      va_end(ap);
+#undef OUT
     }
   }
-  va_end(ap);
-#undef OUT
 }
 
 #undef MIN_NAME
