@@ -20,8 +20,8 @@ TEST x_test_double_literal_str_scanned(void) {
   enum { n = 6 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
-      {"\"foo\"", DoubleQuoted},     {";", Terminator}, {"\n", Whitespace},
-      {"\"bar can\"", DoubleQuoted}, {";", Terminator}, {"\n", Whitespace}};
+      {"\"foo\"", DOUBLE_QUOTED},     {";", TERMINATOR}, {"\n", WHITESPACE},
+      {"\"bar can\"", DOUBLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -52,9 +52,9 @@ TEST x_test_single_literal_str_scanned(void) {
   enum { n = 8 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
-      {"'a'", SingleQuoted},   {";", Terminator}, {"\n", Whitespace},
-      {"'\\n'", SingleQuoted}, {";", Terminator}, {"\n", Whitespace},
-      {"'\\'", SingleQuoted},  {"\n", Whitespace}};
+      {"'a'", SINGLE_QUOTED},   {";", TERMINATOR}, {"\n", WHITESPACE},
+      {"'\\n'", SINGLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE},
+      {"'\\'", SINGLE_QUOTED},  {"\n", WHITESPACE}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -85,10 +85,10 @@ TEST x_test_literal_str_concat_scanned(void) {
   size_t i;
 
   struct StrScannerKind scanned_l[n] = {
-      {"\"catt\"", DoubleQuoted}, {"\"catt\"", DoubleQuoted},
-      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
-      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
-      {"\n", Whitespace}};
+      {"\"catt\"", DOUBLE_QUOTED}, {"\"catt\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -125,19 +125,19 @@ TEST x_test_literal_str_scanned(void) {
   size_t i;
 
   struct StrScannerKind scanned_l[n] = {
-      {"\"foo\"", DoubleQuoted},  {";", Terminator},
-      {"\n", Whitespace},         {"'a'", SingleQuoted},
-      {";", Terminator},          {"\n", Whitespace},
-      {"'\\n'", SingleQuoted},    {";", Terminator},
-      {"\n", Whitespace},         {"'\\'", SingleQuoted},
-      {"\n", Whitespace},         {"\"bar can\"", DoubleQuoted},
-      {";", Terminator},          {"\n", Whitespace},
-      {"\"cat\"", DoubleQuoted},  {" ", Whitespace},
-      {"\"cat\"", DoubleQuoted},  {"\n", Whitespace},
-      {"\"catt\"", DoubleQuoted}, {"\"catt\"", DoubleQuoted},
-      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
-      {"\n", Whitespace},         {"\"cut\"", DoubleQuoted},
-      {"\n", Whitespace},
+      {"\"foo\"", DOUBLE_QUOTED},  {";", TERMINATOR},
+      {"\n", WHITESPACE},          {"'a'", SINGLE_QUOTED},
+      {";", TERMINATOR},           {"\n", WHITESPACE},
+      {"'\\n'", SINGLE_QUOTED},    {";", TERMINATOR},
+      {"\n", WHITESPACE},          {"'\\'", SINGLE_QUOTED},
+      {"\n", WHITESPACE},          {"\"bar can\"", DOUBLE_QUOTED},
+      {";", TERMINATOR},           {"\n", WHITESPACE},
+      {"\"cat\"", DOUBLE_QUOTED},  {" ", WHITESPACE},
+      {"\"cat\"", DOUBLE_QUOTED},  {"\n", WHITESPACE},
+      {"\"catt\"", DOUBLE_QUOTED}, {"\"catt\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
+      {"\n", WHITESPACE},
   };
 
   ASSERT_EQ(scanned->size, n);

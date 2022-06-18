@@ -29,12 +29,12 @@ TEST x_test_one_structs_scanned(void) {
   struct scan_az_span_elem *iter;
 
   struct StrScannerKind scanned_l[n] = {
-      {"struct", Word},  {" ", Whitespace},  {"Haz", Word},
-      {" ", Whitespace}, {"{", Lbrace},      {"\n  ", Whitespace},
-      {"const", Word},   {" ", Whitespace},  {"char", Word},
-      {" ", Whitespace}, {"*", Asterisk},    {"bzr", Word},
-      {";", Terminator}, {"\n", Whitespace}, {"}", Rbrace},
-      {";", Terminator}, {"\n", Whitespace}};
+      {"struct", WORD},  {" ", WHITESPACE},  {"Haz", WORD},
+      {" ", WHITESPACE}, {"{", LBRACE},      {"\n  ", WHITESPACE},
+      {"const", WORD},   {" ", WHITESPACE},  {"char", WORD},
+      {" ", WHITESPACE}, {"*", ASTERISK},    {"bzr", WORD},
+      {";", TERMINATOR}, {"\n", WHITESPACE}, {"}", RBRACE},
+      {";", TERMINATOR}, {"\n", WHITESPACE}};
 
   ASSERT_EQ(scanned->size, n);
 
@@ -65,22 +65,22 @@ TEST x_test_two_structs_scanned(void) {
   struct scan_az_span_elem *iter;
 
   struct StrScannerKind scanned_l[n] = {
-      {"struct", Word},     {" ", Whitespace},    {"Haz", Word},
-      {" ", Whitespace},    {"{", Lbrace},        {"\n  ", Whitespace},
-      {"const", Word},      {" ", Whitespace},    {"char", Word},
-      {" ", Whitespace},    {"*", Asterisk},      {"bzr", Word},
-      {";", Terminator},    {"\n", Whitespace},   {"}", Rbrace},
-      {";", Terminator},    {"\n\n", Whitespace}, {"struct", Word},
-      {" ", Whitespace},    {"Foo", Word},        {" ", Whitespace},
-      {"{", Lbrace},        {"\n  ", Whitespace}, {"const", Word},
-      {" ", Whitespace},    {"char", Word},       {" ", Whitespace},
-      {"*", Asterisk},      {"bar", Word},        {";", Terminator},
-      {"\n  ", Whitespace}, {"int", Word},        {" ", Whitespace},
-      {"can", Word},        {";", Terminator},    {"\n  ", Whitespace},
-      {"struct", Word},     {" ", Whitespace},    {"Haz", Word},
-      {" ", Whitespace},    {"*", Asterisk},      {"haz", Word},
-      {";", Terminator},    {"\n", Whitespace},   {"}", Rbrace},
-      {";", Terminator},    {"\n", Whitespace}};
+      {"struct", WORD},     {" ", WHITESPACE},    {"Haz", WORD},
+      {" ", WHITESPACE},    {"{", LBRACE},        {"\n  ", WHITESPACE},
+      {"const", WORD},      {" ", WHITESPACE},    {"char", WORD},
+      {" ", WHITESPACE},    {"*", ASTERISK},      {"bzr", WORD},
+      {";", TERMINATOR},    {"\n", WHITESPACE},   {"}", RBRACE},
+      {";", TERMINATOR},    {"\n\n", WHITESPACE}, {"struct", WORD},
+      {" ", WHITESPACE},    {"Foo", WORD},        {" ", WHITESPACE},
+      {"{", LBRACE},        {"\n  ", WHITESPACE}, {"const", WORD},
+      {" ", WHITESPACE},    {"char", WORD},       {" ", WHITESPACE},
+      {"*", ASTERISK},      {"bar", WORD},        {";", TERMINATOR},
+      {"\n  ", WHITESPACE}, {"int", WORD},        {" ", WHITESPACE},
+      {"can", WORD},        {";", TERMINATOR},    {"\n  ", WHITESPACE},
+      {"struct", WORD},     {" ", WHITESPACE},    {"Haz", WORD},
+      {" ", WHITESPACE},    {"*", ASTERISK},      {"haz", WORD},
+      {";", TERMINATOR},    {"\n", WHITESPACE},   {"}", RBRACE},
+      {";", TERMINATOR},    {"\n", WHITESPACE}};
 
   ASSERT_EQ(scanned->size, n);
 

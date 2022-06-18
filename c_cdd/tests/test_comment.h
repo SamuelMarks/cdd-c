@@ -21,10 +21,10 @@ TEST x_test_comment_scanned(void) {
   struct scan_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind scanned_l[n] = {{"// C++ comment\n", CppComment},
-                                        {"/* C comment 0 */", CComment},
-                                        {"/* C comment 1 */", CComment},
-                                        {"/* C comment*\\/ fin */", CComment}};
+  struct StrScannerKind scanned_l[n] = {{"// C++ comment\n", CPP_COMMENT},
+                                        {"/* C comment 0 */", C_COMMENT},
+                                        {"/* C comment 1 */", C_COMMENT},
+                                        {"/* C comment*\\/ fin */", C_COMMENT}};
 
   ASSERT_EQ(scanned->size, n);
 

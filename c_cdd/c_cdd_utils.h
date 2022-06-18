@@ -2,7 +2,6 @@
 #define C_CDD_C_CDD_UTILS_H
 
 #ifdef __cplusplus
-#include <cstdbool>
 #include <cstdlib>
 #include <cstring>
 extern "C" {
@@ -28,7 +27,7 @@ typedef SSIZE_T ssize_t;
 
 #include <c_str_span.h>
 
-#include "c_cdd_export.h"
+#include <c_cdd_export.h>
 
 extern C_CDD_EXPORT void print_escaped(const char *name, char *s);
 

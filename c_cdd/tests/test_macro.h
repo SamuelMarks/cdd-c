@@ -22,10 +22,10 @@ x_test_macro_scanned(void) {
   enum { n = 4 };
   size_t i;
   struct StrScannerKind scanned_l[n] = {
-      {"# define foo bar\n", Macro},
-      {"#ifdef FOO\n", Macro},
-      {"# define CAT(bar,foo)(bar ## foo)\n", Macro},
-      {"#define HAZ\\\nFOO\n", Macro}};
+      {"# define foo bar\n", MACRO},
+      {"#ifdef FOO\n", MACRO},
+      {"# define CAT(bar,foo)(bar ## foo)\n", MACRO},
+      {"#define HAZ\\\nFOO\n", MACRO}};
 
   ASSERT_GT(i, 0);
 

@@ -9,14 +9,18 @@ set(Header_Files
         "c_cdd_utils.h"
         "cst.h"
         "ll.h"
-        "scanner_types.h")
+        "scanner_types.h"
+        "tokenizer_helpers.h"
+        "cst_parser_helpers.h")
 source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files
         "c_cdd_utils.c"
         "cst.c"
         "ll.c"
-        "scanner_types.c")
+        "scanner_types.c"
+        "tokenizer_helpers.c"
+        "cst_parser_helpers.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")

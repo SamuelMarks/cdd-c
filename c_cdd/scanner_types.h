@@ -5,68 +5,83 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "c_cdd_export.h"
+#include <c_cdd_export.h>
 
 enum ScannerKind {
-  UnknownScan,
+  UNKNOWN_SCAN,
 
-  /* except one newline char that terminates CppComment or Macro */
-  Whitespace,
+  /* except one newline char that terminates CPP_COMMENT or MACRO */
+  WHITESPACE,
 
-  Macro,
+  MACRO,
 
   /*Integer,
   Decimal,*/
-  DoubleQuoted,
-  SingleQuoted,
+  DOUBLE_QUOTED,
+  SINGLE_QUOTED,
 
-  CComment,
-  CppComment,
+  C_COMMENT,
+  CPP_COMMENT,
 
-  Lbrace,
-  Rbrace,
-  Lsquare,
-  Rsquare,
-  Lparen,
-  Rparen,
+  LBRACE,
+  RBRACE,
+  LSQUARE,
+  RSQUARE,
+  LPAREN,
+  RPAREN,
 
-  Equal,
-  Equality,
-  GreaterThan,
-  GreaterThanEqual,
-  LessThan,
-  LessThanEqual,
+  EQUAL,
+  EQ_OP,
+  GREATER_THAN,
+  GE_OP,
+  LESS_THAN,
+  LE_OP,
+  NE_OP,
 
-  RightShift,
-  LeftShift,
+  RIGHT_SHIFT,
+  LEFT_SHIFT,
 
   /* unary */
-  And,
-  Asterisk,
-  Plus,
-  Sub,
-  Tilde,
-  Exclamation,
+  AND,
+  ASTERISK,
+  PLUS,
+  SUB,
+  TILDE,
+  EXCLAMATION,
+  MODULO,
 
-  Increment,
-  Decrement,
+  INC_OP,
+  DEC_OP,
 
-  Divide,
-  Caret,
-  Pipe,
+  PTR_OP,
 
-  LogicalAnd,
-  LogicalOr,
+  DIVIDE,
+  CARET,
+  PIPE,
 
-  Question,
-  Colon,
+  AND_OP,
+  OR_OP,
 
-  Ellipsis,
+  MUL_ASSIGN,
+  DIV_ASSIGN,
+  MOD_ASSIGN,
+  ADD_ASSIGN,
+  SUB_ASSIGN,
+  LEFT_ASSIGN,
+  RIGHT_ASSIGN,
+  AND_ASSIGN,
+  XOR_ASSIGN,
+  OR_ASSIGN,
 
-  Word,
+  QUESTION,
+  COLON,
 
-  Comma,
-  Terminator /* ; */
+  ELLIPSIS,
+
+  WORD,
+
+  COMMA,
+  TERMINATOR /* ; */
 };
 
 struct StrScannerKind {
