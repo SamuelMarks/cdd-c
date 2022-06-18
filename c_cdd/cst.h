@@ -35,11 +35,10 @@ struct CstNode;
 
 #define DEBUG_SCANNER
 
-/* two phase parser */
-extern C_CDD_EXPORT struct scan_az_span_list *scanner(az_span);
-extern C_CDD_EXPORT const struct az_span_elem *
-tokenizer(const struct scan_az_span_list *);
-extern C_CDD_EXPORT const struct CstNode **parser(struct az_span_elem *);
+extern C_CDD_EXPORT struct tokenizer_az_span_list *tokenizer(az_span);
+extern C_CDD_EXPORT struct parse_cst_list *
+cst_parser(const struct tokenizer_az_span_list *);
+/*const struct CstNode ** parser(struct az_span_elem *); */
 
 #ifdef __cplusplus
 }

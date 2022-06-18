@@ -29,18 +29,18 @@ az_span make_slice_clear_vars(az_span source, size_t i, size_t *start_index,
                               struct ScannerVars *sv, bool always_make_expr);
 
 void az_span_list_push_valid(const az_span *source,
-                             struct scan_az_span_list *ll, size_t i,
+                             struct tokenizer_az_span_list *ll, size_t i,
                              struct ScannerVars *sv,
-                             struct scan_az_span_elem ***scanned_cur_ptr,
+                             struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                              size_t *start_index);
 
-struct scan_az_span_list *scanner(const az_span source) {
+struct tokenizer_az_span_list *tokenizer(const az_span source) {
   struct ScannerVars sv;
 
-  struct scan_az_span_elem *scanned_ll = NULL;
-  struct scan_az_span_elem **scanned_cur_ptr = &scanned_ll;
+  struct tokenizer_az_span_elem *tokenized_ll = NULL;
+  struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
 
-  struct scan_az_span_list *ll = calloc(1, sizeof *ll);
+  struct tokenizer_az_span_list *ll = calloc(1, sizeof *ll);
 
   size_t i;
   const size_t source_n = az_span_size(source);
@@ -70,13 +70,13 @@ struct scan_az_span_list *scanner(const az_span source) {
       /* Handle comments */
       switch (ch) {
       case '*':
-        i = eatCComment(&source, i - 1, source_n, &scanned_cur_ptr, ll);
+        i = eatCComment(&source, i - 1, source_n, &tokenized_cur_ptr, ll);
         handled = true;
         break;
       case '/':
         if (span_ptr[i - 2] != '*') {
           /* ^ handle consecutive C-style comments `/\*bar*\/\*foo*\/` */
-          i = eatCppComment(&source, i - 1, source_n, &scanned_cur_ptr, ll);
+          i = eatCppComment(&source, i - 1, source_n, &tokenized_cur_ptr, ll);
           handled = true;
         }
         break;
@@ -89,16 +89,16 @@ struct scan_az_span_list *scanner(const az_span source) {
       switch (ch) {
       /* Handle macros */
       case '#':
-        i = eatMacro(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatMacro(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
       /* Handle literals (single and double-quoted) */
       case '\'':
-        i = eatCharLiteral(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatCharLiteral(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
       case '"':
-        i = eatStrLiteral(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatStrLiteral(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
       case ' ':
@@ -106,80 +106,80 @@ struct scan_az_span_list *scanner(const az_span source) {
       case '\r':
       case '\t':
       case '\v':
-        i = eatWhitespace(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatWhitespace(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
       case '{':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, LBRACE);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, LBRACE);
         break;
 
       case '}':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, RBRACE);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, RBRACE);
         break;
 
       case '[':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, RSQUARE);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, RSQUARE);
         break;
 
       case ']':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, LSQUARE);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, LSQUARE);
         break;
 
       case '(':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, LPAREN);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, LPAREN);
         break;
 
       case ')':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, RPAREN);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, RPAREN);
         break;
 
       case ';':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, TERMINATOR);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, TERMINATOR);
         break;
 
       case ':':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, COLON);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, COLON);
         break;
 
       case '?':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, QUESTION);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, QUESTION);
         break;
 
       case '~':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, TILDE);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, TILDE);
         break;
 
       case '!':
         if (next_ch == '=')
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, NE_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, NE_OP);
         else
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, EXCLAMATION);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, EXCLAMATION);
         break;
 
       case ',':
-        eatOneChar(&source, i, &scanned_cur_ptr, ll, COMMA);
+        eatOneChar(&source, i, &tokenized_cur_ptr, ll, COMMA);
         break;
 
       case '.':
         if (isdigit(next_ch))
-          i = eatNumber(&source, i, source_n, &scanned_cur_ptr, ll);
+          i = eatNumber(&source, i, source_n, &tokenized_cur_ptr, ll);
         else if (next_ch == '.' && span_ptr[i + 2] == '.')
-          i = eatThreeChars(&source, i, &scanned_cur_ptr, ll, ELLIPSIS);
+          i = eatSlice(&source, i, 3, &tokenized_cur_ptr, ll, ELLIPSIS);
         break;
 
       case '>':
         switch (next_ch) {
         case '>':
           if (span_ptr[i + 2] == '=')
-            i = eatThreeChars(&source, i, &scanned_cur_ptr, ll, RIGHT_ASSIGN);
+            i = eatSlice(&source, i, 3, &tokenized_cur_ptr, ll, RIGHT_ASSIGN);
           else
-            i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, RIGHT_SHIFT);
+            i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, RIGHT_SHIFT);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, GE_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, GE_OP);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, GREATER_THAN);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, GREATER_THAN);
           break;
         }
         break;
@@ -188,15 +188,15 @@ struct scan_az_span_list *scanner(const az_span source) {
         switch (next_ch) {
         case '<':
           if (span_ptr[i + 2] == '=')
-            i = eatThreeChars(&source, i, &scanned_cur_ptr, ll, LEFT_ASSIGN);
+            i = eatSlice(&source, i, 3, &tokenized_cur_ptr, ll, LEFT_ASSIGN);
           else
-            i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, LEFT_SHIFT);
+            i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, LEFT_SHIFT);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, LE_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, LE_OP);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, LESS_THAN);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, LESS_THAN);
           break;
         }
         break;
@@ -204,13 +204,13 @@ struct scan_az_span_list *scanner(const az_span source) {
       case '+':
         switch (next_ch) {
         case '+':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, INC_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, INC_OP);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, ADD_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, ADD_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, PLUS);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, PLUS);
           break;
         }
         break;
@@ -218,87 +218,87 @@ struct scan_az_span_list *scanner(const az_span source) {
       case '-':
         switch (next_ch) {
         case '-':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, DEC_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, DEC_OP);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, SUB_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, SUB_ASSIGN);
           break;
         case '>':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, PTR_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, PTR_OP);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, SUB);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, SUB);
           break;
         }
         break;
 
       case '*':
         if (next_ch == '=')
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, MUL_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, MUL_ASSIGN);
         else
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, ASTERISK);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, ASTERISK);
         break;
 
       case '/':
         switch (next_ch) {
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, MUL_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, MUL_ASSIGN);
           break;
         case '/':
         case '*':
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, DIVIDE);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, DIVIDE);
         }
         break;
 
       case '%':
         if (next_ch == '=')
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, MODULO);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, MODULO);
         else
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, MOD_ASSIGN);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, MOD_ASSIGN);
         break;
 
       case '&':
         switch (next_ch) {
         case '&':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, AND_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, AND_OP);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, AND_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, AND_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, AND);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, AND);
           break;
         }
         break;
 
       case '^':
         if (next_ch == '=')
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, OR_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, OR_ASSIGN);
         else
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, CARET);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, CARET);
         break;
 
       case '|':
         switch (next_ch) {
         case '|':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, OR_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, OR_OP);
           break;
         case '=':
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, OR_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, OR_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, PIPE);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, PIPE);
           break;
         }
         break;
 
       case '=':
         if (next_ch == '=')
-          i = eatTwoChars(&source, i, &scanned_cur_ptr, ll, EQ_OP);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, EQ_OP);
         else
-          eatOneChar(&source, i, &scanned_cur_ptr, ll, EQUAL);
+          eatOneChar(&source, i, &tokenized_cur_ptr, ll, EQUAL);
         break;
 
       case '0':
@@ -311,9 +311,10 @@ struct scan_az_span_list *scanner(const az_span source) {
       case '7':
       case '8':
       case '9':
-        i = eatNumber(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatNumber(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
+      case '_':
       case 'a':
       case 'b':
       case 'c':
@@ -366,7 +367,7 @@ struct scan_az_span_list *scanner(const az_span source) {
       case 'X':
       case 'Y':
       case 'Z':
-        i = eatWord(&source, i, source_n, &scanned_cur_ptr, ll);
+        i = eatWord(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
       default:
@@ -374,22 +375,23 @@ struct scan_az_span_list *scanner(const az_span source) {
       }
   }
 
-  /*az_span_list_push_valid(&source, ll, i, &sv, &scanned_cur_ptr,
+  /*az_span_list_push_valid(&source, ll, i, &sv, &tokenized_cur_ptr,
    * &start_index);*/
 
-  ll->list = scanned_ll;
+  ll->list = tokenized_ll;
   return ll;
 }
 
 void az_span_list_push_valid(const az_span *const source,
-                             struct scan_az_span_list *ll, size_t i,
+                             struct tokenizer_az_span_list *ll, size_t i,
                              struct ScannerVars *sv,
-                             struct scan_az_span_elem ***scanned_cur_ptr,
+                             struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                              size_t *start_index) {
   const az_span expr = make_slice_clear_vars((*source), i, start_index, sv,
                                              /* always_make_expr */ true);
   if (az_span_ptr(expr) != NULL && az_span_size(expr) > 0)
-    scan_az_span_list_push(&ll->size, scanned_cur_ptr, UNKNOWN_SCAN, expr);
+    tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, UNKNOWN_SCAN,
+                                expr);
 }
 
 struct ScannerVars *clear_sv(struct ScannerVars *sv) {
@@ -419,18 +421,22 @@ az_span make_slice_clear_vars(const az_span source, size_t i,
   return az_span_empty();
 }
 
-const struct az_span_elem *
-tokenizer(const struct scan_az_span_list *const scanned) {
+struct parse_cst_list *
+cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   /* tokenizes into slices, from "unsigned long/ *stuff*\f()";
    * to {"unsigned long", "/ *stuff*\", "f", "(", ")", ";"} */
-  struct scan_az_span_elem *iter;
+
+  struct parse_cst_elem *tokenized_ll = NULL;
+  /*struct parse_cst_elem **tokenized_cur_ptr = &tokenized_ll;*/
+
+  struct parse_cst_list *ll = calloc(1, sizeof *ll);
+  struct tokenizer_az_span_elem *iter;
+
   size_t i;
 
-  /*for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
-       iter = iter->next, i++) {
+  for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
+       iter != NULL; iter = iter->next, i++) {
     print_escaped_span(ScannerKind_to_str(iter->kind), iter->span);
-  }*/
-  return NULL;
+  }
+  return ll;
 }
-
-const struct CstNode **parser(struct az_span_elem *scanned) { return NULL; }

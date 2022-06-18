@@ -23,17 +23,17 @@
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
-TEST x_test_function_scanned(void) {
+TEST x_test_function_tokenized(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct scan_az_span_list *const scanned = scanner(sum_func_span);
+  struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
   enum { n = 26 };
   size_t i;
-  static const char *scanned_str_l[] = {"int sum(int a, int b) ",
-                                        "{ return a + b", "; ", "}"};
+  static const char *tokenized_str_l[] = {"int sum(int a, int b) ",
+                                          "{ return a + b", "; ", "}"};
 
-  struct scan_az_span_elem *iter;
+  struct tokenizer_az_span_elem *iter;
 
-  struct StrScannerKind scanned_l[n] = {
+  struct StrScannerKind tokenized_l[n] = {
       {"int", WORD},     {" ", WHITESPACE}, {"sum", WORD},
       {"(", LPAREN},     {"int", WORD},     {" ", WHITESPACE},
       {"a", WORD},       {",", COMMA},      {" ", WHITESPACE},
@@ -44,38 +44,41 @@ TEST x_test_function_scanned(void) {
       {" ", WHITESPACE}, {"b", WORD},       {";", TERMINATOR},
       {" ", WHITESPACE}, {"}", RBRACE}};
 
-  ASSERT_EQ(scanned->size, n);
+  ASSERT_EQ(tokenized->size, n);
 
-  for (iter = (struct scan_az_span_elem *)scanned->list, i = 0; iter != NULL;
-       iter = iter->next, i++) {
+  for (iter = (struct tokenizer_az_span_elem *)tokenized->list, i = 0;
+       iter != NULL; iter = iter->next, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     az_span_to_str(iter_s, n, iter->span);
-    ASSERT_STR_EQ(scanned_l[i].s, iter_s);
-    ASSERT_EQ(scanned_l[i].kind, iter->kind);
+    ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
+    ASSERT_EQ(tokenized_l[i].kind, iter->kind);
     free(iter_s);
   }
-  ASSERT_EQ(scanned->size, i);
-  scan_az_span_list_cleanup(scanned);
-  ASSERT_EQ(scanned->size, 0);
-  ASSERT_EQ(scanned->list, NULL);
+  ASSERT_EQ(tokenized->size, i);
+  tokenizer_az_span_list_cleanup(tokenized);
+  ASSERT_EQ(tokenized->size, 0);
+  ASSERT_EQ(tokenized->list, NULL);
 
   PASS();
 }
 
 TEST x_test_function_tokenizer(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct scan_az_span_list *const scanned = scanner(sum_func_span);
-  const struct az_span_elem *tokens =
-      tokenizer((struct scan_az_span_list *)scanned->list);
-  scan_az_span_list_cleanup(scanned);
+  struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
+  struct parse_cst_list *const tokens = cst_parser(tokenized);
+  ASSERT_EQ(tokens->size, 0);
+  ASSERT_EQ(tokens->list, NULL);
+  tokenizer_az_span_list_cleanup(tokenized);
+  parse_cst_list_cleanup(tokens);
   PASS();
 }
 
 TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct scan_az_span_list *const scanned = scanner(sum_func_span);
-  const struct CstNode **parsed = parser((struct az_span_elem *)scanned);
+  struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
+  /* const struct CstNode **parsed = parser((struct az_span_elem *)tokenized);
+   */
   //  static enum TypeSpecifier int_specifier[] = {INT};
   //  static const struct Declaration a_arg = {/* pos_start */ 0,
   //                                           /* scope */ NULL,
@@ -122,8 +125,8 @@ TEST x_test_function_parsed(void) {
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  RUN_TEST(x_test_function_scanned);
-  /*RUN_TEST(x_test_function_tokenizer);*/
+  RUN_TEST(x_test_function_tokenized);
+  RUN_TEST(x_test_function_tokenizer);
   /*RUN_TEST(x_test_function_parsed);*/
 }
 

@@ -1,7 +1,7 @@
-#include "scanner_types.h"
+#include "tokenizer_types.h"
 
 const char *ScannerKind_to_str(const enum ScannerKind kind) {
-  /* "\n".join(map(lambda s: "case {0}:\n\treturn \"{0}\";\n".format(s),
+  /* "\n".join(map(lambda _s: "case {0}:\n\treturn \"{0}\";\n".format(_s),
    * map(str.strip, s.split(',')))) */
   switch (kind) {
   case WHITESPACE:

@@ -2,13 +2,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if (defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)) &&         \
-    !defined(MIN)
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#elif !defined(MIN)
-#include <sys/param.h>
-#endif
-
 #include "c_cdd_utils.h"
 
 #define MIN_NAME 22
@@ -18,7 +11,7 @@ void print_escaped(const char *name, char *s) {
   char *ch;
   size_t i;
   printf("%s", name);
-  for (i = 0; i < MIN(MIN_NAME - name_n, name_n); i++)
+  for (i = 0; i < (name_n > MIN_NAME ? 0 : MIN_NAME - name_n); i++)
     putchar(' ');
   printf("= \"");
   if (s == NULL)
@@ -37,7 +30,7 @@ void print_escaped_span(const char *const name, const az_span span) {
   const size_t name_n = strlen(name);
   size_t i;
   printf("%s", name);
-  for (i = 0; i < MIN(MIN_NAME - name_n, name_n); i++)
+  for (i = 0; i < (name_n > MIN_NAME ? 0 : MIN_NAME - name_n); i++)
     putchar(' ');
   printf("= \"");
   for (i = 0; i < az_span_size(span); i++)
@@ -120,7 +113,7 @@ void print_escaped_spans(uint8_t *format, ...) {
         const size_t n = strlen(s);
         first = false;
         fprintf(OUT, "%s", s);
-        for (i = 0; i < MIN(MIN_NAME - n, n); i++)
+        for (i = 0; i < (n > MIN_NAME ? 0 : MIN_NAME - n); i++)
           putc(' ', OUT);
         fprintf(OUT, "= ");
       } else
