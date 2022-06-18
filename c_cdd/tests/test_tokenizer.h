@@ -10,9 +10,9 @@ static const char decl_src[] = "unsigned long long int/*foo bar*/a = 5;"
 
 TEST x_test_declaration_tokenizer(void) {
   const az_span decl_span = az_span_create_from_str((char *)decl_src);
-  struct scan_az_span_list *const scanned = scanner(decl_span);
+  struct tokenizer_az_span_list *const tokenized = tokenizer(decl_span);
   const struct az_span_elem *tokens =
-      tokenizer((struct scan_az_span_list *)scanned->list);
+      cst_parser((struct tokenizer_az_span_list *)tokenized->list);
   PASS();
 }
 

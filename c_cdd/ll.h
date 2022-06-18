@@ -10,7 +10,7 @@ extern "C" {
 #include <c_cdd_export.h>
 
 #include "cst_parser_helpers.h"
-#include "scanner_types.h"
+#include "tokenizer_types.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #include <BaseTsd.h>
@@ -103,39 +103,41 @@ extern C_CDD_EXPORT void az_span_elem_cleanup(struct az_span_elem **);
 extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 
 /*
- * `scan_az_span`
+ * `tokenizer_az_span`
  */
 
-struct scan_az_span_elem {
+struct tokenizer_az_span_elem {
   az_span span;
   enum ScannerKind kind;
-  struct scan_az_span_elem *next;
+  struct tokenizer_az_span_elem *next;
 };
 
 /* List structure requiring manual bookkeeping for size */
-struct scan_az_span_list {
+struct tokenizer_az_span_list {
   size_t size;
-  const struct scan_az_span_elem *list;
+  const struct tokenizer_az_span_elem *list;
 };
 
-extern C_CDD_EXPORT struct scan_az_span_elem **
-scan_az_span_list_end(struct scan_az_span_elem **);
+extern C_CDD_EXPORT struct tokenizer_az_span_elem **
+tokenizer_az_span_list_end(struct tokenizer_az_span_elem **);
 
-extern C_CDD_EXPORT struct scan_az_span_elem **
-scan_az_span_list_prepend(struct scan_az_span_elem **, enum ScannerKind,
-                          az_span);
+extern C_CDD_EXPORT struct tokenizer_az_span_elem **
+tokenizer_az_span_list_prepend(struct tokenizer_az_span_elem **,
+                               enum ScannerKind, az_span);
 
-extern C_CDD_EXPORT struct scan_az_span_elem **
-scan_az_span_list_append(struct scan_az_span_elem **, enum ScannerKind,
-                         az_span);
+extern C_CDD_EXPORT struct tokenizer_az_span_elem **
+tokenizer_az_span_list_append(struct tokenizer_az_span_elem **,
+                              enum ScannerKind, az_span);
 
-extern C_CDD_EXPORT void scan_az_span_list_push(size_t *,
-                                                struct scan_az_span_elem ***,
-                                                enum ScannerKind, az_span);
+extern C_CDD_EXPORT void
+tokenizer_az_span_list_push(size_t *, struct tokenizer_az_span_elem ***,
+                            enum ScannerKind, az_span);
 
-extern C_CDD_EXPORT void scan_az_span_elem_cleanup(struct scan_az_span_elem **);
+extern C_CDD_EXPORT void
+tokenizer_az_span_elem_cleanup(struct tokenizer_az_span_elem **);
 
-extern C_CDD_EXPORT void scan_az_span_list_cleanup(struct scan_az_span_list *);
+extern C_CDD_EXPORT void
+tokenizer_az_span_list_cleanup(struct tokenizer_az_span_list *);
 
 /*
  * `parse_cst`
