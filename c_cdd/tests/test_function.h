@@ -33,7 +33,7 @@ TEST x_test_function_tokenized(void) {
 
   struct tokenizer_az_span_elem *iter;
 
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"int", WORD},     {" ", WHITESPACE}, {"sum", WORD},
       {"(", LPAREN},     {"int", WORD},     {" ", WHITESPACE},
       {"a", WORD},       {",", COMMA},      {" ", WHITESPACE},
@@ -63,7 +63,7 @@ TEST x_test_function_tokenized(void) {
   PASS();
 }
 
-TEST x_test_function_tokenizer(void) {
+TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
   struct parse_cst_list *const tokens = cst_parser(tokenized);
@@ -74,7 +74,7 @@ TEST x_test_function_tokenizer(void) {
   PASS();
 }
 
-TEST x_test_function_parsed(void) {
+TEST x_test_function_parsed1(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
   /* const struct CstNode **parsed = parser((struct az_span_elem *)tokenized);
@@ -125,9 +125,9 @@ TEST x_test_function_parsed(void) {
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  RUN_TEST(x_test_function_tokenized);
-  RUN_TEST(x_test_function_tokenizer);
-  /*RUN_TEST(x_test_function_parsed);*/
+  /*RUN_TEST(x_test_function_tokenized);*/
+  RUN_TEST(x_test_function_parsed);
+  /*RUN_TEST(x_test_function_parsed1);*/
 }
 
 #endif /* !C_CDD_TESTS_TEST_FUNCTION_H */

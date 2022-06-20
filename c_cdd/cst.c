@@ -15,7 +15,7 @@
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
           defined(__NT__) */
 
-struct ScannerVars {
+struct TokenizerVars {
   ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
   uint32_t spaces;
   uint32_t lparen, rparen, lsquare, rsquare, lbrace, rbrace, lchev, rchev;
@@ -23,19 +23,19 @@ struct ScannerVars {
       is_digit;
 };
 
-struct ScannerVars *clear_sv(struct ScannerVars *);
+struct TokenizerVars *clear_sv(struct TokenizerVars *);
 
 az_span make_slice_clear_vars(az_span source, size_t i, size_t *start_index,
-                              struct ScannerVars *sv, bool always_make_expr);
+                              struct TokenizerVars *sv, bool always_make_expr);
 
 void az_span_list_push_valid(const az_span *source,
                              struct tokenizer_az_span_list *ll, size_t i,
-                             struct ScannerVars *sv,
+                             struct TokenizerVars *sv,
                              struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                              size_t *start_index);
 
 struct tokenizer_az_span_list *tokenizer(const az_span source) {
-  struct ScannerVars sv;
+  struct TokenizerVars sv;
 
   struct tokenizer_az_span_elem *tokenized_ll = NULL;
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
@@ -48,12 +48,12 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
 
   clear_sv(&sv);
 
-  /* Scanner algorithm:
+  /* Tokenizer algorithm:
    *   0. Use last 2 chars—3 on comments—to determine type;
    *   1. Pass to type-eating function, returning whence finished reading;
    *   2. Repeat from 0. until end of `source`.
    *
-   * Scanner types (line-continuation aware):
+   * Tokenizer types (line-continuation aware):
    *   - whitespace   [ \t\v\n]+
    *   - macro        [if|ifdef|ifndef|elif|endif|include|define]
    *   - terminator   ;
@@ -384,7 +384,7 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
 
 void az_span_list_push_valid(const az_span *const source,
                              struct tokenizer_az_span_list *ll, size_t i,
-                             struct ScannerVars *sv,
+                             struct TokenizerVars *sv,
                              struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                              size_t *start_index) {
   const az_span expr = make_slice_clear_vars((*source), i, start_index, sv,
@@ -394,7 +394,7 @@ void az_span_list_push_valid(const az_span *const source,
                                 expr);
 }
 
-struct ScannerVars *clear_sv(struct ScannerVars *sv) {
+struct TokenizerVars *clear_sv(struct TokenizerVars *sv) {
   sv->c_comment_char_at = 0, sv->cpp_comment_char_at = 0,
   sv->line_continuation_at = 0;
   sv->spaces = 0;
@@ -406,7 +406,7 @@ struct ScannerVars *clear_sv(struct ScannerVars *sv) {
 }
 
 az_span make_slice_clear_vars(const az_span source, size_t i,
-                              size_t *start_index, struct ScannerVars *sv,
+                              size_t *start_index, struct TokenizerVars *sv,
                               bool always_make_expr) {
   if (always_make_expr ||
       (!sv->in_single && !sv->in_double && !sv->in_c_comment &&
@@ -432,11 +432,17 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   struct parse_cst_list *ll = calloc(1, sizeof *ll);
   struct tokenizer_az_span_elem *iter;
 
-  size_t i;
+  size_t i, white_comm = 0;
 
   for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
        iter != NULL; iter = iter->next, i++) {
-    print_escaped_span(ScannerKind_to_str(iter->kind), iter->span);
+    /*switch (iter->kind) {
+    case WHITESPACE:
+      white_comm = i;
+    case WORD:
+    case LBRACE:
+    }*/
+    print_escaped_span(TokenizerKind_to_str(iter->kind), iter->span);
   }
   return ll;
 }

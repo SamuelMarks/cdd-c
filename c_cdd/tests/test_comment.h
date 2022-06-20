@@ -21,7 +21,7 @@ TEST x_test_comment_tokenized(void) {
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"// C++ comment\n", CPP_COMMENT},
       {"/* C comment 0 */", C_COMMENT},
       {"/* C comment 1 */", C_COMMENT},

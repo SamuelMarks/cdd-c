@@ -22,7 +22,7 @@ TEST x_test_whitespace_tokenized(void) {
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"\n\r\v", WHITESPACE},
       {"/* C comment 0 */", C_COMMENT},
       {"\n", WHITESPACE},
