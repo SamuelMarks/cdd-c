@@ -15,7 +15,7 @@ void cdd_precondition_failed(void) { fputs("cdd_precondition_failed", stderr); }
 
 void debug_tokenized_with_mock(const struct tokenizer_az_span_list *tokenized,
                                size_t *i,
-                               const struct StrScannerKind *tokenized_l,
+                               const struct StrTokenizerKind *tokenized_l,
                                size_t tokenized_l_n) {
   struct tokenizer_az_span_elem *iter;
   for (iter = (struct tokenizer_az_span_elem *)tokenized->list, *i = 0;

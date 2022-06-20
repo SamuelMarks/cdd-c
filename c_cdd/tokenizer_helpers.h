@@ -38,12 +38,12 @@ extern C_CDD_EXPORT size_t eatWhitespace(const az_span *, size_t, size_t,
 extern C_CDD_EXPORT void eatOneChar(const az_span *, size_t,
                                     struct tokenizer_az_span_elem ***,
                                     struct tokenizer_az_span_list *,
-                                    enum ScannerKind);
+                                    enum TokenizerKind);
 
 extern C_CDD_EXPORT size_t eatSlice(const az_span *, size_t, off_t,
                                     struct tokenizer_az_span_elem ***,
                                     struct tokenizer_az_span_list *,
-                                    enum ScannerKind);
+                                    enum TokenizerKind);
 
 extern C_CDD_EXPORT size_t eatWord(const az_span *, size_t, size_t,
                                    struct tokenizer_az_span_elem ***,

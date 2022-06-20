@@ -183,8 +183,8 @@ tokenizer_az_span_list_end(struct tokenizer_az_span_elem **span_elem) {
 }
 
 struct tokenizer_az_span_elem **
-tokenizer_az_span_list_prepend(struct tokenizer_az_span_elem **span_elem,
-                               enum ScannerKind kind, const az_span span) {
+tokenizer_az_span_list_prepend(struct tokenizer_az_span_elem **const span_elem,
+                               enum TokenizerKind kind, const az_span span) {
   struct tokenizer_az_span_elem *new_span_elem = malloc(sizeof *new_span_elem);
   if (!new_span_elem || !span_elem)
     return span_elem;
@@ -196,7 +196,8 @@ tokenizer_az_span_list_prepend(struct tokenizer_az_span_elem **span_elem,
 
 struct tokenizer_az_span_elem **
 tokenizer_az_span_list_append(struct tokenizer_az_span_elem **p,
-                              const enum ScannerKind kind, const az_span span) {
+                              const enum TokenizerKind kind,
+                              const az_span span) {
   // print_escaped_span("az_span_list_append::span", span);
   return tokenizer_az_span_list_prepend(tokenizer_az_span_list_end(p), kind,
                                         span);
@@ -204,7 +205,7 @@ tokenizer_az_span_list_append(struct tokenizer_az_span_elem **p,
 
 void tokenizer_az_span_list_push(size_t *ll_n,
                                  struct tokenizer_az_span_elem ***ll_root,
-                                 const enum ScannerKind kind,
+                                 const enum TokenizerKind kind,
                                  const az_span span) {
   (*ll_n)++;
   *ll_root = tokenizer_az_span_list_append(*ll_root, kind, span);
@@ -245,8 +246,8 @@ struct parse_cst_elem **parse_cst_list_end(struct parse_cst_elem **span_elem) {
 }
 
 struct parse_cst_elem **
-parse_cst_list_prepend(struct parse_cst_elem **span_elem, enum ScannerKind kind,
-                       const az_span span) {
+parse_cst_list_prepend(struct parse_cst_elem **span_elem,
+                       enum TokenizerKind kind, const az_span span) {
   struct parse_cst_elem *new_span_elem = malloc(sizeof *new_span_elem);
   if (!new_span_elem || !span_elem)
     return span_elem;
@@ -258,14 +259,14 @@ parse_cst_list_prepend(struct parse_cst_elem **span_elem, enum ScannerKind kind,
 }
 
 struct parse_cst_elem **parse_cst_list_append(struct parse_cst_elem **p,
-                                              const enum ScannerKind kind,
+                                              const enum TokenizerKind kind,
                                               const az_span span) {
   // print_escaped_span("az_span_list_append::span", span);
   return parse_cst_list_prepend(parse_cst_list_end(p), kind, span);
 }
 
 void parse_cst_list_push(size_t *ll_n, struct parse_cst_elem ***ll_root,
-                         const enum ScannerKind kind, const az_span span) {
+                         const enum TokenizerKind kind, const az_span span) {
   (*ll_n)++;
   *ll_root = parse_cst_list_append(*ll_root, kind, span);
 }

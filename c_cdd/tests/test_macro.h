@@ -21,7 +21,7 @@ x_test_macro_tokenized(void) {
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"# define foo bar\n", MACRO},
       {"#ifdef FOO\n", MACRO},
       {"# define CAT(bar,foo)(bar ## foo)\n", MACRO},

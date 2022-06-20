@@ -19,7 +19,7 @@ TEST x_test_double_literal_str_tokenized(void) {
   struct tokenizer_az_span_elem *iter;
   enum { n = 6 };
   size_t i;
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"\"foo\"", DOUBLE_QUOTED},     {";", TERMINATOR}, {"\n", WHITESPACE},
       {"\"bar can\"", DOUBLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE}};
 
@@ -51,7 +51,7 @@ TEST x_test_single_literal_str_tokenized(void) {
   struct tokenizer_az_span_elem *iter;
   enum { n = 8 };
   size_t i;
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"'a'", SINGLE_QUOTED},   {";", TERMINATOR}, {"\n", WHITESPACE},
       {"'\\n'", SINGLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE},
       {"'\\'", SINGLE_QUOTED},  {"\n", WHITESPACE}};
@@ -84,7 +84,7 @@ TEST x_test_literal_str_concat_tokenized(void) {
   enum { n = 7 };
   size_t i;
 
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"\"catt\"", DOUBLE_QUOTED}, {"\"catt\"", DOUBLE_QUOTED},
       {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
       {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
@@ -124,7 +124,7 @@ TEST x_test_literal_str_tokenized(void) {
   enum { n = 25 };
   size_t i;
 
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"\"foo\"", DOUBLE_QUOTED},  {";", TERMINATOR},
       {"\n", WHITESPACE},          {"'a'", SINGLE_QUOTED},
       {";", TERMINATOR},           {"\n", WHITESPACE},

@@ -28,7 +28,7 @@ TEST x_test_one_structs_tokenized(void) {
 
   struct tokenizer_az_span_elem *iter;
 
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"struct", WORD},  {" ", WHITESPACE},  {"Haz", WORD},
       {" ", WHITESPACE}, {"{", LBRACE},      {"\n  ", WHITESPACE},
       {"const", WORD},   {" ", WHITESPACE},  {"char", WORD},
@@ -64,7 +64,7 @@ TEST x_test_two_structs_tokenized(void) {
 
   struct tokenizer_az_span_elem *iter;
 
-  struct StrScannerKind tokenized_l[n] = {
+  struct StrTokenizerKind tokenized_l[n] = {
       {"struct", WORD},     {" ", WHITESPACE},    {"Haz", WORD},
       {" ", WHITESPACE},    {"{", LBRACE},        {"\n  ", WHITESPACE},
       {"const", WORD},      {" ", WHITESPACE},    {"char", WORD},

@@ -193,11 +193,11 @@ end : {
 
 void eatOneChar(const az_span *const source, const size_t start_index,
                 struct tokenizer_az_span_elem ***tokenized_cur_ptr,
-                struct tokenizer_az_span_list *ll, enum ScannerKind kind) {
+                struct tokenizer_az_span_list *ll, enum TokenizerKind kind) {
 #ifdef DEBUG_SCANNER
   char *s;
   asprintf(&s, "eat%s[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
-           ScannerKind_to_str(kind), start_index, start_index + 1);
+           TokenizerKind_to_str(kind), start_index, start_index + 1);
   print_escaped_span(s, az_span_slice(*source, start_index, start_index + 1));
   free(s);
 #endif /* DEBUG_SCANNER */
@@ -209,28 +209,12 @@ void eatOneChar(const az_span *const source, const size_t start_index,
 size_t eatSlice(const az_span *const source, const size_t start_index,
                 const off_t offset,
                 struct tokenizer_az_span_elem ***tokenized_cur_ptr,
-                struct tokenizer_az_span_list *ll, enum ScannerKind kind) {
+                struct tokenizer_az_span_list *ll, enum TokenizerKind kind) {
   const size_t end_index = start_index + offset;
 #ifdef DEBUG_SCANNER
   char *s;
   asprintf(&s, "eat%s[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
-           ScannerKind_to_str(kind), start_index, end_index);
-  print_escaped_span(s, az_span_slice(*source, start_index, end_index));
-  free(s);
-#endif /* DEBUG_SCANNER */
-  tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, kind,
-                              az_span_slice(*source, start_index, end_index));
-  return end_index;
-}
-
-size_t eatThreeChars(const az_span *const source, const size_t start_index,
-                     struct tokenizer_az_span_elem ***tokenized_cur_ptr,
-                     struct tokenizer_az_span_list *ll, enum ScannerKind kind) {
-  const size_t end_index = start_index + 3;
-#ifdef DEBUG_SCANNER
-  char *s;
-  asprintf(&s, "eat%s[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
-           ScannerKind_to_str(kind), start_index, end_index);
+           TokenizerKind_to_str(kind), start_index, end_index);
   print_escaped_span(s, az_span_slice(*source, start_index, end_index));
   free(s);
 #endif /* DEBUG_SCANNER */
@@ -244,10 +228,14 @@ size_t eatWord(const az_span *const source, const size_t start_index,
                struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                struct tokenizer_az_span_list *ll) {
   size_t end_index;
+  char *word;
+  enum TokenizerKind kind = WORD;
+  az_span word_span;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index + 1; end_index < n; end_index++) {
     const uint8_t ch = span_ptr[end_index];
     switch (ch) {
+    case '_':
     case '0':
     case '1':
     case '2':
@@ -258,7 +246,6 @@ size_t eatWord(const az_span *const source, const size_t start_index,
     case '7':
     case '8':
     case '9':
-    case '_':
     case 'a':
     case 'b':
     case 'c':
@@ -316,17 +303,31 @@ size_t eatWord(const az_span *const source, const size_t start_index,
       goto end;
     }
   }
-
 end : {
+  word_span = az_span_slice(*source, start_index, end_index);
+
+  {
+    const size_t word_span_n = az_span_size(word_span) + 1;
+    word = malloc(word_span_n);
+    az_span_to_str(word, word_span_n, word_span);
+    /* The `str_to` functions should be O(1) so this shouldn't be *that*
+     * inefficient */
+    if (str_to_TokenKeyword(word) == unknownKeyword)
+      word = strdup("Word");
+    else
+      kind = str_to_TokenizerKind(word);
+  }
+  {
 #ifdef DEBUG_SCANNER
-  char *s;
-  asprintf(&s, "eatWord[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
-           start_index, end_index);
-  print_escaped_span(s, az_span_slice(*source, start_index, end_index));
-  free(s);
+    char *s;
+    asprintf(&s, "eat%s[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]", word,
+             start_index, end_index);
+    print_escaped_span(s, word_span);
+    free(s);
 #endif /* DEBUG_SCANNER */
-  tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, WORD,
-                              az_span_slice(*source, start_index, end_index));
+    free(word);
+    tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, kind, word_span);
+  }
 }
   return end_index - 1;
 }

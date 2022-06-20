@@ -108,7 +108,7 @@ extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 
 struct tokenizer_az_span_elem {
   az_span span;
-  enum ScannerKind kind;
+  enum TokenizerKind kind;
   struct tokenizer_az_span_elem *next;
 };
 
@@ -123,15 +123,15 @@ tokenizer_az_span_list_end(struct tokenizer_az_span_elem **);
 
 extern C_CDD_EXPORT struct tokenizer_az_span_elem **
 tokenizer_az_span_list_prepend(struct tokenizer_az_span_elem **,
-                               enum ScannerKind, az_span);
+                               enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT struct tokenizer_az_span_elem **
 tokenizer_az_span_list_append(struct tokenizer_az_span_elem **,
-                              enum ScannerKind, az_span);
+                              enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT void
 tokenizer_az_span_list_push(size_t *, struct tokenizer_az_span_elem ***,
-                            enum ScannerKind, az_span);
+                            enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT void
 tokenizer_az_span_elem_cleanup(struct tokenizer_az_span_elem **);
@@ -159,14 +159,14 @@ extern C_CDD_EXPORT struct parse_cst_elem **
 parse_cst_list_end(struct parse_cst_elem **);
 
 extern C_CDD_EXPORT struct parse_cst_elem **
-parse_cst_list_prepend(struct parse_cst_elem **, enum ScannerKind, az_span);
+parse_cst_list_prepend(struct parse_cst_elem **, enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT struct parse_cst_elem **
-parse_cst_list_append(struct parse_cst_elem **, enum ScannerKind, az_span);
+parse_cst_list_append(struct parse_cst_elem **, enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT void parse_cst_list_push(size_t *,
                                              struct parse_cst_elem ***,
-                                             enum ScannerKind, az_span);
+                                             enum TokenizerKind, az_span);
 
 extern C_CDD_EXPORT void parse_cst_elem_cleanup(struct parse_cst_elem **);
 
