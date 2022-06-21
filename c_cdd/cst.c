@@ -15,6 +15,8 @@
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
           defined(__NT__) */
 
+#define BOOLALPHA(e) ((e) ? "true" : "false")
+
 struct TokenizerVars {
   ssize_t c_comment_char_at, cpp_comment_char_at, line_continuation_at;
   uint32_t spaces;
@@ -34,9 +36,9 @@ void az_span_list_push_valid(const az_span *source,
                              struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                              size_t *start_index);
 
+void print_tokenizer_az_span_list(const struct tokenizer_az_span_list *token_ll,
+                                  size_t i);
 struct tokenizer_az_span_list *tokenizer(const az_span source) {
-  struct TokenizerVars sv;
-
   struct tokenizer_az_span_elem *tokenized_ll = NULL;
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
 
@@ -45,8 +47,6 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
   size_t i;
   const size_t source_n = az_span_size(source);
   const uint8_t *const span_ptr = az_span_ptr(source);
-
-  clear_sv(&sv);
 
   /* Tokenizer algorithm:
    *   0. Use last 2 chars—3 on comments—to determine type;
@@ -421,28 +421,186 @@ az_span make_slice_clear_vars(const az_span source, size_t i,
   return az_span_empty();
 }
 
+struct CstParseVars {
+  bool is_union, is_struct, is_enum, is_function;
+  size_t lparens, rparens, lbraces, rbraces, lsquare, rsquare;
+};
+
+void clear_CstParseVars(struct CstParseVars *pv) {
+  pv->is_enum = false, pv->is_union = false, pv->is_struct = false;
+  pv->lparens = 0, pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0,
+  pv->lsquare = 0, pv->rsquare = 0;
+}
+
 struct parse_cst_list *
 cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
-  /* tokenizes into slices, from "unsigned long/ *stuff*\f()";
-   * to {"unsigned long", "/ *stuff*\", "f", "(", ")", ";"} */
+  /* recognise start of function, struct, enum, union */
 
-  struct parse_cst_elem *tokenized_ll = NULL;
+  struct tokenizer_az_span_elem *tokenized_ll = NULL;
+  struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
+  struct tokenizer_az_span_list *token_ll = calloc(1, sizeof *token_ll);
+
+  struct parse_cst_elem *parse_ll = NULL;
   /*struct parse_cst_elem **tokenized_cur_ptr = &tokenized_ll;*/
 
   struct parse_cst_list *ll = calloc(1, sizeof *ll);
   struct tokenizer_az_span_elem *iter;
 
-  size_t i, white_comm = 0;
+  size_t i, parse_start;
 
-  for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
-       iter != NULL; iter = iter->next, i++) {
-    /*switch (iter->kind) {
+  struct CstParseVars vars = {false, false, false, false};
+
+  enum TokenizerKind expression[] = {TERMINATOR};
+  enum TokenizerKind function_start[] = {
+      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, LPAREN,
+      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, RPAREN,
+      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, LBRACE};
+
+  enum TokenizerKind *tokenizer_kinds[] = {
+      {LBRACE, MUL_ASSIGN},
+      {LBRACE, MUL_ASSIGN},
+  };
+
+  struct tokenizer_az_span_element **tokens_arr =
+      tokenizer_az_span_list_to_array(tokens_ll);
+
+  for (i = 0, parse_start = 0; tokens_arr[i] != NULL; i++) {
+    switch (tokens_arr[i]->kind) {
+    /*
+    for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
+         iter != NULL; iter = iter->next, i++) {
+      switch (iter->kind) */
+    case C_COMMENT:
+    case CPP_COMMENT:
     case WHITESPACE:
-      white_comm = i;
+      break;
+    case enumKeyword:
+      vars.is_union = false;
+      break;
+    case unionKeyword:
+      vars.is_enum = false;
+      break;
     case WORD:
+      /* can still be `enum` or `union` at this point */
+      break;
+    case ASTERISK:
+    case autoKeyword:
+    case charKeyword:
+    case constKeyword:
+    case doubleKeyword:
+    case externKeyword:
+    case floatKeyword:
+    case intKeyword:
+    case inlineKeyword:
+    case longKeyword:
+    case unsignedKeyword:
+    case _NoreturnKeyword:
+      vars.is_enum = false, vars.is_union = false;
+      break;
+    case structKeyword:
+      vars.is_enum = false, vars.is_union = false, vars.is_struct = true;
+      break;
+
+      /* can still be struct, enum, union, function here */
+    case TERMINATOR: {
+      size_t j;
+      clear_CstParseVars(&vars);
+
+      puts("<EXPRESSION>");
+      for (j = parse_start; j < i; j++) {
+        print_escaped_span(TokenizerKind_to_str(tokens_arr[j]->kind),
+                           tokens_arr[j]->span);
+      }
+      puts("</EXPRESSION>");
+      parse_start = i;
+      break;
+    }
+
     case LBRACE:
-    }*/
-    print_escaped_span(TokenizerKind_to_str(iter->kind), iter->span);
+      vars.lbraces++;
+
+      if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare) {
+
+        if (!vars.is_enum && !vars.is_union && !vars.is_struct &&
+            vars.lparens > 0 && vars.lparens == vars.rparens)
+            i = eatFunction(tokens_arr, &parse_start, i, &tokenized_cur_ptr, ll);
+        else if (vars.is_enum && !vars.is_union && !vars.is_struct)
+            /* could be an anonymous enum at the start of a function def */
+            puts("WITHIN ENUM");
+        else if (!vars.is_enum && vars.is_union && !vars.is_struct)
+            puts("WITHIN UNION");
+        else if (!vars.is_enum && !vars.is_union && vars.is_struct)
+            puts("WITHIN STRUCT");
+
+        clear_CstParseVars(&vars);
+      }
+
+      /*tokenizer_az_span_list_push(&ll->size, &tokenized_cur_ptr, iter->kind,
+      iter->span); print_tokenizer_az_span_list(token_ll, i); token_ll->list =
+      tokenized_ll; tokenizer_az_span_list_cleanup(token_ll);*/
+      break;
+    case RBRACE:
+      vars.rbraces++;
+      /* TODO: Handle initialiser and nested initialiser lists */
+      if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare &&
+          vars.lbraces == vars.rbraces) {
+        size_t j;
+
+        char *parse_kind;
+        if (vars.is_function)
+          parse_kind = "FUNCTION";
+        else if (vars.is_enum && !vars.is_union && !vars.is_struct)
+          parse_kind = "ENUM";
+        else if (!vars.is_enum && vars.is_union && !vars.is_struct)
+          parse_kind = "UNION";
+        else if (!vars.is_enum && !vars.is_union && vars.is_struct)
+          parse_kind = "STRUCT";
+        else
+          parse_kind = "UNKNOWN";
+        printf("<%s>\n", parse_kind);
+        for (j = parse_start; j < i; j++) {
+          print_escaped_span(TokenizerKind_to_str(tokens_arr[j]->kind),
+                             tokens_arr[j]->span);
+        }
+        printf("</%s>\n", parse_kind);
+
+        clear_CstParseVars(&vars);
+        parse_start = i;
+      }
+      break;
+    case LPAREN:
+      vars.lparens++;
+      break;
+    case RPAREN:
+      vars.rparens++;
+      break;
+    case LSQUARE:
+      vars.lsquare++;
+      break;
+    case RSQUARE:
+      vars.rsquare++;
+      break;
+    default:
+      puts("<DEFAULT>");
+      print_escaped_span(TokenizerKind_to_str(tokens_arr[i]->kind),
+                         tokens_arr[i]->span);
+      puts("</DEFAULT>");
+      break;
+    }
   }
+  puts("*******************");
+  token_ll->list = tokenized_ll;
+
+  tokenizer_az_span_list_cleanup(token_ll);
+
   return ll;
+}
+
+void print_tokenizer_az_span_list(const struct tokenizer_az_span_list *token_ll,
+                                  size_t i) {
+  struct tokenizer_az_span_elem *iter1;
+  for (iter1 = (struct tokenizer_az_span_elem *)token_ll->list, i = 0;
+       iter1 != NULL; iter1 = iter1->next, i++) {
+    print_escaped_span(TokenizerKind_to_str(iter1->kind), iter1->span);
+  }
 }

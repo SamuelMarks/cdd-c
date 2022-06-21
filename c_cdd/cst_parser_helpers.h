@@ -24,9 +24,12 @@ extern "C" {
 #include <errno.h>
 typedef SSIZE_T ssize_t;
 #else
+#include "c_cdd_export.h"
 #include <c_str_span.h>
 #include <sys/errno.h>
 #endif
+
+#include "ll.h"
 
 #define CstNode_base_properties                                                \
   size_t pos_start; /* where in full-source `value` starts */                  \
@@ -455,6 +458,16 @@ struct CstNode {
   union CstNodeType type;
 };
 
-int dummy(void);
+extern C_CDD_EXPORT int dummy(void);
+
+struct Cst_Node {
+  enum CstNodeKind kind;
+  struct tokenizer_az_span_element **src;
+};
+
+extern C_CDD_EXPORT size_t eatFunction(struct tokenizer_az_span_element **,
+                                       size_t, size_t,
+                                       struct tokenizer_az_span_elem ***,
+                                       struct tokenizer_az_span_list *);
 
 #endif /* !C_CDD_CST_PARSER_HELPERS_H */
