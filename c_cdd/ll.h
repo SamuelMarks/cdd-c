@@ -112,11 +112,19 @@ struct tokenizer_az_span_elem {
   struct tokenizer_az_span_elem *next;
 };
 
+struct tokenizer_az_span_element {
+  az_span span;
+  enum TokenizerKind kind;
+};
+
 /* List structure requiring manual bookkeeping for size */
 struct tokenizer_az_span_list {
   size_t size;
   const struct tokenizer_az_span_elem *list;
 };
+
+extern C_CDD_EXPORT struct tokenizer_az_span_element **
+tokenizer_az_span_list_to_array(const struct tokenizer_az_span_list *);
 
 extern C_CDD_EXPORT struct tokenizer_az_span_elem **
 tokenizer_az_span_list_end(struct tokenizer_az_span_elem **);

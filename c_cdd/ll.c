@@ -234,6 +234,21 @@ void tokenizer_az_span_list_cleanup(struct tokenizer_az_span_list *size_t_ll) {
   size_t_ll->list = NULL, size_t_ll->size = 0;
 }
 
+struct tokenizer_az_span_element **
+tokenizer_az_span_list_to_array(const struct tokenizer_az_span_list *ll) {
+  struct tokenizer_az_span_elem *iter;
+  size_t i;
+  struct tokenizer_az_span_element **arr = malloc(sizeof(**arr) * ll->size + 1);
+
+  for (iter = (struct tokenizer_az_span_elem *)ll->list, i = 0; iter != NULL;
+       iter = iter->next, i++) {
+    arr[i] = malloc(sizeof(struct tokenizer_az_span_element));
+    arr[i]->span = iter->span, arr[i]->kind = iter->kind;
+  }
+  arr[ll->size] = NULL;
+  return arr;
+}
+
 /*
  * `parse_cst`
  */
