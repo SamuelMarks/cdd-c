@@ -9,7 +9,7 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
-#include "cst_parser_helpers.h"
+#include "cst_parser_types.h"
 #include "tokenizer_types.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)

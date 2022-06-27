@@ -11,6 +11,7 @@ set(Header_Files
         "ll.h"
         "tokenizer_types.h"
         "tokenizer_helpers.h"
+        "cst_parser_types.h"
         "cst_parser_helpers.h")
 source_group("Header Files" FILES "${Header_Files}")
 

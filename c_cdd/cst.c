@@ -4,6 +4,7 @@
 
 #include "c_cdd_utils.h"
 #include "cst.h"
+#include "cst_parser_helpers.h"
 #include "tokenizer_helpers.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -450,16 +451,16 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
 
   struct CstParseVars vars = {false, false, false, false};
 
-  enum TokenizerKind expression[] = {TERMINATOR};
+  /*enum TokenizerKind expression[] = {TERMINATOR};
   enum TokenizerKind function_start[] = {
-      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, LPAREN,
-      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, RPAREN,
-      WORD /* | Keyword*/, WHITESPACE | C_COMMENT | CPP_COMMENT, LBRACE};
+      WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, LPAREN,
+      WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, RPAREN,
+      WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, LBRACE};*/
 
-  enum TokenizerKind *tokenizer_kinds[] = {
+  /*enum TokenizerKind *tokenizer_kinds[] = {
       {LBRACE, MUL_ASSIGN},
       {LBRACE, MUL_ASSIGN},
-  };
+  };*/
 
   struct tokenizer_az_span_element **tokens_arr =
       tokenizer_az_span_list_to_array(tokens_ll);
@@ -523,14 +524,14 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
 
         if (!vars.is_enum && !vars.is_union && !vars.is_struct &&
             vars.lparens > 0 && vars.lparens == vars.rparens)
-            i = eatFunction(tokens_arr, &parse_start, i, &tokenized_cur_ptr, ll);
+          i = eatFunction(*tokens_arr, parse_start, i, &tokenized_cur_ptr, ll);
         else if (vars.is_enum && !vars.is_union && !vars.is_struct)
-            /* could be an anonymous enum at the start of a function def */
-            puts("WITHIN ENUM");
+          /* could be an anonymous enum at the start of a function def */
+          puts("WITHIN ENUM");
         else if (!vars.is_enum && vars.is_union && !vars.is_struct)
-            puts("WITHIN UNION");
+          puts("WITHIN UNION");
         else if (!vars.is_enum && !vars.is_union && vars.is_struct)
-            puts("WITHIN STRUCT");
+          puts("WITHIN STRUCT");
 
         clear_CstParseVars(&vars);
       }
@@ -541,7 +542,7 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
       break;
     case RBRACE:
       vars.rbraces++;
-      /* TODO: Handle initialiser and nested initialiser lists */
+      /* TODO: Handle initializer and nested initializer lists */
       if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare &&
           vars.lbraces == vars.rbraces) {
         size_t j;
