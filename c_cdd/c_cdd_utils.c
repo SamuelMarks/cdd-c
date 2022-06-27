@@ -32,6 +32,10 @@ void print_escaped_span(const char *const name, const az_span span) {
   printf("%s", name);
   for (i = 0; i < (name_n > MIN_NAME ? 0 : MIN_NAME - name_n); i++)
     putchar(' ');
+  if (span_ptr == NULL || span_ptr[0] == '\0') {
+    printf("= (null)\n");
+    return;
+  }
   printf("= \"");
   for (i = 0; i < az_span_size(span); i++)
     if (iscntrl(span_ptr[i]) || span_ptr[i] == '\\' || span_ptr[i] == '\"' ||
