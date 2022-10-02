@@ -74,6 +74,7 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
         i = eatCComment(&source, i - 1, source_n, &tokenized_cur_ptr, ll);
         handled = true;
         break;
+
       case '/':
         if (span_ptr[i - 2] != '*') {
           /* ^ handle consecutive C-style comments `/\*bar*\/\*foo*\/` */
@@ -81,6 +82,7 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
           handled = true;
         }
         break;
+
       default:
         break;
       }
@@ -276,7 +278,7 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
 
       case '^':
         if (next_ch == '=')
-          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, OR_ASSIGN);
+          i = eatSlice(&source, i, 2, &tokenized_cur_ptr, ll, XOR_ASSIGN);
         else
           eatOneChar(&source, i, &tokenized_cur_ptr, ll, CARET);
         break;
@@ -312,6 +314,7 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
       case '7':
       case '8':
       case '9':
+        /* Misses numbers with a sign [+-] */
         i = eatNumber(&source, i, source_n, &tokenized_cur_ptr, ll);
         break;
 
@@ -465,9 +468,20 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   struct tokenizer_az_span_element **tokens_arr =
       tokenizer_az_span_list_to_array(tokens_ll);
 
+  for (i = 0; tokens_arr[i] != NULL; i++) {
+  }
+  printf("b4::tokens_arr::n     = %lu\n", i);
+  {
+    struct tokenizer_az_span_element *token_el;
+    for (token_el = *tokens_arr, i = 0; token_el != NULL; token_el++, i++) {
+      printf("tokens_arr[%ld] = %s\n", i, TokenizerKind_to_str(token_el->kind));
+    }
+    printf("l8::tokens_arr::n     = %lu\n", i);
+  }
+
   for (i = 0, parse_start = 0; tokens_arr[i] != NULL; i++) {
     switch (tokens_arr[i]->kind) {
-    /*
+    /*`
     for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
          iter != NULL; iter = iter->next, i++) {
       switch (iter->kind) */
@@ -475,15 +489,19 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
     case CPP_COMMENT:
     case WHITESPACE:
       break;
+
     case enumKeyword:
       vars.is_union = false;
       break;
+
     case unionKeyword:
       vars.is_enum = false;
       break;
+
     case WORD:
       /* can still be `enum` or `union` at this point */
       break;
+
     case ASTERISK:
     case autoKeyword:
     case charKeyword:
@@ -498,6 +516,7 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
     case _NoreturnKeyword:
       vars.is_enum = false, vars.is_union = false;
       break;
+
     case structKeyword:
       vars.is_enum = false, vars.is_union = false, vars.is_struct = true;
       break;
@@ -521,10 +540,9 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
       vars.lbraces++;
 
       if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare) {
-
         if (!vars.is_enum && !vars.is_union && !vars.is_struct &&
             vars.lparens > 0 && vars.lparens == vars.rparens)
-          i = eatFunction(*tokens_arr, parse_start, i, &tokenized_cur_ptr, ll);
+          i = eatFunction(tokens_arr, parse_start, i, &tokenized_cur_ptr, ll);
         else if (vars.is_enum && !vars.is_union && !vars.is_struct)
           /* could be an anonymous enum at the start of a function def */
           puts("WITHIN ENUM");
@@ -536,10 +554,13 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
         clear_CstParseVars(&vars);
       }
 
-      /*tokenizer_az_span_list_push(&ll->size, &tokenized_cur_ptr, iter->kind,
+      /*
+      tokenizer_az_span_list_push(&ll->size, &tokenized_cur_ptr, iter->kind,
       iter->span); print_tokenizer_az_span_list(token_ll, i); token_ll->list =
-      tokenized_ll; tokenizer_az_span_list_cleanup(token_ll);*/
+      tokenized_ll; tokenizer_az_span_list_cleanup(token_ll);
+      */
       break;
+
     case RBRACE:
       vars.rbraces++;
       /* TODO: Handle initializer and nested initializer lists */
@@ -569,18 +590,23 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
         parse_start = i;
       }
       break;
+
     case LPAREN:
       vars.lparens++;
       break;
+
     case RPAREN:
       vars.rparens++;
       break;
+
     case LSQUARE:
       vars.lsquare++;
       break;
+
     case RSQUARE:
       vars.rsquare++;
       break;
+
     default:
       puts("<DEFAULT>");
       print_escaped_span(TokenizerKind_to_str(tokens_arr[i]->kind),
