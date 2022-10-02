@@ -96,6 +96,7 @@ size_t eatCharLiteral(const az_span *const source, const size_t start_index,
                       const size_t n,
                       struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                       struct tokenizer_az_span_list *ll) {
+  /* Misses encoding prefix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index + 1; end_index < n; end_index++) {
@@ -126,6 +127,7 @@ size_t eatStrLiteral(const az_span *const source, const size_t start_index,
                      const size_t n,
                      struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                      struct tokenizer_az_span_list *ll) {
+  /* Misses encoding prefix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index + 1; end_index < n; end_index++) {
@@ -336,6 +338,7 @@ size_t eatNumber(const az_span *const source, const size_t start_index,
                  const size_t n,
                  struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                  struct tokenizer_az_span_list *ll) {
+  /* doesn't handle type suffix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index + 1; end_index < n; end_index++) {

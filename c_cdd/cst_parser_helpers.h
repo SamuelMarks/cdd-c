@@ -5,7 +5,7 @@
 #include "ll.h"
 #include <stddef.h>
 
-extern C_CDD_EXPORT size_t eatFunction(struct tokenizer_az_span_element *,
+extern C_CDD_EXPORT size_t eatFunction(struct tokenizer_az_span_element **,
                                        size_t, size_t,
                                        struct tokenizer_az_span_elem ***,
                                        struct parse_cst_list *);

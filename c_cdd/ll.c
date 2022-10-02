@@ -242,10 +242,15 @@ tokenizer_az_span_list_to_array(const struct tokenizer_az_span_list *ll) {
 
   for (iter = (struct tokenizer_az_span_elem *)ll->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
-    arr[i] = malloc(sizeof(struct tokenizer_az_span_element));
+    arr[i] = malloc(sizeof(arr));
     arr[i]->span = iter->span, arr[i]->kind = iter->kind;
   }
+  assert(ll->size == i);
+  print_escaped_span("arr[25]", arr[25]->span);
   arr[ll->size] = NULL;
+  printf("tok_span_ll_a::i      = %lu\n"
+         "tok_span_ll_a::ll->n  = %lu\n\n",
+         i, ll->size);
   return arr;
 }
 
