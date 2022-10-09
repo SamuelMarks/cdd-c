@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -39,6 +40,7 @@ void az_span_list_push_valid(const az_span *source,
 
 void print_tokenizer_az_span_list(const struct tokenizer_az_span_list *token_ll,
                                   size_t i);
+
 struct tokenizer_az_span_list *tokenizer(const az_span source) {
   struct tokenizer_az_span_elem *tokenized_ll = NULL;
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
@@ -382,6 +384,16 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
   /*az_span_list_push_valid(&source, ll, i, &sv, &tokenized_cur_ptr,
    * &start_index);*/
 
+  /*printf("tokenized_ll: {kind=%s};\n",
+  TokenizerKind_to_str(tokenized_ll->kind)); print_escaped_span("tokenized_ll",
+  tokenized_ll->span);
+
+  printf("tokenized_ll->next: {kind=%s};\n",
+  TokenizerKind_to_str(tokenized_ll->next->kind));
+  print_escaped_span("tokenized_ll->next", tokenized_ll->next->span);
+  tokenized_ll->next = NULL;
+  printf("tokenized_ll->next: %s;\n", tokenized_ll->next);*/
+
   ll->list = tokenized_ll;
   return ll;
 }
@@ -465,16 +477,49 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
       {LBRACE, MUL_ASSIGN},
   };*/
 
-  struct tokenizer_az_span_element **tokens_arr =
-      tokenizer_az_span_list_to_array(tokens_ll);
+  struct tokenizer_az_span_element **tokens_arr = NULL;
+  tokenizer_az_span_list_to_array(&tokens_arr, tokens_ll);
+  assert(tokens_arr != NULL);
+
+  {
+    struct tokenizer_az_span_elem *token_el;
+    for (token_el = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
+         az_span_ptr(token_el->span) != NULL; token_el++, i++) {
+      char *name;
+      asprintf(&name, "list_::tokens_ll[%ld]:%s", i,
+               TokenizerKind_to_str(token_el->kind));
+      print_escaped_span(name, token_el->span);
+      free(name);
+    }
+  }
+
+  putchar('\n');
+
+  {
+    struct tokenizer_az_span_element *el;
+    for (el = *tokens_arr, i = 0; el != NULL; el++, i++) {
+      char *name;
+      asprintf(&name, "array::tokens_arr[%ld]:%s", i,
+               TokenizerKind_to_str(el->kind));
+      print_escaped_span(name, el->span);
+      free(name);
+    }
+  }
+
+  putchar('\n');
 
   for (i = 0; tokens_arr[i] != NULL; i++) {
   }
   printf("b4::tokens_arr::n     = %lu\n", i);
   {
     struct tokenizer_az_span_element *token_el;
-    for (token_el = *tokens_arr, i = 0; token_el != NULL; token_el++, i++) {
-      printf("tokens_arr[%ld] = %s\n", i, TokenizerKind_to_str(token_el->kind));
+    for (token_el = *tokens_arr, i = 0; az_span_ptr(token_el->span) != NULL;
+         token_el++, i++) {
+      char *name;
+      asprintf(&name, "tokens_arr[%ld]:%s", i,
+               TokenizerKind_to_str(token_el->kind));
+      print_escaped_span(name, token_el->span);
+      free(name);
     }
     printf("l8::tokens_arr::n     = %lu\n", i);
   }

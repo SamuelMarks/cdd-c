@@ -4,7 +4,7 @@
 
 #include "c_cdd_utils.h"
 
-#define MIN_NAME 22
+#define MIN_NAME 34
 
 void print_escaped(const char *name, char *s) {
   const size_t name_n = strlen(name);
@@ -33,8 +33,8 @@ void print_escaped_span(const char *const name, const az_span span) {
   printf("%s", name);
   for (i = 0; i < (name_n > MIN_NAME ? 0 : MIN_NAME - name_n); i++)
     putchar(' ');
-  if (span_ptr == NULL || span_n == 0 || span_ptr[0] == '\0') {
-    printf("= (null)\n");
+  if (span_ptr == NULL || span_n == 0 || span_n > INT32_MAX) {
+    puts("= (null)");
     return;
   }
   printf("= \"");

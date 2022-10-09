@@ -123,8 +123,9 @@ struct tokenizer_az_span_list {
   const struct tokenizer_az_span_elem *list;
 };
 
-extern C_CDD_EXPORT struct tokenizer_az_span_element **
-tokenizer_az_span_list_to_array(const struct tokenizer_az_span_list *);
+extern C_CDD_EXPORT int
+tokenizer_az_span_list_to_array(struct tokenizer_az_span_element ***,
+                                const struct tokenizer_az_span_list *);
 
 extern C_CDD_EXPORT struct tokenizer_az_span_elem **
 tokenizer_az_span_list_end(struct tokenizer_az_span_elem **);
