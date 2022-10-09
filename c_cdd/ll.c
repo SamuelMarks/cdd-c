@@ -234,24 +234,53 @@ void tokenizer_az_span_list_cleanup(struct tokenizer_az_span_list *size_t_ll) {
   size_t_ll->list = NULL, size_t_ll->size = 0;
 }
 
-struct tokenizer_az_span_element **
-tokenizer_az_span_list_to_array(const struct tokenizer_az_span_list *ll) {
+int tokenizer_az_span_list_to_array(
+    struct tokenizer_az_span_element ***arr,
+    const struct tokenizer_az_span_list *const ll) {
   struct tokenizer_az_span_elem *iter;
   size_t i;
-  struct tokenizer_az_span_element **arr = malloc(sizeof(**arr) * ll->size + 1);
+  *arr = malloc((ll->size + 1) * sizeof(*arr));
 
   for (iter = (struct tokenizer_az_span_elem *)ll->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
-    arr[i] = malloc(sizeof(arr));
-    arr[i]->span = iter->span, arr[i]->kind = iter->kind;
+    char *name;
+
+    (*arr)[i] = malloc(sizeof((*arr)[i][0]));
+    (*arr)[i]->span = iter->span, (*arr)[i]->kind = iter->kind;
+
+    asprintf(&name, "lis[%ld]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
+    print_escaped_span(name, (*arr)[i]->span);
+    free(name);
   }
+
+  putchar('\n');
+
+  {
+    struct tokenizer_az_span_element *el;
+    for (el = **arr, i = 0; el != NULL && i < ll->size; el++, i++) {
+      char *name, *nom;
+      /*
+      asprintf(&name, "ele[%ld]:%s", i, TokenizerKind_to_str(el->kind));
+      print_escaped_span(name, el->span);
+      free(name);
+      */
+
+      asprintf(&nom, "arr[%ld]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
+      print_escaped_span(nom, (*arr)[i]->span);
+      free(nom);
+      // putchar('\n');
+    }
+  }
+
   assert(ll->size == i);
-  print_escaped_span("arr[25]", arr[25]->span);
+  print_escaped_span("(*arr)[25]->span", (*arr)[25]->span);
   arr[ll->size] = NULL;
-  printf("tok_span_ll_a::i      = %lu\n"
-         "tok_span_ll_a::ll->n  = %lu\n\n",
+  printf("\n"
+         "tok_span_ll_a::i                  = %lu\n"
+         "tok_span_ll_a::ll->n              = %lu\n\n",
          i, ll->size);
-  return arr;
+
+  return EXIT_SUCCESS;
 }
 
 /*
