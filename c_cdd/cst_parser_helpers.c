@@ -13,21 +13,33 @@
 size_t eatFunction(struct tokenizer_az_span_element **arr, size_t start_index,
                    size_t first_lbrace, struct tokenizer_az_span_elem ***cur,
                    struct parse_cst_list *ll) {
-  struct tokenizer_az_span_element *token;
-  size_t i /*, lbrace, rbrace*/;
+  struct tokenizer_az_span_element **token;
+  size_t i, lbrace = 0, rbrace = 0;
   puts("\n<FUNCTION>");
-  for (token = *arr, i = 0; token != NULL; token++, i++) {
-    /*const uint8_t *const span_ptr = az_span_ptr(token->span);*/
-    if (az_span_ptr(token->span) != NULL && token->kind != UNKNOWN_SCAN) {
-      char *s;
-      asprintf(&s, "eatFunction::token->span[%" NUM_LONG_FMT "u]", i);
-      print_escaped_span(s, token->span);
+  for (token = arr, i = start_index; *token != NULL; token++, i++) {
+    switch ((**token).kind) {
+    case LBRACE:
+      if (++lbrace == rbrace) {
+        puts("</FUNCTION>\n");
+        return first_lbrace + i;
+      }
+      break;
+    case RBRACE:
+      rbrace++;
+      break;
+    default:
+      break;
+    }
+
+    /*if (az_span_ptr((**token).span) != NULL && (**token).kind != UNKNOWN_SCAN)
+    { char *s; asprintf(&s, "eatFunction::token->span[%" NUM_LONG_FMT "u]", i);
+      print_escaped_span(s, (**token).span);
       free(s);
     } else {
       printf("eatFunction::token->span[%" NUM_LONG_FMT "u]\n", i);
       if (i > 50)
         exit(5);
-    }
+    }*/
   }
   puts("</FUNCTION>\n");
   return first_lbrace + 1;

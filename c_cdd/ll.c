@@ -5,6 +5,13 @@
 #include "c_cdd_utils.h"
 #include "ll.h"
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define NUM_LONG_FMT "z"
+#else
+#define NUM_LONG_FMT "l"
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
+          defined(__NT__) */
+
 /*
  * `const char *`
  */
@@ -276,8 +283,8 @@ int tokenizer_az_span_list_to_array(
   print_escaped_span("(*arr)[25]->span", (*arr)[25]->span);
   arr[ll->size] = NULL;
   printf("\n"
-         "tok_span_ll_a::i                  = %lu\n"
-         "tok_span_ll_a::ll->n              = %lu\n\n",
+         "tok_span_ll_a::i                  = %" NUM_LONG_FMT "u\n"
+         "tok_span_ll_a::ll->n              = %" NUM_LONG_FMT "u\n\n",
          i, ll->size);
 
   return EXIT_SUCCESS;
