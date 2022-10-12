@@ -587,7 +587,8 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
       if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare) {
         if (!vars.is_enum && !vars.is_union && !vars.is_struct &&
             vars.lparens > 0 && vars.lparens == vars.rparens)
-          i = eatFunction(tokens_arr, parse_start, i, &tokenized_cur_ptr, ll);
+          i = eatFunction(tokens_arr, parse_start, i, &tokenized_cur_ptr, ll) -
+              1;
         else if (vars.is_enum && !vars.is_union && !vars.is_struct)
           /* could be an anonymous enum at the start of a function def */
           puts("WITHIN ENUM");
