@@ -67,6 +67,16 @@ TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
   struct tokenizer_az_span_list *const tokenized = tokenizer(sum_func_span);
   struct parse_cst_list *const tokens = cst_parser(tokenized);
+  {
+    size_t i;
+    struct parse_cst_elem *elem;
+    for (elem = (struct parse_cst_elem *)tokens, i = 0; elem != NULL;
+         elem = elem->next, i++) {
+      printf("parse_cst_list[%" NUM_LONG_FMT "u]:%s\n", i,
+             CstNodeKind_to_str(elem->kind));
+    }
+    printf("i = %" NUM_LONG_FMT "u\n", i);
+  }
   ASSERT_EQ(tokens->size, 0);
   ASSERT_EQ(tokens->list, NULL);
   tokenizer_az_span_list_cleanup(tokenized);

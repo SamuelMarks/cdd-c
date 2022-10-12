@@ -461,4 +461,8 @@ struct Cst_Node {
   struct tokenizer_az_span_element **src;
 };
 
+extern C_CDD_EXPORT const char *CstNodeKind_to_str(enum CstNodeKind);
+
+extern C_CDD_EXPORT enum CstNodeKind str_to_CstNodeKind(const char *);
+
 #endif /* !C_CDD_CST_PARSER_TYPES_H */

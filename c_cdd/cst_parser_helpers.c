@@ -6,41 +6,49 @@
 #define NUM_LONG_FMT "z"
 #else
 #define NUM_LONG_FMT "l"
+#include <assert.h>
 #include <stdio.h>
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
           defined(__NT__) */
 
 size_t eatFunction(struct tokenizer_az_span_element **arr, size_t start_index,
-                   size_t first_lbrace, struct tokenizer_az_span_elem ***cur,
+                   size_t first_lbrace,
+                   struct tokenizer_az_span_elem ***tokenized_cur_ptr,
                    struct parse_cst_list *ll) {
   struct tokenizer_az_span_element **token;
-  size_t i, lbrace = 0, rbrace = 0;
+  size_t i, lbrace = 1, rbrace = 0;
   puts("\n<FUNCTION>");
-  for (token = arr, i = start_index; *token != NULL; token++, i++) {
+  for (token = arr, i = first_lbrace; *token != NULL; token++, i++) {
     switch ((**token).kind) {
     case LBRACE:
-      if (++lbrace == rbrace) {
-        puts("</FUNCTION>\n");
-        return first_lbrace + i;
-      }
-      break;
+      ++lbrace;
+      goto DEFAULT;
     case RBRACE:
-      rbrace++;
-      break;
+      if (lbrace == ++rbrace) {
+        puts("%</FUNCTION>\n");
+        return i;
+      }
     default:
+    DEFAULT:
+      tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, (**token).kind,
+                                  (**token).span);
       break;
     }
+    /*assert(false);*/ /* Syntax error */
 
-    /*if (az_span_ptr((**token).span) != NULL && (**token).kind != UNKNOWN_SCAN)
-    { char *s; asprintf(&s, "eatFunction::token->span[%" NUM_LONG_FMT "u]", i);
+    /*
+    if (az_span_ptr((**token).span) != NULL && (**token).kind != UNKNOWN_SCAN) {
+      char *s;
+      asprintf(&s, "eatFunction::token->span[%" NUM_LONG_FMT "u]", i);
       print_escaped_span(s, (**token).span);
       free(s);
     } else {
       printf("eatFunction::token->span[%" NUM_LONG_FMT "u]\n", i);
       if (i > 50)
         exit(5);
-    }*/
+    }
+    */
   }
-  puts("</FUNCTION>\n");
+  puts("$</FUNCTION>\n");
   return first_lbrace + 1;
 }

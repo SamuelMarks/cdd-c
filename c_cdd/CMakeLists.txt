@@ -8,20 +8,23 @@ set(Header_Files
         "c_cdd_stdbool.h"
         "c_cdd_utils.h"
         "cst.h"
-        "ll.h"
-        "tokenizer_types.h"
-        "tokenizer_helpers.h"
+        "cst_parser_helpers.h"
         "cst_parser_types.h"
-        "cst_parser_helpers.h")
+        "ll.h"
+        "tokenizer_helpers.h"
+        "tokenizer_types.h"
+)
 source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files
         "c_cdd_utils.c"
         "cst.c"
+        "cst_parser_helpers.c"
+        "cst_parser_types.c"
         "ll.c"
-        "tokenizer_types.c"
         "tokenizer_helpers.c"
-        "cst_parser_helpers.c")
+        "tokenizer_types.c"
+)
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
