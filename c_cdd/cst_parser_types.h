@@ -53,8 +53,8 @@ struct CComment {
 };
 
 enum StorageClass { EXTERN, STATIC, THREAD_LOCAL, AUTO, REGISTER };
-static const char *storage_classes[] = {"extern", "static", "thread_local",
-                                        "auto", "register"};
+static const char *const storage_classes[] = {
+    "extern", "static", "thread_local", "auto", "register"};
 
 enum TypeSpecifier /* & TypeQualifier */ {
   VOID,
@@ -243,7 +243,7 @@ struct Do {
 #endif /* CST_WITH_BODY */
 };
 
-// struct DoWhile { CstNode_base_properties; };
+/* struct DoWhile { CstNode_base_properties; }; */
 
 struct For {
   CstNode_base_properties;

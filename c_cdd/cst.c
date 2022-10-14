@@ -456,11 +456,11 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
   struct tokenizer_az_span_list *token_ll = calloc(1, sizeof *token_ll);
 
-  struct parse_cst_elem *parse_ll = NULL;
+  /*struct parse_cst_elem *parse_ll = NULL;*/
   /*struct parse_cst_elem **tokenized_cur_ptr = &tokenized_ll;*/
 
   struct parse_cst_list *ll = calloc(1, sizeof *ll);
-  struct tokenizer_az_span_elem *iter;
+  /*struct tokenizer_az_span_elem *iter;*/
 
   size_t i, parse_start;
 

@@ -6,7 +6,7 @@
 
 #define MIN_NAME 34
 
-void print_escaped(const char *name, char *s) {
+void print_escaped(const char *const name, char *const s) {
   const size_t name_n = strlen(name);
   char *ch;
   size_t i;
@@ -114,7 +114,7 @@ void print_escaped_spans(uint8_t *format, ...) {
     case 'S':
     case 'Z':
       if (first) {
-        const char *s = va_arg(ap, char *);
+        const char *const s = va_arg(ap, char *);
         const size_t n = strlen(s);
         first = false;
         fprintf(OUT, "%s", s);
