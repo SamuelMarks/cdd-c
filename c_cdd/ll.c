@@ -16,7 +16,7 @@
  * `const char *`
  */
 
-struct str_elem **ll_append_str(struct str_elem **root, const char *s) {
+struct str_elem **ll_append_str(struct str_elem **root, const char *const s) {
   struct str_elem **insert = &*root;
   while (*insert)
     insert = &insert[0]->next;
@@ -29,8 +29,8 @@ struct str_elem **ll_append_str(struct str_elem **root, const char *s) {
   return insert;
 }
 
-struct str_elem **ll_push_str(size_t *ll_n, struct str_elem ***ll_root,
-                              const char *s) {
+struct str_elem **ll_push_str(size_t *const ll_n, struct str_elem ***ll_root,
+                              const char *const s) {
   if (s != NULL) {
     (*ll_n)++;
     return ll_append_str(*ll_root, s);
@@ -38,7 +38,8 @@ struct str_elem **ll_push_str(size_t *ll_n, struct str_elem ***ll_root,
   return *ll_root;
 }
 
-const char *slice_(const char *s, const size_t i, size_t *start_index) {
+const char *slice_(const char *const s, const size_t i,
+                   size_t *const start_index) {
   const size_t substr_length = i + *start_index + 1;
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
@@ -52,7 +53,8 @@ const char *slice_(const char *s, const size_t i, size_t *start_index) {
   return NULL;
 }
 
-const char *make_slice(const char *s, const size_t i, size_t *start_index) {
+const char *make_slice(const char *const s, const size_t i,
+                       size_t *const start_index) {
   const size_t substr_length = i - *start_index + 1;
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
@@ -146,7 +148,7 @@ struct az_span_elem **az_span_list_prepend(struct az_span_elem **span_elem,
 
 struct az_span_elem **az_span_list_append(struct az_span_elem **p,
                                           const az_span span) {
-  // print_escaped_span("az_span_list_append::span", span);
+  /* print_escaped_span("az_span_list_append::span", span); */
   return az_span_list_prepend(az_span_list_end(p), span);
 }
 
@@ -205,7 +207,7 @@ struct tokenizer_az_span_elem **
 tokenizer_az_span_list_append(struct tokenizer_az_span_elem **p,
                               const enum TokenizerKind kind,
                               const az_span span) {
-  // print_escaped_span("az_span_list_append::span", span);
+  /* print_escaped_span("az_span_list_append::span", span); */
   return tokenizer_az_span_list_prepend(tokenizer_az_span_list_end(p), kind,
                                         span);
 }
@@ -275,7 +277,7 @@ int tokenizer_az_span_list_to_array(
       asprintf(&nom, "arr[%ld]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
       print_escaped_span(nom, (*arr)[i]->span);
       free(nom);
-      // putchar('\n');
+      /* putchar('\n'); */
     }
   }
 
@@ -307,27 +309,27 @@ parse_cst_list_prepend(struct parse_cst_elem **span_elem,
   struct parse_cst_elem *new_span_elem = malloc(sizeof *new_span_elem);
   if (!new_span_elem || !span_elem)
     return span_elem;
-  // new_span_elem->type = malloc(sizeof(struct Expression *));
+  /* new_span_elem->type = malloc(sizeof(struct Expression *)); */
   new_span_elem->kind = Expression;
   new_span_elem->next = *span_elem;
   *span_elem = new_span_elem;
   return &new_span_elem->next;
 }
 
-struct parse_cst_elem **parse_cst_list_append(struct parse_cst_elem **p,
+struct parse_cst_elem **parse_cst_list_append(struct parse_cst_elem **const p,
                                               const enum TokenizerKind kind,
                                               const az_span span) {
-  // print_escaped_span("az_span_list_append::span", span);
+  /* print_escaped_span("az_span_list_append::span", span); */
   return parse_cst_list_prepend(parse_cst_list_end(p), kind, span);
 }
 
-void parse_cst_list_push(size_t *ll_n, struct parse_cst_elem ***ll_root,
+void parse_cst_list_push(size_t *ll_n, struct parse_cst_elem ***const ll_root,
                          const enum TokenizerKind kind, const az_span span) {
   (*ll_n)++;
   *ll_root = parse_cst_list_append(*ll_root, kind, span);
 }
 
-void parse_cst_elem_cleanup(struct parse_cst_elem **parse_cst_element) {
+void parse_cst_elem_cleanup(struct parse_cst_elem **const parse_cst_element) {
   if (parse_cst_element == NULL)
     return;
 
@@ -342,7 +344,7 @@ void parse_cst_elem_cleanup(struct parse_cst_elem **parse_cst_element) {
   *parse_cst_element = NULL;
 }
 
-void parse_cst_list_cleanup(struct parse_cst_list *ll) {
+void parse_cst_list_cleanup(struct parse_cst_list *const ll) {
   struct parse_cst_elem *list = (struct parse_cst_elem *)ll->list;
   parse_cst_elem_cleanup(&list);
   ll->list = NULL, ll->size = 0;

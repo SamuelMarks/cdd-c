@@ -450,7 +450,7 @@ const char *TokenizerKind_to_str(const enum TokenizerKind kind) {
   }
 }
 
-enum TokenizerKind str_to_TokenizerKind(const char *s) {
+enum TokenizerKind str_to_TokenizerKind(const char *const s) {
   /* "\n".join(map(lambda s: "else if (strcmp(s, \"{0}\") == 0)\n\treturn
    * {0};\n".format(s), map(str.strip, s.split(','))))*/
 
@@ -633,7 +633,7 @@ const char *TokenKeyword_to_str(const enum TokenKeyword token_keyword) {
   }
 }
 
-enum TokenKeyword str_to_TokenKeyword(const char *s) {
+enum TokenKeyword str_to_TokenKeyword(const char *const s) {
   /*"\n".join(map(lambda _s: "else if (strcmp(s, \"{0}\") == 0)\n\treturn
    * {0}Keyword\n".format(_s), map(lambda _s: _s.rpartition('"')[0][1:],
    * s.splitlines())))
