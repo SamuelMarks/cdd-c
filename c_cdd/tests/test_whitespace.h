@@ -18,7 +18,7 @@ static const char whitespace_src[] = "\n\r\v"
 TEST x_test_whitespace_tokenized(void) {
   const az_span whitespace_span =
       az_span_create_from_str((char *)whitespace_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(whitespace_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
@@ -27,6 +27,8 @@ TEST x_test_whitespace_tokenized(void) {
       {"/* C comment 0 */", C_COMMENT},
       {"\n", WHITESPACE},
       {"/* C comment*\\/ fin */", C_COMMENT}};
+
+  tokenizer(whitespace_span, &tokenized);
   ASSERT_EQ(tokenized->size, n);
 
   for (iter = (struct tokenizer_az_span_elem *)tokenized->list, i = 0;

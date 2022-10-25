@@ -15,13 +15,14 @@ TEST x_test_double_literal_str_tokenized(void) {
                                         "\"bar can\";\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(literal_str_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 6 };
   size_t i;
   struct StrTokenizerKind tokenized_l[n] = {
       {"\"foo\"", DOUBLE_QUOTED},     {";", TERMINATOR}, {"\n", WHITESPACE},
       {"\"bar can\"", DOUBLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE}};
+  tokenizer(literal_str_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 
@@ -47,7 +48,7 @@ TEST x_test_single_literal_str_tokenized(void) {
                                         "'\\'\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(literal_str_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 8 };
   size_t i;
@@ -55,6 +56,7 @@ TEST x_test_single_literal_str_tokenized(void) {
       {"'a'", SINGLE_QUOTED},   {";", TERMINATOR}, {"\n", WHITESPACE},
       {"'\\n'", SINGLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE},
       {"'\\'", SINGLE_QUOTED},  {"\n", WHITESPACE}};
+  tokenizer(literal_str_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 
@@ -79,7 +81,7 @@ TEST x_test_literal_str_concat_tokenized(void) {
                                         "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(literal_str_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 7 };
   size_t i;
@@ -89,6 +91,7 @@ TEST x_test_literal_str_concat_tokenized(void) {
       {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
       {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
       {"\n", WHITESPACE}};
+  tokenizer(literal_str_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 
@@ -119,7 +122,7 @@ TEST x_test_literal_str_tokenized(void) {
                                           "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(literal_str_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 25 };
   size_t i;
@@ -139,6 +142,7 @@ TEST x_test_literal_str_tokenized(void) {
       {"\n", WHITESPACE},          {"\"cut\"", DOUBLE_QUOTED},
       {"\n", WHITESPACE},
   };
+  tokenizer(literal_str_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 

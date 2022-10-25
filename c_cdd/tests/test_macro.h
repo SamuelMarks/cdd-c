@@ -17,7 +17,7 @@ static const char macro_src[] = "# define foo bar\n"
 
 x_test_macro_tokenized(void) {
   const az_span macro_span = az_span_create_from_str((char *)macro_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(macro_span);
+  struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
@@ -26,6 +26,7 @@ x_test_macro_tokenized(void) {
       {"#ifdef FOO\n", MACRO},
       {"# define CAT(bar,foo)(bar ## foo)\n", MACRO},
       {"#define HAZ\\\nFOO\n", MACRO}};
+  tokenizer(macro_span, &tokenized);
 
   ASSERT_GT(i, 0);
 

@@ -41,7 +41,7 @@ void az_span_list_push_valid(const az_span *source,
 void print_tokenizer_az_span_list(const struct tokenizer_az_span_list *token_ll,
                                   size_t i);
 
-struct tokenizer_az_span_list *tokenizer(const az_span source) {
+int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
   struct tokenizer_az_span_elem *tokenized_ll = NULL;
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
 
@@ -50,6 +50,8 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
   size_t i;
   const size_t source_n = az_span_size(source);
   const uint8_t *const span_ptr = az_span_ptr(source);
+
+  *ll_out = ll;
 
   /* Tokenizer algorithm:
    *   0. Use last 2 chars—3 on comments—to determine type;
@@ -395,7 +397,8 @@ struct tokenizer_az_span_list *tokenizer(const az_span source) {
   printf("tokenized_ll->next: %s;\n", tokenized_ll->next);*/
 
   ll->list = tokenized_ll;
-  return ll;
+
+  return EXIT_SUCCESS;
 }
 
 void az_span_list_push_valid(const az_span *const source,
@@ -448,9 +451,9 @@ void clear_CstParseVars(struct CstParseVars *pv) {
   pv->lsquare = 0, pv->rsquare = 0;
 }
 
-struct parse_cst_list *
-cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
-  /* recognise start of function, struct, enum, union */
+int cst_parser(const struct tokenizer_az_span_list *const tokens_ll,
+               struct parse_cst_list **parse_ll) {
+  /* recognise start/end of function, struct, enum, union */
 
   struct tokenizer_az_span_elem *tokenized_ll = NULL;
   struct tokenizer_az_span_elem **tokenized_cur_ptr = &tokenized_ll;
@@ -478,6 +481,9 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   };*/
 
   struct tokenizer_az_span_element **tokens_arr = NULL;
+
+  *parse_ll = ll;
+
   tokenizer_az_span_list_to_array(&tokens_arr, tokens_ll);
   assert(tokens_arr != NULL);
 
@@ -525,7 +531,8 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   }
 
   for (i = 0, parse_start = 0; tokens_arr[i] != NULL; i++) {
-    switch (tokens_arr[i]->kind) {
+    struct tokenizer_az_span_element *tok_span_el = tokens_arr[i];
+    switch (tok_span_el->kind) {
     /*`
     for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
          iter != NULL; iter = iter->next, i++) {
@@ -664,9 +671,9 @@ cst_parser(const struct tokenizer_az_span_list *const tokens_ll) {
   puts("*******************");
   token_ll->list = tokenized_ll;
 
-  tokenizer_az_span_list_cleanup(token_ll);
+  /*tokenizer_az_span_list_cleanup(token_ll);*/
 
-  return ll;
+  return EXIT_SUCCESS;
 }
 
 void print_tokenizer_az_span_list(const struct tokenizer_az_span_list *token_ll,
