@@ -22,7 +22,7 @@ static const char two_structs_src[] = "struct Haz {\n"
 TEST x_test_one_structs_tokenized(void) {
   const az_span one_structs_span =
       az_span_create_from_str((char *)one_structs_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(one_structs_span);
+  struct tokenizer_az_span_list *tokenized;
   enum { n = 17 };
   size_t i;
 
@@ -35,6 +35,8 @@ TEST x_test_one_structs_tokenized(void) {
       {" ", WHITESPACE}, {"*", ASTERISK},    {"bzr", WORD},
       {";", TERMINATOR}, {"\n", WHITESPACE}, {"}", RBRACE},
       {";", TERMINATOR}, {"\n", WHITESPACE}};
+
+  tokenizer(one_structs_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 
@@ -58,7 +60,7 @@ TEST x_test_one_structs_tokenized(void) {
 TEST x_test_two_structs_tokenized(void) {
   const az_span two_structs_span =
       az_span_create_from_str((char *)two_structs_src);
-  struct tokenizer_az_span_list *const tokenized = tokenizer(two_structs_span);
+  struct tokenizer_az_span_list *tokenized;
   enum { n = 47 };
   size_t i;
 
@@ -81,6 +83,8 @@ TEST x_test_two_structs_tokenized(void) {
       {" ", WHITESPACE},    {"*", ASTERISK},      {"haz", WORD},
       {";", TERMINATOR},    {"\n", WHITESPACE},   {"}", RBRACE},
       {";", TERMINATOR},    {"\n", WHITESPACE}};
+
+  tokenizer(two_structs_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
 
