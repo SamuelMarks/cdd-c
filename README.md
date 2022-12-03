@@ -15,6 +15,15 @@ Use-cases this is designed to support:
   - Generate Google Cloud client library for C (with [Google Cloud API Discovery Service](https://developers.google.com/discovery/v1/reference) as input);
   - Generate arbitrary C client libraries (with [OpenAPI](https://spec.openapis.org/oas/v3.1.0) as input).
 
+## Design
+
+This C compiler has a very unusual design, the macro and C language are treated as one. The foci are:
+
+  - location start/end of function, `struct`, and feature macros (e.g., `#ifdef JSON_EMIT`, `#endif /* JSON_EMIT */`);
+  - `struct` fields.
+
+…which enable a number of use-cases to be simply developed, e.g., see the list above.
+
 ---
 
 ## License
