@@ -46,13 +46,13 @@ $ ./vcpkg/bootstrap-vcpkg.sh
 # Both Windows and non-Windows:
 $ git clone "https://github.com/SamuelMarks/cdd-c" && cd "cdd-c"  # Or your fork of this repo
 # Windows
-$ cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -S . -B "build"
+$ cmake -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -S . -B "build"
 # Non-Windows
-$ cmake -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake' -S . -B 'build'
+$ cmake -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake' -S . -B 'build'
 # Both Windows and non-Windows:
 $ cmake --build "build"
 # Test
-$ cd "build" && ctest --verbose
+$ cd "build" && ctest -C "Debug" --verbose
 ```
 
 ---
