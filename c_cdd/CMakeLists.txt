@@ -38,8 +38,10 @@ target_include_directories(
 )
 
 if (WIN32)
-    find_path(C89STRINGUTILS_INCLUDE_DIRS "c89stringutils_string_extras.h")
-    target_include_directories("${LIBRARY_NAME}" PRIVATE "${C89STRINGUTILS_INCLUDE_DIRS}")
+    # find_path(C89STRINGUTILS_INCLUDE_DIRS "c89stringutils_string_extras.h")
+    # target_include_directories("${LIBRARY_NAME}" PRIVATE "${C89STRINGUTILS_INCLUDE_DIRS}")
+    find_package(c89stringutils CONFIG REQUIRED)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE c89stringutils c89stringutils_compiler_flags)
 endif (WIN32)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN AND VCPKG_TOOLCHAIN)

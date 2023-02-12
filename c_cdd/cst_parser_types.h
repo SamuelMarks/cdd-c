@@ -24,10 +24,10 @@ extern "C" {
 #include <errno.h>
 typedef SSIZE_T ssize_t;
 #else
-#include "c_cdd_export.h"
-#include <c_str_span.h>
 #include <sys/errno.h>
 #endif
+#include "c_cdd_export.h"
+#include <c_str_span.h>
 
 #define CstNode_base_properties                                                \
   size_t pos_start; /* where in full-source `value` starts */                  \

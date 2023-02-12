@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "c89stringutils_string_extras.h"
 #include "c_cdd_utils.h"
 #include "ll.h"
 
@@ -267,14 +268,15 @@ int tokenizer_az_span_list_to_array(
   {
     struct tokenizer_az_span_element *el;
     for (el = **arr, i = 0; el != NULL && i < ll->size; el++, i++) {
-      char *name, *nom;
+      char *nom;
       /*
+      char *name;
       asprintf(&name, "ele[%ld]:%s", i, TokenizerKind_to_str(el->kind));
       print_escaped_span(name, el->span);
       free(name);
       */
 
-      asprintf(&nom, "arr[%ld]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
+      asprintf(&nom, "arr[%"NUM_LONG_FMT"d]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
       print_escaped_span(nom, (*arr)[i]->span);
       free(nom);
       /* putchar('\n'); */

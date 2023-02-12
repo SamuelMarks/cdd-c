@@ -315,7 +315,13 @@ end : {
     /* The `str_to` functions should be O(1) so this shouldn't be *that*
      * inefficient */
     if (str_to_TokenKeyword(word) == unknownKeyword)
-      word = strdup("Word");
+      word =
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+          _strdup
+#else
+          strdup
+#endif
+          ("Word");
     else
       kind = str_to_TokenizerKind(word);
   }
