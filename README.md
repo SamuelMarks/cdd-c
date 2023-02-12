@@ -33,6 +33,28 @@ This C compiler has a very unusual design, the macro and C language are treated 
   - Macros aren't evaluated, which means a simple `#define LBRACE {` will break cdd-c.
   - Like [`m4`](https://en.wikipedia.org/wiki/M4_(computer_language)), CMake, and other tools; cdd-c must be run before your code is built.
 
+### Development guide
+
+Install: CMake ; C compiler toolchain ; git. Then:
+
+```sh
+$ git clone "https://github.com/offscale/vcpkg" -b "project0"
+# Windows:
+$ vcpkg\bootstrap-vcpkg.bat
+# Non-Windows:
+$ ./vcpkg/bootstrap-vcpkg.sh
+# Both Windows and non-Windows:
+$ git clone "https://github.com/SamuelMarks/cdd-c" && cd "cdd-c"  # Or your fork of this repo
+# Windows
+$ cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -S . -B "build"
+# Non-Windows
+$ cmake -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake' -S . -B 'build'
+# Both Windows and non-Windows:
+$ cmake --build "build"
+# Test
+$ cd "build" && ctest --verbose
+```
+
 ---
 
 ## License
