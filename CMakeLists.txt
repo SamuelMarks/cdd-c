@@ -1,25 +1,31 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.11)
 
 project(c_cdd VERSION 0.0.2 LANGUAGES C)
 
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 set(CMAKE_C_STANDARD 90)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
-target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+if (CMAKE_GENERATOR MATCHES "Visual Studio 8 2005.*")
+    set(COMPILE_LANG_AND_ID "MSVC")
+else ()
+    set(CMAKE_C_VISIBILITY_PRESET hidden)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 
-# add compiler warning flags just when building this project via
-# the BUILD_INTERFACE genex
-set(gcc_like "$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
-set(msvc "$<COMPILE_LANG_AND_ID:C,CXX,MSVC>")
-target_compile_options(
-        "${PROJECT_NAME}_compiler_flags"
-        INTERFACE
-        "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic>>"
-        "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
-)
+    target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+
+    # add compiler warning flags just when building this project via
+    # the BUILD_INTERFACE genex
+    set(gcc_like "$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
+    set(msvc "$<COMPILE_LANG_AND_ID:C,CXX,MSVC>")
+    target_compile_options(
+            "${PROJECT_NAME}_compiler_flags"
+            INTERFACE
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
+    )
+endif ()
+
 
 # Set the build directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
@@ -55,7 +61,7 @@ include(GNUInstallDirs)
 
 install(
         FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.h"
-        TYPE "INCLUDE"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 include(InstallRequiredSystemLibraries)
 set(CPACK_BUNDLE_NAME "${PROJECT_NAME}")
