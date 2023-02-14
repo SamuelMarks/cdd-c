@@ -1,6 +1,13 @@
 #include <assert.h>
 #include <ctype.h>
+#if _MSC_VER < 1600
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#else
 #include <stdint.h>
+#endif
+
 #include <stdio.h>
 
 #include "c_cdd_utils.h"
@@ -504,8 +511,8 @@ int cst_parser(const struct tokenizer_az_span_list *const tokens_ll,
   {
     struct tokenizer_az_span_element **el;
     for (el = tokens_arr, i = 0; *el != NULL; el++, i++) {
-      char *name;
-      asprintf(&name, "array::tokens_arr[%ld]:%s", i,
+      char *name=NULL;
+      asprintf(&name, "array::tokens_arr[%"NUM_LONG_FMT"d]:%s", i,
                TokenizerKind_to_str((**el).kind));
       print_escaped_span(name, (**el).span);
       free(name);

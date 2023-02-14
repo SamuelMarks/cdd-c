@@ -7,6 +7,7 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define NUM_LONG_FMT "z"
+#include <c89stringutils_string_extras.h>
 #else
 #define NUM_LONG_FMT "l"
 #endif
