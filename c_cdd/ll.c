@@ -1,5 +1,12 @@
-#include <assert.h>
+#if defined(__linux) || defined(__linux__) || defined(linux)
+#define _GNU_SOURCE
+#elif defined(BSD) || defined(__FreeBSD__) || defined(__FreeBSD__) ||          \
+    defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) ||        \
+    defined(__DragonFly__)
+#define _BSD_SOURCE
+#endif
 #include <stdio.h>
+#include <assert.h>
 #include <string.h>
 
 #include "c_cdd_utils.h"
@@ -64,7 +71,7 @@ const char *make_slice(const char *const s, const size_t i,
     assert(sn == substr_length);
     substr[substr_length] = '\0';
     print_escaped("make_slice::substr", substr);
-    //*start_index = i + 1;
+    /* *start_index = i + 1; */
     *start_index = substr_length + i;
     return substr;
   }
