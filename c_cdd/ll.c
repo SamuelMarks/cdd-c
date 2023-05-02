@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "c89stringutils_string_extras.h"
 #include "c_cdd_utils.h"
 #include "ll.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#include <c89stringutils_string_extras.h>
 #define NUM_LONG_FMT "z"
 #else
 #define NUM_LONG_FMT "l"
