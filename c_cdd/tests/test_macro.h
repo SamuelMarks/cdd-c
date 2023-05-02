@@ -20,7 +20,7 @@ x_test_macro_tokenized(void) {
   struct tokenizer_az_span_list *tokenized;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
-  size_t i=0;
+  size_t i = 0;
   struct StrTokenizerKind tokenized_l[n] = {
       {"# define foo bar\n", MACRO},
       {"#ifdef FOO\n", MACRO},
