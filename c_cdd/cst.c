@@ -1,14 +1,24 @@
+#if defined(__linux) || defined(__linux__) || defined(linux)
+#define _GNU_SOURCE
+#elif defined(BSD) || defined(__FreeBSD__) || defined(__FreeBSD__) ||          \
+    defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) ||        \
+    defined(__DragonFly__)
+#define _BSD_SOURCE
+#endif
+#include <stdio.h>
+
 #include <assert.h>
 #include <ctype.h>
-#if _MSC_VER < 1600
+
+#if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||                \
+     defined(__NT__)) &&                                                       \
+    _MSC_VER < 1600
 typedef unsigned __int8 uint8_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #endif
-
-#include <stdio.h>
 
 #include "c_cdd_utils.h"
 #include "cst.h"
@@ -19,6 +29,7 @@ typedef unsigned __int64 uint64_t;
 #define C89STRINGUTILS_IMPLEMENTATION
 #include <c89stringutils_string_extras.h>
 #define NUM_LONG_FMT "z"
+
 #else
 #define NUM_LONG_FMT "l"
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
