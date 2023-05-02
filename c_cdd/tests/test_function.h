@@ -82,11 +82,11 @@ TEST x_test_function_parsed(void) {
       }
       printf("i = %" NUM_LONG_FMT "u\n", i);
     }
-  ASSERT_EQ(tokens->size, 26);
-  ASSERT_EQ(tokens->size, i);
-  ASSERT_EQ(tokens->list, NULL);
-  tokenizer_az_span_list_cleanup(tokenized);
-  parse_cst_list_cleanup(tokens);
+    ASSERT_EQ(tokens->size, 26);
+    ASSERT_EQ(tokens->size, i);
+    ASSERT_EQ(tokens->list, NULL);
+    tokenizer_az_span_list_cleanup(tokenized);
+    parse_cst_list_cleanup(tokens);
   }
   PASS();
 }

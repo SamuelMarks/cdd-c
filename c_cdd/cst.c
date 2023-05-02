@@ -499,7 +499,7 @@ int cst_parser(const struct tokenizer_az_span_list *const tokens_ll,
     for (token_el = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
          az_span_ptr(token_el->span) != NULL; token_el++, i++) {
       char *name;
-      asprintf(&name, "list_::tokens_ll[%ld]:%s", i,
+      asprintf(&name, "list_::tokens_ll[%" NUM_LONG_FMT "d]:%s", i,
                TokenizerKind_to_str(token_el->kind));
       print_escaped_span(name, token_el->span);
       free(name);
@@ -511,8 +511,12 @@ int cst_parser(const struct tokenizer_az_span_list *const tokens_ll,
   {
     struct tokenizer_az_span_element **el;
     for (el = tokens_arr, i = 0; *el != NULL; el++, i++) {
-      char *name=NULL;
-      asprintf(&name, "array::tokens_arr[%"NUM_LONG_FMT"d]:%s", i,
+      char *name = NULL;
+      assert(*el != NULL);
+      /*if (i == 26)
+        exit((int)i);*/
+      assert((**el).kind != UNKNOWN_SCAN);
+      asprintf(&name, "array::tokens_arr[%" NUM_LONG_FMT "d]:%s", i,
                TokenizerKind_to_str((**el).kind));
       print_escaped_span(name, (**el).span);
       free(name);
@@ -526,7 +530,8 @@ int cst_parser(const struct tokenizer_az_span_list *const tokens_ll,
   printf("b4::tokens_arr::n     = %" NUM_LONG_FMT "u\n", i);
   {
     struct tokenizer_az_span_element *token_el;
-    for (token_el = *tokens_arr, i = 0; az_span_ptr(token_el->span) != NULL;
+    for (token_el = *tokens_arr, i = 0;
+         token_el != NULL && az_span_ptr(token_el->span) != NULL;
          token_el++, i++) {
       char *name;
       asprintf(&name, "tokens_arr[%ld]:%s", i,

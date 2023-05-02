@@ -59,6 +59,7 @@ const char *make_slice(const char *const s, const size_t i,
   const size_t substr_length = i - *start_index + 1;
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
+    assert(substr != NULL);
     const int sn = snprintf(substr, substr_length + 1, "%.*s",
                             (int)substr_length, s + *start_index);
     assert(sn == substr_length);
@@ -258,7 +259,8 @@ int tokenizer_az_span_list_to_array(
     (*arr)[i] = malloc(sizeof((*arr)[i][0]));
     (*arr)[i]->span = iter->span, (*arr)[i]->kind = iter->kind;
 
-    asprintf(&name, "lis[%ld]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
+    asprintf(&name, "lis[%" NUM_LONG_FMT "d]:%s", i,
+             TokenizerKind_to_str((*arr)[i]->kind));
     print_escaped_span(name, (*arr)[i]->span);
     free(name);
   }
@@ -276,7 +278,8 @@ int tokenizer_az_span_list_to_array(
       free(name);
       */
 
-      asprintf(&nom, "arr[%"NUM_LONG_FMT"d]:%s", i, TokenizerKind_to_str((*arr)[i]->kind));
+      asprintf(&nom, "arr[%" NUM_LONG_FMT "d]:%s", i,
+               TokenizerKind_to_str((*arr)[i]->kind));
       print_escaped_span(nom, (*arr)[i]->span);
       free(nom);
       /* putchar('\n'); */
@@ -287,9 +290,9 @@ int tokenizer_az_span_list_to_array(
   print_escaped_span("(*arr)[25]->span", (*arr)[25]->span);
   arr[ll->size] = NULL;
   printf("\n"
-         "tok_span_ll_a::i                  = %" NUM_LONG_FMT "u\n"
-         "tok_span_ll_a::ll->n              = %" NUM_LONG_FMT "u\n\n",
-         i, ll->size);
+         "tok_span_ll_a::ll->size           = %" NUM_LONG_FMT "u\n"
+         "arr[%" NUM_LONG_FMT "u]                           = %s\n\n",
+         ll->size, ll->size, arr[ll->size] == NULL ? "NULL" : "???");
 
   return EXIT_SUCCESS;
 }
