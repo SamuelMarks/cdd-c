@@ -17,14 +17,6 @@ extern "C" {
 
 #endif /* __cplusplus */
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#include <BaseTsd.h>
-#include <errno.h>
-typedef SSIZE_T ssize_t;
-#else
-#include <sys/errno.h>
-#endif
-
 #include <c_str_span.h>
 
 #include <c_cdd_export.h>

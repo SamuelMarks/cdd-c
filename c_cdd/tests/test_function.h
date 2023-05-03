@@ -3,23 +3,13 @@
 
 #include <greatest.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#include <c89stringutils_string_extras.h>
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
-          defined(__NT__) */
-
 #include <c_str_precondition_internal.h>
 
 #include <c_cdd_utils.h>
 #include <cst.h>
 
 #include <cdd_helpers.h>
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#endif
+#include <str_includes.h>
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 

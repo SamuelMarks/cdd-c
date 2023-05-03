@@ -2,16 +2,6 @@
 #include "c_cdd_utils.h"
 #include "tokenizer_types.h"
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define C89STRINGUTILS_IMPLEMENTATION
-#include <c89stringutils_string_extras.h>
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#include <stdio.h>
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
-          defined(__NT__) */
-
 size_t eatCComment(const az_span *const source, const size_t start_index,
                    const size_t n,
                    struct tokenizer_az_span_elem ***tokenized_cur_ptr,

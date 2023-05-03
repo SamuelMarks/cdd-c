@@ -13,6 +13,7 @@ set(Header_Files
         "cst_parser_helpers.h"
         "cst_parser_types.h"
         "ll.h"
+        "str_includes.h"
         "tokenizer_helpers.h"
         "tokenizer_types.h"
 )
@@ -30,6 +31,7 @@ set(Source_Files
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+
 include(GNUInstallDirs)
 target_include_directories(
         "${LIBRARY_NAME}"
@@ -39,12 +41,10 @@ target_include_directories(
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-if (WIN32)
-    # find_path(C89STRINGUTILS_INCLUDE_DIRS "c89stringutils_string_extras.h")
-    # target_include_directories("${LIBRARY_NAME}" PRIVATE "${C89STRINGUTILS_INCLUDE_DIRS}")
+if (NOT DEFINED HAVE_ASPRINTF)
     find_package(c89stringutils CONFIG REQUIRED)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE c89stringutils c89stringutils_compiler_flags)
-endif (WIN32)
+endif (NOT DEFINED HAVE_ASPRINTF)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN AND VCPKG_TOOLCHAIN)
     include(FetchContent)
@@ -86,7 +86,7 @@ set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 set(EXEC_NAME "${LIBRARY_NAME}_cli")
 
-set(Cli_Source_Files "main.c")
+set(Cli_Source_Files "main.c" str_includes.h)
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
