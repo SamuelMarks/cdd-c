@@ -1,15 +1,5 @@
 #include "cst_parser_helpers.h"
-#include "c_cdd_utils.h"
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#include <c89stringutils_string_extras.h>
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#include <assert.h>
 #include <stdio.h>
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
-          defined(__NT__) */
 
 size_t eatFunction(struct tokenizer_az_span_element **arr, size_t start_index,
                    size_t first_lbrace,

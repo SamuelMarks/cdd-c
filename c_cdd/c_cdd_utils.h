@@ -1,5 +1,5 @@
-#ifndef C_CDD_C_CDD_UTILS_H
-#define C_CDD_C_CDD_UTILS_H
+#ifndef C_CDD_UTILS_H
+#define C_CDD_UTILS_H
 
 #ifdef __cplusplus
 #include <cstdlib>
@@ -35,4 +35,4 @@ extern C_CDD_EXPORT void print_escaped_span(const char *, az_span);
 
 extern C_CDD_EXPORT void print_escaped_spans(uint8_t *, ...);
 
-#endif /* C_CDD_C_CDD_UTILS_H */
+#endif /* !C_CDD_UTILS_H */

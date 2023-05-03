@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.2 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 if (CMAKE_GENERATOR MATCHES "Visual Studio 8 2005.*")
@@ -26,6 +27,17 @@ else ()
     )
 endif ()
 
+include("${CMAKE_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
+ensure_symbol(
+        TARGET      "${PROJECT_NAME}_compiler_flags"
+        SYMBOL      "asprintf"
+        INCLUDES    "stdio.h"
+        DEFINITIONS "_GNU_SOURCE" "_BSD_SOURCE"
+)
+if (DEFINED HAVE_ASPRINTF)
+    set(CMAKE_C_EXTENSIONS ON)
+    add_compile_definitions(HAVE_ASPRINTF)
+endif (DEFINED HAVE_ASPRINTF)
 
 # Set the build directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")

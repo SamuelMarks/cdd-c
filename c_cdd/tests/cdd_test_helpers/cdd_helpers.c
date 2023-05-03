@@ -4,13 +4,7 @@
 
 #include "c_cdd_utils.h"
 #include "cdd_helpers.h"
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define NUM_LONG_FMT "z"
-#include <c89stringutils_string_extras.h>
-#else
-#define NUM_LONG_FMT "l"
-#endif
+#include "str_includes.h"
 
 void cdd_precondition_failed(void) { fputs("cdd_precondition_failed", stderr); }
 

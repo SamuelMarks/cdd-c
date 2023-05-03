@@ -4,14 +4,7 @@
 
 #include "c_cdd_utils.h"
 #include "ll.h"
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#include <c89stringutils_string_extras.h>
-#define NUM_LONG_FMT "z"
-#else
-#define NUM_LONG_FMT "l"
-#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
-          defined(__NT__) */
+#include "str_includes.h"
 
 /*
  * `const char *`
@@ -60,12 +53,14 @@ const char *make_slice(const char *const s, const size_t i,
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
     assert(substr != NULL);
-    const int sn = snprintf(substr, substr_length + 1, "%.*s",
-                            (int)substr_length, s + *start_index);
-    assert(sn == substr_length);
+    {
+      const int sn = snprintf(substr, substr_length + 1, "%.*s",
+                              (int)substr_length, s + *start_index);
+      assert(sn == substr_length);
+    }
     substr[substr_length] = '\0';
     print_escaped("make_slice::substr", substr);
-    //*start_index = i + 1;
+    /* start_index = i + 1; */
     *start_index = substr_length + i;
     return substr;
   }
