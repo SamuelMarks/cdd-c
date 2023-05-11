@@ -6,6 +6,46 @@ set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
+
+if (NOT DEFINED MSVC_VERSION
+        OR MSVC_VERSION STRGREATER "1900" # 2015
+        OR NOT (CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom"))
+    target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+elseif ((MSVC_VERSION STRLESS_EQUAL "1900"
+        OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom"
+        OR CYGWIN)
+        AND NOT EXISTS "${CMAKE_BINARY_DIR}/c89stringutils_export.h")
+    file(COPY "${CMAKE_SOURCE_DIR}/c89stringutils/c89stringutils_export_pregen.h"
+            DESTINATION "${CMAKE_BINARY_DIR}")
+    file(RENAME "${CMAKE_BINARY_DIR}/c89stringutils_export_pregen.h"
+            "${CMAKE_BINARY_DIR}/c89stringutils_export.h")
+endif ()
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
+    # add compiler warning flags just when building this project via
+    # the BUILD_INTERFACE genex
+    set(gcc_like "$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
+    set(msvc "$<COMPILE_LANG_AND_ID:C,CXX,MSVC>")
+    target_compile_options(
+            "${PROJECT_NAME}_compiler_flags"
+            INTERFACE
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
+    )
+endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
+# Set the build directories
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows"
+        OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN"
+        OR CMAKE_SYSTEM_NAME MATCHES "MINGW.*")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+else ()
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
+endif ()
+
+
 if (CMAKE_GENERATOR MATCHES "Visual Studio 8 2005.*")
     set(COMPILE_LANG_AND_ID "MSVC")
 else ()
@@ -38,10 +78,6 @@ if (DEFINED HAVE_ASPRINTF)
     set(CMAKE_C_EXTENSIONS ON)
     add_compile_definitions(HAVE_ASPRINTF)
 endif (DEFINED HAVE_ASPRINTF)
-
-# Set the build directories
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 # configure a header file to pass the version number only
 configure_file(
