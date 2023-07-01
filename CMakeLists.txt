@@ -45,7 +45,6 @@ else ()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 endif ()
 
-
 if (CMAKE_GENERATOR MATCHES "Visual Studio 8 2005.*")
     set(COMPILE_LANG_AND_ID "MSVC")
 else ()
@@ -67,13 +66,16 @@ else ()
     )
 endif ()
 
-include("${CMAKE_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
-ensure_symbol(
-        TARGET      "${PROJECT_NAME}_compiler_flags"
-        SYMBOL      "asprintf"
-        INCLUDES    "stdio.h"
-        DEFINITIONS "_GNU_SOURCE" "_BSD_SOURCE"
-)
+if (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
+else ()
+    include("${CMAKE_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
+    ensure_symbol(
+            TARGET      "${PROJECT_NAME}_compiler_flags"
+            SYMBOL      "asprintf"
+            INCLUDES    "stdio.h"
+            DEFINITIONS "_GNU_SOURCE" "_BSD_SOURCE"
+    )
+endif (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 if (DEFINED HAVE_ASPRINTF)
     set(CMAKE_C_EXTENSIONS ON)
     add_compile_definitions(HAVE_ASPRINTF)
