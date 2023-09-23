@@ -39,7 +39,13 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
   const size_t source_n = az_span_size(source);
   const uint8_t *const span_ptr = az_span_ptr(source);
 
-  *ll_out = ll;
+  /* Allocation approach:
+   *   0. Over allocate; maximum tokens == number of chars
+   *   1. Reduce to actual used
+   * */
+
+  struct tokenizer_az_span_elem_arr *token_arr = malloc(source_n * sizeof *token_arr);
+  size_t token_arr_n = 0;
 
   /* Tokenizer algorithm:
    *   0. Use last 2 chars—3 on comments—to determine type;
@@ -63,14 +69,14 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
       /* Handle comments */
       switch (ch) {
       case '*':
-        i = eatCComment(&source, i - 1, source_n, &tokenized_cur_ptr, ll);
+        i = eatCComment(&source, i - 1, source_n, token_arr + ++token_arr_n);
         handled = true;
         break;
 
       case '/':
         if (span_ptr[i - 2] != '*') {
           /* ^ handle consecutive C-style comments `/\*bar*\/\*foo*\/` */
-          i = eatCppComment(&source, i - 1, source_n, &tokenized_cur_ptr, ll);
+          i = eatCppComment(&source, i - 1, source_n, token_arr + ++token_arr_n);
           handled = true;
         }
         break;
@@ -84,16 +90,16 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
       switch (ch) {
       /* Handle macros */
       case '#':
-        i = eatMacro(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatMacro(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       /* Handle literals (single and double-quoted) */
       case '\'':
-        i = eatCharLiteral(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatCharLiteral(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       case '"':
-        i = eatStrLiteral(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatStrLiteral(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       case ' ':
@@ -101,7 +107,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
       case '\r':
       case '\t':
       case '\v':
-        i = eatWhitespace(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatWhitespace(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       case '{':
@@ -157,7 +163,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
 
       case '.':
         if (isdigit(next_ch))
-          i = eatNumber(&source, i, source_n, &tokenized_cur_ptr, ll);
+          i = eatNumber(&source, i - 1, source_n, token_arr + ++token_arr_n);
         else if (next_ch == '.' && span_ptr[i + 2] == '.')
           i = eatSlice(&source, i, 3, &tokenized_cur_ptr, ll, ELLIPSIS);
         break;
@@ -307,7 +313,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
       case '8':
       case '9':
         /* Misses numbers with a sign [+-] */
-        i = eatNumber(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatNumber(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       case '_':
@@ -363,7 +369,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_list **ll_out) {
       case 'X':
       case 'Y':
       case 'Z':
-        i = eatWord(&source, i, source_n, &tokenized_cur_ptr, ll);
+        i = eatWord(&source, i - 1, source_n, token_arr + ++token_arr_n);
         break;
 
       default:
