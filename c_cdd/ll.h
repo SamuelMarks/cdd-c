@@ -32,14 +32,15 @@ struct str_elem {
   struct str_elem *next;
 };
 
-extern C_CDD_EXPORT struct str_elem **ll_append_str(struct str_elem **root,
-                                                    const char *s);
+extern C_CDD_EXPORT int ll_append_str(struct str_elem **root, const char *s,
+                                      struct str_elem ***result);
 
+/*
 extern C_CDD_EXPORT const char *make_slice(const char *s, size_t i,
                                            size_t *start_index);
-
-extern C_CDD_EXPORT struct str_elem **
-ll_push_str(size_t *ll_n, struct str_elem ***ll_root, const char *s);
+*/
+extern C_CDD_EXPORT int ll_push_str(size_t *ll_n, struct str_elem ***ll_root,
+                                    const char *s, struct str_elem ***);
 
 /*
  * `size_t`
@@ -56,15 +57,14 @@ struct size_t_list {
   const struct size_t_elem *list;
 };
 
-extern C_CDD_EXPORT struct size_t_elem **size_t_list_end(struct size_t_elem **);
+extern C_CDD_EXPORT int size_t_list_end(struct size_t_elem **,
+                                                         struct size_t_elem ***);
 
-extern C_CDD_EXPORT struct size_t_elem **
-size_t_list_prepend(struct size_t_elem **, size_t);
+extern C_CDD_EXPORT int size_t_list_prepend(struct size_t_elem **, size_t, struct size_t_elem ***);
 
-extern C_CDD_EXPORT struct size_t_elem **
-size_t_list_append(struct size_t_elem **, size_t);
+extern C_CDD_EXPORT int size_t_list_append(struct size_t_elem **, size_t, struct size_t_elem ***);
 
-extern C_CDD_EXPORT void size_t_list_push(uint32_t *, struct size_t_elem ***,
+extern C_CDD_EXPORT int size_t_list_push(uint32_t *, struct size_t_elem ***,
                                           size_t);
 
 extern C_CDD_EXPORT void size_t_elem_cleanup(struct size_t_elem **);
@@ -105,6 +105,11 @@ extern C_CDD_EXPORT void az_span_list_cleanup(struct az_span_list *);
 /*
  * `tokenizer_az_span`
  */
+
+struct tokenizer_az_span_elem_arr {
+  az_span span;
+  enum TokenizerKind kind;
+};
 
 struct tokenizer_az_span_elem {
   az_span span;

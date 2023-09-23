@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#define _BSD_SOURCE
 #include <stdio.h>
 
 #include "ll.h"
@@ -18,6 +20,8 @@ void debug_tokenized_with_mock(const struct tokenizer_az_span_list *tokenized,
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     char *s0, *s1;
+    if (iter_s == NULL)
+      exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     asprintf(&s0, "tokenized_str_l[%" NUM_LONG_FMT "u]", *i);
     asprintf(&s1, "iter_s[%" NUM_LONG_FMT "u]       ", *i);

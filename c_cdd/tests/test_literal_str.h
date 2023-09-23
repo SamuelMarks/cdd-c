@@ -30,6 +30,8 @@ TEST x_test_double_literal_str_tokenized(void) {
        iter != NULL; iter = iter->next, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    if (iter_s == NULL)
+      exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
@@ -64,6 +66,8 @@ TEST x_test_single_literal_str_tokenized(void) {
        iter != NULL; iter = iter->next, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    if (iter_s == NULL)
+      exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
@@ -99,6 +103,8 @@ TEST x_test_literal_str_concat_tokenized(void) {
        iter != NULL; iter = iter->next, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    if (iter_s == NULL)
+      exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
@@ -150,6 +156,8 @@ TEST x_test_literal_str_tokenized(void) {
        iter != NULL; iter = iter->next, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    if (iter_s == NULL)
+      exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);

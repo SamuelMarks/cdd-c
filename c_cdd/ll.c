@@ -10,49 +10,63 @@
  * `const char *`
  */
 
-struct str_elem **ll_append_str(struct str_elem **root, const char *const s) {
+int ll_append_str(struct str_elem **root, const char *const s,
+                  struct str_elem ***result) {
   struct str_elem **insert = &*root;
+  int rc = EXIT_SUCCESS;
   while (*insert)
     insert = &insert[0]->next;
   *insert = malloc(sizeof **insert);
   if (!*insert)
-    exit(ENOMEM);
+    return ENOMEM;
   insert[0]->s = s;
   insert[0]->n = strlen(s);
   insert[0]->next = NULL;
-  return insert;
+  *result = insert;
+  return rc;
 }
 
-struct str_elem **ll_push_str(size_t *const ll_n, struct str_elem ***ll_root,
-                              const char *const s) {
+int ll_push_str(size_t *const ll_n, struct str_elem ***ll_root,
+                const char *const s, struct str_elem ***result) {
+  int rc = EXIT_SUCCESS;
   if (s != NULL) {
     (*ll_n)++;
-    return ll_append_str(*ll_root, s);
-  }
-  return *ll_root;
+    rc = ll_append_str(*ll_root, s, result);
+  } else
+    *result = *ll_root;
+  return rc;
 }
 
+/*
 const char *slice_(const char *const s, const size_t i,
                    size_t *const start_index) {
   const size_t substr_length = i + *start_index + 1;
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
-    const size_t wrote_length = snprintf(substr, substr_length + 1, "%.*s",
-                                         (int)substr_length, s + *start_index) -
-                                1;
-    assert(wrote_length == substr_length);
-    *start_index = i + 1;
-    return substr;
+    if (!*substr)
+      exit(ENOMEM);
+    {
+      const size_t wrote_length =
+          snprintf(substr, substr_length + 1, "%.*s", (int)substr_length,
+                   s + *start_index) -
+          1;
+      assert(wrote_length == substr_length);
+      *start_index = i + 1;
+      return substr;
+    }
   }
   return NULL;
 }
+*/
 
+/*
 const char *make_slice(const char *const s, const size_t i,
                        size_t *const start_index) {
   const size_t substr_length = i - *start_index + 1;
   if (substr_length > 0) {
     char *substr = malloc(sizeof *substr * substr_length);
-    assert(substr != NULL);
+    if (!*substr)
+      exit(ENOMEM);
     {
       const int sn = snprintf(substr, substr_length + 1, "%.*s",
                               (int)substr_length, s + *start_index);
@@ -60,39 +74,49 @@ const char *make_slice(const char *const s, const size_t i,
     }
     substr[substr_length] = '\0';
     print_escaped("make_slice::substr", substr);
-    /* start_index = i + 1; */
+    // start_index = i + 1;
     *start_index = substr_length + i;
     return substr;
   }
   return NULL;
 }
+*/
 
 /*
  * `size_t`
  */
 
-struct size_t_elem **size_t_list_end(struct size_t_elem **size_t_elem) {
-  if (!size_t_elem)
-    return size_t_elem;
+int size_t_list_end(struct size_t_elem **size_t_elem,
+                    struct size_t_elem ***result) {
+  int rc = EXIT_SUCCESS;
   while (*size_t_elem)
     size_t_elem = &size_t_elem[0]->next;
-  return size_t_elem;
+  *result = size_t_elem;
+  return rc;
 }
 
-struct size_t_elem **size_t_list_prepend(struct size_t_elem **size_t_elem,
-                                         const size_t lu) {
+int size_t_list_prepend(struct size_t_elem **size_t_elem,
+                                         const size_t lu,
+                        struct size_t_elem ***result) {
+  int rc = EXIT_SUCCESS;
   struct size_t_elem *new_size_t_elem = malloc(sizeof *new_size_t_elem);
-  if (!new_size_t_elem || !size_t_elem)
-    return NULL;
-  new_size_t_elem->lu = lu;
-  new_size_t_elem->next = *size_t_elem;
-  *size_t_elem = new_size_t_elem;
-  return &new_size_t_elem->next;
+  if (!new_size_t_elem) {
+    *result = NULL, rc = ENOMEM;
+  } else {
+    new_size_t_elem->lu = lu, new_size_t_elem->next = *size_t_elem;
+    *size_t_elem = new_size_t_elem;
+    *result = new_size_t_elem->next;
+  }
+  return rc;
 }
 
-struct size_t_elem **size_t_list_append(struct size_t_elem **p,
-                                        const size_t lu) {
-  return size_t_list_prepend(size_t_list_end(p), lu);
+int size_t_list_append(struct size_t_elem **p,
+                                        const size_t lu,
+                       struct size_t_elem ***result) {
+  int rc = size_t_list_end(p, result);
+  if (rc)
+    rc = size_t_list_prepend(p, lu, result);
+  return rc;
 }
 
 void size_t_list_push(uint32_t *ll_n, struct size_t_elem ***ll_root,
@@ -246,12 +270,16 @@ int tokenizer_az_span_list_to_array(
   struct tokenizer_az_span_elem *iter;
   size_t i;
   *arr = malloc((ll->size + 1) * sizeof(*arr));
+  if (!*arr)
+    exit(ENOMEM);
 
   for (iter = (struct tokenizer_az_span_elem *)ll->list, i = 0; iter != NULL;
        iter = iter->next, i++) {
     char *name;
 
     (*arr)[i] = malloc(sizeof((*arr)[i][0]));
+    if ((*arr)[i] == NULL)
+      exit(ENOMEM);
     (*arr)[i]->span = iter->span, (*arr)[i]->kind = iter->kind;
 
     asprintf(&name, "lis[%" NUM_LONG_FMT "d]:%s", i,
@@ -283,7 +311,7 @@ int tokenizer_az_span_list_to_array(
 
   assert(ll->size == i);
   print_escaped_span("(*arr)[25]->span", (*arr)[25]->span);
-  arr[ll->size] = NULL;
+  (*arr)[ll->size] = NULL;
   printf("\n"
          "tok_span_ll_a::ll->size           = %" NUM_LONG_FMT "u\n"
          "arr[%" NUM_LONG_FMT "u]                           = %s\n\n",
