@@ -128,3 +128,13 @@ enum CstNodeKind str_to_CstNodeKind(const char *const s) {
   else /* if(strcmp(s, "Expression") == 0) */
     return Expression;
 }
+
+void cst_node_arr_cleanup(struct cst_node_arr *cst_arr) {
+  struct CstNode *cur, *next;
+  cur = cst_arr == NULL ? NULL : cst_arr->elem;
+  while (cur != NULL) {
+    next = cur + 1;
+    free(cur);
+    cur = next;
+  }
+}

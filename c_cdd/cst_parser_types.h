@@ -456,6 +456,11 @@ struct CstNode {
   union CstNodeType type;
 };
 
+struct cst_node_arr {
+  struct CstNode *elem;
+  size_t size;
+};
+
 struct Cst_Node {
   enum CstNodeKind kind;
   struct tokenizer_az_span_element **src;
@@ -464,5 +469,7 @@ struct Cst_Node {
 extern C_CDD_EXPORT const char *CstNodeKind_to_str(enum CstNodeKind);
 
 extern C_CDD_EXPORT enum CstNodeKind str_to_CstNodeKind(const char *);
+
+extern C_CDD_EXPORT void cst_node_arr_cleanup(struct cst_node_arr *);
 
 #endif /* !C_CDD_CST_PARSER_TYPES_H */

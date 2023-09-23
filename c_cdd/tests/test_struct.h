@@ -22,7 +22,7 @@ static const char two_structs_src[] = "struct Haz {\n"
 TEST x_test_one_structs_tokenized(void) {
   const az_span one_structs_span =
       az_span_create_from_str((char *)one_structs_src);
-  struct tokenizer_az_span_list *tokenized;
+  struct tokenizer_az_span_arr *tokenized;
   enum { n = 17 };
   size_t i;
 
@@ -40,8 +40,7 @@ TEST x_test_one_structs_tokenized(void) {
 
   ASSERT_EQ(tokenized->size, n);
 
-  for (iter = (struct tokenizer_az_span_elem *)tokenized->list, i = 0;
-       iter != NULL; iter = iter->next, i++) {
+  for (iter = tokenized->elem, i = 0; iter != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     if (iter_s == NULL)
@@ -52,9 +51,9 @@ TEST x_test_one_structs_tokenized(void) {
     free(iter_s);
   }
   ASSERT_EQ(tokenized->size, i);
-  tokenizer_az_span_list_cleanup(tokenized);
+  tokenizer_az_span_elem_arr_cleanup(tokenized);
   ASSERT_EQ(tokenized->size, 0);
-  ASSERT_EQ(tokenized->list, NULL);
+  ASSERT_EQ(tokenized->elem, NULL);
 
   PASS();
 }
@@ -62,7 +61,7 @@ TEST x_test_one_structs_tokenized(void) {
 TEST x_test_two_structs_tokenized(void) {
   const az_span two_structs_span =
       az_span_create_from_str((char *)two_structs_src);
-  struct tokenizer_az_span_list *tokenized;
+  struct tokenizer_az_span_arr *tokenized;
   enum { n = 47 };
   size_t i;
 
@@ -90,8 +89,7 @@ TEST x_test_two_structs_tokenized(void) {
 
   ASSERT_EQ(tokenized->size, n);
 
-  for (iter = (struct tokenizer_az_span_elem *)tokenized->list, i = 0;
-       iter != NULL; iter = iter->next, i++) {
+  for (iter = tokenized->elem, i = 0; iter != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     if (iter_s == NULL)
@@ -102,9 +100,9 @@ TEST x_test_two_structs_tokenized(void) {
     free(iter_s);
   }
   ASSERT_EQ(tokenized->size, i);
-  tokenizer_az_span_list_cleanup(tokenized);
+  tokenizer_az_span_elem_arr_cleanup(tokenized);
   ASSERT_EQ(tokenized->size, 0);
-  ASSERT_EQ(tokenized->list, NULL);
+  ASSERT_EQ(tokenized->elem, NULL);
 
   PASS();
 }

@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <c_cdd_export.h>
+#include <c_str_span.h>
 
 /* ",\\\n".join(map(lambda _s: "{0}##Suffix".format(_s),
  *                  map(lambda _s: _s.rpartition('"')[0][1:], s.splitlines())))
@@ -148,6 +149,16 @@ struct StrTokenizerKind {
   enum TokenizerKind kind;
 };
 
+struct tokenizer_az_span_elem {
+  az_span span;
+  enum TokenizerKind kind;
+};
+
+struct tokenizer_az_span_arr {
+  struct tokenizer_az_span_elem *elem;
+  size_t size;
+};
+
 extern C_CDD_EXPORT const char *TokenizerKind_to_str(enum TokenizerKind);
 
 extern C_CDD_EXPORT enum TokenizerKind str_to_TokenizerKind(const char *);
@@ -155,6 +166,9 @@ extern C_CDD_EXPORT enum TokenizerKind str_to_TokenizerKind(const char *);
 extern C_CDD_EXPORT const char *TokenKeyword_to_str(enum TokenKeyword);
 
 extern C_CDD_EXPORT enum TokenKeyword str_to_TokenKeyword(const char *);
+
+extern C_CDD_EXPORT void
+tokenizer_az_span_elem_arr_cleanup(struct tokenizer_az_span_arr *);
 
 #ifdef __cplusplus
 }

@@ -21,15 +21,16 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
-#include "ll.h"
+#include <tokenizer_types.h>
 
 struct CstNode;
+struct cst_node_arr;
 
 #define DEBUG_SCANNER
 
-extern C_CDD_EXPORT int tokenizer(az_span, struct tokenizer_az_span_list **);
-extern C_CDD_EXPORT int cst_parser(const struct tokenizer_az_span_list *,
-                                   struct parse_cst_list **);
+extern C_CDD_EXPORT int tokenizer(az_span, struct tokenizer_az_span_arr **);
+extern C_CDD_EXPORT int cst_parser(const struct tokenizer_az_span_arr *,
+                                   struct cst_node_arr **);
 /*const struct CstNode ** parser(struct az_span_elem *); */
 
 #ifdef __cplusplus

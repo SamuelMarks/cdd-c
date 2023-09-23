@@ -1,11 +1,10 @@
 #include "cst_parser_helpers.h"
+#include "tokenizer_types.h"
 #include <stdio.h>
 
-size_t eatFunction(struct tokenizer_az_span_element **arr, size_t start_index,
-                   size_t first_lbrace,
-                   struct tokenizer_az_span_elem ***tokenized_cur_ptr,
-                   struct parse_cst_list *ll) {
-  struct tokenizer_az_span_element **token;
+size_t eatFunction(struct tokenizer_az_span_elem **arr, size_t start_index,
+                   size_t first_lbrace) {
+  struct tokenizer_az_span_elem **token;
   size_t i, lbrace = 1, rbrace = 0;
   puts("\n<FUNCTION>");
   for (token = arr, i = first_lbrace; *token != NULL; token++, i++) {
@@ -20,8 +19,8 @@ size_t eatFunction(struct tokenizer_az_span_element **arr, size_t start_index,
       }
     default:
     DEFAULT:
-      tokenizer_az_span_list_push(&ll->size, tokenized_cur_ptr, (**token).kind,
-                                  (**token).span);
+      (*arr + start_index)->kind = (**token).kind,
+              (*arr + start_index)->span = (**token).span;
       break;
     }
     /*assert(false);*/ /* Syntax error */
