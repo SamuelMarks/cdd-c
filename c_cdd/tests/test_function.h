@@ -8,6 +8,7 @@
 #include <c_cdd_utils.h>
 #include <cst.h>
 
+#include "cst_parser_types.h"
 #include <cdd_helpers.h>
 #include <str_includes.h>
 
@@ -15,7 +16,7 @@ static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
 TEST x_test_function_tokenized(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct tokenizer_az_span_list *tokenized;
+  struct tokenizer_az_span_arr *tokenized;
   enum { n = 26 };
   size_t i;
   static const char *const tokenized_str_l[] = {"int sum(int a, int b) ",
@@ -38,8 +39,7 @@ TEST x_test_function_tokenized(void) {
 
   ASSERT_EQ(tokenized->size, n);
 
-  for (iter = (struct tokenizer_az_span_elem *)tokenized->list, i = 0;
-       iter != NULL; iter = iter->next, i++) {
+  for (iter = tokenized->elem, i = 0; iter != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     if (iter_s == NULL)
@@ -50,42 +50,43 @@ TEST x_test_function_tokenized(void) {
     free(iter_s);
   }
   ASSERT_EQ(tokenized->size, i);
-  tokenizer_az_span_list_cleanup(tokenized);
+  tokenizer_az_span_elem_arr_cleanup(tokenized);
   ASSERT_EQ(tokenized->size, 0);
-  ASSERT_EQ(tokenized->list, NULL);
+  ASSERT_EQ(tokenized->elem, NULL);
 
   PASS();
 }
 
 TEST x_test_function_parsed(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct tokenizer_az_span_list *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   tokenizer(sum_func_span, &tokenized);
+  fputs("Post `tokenizer`", stderr);
   {
-    struct parse_cst_list *tokens;
+    struct cst_node_arr *cst_arr;
     size_t i;
-    cst_parser(tokenized, &tokens);
+    cst_parser(tokenized, &cst_arr);
     {
-      struct parse_cst_elem *elem;
-      for (elem = (struct parse_cst_elem *)tokens, i = 0; elem != NULL;
-           elem = elem->next, i++) {
+      struct CstNode *cst_node;
+      for (cst_node = cst_arr->elem, i = 0; cst_node != NULL; i++) {
         printf("parse_cst_list[%" NUM_LONG_FMT "u]:%s\n", i,
-               CstNodeKind_to_str(elem->kind));
+               CstNodeKind_to_str(cst_node->kind));
       }
       printf("i = %" NUM_LONG_FMT "u\n", i);
     }
-    ASSERT_EQ(tokens->size, 26);
-    ASSERT_EQ(tokens->size, i);
-    ASSERT_EQ(tokens->list, NULL);
-    tokenizer_az_span_list_cleanup(tokenized);
-    parse_cst_list_cleanup(tokens);
+    ASSERT_EQ(cst_arr->size, 26);
+    ASSERT_EQ(cst_arr->size, i);
+    ASSERT_EQ(cst_arr->elem, NULL);
+    tokenizer_az_span_elem_arr_cleanup(tokenized);
+    cst_node_arr_cleanup(cst_arr);
   }
   PASS();
 }
 
 TEST x_test_function_parsed1(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct tokenizer_az_span_list *tokenized;
+  struct tokenizer_az_span_arr *tokenized;
   tokenizer(sum_func_span, &tokenized);
   /* const struct CstNode **parsed = parser((struct az_span_elem *)tokenized);
    */

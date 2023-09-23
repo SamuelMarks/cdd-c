@@ -1,16 +1,11 @@
-#define _GNU_SOURCE
-#define _BSD_SOURCE
 #include <stdio.h>
 
-#include "ll.h"
-
-#include "c_cdd_utils.h"
 #include "cdd_helpers.h"
-#include "str_includes.h"
 
 void cdd_precondition_failed(void) { fputs("cdd_precondition_failed", stderr); }
 
-void debug_tokenized_with_mock(const struct tokenizer_az_span_list *tokenized,
+/*
+void debug_tokenized_with_mock(const struct tokenizer_az_span_elem *tokenized,
                                size_t *i,
                                const struct StrTokenizerKind *tokenized_l,
                                size_t tokenized_l_n) {
@@ -29,9 +24,10 @@ void debug_tokenized_with_mock(const struct tokenizer_az_span_list *tokenized,
       print_escaped(s0, (char *)tokenized_l[*i].s);
     print_escaped(s1, iter_s);
     putchar('\n');
-    /*ASSERT_STR_EQ(iter_s, tokenized_str_l[i++]);*/
+    // ASSERT_STR_EQ(iter_s, tokenized_str_l[i++]);
     free(s0);
     free(s1);
     free(iter_s);
   }
 }
+*/

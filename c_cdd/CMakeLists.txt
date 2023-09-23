@@ -12,7 +12,6 @@ set(Header_Files
         "cst.h"
         "cst_parser_helpers.h"
         "cst_parser_types.h"
-        "ll.h"
         "str_includes.h"
         "tokenizer_helpers.h"
         "tokenizer_types.h"
@@ -24,7 +23,6 @@ set(Source_Files
         "cst.c"
         "cst_parser_helpers.c"
         "cst_parser_types.c"
-        "ll.c"
         "tokenizer_helpers.c"
         "tokenizer_types.c"
 )

@@ -7,7 +7,6 @@
 #include "test_comment.h"
 #include "test_function.h"
 #include "test_literal_str.h"
-#include "test_ll.h"
 #include "test_macro.h"
 #include "test_struct.h"
 #include "test_tokenizer.h"
@@ -18,7 +17,7 @@ GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
-  /*RUN_SUITE(ll_suite);
+  /*
   RUN_SUITE(comment_suite);
   RUN_SUITE(macro_suite);
   RUN_SUITE(literal_str_suite);
