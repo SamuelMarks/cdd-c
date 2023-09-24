@@ -8,56 +8,71 @@ extern "C" {
 #include <c_cdd_export.h>
 #include <c_str_span.h>
 
-/* ",\\\n".join(map(lambda _s: "{0}##Suffix".format(_s),
- *                  map(lambda _s: _s.rpartition('"')[0][1:], s.splitlines())))
+/* print(",\\\n".join(
+ *       map("{0}##Suffix".format,
+ *           map(lambda _s: _s.partition(" ")[0],s.splitlines()))))
  */
 
-#define KeywordEnumGen(Suffix)                                                  \
-  auto##Suffix                                                                ,\
-  break##Suffix                                                               ,\
-  case##Suffix                                                                ,\
-  char##Suffix                                                                ,\
-  const##Suffix                                                               ,\
-  continue##Suffix                                                            ,\
-  default##Suffix                                                             ,\
-  do##Suffix                                                                  ,\
-  double##Suffix                                                              ,\
-  else##Suffix                                                                ,\
-  enum##Suffix                                                                ,\
-  extern##Suffix                                                              ,\
-  float##Suffix                                                               ,\
-  for##Suffix                                                                 ,\
-  goto##Suffix                                                                ,\
-  if##Suffix                                                                  ,\
-  inline##Suffix                                                              ,\
-  int##Suffix                                                                 ,\
-  long##Suffix                                                                ,\
-  register##Suffix                                                            ,\
-  restrict##Suffix                                                            ,\
-  return##Suffix                                                              ,\
-  short##Suffix                                                               ,\
-  signed##Suffix                                                              ,\
-  sizeof##Suffix                                                              ,\
-  static##Suffix                                                              ,\
-  struct##Suffix                                                              ,\
-  switch##Suffix                                                              ,\
-  typedef##Suffix                                                             ,\
-  union##Suffix                                                               ,\
-  unsigned##Suffix                                                            ,\
-  void##Suffix                                                                ,\
-  volatile##Suffix                                                            ,\
-  while##Suffix                                                               ,\
-  _Alignas##Suffix                                                            ,\
-  _Alignof##Suffix                                                            ,\
-  _Atomic##Suffix                                                             ,\
-  _Bool##Suffix                                                               ,\
-  _Complex##Suffix                                                            ,\
-  _Generic##Suffix                                                            ,\
-  _Imaginary##Suffix                                                          ,\
-  _Noreturn##Suffix                                                           ,\
-  _Static_assert##Suffix                                                      ,\
-  _Thread_local##Suffix                                                       ,\
-  __func__##Suffix
+#define KeywordEnumGen(Suffix)                                                 \
+        alignas##Suffix,                                                       \
+        alignof##Suffix,                                                       \
+        auto##Suffix,                                                          \
+        bool##Suffix,                                                          \
+        break##Suffix,                                                         \
+        case##Suffix,                                                          \
+        char##Suffix,                                                          \
+        const##Suffix,                                                         \
+        constexpr##Suffix,                                                     \
+        continue##Suffix,                                                      \
+        default##Suffix,                                                       \
+        do##Suffix,                                                            \
+        double##Suffix,                                                        \
+        else##Suffix,                                                          \
+        enum##Suffix,                                                          \
+        extern##Suffix,                                                        \
+        false##Suffix,                                                         \
+        float##Suffix,                                                         \
+        for##Suffix,                                                           \
+        goto##Suffix,                                                          \
+        if##Suffix,                                                            \
+        inline##Suffix,                                                        \
+        int##Suffix,                                                           \
+        long##Suffix,                                                          \
+        nullptr##Suffix,                                                       \
+        register##Suffix,                                                      \
+        restrict##Suffix,                                                      \
+        return##Suffix,                                                        \
+        short##Suffix,                                                         \
+        signed##Suffix,                                                        \
+        sizeof##Suffix,                                                        \
+        static##Suffix,                                                        \
+        static_assert##Suffix,                                                 \
+        struct##Suffix,                                                        \
+        switch##Suffix,                                                        \
+        thread_local##Suffix,                                                  \
+        true##Suffix,                                                          \
+        typedef##Suffix,                                                       \
+        typeof##Suffix,                                                        \
+        typeof_unqual##Suffix,                                                 \
+        union##Suffix,                                                         \
+        unsigned##Suffix,                                                      \
+        void##Suffix,                                                          \
+        volatile##Suffix,                                                      \
+        while##Suffix,                                                         \
+        _Alignas##Suffix,                                                      \
+        _Alignof##Suffix,                                                      \
+        _Atomic##Suffix,                                                       \
+        _BitInt##Suffix,                                                       \
+        _Bool##Suffix,                                                         \
+        _Complex##Suffix,                                                      \
+        _Decimal128##Suffix,                                                   \
+        _Decimal32##Suffix,                                                    \
+        _Decimal64##Suffix,                                                    \
+        _Generic##Suffix,                                                      \
+        _Imaginary##Suffix,                                                    \
+        _Noreturn##Suffix,                                                     \
+        _Static_assert##Suffix,                                                \
+        _Thread_local##Suffix
 
 enum TokenizerKind {
   UNKNOWN_SCAN,

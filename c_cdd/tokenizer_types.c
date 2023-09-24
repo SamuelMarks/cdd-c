@@ -1,12 +1,62 @@
 #include "tokenizer_types.h"
 #include <string.h>
 
-/* "\n".join(map(lambda _s: "case {0}##Suffix:\\\n\treturn
- * \"{0}\";\\\n\\".format(_s), map(lambda _s: _s.rpartition('"')[0][1:],
- * s.splitlines()))) */
+/* "\n".join(map('case {0}##Suffix:\\\n\treturn \"{0}\";\\\n\\'.format,
+ *               map(lambda _s: _s.partition(" ")[0], s.splitlines()))) */
 #define KeywordCase(Suffix)                                                    \
+  case _Alignas##Suffix:                                                       \
+    return "_Alignas";                                                         \
+                                                                               \
+  case _Alignof##Suffix:                                                       \
+    return "_Alignof";                                                         \
+                                                                               \
+  case _Atomic##Suffix:                                                        \
+    return "_Atomic";                                                          \
+                                                                               \
+  case _BitInt##Suffix:                                                        \
+    return "_BitInt";                                                          \
+                                                                               \
+  case _Bool##Suffix:                                                          \
+    return "_Bool";                                                            \
+                                                                               \
+  case _Complex##Suffix:                                                       \
+    return "_Complex";                                                         \
+                                                                               \
+  case _Decimal128##Suffix:                                                    \
+    return "_Decimal128";                                                      \
+                                                                               \
+  case _Decimal32##Suffix:                                                     \
+    return "_Decimal32";                                                       \
+                                                                               \
+  case _Decimal64##Suffix:                                                     \
+    return "_Decimal64";                                                       \
+                                                                               \
+  case _Generic##Suffix:                                                       \
+    return "_Generic";                                                         \
+                                                                               \
+  case _Imaginary##Suffix:                                                     \
+    return "_Imaginary";                                                       \
+                                                                               \
+  case _Noreturn##Suffix:                                                      \
+    return "_Noreturn";                                                        \
+                                                                               \
+  case _Static_assert##Suffix:                                                 \
+    return "_Static_assert";                                                   \
+                                                                               \
+  case _Thread_local##Suffix:                                                  \
+    return "_Thread_local";                                                    \
+                                                                               \
+  case alignas##Suffix:                                                        \
+    return "alignas";                                                          \
+                                                                               \
+  case alignof##Suffix:                                                        \
+    return "alignof";                                                          \
+                                                                               \
   case auto##Suffix:                                                           \
     return "auto";                                                             \
+                                                                               \
+  case bool##Suffix:                                                           \
+    return "bool";                                                             \
                                                                                \
   case break##Suffix:                                                          \
     return "break";                                                            \
@@ -19,6 +69,9 @@
                                                                                \
   case const##Suffix:                                                          \
     return "const";                                                            \
+                                                                               \
+  case constexpr##Suffix:                                                      \
+    return "constexpr";                                                        \
                                                                                \
   case continue##Suffix:                                                       \
     return "continue";                                                         \
@@ -41,6 +94,9 @@
   case extern##Suffix:                                                         \
     return "extern";                                                           \
                                                                                \
+  case false##Suffix:                                                          \
+    return "false";                                                            \
+                                                                               \
   case float##Suffix:                                                          \
     return "float";                                                            \
                                                                                \
@@ -61,6 +117,9 @@
                                                                                \
   case long##Suffix:                                                           \
     return "long";                                                             \
+                                                                               \
+  case nullptr##Suffix:                                                        \
+    return "nullptr";                                                          \
                                                                                \
   case register##Suffix:                                                       \
     return "register";                                                         \
@@ -83,14 +142,29 @@
   case static##Suffix:                                                         \
     return "static";                                                           \
                                                                                \
+  case static_assert##Suffix:                                                  \
+    return "static_assert";                                                    \
+                                                                               \
   case struct##Suffix:                                                         \
     return "struct";                                                           \
                                                                                \
   case switch##Suffix:                                                         \
     return "switch";                                                           \
                                                                                \
+  case thread_local##Suffix:                                                   \
+    return "thread_local";                                                     \
+                                                                               \
+  case true##Suffix:                                                           \
+    return "true";                                                             \
+                                                                               \
   case typedef##Suffix:                                                        \
     return "typedef";                                                          \
+                                                                               \
+  case typeof##Suffix:                                                         \
+    return "typeof";                                                           \
+                                                                               \
+  case typeof_unqual##Suffix:                                                  \
+    return "typeof_unqual";                                                    \
                                                                                \
   case union##Suffix:                                                          \
     return "union";                                                            \
@@ -105,151 +179,16 @@
     return "volatile";                                                         \
                                                                                \
   case while##Suffix:                                                          \
-    return "while";                                                            \
-                                                                               \
-  case _Alignas##Suffix:                                                       \
-    return "_Alignas";                                                         \
-                                                                               \
-  case _Alignof##Suffix:                                                       \
-    return "_Alignof";                                                         \
-                                                                               \
-  case _Atomic##Suffix:                                                        \
-    return "_Atomic";                                                          \
-                                                                               \
-  case _Bool##Suffix:                                                          \
-    return "_Bool";                                                            \
-                                                                               \
-  case _Complex##Suffix:                                                       \
-    return "_Complex";                                                         \
-                                                                               \
-  case _Generic##Suffix:                                                       \
-    return "_Generic";                                                         \
-                                                                               \
-  case _Imaginary##Suffix:                                                     \
-    return "_Imaginary";                                                       \
-                                                                               \
-  case _Noreturn##Suffix:                                                      \
-    return "_Noreturn";                                                        \
-                                                                               \
-  case _Static_assert##Suffix:                                                 \
-    return "_Static_assert";                                                   \
-                                                                               \
-  case _Thread_local##Suffix:                                                  \
-    return "_Thread_local";                                                    \
-                                                                               \
-  case __func__##Suffix:                                                       \
-    return "__func__"
+    return "while";
 
 /*
- * "\\\n".join(map(lambda _s: "else if (strcmp(s, \"{0}\") == 0)\t\\\n\treturn
- * {0}##Suffix;\t\\\n".format(_s), map(lambda _s: _s.rpartition('"')[0][1:],
- * s.splitlines())))
+ * "\\\n".join(map("else if (strcmp(s, \"{0}\") == 0)\t\\\n\t
+ *       return {0}##Suffix;\t\\\n".format, map(lambda _s: _s.partition(" ")[0],
+ *                 s.splitlines())))
  * */
 
 #define KeywordCmp(Suffix)                                                     \
-  if (strcmp(s, "auto") == 0)                                                  \
-    return auto##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "break") == 0)                                            \
-    return break##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "case") == 0)                                             \
-    return case##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "char") == 0)                                             \
-    return char##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "const") == 0)                                            \
-    return const##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "continue") == 0)                                         \
-    return continue##Suffix;                                                   \
-                                                                               \
-  else if (strcmp(s, "default") == 0)                                          \
-    return default##Suffix;                                                    \
-                                                                               \
-  else if (strcmp(s, "do") == 0)                                               \
-    return do##Suffix;                                                         \
-                                                                               \
-  else if (strcmp(s, "double") == 0)                                           \
-    return double##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "else") == 0)                                             \
-    return else##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "enum") == 0)                                             \
-    return enum##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "extern") == 0)                                           \
-    return extern##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "float") == 0)                                            \
-    return float##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "for") == 0)                                              \
-        return for##Suffix;                                                    \
-                                                                               \
-  else if (strcmp(s, "goto") == 0)                                             \
-    return goto##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "if") == 0)                                               \
-    return if##Suffix;                                                         \
-                                                                               \
-  else if (strcmp(s, "inline") == 0)                                           \
-    return inline##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "int") == 0)                                              \
-    return int##Suffix;                                                        \
-                                                                               \
-  else if (strcmp(s, "long") == 0)                                             \
-    return long##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "register") == 0)                                         \
-    return register##Suffix;                                                   \
-                                                                               \
-  else if (strcmp(s, "restrict") == 0)                                         \
-    return restrict##Suffix;                                                   \
-                                                                               \
-  else if (strcmp(s, "return") == 0)                                           \
-    return return ##Suffix;                                                    \
-                                                                               \
-  else if (strcmp(s, "short") == 0)                                            \
-    return short##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "signed") == 0)                                           \
-    return signed##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "sizeof") == 0)                                           \
-    return sizeof##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "static") == 0)                                           \
-    return static##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "struct") == 0)                                           \
-    return struct##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "switch") == 0)                                           \
-    return switch##Suffix;                                                     \
-                                                                               \
-  else if (strcmp(s, "typedef") == 0)                                          \
-    return typedef##Suffix;                                                    \
-                                                                               \
-  else if (strcmp(s, "union") == 0)                                            \
-    return union##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "unsigned") == 0)                                         \
-    return unsigned##Suffix;                                                   \
-                                                                               \
-  else if (strcmp(s, "void") == 0)                                             \
-    return void##Suffix;                                                       \
-                                                                               \
-  else if (strcmp(s, "volatile") == 0)                                         \
-    return volatile##Suffix;                                                   \
-                                                                               \
-  else if (strcmp(s, "while") == 0)                                            \
-    return while##Suffix;                                                      \
-                                                                               \
-  else if (strcmp(s, "_Alignas") == 0)                                         \
+  if (strcmp(s, "_Alignas") == 0)                                              \
     return _Alignas##Suffix;                                                   \
                                                                                \
   else if (strcmp(s, "_Alignof") == 0)                                         \
@@ -258,11 +197,23 @@
   else if (strcmp(s, "_Atomic") == 0)                                          \
     return _Atomic##Suffix;                                                    \
                                                                                \
+  else if (strcmp(s, "_BitInt") == 0)                                          \
+    return _BitInt##Suffix;                                                    \
+                                                                               \
   else if (strcmp(s, "_Bool") == 0)                                            \
     return _Bool##Suffix;                                                      \
                                                                                \
   else if (strcmp(s, "_Complex") == 0)                                         \
     return _Complex##Suffix;                                                   \
+                                                                               \
+  else if (strcmp(s, "_Decimal128") == 0)                                      \
+    return _Decimal128##Suffix;                                                \
+                                                                               \
+  else if (strcmp(s, "_Decimal32") == 0)                                       \
+    return _Decimal32##Suffix;                                                 \
+                                                                               \
+  else if (strcmp(s, "_Decimal64") == 0)                                       \
+    return _Decimal64##Suffix;                                                 \
                                                                                \
   else if (strcmp(s, "_Generic") == 0)                                         \
     return _Generic##Suffix;                                                   \
@@ -279,8 +230,140 @@
   else if (strcmp(s, "_Thread_local") == 0)                                    \
     return _Thread_local##Suffix;                                              \
                                                                                \
-  else if (strcmp(s, "__func__") == 0)                                         \
-  return __func__##Suffix
+  else if (strcmp(s, "alignas") == 0)                                          \
+    return alignas##Suffix;                                                    \
+                                                                               \
+  else if (strcmp(s, "alignof") == 0)                                          \
+    return alignof##Suffix;                                                    \
+                                                                               \
+  else if (strcmp(s, "auto") == 0)                                             \
+    return auto##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "bool") == 0)                                             \
+    return bool##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "break") == 0)                                            \
+    return break##Suffix;                                                      \
+                                                                               \
+  else if (strcmp(s, "case") == 0)                                             \
+          return case##Suffix;	\
+  \
+  else if (strcmp(s, "char") == 0)	\
+          return char##Suffix;	\
+  \
+  else if (strcmp(s, "const") == 0)	\
+          return const##Suffix;	\
+  \
+  else if (strcmp(s, "constexpr") == 0)	\
+          return constexpr##Suffix;	\
+  \
+  else if (strcmp(s, "continue") == 0)	\
+          return continue##Suffix;	\
+  \
+  else if (strcmp(s, "default") == 0)	\
+          return default##Suffix;	\
+  \
+  else if (strcmp(s, "do") == 0)	\
+          return do##Suffix;	\
+  \
+  else if (strcmp(s, "double") == 0)	\
+          return double##Suffix;	\
+  \
+  else if (strcmp(s, "else") == 0)	\
+          return else##Suffix;	\
+  \
+  else if (strcmp(s, "enum") == 0)	\
+          return enum##Suffix;	\
+  \
+  else if (strcmp(s, "extern") == 0)	\
+          return extern##Suffix;	\
+  \
+  else if (strcmp(s, "false") == 0)	\
+          return false##Suffix;	\
+  \
+  else if (strcmp(s, "float") == 0)	\
+          return float##Suffix;	\
+  \
+  else if (strcmp(s, "for") == 0)	\
+          return for##Suffix;	\
+  \
+  else if (strcmp(s, "goto") == 0)	\
+          return goto##Suffix;	\
+  \
+  else if (strcmp(s, "if") == 0)	\
+          return if##Suffix;	\
+  \
+  else if (strcmp(s, "inline") == 0)	\
+          return inline##Suffix;	\
+  \
+  else if (strcmp(s, "int") == 0)	\
+          return int##Suffix;	\
+  \
+  else if (strcmp(s, "long") == 0)	\
+          return long##Suffix;	\
+  \
+  else if (strcmp(s, "nullptr") == 0)	\
+          return nullptr##Suffix;	\
+  \
+  else if (strcmp(s, "register") == 0)	\
+          return register##Suffix;	\
+  \
+  else if (strcmp(s, "restrict") == 0)	\
+          return restrict##Suffix;	\
+  \
+  else if (strcmp(s, "return") == 0)	\
+          return return##Suffix;	\
+  \
+  else if (strcmp(s, "short") == 0)	\
+          return short##Suffix;	\
+  \
+  else if (strcmp(s, "signed") == 0)	\
+          return signed##Suffix;	\
+  \
+  else if (strcmp(s, "sizeof") == 0)	\
+          return sizeof##Suffix;	\
+  \
+  else if (strcmp(s, "static") == 0)	\
+          return static##Suffix;	\
+  \
+  else if (strcmp(s, "static_assert") == 0)	\
+          return static_assert##Suffix;	\
+  \
+  else if (strcmp(s, "struct") == 0)	\
+          return struct##Suffix;	\
+  \
+  else if (strcmp(s, "switch") == 0)	\
+          return switch##Suffix;	\
+  \
+  else if (strcmp(s, "thread_local") == 0)	\
+          return thread_local##Suffix;	\
+  \
+  else if (strcmp(s, "true") == 0)	\
+          return true##Suffix;	\
+  \
+  else if (strcmp(s, "typedef") == 0)	\
+          return typedef##Suffix;	\
+  \
+  else if (strcmp(s, "typeof") == 0)	\
+          return typeof##Suffix;	\
+  \
+  else if (strcmp(s, "typeof_unqual") == 0)	\
+          return typeof_unqual##Suffix;	\
+  \
+  else if (strcmp(s, "union") == 0)	\
+          return union##Suffix;	\
+  \
+  else if (strcmp(s, "unsigned") == 0)	\
+          return unsigned##Suffix;	\
+  \
+  else if (strcmp(s, "void") == 0)	\
+          return void##Suffix;	\
+  \
+  else if (strcmp(s, "volatile") == 0)	\
+          return volatile##Suffix;	\
+  \
+  else if (strcmp(s, "while") == 0)	\
+          return while##Suffix;
 
 const char *TokenizerKind_to_str(const enum TokenizerKind kind) {
   /* "\n".join(map(lambda _s: "case {0}:\n\treturn \"{0}\";\n".format(_s),
@@ -634,10 +717,6 @@ const char *TokenKeyword_to_str(const enum TokenKeyword token_keyword) {
 }
 
 enum TokenKeyword str_to_TokenKeyword(const char *const s) {
-  /*"\n".join(map(lambda _s: "else if (strcmp(s, \"{0}\") == 0)\n\treturn
-   * {0}Keyword\n".format(_s), map(lambda _s: _s.rpartition('"')[0][1:],
-   * s.splitlines())))
-   * */
   /* TODO: Use a set for O(1) membership querying instead of `strcmp` in these
    * big `else if`s */
 
