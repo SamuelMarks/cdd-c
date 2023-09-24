@@ -2,9 +2,9 @@
 #include "tokenizer_types.h"
 #include <stdio.h>
 
-size_t eatFunction(struct tokenizer_az_span_elem **arr, size_t start_index,
-                   size_t first_lbrace) {
-  struct tokenizer_az_span_elem **token;
+size_t eatFunction(struct tokenizer_az_span_elem *const *const arr,
+                   const size_t start_index, const size_t first_lbrace) {
+  struct tokenizer_az_span_elem *const *token;
   size_t i, lbrace = 1, rbrace = 0;
   puts("\n<FUNCTION>");
   for (token = arr, i = first_lbrace; *token != NULL; token++, i++) {

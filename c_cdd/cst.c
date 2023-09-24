@@ -18,7 +18,8 @@ struct TokenizerVars {
 
 struct TokenizerVars *clear_sv(struct TokenizerVars *);
 
-int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
+int tokenizer(const az_span source,
+              struct tokenizer_az_span_arr *const *const tokens_arr) {
   size_t i;
   const size_t source_n = az_span_size(source);
   const uint8_t *const span_ptr = az_span_ptr(source);

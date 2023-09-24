@@ -18,7 +18,8 @@ static const char whitespace_src[] = "\n\r\v"
 TEST x_test_whitespace_tokenized(void) {
   const az_span whitespace_span =
       az_span_create_from_str((char *)whitespace_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;

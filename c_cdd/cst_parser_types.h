@@ -470,6 +470,6 @@ extern C_CDD_EXPORT const char *CstNodeKind_to_str(enum CstNodeKind);
 
 extern C_CDD_EXPORT enum CstNodeKind str_to_CstNodeKind(const char *);
 
-extern C_CDD_EXPORT void cst_node_arr_cleanup(struct cst_node_arr *);
+extern C_CDD_EXPORT void cst_node_arr_cleanup(const struct cst_node_arr *);
 
 #endif /* !C_CDD_CST_PARSER_TYPES_H */

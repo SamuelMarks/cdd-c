@@ -75,6 +75,12 @@ target_link_libraries(
         "${PROJECT_NAME}_compiler_flags"
 )
 
+target_compile_definitions(
+        "${LIBRARY_NAME}"
+        PUBLIC
+        "-DDEBUG_SCANNER=1"
+)
+
 set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 
