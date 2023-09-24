@@ -57,7 +57,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       switch (ch) {
       case '*':
         i = eatCComment(&source, i - 1, source_n,
-                        &(**tokens_arr).elem + ++(**tokens_arr).size);
+                        &(**tokens_arr).elem + (**tokens_arr).size++),
         handled = true;
         break;
 
@@ -65,7 +65,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         if (span_ptr[i - 2] != '*') {
           /* ^ handle consecutive C-style comments `/\*bar*\/\*foo*\/` */
           i = eatCppComment(&source, i - 1, source_n,
-                            &(**tokens_arr).elem + ++(**tokens_arr).size);
+                            &(**tokens_arr).elem + (**tokens_arr).size++),
           handled = true;
         }
         break;
@@ -80,18 +80,18 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       /* Handle macros */
       case '#':
         i = eatMacro(&source, i - 1, source_n,
-                     &(**tokens_arr).elem + ++(**tokens_arr).size);
+                     &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       /* Handle literals (single and double-quoted) */
       case '\'':
         i = eatCharLiteral(&source, i - 1, source_n,
-                           &(**tokens_arr).elem + ++(**tokens_arr).size);
+                           &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       case '"':
         i = eatStrLiteral(&source, i - 1, source_n,
-                          &(**tokens_arr).elem + ++(**tokens_arr).size);
+                          &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       case ' ':
@@ -100,80 +100,80 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '\t':
       case '\v':
         i = eatWhitespace(&source, i - 1, source_n,
-                          &(**tokens_arr).elem + ++(**tokens_arr).size);
+                          &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       case '{':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    LBRACE);
         break;
 
       case '}':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    RBRACE);
         break;
 
       case '[':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    RSQUARE);
         break;
 
       case ']':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    LSQUARE);
         break;
 
       case '(':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    LPAREN);
         break;
 
       case ')':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    RPAREN);
         break;
 
       case ';':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    TERMINATOR);
         break;
 
       case ':':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    COLON);
         break;
 
       case '?':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    QUESTION);
         break;
 
       case '~':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    TILDE);
         break;
 
       case '!':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, NE_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, NE_OP);
         else
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      EXCLAMATION);
         break;
 
       case ',':
-        eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+        eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                    COMMA);
         break;
 
       case '.':
         if (isdigit(next_ch))
           i = eatNumber(&source, i - 1, source_n,
-                        &(**tokens_arr).elem + ++(**tokens_arr).size);
+                        &(**tokens_arr).elem + (**tokens_arr).size++);
         else if (next_ch == '.' && span_ptr[i + 2] == '.')
           i = eatSlice(&source, i, 3,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, ELLIPSIS);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, ELLIPSIS);
         break;
 
       case '>':
@@ -181,19 +181,19 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         case '>':
           if (span_ptr[i + 2] == '=')
             i = eatSlice(&source, i, 3,
-                         &(**tokens_arr).elem + ++(**tokens_arr).size,
+                         &(**tokens_arr).elem + (**tokens_arr).size++,
                          RIGHT_ASSIGN);
           else
             i = eatSlice(&source, i, 2,
-                         &(**tokens_arr).elem + ++(**tokens_arr).size,
+                         &(**tokens_arr).elem + (**tokens_arr).size++,
                          RIGHT_SHIFT);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, GE_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, GE_OP);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      GREATER_THAN);
           break;
         }
@@ -204,19 +204,19 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         case '<':
           if (span_ptr[i + 2] == '=')
             i = eatSlice(&source, i, 3,
-                         &(**tokens_arr).elem + ++(**tokens_arr).size,
+                         &(**tokens_arr).elem + (**tokens_arr).size++,
                          LEFT_ASSIGN);
           else
             i = eatSlice(&source, i, 2,
-                         &(**tokens_arr).elem + ++(**tokens_arr).size,
+                         &(**tokens_arr).elem + (**tokens_arr).size++,
                          LEFT_SHIFT);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, LE_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, LE_OP);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      LESS_THAN);
           break;
         }
@@ -226,15 +226,15 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         switch (next_ch) {
         case '+':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, INC_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, INC_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        ADD_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      PLUS);
           break;
         }
@@ -244,19 +244,19 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         switch (next_ch) {
         case '-':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, DEC_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, DEC_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        SUB_ASSIGN);
           break;
         case '>':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, PTR_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, PTR_OP);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      SUB);
           break;
         }
@@ -265,10 +265,10 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '*':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        MUL_ASSIGN);
         else
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      ASTERISK);
         break;
 
@@ -276,14 +276,14 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         switch (next_ch) {
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        MUL_ASSIGN);
           break;
         case '/':
         case '*':
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      DIVIDE);
         }
         break;
@@ -291,9 +291,9 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '%':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, MODULO);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, MODULO);
         else
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      MOD_ASSIGN);
         break;
 
@@ -301,15 +301,15 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         switch (next_ch) {
         case '&':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, AND_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, AND_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        AND_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      AND);
           break;
         }
@@ -318,10 +318,10 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '^':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size,
+                       &(**tokens_arr).elem + (**tokens_arr).size++,
                        XOR_ASSIGN);
         else
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      CARET);
         break;
 
@@ -329,14 +329,14 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
         switch (next_ch) {
         case '|':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, OR_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, OR_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, OR_ASSIGN);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, OR_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      PIPE);
           break;
         }
@@ -345,9 +345,9 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '=':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       &(**tokens_arr).elem + ++(**tokens_arr).size, EQ_OP);
+                       &(**tokens_arr).elem + (**tokens_arr).size++, EQ_OP);
         else
-          eatOneChar(&source, i, &(**tokens_arr).elem + ++(**tokens_arr).size,
+          eatOneChar(&source, i, &(**tokens_arr).elem + (**tokens_arr).size++,
                      EQUAL);
         break;
 
@@ -363,7 +363,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case '9':
         /* Misses numbers with a sign [+-] */
         i = eatNumber(&source, i - 1, source_n,
-                      &(**tokens_arr).elem + ++(**tokens_arr).size);
+                      &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       case '_':
@@ -420,7 +420,7 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
       case 'Y':
       case 'Z':
         i = eatWord(&source, i - 1, source_n,
-                    &(**tokens_arr).elem + ++(**tokens_arr).size);
+                    &(**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       default:
@@ -441,7 +441,13 @@ int tokenizer(const az_span source, struct tokenizer_az_span_arr **tokens_arr) {
   tokenized_ll->next = NULL;
   printf("tokenized_ll->next: %s;\n", tokenized_ll->next);*/
 
-  /* TODO: realloc to token_arr_n */
+  (**tokens_arr).elem = realloc((**tokens_arr).elem, (**tokens_arr).size + 1 * sizeof *(**tokens_arr).elem);
+  if ((**tokens_arr).elem == NULL)
+    return ENOMEM;
+
+  /* For iterating without using offset; also explains the `+1` in `realloc` */
+  (**tokens_arr).elem[(**tokens_arr).size].span._internal.ptr = NULL,
+  (**tokens_arr).elem[(**tokens_arr).size].kind = UNKNOWN_SCAN;
 
   return EXIT_SUCCESS;
 }
