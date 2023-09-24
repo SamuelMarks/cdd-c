@@ -15,7 +15,8 @@ TEST x_test_double_literal_str_tokenized(void) {
                                         "\"bar can\";\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 6 };
   size_t i;
@@ -49,7 +50,8 @@ TEST x_test_single_literal_str_tokenized(void) {
                                         "'\\'\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 8 };
   size_t i;
@@ -83,7 +85,8 @@ TEST x_test_literal_str_concat_tokenized(void) {
                                         "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 7 };
   size_t i;
@@ -125,7 +128,8 @@ TEST x_test_literal_str_tokenized(void) {
                                           "\"cut\"\n\"cut\"\n";
   const az_span literal_str_span =
       az_span_create_from_str((char *)literal_str_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 25 };
   size_t i;

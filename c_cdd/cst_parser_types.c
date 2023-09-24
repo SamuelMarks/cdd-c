@@ -129,7 +129,7 @@ enum CstNodeKind str_to_CstNodeKind(const char *const s) {
     return Expression;
 }
 
-void cst_node_arr_cleanup(struct cst_node_arr *cst_arr) {
+void cst_node_arr_cleanup(const struct cst_node_arr *const cst_arr) {
   struct CstNode *cur, *next;
   cur = cst_arr == NULL ? NULL : cst_arr->elem;
   while (cur != NULL) {

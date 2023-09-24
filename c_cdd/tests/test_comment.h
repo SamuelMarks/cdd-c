@@ -17,7 +17,8 @@ static const char comment_src[] = "// C++ comment\n"
 
 TEST x_test_comment_tokenized(void) {
   const az_span comment_span = az_span_create_from_str((char *)comment_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
   size_t i;
@@ -37,6 +38,8 @@ TEST x_test_comment_tokenized(void) {
       exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
+    ASSERT_STR_EQ(TokenizerKind_to_str(tokenized_l[i].kind),
+                  TokenizerKind_to_str(iter->kind));
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
     free(iter_s);
   }

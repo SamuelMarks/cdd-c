@@ -24,6 +24,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+Testing
 
 # Generated headers
 *_export.h

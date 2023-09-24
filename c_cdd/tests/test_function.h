@@ -16,7 +16,8 @@ static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
 
 TEST x_test_function_tokenized(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   enum { n = 26 };
   size_t i;
   static const char *const tokenized_str_l[] = {"int sum(int a, int b) ",
@@ -86,7 +87,8 @@ TEST x_test_function_parsed(void) {
 
 TEST x_test_function_parsed1(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);
-  struct tokenizer_az_span_arr *tokenized;
+  struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
+  struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   tokenizer(sum_func_span, &tokenized);
   /* const struct CstNode **parsed = parser((struct az_span_elem *)tokenized);
    */

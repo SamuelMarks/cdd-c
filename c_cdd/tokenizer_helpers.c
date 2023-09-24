@@ -2,8 +2,13 @@
 #include "c_cdd_utils.h"
 #include "tokenizer_types.h"
 
+#ifdef DEBUG_SCANNER
+#include "str_includes.h"
+#endif /* DEBUG_SCANNER */
+
 size_t eatCComment(const az_span *const source, const size_t start_index,
-                   const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                   const size_t n,
+                   struct tokenizer_az_span_elem *const token_ptr) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index; end_index < n; end_index++) {
@@ -27,7 +32,8 @@ size_t eatCComment(const az_span *const source, const size_t start_index,
 }
 
 size_t eatCppComment(const az_span *const source, const size_t start_index,
-                     const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                     const size_t n,
+                     struct tokenizer_az_span_elem *const token_ptr) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index; end_index < n; end_index++) {
@@ -51,7 +57,8 @@ size_t eatCppComment(const az_span *const source, const size_t start_index,
 }
 
 size_t eatMacro(const az_span *const source, const size_t start_index,
-                const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                const size_t n,
+                struct tokenizer_az_span_elem *const token_ptr) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index; end_index < n; end_index++) {
@@ -75,7 +82,7 @@ size_t eatMacro(const az_span *const source, const size_t start_index,
 
 size_t eatCharLiteral(const az_span *const source, const size_t start_index,
                       const size_t n,
-                      struct tokenizer_az_span_elem *token_ptr) {
+                      struct tokenizer_az_span_elem *const token_ptr) {
   /* Misses encoding prefix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
@@ -103,7 +110,8 @@ size_t eatCharLiteral(const az_span *const source, const size_t start_index,
 }
 
 size_t eatStrLiteral(const az_span *const source, const size_t start_index,
-                     const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                     const size_t n,
+                     struct tokenizer_az_span_elem *const token_ptr) {
   /* Misses encoding prefix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
@@ -129,7 +137,8 @@ size_t eatStrLiteral(const az_span *const source, const size_t start_index,
 }
 
 size_t eatWhitespace(const az_span *const source, const size_t start_index,
-                     const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                     const size_t n,
+                     struct tokenizer_az_span_elem *const token_ptr) {
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
   /*uint8_t ch;
@@ -168,8 +177,8 @@ end : {
 }
 
 void eatOneChar(const az_span *const source, const size_t start_index,
-                struct tokenizer_az_span_elem *token_ptr,
-                enum TokenizerKind kind) {
+                struct tokenizer_az_span_elem *const token_ptr,
+                const enum TokenizerKind kind) {
 #ifdef DEBUG_SCANNER
   char *s;
   asprintf(&s, "eat%s[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
@@ -179,12 +188,12 @@ void eatOneChar(const az_span *const source, const size_t start_index,
 #endif /* DEBUG_SCANNER */
   token_ptr->kind = kind,
   token_ptr->span = az_span_slice(*source, start_index, start_index + 1);
-  ;
 }
 
 size_t eatSlice(const az_span *const source, const size_t start_index,
-                const off_t offset, struct tokenizer_az_span_elem *token_ptr,
-                enum TokenizerKind kind) {
+                const off_t offset,
+                struct tokenizer_az_span_elem *const token_ptr,
+                const enum TokenizerKind kind) {
   const size_t end_index = start_index + offset;
 #ifdef DEBUG_SCANNER
   char *s;
@@ -199,7 +208,7 @@ size_t eatSlice(const az_span *const source, const size_t start_index,
 }
 
 size_t eatWord(const az_span *const source, const size_t start_index,
-               const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+               const size_t n, struct tokenizer_az_span_elem *const token_ptr) {
   size_t end_index;
   char *word;
   enum TokenizerKind kind = WORD;
@@ -314,7 +323,8 @@ end : {
 }
 
 size_t eatNumber(const az_span *const source, const size_t start_index,
-                 const size_t n, struct tokenizer_az_span_elem *token_ptr) {
+                 const size_t n,
+                 struct tokenizer_az_span_elem *const token_ptr) {
   /* doesn't handle type suffix */
   size_t end_index;
   const uint8_t *const span_ptr = az_span_ptr(*source);
@@ -357,7 +367,7 @@ end : {
 }
 
 void tokenizer_az_span_elem_arr_cleanup(
-    struct tokenizer_az_span_arr *token_arr) {
+    struct tokenizer_az_span_arr *const token_arr) {
   struct tokenizer_az_span_elem *cur, *next;
   cur = token_arr == NULL ? NULL : token_arr->elem;
   while (cur != NULL) {
