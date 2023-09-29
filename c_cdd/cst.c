@@ -52,6 +52,7 @@ int tokenizer(const az_span source,
     const uint8_t next_ch = span_ptr[i + 1], ch = span_ptr[i],
                   last_ch = span_ptr[i - 1] /* NUL when i=0 */;
     bool handled = false;
+    printf("i                                 = %ld\n", i);
 
     if (last_ch == '/' && (i < 2 || span_ptr[i - 2] != '\\')) {
       /* Handle comments */
