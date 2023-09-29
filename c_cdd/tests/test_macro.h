@@ -40,6 +40,8 @@ x_test_macro_tokenized(void) {
       exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
     ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
+    ASSERT_STR_EQ(TokenizerKind_to_str(tokenized_l[i].kind),
+                  TokenizerKind_to_str(iter->kind));
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
     free(iter_s);
   }

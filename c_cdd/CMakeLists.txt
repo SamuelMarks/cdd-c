@@ -74,12 +74,14 @@ target_link_libraries(
         PRIVATE
         "${PROJECT_NAME}_compiler_flags"
 )
-
-target_compile_definitions(
-        "${LIBRARY_NAME}"
-        PUBLIC
-        "-DDEBUG_SCANNER=1"
-)
+option(DEBUG_SCANNER "Whether to print debug messages for the scan phase" ON)
+if (DEBUG_SCANNER)
+    target_compile_definitions(
+            "${LIBRARY_NAME}"
+            PUBLIC
+            "-DDEBUG_SCANNER=1"
+    )
+endif (DEBUG_SCANNER)
 
 set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
