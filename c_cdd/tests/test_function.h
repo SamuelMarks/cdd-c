@@ -40,7 +40,8 @@ TEST x_test_function_tokenized(void) {
 
   ASSERT_EQ(tokenized->size, n);
 
-  for (iter = tokenized->elem, i = 0; iter != NULL; iter++, i++) {
+  for (iter = tokenized->elem, i = 0;
+       iter != NULL && az_span_ptr(iter->span) != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     if (iter_s == NULL)

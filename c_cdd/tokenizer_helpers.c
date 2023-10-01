@@ -117,8 +117,7 @@ size_t eatStrLiteral(const az_span *const source, const size_t start_index,
   const uint8_t *const span_ptr = az_span_ptr(*source);
   for (end_index = start_index + 1; end_index < n; end_index++) {
     const uint8_t ch = span_ptr[end_index], last_ch = span_ptr[end_index - 1];
-    if (ch == '"' && (last_ch != '\\' || (span_ptr[end_index - 3] == '"' &&
-                                          span_ptr[end_index - 4] != '\\')))
+    if (ch == '"' && last_ch != '\\')
       break;
   }
 
@@ -173,7 +172,7 @@ end : {
   token_ptr->kind = WHITESPACE,
   token_ptr->span = az_span_slice(*source, start_index, ++end_index);
 }
-  return end_index - 1;
+  return end_index - 2;
 }
 
 void eatOneChar(const az_span *const source, const size_t start_index,
@@ -368,11 +367,9 @@ end : {
 
 void tokenizer_az_span_elem_arr_cleanup(
     struct tokenizer_az_span_arr *const token_arr) {
-  struct tokenizer_az_span_elem *cur, *next;
-  cur = token_arr == NULL ? NULL : token_arr->elem;
-  while (cur != NULL) {
-    next = cur + 1;
-    free(cur);
-    cur = next;
-  }
+  if (token_arr == NULL || token_arr->elem == NULL ||
+      az_span_ptr(token_arr->elem->span) == NULL)
+    return;
+  free(token_arr->elem);
+  token_arr->elem = 0, token_arr->size = 0;
 }

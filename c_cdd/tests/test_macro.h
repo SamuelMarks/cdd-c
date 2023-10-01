@@ -15,13 +15,13 @@ static const char macro_src[] = "# define foo bar\n"
                                 "# define CAT(bar,foo)(bar ## foo)\n"
                                 "#define HAZ\\\nFOO\n";
 
-x_test_macro_tokenized(void) {
+TEST x_test_macro_tokenized(void) {
   const az_span macro_span = az_span_create_from_str((char *)macro_src);
   struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
   struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   struct tokenizer_az_span_elem *iter;
   enum { n = 4 };
-  size_t i = 0;
+  size_t i;
   struct StrTokenizerKind tokenized_l[n] = {
       {"# define foo bar\n", MACRO},
       {"#ifdef FOO\n", MACRO},
@@ -29,11 +29,10 @@ x_test_macro_tokenized(void) {
       {"#define HAZ\\\nFOO\n", MACRO}};
   tokenizer(macro_span, &tokenized);
 
-  ASSERT_GT(i, 0);
-
   ASSERT_EQ(tokenized->size, n);
 
-  for (iter = tokenized->elem, i = 0; iter != NULL; iter++, i++) {
+  for (iter = tokenized->elem, i = 0;
+       iter != NULL && az_span_ptr(iter->span) != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
     if (iter_s == NULL)

@@ -52,7 +52,7 @@ int tokenizer(const az_span source,
     const uint8_t next_ch = span_ptr[i + 1], ch = span_ptr[i],
                   last_ch = span_ptr[i - 1] /* NUL when i=0 */;
     bool handled = false;
-    printf("i                                 = %ld\n", i);
+    /* printf("i                                 = %ld\n", i); */
 
     if (last_ch == '/' && (i < 2 || span_ptr[i - 2] != '\\')) {
       /* Handle comments */
@@ -81,18 +81,18 @@ int tokenizer(const az_span source,
       switch (ch) {
       /* Handle macros */
       case '#':
-        i = eatMacro(&source, i - 1, source_n,
+        i = eatMacro(&source, i, source_n,
                      (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       /* Handle literals (single and double-quoted) */
       case '\'':
-        i = eatCharLiteral(&source, i - 1, source_n,
+        i = eatCharLiteral(&source, i, source_n,
                            (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
       case '"':
-        i = eatStrLiteral(&source, i - 1, source_n,
+        i = eatStrLiteral(&source, i, source_n,
                           (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
@@ -101,7 +101,7 @@ int tokenizer(const az_span source,
       case '\r':
       case '\t':
       case '\v':
-        i = eatWhitespace(&source, i - 1, source_n,
+        i = eatWhitespace(&source, i, source_n,
                           (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
@@ -171,7 +171,7 @@ int tokenizer(const az_span source,
 
       case '.':
         if (isdigit(next_ch))
-          i = eatNumber(&source, i - 1, source_n,
+          i = eatNumber(&source, i, source_n,
                         (**tokens_arr).elem + (**tokens_arr).size++);
         else if (next_ch == '.' && span_ptr[i + 2] == '.')
           i = eatSlice(&source, i, 3,
@@ -358,7 +358,7 @@ int tokenizer(const az_span source,
       case '8':
       case '9':
         /* Misses numbers with a sign [+-] */
-        i = eatNumber(&source, i - 1, source_n,
+        i = eatNumber(&source, i, source_n,
                       (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
@@ -415,7 +415,7 @@ int tokenizer(const az_span source,
       case 'X':
       case 'Y':
       case 'Z':
-        i = eatWord(&source, i - 1, source_n,
+        i = eatWord(&source, i, source_n,
                     (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
@@ -439,7 +439,7 @@ int tokenizer(const az_span source,
 
   (**tokens_arr).elem =
       realloc((**tokens_arr).elem,
-              (**tokens_arr).size + 1 * sizeof *(**tokens_arr).elem);
+              ((**tokens_arr).size + 1) * sizeof *(**tokens_arr).elem);
   if ((**tokens_arr).elem == NULL)
     return ENOMEM;
 
