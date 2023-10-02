@@ -21,13 +21,8 @@ TEST x_test_double_literal_str_tokenized(void) {
   enum { n = 6 };
   size_t i;
   struct StrTokenizerKind tokenized_l[n] = {
-      {"\"foo\"", DOUBLE_QUOTED},
-      {";", TERMINATOR},
-      {"\n", WHITESPACE},
-      {"\"bar can\"", DOUBLE_QUOTED},
-      {";", TERMINATOR},
-      {"\n", WHITESPACE}
-  };
+      {"\"foo\"", DOUBLE_QUOTED},     {";", TERMINATOR}, {"\n", WHITESPACE},
+      {"\"bar can\"", DOUBLE_QUOTED}, {";", TERMINATOR}, {"\n", WHITESPACE}};
   tokenizer(literal_str_span, &tokenized);
 
   ASSERT_EQ(tokenized->size, n);
@@ -36,10 +31,14 @@ TEST x_test_double_literal_str_tokenized(void) {
        iter != NULL && az_span_ptr(iter->span) != NULL; iter++, i++) {
     const size_t n = az_span_size(iter->span) + 1;
     char *iter_s = malloc(n);
+    const char *cmp_s = tokenized_l[i].s;
     if (iter_s == NULL)
       exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
-    ASSERT_STR_EQ(tokenized_l[i].s, iter_s);
+    printf("tokenized_l[%ld].s   = \"%s\"\n"
+           "iter_s             = \"%s\"\n\n",
+           i, tokenized_l[i].s, iter_s);
+    ASSERT_STR_EQ(cmp_s, iter_s);
     ASSERT_STR_EQ(TokenizerKind_to_str(tokenized_l[i].kind),
                   TokenizerKind_to_str(iter->kind));
     ASSERT_EQ(tokenized_l[i].kind, iter->kind);
@@ -190,9 +189,9 @@ TEST x_test_literal_str_tokenized(void) {
 SUITE(literal_str_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
   RUN_TEST(x_test_double_literal_str_tokenized);
-  /*RUN_TEST(x_test_single_literal_str_tokenized);
+  RUN_TEST(x_test_single_literal_str_tokenized);
   RUN_TEST(x_test_literal_str_tokenized);
-  RUN_TEST(x_test_literal_str_concat_tokenized);*/
+  RUN_TEST(x_test_literal_str_concat_tokenized);
 }
 
 #endif /* !C_CDD_TESTS_TEST_LITERAL_STR_H */

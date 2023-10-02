@@ -1,5 +1,9 @@
-#include "tokenizer_types.h"
+#include <assert.h>
 #include <string.h>
+
+#include "c_cdd_utils.h"
+#include "str_includes.h"
+#include "tokenizer_types.h"
 
 /* "\n".join(map('case {0}##Suffix:\\\n\treturn \"{0}\";\\\n\\'.format,
  *               map(lambda _s: _s.partition(" ")[0], s.splitlines()))) */
@@ -723,6 +727,20 @@ enum TokenKeyword str_to_TokenKeyword(const char *const s) {
   KeywordCmp(Token);
 
   return unknownKeyword;
+}
+
+void tokenizer_az_span_arr_print(
+    const struct tokenizer_az_span_arr *const tokens_arr) {
+  size_t i;
+  for (i = 0; i < tokens_arr->size; i++) {
+    char *name = NULL;
+    assert(az_span_ptr(tokens_arr->elem[i].span) != NULL);
+    assert(tokens_arr->elem[i].kind != UNKNOWN_SCAN);
+    asprintf(&name, "array::tokens_arr[%" NUM_LONG_FMT "d]:%s", i,
+             TokenizerKind_to_str(tokens_arr->elem[i].kind));
+    print_escaped_span(name, tokens_arr->elem[i].span);
+    free(name);
+  }
 }
 
 #undef KeywordCase

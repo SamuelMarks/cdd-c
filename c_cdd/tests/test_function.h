@@ -25,16 +25,32 @@ TEST x_test_function_tokenized(void) {
 
   struct tokenizer_az_span_elem *iter;
 
-  struct StrTokenizerKind tokenized_l[n] = {
-      {"int", WORD},     {" ", WHITESPACE}, {"sum", WORD},
-      {"(", LPAREN},     {"int", WORD},     {" ", WHITESPACE},
-      {"a", WORD},       {",", COMMA},      {" ", WHITESPACE},
-      {"int", WORD},     {" ", WHITESPACE}, {"b", WORD},
-      {")", RPAREN},     {" ", WHITESPACE}, {"{", LBRACE},
-      {" ", WHITESPACE}, {"return", WORD},  {" ", WHITESPACE},
-      {"a", WORD},       {" ", WHITESPACE}, {"+", PLUS},
-      {" ", WHITESPACE}, {"b", WORD},       {";", TERMINATOR},
-      {" ", WHITESPACE}, {"}", RBRACE}};
+  struct StrTokenizerKind tokenized_l[n] = {{"int", intKeyword},
+                                            {" ", WHITESPACE},
+                                            {"sum", WORD},
+                                            {"(", LPAREN},
+                                            {"int", intKeyword},
+                                            {" ", WHITESPACE},
+                                            {"a", WORD},
+                                            {",", COMMA},
+                                            {" ", WHITESPACE},
+                                            {"int", intKeyword},
+                                            {" ", WHITESPACE},
+                                            {"b", WORD},
+                                            {")", RPAREN},
+                                            {" ", WHITESPACE},
+                                            {"{", LBRACE},
+                                            {" ", WHITESPACE},
+                                            {"return", returnKeyword},
+                                            {" ", WHITESPACE},
+                                            {"a", WORD},
+                                            {" ", WHITESPACE},
+                                            {"+", PLUS},
+                                            {" ", WHITESPACE},
+                                            {"b", WORD},
+                                            {";", TERMINATOR},
+                                            {" ", WHITESPACE},
+                                            {"}", RBRACE}};
 
   tokenizer(sum_func_span, &tokenized);
 
@@ -141,9 +157,9 @@ TEST x_test_function_parsed1(void) {
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  /*RUN_TEST(x_test_function_tokenized);*/
-  RUN_TEST(x_test_function_parsed);
-  /*RUN_TEST(x_test_function_parsed1);*/
+  RUN_TEST(x_test_function_tokenized);
+  /*RUN_TEST(x_test_function_parsed);
+  RUN_TEST(x_test_function_parsed1);*/
 }
 
 #endif /* !C_CDD_TESTS_TEST_FUNCTION_H */
