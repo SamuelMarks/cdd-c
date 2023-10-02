@@ -5,7 +5,7 @@
 #include "tokenizer_types.h"
 #include <stddef.h>
 
-extern C_CDD_EXPORT size_t eatFunction(struct tokenizer_az_span_elem *const *,
+extern C_CDD_EXPORT size_t eatFunction(const struct tokenizer_az_span_arr *,
                                        size_t, size_t);
 
 #endif /* !C_CDD_CST_PARSER_HELPERS_H */

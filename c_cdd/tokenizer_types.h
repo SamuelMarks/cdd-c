@@ -185,6 +185,9 @@ extern C_CDD_EXPORT enum TokenKeyword str_to_TokenKeyword(const char *);
 extern C_CDD_EXPORT void
 tokenizer_az_span_elem_arr_cleanup(struct tokenizer_az_span_arr *);
 
+extern C_CDD_EXPORT void
+tokenizer_az_span_arr_print(const struct tokenizer_az_span_arr *);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -85,12 +85,13 @@ int tokenizer(const az_span source,
                      (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
-      /* Handle literals (single and double-quoted) */
+      /* Handle single-quoted char literal */
       case '\'':
         i = eatCharLiteral(&source, i, source_n,
                            (**tokens_arr).elem + (**tokens_arr).size++);
         break;
 
+      /* Handle double-quoted string literal */
       case '"':
         i = eatStrLiteral(&source, i, source_n,
                           (**tokens_arr).elem + (**tokens_arr).size++);
@@ -117,12 +118,12 @@ int tokenizer(const az_span source,
 
       case '[':
         eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
-                   RSQUARE);
+                   LSQUARE);
         break;
 
       case ']':
         eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
-                   LSQUARE);
+                   RSQUARE);
         break;
 
       case '(':
@@ -140,6 +141,7 @@ int tokenizer(const az_span source,
                    TERMINATOR);
         break;
 
+      /* parser not tokenizer will determine if ternary operator or label */
       case ':':
         eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
                    COLON);
@@ -488,7 +490,7 @@ void clear_CstParseVars(struct CstParseVars *pv) {
   pv->lsquare = 0, pv->rsquare = 0;
 }
 
-int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
+int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
                struct cst_node_arr **cst_arr) {
   /* recognise start/end of function, struct, enum, union */
 
@@ -513,60 +515,15 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
       {LBRACE, MUL_ASSIGN},
   };*/
 
-  struct tokenizer_az_span_elem **tokens_arr = NULL;
+  /* putchar('\n'); */
 
-  assert(tokens_arr != NULL);
-
-  /*{
-    struct tokenizer_az_span_elem *token_el;
-    for (token_el = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
-         az_span_ptr(token_el->span) != NULL; token_el++, i++) {
-      char *name;
-      asprintf(&name, "list_::tokens_ll[%" NUM_LONG_FMT "d]:%s", i,
-               TokenizerKind_to_str(token_el->kind));
-      print_escaped_span(name, token_el->span);
-      free(name);
-    }
-  }
-
-  putchar('\n');*/
-
-  {
-    struct tokenizer_az_span_elem **el;
-    for (el = tokens_arr, i = 0; *el != NULL; el++, i++) {
-      char *name = NULL;
-      assert(*el != NULL);
-      /*if (i == 26)
-        exit((int)i);*/
-      assert((**el).kind != UNKNOWN_SCAN);
-      asprintf(&name, "array::tokens_arr[%" NUM_LONG_FMT "d]:%s", i,
-               TokenizerKind_to_str((**el).kind));
-      print_escaped_span(name, (**el).span);
-      free(name);
-    }
-  }
+  tokenizer_az_span_arr_print(tokens_arr);
 
   putchar('\n');
 
-  for (i = 0; tokens_arr[i] != NULL; i++) {
-  }
-  printf("b4::tokens_arr::n     = %" NUM_LONG_FMT "u\n", i);
-  {
-    struct tokenizer_az_span_elem *token_el;
-    for (token_el = *tokens_arr, i = 0;
-         token_el != NULL && az_span_ptr(token_el->span) != NULL;
-         token_el++, i++) {
-      char *name;
-      asprintf(&name, "tokens_arr[%ld]:%s", i,
-               TokenizerKind_to_str(token_el->kind));
-      print_escaped_span(name, token_el->span);
-      free(name);
-    }
-    printf("l8::tokens_arr::n     = %" NUM_LONG_FMT "u\n", i);
-  }
-
-  for (i = 0, parse_start = 0; tokens_arr[i] != NULL; i++) {
-    struct tokenizer_az_span_elem *tok_span_el = tokens_arr[i];
+  for (i = 0, parse_start = 0; i < tokens_arr->size; i++) {
+    const struct tokenizer_az_span_elem *const tok_span_el =
+        &tokens_arr->elem[i];
     switch (tok_span_el->kind) {
     /*`
     for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
@@ -590,17 +547,34 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
       break;
 
     case ASTERISK:
+    case _AlignasKeyword:
+    case _AlignofKeyword:
+    case _AtomicKeyword:
+    case _BitIntKeyword:
+    case _BoolKeyword:
+    case _ComplexKeyword:
+    case _Decimal128Keyword:
+    case _Decimal32Keyword:
+    case _Decimal64Keyword:
+    case _NoreturnKeyword:
+    case alignasKeyword:
+    case alignofKeyword:
     case autoKeyword:
+    case boolKeyword:
     case charKeyword:
     case constKeyword:
     case doubleKeyword:
     case externKeyword:
     case floatKeyword:
-    case intKeyword:
     case inlineKeyword:
+    case intKeyword:
     case longKeyword:
+    case shortKeyword:
+    case signedKeyword:
+    case staticKeyword:
     case unsignedKeyword:
-    case _NoreturnKeyword:
+    case voidKeyword:
+    case volatileKeyword:
       vars.is_enum = false, vars.is_union = false;
       break;
 
@@ -615,8 +589,8 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
 
       puts("<EXPRESSION>");
       for (j = parse_start; j < i; j++) {
-        print_escaped_span(TokenizerKind_to_str(tokens_arr[j]->kind),
-                           tokens_arr[j]->span);
+        print_escaped_span(TokenizerKind_to_str(tokens_arr->elem[j].kind),
+                           tokens_arr->elem[j].span);
       }
       puts("</EXPRESSION>");
       parse_start = i;
@@ -668,8 +642,8 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
           parse_kind = "UNKNOWN";
         printf("<%s>\n", parse_kind);
         for (j = parse_start; j < i; j++) {
-          print_escaped_span(TokenizerKind_to_str(tokens_arr[j]->kind),
-                             tokens_arr[j]->span);
+          print_escaped_span(TokenizerKind_to_str(tokens_arr->elem[j].kind),
+                             tokens_arr->elem[j].span);
         }
         printf("</%s>\n", parse_kind);
 
@@ -694,10 +668,79 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_ll,
       vars.rsquare++;
       break;
 
+    case ADD_ASSIGN:
+    case AND:
+    case AND_ASSIGN:
+    case AND_OP:
+    case CARET:
+    case COLON:
+    case COMMA:
+    case DEC_OP:
+    case DIVIDE:
+    case DIV_ASSIGN:
+    case DOUBLE_QUOTED:
+    case ELLIPSIS:
+    case EQUAL:
+    case EQ_OP:
+    case EXCLAMATION:
+    case GE_OP:
+    case GREATER_THAN:
+    case INC_OP:
+    case LEFT_ASSIGN:
+    case LEFT_SHIFT:
+    case LESS_THAN:
+    case LE_OP:
+    case MACRO:
+    case MODULO:
+    case MOD_ASSIGN:
+    case MUL_ASSIGN:
+    case NE_OP:
+    case OR_ASSIGN:
+    case OR_OP:
+    case PIPE:
+    case PLUS:
+    case PTR_OP:
+    case QUESTION:
+    case RIGHT_ASSIGN:
+    case RIGHT_SHIFT:
+    case SINGLE_QUOTED:
+    case SUB:
+    case SUB_ASSIGN:
+    case TILDE:
+    case UNKNOWN_SCAN:
+    case XOR_ASSIGN:
+    case _GenericKeyword:
+    case _ImaginaryKeyword:
+    case _Static_assertKeyword:
+    case _Thread_localKeyword:
+    case breakKeyword:
+    case caseKeyword:
+    case constexprKeyword:
+    case continueKeyword:
+    case defaultKeyword:
+    case doKeyword:
+    case elseKeyword:
+    case falseKeyword:
+    case forKeyword:
+    case gotoKeyword:
+    case ifKeyword:
+    case nullptrKeyword:
+    case registerKeyword:
+    case restrictKeyword:
+    case returnKeyword:
+    case sizeofKeyword:
+    case static_assertKeyword:
+    case switchKeyword:
+    case thread_localKeyword:
+    case trueKeyword:
+    case typedefKeyword:
+    case typeofKeyword:
+    case typeof_unqualKeyword:
+    case whileKeyword:
     default:
       puts("<DEFAULT>");
-      print_escaped_span(TokenizerKind_to_str(tokens_arr[i]->kind),
-                         tokens_arr[i]->span);
+      print_escaped_span(TokenizerKind_to_str(tok_span_el->kind),
+                         tok_span_el->span);
       puts("</DEFAULT>");
       break;
     }

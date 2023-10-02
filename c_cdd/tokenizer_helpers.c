@@ -1,6 +1,7 @@
 #include "tokenizer_helpers.h"
 #include "c_cdd_utils.h"
 #include "tokenizer_types.h"
+#include <assert.h>
 
 #ifdef DEBUG_SCANNER
 #include "str_includes.h"
@@ -163,16 +164,20 @@ size_t eatWhitespace(const az_span *const source, const size_t start_index,
 
 end : {
 #ifdef DEBUG_SCANNER
-  char *s;
-  asprintf(&s, "eatWhitespace[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
-           start_index, end_index);
-  print_escaped_span(s, az_span_slice(*source, start_index, end_index));
-  free(s);
+  {
+    char *s;
+    asprintf(&s, "eatWhitespace[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",
+             start_index, end_index);
+    print_escaped_span(s, az_span_slice(*source, start_index, end_index));
+    assert(s != NULL);
+    assert(strlen(s) > 0);
+    free(s);
+  }
 #endif /* DEBUG_SCANNER */
   token_ptr->kind = WHITESPACE,
-  token_ptr->span = az_span_slice(*source, start_index, ++end_index);
+  token_ptr->span = az_span_slice(*source, start_index, end_index);
 }
-  return end_index - 2;
+  return end_index - 1;
 }
 
 void eatOneChar(const az_span *const source, const size_t start_index,
