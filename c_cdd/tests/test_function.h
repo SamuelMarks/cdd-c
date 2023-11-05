@@ -82,13 +82,13 @@ TEST x_test_function_parsed(void) {
   struct tokenizer_az_span_arr tokenized_stack = {NULL, 0};
   struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   tokenizer(sum_func_span, &tokenized);
-  fputs("Post `tokenizer`", stderr);
   {
-    struct cst_node_arr *cst_arr;
+    struct cst_node_arr *cst_arr = calloc(1, sizeof *cst_arr);
     size_t i;
     cst_parser(tokenized, &cst_arr);
     {
       struct CstNode *cst_node;
+      ASSERT_GT(cst_arr->size, 0);
       for (cst_node = cst_arr->elem, i = 0; cst_node != NULL; i++) {
         printf("parse_cst_list[%" NUM_LONG_FMT "u]:%s\n", i,
                CstNodeKind_to_str(cst_node->kind));
@@ -157,9 +157,9 @@ TEST x_test_function_parsed1(void) {
 
 SUITE(function_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  RUN_TEST(x_test_function_tokenized);
-  /*RUN_TEST(x_test_function_parsed);
-  RUN_TEST(x_test_function_parsed1);*/
+  /*RUN_TEST(x_test_function_tokenized);*/
+  RUN_TEST(x_test_function_parsed);
+  /*RUN_TEST(x_test_function_parsed1);*/
 }
 
 #endif /* !C_CDD_TESTS_TEST_FUNCTION_H */

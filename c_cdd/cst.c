@@ -480,55 +480,63 @@ az_span make_slice_clear_vars(const az_span source, size_t i,
 }
 
 struct CstParseVars {
-  bool is_union, is_struct, is_enum, is_function;
+  bool is_union, is_struct, is_enum, is_function,
+      is_storage_class_specifier, is_type_specifier,
+      is_alignment_specifier;
   size_t lparens, rparens, lbraces, rbraces, lsquare, rsquare;
 };
 
 void clear_CstParseVars(struct CstParseVars *pv) {
-  pv->is_enum = false, pv->is_union = false, pv->is_struct = false;
+  pv->is_enum = false, pv->is_union = false, pv->is_struct = false,
+  pv->is_storage_class_specifier = false, pv->is_type_specifier = false,
+  pv->is_alignment_specifier = false,
   pv->lparens = 0, pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0,
   pv->lsquare = 0, pv->rsquare = 0;
 }
 
 int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
-               struct cst_node_arr **cst_arr) {
+               struct cst_node_arr *const *const cst_arr) {
   /* recognise start/end of function, struct, enum, union */
 
-  /*struct parse_cst_elem *parse_ll = NULL;*/
-  /*struct parse_cst_elem **tokenized_cur_ptr = &tokenized_ll;*/
-
-  /*struct CstNode *ll = malloc((sizeof (ll)));
-  struct tokenizer_az_span_elem *iter;*/
-
   size_t i, parse_start;
-
   struct CstParseVars vars = {false, false, false, false};
+  (*cst_arr)->elem = malloc((sizeof *(*cst_arr)->elem) * tokens_arr->size);
 
-  /*enum TokenizerKind expression[] = {TERMINATOR};
+  /*
+  enum TokenizerKind expression[] = { TERMINATOR };
   enum TokenizerKind function_start[] = {
       WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, LPAREN,
       WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, RPAREN,
-      WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, LBRACE};*/
+      WORD / * | Keyword* /, WHITESPACE | C_COMMENT | CPP_COMMENT, LBRACE
+  };
+  */
 
-  /*enum TokenizerKind *tokenizer_kinds[] = {
+  /*
+  enum TokenizerKind *tokenizer_kinds[] = {
       {LBRACE, MUL_ASSIGN},
       {LBRACE, MUL_ASSIGN},
-  };*/
-
-  /* putchar('\n'); */
+  };
+  */
 
   tokenizer_az_span_arr_print(tokens_arr);
 
-  putchar('\n');
+  for (i = 0; i < 5; i++)
+    putchar('\n');
 
   for (i = 0, parse_start = 0; i < tokens_arr->size; i++) {
-    const struct tokenizer_az_span_elem *const tok_span_el =
-        &tokens_arr->elem[i];
+    const struct tokenizer_az_span_elem *const tok_span_el = &tokens_arr->elem[i];
+    {
+      char *s;
+      asprintf(&s, "[%02" NUM_LONG_FMT "u]: %s", i, TokenizerKind_to_str(tok_span_el->kind));
+      print_escaped_span(s, tok_span_el->span);
+      free(s);
+    }
     switch (tok_span_el->kind) {
-    /*`
+    /*
     for (iter = (struct tokenizer_az_span_elem *)tokens_ll->list, i = 0;
          iter != NULL; iter = iter->next, i++) {
-      switch (iter->kind) */
+      switch (iter->kind)
+    */
     case C_COMMENT:
     case CPP_COMMENT:
     case WHITESPACE:
@@ -546,10 +554,12 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
       /* can still be `enum` or `union` at this point */
       break;
 
+    case _AtomicKeyword:
+      vars.is_type_specifier = true;
+
     case ASTERISK:
     case _AlignasKeyword:
     case _AlignofKeyword:
-    case _AtomicKeyword:
     case _BitIntKeyword:
     case _BoolKeyword:
     case _ComplexKeyword:
@@ -579,6 +589,7 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
       break;
 
     case structKeyword:
+      puts("Found struct");
       vars.is_enum = false, vars.is_union = false, vars.is_struct = true;
       break;
 
@@ -616,9 +627,13 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
       }
 
       /*
-      tokenizer_az_span_elem_arr_push(&ll->size, &tokenized_cur_ptr, iter->kind,
-      iter->span); print_tokenizer_az_span_elem_arr(token_ll, i); token_ll->list
-      = tokenized_ll; tokenizer_az_span_elem_arr_cleanup(token_ll);
+       tokenizer_az_span_elem_arr_push(
+         &ll->size, &tokenized_cur_ptr,
+         iter->kind, iter->span
+       );
+       print_tokenizer_az_span_elem_arr(token_ll, i);
+       token_ll->list = tokenized_ll;
+       tokenizer_az_span_elem_arr_cleanup(token_ll);
       */
       break;
 
@@ -747,6 +762,11 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   }
   puts("*******************");
   /*token_ll->list = tokenized_ll;*/
+  (**cst_arr).elem =
+      realloc((**cst_arr).elem,
+              ((**cst_arr).size + 1) * sizeof *(**cst_arr).elem);
+  if ((**cst_arr).elem == NULL)
+    return ENOMEM;
 
   /*tokenizer_az_span_elem_arr_cleanup(token_ll);*/
 

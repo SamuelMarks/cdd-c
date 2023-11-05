@@ -14,7 +14,7 @@ TEST x_test_declaration_tokenizer(void) {
   struct tokenizer_az_span_arr *tokenized = &tokenized_stack;
   tokenizer(decl_span, &tokenized);
   {
-    struct cst_node_arr *tokens;
+    struct cst_node_arr *tokens = calloc(1, sizeof *tokens);
     cst_parser(tokenized, &tokens);
   }
   PASS();
