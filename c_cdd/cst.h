@@ -21,8 +21,8 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
-#include <tokenizer_types.h>
 #include <cst_parser_types.h>
+#include <tokenizer_types.h>
 
 extern C_CDD_EXPORT int tokenizer(az_span,
                                   struct tokenizer_az_span_arr *const *);

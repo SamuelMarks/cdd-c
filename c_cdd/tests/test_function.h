@@ -12,7 +12,24 @@
 #include <cdd_helpers.h>
 #include <str_includes.h>
 
-static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }";
+static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }"
+                                   "int sum(int a, int b) { return a + b; }";
+
+/*
+int const f(void) ??< return 42; %>
+
+int const f(void) { return 42; }
+
+
+int f(void) { return 123; } int (*g(void))(void) { return  f; }
+
+// call with
+printf("%d", g()());
+
+
+int (*f(void))[3] { static int arr[3] = {123, 456, 789}; return &arr; }
+printf("%d", 1[*f()]);
+ */
 
 TEST x_test_function_tokenized(void) {
   const az_span sum_func_span = az_span_create_from_str((char *)sum_func_src);

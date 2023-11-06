@@ -327,7 +327,7 @@ struct Function {
   enum Keywords *specifiers;
   const az_span type; /* set to NULL if `specifiers` has the right type [i.e.,
                        builtin type] */
-  const az_span name;
+  az_span name;
   struct Declaration *args;
 #ifdef CST_WITH_BODY
   struct CstNode *body;
