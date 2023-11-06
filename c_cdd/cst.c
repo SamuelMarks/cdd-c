@@ -480,8 +480,8 @@ az_span make_slice_clear_vars(const az_span source, size_t i,
 }
 
 struct CstParseVars {
-  bool is_union, is_struct, is_enum, is_function,
-      is_storage_class_specifier, is_type_specifier,
+  bool is_union, is_struct, is_enum, is_function, is_storage_class_specifier,
+      is_type_specifier, is_type_qualifier, is_function_specifier,
       is_alignment_specifier;
   size_t lparens, rparens, lbraces, rbraces, lsquare, rsquare;
 };
@@ -489,9 +489,9 @@ struct CstParseVars {
 void clear_CstParseVars(struct CstParseVars *pv) {
   pv->is_enum = false, pv->is_union = false, pv->is_struct = false,
   pv->is_storage_class_specifier = false, pv->is_type_specifier = false,
-  pv->is_alignment_specifier = false,
-  pv->lparens = 0, pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0,
-  pv->lsquare = 0, pv->rsquare = 0;
+  pv->is_type_qualifier = false, pv->is_function_specifier = false,
+  pv->is_alignment_specifier = false, pv->lparens = 0, pv->rparens = 0,
+  pv->lbraces = 0, pv->rbraces = 0, pv->lsquare = 0, pv->rsquare = 0;
 }
 
 int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
@@ -499,7 +499,9 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   /* recognise start/end of function, struct, enum, union */
 
   size_t i, parse_start;
-  struct CstParseVars vars = {false, false, false, false};
+  struct CstParseVars vars = {false, false, false, false, false,
+                              false, false, false, false, 0,
+                              0,     0,     0,     0,     0};
   (*cst_arr)->elem = malloc((sizeof *(*cst_arr)->elem) * tokens_arr->size);
 
   /*
@@ -518,16 +520,18 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   };
   */
 
-  tokenizer_az_span_arr_print(tokens_arr);
+  /*tokenizer_az_span_arr_print(tokens_arr);*/
 
   for (i = 0; i < 5; i++)
     putchar('\n');
 
   for (i = 0, parse_start = 0; i < tokens_arr->size; i++) {
-    const struct tokenizer_az_span_elem *const tok_span_el = &tokens_arr->elem[i];
+    const struct tokenizer_az_span_elem *const tok_span_el =
+        &tokens_arr->elem[i];
     {
       char *s;
-      asprintf(&s, "[%02" NUM_LONG_FMT "u]: %s", i, TokenizerKind_to_str(tok_span_el->kind));
+      asprintf(&s, "[%02" NUM_LONG_FMT "u]: %s", i,
+               TokenizerKind_to_str(tok_span_el->kind));
       print_escaped_span(s, tok_span_el->span);
       free(s);
     }
@@ -554,37 +558,60 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
       /* can still be `enum` or `union` at this point */
       break;
 
-    case _AtomicKeyword:
+    /* 6.7.1 of C standard ISO/IEC 9899:2023 (E) */
+    case autoKeyword:
+    case constexprKeyword:
+    case externKeyword:
+    case registerKeyword:
+    case staticKeyword:
+    case thread_localKeyword:
+    case typedefKeyword:
+      vars.is_storage_class_specifier = true;
+      break;
+
+    /* 6.7.2 of C standard ISO/IEC 9899:2023 (E) */
+    case voidKeyword:
+    case charKeyword:
+    case shortKeyword:
+    case intKeyword:
+    case longKeyword:
+    case floatKeyword:
+    case doubleKeyword:
+    case signedKeyword:
+    case unsignedKeyword:
+    case _BitIntKeyword:
+    case boolKeyword:
+    case _BoolKeyword: /* technically this isn't in 6.7.2 */
+    case _ComplexKeyword:
+    case _Decimal32Keyword:
+    case _Decimal64Keyword:
+    case _Decimal128Keyword:
       vars.is_type_specifier = true;
+      break;
+
+    /* 6.7.3 of C standard ISO/IEC 9899:2023 (E) */
+    case constKeyword:
+    case restrictKeyword:
+    case volatileKeyword:
+    case _AtomicKeyword:
+      vars.is_type_qualifier = true;
+      break;
+
+    /* 6.7.4 of C standard ISO/IEC 9899:2023 (E) */
+    case inlineKeyword:
+    case _NoreturnKeyword:
+      vars.is_function_specifier = true;
+      break;
+
+    /* 6.7.5 of C standard ISO/IEC 9899:2023 (E) */
+    case alignasKeyword:
+      vars.is_alignment_specifier = true;
+      break;
 
     case ASTERISK:
     case _AlignasKeyword:
     case _AlignofKeyword:
-    case _BitIntKeyword:
-    case _BoolKeyword:
-    case _ComplexKeyword:
-    case _Decimal128Keyword:
-    case _Decimal32Keyword:
-    case _Decimal64Keyword:
-    case _NoreturnKeyword:
-    case alignasKeyword:
     case alignofKeyword:
-    case autoKeyword:
-    case boolKeyword:
-    case charKeyword:
-    case constKeyword:
-    case doubleKeyword:
-    case externKeyword:
-    case floatKeyword:
-    case inlineKeyword:
-    case intKeyword:
-    case longKeyword:
-    case shortKeyword:
-    case signedKeyword:
-    case staticKeyword:
-    case unsignedKeyword:
-    case voidKeyword:
-    case volatileKeyword:
       vars.is_enum = false, vars.is_union = false;
       break;
 
@@ -611,10 +638,9 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
     case LBRACE:
       vars.lbraces++;
 
-      if (vars.lparens == vars.rparens && vars.lsquare == vars.rsquare) {
-        if (!vars.is_enum && !vars.is_union && !vars.is_struct &&
-            vars.lparens > 0 && vars.lparens == vars.rparens)
-          i = eatFunction(tokens_arr, parse_start, i) - 1;
+      if (vars.lsquare == vars.rsquare) {
+        if (!vars.is_enum && !vars.is_union && !vars.is_struct)
+          i = eatFunction(tokens_arr, parse_start, i, cst_arr) - 1;
         else if (vars.is_enum && !vars.is_union && !vars.is_struct)
           /* could be an anonymous enum at the start of a function def */
           puts("WITHIN ENUM");
@@ -622,6 +648,8 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
           puts("WITHIN UNION");
         else if (!vars.is_enum && !vars.is_union && vars.is_struct)
           puts("WITHIN STRUCT");
+        else
+          fputs("Misidentified enum/union/struct", stderr);
 
         clear_CstParseVars(&vars);
       }
@@ -730,7 +758,6 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
     case _Thread_localKeyword:
     case breakKeyword:
     case caseKeyword:
-    case constexprKeyword:
     case continueKeyword:
     case defaultKeyword:
     case doKeyword:
@@ -740,15 +767,11 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
     case gotoKeyword:
     case ifKeyword:
     case nullptrKeyword:
-    case registerKeyword:
-    case restrictKeyword:
     case returnKeyword:
     case sizeofKeyword:
     case static_assertKeyword:
     case switchKeyword:
-    case thread_localKeyword:
     case trueKeyword:
-    case typedefKeyword:
     case typeofKeyword:
     case typeof_unqualKeyword:
     case whileKeyword:
@@ -762,9 +785,8 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   }
   puts("*******************");
   /*token_ll->list = tokenized_ll;*/
-  (**cst_arr).elem =
-      realloc((**cst_arr).elem,
-              ((**cst_arr).size + 1) * sizeof *(**cst_arr).elem);
+  (**cst_arr).elem = realloc((**cst_arr).elem,
+                             ((**cst_arr).size + 1) * sizeof *(**cst_arr).elem);
   if ((**cst_arr).elem == NULL)
     return ENOMEM;
 

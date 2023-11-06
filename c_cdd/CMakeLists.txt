@@ -74,8 +74,9 @@ target_link_libraries(
         PRIVATE
         "${PROJECT_NAME}_compiler_flags"
 )
-option(DEBUG_SCANNER "Whether to print debug messages for the scan phase" ON)
+option(DEBUG_SCANNER "Whether to print debug messages for the scan phase" OFF)
 if (DEBUG_SCANNER)
+    message(STATUS "DEBUG_SCANNER = ${DEBUG_SCANNER}")
     target_compile_definitions(
             "${LIBRARY_NAME}"
             PUBLIC
