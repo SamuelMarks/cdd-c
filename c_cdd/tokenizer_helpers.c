@@ -162,7 +162,7 @@ size_t eatWhitespace(const az_span *const source, const size_t start_index,
     }
   }
 
-end : {
+end: {
 #ifdef DEBUG_SCANNER
   {
     char *s;
@@ -288,7 +288,7 @@ size_t eatWord(const az_span *const source, const size_t start_index,
       goto end;
     }
   }
-end : {
+end: {
   const az_span word_span = az_span_slice(*source, start_index, end_index);
 
   {
@@ -356,7 +356,7 @@ size_t eatNumber(const az_span *const source, const size_t start_index,
     }
   }
 
-end : {
+end: {
 #ifdef DEBUG_SCANNER
   char *s;
   asprintf(&s, "eatWord[%02" NUM_LONG_FMT "u:%02" NUM_LONG_FMT "u]",

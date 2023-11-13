@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <ctype.h>
 
 #include "c_cdd_utils.h"
@@ -29,9 +28,9 @@ int tokenizer(const az_span source,
    *   1. After loop: reduce to hold number of actual tokens created
    * */
 
-  (**tokens_arr).size = 0,
-  (**tokens_arr).elem = malloc(source_n * sizeof *(**tokens_arr).elem);
-  if ((**tokens_arr).elem == NULL) {
+  (*tokens_arr)->size = 0,
+  (*tokens_arr)->elem = malloc(source_n * sizeof *(*tokens_arr)->elem);
+  if ((*tokens_arr)->elem == NULL) {
     return ENOMEM;
   }
 
@@ -59,7 +58,7 @@ int tokenizer(const az_span source,
       switch (ch) {
       case '*':
         i = eatCComment(&source, i - 1, source_n,
-                        (**tokens_arr).elem + (**tokens_arr).size++),
+                        (*tokens_arr)->elem + (*tokens_arr)->size++),
         handled = true;
         break;
 
@@ -67,7 +66,7 @@ int tokenizer(const az_span source,
         if (span_ptr[i - 2] != '*') {
           /* ^ handle consecutive C-style comments `/\*bar*\/\*foo*\/` */
           i = eatCppComment(&source, i - 1, source_n,
-                            (**tokens_arr).elem + (**tokens_arr).size++),
+                            (*tokens_arr)->elem + (*tokens_arr)->size++),
           handled = true;
         }
         break;
@@ -82,19 +81,19 @@ int tokenizer(const az_span source,
       /* Handle macros */
       case '#':
         i = eatMacro(&source, i, source_n,
-                     (**tokens_arr).elem + (**tokens_arr).size++);
+                     (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       /* Handle single-quoted char literal */
       case '\'':
         i = eatCharLiteral(&source, i, source_n,
-                           (**tokens_arr).elem + (**tokens_arr).size++);
+                           (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       /* Handle double-quoted string literal */
       case '"':
         i = eatStrLiteral(&source, i, source_n,
-                          (**tokens_arr).elem + (**tokens_arr).size++);
+                          (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       case ' ':
@@ -103,81 +102,81 @@ int tokenizer(const az_span source,
       case '\t':
       case '\v':
         i = eatWhitespace(&source, i, source_n,
-                          (**tokens_arr).elem + (**tokens_arr).size++);
+                          (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       case '{':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    LBRACE);
         break;
 
       case '}':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    RBRACE);
         break;
 
       case '[':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    LSQUARE);
         break;
 
       case ']':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    RSQUARE);
         break;
 
       case '(':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    LPAREN);
         break;
 
       case ')':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    RPAREN);
         break;
 
       case ';':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    TERMINATOR);
         break;
 
       /* parser not tokenizer will determine if ternary operator or label */
       case ':':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    COLON);
         break;
 
       case '?':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    QUESTION);
         break;
 
       case '~':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    TILDE);
         break;
 
       case '!':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, NE_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, NE_OP);
         else
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      EXCLAMATION);
         break;
 
       case ',':
-        eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+        eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                    COMMA);
         break;
 
       case '.':
         if (isdigit(next_ch))
           i = eatNumber(&source, i, source_n,
-                        (**tokens_arr).elem + (**tokens_arr).size++);
+                        (*tokens_arr)->elem + (*tokens_arr)->size++);
         else if (next_ch == '.' && span_ptr[i + 2] == '.')
           i = eatSlice(&source, i, 3,
-                       (**tokens_arr).elem + (**tokens_arr).size++, ELLIPSIS);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, ELLIPSIS);
         break;
 
       case '>':
@@ -185,19 +184,19 @@ int tokenizer(const az_span source,
         case '>':
           if (span_ptr[i + 2] == '=')
             i = eatSlice(&source, i, 3,
-                         (**tokens_arr).elem + (**tokens_arr).size++,
+                         (*tokens_arr)->elem + (*tokens_arr)->size++,
                          RIGHT_ASSIGN);
           else
             i = eatSlice(&source, i, 2,
-                         (**tokens_arr).elem + (**tokens_arr).size++,
+                         (*tokens_arr)->elem + (*tokens_arr)->size++,
                          RIGHT_SHIFT);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, GE_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, GE_OP);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      GREATER_THAN);
           break;
         }
@@ -208,19 +207,19 @@ int tokenizer(const az_span source,
         case '<':
           if (span_ptr[i + 2] == '=')
             i = eatSlice(&source, i, 3,
-                         (**tokens_arr).elem + (**tokens_arr).size++,
+                         (*tokens_arr)->elem + (*tokens_arr)->size++,
                          LEFT_ASSIGN);
           else
             i = eatSlice(&source, i, 2,
-                         (**tokens_arr).elem + (**tokens_arr).size++,
+                         (*tokens_arr)->elem + (*tokens_arr)->size++,
                          LEFT_SHIFT);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, LE_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, LE_OP);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      LESS_THAN);
           break;
         }
@@ -230,14 +229,14 @@ int tokenizer(const az_span source,
         switch (next_ch) {
         case '+':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, INC_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, INC_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, ADD_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, ADD_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      PLUS);
           break;
         }
@@ -247,18 +246,18 @@ int tokenizer(const az_span source,
         switch (next_ch) {
         case '-':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, DEC_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, DEC_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, SUB_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, SUB_ASSIGN);
           break;
         case '>':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, PTR_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, PTR_OP);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      SUB);
           break;
         }
@@ -267,9 +266,9 @@ int tokenizer(const az_span source,
       case '*':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, MUL_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, MUL_ASSIGN);
         else
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      ASTERISK);
         break;
 
@@ -277,13 +276,13 @@ int tokenizer(const az_span source,
         switch (next_ch) {
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, MUL_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, MUL_ASSIGN);
           break;
         case '/':
         case '*':
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      DIVIDE);
         }
         break;
@@ -291,9 +290,9 @@ int tokenizer(const az_span source,
       case '%':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, MODULO);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, MODULO);
         else
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      MOD_ASSIGN);
         break;
 
@@ -301,14 +300,14 @@ int tokenizer(const az_span source,
         switch (next_ch) {
         case '&':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, AND_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, AND_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, AND_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, AND_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      AND);
           break;
         }
@@ -317,9 +316,9 @@ int tokenizer(const az_span source,
       case '^':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, XOR_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, XOR_ASSIGN);
         else
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      CARET);
         break;
 
@@ -327,14 +326,14 @@ int tokenizer(const az_span source,
         switch (next_ch) {
         case '|':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, OR_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, OR_OP);
           break;
         case '=':
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, OR_ASSIGN);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, OR_ASSIGN);
           break;
         default:
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      PIPE);
           break;
         }
@@ -343,9 +342,9 @@ int tokenizer(const az_span source,
       case '=':
         if (next_ch == '=')
           i = eatSlice(&source, i, 2,
-                       (**tokens_arr).elem + (**tokens_arr).size++, EQ_OP);
+                       (*tokens_arr)->elem + (*tokens_arr)->size++, EQ_OP);
         else
-          eatOneChar(&source, i, (**tokens_arr).elem + (**tokens_arr).size++,
+          eatOneChar(&source, i, (*tokens_arr)->elem + (*tokens_arr)->size++,
                      EQUAL);
         break;
 
@@ -361,7 +360,7 @@ int tokenizer(const az_span source,
       case '9':
         /* Misses numbers with a sign [+-] */
         i = eatNumber(&source, i, source_n,
-                      (**tokens_arr).elem + (**tokens_arr).size++);
+                      (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       case '_':
@@ -418,7 +417,7 @@ int tokenizer(const az_span source,
       case 'Y':
       case 'Z':
         i = eatWord(&source, i, source_n,
-                    (**tokens_arr).elem + (**tokens_arr).size++);
+                    (*tokens_arr)->elem + (*tokens_arr)->size++);
         break;
 
       default:
@@ -439,33 +438,32 @@ int tokenizer(const az_span source,
   tokenized_ll->next = NULL;
   printf("tokenized_ll->next: %s;\n", tokenized_ll->next);*/
 
-  (**tokens_arr).elem =
-      realloc((**tokens_arr).elem,
-              ((**tokens_arr).size + 1) * sizeof *(**tokens_arr).elem);
-  if ((**tokens_arr).elem == NULL)
+  (*tokens_arr)->elem =
+      realloc((*tokens_arr)->elem,
+              ((*tokens_arr)->size + 1) * sizeof *(*tokens_arr)->elem);
+  if ((*tokens_arr)->elem == NULL)
     return ENOMEM;
 
   /* For iterating without using offset; also explains the `+1` in `realloc` */
-  (**tokens_arr).elem[(**tokens_arr).size].span._internal.ptr = NULL,
-  (**tokens_arr).elem[(**tokens_arr).size].kind = UNKNOWN_SCAN;
+  (*tokens_arr)->elem[(*tokens_arr)->size].span._internal.ptr = NULL,
+  (*tokens_arr)->elem[(*tokens_arr)->size].kind = UNKNOWN_SCAN;
 
   return EXIT_SUCCESS;
 }
 
 struct TokenizerVars *clear_sv(struct TokenizerVars *sv) {
   sv->c_comment_char_at = 0, sv->cpp_comment_char_at = 0,
-  sv->line_continuation_at = 0;
-  sv->spaces = 0;
-  sv->lparen = 0, sv->rparen = 0, sv->lsquare = 0, sv->rsquare = 0,
-  sv->lbrace = 0, sv->rbrace = 0, sv->lchev = 0, sv->rchev = 0;
-  sv->in_c_comment = false, sv->in_cpp_comment = false, sv->in_single = false,
-  sv->in_double = false, sv->in_macro = false, sv->in_init = false;
+  sv->line_continuation_at = 0, sv->spaces = 0, sv->lparen = 0, sv->rparen = 0,
+  sv->lsquare = 0, sv->rsquare = 0, sv->lbrace = 0, sv->rbrace = 0,
+  sv->lchev = 0, sv->rchev = 0, sv->in_c_comment = false,
+  sv->in_cpp_comment = false, sv->in_single = false, sv->in_double = false,
+  sv->in_macro = false, sv->in_init = false;
   return sv;
 }
 
 az_span make_slice_clear_vars(const az_span source, size_t i,
                               size_t *start_index, struct TokenizerVars *sv,
-                              bool always_make_expr) {
+                              const bool always_make_expr) {
   if (always_make_expr ||
       (!sv->in_single && !sv->in_double && !sv->in_c_comment &&
        !sv->in_cpp_comment && sv->line_continuation_at != i - 1 &&
@@ -482,7 +480,7 @@ az_span make_slice_clear_vars(const az_span source, size_t i,
 struct CstParseVars {
   bool is_union, is_struct, is_enum, is_function, is_storage_class_specifier,
       is_type_specifier, is_type_qualifier, is_function_specifier,
-      is_alignment_specifier;
+      is_alignment_specifier, ate;
   size_t lparens, rparens, lbraces, rbraces, lsquare, rsquare;
 };
 
@@ -490,8 +488,9 @@ void clear_CstParseVars(struct CstParseVars *pv) {
   pv->is_enum = false, pv->is_union = false, pv->is_struct = false,
   pv->is_storage_class_specifier = false, pv->is_type_specifier = false,
   pv->is_type_qualifier = false, pv->is_function_specifier = false,
-  pv->is_alignment_specifier = false, pv->lparens = 0, pv->rparens = 0,
-  pv->lbraces = 0, pv->rbraces = 0, pv->lsquare = 0, pv->rsquare = 0;
+  pv->is_alignment_specifier = false, pv->ate = false,
+  pv->lparens = 0, pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0,
+  pv->lsquare = 0, pv->rsquare = 0;
 }
 
 int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
@@ -500,9 +499,14 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
 
   size_t i, parse_start;
   struct CstParseVars vars = {false, false, false, false, false,
-                              false, false, false, false, 0,
-                              0,     0,     0,     0,     0};
+                              false, false, false, false,
+    false,
+                              0,0,     0,     0,     0,     0};
   (*cst_arr)->elem = malloc((sizeof *(*cst_arr)->elem) * tokens_arr->size);
+
+  /* Zero out the input; like `calloc`; for debug purposes */
+  for (i = 0; i < tokens_arr->size; i++)
+    (*cst_arr)->elem[i] = CST_NODE_SENTINEL;
 
   /*
   enum TokenizerKind expression[] = { TERMINATOR };
@@ -524,6 +528,7 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
 
   for (i = 0; i < 5; i++)
     putchar('\n');
+
 
   for (i = 0, parse_start = 0; i < tokens_arr->size; i++) {
     const struct tokenizer_az_span_elem *const tok_span_el =
@@ -639,9 +644,10 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
       vars.lbraces++;
 
       if (vars.lsquare == vars.rsquare) {
-        if (!vars.is_enum && !vars.is_union && !vars.is_struct)
-          i = eatFunction(tokens_arr, parse_start, i, cst_arr) - 1;
-        else if (vars.is_enum && !vars.is_union && !vars.is_struct)
+        if (!vars.is_enum && !vars.is_union && !vars.is_struct) {
+          i = eatFunction(tokens_arr, parse_start, i, &cst_arr) - 1;
+          vars.ate = true;
+        } else if (vars.is_enum && !vars.is_union && !vars.is_struct)
           /* could be an anonymous enum at the start of a function def */
           puts("WITHIN ENUM");
         else if (!vars.is_enum && vars.is_union && !vars.is_struct)
@@ -651,6 +657,7 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
         else
           fputs("Misidentified enum/union/struct", stderr);
 
+        if (vars.ate) ++(*cst_arr)->size;
         clear_CstParseVars(&vars);
       }
 
@@ -785,10 +792,12 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   }
   puts("*******************");
   /*token_ll->list = tokenized_ll;*/
-  (**cst_arr).elem = realloc((**cst_arr).elem,
-                             ((**cst_arr).size + 1) * sizeof *(**cst_arr).elem);
-  if ((**cst_arr).elem == NULL)
+  (*cst_arr)->elem = realloc((*cst_arr)->elem,
+                             ((*cst_arr)->size + 1) * sizeof *(*cst_arr)->elem);
+  if ((*cst_arr)->elem == NULL)
     return ENOMEM;
+
+  (*cst_arr)->elem[(*cst_arr)->size] = CST_NODE_SENTINEL;
 
   /*tokenizer_az_span_elem_arr_cleanup(token_ll);*/
 
