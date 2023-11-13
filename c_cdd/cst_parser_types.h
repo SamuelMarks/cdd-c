@@ -413,7 +413,9 @@ enum CstNodeKind {
   MacroElse,
   MacroDefine,
   MacroInclude,
-  MacroPragma
+  MacroPragma,
+
+  Sentinel, /* NUL value */
 };
 
 union CstNodeType {
@@ -453,8 +455,9 @@ union CstNodeType {
 
 struct CstNode {
   enum CstNodeKind kind;
-  union CstNodeType type;
+  void *type;
 };
+static const struct CstNode CST_NODE_SENTINEL = {Sentinel, NULL};
 
 struct cst_node_arr {
   struct CstNode *elem;

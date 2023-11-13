@@ -106,7 +106,7 @@ TEST x_test_function_parsed(void) {
     {
       struct CstNode *cst_node;
       ASSERT_GT(cst_arr->size, 0);
-      for (cst_node = cst_arr->elem, i = 0; cst_node != NULL; i++) {
+      for (cst_node = cst_arr->elem, i = 0; cst_node->kind != Sentinel; i++) {
         printf("parse_cst_list[%" NUM_LONG_FMT "u]:%s\n", i,
                CstNodeKind_to_str(cst_node->kind));
       }

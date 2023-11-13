@@ -36,6 +36,6 @@ function(ensure_symbol)
             return()
         endif ()
     endforeach ()
-
-    message(FATAL_ERROR "Could not ensure ${ARG_TARGET} can use ${ARG_SYMBOL}")
+    message("unset")
+    unset(${var_name} PARENT_SCOPE)
 endfunction()

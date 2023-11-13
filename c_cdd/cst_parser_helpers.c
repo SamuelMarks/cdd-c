@@ -1,12 +1,14 @@
 #include "cst_parser_helpers.h"
 #include "c_cdd_utils.h"
 #include "cst_parser_types.h"
+#include "str_includes.h"
 #include "tokenizer_types.h"
 #include <stdio.h>
 
 size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
-                   const size_t start_index, const size_t first_lbrace,
-                   struct cst_node_arr *cst_arr) {
+                   const size_t start_index,
+                   const size_t first_lbrace,
+                   const struct cst_node_arr *const *const *cst_arr) {
   struct tokenizer_az_span_elem *token;
   size_t i, lbrace = 1, rbrace = 0;
   struct Function *const function = malloc(sizeof *function);
@@ -47,7 +49,7 @@ size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
         free(s);
       }
     default:
-    DEFAULT : {
+    DEFAULT: {
       struct tokenizer_az_span_elem *const tok = tokens_arr->elem + start_index;
       tok->kind = token->kind, tok->span = token->span;
     }
@@ -55,10 +57,10 @@ size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
     /*assert(false);*/ /* Syntax error */
 
     /*
-    if (az_span_ptr((**token).span) != NULL && (**token).kind != UNKNOWN_SCAN) {
+    if (az_span_ptr((*token)->span) != NULL && (*token)->kind != UNKNOWN_SCAN) {
       char *s;
       asprintf(&s, "eatFunction::token->span[%" NUM_LONG_FMT "u]", i);
-      print_escaped_span(s, (**token).span);
+      print_escaped_span(s, (*token)->span);
       free(s);
     } else {
       printf("eatFunction::token->span[%" NUM_LONG_FMT "u]\n", i);
@@ -68,7 +70,8 @@ size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
     */
   }
 
-  cst_arr->elem[++cst_arr->size].kind = Function;
+  (**cst_arr)->elem[(**cst_arr)->size].kind = Function;
+  (**cst_arr)->elem[(**cst_arr)->size].type = function;
   /* cst_arr->elem[cst_arr->size].type = (void*)function; */
 
   puts("</FUNCTION>\n");
