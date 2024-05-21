@@ -488,9 +488,9 @@ void clear_CstParseVars(struct CstParseVars *pv) {
   pv->is_enum = false, pv->is_union = false, pv->is_struct = false,
   pv->is_storage_class_specifier = false, pv->is_type_specifier = false,
   pv->is_type_qualifier = false, pv->is_function_specifier = false,
-  pv->is_alignment_specifier = false, pv->ate = false,
-  pv->lparens = 0, pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0,
-  pv->lsquare = 0, pv->rsquare = 0;
+  pv->is_alignment_specifier = false, pv->ate = false, pv->lparens = 0,
+  pv->rparens = 0, pv->lbraces = 0, pv->rbraces = 0, pv->lsquare = 0,
+  pv->rsquare = 0;
 }
 
 int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
@@ -498,10 +498,9 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
   /* recognise start/end of function, struct, enum, union */
 
   size_t i, parse_start;
-  struct CstParseVars vars = {false, false, false, false, false,
-                              false, false, false, false,
-    false,
-                              0,0,     0,     0,     0,     0};
+  struct CstParseVars vars = {false, false, false, false, false, false,
+                              false, false, false, false, 0,     0,
+                              0,     0,     0,     0};
   (*cst_arr)->elem = malloc((sizeof *(*cst_arr)->elem) * tokens_arr->size);
 
   /* Zero out the input; like `calloc`; for debug purposes */
@@ -528,7 +527,6 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
 
   for (i = 0; i < 5; i++)
     putchar('\n');
-
 
   for (i = 0, parse_start = 0; i < tokens_arr->size; i++) {
     const struct tokenizer_az_span_elem *const tok_span_el =
@@ -657,7 +655,8 @@ int cst_parser(const struct tokenizer_az_span_arr *const tokens_arr,
         else
           fputs("Misidentified enum/union/struct", stderr);
 
-        if (vars.ate) ++(*cst_arr)->size;
+        if (vars.ate)
+          ++(*cst_arr)->size;
         clear_CstParseVars(&vars);
       }
 
