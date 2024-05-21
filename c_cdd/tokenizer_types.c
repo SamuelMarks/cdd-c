@@ -131,7 +131,7 @@
   case restrict##Suffix:                                                       \
     return "restrict";                                                         \
                                                                                \
-  case return##Suffix:                                                         \
+  case return ##Suffix:                                                        \
     return "return";                                                           \
                                                                                \
   case short##Suffix:                                                          \
@@ -250,124 +250,124 @@
     return break##Suffix;                                                      \
                                                                                \
   else if (strcmp(s, "case") == 0)                                             \
-          return case##Suffix;	                                               \
+    return case##Suffix;                                                       \
                                                                                \
-  else if (strcmp(s, "char") == 0)	                                       \
-          return char##Suffix;	                                               \
+  else if (strcmp(s, "char") == 0)                                             \
+    return char##Suffix;                                                       \
                                                                                \
-  else if (strcmp(s, "const") == 0)	 	                               \
-          return const##Suffix;		                                       \
-  	                                       	                               \
-  else if (strcmp(s, "constexpr") == 0)		                               \
-          return constexpr##Suffix;		                               \
-  	                                       	                               \
-  else if (strcmp(s, "continue") == 0)		                               \
-          return continue##Suffix;		                               \
-  	                                       	                               \
-  else if (strcmp(s, "default") == 0)		                               \
-          return default##Suffix;		                               \
-  	                                       	                               \
-  else if (strcmp(s, "do") == 0)		                               \
-          return do##Suffix;		                                       \
+  else if (strcmp(s, "const") == 0)                                            \
+    return const##Suffix;                                                      \
                                                                                \
-  else if (strcmp(s, "double") == 0)		                               \
-          return double##Suffix;		                               \
+  else if (strcmp(s, "constexpr") == 0)                                        \
+    return constexpr##Suffix;                                                  \
                                                                                \
-  else if (strcmp(s, "else") == 0)		                               \
-          return else##Suffix;		                                       \
+  else if (strcmp(s, "continue") == 0)                                         \
+    return continue##Suffix;                                                   \
                                                                                \
-  else if (strcmp(s, "enum") == 0)		                               \
-          return enum##Suffix;		                                       \
+  else if (strcmp(s, "default") == 0)                                          \
+    return default##Suffix;                                                    \
                                                                                \
-  else if (strcmp(s, "extern") == 0)		                               \
-          return extern##Suffix;		                               \
-  	                                       	                               \
-  else if (strcmp(s, "false") == 0)		                               \
-          return false##Suffix;		                                       \
-	                                       	                               \
-  else if (strcmp(s, "float") == 0)		                               \
-          return float##Suffix;		                                       \
-  		                               		                       \
-  else if (strcmp(s, "for") == 0)		                               \
-          return for##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "goto") == 0)		                               \
-          return goto##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "if") == 0)		                               \
-          return if##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "inline") == 0)		                               \
-          return inline##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "int") == 0)		                               \
-          return int##Suffix;		                               	       \
-  		                               		                       \
-  else if (strcmp(s, "long") == 0)		                               \
-          return long##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "nullptr") == 0)		                               \
-          return nullptr##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "register") == 0)		                               \
-          return register##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "restrict") == 0)		                               \
-          return restrict##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "return") == 0)			                       \
-          return return##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "short") == 0)			                       \
-          return short##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "signed") == 0)			                       \
-          return signed##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "sizeof") == 0)			                       \
-          return sizeof##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "static") == 0)			                       \
-          return static##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "static_assert") == 0)			               \
-          return static_assert##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "struct") == 0)			                       \
-          return struct##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "switch") == 0)		                               \
-          return switch##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "thread_local") == 0)			               \
-          return thread_local##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "true") == 0)			                       \
-          return true##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "typedef") == 0)			                       \
-          return typedef##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "typeof") == 0)			                       \
-          return typeof##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "typeof_unqual") == 0)			               \
-          return typeof_unqual##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "union") == 0)			                       \
-          return union##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "unsigned") == 0)			                       \
-          return unsigned##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "void") == 0)			                       \
-          return void##Suffix;			                               \
-  		                               		                       \
-  else if (strcmp(s, "volatile") == 0)			                       \
-          return volatile##Suffix;			                       \
-  		                               		                       \
-  else if (strcmp(s, "while") == 0)			                       \
-          return while##Suffix;
+  else if (strcmp(s, "do") == 0)                                               \
+    return do##Suffix;                                                         \
+                                                                               \
+  else if (strcmp(s, "double") == 0)                                           \
+    return double##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "else") == 0)                                             \
+    return else##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "enum") == 0)                                             \
+    return enum##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "extern") == 0)                                           \
+    return extern##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "false") == 0)                                            \
+    return false##Suffix;                                                      \
+                                                                               \
+  else if (strcmp(s, "float") == 0)                                            \
+    return float##Suffix;                                                      \
+                                                                               \
+  else if (strcmp(s, "for") == 0)                                              \
+          return for##Suffix;                                                  \
+                                                                               \
+  else if (strcmp(s, "goto") == 0)                                             \
+    return goto##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "if") == 0)                                               \
+    return if##Suffix;                                                         \
+                                                                               \
+  else if (strcmp(s, "inline") == 0)                                           \
+    return inline##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "int") == 0)                                              \
+    return int##Suffix;                                                        \
+                                                                               \
+  else if (strcmp(s, "long") == 0)                                             \
+    return long##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "nullptr") == 0)                                          \
+    return nullptr##Suffix;                                                    \
+                                                                               \
+  else if (strcmp(s, "register") == 0)                                         \
+    return register##Suffix;                                                   \
+                                                                               \
+  else if (strcmp(s, "restrict") == 0)                                         \
+    return restrict##Suffix;                                                   \
+                                                                               \
+  else if (strcmp(s, "return") == 0)                                           \
+    return return ##Suffix;                                                    \
+                                                                               \
+  else if (strcmp(s, "short") == 0)                                            \
+    return short##Suffix;                                                      \
+                                                                               \
+  else if (strcmp(s, "signed") == 0)                                           \
+    return signed##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "sizeof") == 0)                                           \
+    return sizeof##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "static") == 0)                                           \
+    return static##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "static_assert") == 0)                                    \
+    return static_assert##Suffix;                                              \
+                                                                               \
+  else if (strcmp(s, "struct") == 0)                                           \
+    return struct##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "switch") == 0)                                           \
+    return switch##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "thread_local") == 0)                                     \
+    return thread_local##Suffix;                                               \
+                                                                               \
+  else if (strcmp(s, "true") == 0)                                             \
+    return true##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "typedef") == 0)                                          \
+    return typedef##Suffix;                                                    \
+                                                                               \
+  else if (strcmp(s, "typeof") == 0)                                           \
+    return typeof##Suffix;                                                     \
+                                                                               \
+  else if (strcmp(s, "typeof_unqual") == 0)                                    \
+    return typeof_unqual##Suffix;                                              \
+                                                                               \
+  else if (strcmp(s, "union") == 0)                                            \
+    return union##Suffix;                                                      \
+                                                                               \
+  else if (strcmp(s, "unsigned") == 0)                                         \
+    return unsigned##Suffix;                                                   \
+                                                                               \
+  else if (strcmp(s, "void") == 0)                                             \
+    return void##Suffix;                                                       \
+                                                                               \
+  else if (strcmp(s, "volatile") == 0)                                         \
+    return volatile##Suffix;                                                   \
+                                                                               \
+  else if (strcmp(s, "while") == 0)                                            \
+    return while##Suffix;
 
 const char *TokenizerKind_to_str(const enum TokenizerKind kind) {
   /* "\n".join(map(lambda _s: "case {0}:\n\treturn \"{0}\";\n".format(_s),
