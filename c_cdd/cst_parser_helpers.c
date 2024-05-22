@@ -6,8 +6,7 @@
 #include <stdio.h>
 
 size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
-                   const size_t start_index,
-                   const size_t first_lbrace,
+                   const size_t start_index, const size_t first_lbrace,
                    const struct cst_node_arr *const *const *cst_arr) {
   struct tokenizer_az_span_elem *token;
   size_t i, lbrace = 1, rbrace = 0;
@@ -49,7 +48,7 @@ size_t eatFunction(const struct tokenizer_az_span_arr *const tokens_arr,
         free(s);
       }
     default:
-    DEFAULT: {
+    DEFAULT : {
       struct tokenizer_az_span_elem *const tok = tokens_arr->elem + start_index;
       tok->kind = token->kind, tok->span = token->span;
     }

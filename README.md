@@ -71,3 +71,12 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+#### pre-commit
+
+This repository uses `clang-format` to maintain source code formatted in LLVM style.
+Before committing for the first time, please install `pre-commit` on your system and then
+execute the following command to install pre-commit hooks:
+{{{
+pre-commit install
+}}}
