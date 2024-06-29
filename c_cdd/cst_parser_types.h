@@ -415,7 +415,7 @@ enum CstNodeKind {
   MacroInclude,
   MacroPragma,
 
-  Sentinel, /* NUL value */
+  Sentinel /* NUL value */
 };
 
 union CstNodeType {
