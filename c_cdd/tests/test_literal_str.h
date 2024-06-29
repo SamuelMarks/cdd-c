@@ -35,7 +35,7 @@ TEST x_test_double_literal_str_tokenized(void) {
     if (iter_s == NULL)
       exit(ENOMEM);
     az_span_to_str(iter_s, n, iter->span);
-    printf("tokenized_l[%ld].s   = \"%s\"\n"
+    printf("tokenized_l[%" NUM_LONG_FMT "d].s   = \"%s\"\n"
            "iter_s             = \"%s\"\n\n",
            i, tokenized_l[i].s, iter_s);
     ASSERT_STR_EQ(cmp_s, iter_s);

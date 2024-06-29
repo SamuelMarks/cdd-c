@@ -131,7 +131,7 @@
   case restrict##Suffix:                                                       \
     return "restrict";                                                         \
                                                                                \
-  case return ##Suffix:                                                        \
+  case return##Suffix:                                                         \
     return "return";                                                           \
                                                                                \
   case short##Suffix:                                                          \
