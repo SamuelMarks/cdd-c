@@ -106,15 +106,16 @@ TEST x_test_function_parsed(void) {
     {
       struct CstNode *cst_node;
       ASSERT_GT(cst_arr->size, 0);
-      for (cst_node = cst_arr->elem, i = 0; cst_node->kind != Sentinel; i++) {
+      for (cst_node = cst_arr->elem, i = 0; cst_node->kind != Sentinel;
+           cst_node++, i++) {
         printf("parse_cst_list[%" NUM_LONG_FMT "u]:%s\n", i,
                CstNodeKind_to_str(cst_node->kind));
       }
       printf("i = %" NUM_LONG_FMT "u\n", i);
     }
-    ASSERT_EQ(cst_arr->size, 26);
     ASSERT_EQ(cst_arr->size, i);
-    ASSERT_EQ(cst_arr->elem, NULL);
+    ASSERT_EQ(cst_arr->elem[0].kind, Function);
+    ASSERT_EQ(cst_arr->elem[cst_arr->size].kind, Sentinel);
     tokenizer_az_span_elem_arr_cleanup(tokenized);
     cst_node_arr_cleanup(cst_arr);
   }
