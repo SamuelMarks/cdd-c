@@ -75,8 +75,6 @@ extern "C" {
         _Thread_local##Suffix
 
 enum TokenizerKind {
-  UNKNOWN_SCAN,
-
   /* except one newline char that terminates CPP_COMMENT or MACRO */
   WHITESPACE,
 
@@ -150,7 +148,9 @@ enum TokenizerKind {
   COMMA,
   TERMINATOR, /* ; */
 
-  KeywordEnumGen(Keyword)
+  KeywordEnumGen(Keyword),
+
+  UNKNOWN_SCAN,
 };
 
 enum TokenKeyword {
