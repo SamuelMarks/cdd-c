@@ -207,7 +207,7 @@ size_t eatSlice(const az_span *const source, const size_t start_index,
   free(s);
 #endif /* DEBUG_SCANNER */
   token_ptr->kind = kind,
-  token_ptr->span = az_span_slice(*source, start_index, start_index + 1);
+  token_ptr->span = az_span_slice(*source, start_index, end_index);
   return end_index;
 }
 
@@ -364,7 +364,7 @@ end: {
   print_escaped_span(s, az_span_slice(*source, start_index, end_index));
   free(s);
 #endif /* DEBUG_SCANNER */
-  token_ptr->kind = WORD,
+  token_ptr->kind = NUMERIC,
   token_ptr->span = az_span_slice(*source, start_index, end_index);
 }
   return end_index - 1;
@@ -376,5 +376,5 @@ void tokenizer_az_span_elem_arr_cleanup(
       az_span_ptr(token_arr->elem->span) == NULL)
     return;
   free(token_arr->elem);
-  token_arr->elem = 0, token_arr->size = 0;
+  token_arr->elem = NULL, token_arr->size = 0;
 }

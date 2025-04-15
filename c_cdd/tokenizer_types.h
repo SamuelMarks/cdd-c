@@ -148,6 +148,8 @@ enum TokenizerKind {
   COMMA,
   TERMINATOR, /* ; */
 
+  NUMERIC,
+
   KeywordEnumGen(Keyword),
 
   UNKNOWN_SCAN,

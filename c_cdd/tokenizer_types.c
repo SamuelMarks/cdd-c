@@ -697,6 +697,9 @@ enum TokenizerKind str_to_TokenizerKind(const char *const s) {
   else if (strcmp(s, "COMMA") == 0)
     return COMMA;
 
+  else if (strcmp(s, "NUMERIC") == 0)
+    return NUMERIC;
+
   else if (strcmp(s, "TERMINATOR") == 0)
     return TERMINATOR;
 
