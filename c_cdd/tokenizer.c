@@ -1,7 +1,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#else
 #include <sys/errno.h>
+#endif
 
 #include "tokenizer.h"
 

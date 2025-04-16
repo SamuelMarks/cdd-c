@@ -85,6 +85,7 @@ TEST parsing_test(const char *const test_name, const char *const source,
       w_count++;
       break;
     default:
+      break;
     }
   }
 
