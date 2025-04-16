@@ -8,6 +8,7 @@
 #include "test_function.h"
 #include "test_literal_str.h"
 #include "test_macro.h"
+#include "test_parsing.h"
 #include "test_struct.h"
 #include "test_tokenizer.h"
 #include "test_whitespace.h"
@@ -22,11 +23,10 @@ int main(int argc, char **argv) {
   RUN_SUITE(macro_suite);
   RUN_SUITE(literal_str_suite);
   RUN_SUITE(whitespace_suite);
-  */
   RUN_SUITE(function_suite);
-  /*
   RUN_SUITE(struct_suite);
   RUN_SUITE(tokenizer_suite);
   */
+  RUN_SUITE(parsing_suite);
   GREATEST_MAIN_END();
 }
