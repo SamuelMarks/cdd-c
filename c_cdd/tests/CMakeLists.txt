@@ -34,6 +34,7 @@ set(Header_Files
         "test_function.h"
         "test_literal_str.h"
         "test_macro.h"
+        "test_parsing.h"
         "test_struct.h"
         "test_tokenizer.h"
         "test_whitespace.h")

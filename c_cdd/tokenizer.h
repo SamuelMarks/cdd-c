@@ -2,10 +2,14 @@
 #define TOKENIZER_H
 
 #include <c_cdd_export.h>
+#if __STDC_VERSION__ >= 199901L
+#include <stdbool.h>
+#else
+#include <c_cdd_stdbool.h>
+#endif /* __STDC_VERSION__ >= 199901L */
 #include <stddef.h>
 
 C_CDD_EXPORT enum TokenKind {
-  TOKEN_UNKNOWN = 0,
   TOKEN_WHITESPACE,
   TOKEN_COMMENT,
   TOKEN_MACRO,
@@ -18,6 +22,7 @@ C_CDD_EXPORT enum TokenKind {
   TOKEN_SEMICOLON,
   TOKEN_COMMA,
   TOKEN_OTHER,
+  TOKEN_UNKNOWN = -1
 };
 
 C_CDD_EXPORT struct Token {

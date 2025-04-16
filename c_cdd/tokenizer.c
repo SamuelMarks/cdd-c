@@ -1,13 +1,14 @@
-#include "tokenizer.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
 
-static int add_token(struct TokenList *tl, enum TokenKind kind,
-                     const char *start, size_t length) {
+#include "tokenizer.h"
+
+static int add_token(struct TokenList *const tl, const enum TokenKind kind,
+                     const char *const start, const size_t length) {
   if (tl->size >= tl->capacity) {
-    size_t new_capacity = tl->capacity == 0 ? 64 : tl->capacity * 2;
+    const size_t new_capacity = tl->capacity == 0 ? 64 : tl->capacity * 2;
     struct Token *new_tokens =
         realloc(tl->tokens, new_capacity * sizeof(struct Token));
     if (!new_tokens)
@@ -22,21 +23,23 @@ static int add_token(struct TokenList *tl, enum TokenKind kind,
   return 0;
 }
 
-static int is_keyword(const char *str, size_t len, enum TokenKind *kind_out) {
-  if (len == 6 && strncmp(str, "struct", 6) == 0) {
+static bool is_keyword(const char *str, const size_t len,
+                       enum TokenKind *const kind_out) {
+  if (len == 6 && strncmp(str, "struct", len) == 0) {
     *kind_out = TOKEN_KEYWORD_STRUCT;
-    return 1;
-  } else if (len == 4 && strncmp(str, "enum", 4) == 0) {
+    return true;
+  } else if (len == 4 && strncmp(str, "enum", len) == 0) {
     *kind_out = TOKEN_KEYWORD_ENUM;
-    return 1;
-  } else if (len == 5 && strncmp(str, "union", 5) == 0) {
+    return true;
+  } else if (len == 5 && strncmp(str, "union", len) == 0) {
     *kind_out = TOKEN_KEYWORD_UNION;
-    return 1;
+    return true;
+  } else {
+    return false;
   }
-  return 0;
 }
 
-int tokenize(const char *source, size_t length, struct TokenList *out) {
+int tokenize(const char *source, size_t length, struct TokenList *const out) {
   size_t pos = 0;
   while (pos < length) {
     const char c = source[pos];
@@ -122,6 +125,7 @@ int tokenize(const char *source, size_t length, struct TokenList *out) {
       pos++;
       continue;
     }
+      /* TODO: Quotes and checking if whole WORD is a number */
 
     case '_':
     case '0':
@@ -212,7 +216,7 @@ int tokenize(const char *source, size_t length, struct TokenList *out) {
   return 0;
 }
 
-void free_token_list(struct TokenList *tl) {
+void free_token_list(struct TokenList *const tl) {
   free(tl->tokens);
   tl->tokens = NULL;
   tl->size = 0;
