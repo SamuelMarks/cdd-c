@@ -16,20 +16,20 @@ jobs:
     name: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: mkdir
         run: mkdir build
 
       - name: Cache vcpkg
         id: cache-vcpkg
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: vcpkg
           key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-project0
 
       - name: checkout vcpkg
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: "offscale/vcpkg"
           ref: project0
