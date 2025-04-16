@@ -3,7 +3,10 @@
 
 #include "cst_parser.h"
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#else
 #include <sys/errno.h>
+#endif
 
 int add_node(struct CstNodeList *const list, const enum CstNodeKind1 kind,
              const char *const start, const size_t length) {
