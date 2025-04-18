@@ -17,7 +17,8 @@ Use-cases this is designed to support:
     - Generate/update emitters from `struct` to `char*`: `const int StructName_<fmt>_emit(const struct StructName*, char*)` function;
   - Generate Google Cloud client library for C (with [Google Cloud API Discovery Service](https://developers.google.com/discovery/v1/reference) as input);
   - Generate arbitrary C client libraries (with [OpenAPI](https://spec.openapis.org/oas/v3.1.0) as input);
-  - Generating `#pragma` for every function to expose them for calling from, e.g., [assembly](https://www.ibm.com/docs/en/zos/2.5.0?topic=programs-calling-c-code-from-assembler-c-example)
+  - Generating `#pragma` for every function to expose them for calling from, e.g., [assembly](https://www.ibm.com/docs/en/zos/2.5.0?topic=programs-calling-c-code-from-assembler-c-example);
+  - Prepare C SDK to be wrapped in higher-level language SDKs ([SWIG](https://en.wikipedia.org/wiki/SWIG) style)
 
 ## Design
 
