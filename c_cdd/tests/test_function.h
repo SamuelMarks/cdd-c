@@ -1,16 +1,16 @@
 #ifndef C_CDD_TESTS_TEST_FUNCTION_H
 #define C_CDD_TESTS_TEST_FUNCTION_H
 
+#include <cdd_helpers.h>
+#include <str_includes.h>
+
 #include <greatest.h>
 
 #include <c_str_precondition_internal.h>
 
-#include <c_cdd_utils.h>
 #include <cst.h>
 
 #include "cst_parser_types.h"
-#include <cdd_helpers.h>
-#include <str_includes.h>
 
 static const char sum_func_src[] = "int sum(int a, int b) { return a + b; }"
                                    "int sum(int a, int b) { return a + b; }";

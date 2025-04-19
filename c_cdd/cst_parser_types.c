@@ -131,10 +131,8 @@ enum CstNodeKind str_to_CstNodeKind(const char *const s) {
 
 void cst_node_arr_cleanup(const struct cst_node_arr *const cst_arr) {
   struct CstNode *cur, *next;
-  cur = cst_arr == NULL ? NULL : cst_arr->elem;
-  while (cur != NULL) {
+  for (cur = cst_arr == NULL ? NULL : cst_arr->elem; cur != NULL; cur = next) {
     next = cur + 1;
     free(cur);
-    cur = next;
   }
 }

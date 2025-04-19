@@ -6,11 +6,12 @@
 #else
 #include <sys/errno.h>
 #endif
+#include <c_str_span.h>
 
 #include "tokenizer.h"
 
 static int add_token(struct TokenList *const tl, const enum TokenKind kind,
-                     const char *const start, const size_t length) {
+                     const uint8_t *start, const size_t length) {
   if (tl->size >= tl->capacity) {
     const size_t new_capacity = tl->capacity == 0 ? 64 : tl->capacity * 2;
     struct Token *new_tokens =
@@ -27,15 +28,17 @@ static int add_token(struct TokenList *const tl, const enum TokenKind kind,
   return 0;
 }
 
-static bool is_keyword(const char *str, const size_t len,
+static bool is_keyword(const az_span str, const size_t len,
                        enum TokenKind *const kind_out) {
-  if (len == 6 && strncmp(str, "struct", len) == 0) {
+  if (len == 6 && az_span_is_content_equal(str, AZ_SPAN_FROM_STR("struct"))) {
     *kind_out = TOKEN_KEYWORD_STRUCT;
     return true;
-  } else if (len == 4 && strncmp(str, "enum", len) == 0) {
+  } else if (len == 4 &&
+             az_span_is_content_equal(str, AZ_SPAN_FROM_STR("enum"))) {
     *kind_out = TOKEN_KEYWORD_ENUM;
     return true;
-  } else if (len == 5 && strncmp(str, "union", len) == 0) {
+  } else if (len == 5 &&
+             az_span_is_content_equal(str, AZ_SPAN_FROM_STR("union"))) {
     *kind_out = TOKEN_KEYWORD_UNION;
     return true;
   } else {
@@ -43,55 +46,57 @@ static bool is_keyword(const char *str, const size_t len,
   }
 }
 
-int tokenize(const char *source, size_t length, struct TokenList *const out) {
-  size_t pos = 0;
-  while (pos < length) {
-    const char c = source[pos];
-    switch (c) {
+int tokenize(const az_span source, struct TokenList *const out) {
+  size_t pos;
+  const size_t length = az_span_size(source);
+  for (pos = 0; pos < length;) {
+    const uint8_t *const c = az_span_ptr(source) + pos;
+    switch (*c) {
     case ' ':
     case '\t':
     case '\r':
     case '\n':
     case '\f': {
       const size_t start = pos;
-      while (pos < length && (source[pos] == ' ' || source[pos] == '\t' ||
-                              source[pos] == '\r' || source[pos] == '\n' ||
-                              source[pos] == '\f'))
+      while (pos < length && (*c == ' ' || *c == '\t' || *c == '\r' ||
+                              *c == '\n' || *c == '\f'))
         pos++;
-      if (add_token(out, TOKEN_WHITESPACE, source + start, pos - start) != 0)
+      if (add_token(out, TOKEN_WHITESPACE, az_span_ptr(source) + start,
+                    pos - start) != 0)
         return -1;
-      continue;
+      break;
     }
     case '/': {
       if (pos + 1 < length) {
-        if (source[pos + 1] == '/') {
+        if (*(az_span_ptr(source) + pos + 1) == '/') {
           const size_t start = pos;
           pos += 2;
-          while (pos < length && source[pos] != '\n')
+          while (pos < length && *(az_span_ptr(source) + pos) != '\n')
             pos++;
-          if (add_token(out, TOKEN_COMMENT, source + start, pos - start) != 0)
+          if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
+                        pos - start) != 0)
             return -1;
-          continue;
-        } else if (source[pos + 1] == '*') {
+        } else if (*(az_span_ptr(source) + pos + 1) == '*') {
           const size_t start = pos;
           pos += 2;
-          while (pos + 1 < length &&
-                 !(source[pos] == '*' && source[pos + 1] == '/'))
+          while (pos + 1 < length && !(*(az_span_ptr(source) + pos) == '*' &&
+                                       *(az_span_ptr(source) + pos + 1) == '/'))
             pos++;
           if (pos + 1 >= length) {
             pos = length; /* unterminated comment */
-            if (add_token(out, TOKEN_COMMENT, source + start, pos - start) != 0)
+            if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
+                          pos - start) != 0)
               return -1;
-            break;
           }
           pos += 2;
-          if (add_token(out, TOKEN_COMMENT, source + start, pos - start) != 0)
+          if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
+                        pos - start) != 0)
             return -1;
           continue;
         }
       }
       /* Single slash is OTHER token */
-      if (add_token(out, TOKEN_OTHER, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_OTHER, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
       continue;
@@ -99,32 +104,33 @@ int tokenize(const char *source, size_t length, struct TokenList *const out) {
     case '#': {
       const size_t start = pos;
       pos++;
-      while (pos < length && source[pos] != '\n')
+      while (pos < length && *(az_span_ptr(source) + pos) != '\n')
         pos++;
-      if (add_token(out, TOKEN_MACRO, source + start, pos - start) != 0)
+      if (add_token(out, TOKEN_MACRO, az_span_ptr(source) + start,
+                    pos - start) != 0)
         return -1;
       continue;
     }
     case '{': {
-      if (add_token(out, TOKEN_LBRACE, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_LBRACE, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
       continue;
     }
     case '}': {
-      if (add_token(out, TOKEN_RBRACE, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_RBRACE, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
       continue;
     }
     case ';': {
-      if (add_token(out, TOKEN_SEMICOLON, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_SEMICOLON, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
       continue;
     }
     case ',': {
-      if (add_token(out, TOKEN_COMMA, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_COMMA, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
       continue;
@@ -197,21 +203,23 @@ int tokenize(const char *source, size_t length, struct TokenList *const out) {
       const size_t start = pos;
       enum TokenKind kind;
       pos++;
-      while (pos < length &&
-             (isalnum((unsigned char)source[pos]) || source[pos] == '_'))
+      while (pos < length && (uint8_t_isalnum(*(az_span_ptr(source) + pos)) ||
+                              *(az_span_ptr(source) + pos) == '_'))
         pos++;
-      if (is_keyword(source + start, pos - start, &kind)) {
-        if (add_token(out, kind, source + start, pos - start) != 0)
+      if (is_keyword(az_span_slice(source, start, pos - start), pos - start,
+                     &kind)) {
+        if (add_token(out, kind, az_span_ptr(source) + start, pos - start) != 0)
           return -1;
       } else {
-        if (add_token(out, TOKEN_IDENTIFIER, source + start, pos - start) != 0)
+        if (add_token(out, TOKEN_IDENTIFIER, az_span_ptr(source) + start,
+                      pos - start) != 0)
           return -1;
       }
       break;
     }
     default: {
       /* single char OTHER token */
-      if (add_token(out, TOKEN_OTHER, source + pos, 1) != 0)
+      if (add_token(out, TOKEN_OTHER, az_span_ptr(source) + pos, 1) != 0)
         return -1;
       pos++;
     } break;

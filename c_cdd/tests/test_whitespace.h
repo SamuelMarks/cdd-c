@@ -5,7 +5,6 @@
 
 #include <c_str_precondition_internal.h>
 
-#include <c_cdd_utils.h>
 #include <cst.h>
 
 #include <cdd_helpers.h>

@@ -1,9 +1,13 @@
 #ifndef CST_PARSER_H
 #define CST_PARSER_H
 
-#include "tokenizer.h"
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <c_cdd_export.h>
-#include <stddef.h>
+
+#include "tokenizer.h"
 
 C_CDD_EXPORT enum CstNodeKind1 {
   CST_NODE_STRUCT,
@@ -18,7 +22,7 @@ C_CDD_EXPORT enum CstNodeKind1 {
 
 C_CDD_EXPORT struct CstNode1 {
   enum CstNodeKind1 kind;
-  const char *start;
+  const uint8_t *start;
   size_t length;
   /* For struct/enum/union: member list etc could be added here */
 };
@@ -29,13 +33,16 @@ C_CDD_EXPORT struct CstNodeList {
   size_t capacity;
 };
 
-extern C_CDD_EXPORT int add_node(struct CstNodeList *const list,
-                                 const enum CstNodeKind1 kind,
-                                 const char *start, const size_t length);
+extern C_CDD_EXPORT int add_node(struct CstNodeList *, enum CstNodeKind1,
+                                 const uint8_t *, size_t);
 
 extern C_CDD_EXPORT int parse_tokens(const struct TokenList *,
                                      struct CstNodeList *);
 
 extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* CST_PARSER_H */
