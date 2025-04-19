@@ -1,7 +1,8 @@
-#include "tokenizer_helpers.h"
-#include "c_cdd_utils.h"
-#include "tokenizer_types.h"
 #include <assert.h>
+
+#include "c_cdd_utils.h"
+#include "tokenizer_helpers.h"
+#include "tokenizer_types.h"
 
 #ifdef DEBUG_SCANNER
 #include "str_includes.h"

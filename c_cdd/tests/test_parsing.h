@@ -1,43 +1,18 @@
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 
-#include "cdd_helpers.h"
-
-#include <greatest.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "cst_parser.h"
-#include "tokenizer.h"
+#include <greatest.h>
 
 #include <c_str_precondition.h>
 
-static void print_span(const char *const start, const size_t length) {
-  size_t i;
-  putchar('"');
-  for (i = 0; i < length; i++) {
-    const char c = start[i];
-    switch (c) {
-    case '\n':
-      puts("\\n");
-      break;
-    case '\r':
-      puts("\\r");
-      break;
-    case '\t':
-      puts("\\t");
-      break;
-    case '"':
-      puts("\\\"");
-      break;
-    default:
-      putchar(c);
-    }
-  }
-  putchar('"');
-}
+#include "cdd_helpers.h"
+#include "cst_parser.h"
+#include "tokenizer.h"
 
-TEST parsing_test(const char *const test_name, const char *const source,
+TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_structs, const size_t expected_enums,
                   const size_t expected_unions, const size_t expected_comments,
                   const size_t expected_macros,
@@ -51,7 +26,7 @@ TEST parsing_test(const char *const test_name, const char *const source,
 
   printf("Running test: %s\n", test_name);
 
-  if (tokenize(source, strlen(source), tokens) != 0) {
+  if (tokenize(source, tokens) != 0) {
     fprintf(stderr, "tokenize() failed in test %s\n", test_name);
     rc = EXIT_FAILURE;
     goto cleanup;
@@ -112,7 +87,8 @@ cleanup:
 
 TEST x_test_parsing_struct(void) {
   /* Struct test */
-  parsing_test("Struct parsing", "struct Point { int x; int y; };",
+  parsing_test("Struct parsing",
+               AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
                1, /* structs */
                0, /* enums */
                0, /* unions */
@@ -125,14 +101,16 @@ TEST x_test_parsing_struct(void) {
 
 TEST x_test_parsing_enum(void) {
   /* Enum test */
-  parsing_test("Enum parsing", "enum Color { RED, GREEN, BLUE };", 0, 1, 0, 0,
+  parsing_test("Enum parsing",
+               AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"), 0, 1, 0, 0,
                0, 1);
   PASS();
 }
 
 TEST x_test_parsing_union(void) {
   /* Union test */
-  parsing_test("Union parsing", "union Data { int i; float f; };", 0, 0, 1, 0,
+  parsing_test("Union parsing",
+               AZ_SPAN_FROM_STR("union Data { int i; float f; };"), 0, 0, 1, 0,
                0, 1);
   PASS();
 }
@@ -140,34 +118,36 @@ TEST x_test_parsing_union(void) {
 TEST x_test_parsing_comments(void) {
   /* Comments test */
   parsing_test("Comments parsing",
-               "/* comment block */\n// line comment\nint x;", 0, 0, 0,
-               2,   /* one block and one line comment */
-               0, 3 /* some whitespace tokens: newlines/spaces */
+               AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"),
+               0, 0, 0, 2, /* one block and one line comment */
+               0, 3        /* some whitespace tokens: newlines/spaces */
   );
   PASS();
 }
 
 TEST x_test_parsing_macros(void) {
   /* Macros test */
-  parsing_test("Macros parsing", "#define MAX 100\nint a;", 0, 0, 0, 0, 1, 2);
+  parsing_test("Macros parsing", AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0,
+               0, 0, 0, 1, 2);
   PASS();
 }
 
 TEST x_test_parsing_complex(void) {
   /* Complex test */
-  parsing_test("Complex parsing",
-               "/* block comment */\n"
-               "#include <stdio.h>\n"
-               "struct S { int a; union U { float f; int i; } u; };\n"
-               "enum E { X, Y, Z };\n"
-               "// single line comment\n"
-               "int main() { return 0; }\n",
-               1, /* structs */
-               1, /* enums */
-               1, /* unions */
-               2, /* 1 block + 1 line */
-               1, /* macro (#include) */
-               7  /* whitespace tokens */
+  parsing_test(
+      "Complex parsing",
+      AZ_SPAN_FROM_STR("/* block comment */\n"
+                       "#include <stdio.h>\n"
+                       "struct S { int a; union U { float f; int i; } u; };\n"
+                       "enum E { X, Y, Z };\n"
+                       "// single line comment\n"
+                       "int main() { return 0; }\n"),
+      1, /* structs */
+      1, /* enums */
+      1, /* unions */
+      2, /* 1 block + 1 line */
+      1, /* macro (#include) */
+      7  /* whitespace tokens */
   );
 
   PASS();

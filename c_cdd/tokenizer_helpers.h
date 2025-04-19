@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <c_str_span.h>
-#include <stddef.h>
 #include <sys/types.h>
 
 #include <c_cdd_export.h>
