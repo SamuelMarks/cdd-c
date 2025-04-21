@@ -5,7 +5,7 @@ struct Haz {
   const char *bzr;
 };
 
-void cleanup_Haz(struct Haz *);
+void Haz_cleanup(struct Haz *);
 
 struct Foo {
   const char *bar;
@@ -13,6 +13,6 @@ struct Foo {
   struct Haz *haz;
 };
 
-void cleanup_Foo(struct Foo *);
+void Foo_cleanup(struct Foo *);
 
 #endif /* !C_CDD_TESTS_MOCKS_SIMPLE_H */
