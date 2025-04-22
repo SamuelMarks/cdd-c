@@ -1,0 +1,44 @@
+{
+  "components": {
+    "schemas": {
+      "Tank": {
+        "type": "string",
+        "enum": ["BIG", "SMALL", "UNKNOWN"]
+      },
+      "HazE": {
+        "required": [
+          "bzr",
+          "tank"
+        ],
+        "type": "object",
+        "properties": {
+          "bzr": {
+            "type": "string"
+          },
+          "tank": {
+            "$ref": "#/components/schemas/Tank"
+          }
+        }
+      },
+      "FooE": {
+        "required": [
+          "bar",
+          "can",
+          "haz"
+        ],
+        "type": "object",
+        "properties": {
+          "bar": {
+            "type": "string"
+          },
+          "can": {
+            "type": "integer"
+          },
+          "haz": {
+            "$ref": "#/components/schemas/HazE"
+          }
+        }
+      }
+    }
+  }
+}
