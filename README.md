@@ -3,11 +3,11 @@ c-cdd
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Linux, Windows, macOS](https://github.com/SamuelMarks/cdd-c/actions/workflows/linux-Windows-macOS.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions/workflows/linux-Windows-macOS.yml)
-[`#rewriteInC`](https://rewriteInC.io´)
+[`#rewriteInC`](https://rewriteInC.io)
 
 Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).
 
-Use-cases this is designed to support:
+Use-cases:
 
   - Generate/update `free` calling `int cleanup_StructName(struct StructName*)` functions, e.g.:
       - `struct Foo { struct Bar *bar;}; struct Bar { int a; };` will generate:

@@ -9,6 +9,7 @@ set(LIBRARY_NAME "${PROJECT_NAME}")
 set(Header_Files
         "c_cdd_stdbool.h"
         "code2schema.h"
+        "cst_parser.h"
         "schema_codegen.h"
         "sync_code.h"
         "tokenizer.h"
@@ -17,7 +18,6 @@ set(Header_Files
 #        "cst.h"
 #        "cst_parser_helpers.h"
 #        "cst_parser_types.h"
-#        "cst_parser.h"
 #        "str_includes.h"
 #        "tokenizer.h"
 #        "tokenizer_helpers.h"
@@ -28,6 +28,7 @@ source_group("Header Files" FILES "${Header_Files}")
 set(Source_Files
         "code2schema.c"
         "codegen.c"
+        "cst_parser.c"
         "schema_codegen.c"
         "sync_code.c"
         "tokenizer.c"
@@ -36,7 +37,6 @@ set(Source_Files
 #        "cst.c"
 #        "cst_parser_helpers.c"
 #        "cst_parser_types.c"
-#        "cst_parser.c"
 #        "tokenizer.c"
 #        "tokenizer_helpers.c"
 #        "tokenizer_types.c"
