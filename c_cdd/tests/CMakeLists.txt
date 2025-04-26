@@ -30,14 +30,16 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
-        "test_comment.h"
-        "test_function.h"
-        "test_literal_str.h"
-        "test_macro.h"
+#        "test_comment.h"
+#        "test_function.h"
+#        "test_literal_str.h"
+#        "test_macro.h"
         "test_parsing.h"
-        "test_struct.h"
-        "test_tokenizer.h"
-        "test_whitespace.h")
+        "test_json_from_and_to.h"
+#        "test_struct.h"
+#        "test_tokenizer.h"
+#        "test_whitespace.h"
+)
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
 #add_library("${LIBRARY_NAME}" INTERFACE)
@@ -56,6 +58,7 @@ target_include_directories(
         INTERFACE
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/mocks>"
         "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
 )
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13")
@@ -108,3 +111,5 @@ add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 #################################
 
 add_subdirectory("mocks")
+
+target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")

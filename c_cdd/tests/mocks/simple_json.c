@@ -120,7 +120,7 @@ int HazE_from_jsonObject(const JSON_Object *const jsonObject,
   return rc;
 }
 
-int HazE_from_json(const char *const json, struct HazE const **haz_e) {
+int HazE_from_json(const char *const json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
   int rc = 0;

@@ -8,27 +8,38 @@ set(LIBRARY_NAME "${PROJECT_NAME}")
 
 set(Header_Files
         "c_cdd_stdbool.h"
-        "c_cdd_utils.h"
-        "cst.h"
-        "cst_parser_helpers.h"
-        "cst_parser_types.h"
-        "cst_parser.h"
-        "str_includes.h"
+        "code2schema.h"
+        "schema_codegen.h"
+        "sync_code.h"
         "tokenizer.h"
-        "tokenizer_helpers.h"
-        "tokenizer_types.h"
+
+#        "c_cdd_utils.h"
+#        "cst.h"
+#        "cst_parser_helpers.h"
+#        "cst_parser_types.h"
+#        "cst_parser.h"
+#        "str_includes.h"
+#        "tokenizer.h"
+#        "tokenizer_helpers.h"
+#        "tokenizer_types.h"
 )
 source_group("Header Files" FILES "${Header_Files}")
 
 set(Source_Files
-        "c_cdd_utils.c"
-        "cst.c"
-        "cst_parser_helpers.c"
-        "cst_parser_types.c"
-        "cst_parser.c"
+        "code2schema.c"
+        "codegen.c"
+        "schema_codegen.c"
+        "sync_code.c"
         "tokenizer.c"
-        "tokenizer_helpers.c"
-        "tokenizer_types.c"
+
+#        "c_cdd_utils.c"
+#        "cst.c"
+#        "cst_parser_helpers.c"
+#        "cst_parser_types.c"
+#        "cst_parser.c"
+#        "tokenizer.c"
+#        "tokenizer_helpers.c"
+#        "tokenizer_types.c"
 )
 source_group("Source Files" FILES "${Source_Files}")
 
@@ -73,11 +84,19 @@ target_link_libraries(
         c_str_span c_str_span_compiler_flags
 )
 
+find_package(parson CONFIG REQUIRED)
+target_link_libraries(
+        "${LIBRARY_NAME}"
+        PRIVATE
+        "parson::parson"
+)
+
 target_link_libraries(
         "${LIBRARY_NAME}"
         PRIVATE
         "${PROJECT_NAME}_compiler_flags"
 )
+
 option(DEBUG_SCANNER "Whether to print debug messages for the scan phase" OFF)
 if (DEBUG_SCANNER)
     message(STATUS "DEBUG_SCANNER = ${DEBUG_SCANNER}")
