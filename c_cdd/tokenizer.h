@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __STDC_VERSION__ >= 199901L */
 #include <c_str_span.h>
 
-C_CDD_EXPORT enum TokenKind {
+enum C_CDD_EXPORT TokenKind {
   TOKEN_WHITESPACE,
   TOKEN_COMMENT,
   TOKEN_MACRO,
@@ -29,13 +29,13 @@ C_CDD_EXPORT enum TokenKind {
   TOKEN_UNKNOWN = -1
 };
 
-C_CDD_EXPORT struct Token {
+struct C_CDD_EXPORT Token {
   enum TokenKind kind;
   const uint8_t *start;
   size_t length;
 };
 
-C_CDD_EXPORT struct TokenList {
+struct C_CDD_EXPORT TokenList {
   struct Token *tokens;
   size_t size;
   size_t capacity;

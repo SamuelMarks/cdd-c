@@ -9,7 +9,7 @@ extern "C" {
 
 #include "tokenizer.h"
 
-C_CDD_EXPORT enum CstNodeKind1 {
+enum C_CDD_EXPORT CstNodeKind1 {
   CST_NODE_STRUCT,
   CST_NODE_ENUM,
   CST_NODE_UNION,
@@ -20,14 +20,14 @@ C_CDD_EXPORT enum CstNodeKind1 {
   CST_NODE_UNKNOWN
 };
 
-C_CDD_EXPORT struct CstNode1 {
+struct C_CDD_EXPORT CstNode1 {
   enum CstNodeKind1 kind;
   const uint8_t *start;
   size_t length;
   /* For struct/enum/union: member list etc could be added here */
 };
 
-C_CDD_EXPORT struct CstNodeList {
+struct C_CDD_EXPORT CstNodeList {
   struct CstNode1 *nodes;
   size_t size;
   size_t capacity;

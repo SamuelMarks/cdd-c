@@ -15,13 +15,13 @@ extern "C" {
 
 #include "simple_mocks_export.h"
 
-SIMPLE_MOCKS_EXPORT enum Tank { BIG, SMALL, UNKNOWN = -1 };
+enum SIMPLE_MOCKS_EXPORT Tank { BIG, SMALL, UNKNOWN = -1 };
 
 extern SIMPLE_MOCKS_EXPORT int Tank_to_str(enum Tank, char **);
 
 extern SIMPLE_MOCKS_EXPORT int Tank_from_str(const char *, enum Tank *);
 
-SIMPLE_MOCKS_EXPORT struct HazE {
+struct SIMPLE_MOCKS_EXPORT HazE {
   const char *bzr;
   enum Tank tank;
 };
@@ -33,13 +33,12 @@ extern SIMPLE_MOCKS_EXPORT bool HazE_eq(const struct HazE *,
 
 extern SIMPLE_MOCKS_EXPORT int HazE_to_json(const struct HazE *, char **);
 
-extern SIMPLE_MOCKS_EXPORT int HazE_from_json(const char *,
-                                              struct HazE const **);
+extern SIMPLE_MOCKS_EXPORT int HazE_from_json(const char *, struct HazE **);
 
 extern SIMPLE_MOCKS_EXPORT int HazE_from_jsonObject(const JSON_Object *,
                                                     struct HazE **);
 
-SIMPLE_MOCKS_EXPORT struct FooE {
+struct SIMPLE_MOCKS_EXPORT FooE {
   const char *bar;
   int can;
   struct HazE *haz;
