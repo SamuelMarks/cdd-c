@@ -12,7 +12,7 @@
 #define strdup _strdup
 #define PATH_MAX _MAX_PATH
 #else
-#include <sys/syslimits.h>
+#include <limits.h>
 #endif
 
 #if __STDC_VERSION__ >= 199901L

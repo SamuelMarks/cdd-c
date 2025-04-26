@@ -470,9 +470,6 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     return -1;
 
   enum_members_init((struct EnumMembers *)fields); /* Clear fields struct */
-  // NOTE: use struct_fields_init, if you have that:
-  // But assuming you have struct_fields_init (like enum_members_init),
-  // or implement here:
 
   fields->capacity = 0;
   fields->size = 0;
