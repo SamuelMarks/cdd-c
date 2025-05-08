@@ -12,18 +12,11 @@ int main(int argc, char **argv) {
     fprintf(stderr,
             "Usage: %s <command> [args]\n"
             "Commands:\n"
-            "  schema2code <schema.json> <basename>\n"
             "  code2schema <header.h> <schema.json>\n"
+            "  schema2code <schema.json> <basename>\n"
             "  sync_code <header.h> <impl.c>\n",
             argc > 0 ? argv[0] : "c_cdd_cli");
     return EXIT_FAILURE;
-  } else if (strcmp(argv[1], "schema2code") == 0) {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s schema2code <schema.json> <basename>\n",
-              argv[0]);
-      return EXIT_FAILURE;
-    }
-    return schema2code_main(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "code2schema") == 0) {
     /* code2schema expects exactly 2 arguments */
     if (argc != 4) {
@@ -32,6 +25,13 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     return code2schema_main(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "schema2code") == 0) {
+    if (argc != 4) {
+      fprintf(stderr, "Usage: %s schema2code <schema.json> <basename>\n",
+              argv[0]);
+      return EXIT_FAILURE;
+    }
+    return schema2code_main(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "sync_code") == 0) {
     /* sync_code expects exactly 2 arguments */
     if (argc != 4) {
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   } else {
     fprintf(stderr, "Unknown command: %s\n", argv[1]);
     fprintf(stderr,
-            "Available commands: schema2code, code2schema, sync_code\n");
+            "Available commands: code2schema, schema2code, sync_code\n");
     return EXIT_FAILURE;
   }
 }
