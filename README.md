@@ -9,15 +9,21 @@ Frontend for C, concentrating on: generation from code; single-file analysis; mo
 
 Use-cases:
 
-- Generate/update `free` calling `int cleanup_StructName(struct StructName*)` functions, e.g.:
+- Generate/update `free` calling `int StructName_cleanup(struct StructName*)` functions, e.g.:
     - `struct Foo { struct Bar *bar;}; struct Bar { int a; };` will generate:
-    - `int cleanup_Bar(struct Bar*);` &
-    - `int cleanup_Foo(struct Foo*);` (which internally will call `cleanup_Bar`)
+    - `int Bar_cleanup(struct Bar*);` &
+    - `int Foo_cleanup(struct Foo*);` (which internally will call `Bar_cleanup`)
 - With `fmt` of JSON, INI, YAML, TOML, &etc.:
     - Generate/update parsers from `const char*` to `struct`:
       `const int StructName_<fmt>_parse(struct StructName*, const char*)` function;
     - Generate/update emitters from `struct` to `char*`:
       `const int StructName_<fmt>_emit(const struct StructName*, char*)` function;
+- And helper functions inspired by Haskell typeclasses & Rust traits like:
+    - `bool Bar_eq(struct Bar*, struct Bar*);`
+    - `int Bar_default(struct Bar*);`
+    - `int Bar_deepcopy(const struct Bar*, struct Bar*);`
+    - `int Bar_display(struct Bar*, char*);`
+    - `int Bar_debug(struct Bar*, char*);`
 - Generate Google Cloud client library for C (
   with [Google Cloud API Discovery Service](https://developers.google.com/discovery/v1/reference) as input);
 - Generate arbitrary C client libraries (with [OpenAPI](https://spec.openapis.org/oas/v3.1.0) as input);
