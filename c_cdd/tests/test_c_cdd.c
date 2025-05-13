@@ -10,6 +10,7 @@
 #include "test_macro.h"*/
 #include "test_json_from_and_to.h"
 #include "test_parsing.h"
+#include "test_dataclasses.h"
 /*#include "test_struct.h"
 #include "test_tokenizer.h"
 #include "test_whitespace.h"*/
@@ -30,5 +31,6 @@ int main(int argc, char **argv) {
   */
   RUN_SUITE(parsing_suite);
   RUN_SUITE(json_from_and_to_suite);
+  RUN_SUITE(dataclasses_suite);
   GREATEST_MAIN_END();
 }
