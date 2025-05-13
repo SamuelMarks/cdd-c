@@ -19,11 +19,11 @@ Use-cases:
     - Generate/update emitters from `struct` to `char*`:
       `const int StructName_<fmt>_emit(const struct StructName*, char*)` function;
 - And helper functions inspired by Haskell typeclasses & Rust traits like:
-    - `bool Bar_eq(struct Bar*, struct Bar*);`
-    - `int Bar_default(struct Bar*);`
-    - `int Bar_deepcopy(const struct Bar*, struct Bar*);`
-    - `int Bar_display(struct Bar*, char*);`
-    - `int Bar_debug(struct Bar*, char*);`
+    - `bool StructName_eq(struct StructName*, struct StructName*);`
+    - `int StructName_default(struct StructName*);`
+    - `int StructName_deepcopy(const struct StructName*, struct StructName*);`
+    - `int StructName_display(struct StructName*, FILE*);`
+    - `int StructName_debug(struct StructName*, FILE*);`
 - Generate Google Cloud client library for C (
   with [Google Cloud API Discovery Service](https://developers.google.com/discovery/v1/reference) as input);
 - Generate arbitrary C client libraries (with [OpenAPI](https://spec.openapis.org/oas/v3.1.0) as input);

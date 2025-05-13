@@ -11,11 +11,15 @@ extern "C" {
 #endif /* __STDC_VERSION__ >= 199901L */
 #endif /* __cplusplus */
 
+#include <stdio.h>
+
 #include <parson.h>
 
 #include "simple_mocks_export.h"
 
 enum SIMPLE_MOCKS_EXPORT Tank { BIG, SMALL, UNKNOWN = -1 };
+
+extern SIMPLE_MOCKS_EXPORT enum Tank Tank_default(void);
 
 extern SIMPLE_MOCKS_EXPORT int Tank_to_str(enum Tank, char **);
 
@@ -27,6 +31,15 @@ struct SIMPLE_MOCKS_EXPORT HazE {
 };
 
 extern SIMPLE_MOCKS_EXPORT void HazE_cleanup(struct HazE *);
+
+extern SIMPLE_MOCKS_EXPORT int HazE_default(struct HazE **);
+
+extern SIMPLE_MOCKS_EXPORT int HazE_deepcopy(const struct HazE *,
+                                             struct HazE **);
+
+extern SIMPLE_MOCKS_EXPORT int HazE_display(const struct HazE *, FILE *);
+
+extern SIMPLE_MOCKS_EXPORT int HazE_debug(const struct HazE *, FILE *);
 
 extern SIMPLE_MOCKS_EXPORT bool HazE_eq(const struct HazE *,
                                         const struct HazE *);
@@ -45,6 +58,15 @@ struct SIMPLE_MOCKS_EXPORT FooE {
 };
 
 extern SIMPLE_MOCKS_EXPORT void FooE_cleanup(struct FooE *);
+
+extern SIMPLE_MOCKS_EXPORT int FooE_default(struct FooE **);
+
+extern SIMPLE_MOCKS_EXPORT int FooE_deepcopy(const struct FooE *,
+                                             struct FooE **);
+
+extern SIMPLE_MOCKS_EXPORT int FooE_display(const struct FooE *, FILE *);
+
+extern SIMPLE_MOCKS_EXPORT int FooE_debug(const struct FooE *, FILE *);
 
 extern SIMPLE_MOCKS_EXPORT bool FooE_eq(const struct FooE *,
                                         const struct FooE *);
