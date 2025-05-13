@@ -15,21 +15,28 @@
 int quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
+    if (*s1 == NULL)
+      return ENOMEM;
     return 0;
   }
   {
     const size_t n = strlen(s);
     size_t i;
-    *s1 = malloc(sizeof *s1 * (n + 2));
+    *s1 = malloc((n + 3) * sizeof(char));
     if (*s1 == NULL)
       return ENOMEM;
     (*s1)[0] = '"';
-    /* TODO: optimise with memcpy or strcpy or some variant thereof */
     for (i = 0; i < n; ++i)
       (*s1)[i + 1] = s[i];
-    (*s1)[n] = '"';
+    (*s1)[n + 1] = '"';
+    (*s1)[n + 2] = '\0';
   }
   return 0;
+}
+
+bool c_str_eq(const char *const s0, const char *const s1) {
+  return s0 == NULL && s1 == NULL ||
+         (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0);
 }
 
 enum Tank Tank_default(void) { return BIG; }
@@ -94,6 +101,7 @@ int HazE_deepcopy(const struct HazE *const haz_e_original,
   if ((*haz_e_dest)->bzr == NULL) {
     free(*haz_e_dest);
     *haz_e_dest = NULL;
+    return ENOMEM;
   }
   return 0;
 }
@@ -134,9 +142,16 @@ int HazE_debug(const struct HazE *const haz_e, FILE *fh) {
 }
 
 bool HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
-  return (haz_e0 == NULL && haz_e1 == NULL) ||
-         (haz_e0 != NULL && haz_e1 != NULL && haz_e0->tank == haz_e1->tank &&
-          strcmp(haz_e0->bzr, haz_e1->bzr) == 0);
+  if (haz_e0 == NULL && haz_e1 == NULL)
+    return true;
+  else if (haz_e0 == NULL || haz_e1 == NULL || haz_e0->tank != haz_e1->tank)
+    return false;
+  else if (haz_e0->bzr == NULL && haz_e1->bzr == NULL)
+    return true;
+  else if (haz_e0->bzr == NULL || haz_e1->bzr == NULL)
+    return false;
+  else
+    return strcmp(haz_e0->bzr, haz_e1->bzr) == 0;
 }
 
 int HazE_to_json(const struct HazE *const haz_e, char **json) {
@@ -260,11 +275,14 @@ int FooE_deepcopy(const struct FooE *const foo_e_original,
   if ((*foo_e_dest)->bar == NULL) {
     free(*foo_e_dest);
     *foo_e_dest = NULL;
+    return ENOMEM;
   }
   rc = HazE_deepcopy(foo_e_original->haz, &(*foo_e_dest)->haz);
-  if ((*foo_e_dest)->haz == NULL) {
+  if (rc != 0) {
+    free((void *)(*foo_e_dest)->bar);
     free(*foo_e_dest);
     *foo_e_dest = NULL;
+    return rc;
   }
   return rc;
 }
@@ -301,10 +319,11 @@ int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
 }
 
 bool FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
-  if (foo_e0 == NULL || foo_e1 == NULL)
-    return foo_e0 == NULL && foo_e1 == NULL;
-  return strcmp(foo_e0->bar, foo_e1->bar) == 0 && foo_e0->can == foo_e1->can &&
-         HazE_eq(foo_e0->haz, foo_e1->haz);
+  return (foo_e0 == NULL && foo_e1 == NULL) ||
+         (foo_e0 != NULL && foo_e1 != NULL &&
+          foo_e0->can == foo_e1->can &&
+          c_str_eq(foo_e0->bar, foo_e1->bar) &&
+          HazE_eq(foo_e0->haz, foo_e1->haz));
 }
 
 int FooE_to_json(const struct FooE *const foo_e, char **const json) {
