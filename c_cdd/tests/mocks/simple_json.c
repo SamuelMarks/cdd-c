@@ -97,11 +97,15 @@ int HazE_deepcopy(const struct HazE *const haz_e_original,
   if (*haz_e_dest == NULL)
     return ENOMEM;
   (*haz_e_dest)->tank = haz_e_original->tank;
-  (*haz_e_dest)->bzr = strdup(haz_e_original->bzr);
-  if ((*haz_e_dest)->bzr == NULL) {
-    free(*haz_e_dest);
-    *haz_e_dest = NULL;
-    return ENOMEM;
+  if (haz_e_original->bzr == NULL) {
+    (*haz_e_dest)->bzr = NULL;
+  } else {
+    (*haz_e_dest)->bzr = strdup(haz_e_original->bzr);
+    if ((*haz_e_dest)->bzr == NULL) {
+      free(*haz_e_dest);
+      *haz_e_dest = NULL;
+      return ENOMEM;
+    }
   }
   return 0;
 }
@@ -271,15 +275,20 @@ int FooE_deepcopy(const struct FooE *const foo_e_original,
   *foo_e_dest = malloc(sizeof(**foo_e_dest));
   if (*foo_e_dest == NULL)
     return ENOMEM;
-  (*foo_e_dest)->bar = strdup(foo_e_original->bar);
-  if ((*foo_e_dest)->bar == NULL) {
-    free(*foo_e_dest);
-    *foo_e_dest = NULL;
-    return ENOMEM;
+  if (foo_e_original->bar == NULL)
+    (*foo_e_dest)->bar = NULL;
+  else {
+    (*foo_e_dest)->bar = strdup(foo_e_original->bar);
+    if ((*foo_e_dest)->bar == NULL) {
+      free(*foo_e_dest);
+      *foo_e_dest = NULL;
+      return ENOMEM;
+    }
   }
   rc = HazE_deepcopy(foo_e_original->haz, &(*foo_e_dest)->haz);
   if (rc != 0) {
-    free((void *)(*foo_e_dest)->bar);
+    if ((*foo_e_dest)->bar != NULL)
+      free((void *)(*foo_e_dest)->bar);
     free(*foo_e_dest);
     *foo_e_dest = NULL;
     return rc;
@@ -320,8 +329,7 @@ int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
 
 bool FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
   return (foo_e0 == NULL && foo_e1 == NULL) ||
-         (foo_e0 != NULL && foo_e1 != NULL &&
-          foo_e0->can == foo_e1->can &&
+         (foo_e0 != NULL && foo_e1 != NULL && foo_e0->can == foo_e1->can &&
           c_str_eq(foo_e0->bar, foo_e1->bar) &&
           HazE_eq(foo_e0->haz, foo_e1->haz));
 }

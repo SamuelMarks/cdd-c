@@ -8,9 +8,9 @@
 #include "test_function.h"
 #include "test_literal_str.h"
 #include "test_macro.h"*/
+#include "test_dataclasses.h"
 #include "test_json_from_and_to.h"
 #include "test_parsing.h"
-#include "test_dataclasses.h"
 /*#include "test_struct.h"
 #include "test_tokenizer.h"
 #include "test_whitespace.h"*/
