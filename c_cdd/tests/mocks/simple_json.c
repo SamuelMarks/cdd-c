@@ -61,16 +61,20 @@ int Tank_to_str(const enum Tank tank, char **const str) {
   return rc;
 }
 
-int Tank_from_str(const char *str, enum Tank *const tank) {
+int Tank_from_str(const char *str, enum Tank *val) {
   int rc = 0;
-  if (str == NULL || tank == NULL)
+  if (val == NULL)
     rc = EINVAL;
+  else if (str == NULL)
+    *val = UNKNOWN;
   else if (strcmp(str, "BIG") == 0)
-    *tank = BIG;
+    *val = BIG;
   else if (strcmp(str, "SMALL") == 0)
-    *tank = SMALL;
+    *val = SMALL;
+  else if (strcmp(str, "UNKNOWN") == 0)
+    *val = UNKNOWN;
   else
-    *tank = UNKNOWN;
+    *val = UNKNOWN;
   return rc;
 }
 
@@ -297,7 +301,7 @@ int FooE_deepcopy(const struct FooE *const foo_e_original,
 }
 
 int FooE_display(const struct FooE *foo_e, FILE *fh) {
-  char *s;
+  char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
   if (rc != 0)
     return rc;
