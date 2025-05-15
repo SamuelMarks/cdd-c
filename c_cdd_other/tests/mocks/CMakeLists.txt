@@ -1,9 +1,9 @@
 set(LIBRARY_NAME "simple_mocks")
 
-set(Header_Files "simple.h" "simple_json.h" "c_cdd_stdbool.h")
+set(Header_Files "simple.h" "c_cdd_stdbool.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "simple.c" "simple_json.c")
+set(Source_Files "simple.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")

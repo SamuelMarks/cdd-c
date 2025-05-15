@@ -1,5 +1,7 @@
 #include "codegen.h"
 
+#include "fs.h"
+
 #include <string.h>
 
 void write_enum_to_str_func(FILE *cfile, const char *enum_name,
@@ -50,17 +52,21 @@ void write_enum_from_str_func(FILE *cfile, const char *enum_name,
 
   /* Defensive: validate inputs */
   if (!cfile || !enum_name || !em) {
-    fprintf(stderr, "write_enum_from_str_func: NULL argument\n");
+    fputs("write_enum_from_str_func: NULL argument", stderr);
     return;
   }
   if (!em->members) {
-    fprintf(stderr, "write_enum_from_str_func: NULL em->members pointer\n");
+    fputs("write_enum_from_str_func: NULL em->members pointer", stderr);
     return;
   }
 
   fprintf(cfile,
           "int %s_from_str(const char *str, enum %s *val) {\n"
-          "  if (str == NULL || val == NULL) return -1;\n",
+          "  int rc = 0;\n"
+          "  if (val == NULL)\n"
+          "    rc = EINVAL;\n"
+          "  else if (str == NULL)\n"
+          "    *val = UNKNOWN;\n",
           enum_name, enum_name);
 
   for (i = 0; i < em->size; i++) {
@@ -68,16 +74,16 @@ void write_enum_from_str_func(FILE *cfile, const char *enum_name,
       continue;
 
     fprintf(cfile,
-            "  if (strcmp(str, \"%s\") == 0) {\n"
-            "    *val = %s;\n"
-            "    return 0;\n"
-            "  }\n",
+            "  else if (strcmp(str, \"%s\") == 0)\n"
+            "    *val = %s;\n",
             em->members[i], em->members[i]);
   }
 
-  fprintf(cfile, "  *val = UNKNOWN;\n"
-                 "  return 0;\n"
-                 "}\n\n");
+  fputs("  else\n"
+        "    *val = UNKNOWN;\n"
+        "  return rc;\n"
+        "}\n\n",
+        cfile);
 }
 
 void write_struct_from_jsonObject_func(FILE *cfile, const char *struct_name,
@@ -326,10 +332,7 @@ void write_struct_to_json_func(FILE *cfile, const char *struct_name,
               "      json_value_free(nested_val);\n"
               "    }\n"
               "  }\n",
-              name, field->ref + 1 /* strip leading '#/definitions/' if your
-                                      $ref has it, adjust if needed */
-              ,
-              name, name);
+              name, get_basename(field->ref + 1), name, name);
     }
     /* Add more type handling or arrays as needed */
   }

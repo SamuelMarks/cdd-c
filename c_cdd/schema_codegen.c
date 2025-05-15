@@ -25,6 +25,7 @@
 
 #include "code2schema.h"
 #include "codegen.h"
+#include "fs.h"
 
 /*
  * Write the #ifndef guard header string to the .h file.
@@ -272,7 +273,10 @@ static int generate_source(const char *const basename,
         "#include <parson.h>\n\n",
         cfile);
 
-  fprintf(cfile, "#include \"%s.h\"\n\n", basename);
+  {
+    const char *const base_name = get_basename(basename);
+    fprintf(cfile, "#include \"%s.h\"\n\n", base_name);
+  }
 
   fprintf(cfile,
           "/* Helper for debug: quote string or replace null with '(null)' */\n"

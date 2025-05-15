@@ -6,7 +6,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "cdd_test_helpers_export.h"
-#include "tokenizer_types.h"
 
 extern CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
 

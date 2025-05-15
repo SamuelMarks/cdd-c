@@ -11,18 +11,10 @@ set(Header_Files
         "code2schema.h"
         "codegen.h"
         "cst_parser.h"
+        "fs.h"
         "schema_codegen.h"
         "sync_code.h"
         "tokenizer.h"
-
-#        "c_cdd_utils.h"
-#        "cst.h"
-#        "cst_parser_helpers.h"
-#        "cst_parser_types.h"
-#        "str_includes.h"
-#        "tokenizer.h"
-#        "tokenizer_helpers.h"
-#        "tokenizer_types.h"
 )
 source_group("Header Files" FILES "${Header_Files}")
 
@@ -30,17 +22,10 @@ set(Source_Files
         "code2schema.c"
         "codegen.c"
         "cst_parser.c"
+        "fs.c"
         "schema_codegen.c"
         "sync_code.c"
         "tokenizer.c"
-
-#        "c_cdd_utils.c"
-#        "cst.c"
-#        "cst_parser_helpers.c"
-#        "cst_parser_types.c"
-#        "tokenizer.c"
-#        "tokenizer_helpers.c"
-#        "tokenizer_types.c"
 )
 source_group("Source Files" FILES "${Source_Files}")
 
