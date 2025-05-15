@@ -30,9 +30,16 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
+#        "test_comment.h"
+#        "test_function.h"
+#        "test_literal_str.h"
+#        "test_macro.h"
         "test_dataclasses.h"
         "test_json_from_and_to.h"
         "test_parsing.h"
+#        "test_struct.h"
+#        "test_tokenizer.h"
+#        "test_whitespace.h"
 )
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
@@ -45,7 +52,7 @@ source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
 add_library("${LIBRARY_NAME}" INTERFACE)
 add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}")
-set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER ".")
 
 target_include_directories(
         "${LIBRARY_NAME}"
