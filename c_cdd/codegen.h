@@ -46,27 +46,38 @@ struct StructFields {
   struct StructField *fields;
 };
 
-extern C_CDD_EXPORT void write_struct_eq_func(FILE *, const char *,
-                                              const struct StructFields *);
+extern C_CDD_EXPORT void write_enum_from_str_func(FILE *, const char *,
+                                                  const struct EnumMembers *);
 
-extern C_CDD_EXPORT void write_struct_to_json_func(FILE *, const char *,
-                                                   const struct StructFields *);
+extern C_CDD_EXPORT void write_enum_to_str_func(FILE *, const char *,
+                                                const struct EnumMembers *);
 
 extern C_CDD_EXPORT void write_struct_cleanup_func(FILE *, const char *,
                                                    const struct StructFields *);
 
-extern C_CDD_EXPORT void write_struct_from_json_func(FILE *, const char *);
+extern C_CDD_EXPORT void write_struct_debug_func(FILE *, const char *,
+                                                 const struct StructFields *);
+
+extern C_CDD_EXPORT void
+write_struct_deepcopy_func(FILE *, const char *, const struct StructFields *);
+
+extern C_CDD_EXPORT void write_struct_default_func(FILE *, const char *,
+                                                   const struct StructFields *);
+
+extern C_CDD_EXPORT void write_struct_display_func(FILE *, const char *,
+                                                   const struct StructFields *);
+
+extern C_CDD_EXPORT void write_struct_eq_func(FILE *, const char *,
+                                              const struct StructFields *);
 
 extern C_CDD_EXPORT void
 write_struct_from_jsonObject_func(FILE *, const char *,
                                   const struct StructFields *);
 
-/* FIXED: use struct EnumMembers for enum codegen */
-extern C_CDD_EXPORT void write_enum_to_str_func(FILE *, const char *,
-                                                const struct EnumMembers *);
+extern C_CDD_EXPORT void write_struct_from_json_func(FILE *, const char *);
 
-extern C_CDD_EXPORT void write_enum_from_str_func(FILE *, const char *,
-                                                  const struct EnumMembers *);
+extern C_CDD_EXPORT void write_struct_to_json_func(FILE *, const char *,
+                                                   const struct StructFields *);
 
 #ifdef __cplusplus
 }
