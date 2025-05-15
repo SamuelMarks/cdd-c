@@ -141,17 +141,24 @@ static void print_struct_declaration(FILE *const hfile,
   }
   fprintf(hfile, "};\n\n");
 
-  fprintf(hfile, "void %s_cleanup(struct %s *const);\n", struct_name,
+  fprintf(hfile, "int %s_debug(const struct %s *, FILE *);\n\n", struct_name,
           struct_name);
-  fprintf(hfile, "int %s_to_json(const struct %s *const, char **);\n",
-          struct_name, struct_name);
+  fprintf(hfile, "int %s_deepcopy(const struct %s *, struct %s **);\n",
+          struct_name, struct_name, struct_name);
+  fprintf(hfile, "int %s_default(struct %s **);\n", struct_name, struct_name);
+  fprintf(hfile, "int %s_display(const struct %s *, FILE *);\n", struct_name,
+          struct_name);
+  fprintf(hfile,
+          "int %s_eq(const struct %s *const, const struct %s *const);\n\n",
+          struct_name, struct_name, struct_name);
   fprintf(hfile, "int %s_from_json(const char *, struct %s **);\n", struct_name,
           struct_name);
   fprintf(hfile, "int %s_from_jsonObject(const JSON_Object *, struct %s **);\n",
           struct_name, struct_name);
-  fprintf(hfile,
-          "int %s_eq(const struct %s *const, const struct %s *const);\n\n",
-          struct_name, struct_name, struct_name);
+  fprintf(hfile, "int %s_to_json(const struct %s *const, char **);\n",
+          struct_name, struct_name);
+  fprintf(hfile, "void %s_cleanup(struct %s *const);\n", struct_name,
+          struct_name);
 }
 
 /*
@@ -195,7 +202,8 @@ static int generate_header(const char *const basename,
 
   fprintf(hfile, "#include <parson.h>\n"
                  "#include <stdlib.h>\n"
-                 "#include <stdbool.h>\n\n");
+                 "#include <stdbool.h>\n"
+                 "#include <stdio.h>\n\n");
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {
@@ -254,11 +262,38 @@ static int generate_source(const char *const basename,
     return -1;
   }
 
-  fprintf(cfile, "#include <stdlib.h>\n");
-  fprintf(cfile, "#include <string.h>\n");
-  fprintf(cfile, "#include <stdio.h>\n");
-  fprintf(cfile, "#include <parson.h>\n");
+  fputs("#include <stdlib.h>\n"
+        "#include <string.h>\n"
+        "#include <stdio.h>\n\n"
+        "#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)\n"
+        "#else\n"
+        "#include <sys/errno.h>\n"
+        "#endif\n"
+        "#include <parson.h>\n\n",
+        cfile);
+
   fprintf(cfile, "#include \"%s.h\"\n\n", basename);
+
+  fprintf(cfile,
+          "/* Helper for debug: quote string or replace null with '(null)' */\n"
+          "static int quote_or_null(const char *s, char **out) {\n"
+          "  size_t n;\n"
+          "  size_t i;\n"
+          "  char *buf;\n"
+          "  if (s == NULL) {\n"
+          "    *out = strdup(\"(null)\");\n"
+          "    return *out == NULL ? ENOMEM : 0;\n"
+          "  }\n"
+          "  n = strlen(s);\n"
+          "  buf = (char *)malloc(n + 3);\n"
+          "  if (!buf) return ENOMEM;\n"
+          "  buf[0] = '\"';\n"
+          "  for (i = 0; i < n; i++) buf[i + 1] = s[i];\n"
+          "  buf[n + 1] = '\"';\n"
+          "  buf[n + 2] = '\\0';\n"
+          "  *out = buf;\n"
+          "  return 0;\n"
+          "}\n\n");
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {
@@ -301,11 +336,15 @@ static int generate_source(const char *const basename,
         continue;
       }
 
-      write_struct_cleanup_func(cfile, schema_name, &fields);
+      write_struct_debug_func(cfile, schema_name, &fields);
+      write_struct_deepcopy_func(cfile, schema_name, &fields);
+      write_struct_default_func(cfile, schema_name, &fields);
+      write_struct_display_func(cfile, schema_name, &fields);
       write_struct_eq_func(cfile, schema_name, &fields);
-      write_struct_to_json_func(cfile, schema_name, &fields);
       write_struct_from_jsonObject_func(cfile, schema_name, &fields);
       write_struct_from_json_func(cfile, schema_name);
+      write_struct_to_json_func(cfile, schema_name, &fields);
+      write_struct_cleanup_func(cfile, schema_name, &fields);
 
       /* Free fields data */
       if (fields.fields) {

@@ -9,6 +9,7 @@ set(LIBRARY_NAME "${PROJECT_NAME}")
 set(Header_Files
         "c_cdd_stdbool.h"
         "code2schema.h"
+        "codegen.h"
         "cst_parser.h"
         "schema_codegen.h"
         "sync_code.h"
