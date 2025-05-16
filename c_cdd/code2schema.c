@@ -119,16 +119,35 @@ void struct_fields_add(struct StructFields *sf, const char *name,
       exit(1);
     }
   }
-  strncpy(sf->fields[sf->size].name, name,
-          sizeof(sf->fields[sf->size].name) - 1);
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strncpy_s(sf->fields[sf->size].name,
+            sizeof(sf->fields[sf->size].name), name, _TRUNCATE);
+#else
+  strncpy(sf->fields[sf->size].name, name, sizeof(sf->fields[sf->size].name));
+  sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
+
   sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = 0;
-  strncpy(sf->fields[sf->size].type, type,
-          sizeof(sf->fields[sf->size].type) - 1);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strncpy_s(sf->fields[sf->size].type,
+            sizeof(sf->fields[sf->size].type), type, _TRUNCATE);
+#else
+  strncpy(sf->fields[sf->size].type, type, sizeof(sf->fields[sf->size].type));
+  sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
   sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = 0;
-  if (ref)
-    strncpy(sf->fields[sf->size].ref, ref,
-            sizeof(sf->fields[sf->size].ref) - 1);
-  else
+  if (ref) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(sf->fields[sf->size].ref,
+              sizeof(sf->fields[sf->size].ref), ref, _TRUNCATE);
+#else
+    strncpy(sf->fields[sf->size].ref, ref, sizeof(sf->fields[sf->size].ref));
+    sf->fields[sf->size].ref[sizeof(sf->fields[sf->size].ref) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+  } else
     sf->fields[sf->size].ref[0] = 0;
   sf->fields[sf->size].ref[sizeof(sf->fields[sf->size].ref) - 1] = 0;
   sf->size++;
@@ -504,14 +523,22 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     field = &fields->fields[fields->size];
 
     /* Set field name */
-    strncpy(field->name, key, sizeof(field->name) - 1);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(field->name, sizeof(field->name), key, _TRUNCATE);
+#else
+    strncpy(field->name, key, sizeof(field->name));
     field->name[sizeof(field->name) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
     /* Read "type" */
     type_str = json_object_get_string(prop_obj, "type");
     if (type_str) {
-      strncpy(field->type, type_str, sizeof(field->type) - 1);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      strncpy_s(field->type, sizeof(field->type), type_str, _TRUNCATE);
+#else
+      strncpy(field->type, type_str, sizeof(field->type));
       field->type[sizeof(field->type) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
     } else {
       field->type[0] = '\0'; /* no type */
     }
@@ -519,8 +546,12 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     /* Read "$ref" if present (usually for nested structs) */
     ref_str = json_object_get_string(prop_obj, "$ref");
     if (ref_str) {
-      strncpy(field->ref, ref_str, sizeof(field->ref) - 1);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      strncpy_s(field->ref, sizeof(field->ref), ref_str, _TRUNCATE);
+#else
+      strncpy(field->ref, ref_str, sizeof(field->ref));
       field->ref[sizeof(field->ref) - 1] = '\0';
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
     } else {
       field->ref[0] = '\0';
     }
