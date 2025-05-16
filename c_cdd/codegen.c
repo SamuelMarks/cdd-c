@@ -1,8 +1,19 @@
+#include <string.h>
+
 #include "codegen.h"
 
 #include "fs.h"
 
-#include <string.h>
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define NUM_LONG_FMT "z"
+#include <inttypes.h>
+#define INT_FMT PRId32
+#else
+#define NUM_LONG_FMT "l"
+#include <inttypes.h>
+#define INT_FMT PRIdMAX
+#endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
+defined(__NT__) */
 
 void write_enum_to_str_func(FILE *cfile, const char *enum_name,
                             const struct EnumMembers *em) {
@@ -319,6 +330,23 @@ void write_struct_to_json_func(FILE *cfile, const char *struct_name,
     } else if (strcmp(field->type, "boolean") == 0) {
       fprintf(cfile, "  json_object_set_boolean(object, \"%s\", obj->%s);\n",
               name, name);
+    } else if (strcmp(field->type, "enum") == 0) {
+      fprintf(cfile,
+              "  {\n"
+              "    char *str = NULL;\n"
+              "    if (obj->%s != NULL) {\n"
+              "      int rc = %s_to_str(*(obj->%s), &str);\n"
+              "      if (rc) {\n"
+              "        json_value_free(root);\n"
+              "        return rc;\n"
+              "      }\n"
+              "      json_object_set_string(object, \"%s\", str);\n"
+              "      free(str);\n"
+              "    } else {\n"
+              "      json_object_set_null(object, \"%s\");\n"
+              "    }\n"
+              "  }\n",
+              field->name, field->ref, field->name, field->name, field->name);
     } else if (field->ref[0] != '\0') {
       /* Nested struct ref: assume we have a to_json function and pointer */
       fprintf(cfile,
@@ -472,6 +500,7 @@ void write_struct_debug_func(FILE *const f, const char *const struct_name,
 
   for (i = 0; i < fields->size; i++) {
     struct StructField field = fields->fields[i];
+
     if (strcmp(field.type, "string") == 0) {
       fprintf(f,
               "  {\n"
@@ -485,19 +514,23 @@ void write_struct_debug_func(FILE *const f, const char *const struct_name,
               "  }\n",
               field.name);
     } else if (strcmp(field.type, "integer") == 0) {
-      fprintf(f, "  rc = fprintf(fh, \"  /* int */ %d\\n\", obj->%s);\n",
+      fprintf(f,
+              "  rc = fprintf(fh, \"  /* int */ " INT_FMT "\\n\", obj->%s);\n",
               field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "boolean") == 0) {
-      fprintf(f, "  rc = fprintf(fh, \"  /* int (bool) */ %d\\n\", obj->%s);\n",
+      fprintf(f,
+              "  rc = fprintf(fh, \"  /* int (bool) */ %%d\\n\", obj->%s);\n",
               field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "number") == 0) {
-      fprintf(f, "  rc = fprintf(fh, \"  /* double */ %%f\\n\", obj->%s);\n",
+      fprintf(f,
+              "  rc = fprintf(fh, \"  /* double */ %%f\\n\", obj->%s);\n",
               field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "enum") == 0) {
-      fprintf(f, "  rc = fprintf(fh, \"  /* enum %s */ %d\\n\", obj->%s);\n",
+      fprintf(f,
+              "  rc = fprintf(fh, \"  /* enum %s */ %%d\\n\", obj->%s);\n",
               field.ref, field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "object") == 0) {
@@ -512,6 +545,7 @@ void write_struct_debug_func(FILE *const f, const char *const struct_name,
               field.name);
     }
   }
+
   fprintf(f, "  rc = fputs(\"};\\n\", fh);\n");
   fprintf(f, "  if (rc < 0) return rc;\n");
   fprintf(f, "  return 0;\n");
