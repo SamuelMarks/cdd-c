@@ -45,12 +45,13 @@ static bool is_keyword(const az_span str, const size_t len,
     return false;
   }
 }
-
 int tokenize(const az_span source, struct TokenList *const out) {
-  size_t pos;
+  size_t pos = 0;
   const size_t length = az_span_size(source);
-  for (pos = 0; pos < length;) {
-    const uint8_t *const c = az_span_ptr(source) + pos;
+  const uint8_t *const base = az_span_ptr(source);
+
+  while (pos < length) {
+    const uint8_t *const c = base + pos;
     switch (*c) {
     case ' ':
     case '\t':
@@ -58,86 +59,142 @@ int tokenize(const az_span source, struct TokenList *const out) {
     case '\n':
     case '\f': {
       const size_t start = pos;
-      while (pos < length && (*c == ' ' || *c == '\t' || *c == '\r' ||
-                              *c == '\n' || *c == '\f'))
+      while (pos < length) {
+        uint8_t ch = base[pos];
+        if (!(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n' ||
+              ch == '\f'))
+          break;
         pos++;
-      if (add_token(out, TOKEN_WHITESPACE, az_span_ptr(source) + start,
-                    pos - start) != 0)
+      }
+      if (add_token(out, TOKEN_WHITESPACE, base + start,
+                    (int32_t)(pos - start)) != 0)
         return -1;
       break;
     }
+
     case '/': {
       if (pos + 1 < length) {
-        if (*(az_span_ptr(source) + pos + 1) == '/') {
+        if (base[pos + 1] == '/') {
           const size_t start = pos;
           pos += 2;
-          while (pos < length && *(az_span_ptr(source) + pos) != '\n')
+          while (pos < length && base[pos] != '\n')
             pos++;
-          if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
-                        pos - start) != 0)
+          if (add_token(out, TOKEN_COMMENT, base + start,
+                        (int32_t)(pos - start)) != 0)
             return -1;
-        } else if (*(az_span_ptr(source) + pos + 1) == '*') {
+        } else if (base[pos + 1] == '*') {
           const size_t start = pos;
           pos += 2;
-          while (pos + 1 < length && !(*(az_span_ptr(source) + pos) == '*' &&
-                                       *(az_span_ptr(source) + pos + 1) == '/'))
+          while (pos + 1 < length &&
+                 !(base[pos] == '*' && base[pos + 1] == '/'))
             pos++;
           if (pos + 1 >= length) {
-            pos = length; /* unterminated comment */
-            if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
-                          pos - start) != 0)
+            // unterminated comment
+            pos = length;
+            if (add_token(out, TOKEN_COMMENT, base + start,
+                          (int32_t)(pos - start)) != 0)
+              return -1;
+          } else {
+            pos += 2;
+            if (add_token(out, TOKEN_COMMENT, base + start,
+                          (int32_t)(pos - start)) != 0)
               return -1;
           }
-          pos += 2;
-          if (add_token(out, TOKEN_COMMENT, az_span_ptr(source) + start,
-                        pos - start) != 0)
+        } else {
+          // single slash token
+          if (add_token(out, TOKEN_OTHER, base + pos, 1) != 0)
             return -1;
-          continue;
+          pos++;
         }
+      } else {
+        if (add_token(out, TOKEN_OTHER, base + pos, 1) != 0)
+          return -1;
+        pos++;
       }
-      /* Single slash is OTHER token */
-      if (add_token(out, TOKEN_OTHER, az_span_ptr(source) + pos, 1) != 0)
-        return -1;
-      pos++;
-      continue;
+      break;
     }
+
     case '#': {
       const size_t start = pos;
       pos++;
-      while (pos < length && *(az_span_ptr(source) + pos) != '\n')
+      while (pos < length && base[pos] != '\n')
         pos++;
-      if (add_token(out, TOKEN_MACRO, az_span_ptr(source) + start,
-                    pos - start) != 0)
+      if (add_token(out, TOKEN_MACRO, base + start, (int32_t)(pos - start)) !=
+          0)
         return -1;
-      continue;
+      break;
     }
-    case '{': {
-      if (add_token(out, TOKEN_LBRACE, az_span_ptr(source) + pos, 1) != 0)
-        return -1;
-      pos++;
-      continue;
-    }
-    case '}': {
-      if (add_token(out, TOKEN_RBRACE, az_span_ptr(source) + pos, 1) != 0)
-        return -1;
-      pos++;
-      continue;
-    }
-    case ';': {
-      if (add_token(out, TOKEN_SEMICOLON, az_span_ptr(source) + pos, 1) != 0)
-        return -1;
-      pos++;
-      continue;
-    }
-    case ',': {
-      if (add_token(out, TOKEN_COMMA, az_span_ptr(source) + pos, 1) != 0)
-        return -1;
-      pos++;
-      continue;
-    }
-      /* TODO: Quotes and checking if whole WORD is a number */
 
-    case '_':
+    case '{': {
+      if (add_token(out, TOKEN_LBRACE, base + pos, 1) != 0)
+        return -1;
+      pos++;
+      break;
+    }
+
+    case '}': {
+      if (add_token(out, TOKEN_RBRACE, base + pos, 1) != 0)
+        return -1;
+      pos++;
+      break;
+    }
+
+    case ';': {
+      if (add_token(out, TOKEN_SEMICOLON, base + pos, 1) != 0)
+        return -1;
+      pos++;
+      break;
+    }
+
+    case ',': {
+      if (add_token(out, TOKEN_COMMA, base + pos, 1) != 0)
+        return -1;
+      pos++;
+      break;
+    }
+
+    case '"': { // string literal
+      const size_t start = pos;
+      pos++; // skip initial "
+      while (pos < length) {
+        uint8_t ch = base[pos];
+        if (ch == '\\' && pos + 1 < length) {
+          // skip escaped character
+          pos += 2;
+          continue;
+        }
+        if (ch == '"') {
+          pos++;
+          break;
+        }
+        pos++;
+      }
+      if (add_token(out, TOKEN_STRING_LITERAL, base + start,
+                    (int32_t)(pos - start)) != 0)
+        return -1;
+      break;
+    }
+
+    case '\'': { // char literal
+      const size_t start = pos;
+      pos++; // skip initial '
+      if (pos < length) {
+        if (base[pos] == '\\' && pos + 1 < length) {
+          pos += 2; // skip escaped char
+        } else {
+          pos++;
+        }
+      }
+      if (pos < length && base[pos] == '\'') {
+        pos++;
+      }
+      // else unterminated char literal; accept as is
+      if (add_token(out, TOKEN_CHAR_LITERAL, base + start,
+                    (int32_t)(pos - start)) != 0)
+        return -1;
+      break;
+    }
+
     case '0':
     case '1':
     case '2':
@@ -147,7 +204,22 @@ int tokenize(const az_span source, struct TokenList *const out) {
     case '6':
     case '7':
     case '8':
-    case '9':
+    case '9': { // number literal
+      const size_t start = pos;
+      pos++;
+      while (pos < length) {
+        uint8_t ch = base[pos];
+        if (!uint8_t_isalnum(ch))
+          break;
+        pos++;
+      }
+      if (add_token(out, TOKEN_NUMBER_LITERAL, base + start,
+                    (int32_t)(pos - start)) != 0)
+        return -1;
+      break;
+    }
+
+    case '_':
     case 'a':
     case 'b':
     case 'c':
@@ -201,30 +273,33 @@ int tokenize(const az_span source, struct TokenList *const out) {
     case 'Y':
     case 'Z': {
       const size_t start = pos;
-      enum TokenKind kind;
       pos++;
-      while (pos < length && (uint8_t_isalnum(*(az_span_ptr(source) + pos)) ||
-                              *(az_span_ptr(source) + pos) == '_'))
+      while (pos < length && (uint8_t_isalnum(base[pos]) || base[pos] == '_'))
         pos++;
-      if (is_keyword(az_span_slice(source, start, pos - start), pos - start,
-                     &kind)) {
-        if (add_token(out, kind, az_span_ptr(source) + start, pos - start) != 0)
+      enum TokenKind kind;
+      if (is_keyword(
+              az_span_slice(source, (int32_t)start, (int32_t)(pos - start)),
+              (int32_t)(pos - start), &kind)) {
+        if (add_token(out, kind, base + start, (int32_t)(pos - start)) != 0)
           return -1;
       } else {
-        if (add_token(out, TOKEN_IDENTIFIER, az_span_ptr(source) + start,
-                      pos - start) != 0)
+        if (add_token(out, TOKEN_IDENTIFIER, base + start,
+                      (int32_t)(pos - start)) != 0)
           return -1;
       }
       break;
     }
+
     default: {
-      /* single char OTHER token */
-      if (add_token(out, TOKEN_OTHER, az_span_ptr(source) + pos, 1) != 0)
+      // single char OTHER token
+      if (add_token(out, TOKEN_OTHER, base + pos, 1) != 0)
         return -1;
       pos++;
-    } break;
+      break;
+    }
     }
   }
+
   return 0;
 }
 

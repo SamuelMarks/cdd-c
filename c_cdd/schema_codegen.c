@@ -207,11 +207,21 @@ static int generate_header(const char *const basename,
   guard_macro[j] = 0;
 
   snprintf(header_filename, sizeof(header_filename), "%s.h", basename);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    errno_t err = fopen_s(&hfile, header_filename, "w");
+    if (err != 0 || hfile == NULL) {
+      fprintf(stderr, "Failed to open header file %s\n", header_filename);
+      return -1;
+    }
+  }
+#else
   hfile = fopen(header_filename, "w");
   if (!hfile) {
     fprintf(stderr, "Failed to open header file: %s\n", header_filename);
     return -1;
   }
+#endif
 
   print_header_guard(hfile, guard_macro);
   fprintf(hfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
@@ -267,11 +277,21 @@ static int generate_source(const char *const basename,
   FILE *cfile = NULL;
 
   snprintf(source_filename, sizeof(source_filename), "%s.c", basename);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    errno_t err = fopen_s(&cfile, source_filename, "w");
+    if (err != 0 || fp == NULL) {
+      fprintf(stderr, "Failed to open source file %s\n", source_filename);
+      return -1;
+    }
+  }
+#else
   cfile = fopen(source_filename, "w");
   if (!cfile) {
     fprintf(stderr, "Failed to open source file: %s\n", source_filename);
     return -1;
   }
+#endif
 
   fputs("#include <stdlib.h>\n"
         "#include <string.h>\n"

@@ -197,13 +197,22 @@ int jsonschema2tests_main(int argc, char **argv) {
     }
 
     /* Output file */
+    FILE *f;
     {
-      FILE *f = fopen(output_file, "w");
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      errno_t err = fopen_s(&f, output_file, "w");
+      if (err != 0 || f == NULL) {
+        fprintf(stderr, "Failed to open output file %s\n", output_file);
+        return EXIT_FAILURE;
+      }
+#else
+      f = fopen(output_file, "w");
       if (!f) {
         fprintf(stderr, "Failed to open output file: %s\n", output_file);
         json_value_free(root_val);
         return EXIT_FAILURE;
       }
+#endif
 
       fprintf(f,
               "/* Auto-generated test source from JSON Schema %s */\n\n"
