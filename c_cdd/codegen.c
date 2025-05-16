@@ -15,6 +15,10 @@
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ||           \
 defined(__NT__) */
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
 void write_enum_to_str_func(FILE *cfile, const char *enum_name,
                             const struct EnumMembers *em) {
   size_t i;
