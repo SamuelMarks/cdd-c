@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "code2schema.h"
+#include "schema2tests.h"
 #include "schema_codegen.h"
 #include "sync_code.h"
 
@@ -13,6 +12,7 @@ int main(int argc, char **argv) {
             "Usage: %s <command> [args]\n"
             "Commands:\n"
             "  code2schema <header.h> <schema.json>\n"
+            "  jsonschema2tests <schema.json> <test.c>\n"
             "  schema2code <schema.json> <basename>\n"
             "  sync_code <header.h> <impl.c>\n",
             argc > 0 ? argv[0] : "c_cdd_cli");
@@ -25,6 +25,13 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     return code2schema_main(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "jsonschema2tests") == 0) {
+    if (argc != 4) {
+      fprintf(stderr, "Usage: %s jsonschema2tests <schema.json> <test.c>\n",
+              argv[0]);
+      return EXIT_FAILURE;
+    }
+    return jsonschema2tests_main(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "schema2code") == 0) {
     if (argc != 4) {
       fprintf(stderr, "Usage: %s schema2code <schema.json> <basename>\n",
