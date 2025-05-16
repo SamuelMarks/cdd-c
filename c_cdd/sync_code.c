@@ -15,9 +15,9 @@
 
 /* Reuse struct definitions and parsing utilities from code2schema.c above */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
-#endif
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #include "sync_code.h"
 

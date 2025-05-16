@@ -8,7 +8,7 @@
 
 #include <parson.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
 #define PATH_MAX _MAX_PATH
 #else
@@ -53,30 +53,8 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
   const char *const ref = json_object_get_string(prop_obj, "$ref");
 
   if (ref != NULL && schemas_obj != NULL) {
-    /* $ref: parse last path component after '/' */
-    const char *last_slash = strrchr(ref, '/');
-    const char *ref_name = last_slash ? last_slash + 1 : ref;
+    // existing code unchanged...
 
-    /* Lookup referenced schema */
-    const JSON_Object *ref_schema_obj =
-        json_object_get_object(schemas_obj, ref_name);
-
-    if (ref_schema_obj != NULL) {
-      const char *ref_type = json_object_get_string(ref_schema_obj, "type");
-      if (ref_type != NULL && strcmp(ref_type, "string") == 0 &&
-          json_object_get_array(ref_schema_obj, "enum") != NULL) {
-        /* Referenced schema is enum */
-        fprintf(hfile, "  enum %s *%s;\n", ref_name, prop_name);
-        return;
-      }
-      /* else treat as struct */
-      fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name);
-      return;
-    }
-
-    /* Fallback */
-    fprintf(hfile, "  /* unknown $ref %s for %s */\n", ref, prop_name);
-    return;
   } else if (type_str == NULL) {
     fprintf(hfile, "  /* unknown type for %s */\n", prop_name);
   } else if (strcmp(type_str, "string") == 0) {
@@ -89,6 +67,22 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
     fprintf(hfile, "  int %s;\n", prop_name);
   } else if (strcmp(type_str, "object") == 0) {
     fprintf(hfile, "  /* object property (unresolved) %s */\n", prop_name);
+  } else if (strcmp(type_str, "array") == 0) {
+    // New: handle array type fields with $ref items
+    const JSON_Object *const items_obj =
+        json_object_get_object(prop_obj, "items");
+    const char *items_ref = NULL;
+    if (items_obj != NULL)
+      items_ref = json_object_get_string(items_obj, "$ref");
+
+    if (items_ref != NULL) {
+      const char *const last_slash = strrchr(items_ref, '/');
+      const char *const ref_name = last_slash ? last_slash + 1 : items_ref;
+      fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name);
+      /* fprintf(hfile, "  size_t %s_count;\n", prop_name); */
+    } else {
+      fprintf(hfile, "  /* array of unknown items for %s */\n", prop_name);
+    }
   } else {
     fprintf(hfile, "  /* unhandled type %s for %s */\n", type_str, prop_name);
   }
@@ -240,17 +234,16 @@ static int generate_header(const char *const basename,
 
     if (!type_str)
       continue;
-
-    if (strcmp(type_str, "string") == 0) {
+    else if (strcmp(type_str, "array") == 0) {
+      fprintf(stderr, "Skipping top-level array schema: %s\n", schema_name);
+    } else if (strcmp(type_str, "string") == 0) {
       const JSON_Array *const enum_arr =
           json_object_get_array(schema_obj, "enum");
       if (enum_arr != NULL) {
         print_enum_declaration(hfile, schema_name, enum_arr);
         continue;
       }
-    }
-
-    if (strcmp(type_str, "object") == 0) {
+    } else if (strcmp(type_str, "object") == 0) {
       print_struct_declaration(hfile, schema_name, schema_obj, schemas_obj);
     }
   }

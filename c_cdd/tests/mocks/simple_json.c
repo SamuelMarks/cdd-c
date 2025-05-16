@@ -6,6 +6,10 @@
 #include <sys/errno.h>
 #endif
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
 #include <parson.h>
 
 #include <c89stringutils_string_extras.h>

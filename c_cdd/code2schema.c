@@ -27,6 +27,10 @@
 
 #include "code2schema.h"
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
 /* Trim trailing whitespace and semicolons */
 void trim_trailing(char *const str) {
   size_t len = strlen(str);

@@ -1,9 +1,10 @@
 #ifndef TEST_CODEGEN_H
 #define TEST_CODEGEN_H
 
-#ifndef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
 #define _POSIX_C_SOURCE 200809L
-#endif
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #include <stdio.h>
 #include <stdlib.h>
