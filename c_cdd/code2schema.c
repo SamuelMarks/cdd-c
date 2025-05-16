@@ -121,18 +121,17 @@ void struct_fields_add(struct StructFields *sf, const char *name,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  strncpy_s(sf->fields[sf->size].name,
-            sizeof(sf->fields[sf->size].name), name, _TRUNCATE);
+  strncpy_s(sf->fields[sf->size].name, sizeof(sf->fields[sf->size].name), name,
+            _TRUNCATE);
 #else
   strncpy(sf->fields[sf->size].name, name, sizeof(sf->fields[sf->size].name));
   sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = '\0';
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
-
   sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = 0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  strncpy_s(sf->fields[sf->size].type,
-            sizeof(sf->fields[sf->size].type), type, _TRUNCATE);
+  strncpy_s(sf->fields[sf->size].type, sizeof(sf->fields[sf->size].type), type,
+            _TRUNCATE);
 #else
   strncpy(sf->fields[sf->size].type, type, sizeof(sf->fields[sf->size].type));
   sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = '\0';
@@ -141,8 +140,8 @@ void struct_fields_add(struct StructFields *sf, const char *name,
   sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = 0;
   if (ref) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    strncpy_s(sf->fields[sf->size].ref,
-              sizeof(sf->fields[sf->size].ref), ref, _TRUNCATE);
+    strncpy_s(sf->fields[sf->size].ref, sizeof(sf->fields[sf->size].ref), ref,
+              _TRUNCATE);
 #else
     strncpy(sf->fields[sf->size].ref, ref, sizeof(sf->fields[sf->size].ref));
     sf->fields[sf->size].ref[sizeof(sf->fields[sf->size].ref) - 1] = '\0';
@@ -167,34 +166,60 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   int matched = 0;
 
   /* Try parse "const char *name;" */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched = sscanf_s(line, "const char *%63[^; \t]", namebuf,
+                     (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "const char *%63[^; \t]", namebuf);
+#endif
   if (matched == 1) {
     struct_fields_add(sf, namebuf, "string", NULL);
     return 1;
   }
 
   /* int name; or double name; */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched =
+      sscanf_s(line, "int %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "int %63[^; \t]", namebuf);
+#endif
   if (matched == 1) {
     struct_fields_add(sf, namebuf, "integer", NULL);
     return 1;
   }
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched = sscanf_s(line, "double %63[^; \t]", namebuf,
+                     (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "double %63[^; \t]", namebuf);
+#endif
   if (matched == 1) {
     struct_fields_add(sf, namebuf, "number", NULL);
     return 1;
   }
 
   /* int used for bool in your code, treat as boolean */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched =
+      sscanf_s(line, "bool %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "bool %63[^; \t]", namebuf);
+#endif
   if (matched == 1) {
     struct_fields_add(sf, namebuf, "boolean", NULL);
     return 1;
   }
 
   /* enum pointer */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched = sscanf_s(line, "enum %63s *%63[^; \t]", struct_name,
+                     (unsigned int)sizeof(struct_name), namebuf,
+                     (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "enum %63s *%63[^; \t]", struct_name, namebuf);
+#endif
   if (matched == 2) {
     /* strip trailing semicolon from namebuf */
     size_t len = strlen(namebuf);
@@ -206,7 +231,13 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   }
 
   /* struct SomeType *name; */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  matched = sscanf_s(line, "struct %63s *%63[^; \t]", struct_name,
+                     (unsigned int)sizeof(struct_name), namebuf,
+                     (unsigned int)sizeof(namebuf));
+#else
   matched = sscanf(line, "struct %63s *%63[^; \t]", struct_name, namebuf);
+#endif
   if (matched == 2) {
     /* Strip trailing semicolon in case */
     if (namebuf[strlen(namebuf) - 1] == ';')
@@ -344,7 +375,11 @@ static int parse_header_file(const char *header_filename,
     case NONE:
       if (str_starts_with(trim, "enum ")) {
         /* Start enum parse */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sscanf_s(trim + 5, "%63s", enum_name, (unsigned int)sizeof(enum_name));
+#else
         sscanf(trim + 5, "%63s", enum_name);
+#endif
 
         /* Strip trailing { if present */
         {
@@ -358,7 +393,12 @@ static int parse_header_file(const char *header_filename,
         state = IN_ENUM;
       } else if (str_starts_with(trim, "struct ")) {
         /* Start struct parse */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sscanf_s(trim + 7, "%63s", struct_name,
+                 (unsigned int)sizeof(struct_name));
+#else
         sscanf(trim + 7, "%63s", struct_name);
+#endif
 
         /* Strip trailing { if present */
         {

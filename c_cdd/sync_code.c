@@ -123,9 +123,11 @@ int sync_code_main(int argc, char **argv) {
             enum_members_add(&enums[enum_count], em.members[j]);
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          strncpy_s(enum_names[enum_count], sizeof(enum_names[enum_count]), enum_name, _TRUNCATE);
+          strncpy_s(enum_names[enum_count], sizeof(enum_names[enum_count]),
+                    enum_name, _TRUNCATE);
 #else
-          strncpy(enum_names[enum_count], enum_name, sizeof(enum_names[enum_count]));
+          strncpy(enum_names[enum_count], enum_name,
+                  sizeof(enum_names[enum_count]));
           enum_names[enum_count][sizeof(enum_names[enum_count]) - 1] = '\0';
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
           enum_count++;
@@ -156,10 +158,13 @@ int sync_code_main(int argc, char **argv) {
                               sf.fields[j].type, sf.fields[j].ref);
           }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          strncpy_s(struct_names[struct_count], sizeof(struct_names[struct_count]), struct_name, _TRUNCATE);
+          strncpy_s(struct_names[struct_count],
+                    sizeof(struct_names[struct_count]), struct_name, _TRUNCATE);
 #else
-          strncpy(struct_names[struct_count], struct_name, sizeof(struct_names[struct_count]));
-          struct_names[struct_count][sizeof(struct_names[struct_count]) - 1] = '\0';
+          strncpy(struct_names[struct_count], struct_name,
+                  sizeof(struct_names[struct_count]));
+          struct_names[struct_count][sizeof(struct_names[struct_count]) - 1] =
+              '\0';
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
           struct_count++;
         }
