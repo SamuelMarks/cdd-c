@@ -56,11 +56,21 @@ int sync_code_main(int argc, char **argv) {
   header_filename = argv[0];
   impl_filename = argv[1];
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    errno_t err = fopen_s(&fp, header_filename, "r");
+    if (err != 0 || fp == NULL) {
+      fprintf(stderr, "Failed to header file %s\n", header_filename);
+      return EXIT_FAILURE;
+    }
+  }
+#else
   fp = fopen(header_filename, "r");
   if (!fp) {
     fprintf(stderr, "Failed to open header file: %s\n", header_filename);
     return EXIT_FAILURE;
   }
+#endif
 
   enum_members_init(&em);
   struct_fields_init(&sf);
@@ -99,7 +109,12 @@ int sync_code_main(int argc, char **argv) {
       char *closing = strchr(trim, '}');
       char tmp[128];
       if (closing) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        char *context = NULL;
+        char *tok = strtok_s(trim, ",", &context);
+#else
         char *tok = strtok(trim, ",");
+#endif
         *closing = 0;
         while (tok) {
           while (isspace((unsigned char)*tok))
@@ -113,7 +128,11 @@ int sync_code_main(int argc, char **argv) {
             if (*tok)
               enum_members_add(&em, tok);
           }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          tok = strtok_s(NULL, ",", &context);
+#else
           tok = strtok(NULL, ",");
+#endif
         }
         /* Store enum */
         if (enum_count < sizeof(enums) / sizeof(enums[0])) {
@@ -135,7 +154,11 @@ int sync_code_main(int argc, char **argv) {
         state = NONE;
         break;
       }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      strcpy_s(tmp, sizeof(tmp), trim);
+#else
       strcpy(tmp, trim);
+#endif
       trim_trailing(tmp);
       {
         char *eq = strchr(tmp, '=');
@@ -182,11 +205,21 @@ int sync_code_main(int argc, char **argv) {
 
   /* Write the impl file with all function implementations */
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    errno_t err = fopen_s(&out, impl_filename, "w");
+    if (err != 0 || out == NULL) {
+      fprintf(stderr, "Failed to open impl file %s\n", impl_filename);
+      return -1;
+    }
+  }
+#else
   out = fopen(impl_filename, "w");
   if (!out) {
     fprintf(stderr, "Failed to open impl file: %s\n", impl_filename);
     return EXIT_FAILURE;
   }
+#endif
 
   fputs("#include <stdlib.h>\n"
         "#include <string.h>\n"

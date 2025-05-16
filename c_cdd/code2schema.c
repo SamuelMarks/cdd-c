@@ -346,11 +346,21 @@ static int parse_header_file(const char *header_filename,
   JSON_Value *schemas_val;
   JSON_Object *schemas_obj;
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    errno_t err = fopen_s(&fp, header_filename, "r");
+    if (err != 0 || fp == NULL) {
+      fprintf(stderr, "Failed to open header file %s\n", header_filename);
+      return -1;
+    }
+  }
+#else
   fp = fopen(header_filename, "r");
   if (!fp) {
     fprintf(stderr, "Failed to open header file %s\n", header_filename);
     return -1;
   }
+#endif
 
   /* Prepare JSON root and components/schemas */
   root_val = json_value_init_object();
@@ -420,10 +430,19 @@ static int parse_header_file(const char *header_filename,
     case IN_ENUM:
       /* Parse enum members until '};' */
       {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        char *context = NULL;
+        char *brace_close = strtok_s(trim, "}", &context);
+#else
         char *brace_close = strchr(trim, '}');
+#endif
         char tmp[128];
         if (brace_close) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          char *token = strtok_s(trim, ",", &context);
+#else
           char *token = strtok(trim, ",");
+#endif
           /* Enum end: parse last members on this line before } */
           *brace_close = 0;
           while (token) {
@@ -441,7 +460,11 @@ static int parse_header_file(const char *header_filename,
               if (strlen(token) > 0)
                 enum_members_add(&em, token);
             }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            tok = strtok_s(NULL, ",", &context);
+#else
             token = strtok(NULL, ",");
+#endif
           }
           /* Done enum: write to JSON */
           write_enum_to_json_schema(schemas_obj, enum_name, &em);
@@ -449,7 +472,11 @@ static int parse_header_file(const char *header_filename,
           break;
         }
         /* Not end line, parse enum member from this line */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strcpy_s(tmp, sizeof(tmp), trim);
+#else
         strcpy(tmp, trim);
+#endif
         trim_trailing(tmp);
         /* Parse member */
         {
