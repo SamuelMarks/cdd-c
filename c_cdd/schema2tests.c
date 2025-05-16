@@ -167,6 +167,7 @@ int jsonschema2tests_main(int argc, char **argv) {
     JSON_Value *root_val = NULL;
     const JSON_Object *root_obj = NULL;
     JSON_Object *schemas_obj = NULL;
+    FILE *f;
 
     root_val = json_parse_file(schema_file);
     if (!root_val) {
@@ -197,7 +198,6 @@ int jsonschema2tests_main(int argc, char **argv) {
     }
 
     /* Output file */
-    FILE *f;
     {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       errno_t err = fopen_s(&f, output_file, "w");

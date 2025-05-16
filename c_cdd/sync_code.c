@@ -86,7 +86,11 @@ int sync_code_main(int argc, char **argv) {
     case NONE:
       if (str_starts_with(trim, "enum ")) {
         char *brace;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sscanf_s(trim + 5, "%63s", enum_name, (unsigned int)sizeof(enum_name));
+#else
         sscanf(trim + 5, "%63s", enum_name);
+#endif
         brace = strchr(enum_name, '{');
         if (brace)
           *brace = 0;
@@ -95,7 +99,12 @@ int sync_code_main(int argc, char **argv) {
         state = IN_ENUM;
       } else if (str_starts_with(trim, "struct ")) {
         char *brace;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sscanf_s(trim + 7, "%63s", struct_name,
+                 (unsigned int)sizeof(struct_name));
+#else
         sscanf(trim + 7, "%63s", struct_name);
+#endif
         brace = strchr(struct_name, '{');
         if (brace)
           *brace = 0;
