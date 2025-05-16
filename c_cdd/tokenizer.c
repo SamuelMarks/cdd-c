@@ -272,11 +272,11 @@ int tokenize(const az_span source, struct TokenList *const out) {
     case 'X':
     case 'Y':
     case 'Z': {
+      enum TokenKind kind;
       const size_t start = pos;
       pos++;
       while (pos < length && (uint8_t_isalnum(base[pos]) || base[pos] == '_'))
         pos++;
-      enum TokenKind kind;
       if (is_keyword(
               az_span_slice(source, (int32_t)start, (int32_t)(pos - start)),
               (int32_t)(pos - start), &kind)) {
