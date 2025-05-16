@@ -524,13 +524,11 @@ void write_struct_debug_func(FILE *const f, const char *const struct_name,
               field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "number") == 0) {
-      fprintf(f,
-              "  rc = fprintf(fh, \"  /* double */ %%f\\n\", obj->%s);\n",
+      fprintf(f, "  rc = fprintf(fh, \"  /* double */ %%f\\n\", obj->%s);\n",
               field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "enum") == 0) {
-      fprintf(f,
-              "  rc = fprintf(fh, \"  /* enum %s */ %%d\\n\", obj->%s);\n",
+      fprintf(f, "  rc = fprintf(fh, \"  /* enum %s */ %%d\\n\", obj->%s);\n",
               field.ref, field.name);
       fprintf(f, "  if (rc < 0) return rc;\n");
     } else if (strcmp(field.type, "object") == 0) {
