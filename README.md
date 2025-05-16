@@ -73,6 +73,7 @@ $ cd "build" && ctest -C "Debug" --verbose
 ### `c_cdd_cli <command> [args]`
 
     code2schema <header.h> <schema.json>
+    jsonschema2tests <schema.json> <test.c>
     schema2code <schema.json> <basename>
     sync_code <header.h> <impl.c>
 
@@ -81,6 +82,12 @@ $ cd "build" && ctest -C "Debug" --verbose
     Usage: code2schema <header.h> <schema.json>
 
 Generates JSON Schema from `struct`s located in specified C/C++ header or source file.
+
+### `jsonschema2tests`
+
+    Usage: jsonschema2tests <schema.json> <test.c>
+
+Generates [`greatest.h`](https://github.com/silentbicycle/greatest/blob/release/greatest.h) based tests for the generated code.
 
 ### `schema2code`
 
