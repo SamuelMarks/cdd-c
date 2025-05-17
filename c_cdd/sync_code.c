@@ -17,12 +17,15 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
+#define strtok_r strtok_s
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #include "sync_code.h"
 
 #include "code2schema.h"
 #include "codegen.h"
+
+#include <fs.h>
 
 /*
  * The main function: parse header, generate full .c file implementing sync
@@ -118,12 +121,8 @@ int sync_code_main(int argc, char **argv) {
       char *closing = strchr(trim, '}');
       char tmp[128];
       if (closing) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         char *context = NULL;
-        char *tok = strtok_s(trim, ",", &context);
-#else
-        char *tok = strtok(trim, ",");
-#endif
+        char *tok = strtok_r(trim, ",", &context);
         *closing = 0;
         while (tok) {
           while (isspace((unsigned char)*tok))
@@ -137,11 +136,7 @@ int sync_code_main(int argc, char **argv) {
             if (*tok)
               enum_members_add(&em, tok);
           }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          tok = strtok_s(NULL, ",", &context);
-#else
-          tok = strtok(NULL, ",");
-#endif
+          tok = strtok_r(NULL, ",", &context);
         }
         /* Store enum */
         if (enum_count < sizeof(enums) / sizeof(enums[0])) {
@@ -239,7 +234,7 @@ int sync_code_main(int argc, char **argv) {
         "#endif\n"
         "#include <parson.h>\n\n",
         out);
-  fprintf(out, "#include \"%s\"\n\n", header_filename);
+  fprintf(out, "#include \"%s\"\n\n", get_basename(header_filename));
 
   /* Write enums code */
   for (i = 0; i < enum_count; i++) {

@@ -15,8 +15,9 @@
 
 #include <parson.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
+#define strtok_r strtok_s
 #endif
 
 #if __STDC_VERSION__ >= 199901L
@@ -243,8 +244,9 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   matched = sscanf(line, "struct %63s *%63[^; \t]", struct_name, namebuf);
 #endif
   if (matched == 2) {
+    const size_t n = strlen(namebuf);
     /* Strip trailing semicolon in case */
-    if (namebuf[strlen(namebuf) - 1] == ';')
+    if (n > 0 && namebuf[n - 1] == ';' && namebuf[strlen(namebuf) - 1] == ';')
       namebuf[strlen(namebuf) - 1] = '\0';
 
     struct_fields_add(sf, namebuf, "object", struct_name);
@@ -430,19 +432,11 @@ static int parse_header_file(const char *header_filename,
     case IN_ENUM:
       /* Parse enum members until '};' */
       {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
         char *context = NULL;
-        char *brace_close = strtok_s(trim, "}", &context);
-#else
-        char *brace_close = strchr(trim, '}');
-#endif
+        char *brace_close = strtok_r(trim, "}", &context);
         char tmp[128];
         if (brace_close) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          char *token = strtok_s(trim, ",", &context);
-#else
-          char *token = strtok(trim, ",");
-#endif
+          char *token = strtok_r(trim, ",", &context);
           /* Enum end: parse last members on this line before } */
           *brace_close = 0;
           while (token) {
@@ -461,7 +455,7 @@ static int parse_header_file(const char *header_filename,
                 enum_members_add(&em, token);
             }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            token = strtok_s(NULL, ",", &context);
+            token = strtok_r(NULL, ",", &context);
 #else
             token = strtok(NULL, ",");
 #endif
@@ -559,8 +553,7 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
   if (!schema_obj || !fields)
     return -1;
 
-  enum_members_init((struct EnumMembers *)fields); /* Clear fields struct */
-
+  /* Clear fields struct */
   fields->capacity = 0;
   fields->size = 0;
   fields->fields = NULL;

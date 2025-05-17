@@ -24,7 +24,7 @@ static void to_c_ident(char *out, size_t outsz, const char *in) {
 static int write_test_enum(FILE *f, const char *enum_name,
                            const JSON_Array *enum_vals) {
   size_t i;
-  size_t n = json_array_get_count(enum_vals);
+  const size_t n = json_array_get_count(enum_vals);
 
   char c_enum_name[128];
   to_c_ident(c_enum_name, sizeof(c_enum_name), enum_name);
