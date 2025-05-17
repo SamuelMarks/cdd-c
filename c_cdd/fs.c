@@ -5,7 +5,7 @@
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define PATH_SEP "\\"
-#define PATH_SEP_C '\'
+#define PATH_SEP_C '\\'
 #define strtok_r strtok_s
 #else
 #define PATH_SEP "/"

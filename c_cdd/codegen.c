@@ -182,7 +182,7 @@ void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
           "  JSON_Value *root_value = NULL;\n"
           "  JSON_Object *root_object = NULL;\n"
           "  char *serialized_str = NULL;\n"
-          "  if (!obj || !json_str) return -1;\n"
+          "  if (obj == NULL || json_str == NULL) return -1;\n"
           "  root_value = json_value_init_object();\n"
           "  if (!root_value) return -2;\n"
           "  root_object = json_value_get_object(root_value);\n",
