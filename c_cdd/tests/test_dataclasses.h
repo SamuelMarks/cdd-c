@@ -20,6 +20,12 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
     FAIL();
   }
 
+  puts("foo0");
+  FooE_display(foo0, stdout);
+  puts("##########");
+  puts("foo1");
+  FooE_display(foo1, stdout);
+  puts("----------");
   ASSERT(FooE_eq(foo0, foo1));
 
   foo0->can = 53;
