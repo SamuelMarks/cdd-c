@@ -104,7 +104,6 @@ int HazE_deepcopy(const struct HazE *const haz_e_original,
   *haz_e_dest = malloc(sizeof(**haz_e_dest));
   if (*haz_e_dest == NULL)
     return ENOMEM;
-  (*haz_e_dest)->tank = haz_e_original->tank;
   if (haz_e_original->bzr == NULL) {
     (*haz_e_dest)->bzr = NULL;
   } else {
@@ -115,6 +114,7 @@ int HazE_deepcopy(const struct HazE *const haz_e_original,
       return ENOMEM;
     }
   }
+  (*haz_e_dest)->tank = haz_e_original->tank;
   return 0;
 }
 
@@ -293,6 +293,7 @@ int FooE_deepcopy(const struct FooE *const foo_e_original,
       return ENOMEM;
     }
   }
+  (*foo_e_dest)->can = foo_e_original->can;
   rc = HazE_deepcopy(foo_e_original->haz, &(*foo_e_dest)->haz);
   if (rc != 0) {
     if ((*foo_e_dest)->bar != NULL)
