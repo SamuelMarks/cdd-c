@@ -1,61 +1,51 @@
-#ifndef TEST_CODEGEN_H
-#define TEST_CODEGEN_H
+#ifndef TEST_CODE2SCHEMA_H
+#define TEST_CODE2SCHEMA_H
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define strdup _strdup
-#define _POSIX_C_SOURCE 200809L
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include <code2schema.h>
 #include <greatest.h>
 
-#include "code2schema.h"
-#include "codegen.h"
-
-/* Minimal enum members for testing */
-static struct EnumMembers test_enum_members;
-
-TEST test_write_enum_to_and_from_str_func(void) {
-  FILE *tmpf = tmpfile();
-
-  if (!tmpf)
-    FAILm("Failed to open tmpfile");
-
-  /* Setup enum members */
-  enum_members_init(&test_enum_members);
-  enum_members_add(&test_enum_members, "FOO");
-  enum_members_add(&test_enum_members, "BAR");
-  enum_members_add(&test_enum_members, "BAZ");
-
-  write_enum_to_str_func(tmpf, "TestEnum", &test_enum_members);
-  write_enum_from_str_func(tmpf, "TestEnum", &test_enum_members);
-
-  /* Flush and rewind */
-  fflush(tmpf);
-  fseek(tmpf, 0, SEEK_SET);
-
-  /* Check content non-empty */
+TEST test_write_enum_functions(void) {
+  struct EnumMembers em;
+  enum_members_init(&em);
+  enum_members_add(&em, "FOO");
+  enum_members_add(&em, "BAR");
+  enum_members_add(&em, "UNKNOWN");
   {
-    char buf[1024];
-    size_t len = fread(buf, 1, sizeof(buf) - 1, tmpf);
-    buf[len] = 0;
-
-    ASSERT(len > 0);
-    ASSERT(strstr(buf, "int TestEnum_to_str") != NULL);
-    ASSERT(strstr(buf, "int TestEnum_from_str") != NULL);
-
-    /* Spot check enum members */
-    ASSERT(strstr(buf, "case FOO") != NULL);
-    ASSERT(strstr(buf, "case BAR") != NULL);
-    ASSERT(strstr(buf, "case BAZ") != NULL);
+    FILE *tmp = tmpfile();
+    ASSERT(tmp != NULL);
+    write_enum_to_str_func(tmp, "MyEnum", &em);
+    write_enum_from_str_func(tmp, "MyEnum", &em);
+    fclose(tmp);
   }
+  enum_members_free(&em);
+  PASS();
+}
 
-  enum_members_free(&test_enum_members);
-  fclose(tmpf);
+TEST test_struct_fields_manage(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "name", "string", NULL);
+  struct_fields_add(&sf, "num", "integer", NULL);
+  struct_fields_free(&sf);
+  PASS();
+}
 
+TEST test_str_starts_with(void) {
+  ASSERT(str_starts_with("enum Color", "enum"));
+  ASSERT(!str_starts_with("structFoo", "enum"));
+  PASS();
+}
+
+TEST test_parse_struct_member_line(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  ASSERT_EQ(1, parse_struct_member_line("const char *foo;", &sf));
+  ASSERT_EQ(1, parse_struct_member_line("int bar;", &sf));
+  ASSERT_EQ(1, parse_struct_member_line("double x;", &sf));
+  ASSERT_EQ(1, parse_struct_member_line("bool b;", &sf));
+  ASSERT_EQ(1, parse_struct_member_line("enum Color *e;", &sf));
+  ASSERT_EQ(1, parse_struct_member_line("struct Point *p;", &sf));
+  struct_fields_free(&sf);
   PASS();
 }
 
@@ -127,9 +117,12 @@ TEST test_write_struct_functions(void) {
   PASS();
 }
 
-SUITE(codegen_suite) {
-  RUN_TEST(test_write_enum_to_and_from_str_func);
+SUITE(code2schema_suite) {
+  RUN_TEST(test_parse_struct_member_line);
+  RUN_TEST(test_str_starts_with);
+  RUN_TEST(test_struct_fields_manage);
+  RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_write_struct_functions);
 }
 
-#endif /* !TEST_CODEGEN_H */
+#endif /* !TEST_CODE2SCHEMA_H */

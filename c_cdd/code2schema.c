@@ -461,7 +461,7 @@ static int parse_header_file(const char *header_filename,
                 enum_members_add(&em, token);
             }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            tok = strtok_s(NULL, ",", &context);
+            token = strtok_s(NULL, ",", &context);
 #else
             token = strtok(NULL, ",");
 #endif

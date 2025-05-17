@@ -280,7 +280,7 @@ static int generate_source(const char *const basename,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
     errno_t err = fopen_s(&cfile, source_filename, "w");
-    if (err != 0 || fp == NULL) {
+    if (err != 0 || cfile == NULL) {
       fprintf(stderr, "Failed to open source file %s\n", source_filename);
       return -1;
     }

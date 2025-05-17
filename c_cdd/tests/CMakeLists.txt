@@ -30,11 +30,14 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
-        "test_codegen.h"
+        "test_code2schema.h"
         "test_cst_parser.h"
         "test_dataclasses.h"
+        "test_fs.h"
         "test_json_from_and_to.h"
         "test_parsing.h"
+        "test_schema_codegen.h"
+        "test_sync_code.h"
         "test_tokenizer.h"
 )
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
