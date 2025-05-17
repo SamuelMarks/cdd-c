@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "code2schema.h"
+#include "generate_build_system.h"
 #include "schema2tests.h"
 #include "schema_codegen.h"
 #include "sync_code.h"
@@ -12,11 +13,21 @@ int main(int argc, char **argv) {
             "Usage: %s <command> [args]\n"
             "Commands:\n"
             "  code2schema <header.h> <schema.json>\n"
+            "  generate_build_system <build_system> <basename> [test_file]\n"
             "  jsonschema2tests <schema.json> <test.c>\n"
             "  schema2code <schema.json> <basename>\n"
             "  sync_code <header.h> <impl.c>\n",
             argc > 0 ? argv[0] : "c_cdd_cli");
     return EXIT_FAILURE;
+  } else if (strcmp(argv[1], "generate_build_system") == 0) {
+    if (argc < 4 || argc > 5) {
+      fprintf(stderr,
+              "Usage: %s generate_build_system <build_system> <basename> "
+              "[test_file]\n",
+              argv[0]);
+      return EXIT_FAILURE;
+    }
+    return generate_build_system_main(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "code2schema") == 0) {
     /* code2schema expects exactly 2 arguments */
     if (argc != 4) {
