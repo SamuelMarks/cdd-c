@@ -9,15 +9,16 @@
 /* main CLI dispatcher */
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr,
-            "Usage: %s <command> [args]\n"
-            "Commands:\n"
-            "  code2schema <header.h> <schema.json>\n"
-            "  generate_build_system <build_system> <basename> [test_file]\n"
-            "  jsonschema2tests <schema.json> <test.c>\n"
-            "  schema2code <schema.json> <basename>\n"
-            "  sync_code <header.h> <impl.c>\n",
-            argc > 0 ? argv[0] : "c_cdd_cli");
+    fprintf(
+        stderr,
+        "Usage: %s <command> [args]\n"
+        "Commands:\n"
+        "  code2schema <header.h> <schema.json>\n"
+        "  generate_build_system <build_system> <basename> [test_file]\n"
+        "  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>\n"
+        "  schema2code <schema.json> <basename>\n"
+        "  sync_code <header.h> <impl.c>\n",
+        argc > 0 ? argv[0] : "c_cdd_cli");
     return EXIT_FAILURE;
   } else if (strcmp(argv[1], "generate_build_system") == 0) {
     if (argc < 4 || argc > 5) {
@@ -38,8 +39,10 @@ int main(int argc, char **argv) {
     }
     return code2schema_main(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "jsonschema2tests") == 0) {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s jsonschema2tests <schema.json> <test.c>\n",
+    if (argc != 5) {
+      fprintf(stderr,
+              "Usage: %s jsonschema2tests <schema.json> <header_to_test.h> "
+              "<output-test.h>\n",
               argv[0]);
       return EXIT_FAILURE;
     }

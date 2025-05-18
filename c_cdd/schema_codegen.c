@@ -177,7 +177,7 @@ static void print_struct_declaration(FILE *const hfile,
           "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
           struct_name, struct_name);
   fprintf(hfile,
-          "extern LIB_EXPORT int %s_eq(const struct %s *const, const struct %s "
+          "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s "
           "*const);\n\n",
           struct_name, struct_name, struct_name);
   fprintf(hfile,
@@ -187,10 +187,9 @@ static void print_struct_declaration(FILE *const hfile,
           "extern LIB_EXPORT int %s_from_jsonObject(const JSON_Object *, "
           "struct %s **);\n",
           struct_name, struct_name);
-  fprintf(
-      hfile,
-      "extern LIB_EXPORT int %s_to_json(const struct %s *const, char **);\n",
-      struct_name, struct_name);
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
+          struct_name, struct_name);
   fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *const);\n",
           struct_name, struct_name);
 }
@@ -316,7 +315,8 @@ static int generate_source(const char *const basename,
         "#else\n"
         "#include <sys/errno.h>\n"
         "#endif\n"
-        "#include <parson.h>\n\n",
+        "#include <parson.h>\n\n"
+        "#include <c89stringutils_string_extras.h>\n\n",
         cfile);
 
   {

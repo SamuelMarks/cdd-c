@@ -15,7 +15,7 @@
 #endif
 
 /* Sanitize string for C identifier (underscores for invalid chars) */
-static void to_c_ident(char *out, size_t outsz, const char *in) {
+static void to_c_ident(char *out, const size_t outsz, const char *const in) {
   size_t i;
   for (i = 0; i + 1 < outsz && in[i] != 0; i++) {
     if (isalnum((unsigned char)in[i])) {
@@ -28,7 +28,7 @@ static void to_c_ident(char *out, size_t outsz, const char *in) {
 }
 
 /* Generate test function for enum */
-static int write_test_enum(FILE *f, const char *enum_name,
+static int write_test_enum(FILE *f, const char *const enum_name,
                            const JSON_Array *enum_vals) {
   size_t i;
   const size_t n = json_array_get_count(enum_vals);
@@ -46,7 +46,7 @@ static int write_test_enum(FILE *f, const char *enum_name,
 
   /* Test to_str for each enum value */
   for (i = 0; i < n; i++) {
-    const char *val = json_array_get_string(enum_vals, i);
+    const char *const val = json_array_get_string(enum_vals, i);
     char c_val[128];
     if (!val)
       continue;
@@ -62,7 +62,7 @@ static int write_test_enum(FILE *f, const char *enum_name,
 
   /* Test from_str for each enum value */
   for (i = 0; i < n; i++) {
-    const char *val = json_array_get_string(enum_vals, i);
+    const char *const val = json_array_get_string(enum_vals, i);
     char c_val[128];
     if (!val)
       continue;
@@ -88,7 +88,7 @@ static int write_test_enum(FILE *f, const char *enum_name,
 }
 
 /* Generate test function for struct */
-static int write_test_struct(FILE *f, const char *struct_name,
+static int write_test_struct(FILE *f, const char *const struct_name,
                              const JSON_Object *schema_obj) {
   char c_struct_name[128];
   to_c_ident(c_struct_name, sizeof(c_struct_name), struct_name);
@@ -162,14 +162,16 @@ static int write_test_struct(FILE *f, const char *struct_name,
 
 /* Main function: load JSON schema and generate tests source */
 int jsonschema2tests_main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "Usage: jsonschema2tests <schema.json> <output-test.c>\n");
+  if (argc != 3) {
+    fprintf(stderr, "Usage: jsonschema2tests <schema.json> <header_to_test.h> "
+                    "<output-test.h>\n");
     return EXIT_FAILURE;
   }
 
   {
-    const char *schema_file = argv[0];
-    const char *output_file = argv[1];
+    const char *const schema_file = argv[0];
+    const char *const header_to_test = argv[1];
+    const char *const output_file = argv[2];
 
     JSON_Value *root_val = NULL;
     const JSON_Object *root_obj = NULL;
@@ -251,6 +253,8 @@ int jsonschema2tests_main(int argc, char **argv) {
               "#include <greatest.h>\n\n",
               sanitized, sanitized, schema_file);
 
+      fprintf(f, "#include \"%s\"\n", header_to_test);
+
       /* include headers referenced by schema names */
       {
         const size_t count = json_object_get_count(schemas_obj);
@@ -325,9 +329,9 @@ int jsonschema2tests_main(int argc, char **argv) {
             const JSON_Array *enum_arr =
                 json_object_get_array(schema_obj, "enum");
             if (enum_arr != NULL) {
-              char sanitized[128];
-              to_c_ident(sanitized, sizeof(sanitized), schema_name);
-              fprintf(f, "  RUN_TEST(test_%s_to_str_from_str);\n", sanitized);
+              char sanitized0[128];
+              to_c_ident(sanitized0, sizeof(sanitized0), schema_name);
+              fprintf(f, "  RUN_TEST(test_%s_to_str_from_str);\n", sanitized0);
             }
           }
         }
@@ -373,7 +377,8 @@ int jsonschema2tests_main(int argc, char **argv) {
 
     {
       char *p;
-      asprintf(&p, "%s" PATH_SEP "%s", get_dirname(output_file), "test_main.c");
+      asprintf(&p, "%s" PATH_SEP "%s", get_dirname((char *)output_file),
+               "test_main.c");
       {
         FILE *f0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -405,12 +410,12 @@ int jsonschema2tests_main(int argc, char **argv) {
                 "}\n",
                 get_basename(output_file));
         fclose(f0);
-        printf("Test runner generated and written to: %s\n", p);
+        printf("Test runner generated and written to:\t%s\n", p);
       }
       free(p);
     }
 
-    printf("Tests generated and written to: %s\n", output_file);
+    printf("Tests generated and written to:\t\t\t%s\n", output_file);
 
     return 0;
   }

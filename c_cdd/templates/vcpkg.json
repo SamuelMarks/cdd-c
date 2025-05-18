@@ -5,6 +5,7 @@
   "homepage": "",
   "description": "Generated; replace this, name, homepage, &etc.",
   "dependencies": [
+    "c89stringutils",
     "parson"
   ]
 }
