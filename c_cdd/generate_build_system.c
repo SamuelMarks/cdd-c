@@ -59,7 +59,7 @@ static int write_cmake(const char *const output_directory,
       );
   fprintf(
       f,
-      "add_library(%s \"${Header_Files}\" \"${Source_Files}\")\n\n"
+      "add_library(%s SHARED \"${Header_Files}\" \"${Source_Files}\")\n\n"
       "set_target_properties(\"%s\" PROPERTIES LINKER_LANGUAGE C)\n\n"
       "include(GNUInstallDirs)\n"
       "target_include_directories(\n"
@@ -81,7 +81,7 @@ static int write_cmake(const char *const output_directory,
       f,
       "install(FILES       ${Header_Files}\n"
       "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
-      "if(EXISTS \"test_%s.h\")\n"
+      "if(EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n"
       "  include(CTest)\n"
       "  if (BUILD_TESTING)\n",
       basename);
@@ -95,7 +95,7 @@ static int write_cmake(const char *const output_directory,
             "template_export.h");
     free(p0);
   }
-  {
+  if (rc == 0) {
     char *p1;
     asprintf(&p1, "%s" PATH_SEP "%s", output_directory, "vcpkg.json");
     rc = cp(p1, "c_cdd" PATH_SEP "tests" PATH_SEP "mocks" PATH_SEP

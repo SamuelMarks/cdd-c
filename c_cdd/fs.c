@@ -8,12 +8,14 @@
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
 #define strtok_r strtok_s
+#include <pathcch.h>
 #include <winbase.h>
 #else
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
@@ -40,6 +42,17 @@ const char *get_basename(const char *const path) {
   } else {
     return path;
   }
+}
+
+const char *get_dirname(char *path) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  char *p = strdup(path);
+  if (PathCchRemoveFileSpec(p, strlen(p)) != S_OK)
+    return path;
+  return p;
+#else
+  return dirname(path);
+#endif
 }
 
 #define FILE_OK 0

@@ -9,7 +9,9 @@
 #include <parson.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif /* !strdup */
 #define PATH_MAX _MAX_PATH
 #else
 #include <limits.h>

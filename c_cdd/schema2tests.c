@@ -7,6 +7,8 @@
 
 #include "schema2tests.h"
 
+#include "fs.h"
+
 /* Sanitize string for C identifier (underscores for invalid chars) */
 static void to_c_ident(char *out, size_t outsz, const char *in) {
   size_t i;
@@ -223,20 +225,26 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       /* include headers referenced by schema names */
       {
-        size_t count = json_object_get_count(schemas_obj);
+        const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
-          const char *schema_name = json_object_get_name(schemas_obj, i);
+          const char *const schema_name = json_object_get_name(schemas_obj, i);
           char sanitized_name[128];
           to_c_ident(sanitized_name, sizeof(sanitized_name), schema_name);
-          fprintf(f, "#include \"%s.h\"\n", sanitized_name);
+          {
+            char *s;
+            asprintf(&s, "%s.h", sanitized_name);
+            if (access(s, F_OK) == 0)
+              fprintf(f, "#include \"%s\"\n", s);
+            free(s);
+          }
         }
         fprintf(f, "\n");
       }
 
       /* Generate test functions for enums and structs */
       {
-        size_t count = json_object_get_count(schemas_obj);
+        const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
           const char *schema_name = json_object_get_name(schemas_obj, i);
@@ -271,7 +279,7 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       /* Add enum test calls */
       {
-        size_t count = json_object_get_count(schemas_obj);
+        const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
           const char *schema_name = json_object_get_name(schemas_obj, i);
@@ -303,7 +311,7 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       /* Add struct test calls */
       {
-        size_t count = json_object_get_count(schemas_obj);
+        const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
           const char *schema_name = json_object_get_name(schemas_obj, i);
@@ -330,18 +338,49 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       fprintf(f, "}\n\n");
 
-      fprintf(f, "GREATEST_MAIN_DEFS();\n\n"
-                 "int main(int argc, char **argv) {\n"
-                 "  GREATEST_MAIN_BEGIN();\n"
-                 "  RUN_SUITE(enums_suite);\n"
-                 "  RUN_SUITE(structs_suite);\n"
-                 "  GREATEST_MAIN_END();\n"
-                 "}\n");
-
       fclose(f);
     }
 
     json_value_free(root_val);
+
+    {
+      char *p;
+      asprintf(&p, "%s" PATH_SEP "%s", get_dirname(output_file), "test_main.c");
+      {
+        FILE *f0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        errno_t err = fopen_s(&f0, p, "w");
+        if (err != 0 || f0 == NULL) {
+          fprintf(stderr, "Failed to open output file %s\n", p);
+          return EXIT_FAILURE;
+        }
+#else
+        f0 = fopen(p, "w");
+        if (!f0) {
+          fprintf(stderr, "Failed to open output file: %s\n", p);
+          json_value_free(root_val);
+          return EXIT_FAILURE;
+        }
+#endif
+        fprintf(f0,
+                "#ifdef _MSC_VER\n"
+                "  #define _CRT_SECURE_NO_WARNINGS 1\n"
+                "#endif /* _MSC_VER */\n\n"
+                "#include <greatest.h>\n"
+                "#include \"%s\"\n\n"
+                "GREATEST_MAIN_DEFS();\n\n"
+                "int main(int argc, char **argv) {\n"
+                "  GREATEST_MAIN_BEGIN();\n"
+                "  RUN_SUITE(enums_suite);\n"
+                "  RUN_SUITE(structs_suite);\n"
+                "  GREATEST_MAIN_END();\n"
+                "}\n",
+                get_basename(output_file));
+        fclose(f0);
+        printf("Test runner generated and written to: %s\n", p);
+      }
+      free(p);
+    }
 
     printf("Tests generated and written to: %s\n", output_file);
 
