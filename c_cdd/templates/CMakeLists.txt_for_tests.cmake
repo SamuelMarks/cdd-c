@@ -29,7 +29,7 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 
 set(EXEC_NAME "test_${LIBRARY_NAME}")
 
-set(Header_Files "${LIBRARY_NAME}.h")
+set(Header_Files "test_${LIBRARY_NAME}.h")
 source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
 
 set(Source_Files "test_main.c")
@@ -64,5 +64,8 @@ target_link_libraries(
         PUBLIC
         "${LIBRARY_NAME}"
 )
+
+find_package(c89stringutils CONFIG REQUIRED)
+target_link_libraries("${EXEC_NAME}" PRIVATE c89stringutils c89stringutils_compiler_flags)
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")

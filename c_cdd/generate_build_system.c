@@ -13,7 +13,8 @@ static int write_cmake(const char *const output_directory,
   FILE *rootCmakeLists, *srcCmakeLists;
   char *rootCmakeListsPath, *srcCmakeListsPath;
   int rc = EXIT_SUCCESS;
-  asprintf(&rootCmakeListsPath, "%s" PATH_SEP "%s", output_directory, "CMakeLists.txt");
+  asprintf(&rootCmakeListsPath, "%s" PATH_SEP "%s", output_directory,
+           "CMakeLists.txt");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
     errno_t err = fopen_s(&rootCmakeLists, p, "w");
@@ -32,39 +33,49 @@ static int write_cmake(const char *const output_directory,
   }
 #endif
 
-  fprintf(
-      rootCmakeLists,
-      "cmake_minimum_required(VERSION 3.10)\n"
-      "project(%s LANGUAGES C)\n\n"
-      "# Enable strict C90 mode and strict warnings\n"
-      "set(CMAKE_C_STANDARD 90)\n"
-      "set(CMAKE_C_STANDARD_REQUIRED ON)\n"
-      "if(MSVC)\n"
-      "  add_compile_options(/W4 /Za)\n"
-      "else()\n"
-      "  add_compile_options(-Wall -Wextra -pedantic)\n"
-      "endif()\n\n"
-      "add_subdirectory(\"src\")\n", basename
-  );
+  fprintf(rootCmakeLists,
+          "cmake_minimum_required(VERSION 3.10)\n"
+          "project(%s LANGUAGES C)\n\n"
+          "# Enable strict C90 mode and strict warnings\n"
+          "set(CMAKE_C_STANDARD 90)\n"
+          "set(CMAKE_C_STANDARD_REQUIRED ON)\n"
+          "if(MSVC)\n"
+          "  add_compile_options(/W4 /Za)\n"
+          "else()\n"
+          "  add_compile_options(-Wall -Wextra -pedantic)\n"
+          "endif()\n\n"
+          "add_subdirectory(\"src\")\n",
+          basename);
+  fprintf(rootCmakeLists,
+          "if (EXISTS \"${PROJECT_SOURCE_DIR}/src/test/test_%s.h\")\n"
+          "  include(CTest)\n"
+          "  if (BUILD_TESTING)\n"
+          "    set(LIBRARY_NAME \"${PROJECT_NAME}\")\n"
+          "    add_subdirectory(\"src/test\")\n"
+          "  endif (BUILD_TESTING)\n"
+          "endif (EXISTS \"${PROJECT_SOURCE_DIR}/src/test/test_%s.h\")\n",
+          basename, basename);
 
-cleanup_root:
   fclose(rootCmakeLists);
-  printf("Generated %s\n", rootCmakeListsPath);
+  printf("Generated\t%s\n", rootCmakeListsPath);
   free(rootCmakeListsPath);
 
   {
     char *srcTestsPath;
-    asprintf(&srcTestsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "test");
+    asprintf(&srcTestsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory,
+             "src", "test");
     rc = makedirs(srcTestsPath);
     if (rc != 0) {
-      fprintf(stderr, "Failed to create src/test directory: %s\n", srcTestsPath);
+      fprintf(stderr, "Failed to create src/test directory: %s\n",
+              srcTestsPath);
       free(srcTestsPath);
       return rc;
     }
     free(srcTestsPath);
   }
   {
-    asprintf(&srcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "CMakeLists.txt");
+    asprintf(&srcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s",
+             output_directory, "src", "CMakeLists.txt");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     {
       errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w");
@@ -84,74 +95,91 @@ cleanup_root:
 #endif
 
     fprintf(srcCmakeLists,
-        "set(LIBRARY_NAME \"${PROJECT_NAME}\")\n\n"
-        "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
-        "source_group(\"Header Files\" FILES \"${Header_Files}\")\n\n"
-        "set(Source_Files \"%s.c\")\n"
-        "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
-        basename, basename
-        );
-    fputs(
-        "add_library(\"${LIBRARY_NAME}\" SHARED \"${Header_Files}\" \"${Source_Files}\")\n\n"
-        "set_target_properties(\"${LIBRARY_NAME}\" PROPERTIES LINKER_LANGUAGE C)\n\n"
-        "include(GNUInstallDirs)\n"
-        "target_include_directories(\n"
-        "  \"${LIBRARY_NAME}\"\n"
-        "  PUBLIC\n"
-        "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
-        "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
-        "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
-        ")\n\n", srcCmakeLists);
-    fputs(
-    "find_package(parson CONFIG REQUIRED)\n"
-    "target_link_libraries(\n"
-    "  \"${LIBRARY_NAME}\"\n"
-    "  PRIVATE\n"
-    "  \"parson::parson\"\n"
-    ")\n", srcCmakeLists
-    );
+            "set(LIBRARY_NAME \"${PROJECT_NAME}\")\n\n"
+            "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
+            "source_group(\"Header Files\" FILES \"${Header_Files}\")\n\n"
+            "set(Source_Files \"%s.c\")\n"
+            "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
+            basename, basename);
+    fputs("add_library(\"${LIBRARY_NAME}\" SHARED \"${Header_Files}\" "
+          "\"${Source_Files}\")\n\n"
+          "set_target_properties(\"${LIBRARY_NAME}\" PROPERTIES "
+          "LINKER_LANGUAGE C)\n\n"
+          "include(GNUInstallDirs)\n"
+          "target_include_directories(\n"
+          "  \"${LIBRARY_NAME}\"\n"
+          "  PUBLIC\n"
+          "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
+          "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
+          "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
+          ")\n\n",
+          srcCmakeLists);
+    fputs("find_package(parson CONFIG REQUIRED)\n"
+          "target_link_libraries(\n"
+          "  \"${LIBRARY_NAME}\"\n"
+          "  PRIVATE\n"
+          "  \"parson::parson\"\n"
+          ")\n"
+          "find_package(c89stringutils CONFIG REQUIRED)\n"
+          "target_link_libraries(\"${LIBRARY_NAME}\" PRIVATE c89stringutils "
+          "c89stringutils_compiler_flags)\n",
+          srcCmakeLists);
+    fputs("install(FILES       ${Header_Files}\n"
+          "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
+          "#################\n"
+          "# Install rules #\n"
+          "#################\n\n"
+          "# setup the version numbering\n"
+          "set_property(TARGET \"${LIBRARY_NAME}\" PROPERTY VERSION "
+          "\"${${PROJECT_NAME}_VERSION}\")\n"
+          "set_property(TARGET \"${LIBRARY_NAME}\" PROPERTY SOVERSION "
+          "\"${${PROJECT_NAME}_VERSION_MAJOR}\")\n"
+
+          "set(installable_libs \"${LIBRARY_NAME}\")\n",
+          srcCmakeLists);
+    fputs("install(TARGETS ${installable_libs}\n"
+          "        EXPORT \"${LIBRARY_NAME}Targets\"\n"
+          "        ARCHIVE DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
+          "        LIBRARY DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
+          "        RUNTIME DESTINATION \"${CMAKE_INSTALL_BINDIR}\")\n",
+          srcCmakeLists);
     fprintf(
         srcCmakeLists,
-        "install(FILES       ${Header_Files}\n"
-        "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
-        "if (EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n"
-        "  include(CTest)\n"
-        "  if (BUILD_TESTING)\n"
-        "    add_subdirectory(\"test\")\n"
-        "  endif (BUILD_TESTING)\n"
-        "endif (EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n",
-        basename, basename);
+        "install(EXPORT \"${LIBRARY_NAME}Targets\"\n"
+        "        DESTINATION \"${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}\")\n");
 
     {
       char *testSrcCmakeListsPath;
-      asprintf(&testSrcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "test", "CMakeLists.txt");
-      rc = cp(
-        testSrcCmakeListsPath,
-        "c_cdd" PATH_SEP "templates" PATH_SEP "CMakeLists.txt_for_tests.cmake"
-      );
+      asprintf(&testSrcCmakeListsPath,
+               "%s" PATH_SEP "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory,
+               "src", "test", "CMakeLists.txt");
+      rc = cp(testSrcCmakeListsPath, "c_cdd" PATH_SEP "templates" PATH_SEP
+                                     "CMakeLists.txt_for_tests.cmake");
+      printf("Copied_into\t%s\n", testSrcCmakeListsPath);
       free(testSrcCmakeListsPath);
     }
     if (rc == 0) {
       char *p0;
-      asprintf(&p0, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "lib_export.h");
+      asprintf(&p0, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src",
+               "lib_export.h");
+      printf("Copied_into\t%s\n", p0);
       rc = cp(p0, "c_cdd" PATH_SEP "templates" PATH_SEP "lib_export.h");
       free(p0);
     }
     if (rc == 0) {
       char *p1;
-      asprintf(&p1, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "vcpkg.json");
+      asprintf(&p1, "%s" PATH_SEP "%s", output_directory, "vcpkg.json");
       rc = cp(p1, "c_cdd" PATH_SEP "templates" PATH_SEP "vcpkg.json");
+      printf("Copied_into\t%s\n", p1);
       free(p1);
     }
   }
 
-cleanup_src:
   fclose(srcCmakeLists);
-  printf("Generated %s\n", srcCmakeListsPath);
   if (rc == 0) {
     char *p2;
     asprintf(&p2, "%s" PATH_SEP "%s", output_directory, "src");
-    printf("Copied vcpkg.json & lib_export.h to %s\n", srcCmakeListsPath);
+    printf("Generated\t%s\n", srcCmakeListsPath);
     free(p2);
   }
   free(srcCmakeListsPath);

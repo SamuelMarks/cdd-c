@@ -135,7 +135,7 @@ $ cd "build" && ctest -C "Debug" --verbose
 
     code2schema <header.h> <schema.json>
     generate_build_system <build_system> <output_directory> <basename> [test_file]
-    jsonschema2tests <schema.json> <test.c>
+    jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>
     schema2code <schema.json> <basename>
     sync_code <header.h> <impl.c>
 
@@ -148,7 +148,7 @@ $ bin/c_cdd_cli generate_build_system cmake 'build' 'simp'
 # Create simp.h and simp.c dataclass from simple_json.schema.json
 $ bin/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build/src/simp'
 # Create tests
-$ bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'build/src/test/test_simp.h'
+$ bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'simp.h' 'build/src/test/test_simp.h'
 # Observe what was generated
 $ tree --charset=ascii
 .
@@ -194,7 +194,7 @@ Generates build files in the current directory.
 
 ### `jsonschema2tests`
 
-    Usage: jsonschema2tests <schema.json> <test.c>
+    Usage: jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>
 
 Generates [`greatest.h`](https://github.com/silentbicycle/greatest/blob/release/greatest.h) based tests for the generated code.
 

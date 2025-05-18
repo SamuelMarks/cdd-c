@@ -105,7 +105,7 @@ TEST test_FooE_json_roundtrip(void) {
 
 /* Test HazE from_json / to_json roundtrip */
 TEST test_HazE_json_roundtrip(void) {
-  const char *json = "{\"bzr\": \"bzrval\", \"tank\": \"BIG\"}";
+  const char *const json = "{\"bzr\": \"bzrval\", \"tank\": \"BIG\"}";
   struct HazE *haz_in = NULL;
   char *json_out = NULL;
   int rc;

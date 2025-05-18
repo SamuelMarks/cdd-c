@@ -84,7 +84,7 @@ void enum_members_free(struct EnumMembers *em) {
   em->capacity = 0;
 }
 
-void enum_members_add(struct EnumMembers *em, const char *name) {
+void enum_members_add(struct EnumMembers *em, const char *const name) {
   if (em->size >= em->capacity) {
     em->capacity *= 2;
     em->members = realloc(em->members, em->capacity * sizeof(char *));
@@ -116,8 +116,8 @@ void struct_fields_free(struct StructFields *sf) {
   sf->capacity = 0;
 }
 
-void struct_fields_add(struct StructFields *sf, const char *name,
-                       const char *type, const char *ref) {
+void struct_fields_add(struct StructFields *sf, const char *const name,
+                       const char *const type, const char *const ref) {
   if (sf->size >= sf->capacity) {
     sf->capacity *= 2;
     sf->fields = (struct StructField *)realloc(

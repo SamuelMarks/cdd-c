@@ -56,14 +56,11 @@ const char *get_dirname(char *path) {
 #endif
 }
 
-#define FILE_OK 0
-#define FILE_NOT_EXIST 1
-#define FILE_TOO_LARGE 2
-#define FILE_READ_ERROR 3
+enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
 
 /* originally from https://stackoverflow.com/a/54057690 */
-char *c_read_file(const char *f_name, int *err, size_t *f_size,
-                  const char *mode) {
+char *c_read_file(const char *const f_name, int *err, size_t *f_size,
+                  const char *const mode) {
   char *buffer;
   size_t length;
   FILE *f;
@@ -117,7 +114,7 @@ char *c_read_file(const char *f_name, int *err, size_t *f_size,
   return buffer;
 }
 
-int cp(const char *to, const char *from) {
+int cp(const char *const to, const char *const from) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   return CopyFile(from, to, FALSE);
 #else
@@ -196,7 +193,7 @@ int makedirs(const char *const p) {
 /* else follows (mostly)
  * https://gist.github.com/JonathonReinhart/8c0d90191c38af2dcadb102c4e202950 */
 /* Make a directory; already existing dir okay */
-static int maybe_mkdir(const char *path, mode_t mode) {
+static int maybe_mkdir(const char *const path, const mode_t mode) {
   struct stat st;
   errno = 0;
 
