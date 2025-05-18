@@ -9,6 +9,11 @@
 
 #include "fs.h"
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#else
+#include <sys/errno.h>
+#endif
+
 /* Sanitize string for C identifier (underscores for invalid chars) */
 static void to_c_ident(char *out, size_t outsz, const char *in) {
   size_t i;
@@ -170,6 +175,7 @@ int jsonschema2tests_main(int argc, char **argv) {
     const JSON_Object *root_obj = NULL;
     JSON_Object *schemas_obj = NULL;
     FILE *f;
+    char sanitized[128];
 
     root_val = json_parse_file(schema_file);
     if (!root_val) {
@@ -199,6 +205,24 @@ int jsonschema2tests_main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
+    {
+      char *output_d = strdup(output_file);
+      const char *output_dir = get_dirname(output_d);
+      int rc;
+      if (output_dir == NULL) {
+        fprintf(stderr, "Failed to get dirname of output file: %s\n",
+                output_file);
+        json_value_free(root_val);
+        return EINVAL;
+      }
+      rc = makedirs(output_dir);
+      if (rc != 0) {
+        fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+        json_value_free(root_val);
+        return rc;
+      }
+    }
+
     /* Output file */
     {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -216,12 +240,16 @@ int jsonschema2tests_main(int argc, char **argv) {
       }
 #endif
 
+      to_c_ident(sanitized, sizeof(sanitized), get_basename(schema_file));
+
       fprintf(f,
+              "#ifndef %s_H\n"
+              "#define %s_H\n"
               "/* Auto-generated test source from JSON Schema %s */\n\n"
               "#include <stdlib.h>\n"
               "#include <string.h>\n\n"
               "#include <greatest.h>\n\n",
-              schema_file);
+              sanitized, sanitized, schema_file);
 
       /* include headers referenced by schema names */
       {
@@ -326,17 +354,17 @@ int jsonschema2tests_main(int argc, char **argv) {
             continue;
 
           if (strcmp(type_str, "object") == 0) {
-            char sanitized[128];
-            to_c_ident(sanitized, sizeof(sanitized), schema_name);
+            char sanitized0[128];
+            to_c_ident(sanitized0, sizeof(sanitized0), schema_name);
             fprintf(f, "  RUN_TEST(test_%s_default_deepcopy_eq_cleanup);\n",
-                    sanitized);
-            fprintf(f, "  RUN_TEST(test_%s_json_roundtrip);\n", sanitized);
-            fprintf(f, "  RUN_TEST(test_%s_cleanup_null);\n", sanitized);
+                    sanitized0);
+            fprintf(f, "  RUN_TEST(test_%s_json_roundtrip);\n", sanitized0);
+            fprintf(f, "  RUN_TEST(test_%s_cleanup_null);\n", sanitized0);
           }
         }
       }
 
-      fprintf(f, "}\n\n");
+      fprintf(f, "}\n\n#endif /* !%s_H */\n", sanitized);
 
       fclose(f);
     }
