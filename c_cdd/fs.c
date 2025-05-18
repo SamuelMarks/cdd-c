@@ -5,17 +5,18 @@
 #include "fs.h"
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define PATH_SEP "\\"
-#define PATH_SEP_C '\\'
-#define strtok_r strtok_s
+#include <direct.h>
+#include <fileapi.h>
 #include <pathcch.h>
 #include <winbase.h>
+#define strtok_r strtok_s
+#define mkdir _mkdir
 #else
-#define PATH_SEP "/"
-#define PATH_SEP_C '/'
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
@@ -170,3 +171,90 @@ out_error:
   return EXIT_FAILURE;
 #endif
 }
+
+int makedir(const char *const p) {
+  int rc = EXIT_SUCCESS;
+  if (mkdir(p, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#else
+    fprintf(stderr, "Error: %s\n", strerror(errno));
+#endif
+    rc = EXIT_FAILURE;
+  }
+  return rc;
+}
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+int makedirs(const char *const p) {
+  if CreateDirectoryA (p, NULL) {
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+#else
+/* else follows (mostly)
+ * https://gist.github.com/JonathonReinhart/8c0d90191c38af2dcadb102c4e202950 */
+/* Make a directory; already existing dir okay */
+static int maybe_mkdir(const char *path, mode_t mode) {
+  struct stat st;
+  errno = 0;
+
+  /* Try to make the directory */
+  if (mkdir(path, mode) == 0)
+    return 0;
+
+  /* If it fails for any reason but EEXIST, fail */
+  if (errno != EEXIST)
+    return -1;
+
+  /* Check if the existing path is a directory */
+  if (stat(path, &st) != 0)
+    return -1;
+
+  /* If not, fail with ENOTDIR */
+  if (!S_ISDIR(st.st_mode)) {
+    errno = ENOTDIR;
+    return -1;
+  }
+
+  errno = 0;
+  return 0;
+}
+
+int makedirs(const char *const path) {
+  /* Adapted from http://stackoverflow.com/a/2336245/119527 */
+  char *_path = NULL;
+  char *p;
+  int result = -1;
+  mode_t mode = 0777;
+
+  errno = 0;
+
+  _path = strdup(path);
+  if (_path == NULL)
+    goto out;
+
+  /* Iterate the string */
+  for (p = _path + 1; *p; p++) {
+    if (*p == '/') {
+      /* Temporarily truncate */
+      *p = '\0';
+
+      if (maybe_mkdir(_path, mode) != 0)
+        goto out;
+
+      *p = '/';
+    }
+  }
+
+  if (maybe_mkdir(_path, mode) != 0)
+    goto out;
+
+  result = 0;
+
+out:
+  free(_path);
+  return result;
+}
+#endif

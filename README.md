@@ -146,11 +146,27 @@ $ mkdir 'build'
 # Create build system file for CMake
 $ bin/c_cdd_cli generate_build_system cmake 'build' 'simp'
 # Create simp.h and simp.c dataclass from simple_json.schema.json
-$ bin/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build/simp'
+$ bin/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build/src/simp'
 # Create tests
-$ bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'build/test_simp.h'
+$ bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'build/src/test/test_simp.h'
+# Observe what was generated
+$ tree --charset=ascii
+.
+|-- CMakeLists.txt
+`-- src
+    |-- CMakeLists.txt
+    |-- lib_export.h
+    |-- simp.c
+    |-- simp.h
+    |-- test
+    |   |-- CMakeLists.txt
+    |   |-- test_main.c
+    |   `-- test_simp.h
+    `-- vcpkg.json
+
+3 directories, 9 files
 # Configure with cmake (replace toolchain path with yours)
-$ cmake -S 'build' -B 'build/cmake_debug_build' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='vcpkg/scripts/buildsystems/vcpkg.cmake'
+$ cmake -S 'build' -B 'build/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='vcpkg/scripts/buildsystems/vcpkg.cmake'
 # Build with cmake
 $ cmake --build 'build/cmake_debug_build'
 # Test with cmake (ctest)

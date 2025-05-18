@@ -29,6 +29,10 @@ extern C_CDD_EXPORT char *c_read_file(const char *, int *, size_t *,
 
 extern C_CDD_EXPORT int cp(const char *, const char *);
 
+extern C_CDD_EXPORT int makedir(const char *);
+
+extern C_CDD_EXPORT int makedirs(const char *);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

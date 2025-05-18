@@ -6,41 +6,34 @@
 
 #include "fs.h"
 
+#include <sys/stat.h>
+
 static int write_cmake(const char *const output_directory,
-                       const char *const basename,
-                       const char *const test_file) {
-  FILE *f;
-  char *p, *tpl;
+                       const char *const basename) {
+  FILE *rootCmakeLists, *srcCmakeLists;
+  char *rootCmakeListsPath, *srcCmakeListsPath;
   int rc = EXIT_SUCCESS;
-  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "CMakeLists.txt");
+  asprintf(&rootCmakeListsPath, "%s" PATH_SEP "%s", output_directory, "CMakeLists.txt");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
-    errno_t err = fopen_s(&f, p, "w");
-    if (err != 0 || f == NULL) {
+    errno_t err = fopen_s(&rootCmakeLists, p, "w");
+    if (err != 0 || rootCmakeLists == NULL) {
       fprintf(stderr, "Failed to open %s for writing", p);
       free(p);
       return EXIT_FAILURE;
     }
   }
 #else
-  f = fopen(p, "w");
-  if (!f) {
-    fprintf(stderr, "Failed to open %s for writing", p);
-    free(p);
+  rootCmakeLists = fopen(rootCmakeListsPath, "w");
+  if (!rootCmakeLists) {
+    fprintf(stderr, "Failed to open %s for writing", rootCmakeListsPath);
+    free(rootCmakeListsPath);
     return EXIT_FAILURE;
   }
 #endif
 
-
-  {
-    int err;
-    size_t f_size;
-    tpl = c_read_file("c_cdd"PATH_SEP"tests"PATH_SEP"mocks"PATH_SEP"template_CMakeLists.txt_for_tests.cmake", &err, &f_size, "rt");
-    if (err) return err;
-  }
-
   fprintf(
-      f,
+      rootCmakeLists,
       "cmake_minimum_required(VERSION 3.10)\n"
       "project(%s LANGUAGES C)\n\n"
       "# Enable strict C90 mode and strict warnings\n"
@@ -51,61 +44,117 @@ static int write_cmake(const char *const output_directory,
       "else()\n"
       "  add_compile_options(-Wall -Wextra -pedantic)\n"
       "endif()\n\n"
-      "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
-      "source_group(\"Header Files\" FILES \"${Header_Files}\")\n"
-      "set(Source_Files \"%s.h\")\n"
-      "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
-      basename, basename, basename
-      );
-  fprintf(
-      f,
-      "add_library(%s SHARED \"${Header_Files}\" \"${Source_Files}\")\n\n"
-      "set_target_properties(\"%s\" PROPERTIES LINKER_LANGUAGE C)\n\n"
-      "include(GNUInstallDirs)\n"
-      "target_include_directories(\n"
-      "  \"%s\"\n"
-      "  PUBLIC\n"
-      "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
-      "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
-      "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
-      ")\n\n", basename, basename, basename);
-  fputs(
-  "find_package(parson CONFIG REQUIRED)\n"
-  "target_link_libraries(\n"
-  "  \"${PROJECT_NAME}\"\n"
-  "  PRIVATE\n"
-  "  \"parson::parson\"\n"
-  ")\n", f
+      "add_subdirectory(\"src\")\n", basename
   );
-  fprintf(
-      f,
-      "install(FILES       ${Header_Files}\n"
-      "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
-      "if(EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n"
-      "  include(CTest)\n"
-      "  if (BUILD_TESTING)\n",
-      basename);
 
-  fputs(tpl, f);
-  free(tpl);
+cleanup_root:
+  fclose(rootCmakeLists);
+  printf("Generated %s\n", rootCmakeListsPath);
+  free(rootCmakeListsPath);
+
   {
-    char *p0;
-    asprintf(&p0, "%s" PATH_SEP "%s", output_directory, "lib_export.h");
-    rc = cp(p0, "c_cdd" PATH_SEP "tests" PATH_SEP "mocks" PATH_SEP
-            "template_export.h");
-    free(p0);
+    char *srcTestsPath;
+    asprintf(&srcTestsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "test");
+    rc = makedirs(srcTestsPath);
+    if (rc != 0) {
+      fprintf(stderr, "Failed to create src/test directory: %s\n", srcTestsPath);
+      free(srcTestsPath);
+      return rc;
+    }
+    free(srcTestsPath);
   }
-  if (rc == 0) {
-    char *p1;
-    asprintf(&p1, "%s" PATH_SEP "%s", output_directory, "vcpkg.json");
-    rc = cp(p1, "c_cdd" PATH_SEP "tests" PATH_SEP "mocks" PATH_SEP
-            "template_vcpkg.json");
-    free(p1);
+  {
+    asprintf(&srcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "CMakeLists.txt");
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    {
+      errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w");
+      if (err != 0 || srcCmakeListsPath == NULL) {
+        fprintf(stderr, "Failed to open %s for writing", srcCmakeListsPath);
+        free(srcCmakeListsPath);
+        return EXIT_FAILURE;
+      }
+    }
+#else
+    srcCmakeLists = fopen(srcCmakeListsPath, "w");
+    if (!srcCmakeLists) {
+      fprintf(stderr, "Failed to open %s for writing", srcCmakeListsPath);
+      free(srcCmakeListsPath);
+      return EXIT_FAILURE;
+    }
+#endif
+
+    fprintf(srcCmakeLists,
+        "set(LIBRARY_NAME \"${PROJECT_NAME}\")\n\n"
+        "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
+        "source_group(\"Header Files\" FILES \"${Header_Files}\")\n\n"
+        "set(Source_Files \"%s.c\")\n"
+        "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
+        basename, basename
+        );
+    fputs(
+        "add_library(\"${LIBRARY_NAME}\" SHARED \"${Header_Files}\" \"${Source_Files}\")\n\n"
+        "set_target_properties(\"${LIBRARY_NAME}\" PROPERTIES LINKER_LANGUAGE C)\n\n"
+        "include(GNUInstallDirs)\n"
+        "target_include_directories(\n"
+        "  \"${LIBRARY_NAME}\"\n"
+        "  PUBLIC\n"
+        "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
+        "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
+        "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
+        ")\n\n", srcCmakeLists);
+    fputs(
+    "find_package(parson CONFIG REQUIRED)\n"
+    "target_link_libraries(\n"
+    "  \"${LIBRARY_NAME}\"\n"
+    "  PRIVATE\n"
+    "  \"parson::parson\"\n"
+    ")\n", srcCmakeLists
+    );
+    fprintf(
+        srcCmakeLists,
+        "install(FILES       ${Header_Files}\n"
+        "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
+        "if (EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n"
+        "  include(CTest)\n"
+        "  if (BUILD_TESTING)\n"
+        "    add_subdirectory(\"test\")\n"
+        "  endif (BUILD_TESTING)\n"
+        "endif (EXISTS \"${PROJECT_SOURCE_DIR}/test_%s.h\")\n",
+        basename, basename);
+
+    {
+      char *testSrcCmakeListsPath;
+      asprintf(&testSrcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "test", "CMakeLists.txt");
+      rc = cp(
+        testSrcCmakeListsPath,
+        "c_cdd" PATH_SEP "templates" PATH_SEP "CMakeLists.txt_for_tests.cmake"
+      );
+      free(testSrcCmakeListsPath);
+    }
+    if (rc == 0) {
+      char *p0;
+      asprintf(&p0, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "lib_export.h");
+      rc = cp(p0, "c_cdd" PATH_SEP "templates" PATH_SEP "lib_export.h");
+      free(p0);
+    }
+    if (rc == 0) {
+      char *p1;
+      asprintf(&p1, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src", "vcpkg.json");
+      rc = cp(p1, "c_cdd" PATH_SEP "templates" PATH_SEP "vcpkg.json");
+      free(p1);
+    }
   }
 
-  fclose(f);
-  printf("Generated %s\n", p);
-  free(p);
+cleanup_src:
+  fclose(srcCmakeLists);
+  printf("Generated %s\n", srcCmakeListsPath);
+  if (rc == 0) {
+    char *p2;
+    asprintf(&p2, "%s" PATH_SEP "%s", output_directory, "src");
+    printf("Copied vcpkg.json & lib_export.h to %s\n", srcCmakeListsPath);
+    free(p2);
+  }
+  free(srcCmakeListsPath);
   return rc;
 }
 
@@ -342,8 +391,17 @@ int generate_build_system_main(int argc, char **argv) {
     const char *const basename = argv[2];
     const char *const test_file = (argc == 4) ? argv[3] : NULL;
 
+    if (access(output_directory, F_OK) != 0) {
+      const int rc = makedirs(output_directory);
+      if (rc != 0) {
+        fprintf(stderr, "Failed to create output directory: %s\n",
+                output_directory);
+        return rc;
+      }
+    }
+
     if (strcmp(build_system, "cmake") == 0) {
-      return write_cmake(output_directory, basename, test_file);
+      return write_cmake(output_directory, basename);
     } else if (strcmp(build_system, "make") == 0) {
       return write_makefile(output_directory, basename, test_file);
     } else if (strcmp(build_system, "meson") == 0) {
