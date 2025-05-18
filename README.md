@@ -134,10 +134,28 @@ $ cd "build" && ctest -C "Debug" --verbose
 ### `c_cdd_cli <command> [args]`
 
     code2schema <header.h> <schema.json>
-    generate_build_system <build_system> <basename> [test_file]
+    generate_build_system <build_system> <output_directory> <basename> [test_file]
     jsonschema2tests <schema.json> <test.c>
     schema2code <schema.json> <basename>
     sync_code <header.h> <impl.c>
+
+For example, you can:
+
+```sh
+$ mkdir 'build'
+# Create build system file for CMake
+$ bin/c_cdd_cli generate_build_system cmake 'build' 'simp'
+# Create simp.h and simp.c dataclass from simple_json.schema.json
+$ bin/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build/simp'
+# Create tests
+$ bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'build/test_simp.h'
+# Configure with cmake (replace toolchain path with yours)
+$ cmake -S 'build' -B 'build/cmake_debug_build' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='vcpkg/scripts/buildsystems/vcpkg.cmake'
+# Build with cmake
+$ cmake --build 'build/cmake_debug_build'
+# Test with cmake (ctest)
+$ ctest -C 'Debug' --build-run-dir 'build/cmake_debug_build' --verbose
+```
 
 ### `code2schema`
 
@@ -147,11 +165,12 @@ Generates JSON Schema from `struct`s located in specified C/C++ header or source
 
 ### `generate_build_system`
 
-    Usage: generate_build_system <build_system> <basename> [test_file]
+    Usage: generate_build_system <build_system> <output_directory> <basename> [test_file]
 
 Basic helpers to write build files for CMake, Makefile, Meson, Bazel.
 
   - `build_system`: cmake | make | meson | bazel
+  - `output_directory`: where to generate the build files to
   - `basename`: base name of the generated .c and .h files 
   - `test_file`: optional test .c file path (e.g., `greatest.h` based tests)
 

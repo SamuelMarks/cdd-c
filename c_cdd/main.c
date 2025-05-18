@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
   } else if (strcmp(argv[1], "generate_build_system") == 0) {
     if (argc < 4 || argc > 5) {
       fprintf(stderr,
-              "Usage: %s generate_build_system <build_system> <basename> "
+              "Usage: %s generate_build_system <build_system> "
+              "<output_directory> <basename> "
               "[test_file]\n",
               argv[0]);
       return EXIT_FAILURE;

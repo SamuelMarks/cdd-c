@@ -4,77 +4,134 @@
 
 #include "generate_build_system.h"
 
+#include "fs.h"
 
-static void write_cmake(const char *basename, const char *test_file)
-{
-    FILE *f;
+static int write_cmake(const char *const output_directory,
+                       const char *const basename,
+                       const char *const test_file) {
+  FILE *f;
+  char *p, *tpl;
+  int rc = EXIT_SUCCESS;
+  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "CMakeLists.txt");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    errno_t err = fopen_s(&f, "CMakeLists.txt", "w");
+  {
+    errno_t err = fopen_s(&f, p, "w");
     if (err != 0 || f == NULL) {
-      fputs("Failed to open CMakeLists.txt for writing", stderr);
-      exit(EXIT_FAILURE);
+      fprintf(stderr, "Failed to open %s for writing", p);
+      free(p);
+      return EXIT_FAILURE;
     }
+  }
 #else
-    f = fopen("CMakeLists.txt", "w");
-    if (!f) {
-        fputs("Failed to open CMakeLists.txt for writing", stderr);
-        exit(EXIT_FAILURE);
-    }
+  f = fopen(p, "w");
+  if (!f) {
+    fprintf(stderr, "Failed to open %s for writing", p);
+    free(p);
+    return EXIT_FAILURE;
+  }
 #endif
-  fprintf(f,
-          "cmake_minimum_required(VERSION 3.10)\n"
-          "project(%s LANGUAGES C)\n\n"
-          "set(CMAKE_C_STANDARD 90)\n"
-          "set(CMAKE_C_STANDARD_REQUIRED ON)\n"
-          "# Enable strict C90 mode and strict warnings\n"
-          "if(MSVC)\n"
-          "  add_compile_options(/W4 /Za)\n"
-          "else()\n"
-          "  add_compile_options(-std=c90 -Wall -Wextra -pedantic)\n"
-          "endif()\n\n"
-          "add_library(%s %s.c %s.h)\n\n"
-          "target_include_directories(%s PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})\n\n",
-          basename, basename, basename, basename, basename);
 
-  if (test_file && test_file[0] != '\0') {
-    /* Setup greatest.h download */
-    fprintf(f,
-            "# Download greatest.h if needed\n"
-            "include(FetchContent)\n"
-            "set(GREATEST_URL \"https://raw.githubusercontent.com/silentbicycle/greatest/master/greatest.h\")\n"
-            "set(GREATEST_FILE \"${CMAKE_BINARY_DIR}/greatest.h\")\n"
-            "if(NOT EXISTS ${GREATEST_FILE})\n"
-            "  file(DOWNLOAD ${GREATEST_URL} ${GREATEST_FILE} SHOW_PROGRESS)\n"
-            "endif()\n\n"
-            "add_executable(%s_test %s)\n"
-            "target_include_directories(%s_test PRIVATE ${CMAKE_BINARY_DIR})\n"
-            "target_link_libraries(%s_test PRIVATE %s)\n\n"
-            "enable_testing()\n"
-            "add_test(NAME %s_test COMMAND %s_test)\n",
-            basename, test_file, basename, basename, basename, basename, basename);
+
+  {
+    int err;
+    size_t f_size;
+    tpl = c_read_file("c_cdd"PATH_SEP"tests"PATH_SEP"mocks"PATH_SEP"template_CMakeLists.txt_for_tests.cmake", &err, &f_size, "rt");
+    if (err) return err;
+  }
+
+  fprintf(
+      f,
+      "cmake_minimum_required(VERSION 3.10)\n"
+      "project(%s LANGUAGES C)\n\n"
+      "# Enable strict C90 mode and strict warnings\n"
+      "set(CMAKE_C_STANDARD 90)\n"
+      "set(CMAKE_C_STANDARD_REQUIRED ON)\n"
+      "if(MSVC)\n"
+      "  add_compile_options(/W4 /Za)\n"
+      "else()\n"
+      "  add_compile_options(-Wall -Wextra -pedantic)\n"
+      "endif()\n\n"
+      "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
+      "source_group(\"Header Files\" FILES \"${Header_Files}\")\n"
+      "set(Source_Files \"%s.h\")\n"
+      "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
+      basename, basename, basename
+      );
+  fprintf(
+      f,
+      "add_library(%s \"${Header_Files}\" \"${Source_Files}\")\n\n"
+      "set_target_properties(\"%s\" PROPERTIES LINKER_LANGUAGE C)\n\n"
+      "include(GNUInstallDirs)\n"
+      "target_include_directories(\n"
+      "  \"%s\"\n"
+      "  PUBLIC\n"
+      "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
+      "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
+      "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
+      ")\n\n", basename, basename, basename);
+  fputs(
+  "find_package(parson CONFIG REQUIRED)\n"
+  "target_link_libraries(\n"
+  "  \"${PROJECT_NAME}\"\n"
+  "  PRIVATE\n"
+  "  \"parson::parson\"\n"
+  ")\n", f
+  );
+  fprintf(
+      f,
+      "install(FILES       ${Header_Files}\n"
+      "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
+      "if(EXISTS \"test_%s.h\")\n"
+      "  include(CTest)\n"
+      "  if (BUILD_TESTING)\n",
+      basename);
+
+  fputs(tpl, f);
+  free(tpl);
+  {
+    char *p0;
+    asprintf(&p0, "%s" PATH_SEP "%s", output_directory, "lib_export.h");
+    rc = cp(p0, "c_cdd" PATH_SEP "tests" PATH_SEP "mocks" PATH_SEP
+            "template_export.h");
+    free(p0);
+  }
+  {
+    char *p1;
+    asprintf(&p1, "%s" PATH_SEP "%s", output_directory, "vcpkg.json");
+    rc = cp(p1, "c_cdd" PATH_SEP "tests" PATH_SEP "mocks" PATH_SEP
+            "template_vcpkg.json");
+    free(p1);
   }
 
   fclose(f);
-  printf("Generated CMakeLists.txt\n");
+  printf("Generated %s\n", p);
+  free(p);
+  return rc;
 }
 
-static void write_makefile(const char *basename, const char *test_file)
-{
-    FILE *f;
+static int write_makefile(const char *const output_directory,
+                          const char *const basename,
+                          const char *const test_file) {
+  FILE *f;
+  char *p;
+  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "Makefile");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  errno_t err = fopen_s(&f, "Makefile", "w");
-  if (err != 0 || f == NULL) {
-    fputs("Failed to open Makefile for writing", stderr);
-    exit(EXIT_FAILURE);
+  {
+    errno_t err = fopen_s(&f, p, "w");
+    if (err != 0 || f == NULL) {
+      fprintf(stderr, "Failed to open %s for writing\n", p);
+      free(p);
+      return EXIT_FAILURE;
+    }
   }
 #else
-  f = fopen("Makefile", "w");
-    if (!f) {
-        fprintf(stderr, "Failed to open Makefile for writing\n");
-        exit(EXIT_FAILURE);
-    }
+  f = fopen(p, "w");
+  if (!f) {
+    fprintf(stderr, "Failed to open %s for writing\n", p);
+    free(p);
+    return EXIT_FAILURE;
+  }
 #endif
-
 
   fprintf(f,
           "CC ?= gcc\n"
@@ -84,67 +141,76 @@ static void write_makefile(const char *basename, const char *test_file)
           "DEPS_DIR = deps\n"
           "GREATEST_H = $(DEPS_DIR)/greatest.h\n"
           "TEST_FILE = %s\n\n",
-          basename,
-          basename,
+          basename, basename,
           (test_file && test_file[0] != '\0') ? test_file : "");
 
-  fprintf(f,
-          ".PHONY: all clean test deps\n\n"
-          "all: $(TARGET)\n\n"
-          "$(TARGET): $(OBJS)\n"
-          "\tar rcs $@ $^\n\n"
-          "%%.o: %%.c %%.h\n"
-          "\t$(CC) $(CFLAGS) -c $< -o $@\n\n");
+  fprintf(f, ".PHONY: all clean test deps\n\n"
+             "all: $(TARGET)\n\n"
+             "$(TARGET): $(OBJS)\n"
+             "\tar rcs $@ $^\n\n"
+             "%%.o: %%.c %%.h\n"
+             "\t$(CC) $(CFLAGS) -c $< -o $@\n\n");
 
   /* rule to download greatest.h if needed */
-  fprintf(f,
-          "deps:\n"
-          "\tmkdir -p $(DEPS_DIR)\n"
-          "\t@if [ ! -f $(GREATEST_H) ]; then \\\n"
-          "\t  echo Downloading greatest.h...; \\\n"
-          "\t  if command -v curl > /dev/null; then \\\n"
-          "\t    curl -L -o $(GREATEST_H) https://raw.githubusercontent.com/silentbicycle/greatest/master/greatest.h; \\\n"
-          "\t  elif command -v wget > /dev/null; then \\\n"
-          "\t    wget -O $(GREATEST_H) https://raw.githubusercontent.com/silentbicycle/greatest/master/greatest.h; \\\n"
-          "\t  else \\\n"
-          "\t    echo ERROR: Neither curl nor wget found to download greatest.h; exit 1; \\\n"
-          "\t  fi; \\\n"
-          "\tfi\n\n");
+  fprintf(f, "deps:\n"
+             "\tmkdir -p $(DEPS_DIR)\n"
+             "\t@if [ ! -f $(GREATEST_H) ]; then \\\n"
+             "\t  echo Downloading greatest.h...; \\\n"
+             "\t  if command -v curl > /dev/null; then \\\n"
+             "\t    curl -L -o $(GREATEST_H) "
+             "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
+             "greatest.h; \\\n"
+             "\t  elif command -v wget > /dev/null; then \\\n"
+             "\t    wget -O $(GREATEST_H) "
+             "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
+             "greatest.h; \\\n"
+             "\t  else \\\n"
+             "\t    echo ERROR: Neither curl nor wget found to download "
+             "greatest.h; exit 1; \\\n"
+             "\t  fi; \\\n"
+             "\tfi\n\n");
 
-  fprintf(f,
-          "test: deps $(TARGET)\n");
+  fprintf(f, "test: deps $(TARGET)\n");
 
   if (test_file && test_file[0] != '\0') {
-    fprintf(f,
-            "\t$(CC) $(CFLAGS) -I$(DEPS_DIR) -o test_runner $(TEST_FILE) $(TARGET)\n"
-            "\t./test_runner\n");
+    fprintf(f, "\t$(CC) $(CFLAGS) -I$(DEPS_DIR) -o test_runner $(TEST_FILE) "
+               "$(TARGET)\n"
+               "\t./test_runner\n");
   } else {
     fprintf(f, "\t@echo \"No test file provided\"\n");
   }
 
-  fprintf(f,
-          "\nclean:\n"
-          "\trm -f $(OBJS) $(TARGET) test_runner\n");
+  fprintf(f, "\nclean:\n"
+             "\trm -f $(OBJS) $(TARGET) test_runner\n");
 
   fclose(f);
-  printf("Generated Makefile\n");
+  printf("Generated %s\n", p);
+  free(p);
+  return EXIT_SUCCESS;
 }
 
-static void write_meson(const char *basename, const char *test_file)
-{
-    FILE *f;
+static int write_meson(const char *const output_directory,
+                       const char *const basename,
+                       const char *const test_file) {
+  FILE *f;
+  char *p;
+  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "meson.build");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  errno_t err = fopen_s(&f, "meson.build", "w");
-  if (err != 0 || f == NULL) {
-    fputs("Failed to open Makefile for writing", stderr);
-    exit(EXIT_FAILURE);
+  {
+    errno_t err = fopen_s(&f, p, "w");
+    if (err != 0 || f == NULL) {
+      fprintf(stderr, "Failed to open %s for writing\n", p);
+      free(p);
+      return EXIT_FAILURE;
+    }
   }
 #else
-  f = fopen("meson.build", "w");
-    if (!f) {
-        fprintf(stderr, "Failed to open meson.build for writing\n");
-        exit(EXIT_FAILURE);
-    }
+  f = fopen(p, "w");
+  if (!f) {
+    fprintf(stderr, "Failed to open %s for writing\n", p);
+    free(p);
+    return EXIT_FAILURE;
+  }
 #endif
 
   fprintf(f,
@@ -172,7 +238,9 @@ static void write_meson(const char *basename, const char *test_file)
             "  'curl', \n"
             "  '-fLO', \n"
             "  '-O', \n"
-            "  'https://raw.githubusercontent.com/silentbicycle/greatest/master/greatest.h',\n"
+            "  "
+            "'https://raw.githubusercontent.com/silentbicycle/greatest/master/"
+            "greatest.h',\n"
             "  check : false\n"
             ")\n\n"
             "test_exe = executable(\n"
@@ -187,89 +255,104 @@ static void write_meson(const char *basename, const char *test_file)
   }
 
   fclose(f);
-    puts("Generated meson.build");
+  printf("Generated %s\n", p);
+  free(p);
+  return EXIT_SUCCESS;
 }
 
-static void write_bazel(const char *basename, const char *test_file)
-{
-    FILE *f;
+static int write_bazel(const char *const output_directory,
+                       const char *const basename,
+                       const char *const test_file) {
+  FILE *f;
+  char *p;
+  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "BUILD");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  errno_t err = fopen_s(&f, "BUILD", "r");
-  if (err != 0 || f == NULL) {
-    fputs("Failed to open CMakeLists.txt for writing", stderr);
-    exit(EXIT_FAILURE);
+  {
+    errno_t err = fopen_s(&f, p, "w");
+    if (err != 0 || f == NULL) {
+      fprintf(stderr, "Failed to open %s for writing\n", p);
+      free(p);
+      return EXIT_FAILURE;
+    }
   }
 #else
-    f = fopen("BUILD", "w");
-    if (!f) {
-        fprintf(stderr, "Failed to open BUILD for writing\n");
-        exit(EXIT_FAILURE);
-    }
+  f = fopen(p, "w");
+  if (!f) {
+    fprintf(stderr, "Failed to open %s for writing\n", p);
+    free(p);
+    return EXIT_FAILURE;
+  }
 #endif
+
+  fprintf(f,
+          "cc_library(\n"
+          "    name = \"%s\",\n"
+          "    srcs = [\"%s.c\"],\n"
+          "    hdrs = [\"%s.h\"],\n"
+          "    visibility = [\"//visibility:public\"],\n"
+          "    copts = [\"-std=c90\", \"-Wall\", \"-Wextra\", \"-pedantic\"],\n"
+          ")\n\n",
+          basename, basename, basename);
+
+  if (test_file && test_file[0] != '\0') {
     fprintf(f,
-            "cc_library(\n"
-            "    name = \"%s\",\n"
-            "    srcs = [\"%s.c\"],\n"
-            "    hdrs = [\"%s.h\"],\n"
+            "cc_binary(\n"
+            "    name = \"%s_test\",\n"
+            "    srcs = [\"%s\"],\n"
+            "    deps = [\":%s\"],\n"
             "    visibility = [\"//visibility:public\"],\n"
-            "    copts = [\"-std=c90\", \"-Wall\", \"-Wextra\", \"-pedantic\"],\n"
-            ")\n\n",
-            basename, basename, basename);
+            ")\n",
+            basename, test_file, basename);
 
-    if (test_file && test_file[0] != '\0') {
-        fprintf(f,
-                "cc_binary(\n"
-                "    name = \"%s_test\",\n"
-                "    srcs = [\"%s\"],\n"
-                "    deps = [\":%s\"],\n"
-                "    visibility = [\"//visibility:public\"],\n"
-                ")\n",
-                basename, test_file, basename);
-
-      fprintf(f,
+    fprintf(
+        f,
         "\n# NOTE: For greatest.h dependency,\n"
         "# consider adding an http_archive rule in your WORKSPACE file:\n"
         "#\n"
         "# http_archive(\n"
         "#     name = \"greatest\",\n"
-        "#     urls = [\"https://github.com/silentbicycle/greatest/archive/master.zip\"],\n"
+        "#     urls = "
+        "[\"https://github.com/silentbicycle/greatest/archive/master.zip\"],\n"
         "#     strip_prefix = \"greatest-master\",\n"
         "# )\n"
         "#\n"
         "# and then add appropriate deps to test target.\n");
-    }
+  }
 
-    fclose(f);
-    puts("Generated BUILD");
+  fclose(f);
+  printf("Generated %s\n", p);
+  free(p);
+  return EXIT_SUCCESS;
 }
 
 int generate_build_system_main(int argc, char **argv) {
-  if (argc < 2 || argc > 3) {
-    fputs("Usage: generate_build <build_system> <basename> [test_file]\n"
+  if (argc < 3 || argc > 4) {
+    fputs("Usage: generate_build <build_system> <output_directory> <basename> "
+          "[test_file]\n"
           "build_system: cmake | make | meson | bazel\n"
           "basename: base name for .c and .h files\n"
-          "test_file: optional .c test file", stderr);
+          "test_file: optional .c test file",
+          stderr);
     return EXIT_FAILURE;
   }
 
   {
     const char *const build_system = argv[0];
-    const char *const basename = argv[1];
-    const char *const test_file = (argc == 3) ? argv[2] : NULL;
+    const char *const output_directory = argv[1];
+    const char *const basename = argv[2];
+    const char *const test_file = (argc == 4) ? argv[3] : NULL;
 
     if (strcmp(build_system, "cmake") == 0) {
-      write_cmake(basename, test_file);
+      return write_cmake(output_directory, basename, test_file);
     } else if (strcmp(build_system, "make") == 0) {
-      write_makefile(basename, test_file);
+      return write_makefile(output_directory, basename, test_file);
     } else if (strcmp(build_system, "meson") == 0) {
-      write_meson(basename, test_file);
+      return write_meson(output_directory, basename, test_file);
     } else if (strcmp(build_system, "bazel") == 0) {
-      write_bazel(basename, test_file);
+      return write_bazel(output_directory, basename, test_file);
     } else {
       fprintf(stderr, "Unsupported build system: %s\n", build_system);
       return EXIT_FAILURE;
     }
   }
-
-  return EXIT_SUCCESS;
 }
