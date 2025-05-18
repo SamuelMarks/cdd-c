@@ -11,12 +11,19 @@ extern "C" {
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
 #define strtok_r strtok_s
+#include <io.h>
+#define F_OK 0
+#define access _access
 #else
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
+#include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 extern C_CDD_EXPORT const char *get_basename(const char *);
+
+extern C_CDD_EXPORT const char *get_dirname(char *);
+
 extern C_CDD_EXPORT char *c_read_file(const char *, int *, size_t *,
                                       const char *);
 

@@ -16,7 +16,9 @@
 #include <parson.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif /* !strdup */
 #define strtok_r strtok_s
 #endif
 
@@ -28,9 +30,10 @@
 
 #include "code2schema.h"
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)
 #define strdup _strdup
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)  \
+        */
 
 /* Trim trailing whitespace and semicolons */
 void trim_trailing(char *const str) {

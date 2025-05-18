@@ -6,7 +6,7 @@
 #include <sys/errno.h>
 #endif
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)
 #define strdup _strdup
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 

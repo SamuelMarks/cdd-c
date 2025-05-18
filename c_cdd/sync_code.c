@@ -16,7 +16,9 @@
 /* Reuse struct definitions and parsing utilities from code2schema.c above */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef strdup
 #define strdup _strdup
+#endif /* !strdup */
 #define strtok_r strtok_s
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 

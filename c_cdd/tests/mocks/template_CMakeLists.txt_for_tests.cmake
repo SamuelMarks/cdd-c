@@ -29,14 +29,21 @@
 
     set(EXEC_NAME "test_${CMAKE_PROJECT_NAME}")
 
-    set(Source_Files "${CMAKE_PROJECT_NAME}.h")
+    set(Header_Files "${CMAKE_PROJECT_NAME}.h")
+    source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
+
+    set(Source_Files "test_main.c")
     source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
-    add_executable("${EXEC_NAME}" "${Source_Files}")
+    add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
 
+    include(GNUInstallDirs)
     target_include_directories(
             "${EXEC_NAME}"
             PRIVATE
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
             "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
     )
     set_target_properties(
@@ -46,6 +53,18 @@
             C
     )
     target_link_libraries("${EXEC_NAME}" PUBLIC "${CMAKE_PROJECT_NAME}")
+
+    find_package(parson CONFIG REQUIRED)
+    target_link_libraries(
+            "${EXEC_NAME}"
+            PRIVATE
+            "parson::parson"
+    )
+    target_link_libraries(
+            "${EXEC_NAME}"
+            PUBLIC
+            "${PROJECT_NAME}"
+    )
 
     add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
