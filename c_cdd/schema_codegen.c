@@ -99,7 +99,7 @@ static void print_enum_declaration(FILE *const hfile,
   const size_t n = json_array_get_count(enum_values);
   bool has_unknown = false;
 
-  fprintf(hfile, "enum %s {\n", enum_name);
+  fprintf(hfile, "enum LIB_EXPORT %s {\n", enum_name);
 
   for (i = 0; i < n; i++) {
     const char *val = json_array_get_string(enum_values, i);
@@ -123,10 +123,12 @@ static void print_enum_declaration(FILE *const hfile,
   fprintf(hfile, "};\n\n");
 
   /* Declare enum related functions */
-  fprintf(hfile, "int %s_to_str(enum %s e, char **str_out);\n", enum_name,
-          enum_name);
-  fprintf(hfile, "int %s_from_str(const char *str, enum %s *e);\n\n", enum_name,
-          enum_name);
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_to_str(enum %s e, char **str_out);\n",
+          enum_name, enum_name);
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_from_str(const char *str, enum %s *e);\n\n",
+          enum_name, enum_name);
 }
 
 /*
@@ -145,7 +147,7 @@ static void print_struct_declaration(FILE *const hfile,
    * "required"); */
   size_t i;
 
-  fprintf(hfile, "struct %s {\n", struct_name);
+  fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name);
   /* or if no properties: empty struct */
   if (props) {
     for (i = 0; i < nprops; i++) {
@@ -160,24 +162,35 @@ static void print_struct_declaration(FILE *const hfile,
   }
   fprintf(hfile, "};\n\n");
 
-  fprintf(hfile, "int %s_debug(const struct %s *, FILE *);\n\n", struct_name,
-          struct_name);
-  fprintf(hfile, "int %s_deepcopy(const struct %s *, struct %s **);\n",
-          struct_name, struct_name, struct_name);
-  fprintf(hfile, "int %s_default(struct %s **);\n", struct_name, struct_name);
-  fprintf(hfile, "int %s_display(const struct %s *, FILE *);\n", struct_name,
-          struct_name);
   fprintf(hfile,
-          "int %s_eq(const struct %s *const, const struct %s *const);\n\n",
+          "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n\n",
+          struct_name, struct_name);
+  fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_deepcopy(const struct %s *, struct %s **);\n",
+      struct_name, struct_name, struct_name);
+  fprintf(hfile, "extern LIB_EXPORT int %s_default(struct %s **);\n",
+          struct_name, struct_name);
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
+          struct_name, struct_name);
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_eq(const struct %s *const, const struct %s "
+          "*const);\n\n",
           struct_name, struct_name, struct_name);
-  fprintf(hfile, "int %s_from_json(const char *, struct %s **);\n", struct_name,
-          struct_name);
-  fprintf(hfile, "int %s_from_jsonObject(const JSON_Object *, struct %s **);\n",
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_from_json(const char *, struct %s **);\n",
           struct_name, struct_name);
-  fprintf(hfile, "int %s_to_json(const struct %s *const, char **);\n",
+  fprintf(hfile,
+          "extern LIB_EXPORT int %s_from_jsonObject(const JSON_Object *, "
+          "struct %s **);\n",
           struct_name, struct_name);
-  fprintf(hfile, "void %s_cleanup(struct %s *const);\n", struct_name,
-          struct_name);
+  fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_to_json(const struct %s *const, char **);\n",
+      struct_name, struct_name);
+  fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *const);\n",
+          struct_name, struct_name);
 }
 
 /*
@@ -229,7 +242,8 @@ static int generate_header(const char *const basename,
   fprintf(hfile, "#include <stdlib.h>\n"
                  "#include <stdbool.h>\n"
                  "#include <stdio.h>\n\n"
-                 "#include <parson.h>\n\n");
+                 "#include <parson.h>\n\n"
+                 "#include \"lib_export.h\"\n\n");
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {

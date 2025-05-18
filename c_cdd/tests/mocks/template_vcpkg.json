@@ -1,0 +1,10 @@
+{
+  "name": "generated",
+  "version-string": "0.0.1",
+  "port-version": 1,
+  "homepage": "",
+  "description": "Generated; replace this, name, homepage, &etc.",
+  "dependencies": [
+    "parson"
+  ]
+}

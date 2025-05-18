@@ -4,15 +4,6 @@
 #include <fs.h>
 #include <greatest.h>
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define PATH_SEP "\\"
-#define PATH_SEP_C '\\'
-#define strtok_r strtok_s
-#else
-#define PATH_SEP "/"
-#define PATH_SEP_C '/'
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
-
 TEST test_get_basename(void) {
   const char *res;
 
