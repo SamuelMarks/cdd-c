@@ -68,14 +68,11 @@ jobs:
 
       - name: generate then build & test generated
         run: |
-          pwd
-          ls -R
-          find build -type f -executable
           mkdir 'build_gen'
-          build/c_cdd_cli generate_build_system cmake 'build_gen' 'simp'
-          build/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build_gen/src/simp'
-          build/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
-          cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='vcpkg/scripts/buildsystems/vcpkg.cmake'
+          build/bin/c_cdd_cli generate_build_system cmake 'build_gen' 'simp'
+          build/bin/c_cdd_cli schema2code 'c_cdd/tests/mocks/simple_json.schema.json' 'build_gen/src/simp'
+          build/bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
+          cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake'
           cmake --build 'build_gen/cmake_debug_build'
           ctest -C 'Debug' --build-run-dir 'build_gen/cmake_debug_build' --verbose
         if: matrix.os != 'windows-latest'
