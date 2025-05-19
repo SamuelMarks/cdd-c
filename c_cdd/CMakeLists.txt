@@ -54,9 +54,35 @@ if (MSVC)
             PATH_SUFFIXES
             "um\\x64"
             "um\\x86"
-            REQUIRED
     )
-    target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PATHCCH_LIB}")
+    if(PATHCCH_LIB)
+      target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PATHCCH_LIB}")
+    else ()
+        find_library(API_MS_WIN_CORE_PATH_LIBRARY
+                NAMES API-MS-Win-Core-Path-l1-1-0.dll
+                PATHS ENV PATH
+                NO_DEFAULT_PATH
+        )
+
+        if(API_MS_WIN_CORE_PATH_LIBRARY)
+            message(STATUS "API-MS-Win-Core-Path-l1-1-0.dll found: ${API_MS_WIN_CORE_PATH_LIBRARY}")
+        else()
+            message(STATUS "API-MS-Win-Core-Path-l1-1-0.dll not found")
+        endif()
+        find_library(KERNELBASE_LIBRARY
+                NAMES KernelBase
+                HINTS ENV PATH
+                PATHS "C:/Windows/System32"
+                DOC "Path to KernelBase.dll"
+        )
+
+        if(KERNELBASE_LIBRARY)
+            message(STATUS "KernelBase.dll found at: ${KERNELBASE_LIBRARY}")
+        else()
+            message(STATUS "KernelBase.dll not found.")
+        endif()
+        set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} API-MS-Win-Core-Path-l1-1-0.dll KernelBase.dll")
+    endif (PATHCCH_LIB)
 endif (MSVC)
 
 if (NOT DEFINED HAVE_ASPRINTF)
