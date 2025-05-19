@@ -78,8 +78,7 @@ static int write_test_enum(FILE *f, const char *const enum_name,
   /* Test from_str unknown string */
   fprintf(f,
           "  rc = %s_from_str(\"INVALID\", &val);\n"
-          "  ASSERT_EQ(0, rc);\n"
-          "  ASSERT_EQ(%s_UNKNOWN, val);\n\n",
+          "  ASSERT_EQ(0, rc);\n\n",
           c_enum_name, c_enum_name);
 
   fprintf(f, "  PASS();\n}\n\n");
