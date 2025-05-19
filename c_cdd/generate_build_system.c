@@ -141,12 +141,10 @@ static int write_cmake(const char *const output_directory,
           "        EXPORT \"${LIBRARY_NAME}Targets\"\n"
           "        ARCHIVE DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
           "        LIBRARY DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
-          "        RUNTIME DESTINATION \"${CMAKE_INSTALL_BINDIR}\")\n",
+          "        RUNTIME DESTINATION \"${CMAKE_INSTALL_BINDIR}\")\n\n"
+          "install(EXPORT \"${LIBRARY_NAME}Targets\"\n"
+          "        DESTINATION \"${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}\")\n",
           srcCmakeLists);
-    fprintf(
-        srcCmakeLists,
-        "install(EXPORT \"${LIBRARY_NAME}Targets\"\n"
-        "        DESTINATION \"${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}\")\n");
 
     {
       char *testSrcCmakeListsPath;
@@ -221,33 +219,35 @@ static int write_makefile(const char *const output_directory,
           basename, basename,
           (test_file && test_file[0] != '\0') ? test_file : "");
 
-  fprintf(f, ".PHONY: all clean test deps\n\n"
-             "all: $(TARGET)\n\n"
-             "$(TARGET): $(OBJS)\n"
-             "\tar rcs $@ $^\n\n"
-             "%%.o: %%.c %%.h\n"
-             "\t$(CC) $(CFLAGS) -c $< -o $@\n\n");
+  fputs(".PHONY: all clean test deps\n\n"
+        "all: $(TARGET)\n\n"
+        "$(TARGET): $(OBJS)\n"
+        "\tar rcs $@ $^\n\n"
+        "%%.o: %%.c %%.h\n"
+        "\t$(CC) $(CFLAGS) -c $< -o $@\n",
+        f);
 
   /* rule to download greatest.h if needed */
-  fprintf(f, "deps:\n"
-             "\tmkdir -p $(DEPS_DIR)\n"
-             "\t@if [ ! -f $(GREATEST_H) ]; then \\\n"
-             "\t  echo Downloading greatest.h...; \\\n"
-             "\t  if command -v curl > /dev/null; then \\\n"
-             "\t    curl -L -o $(GREATEST_H) "
-             "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-             "greatest.h; \\\n"
-             "\t  elif command -v wget > /dev/null; then \\\n"
-             "\t    wget -O $(GREATEST_H) "
-             "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-             "greatest.h; \\\n"
-             "\t  else \\\n"
-             "\t    echo ERROR: Neither curl nor wget found to download "
-             "greatest.h; exit 1; \\\n"
-             "\t  fi; \\\n"
-             "\tfi\n\n");
+  fputs("deps:\n"
+        "\tmkdir -p $(DEPS_DIR)\n"
+        "\t@if [ ! -f $(GREATEST_H) ]; then \\\n"
+        "\t  echo Downloading greatest.h...; \\\n"
+        "\t  if command -v curl > /dev/null; then \\\n"
+        "\t    curl -L -o $(GREATEST_H) "
+        "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
+        "greatest.h; \\\n"
+        "\t  elif command -v wget > /dev/null; then \\\n"
+        "\t    wget -O $(GREATEST_H) "
+        "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
+        "greatest.h; \\\n"
+        "\t  else \\\n"
+        "\t    echo ERROR: Neither curl nor wget found to download "
+        "greatest.h; exit 1; \\\n"
+        "\t  fi; \\\n"
+        "\tfi\n",
+        f);
 
-  fprintf(f, "test: deps $(TARGET)\n");
+  fputs("test: deps $(TARGET)", f);
 
   if (test_file && test_file[0] != '\0') {
     fprintf(f, "\t$(CC) $(CFLAGS) -I$(DEPS_DIR) -o test_runner $(TEST_FILE) "

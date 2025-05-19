@@ -8,7 +8,6 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <parson.h>
@@ -54,7 +53,7 @@ int sync_code_main(int argc, char **argv) {
   size_t struct_count = 0, i;
 
   if (argc != 2) {
-    fprintf(stderr, "Usage: sync_code <header.h> <impl.c>\n");
+    fputs("Usage: sync_code <header.h> <impl.c>", stderr);
     return EXIT_FAILURE;
   }
 

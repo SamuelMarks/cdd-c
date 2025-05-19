@@ -69,7 +69,7 @@ void enum_members_init(struct EnumMembers *em) {
   em->capacity = 8;
   em->members = (char **)malloc(em->capacity * sizeof(char *));
   if (!em->members) {
-    fprintf(stderr, "malloc failed\n");
+    fputs("malloc failed", stderr);
     exit(1);
   }
 }
@@ -89,7 +89,7 @@ void enum_members_add(struct EnumMembers *em, const char *const name) {
     em->capacity *= 2;
     em->members = realloc(em->members, em->capacity * sizeof(char *));
     if (!em->members) {
-      fprintf(stderr, "realloc failed\n");
+      fputs("malloc failed", stderr);
       exit(1);
     }
   }
@@ -102,7 +102,7 @@ void struct_fields_init(struct StructFields *sf) {
   sf->fields =
       (struct StructField *)malloc(sf->capacity * sizeof(struct StructField));
   if (!sf->fields) {
-    fprintf(stderr, "malloc failed\n");
+    fputs("malloc failed\n", stderr);
     exit(1);
   }
 }
@@ -123,7 +123,7 @@ void struct_fields_add(struct StructFields *sf, const char *const name,
     sf->fields = (struct StructField *)realloc(
         sf->fields, sf->capacity * sizeof(struct StructField));
     if (!sf->fields) {
-      fprintf(stderr, "realloc failed\n");
+      fputs("malloc failed", stderr);
       exit(1);
     }
   }

@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <parson.h>
 
@@ -113,16 +112,16 @@ static void print_enum_declaration(FILE *const hfile,
 
     fprintf(hfile, "  %s", val);
     if (i + 1 < n)
-      fprintf(hfile, ",\n");
+      fputs(",", hfile);
   }
 
   /* Add UNKNOWN = -1 if it's not present */
   if (!has_unknown)
     fprintf(hfile, ",\n  UNKNOWN = -1\n");
   else
-    fprintf(hfile, "\n");
+    fputc('\n', hfile);
 
-  fprintf(hfile, "};\n\n");
+  fputs("};\n", hfile);
 
   /* Declare enum related functions */
   fprintf(hfile,
@@ -162,7 +161,7 @@ static void print_struct_declaration(FILE *const hfile,
       print_c_type_for_schema_prop(hfile, prop_name, prop_obj, schemas_obj);
     }
   }
-  fprintf(hfile, "};\n\n");
+  fputs("};\n\n", hfile);
 
   fprintf(hfile,
           "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n\n",
@@ -176,10 +175,10 @@ static void print_struct_declaration(FILE *const hfile,
   fprintf(hfile,
           "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
           struct_name, struct_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s "
-          "*const);\n\n",
-          struct_name, struct_name, struct_name);
+  fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s *);\n\n",
+      struct_name, struct_name, struct_name);
   fprintf(hfile,
           "extern LIB_EXPORT int %s_from_json(const char *, struct %s **);\n",
           struct_name, struct_name);
@@ -190,7 +189,7 @@ static void print_struct_declaration(FILE *const hfile,
   fprintf(hfile,
           "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
           struct_name, struct_name);
-  fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *const);\n",
+  fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
           struct_name, struct_name);
 }
 

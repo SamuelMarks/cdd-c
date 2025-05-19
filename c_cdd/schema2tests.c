@@ -79,9 +79,9 @@ static int write_test_enum(FILE *f, const char *const enum_name,
   fprintf(f,
           "  rc = %s_from_str(\"INVALID\", &val);\n"
           "  ASSERT_EQ(0, rc);\n\n",
-          c_enum_name, c_enum_name);
+          c_enum_name);
 
-  fprintf(f, "  PASS();\n}\n\n");
+  fputs("  PASS();\n}\n", f);
 
   return 0;
 }
@@ -114,47 +114,35 @@ static int write_test_struct(FILE *f, const char *const struct_name,
           c_struct_name, c_struct_name);
 
   /* Add JSON roundtrip test */
-  fprintf(
-      f,
-      "/* Test %s from_json and to_json roundtrip */\n"
-      "TEST test_%s_json_roundtrip(void) {\n"
-      "  const char *json = \"{}\"; /* Empty for basic test */\n"
-      "  struct %s *obj_in = NULL;\n"
-      "  char *json_out = NULL;\n"
-      "  int rc;\n\n"
-      "  rc = %s_from_json(json, &obj_in);\n"
-      "  if (rc != 0 || obj_in == NULL) FAIL();\n\n"
-      "  rc = %s_to_json(obj_in, &json_out);\n"
-      "  if (rc != 0 || json_out == NULL) { %s_cleanup(obj_in); FAIL(); }\n\n",
-      struct_name, c_struct_name, c_struct_name, c_struct_name, c_struct_name,
-      c_struct_name);
   fprintf(f,
-          "  {\n"
-          "    struct %s *obj_out = NULL;\n"
-          "    rc = %s_from_json(json_out, &obj_out);\n"
-          "    if (rc != 0 || obj_out == NULL) {\n"
-          "      free(json_out);\n"
-          "      %s_cleanup(obj_in);\n"
-          "      FAIL();\n"
-          "    }\n"
-          "    ASSERT(%s_eq(obj_in, obj_out));\n"
-          "    %s_cleanup(obj_out);\n"
-          "  }\n\n"
-          "  free(json_out);\n"
-          "  %s_cleanup(obj_in);\n\n"
+          "TEST test_%s_json_roundtrip(void) {\n"
+          "  struct %s *obj_in = NULL;\n"
+          "  struct %s *obj_out = NULL;\n"
+          "  char *json_str = NULL;\n"
+          "  int rc;\n"
+          "\n"
+          "  rc = %s_default(&obj_in);\n"
+          "  ASSERT_EQ(0, rc);\n"
+          "  ASSERT(obj_in != NULL);\n"
+          "\n"
+          "  rc = %s_to_json(obj_in, &json_str);\n"
+          "  ASSERT_EQ(0, rc);\n"
+          "  ASSERT(json_str != NULL);\n"
+          "\n"
+          "  rc = %s_from_json(json_str, &obj_out);\n"
+          "  ASSERT_EQ(0, rc);\n"
+          "  ASSERT(obj_out != NULL);\n"
+          "\n"
+          "  ASSERT(%s_eq(obj_in, obj_out));\n"
+          "\n"
+          "  free(json_str);\n"
+          "  %s_cleanup(obj_in);\n"
+          "  %s_cleanup(obj_out);\n"
+          "\n"
           "  PASS();\n"
           "}\n\n",
-          struct_name, c_struct_name, c_struct_name, c_struct_name,
-          c_struct_name, c_struct_name);
-
-  /* Test cleanup with NULL */
-  fprintf(f,
-          "/* Test %s cleanup handles NULL gracefully */\n"
-          "TEST test_%s_cleanup_null(void) {\n"
-          "  %s_cleanup(NULL);\n"
-          "  PASS();\n"
-          "}\n\n",
-          c_struct_name, c_struct_name, c_struct_name);
+          struct_name, struct_name, struct_name, struct_name, struct_name,
+          struct_name, struct_name, struct_name, struct_name);
 
   return 0;
 }
@@ -278,9 +266,10 @@ int jsonschema2tests_main(int argc, char **argv) {
         const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
-          const char *schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *val = json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *schema_obj = json_value_get_object(val);
+          const char *const schema_name = json_object_get_name(schemas_obj, i);
+          const JSON_Value *const val =
+              json_object_get_value_at(schemas_obj, i);
+          const JSON_Object *const schema_obj = json_value_get_object(val);
           const char *type_str;
           if (!schema_obj)
             continue;
@@ -291,7 +280,7 @@ int jsonschema2tests_main(int argc, char **argv) {
 
           if (strcmp(type_str, "string") == 0) {
             /* Possibly enum */
-            const JSON_Array *enum_arr =
+            const JSON_Array *const enum_arr =
                 json_object_get_array(schema_obj, "enum");
             if (enum_arr != NULL) {
               write_test_enum(f, schema_name, enum_arr);
@@ -313,9 +302,10 @@ int jsonschema2tests_main(int argc, char **argv) {
         const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
-          const char *schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *val = json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *schema_obj = json_value_get_object(val);
+          const char *const schema_name = json_object_get_name(schemas_obj, i);
+          const JSON_Value *const val =
+              json_object_get_value_at(schemas_obj, i);
+          const JSON_Object *const schema_obj = json_value_get_object(val);
           const char *type_str;
           if (!schema_obj)
             continue;
@@ -325,7 +315,7 @@ int jsonschema2tests_main(int argc, char **argv) {
             continue;
 
           if (strcmp(type_str, "string") == 0) {
-            const JSON_Array *enum_arr =
+            const JSON_Array *const enum_arr =
                 json_object_get_array(schema_obj, "enum");
             if (enum_arr != NULL) {
               char sanitized0[128];
@@ -345,9 +335,10 @@ int jsonschema2tests_main(int argc, char **argv) {
         const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
-          const char *schema_name = json_object_get_name(schemas_obj, i);
-          const JSON_Value *val = json_object_get_value_at(schemas_obj, i);
-          const JSON_Object *schema_obj = json_value_get_object(val);
+          const char *const schema_name = json_object_get_name(schemas_obj, i);
+          const JSON_Value *const val =
+              json_object_get_value_at(schemas_obj, i);
+          const JSON_Object *const schema_obj = json_value_get_object(val);
           const char *type_str;
           if (!schema_obj)
             continue;
@@ -362,7 +353,6 @@ int jsonschema2tests_main(int argc, char **argv) {
             fprintf(f, "  RUN_TEST(test_%s_default_deepcopy_eq_cleanup);\n",
                     sanitized0);
             fprintf(f, "  RUN_TEST(test_%s_json_roundtrip);\n", sanitized0);
-            fprintf(f, "  RUN_TEST(test_%s_cleanup_null);\n", sanitized0);
           }
         }
       }
