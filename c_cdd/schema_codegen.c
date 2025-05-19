@@ -54,7 +54,7 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
   const char *const ref = json_object_get_string(prop_obj, "$ref");
 
   if (ref != NULL && schemas_obj != NULL) {
-    // existing code unchanged...
+    /* existing code unchanged... */
 
   } else if (type_str == NULL) {
     fprintf(hfile, "  /* unknown type for %s */\n", prop_name);
@@ -69,7 +69,7 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
   } else if (strcmp(type_str, "object") == 0) {
     fprintf(hfile, "  /* object property (unresolved) %s */\n", prop_name);
   } else if (strcmp(type_str, "array") == 0) {
-    // New: handle array type fields with $ref items
+    /* New: handle array type fields with $ref items */
     const JSON_Object *const items_obj =
         json_object_get_object(prop_obj, "items");
     const char *items_ref = NULL;
