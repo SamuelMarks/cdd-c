@@ -63,8 +63,7 @@ int main(int argc, char **argv) {
     return sync_code_main(argc - 2, argv + 2);
   } else {
     fprintf(stderr, "Unknown command: %s\n", argv[1]);
-    fprintf(stderr,
-            "Available commands: code2schema, schema2code, sync_code\n");
+    fputs("Available commands: code2schema, schema2code, sync_code\n", stderr);
     return EXIT_FAILURE;
   }
 }
