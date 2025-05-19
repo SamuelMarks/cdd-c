@@ -149,7 +149,7 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
   length = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  // 1 GiB; best not to load a whole large file in one string
+  /* 1 GiB; best not to load a whole large file in one string */
   if (length > 1073741824) {
     *err = FILE_TOO_LARGE;
 

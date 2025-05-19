@@ -242,7 +242,7 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
     const char *type = f->type;
 
     if (strcmp(type, "string") == 0) {
-      // Print comma only if this field will be emitted
+      /* Print comma only if this field will be emitted */
       fprintf(cfile,
               "  if (obj->%s) {\n"
               "    if (need_comma) {\n"

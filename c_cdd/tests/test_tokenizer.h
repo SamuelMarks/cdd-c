@@ -14,13 +14,15 @@
  */
 static char *token_to_cstr(char *buf, size_t buf_len, const struct Token *tok) {
   if (buf_len == 0)
-    return NULL; // safety
+    return NULL;
 
-  int32_t copy_len = (tok->length < (int32_t)(buf_len - 1))
-                         ? tok->length
-                         : (int32_t)(buf_len - 1);
-  memcpy(buf, tok->start, copy_len);
-  buf[copy_len] = '\0';
+  {
+    size_t copy_len = (tok->length < (int32_t)(buf_len - 1))
+                          ? tok->length
+                          : (int32_t)(buf_len - 1);
+    memcpy(buf, tok->start, copy_len);
+    buf[copy_len] = '\0';
+  }
   return buf;
 }
 

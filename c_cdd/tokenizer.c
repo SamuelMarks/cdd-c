@@ -89,7 +89,7 @@ int tokenize(const az_span source, struct TokenList *const out) {
                  !(base[pos] == '*' && base[pos + 1] == '/'))
             pos++;
           if (pos + 1 >= length) {
-            // unterminated comment
+            /* unterminated comment */
             pos = length;
             if (add_token(out, TOKEN_COMMENT, base + start,
                           (int32_t)(pos - start)) != 0)
@@ -101,7 +101,7 @@ int tokenize(const az_span source, struct TokenList *const out) {
               return -1;
           }
         } else {
-          // single slash token
+          /* single slash token */
           if (add_token(out, TOKEN_OTHER, base + pos, 1) != 0)
             return -1;
           pos++;
@@ -153,13 +153,13 @@ int tokenize(const az_span source, struct TokenList *const out) {
       break;
     }
 
-    case '"': { // string literal
+    case '"': { /* string literal */
       const size_t start = pos;
-      pos++; // skip initial "
+      pos++; /* skip initial " */
       while (pos < length) {
-        uint8_t ch = base[pos];
+        const uint8_t ch = base[pos];
         if (ch == '\\' && pos + 1 < length) {
-          // skip escaped character
+          /* skip escaped character */
           pos += 2;
           continue;
         }
@@ -175,12 +175,12 @@ int tokenize(const az_span source, struct TokenList *const out) {
       break;
     }
 
-    case '\'': { // char literal
+    case '\'': { /* char literal */
       const size_t start = pos;
-      pos++; // skip initial '
+      pos++; /* skip initial ' */
       if (pos < length) {
         if (base[pos] == '\\' && pos + 1 < length) {
-          pos += 2; // skip escaped char
+          pos += 2; /* skip escaped char */
         } else {
           pos++;
         }
@@ -188,7 +188,7 @@ int tokenize(const az_span source, struct TokenList *const out) {
       if (pos < length && base[pos] == '\'') {
         pos++;
       }
-      // else unterminated char literal; accept as is
+      /* else unterminated char literal; accept as is */
       if (add_token(out, TOKEN_CHAR_LITERAL, base + start,
                     (int32_t)(pos - start)) != 0)
         return -1;
@@ -204,7 +204,7 @@ int tokenize(const az_span source, struct TokenList *const out) {
     case '6':
     case '7':
     case '8':
-    case '9': { // number literal
+    case '9': { /* number literal */
       const size_t start = pos;
       pos++;
       while (pos < length) {
@@ -291,7 +291,7 @@ int tokenize(const az_span source, struct TokenList *const out) {
     }
 
     default: {
-      // single char OTHER token
+      /* single char OTHER token */
       if (add_token(out, TOKEN_OTHER, base + pos, 1) != 0)
         return -1;
       pos++;
