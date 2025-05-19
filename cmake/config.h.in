@@ -6,4 +6,6 @@
 #define C_CDD_VERSION_PATCH @c_cdd_VERSION_PATCH@
 #define C_CDD_VERSION       "@c_cdd_VERSION@"
 
+#define _@TARGET_ARCH@_
+
 #endif /* !C_CDD_CONFIG_H */

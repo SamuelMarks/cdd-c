@@ -9,6 +9,12 @@
 
 #include "fs.h"
 
+#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+#include <stdio.h>
+#else
+#include <c89stringutils_string_extras.h>
+#endif
+
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #else
 #include <sys/errno.h>
