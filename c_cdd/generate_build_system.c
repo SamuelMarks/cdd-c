@@ -1,3 +1,9 @@
+#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
+#include <stdio.h>
+#else
+#include <c89stringutils_string_extras.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,10 +23,10 @@ static int write_cmake(const char *const output_directory,
            "CMakeLists.txt");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
-    errno_t err = fopen_s(&rootCmakeLists, p, "w");
+    errno_t err = fopen_s(&rootCmakeLists, rootCmakeListsPath, "w");
     if (err != 0 || rootCmakeLists == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", p);
-      free(p);
+      fprintf(stderr, "Failed to open %s for writing", rootCmakeListsPath);
+      free(rootCmakeListsPath);
       return EXIT_FAILURE;
     }
   }

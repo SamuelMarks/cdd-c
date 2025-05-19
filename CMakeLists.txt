@@ -81,6 +81,12 @@ if (DEFINED HAVE_ASPRINTF)
     add_compile_definitions(HAVE_ASPRINTF)
 endif (DEFINED HAVE_ASPRINTF)
 
+
+if (NOT DEFINED TARGET_ARCH)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_arch.cmake")
+    get_arch()
+endif (NOT DEFINED TARGET_ARCH)
+
 # configure a header file to pass the version number only
 configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in"

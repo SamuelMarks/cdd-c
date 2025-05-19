@@ -47,10 +47,22 @@ const char *get_basename(const char *const path) {
 
 const char *get_dirname(char *path) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  char *p = strdup(path);
-  if (PathCchRemoveFileSpec(p, strlen(p)) != S_OK)
+  const size_t n = strlen(path);
+
+  wchar_t *wtext = malloc(sizeof wtext * (n+1));
+
+  size_t outSize;
+  LPWSTR ptr = NULL;
+  HRESULT rc;
+  mbstowcs_s(&outSize, wtext, n+1, path, n-1);
+
+  ptr = wtext;
+  rc = PathCchRemoveFileSpec(ptr, n);
+  free(ptr);
+  free(wtext);
+  if (rc != S_OK)
     return path;
-  return p;
+  return NULL;
 #else
   return dirname(path);
 #endif
@@ -68,8 +80,8 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {
-    errno_t err = fopen_s(&f, f_name, mode);
-    if (err != 0 || fp == NULL) {
+    errno_t e = fopen_s(&f, f_name, mode);
+    if (e != 0 || f == NULL) {
       *err = FILE_NOT_EXIST;
       return NULL;
     }
@@ -171,9 +183,10 @@ out_error:
 
 int makedir(const char *const p) {
   int rc = EXIT_SUCCESS;
-  if (mkdir(p, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (mkdir(p) == -1) {
 #else
+  if (mkdir(p, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
     fprintf(stderr, "Error: %s\n", strerror(errno));
 #endif
     rc = EXIT_FAILURE;
@@ -183,7 +196,7 @@ int makedir(const char *const p) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 int makedirs(const char *const p) {
-  if CreateDirectoryA (p, NULL) {
+  if (CreateDirectoryA (p, NULL)) {
     return EXIT_SUCCESS;
   } else {
     return EXIT_FAILURE;

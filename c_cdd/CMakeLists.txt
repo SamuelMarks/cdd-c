@@ -41,8 +41,23 @@ target_include_directories(
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+if (MSVC)
+    find_library(PATHCCH_LIB
+            NAMES Pathcch
+            HINTS
+            ${CMAKE_SYSTEM_LIBRARY_PATH}
+            PATH_SUFFIXES
+            "um\\x64"
+            "um\\x86"
+            REQUIRED
+    )
+    target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PATHCCH_LIB}")
+endif (MSVC)
 
 if (NOT DEFINED HAVE_ASPRINTF)
     find_package(c89stringutils CONFIG REQUIRED)
