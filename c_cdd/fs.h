@@ -12,8 +12,8 @@ extern "C" {
 #define PATH_SEP_C '\\'
 #define strtok_r strtok_s
 #include "c_cddConfig.h"
-  typedef void *HWND;
-  #include <io.h>
+typedef void *HWND;
+#include <io.h>
 #define F_OK 0
 #define access _access
 #else

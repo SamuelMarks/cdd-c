@@ -7,10 +7,14 @@
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include <direct.h>
 #include <fileapi.h>
-#include <pathcch.h>
 #include <winbase.h>
 #define strtok_r strtok_s
 #define mkdir _mkdir
+
+#ifdef PATHCCH_LIB
+#include <pathcch.h>
+#endif /* !PATHCCH_LIB */
+
 #else
 #include <errno.h>
 #include <fcntl.h>
@@ -47,14 +51,15 @@ const char *get_basename(const char *const path) {
 
 const char *get_dirname(char *path) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef PATHCCH_LIB
   const size_t n = strlen(path);
 
-  wchar_t *wtext = malloc(sizeof wtext * (n+1));
+  wchar_t *wtext = malloc(sizeof wtext * (n + 1));
 
   size_t outSize;
   LPWSTR ptr = NULL;
   HRESULT rc;
-  mbstowcs_s(&outSize, wtext, n+1, path, n-1);
+  mbstowcs_s(&outSize, wtext, n + 1, path, n - 1);
 
   ptr = wtext;
   rc = PathCchRemoveFileSpec(ptr, n);
@@ -63,6 +68,53 @@ const char *get_dirname(char *path) {
   if (rc != S_OK)
     return path;
   return NULL;
+#else
+  char *dir;
+  size_t len;
+  char *p;
+
+  if (path == NULL || *path == '\0') {
+    dir = (char *)malloc(2);
+    if (dir != NULL)
+      strcpy_s(dir, 2, ".");
+    return dir;
+  }
+
+  len = strlen(path);
+  dir = (char *)malloc(len + 1);
+  if (dir == NULL)
+    return NULL;
+
+  /* Use strcpy_s for safer copy */
+  strcpy_s(dir, len + 1, path);
+
+  /* Strip trailing slashes */
+  while (len > 1 && (dir[len - 1] == '\\' || dir[len - 1] == '/')) {
+    dir[len - 1] = '\0';
+    len--;
+  }
+
+  /* Find last directory separator */
+  p = strrchr(dir, PATH_SEP_C);
+  if (p == NULL)
+    p = dir;
+
+  if (p == NULL) {
+    free(dir);
+    dir = (char *)malloc(2);
+    if (dir)
+      strcpy_s(dir, 2, ".");
+    return dir;
+  }
+
+  /* If root like "C:\" or "\\" */
+  if (p == dir)
+    p[1] = '\0';
+  else
+    *p = '\0';
+
+  return dir;
+#endif /* PATHCCH_LIB */
 #else
   return dirname(path);
 #endif
@@ -196,7 +248,7 @@ int makedir(const char *const p) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 int makedirs(const char *const p) {
-  if (CreateDirectoryA (p, NULL)) {
+  if (CreateDirectoryA(p, NULL)) {
     return EXIT_SUCCESS;
   } else {
     return EXIT_FAILURE;
