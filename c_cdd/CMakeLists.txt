@@ -88,7 +88,6 @@ if (MSVC)
             message(STATUS "KernelBase.dll not found.")
             set(PATHCCH_LIB "${KERNELBASE_LIBRARY}")
         endif()
-        set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} API-MS-Win-Core-Path-l1-1-0.dll KernelBase.dll")
     endif (PATHCCH_LIB)
 endif (MSVC)
 
