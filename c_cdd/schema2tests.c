@@ -220,7 +220,7 @@ int jsonschema2tests_main(int argc, char **argv) {
 
     /* Output file */
     {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       errno_t err = fopen_s(&f, output_file, "w");
       if (err != 0 || f == NULL) {
         fprintf(stderr, "Failed to open output file %s\n", output_file);
@@ -376,7 +376,7 @@ int jsonschema2tests_main(int argc, char **argv) {
                "test_main.c");
       {
         FILE *f0;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
         errno_t err = fopen_s(&f0, p, "w");
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
