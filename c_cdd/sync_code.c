@@ -60,7 +60,7 @@ int sync_code_main(int argc, char **argv) {
   header_filename = argv[0];
   impl_filename = argv[1];
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&fp, header_filename, "r");
     if (err != 0 || fp == NULL) {
@@ -210,7 +210,7 @@ int sync_code_main(int argc, char **argv) {
 
   /* Write the impl file with all function implementations */
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&out, impl_filename, "w");
     if (err != 0 || out == NULL) {

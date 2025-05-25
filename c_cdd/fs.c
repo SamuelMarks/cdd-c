@@ -130,7 +130,7 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
   FILE *f;
   size_t read_length;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t e = fopen_s(&f, f_name, mode);
     if (e != 0 || f == NULL) {
