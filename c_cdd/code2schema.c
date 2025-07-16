@@ -351,7 +351,8 @@ static int parse_header_file(const char *header_filename,
   JSON_Value *schemas_val;
   JSON_Object *schemas_obj;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&fp, header_filename, "r");
     if (err != 0 || fp == NULL) {

@@ -21,7 +21,8 @@ static int write_cmake(const char *const output_directory,
   int rc = EXIT_SUCCESS;
   asprintf(&rootCmakeListsPath, "%s" PATH_SEP "%s", output_directory,
            "CMakeLists.txt");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&rootCmakeLists, rootCmakeListsPath, "w");
     if (err != 0 || rootCmakeLists == NULL) {
@@ -82,7 +83,8 @@ static int write_cmake(const char *const output_directory,
   {
     asprintf(&srcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s",
              output_directory, "src", "CMakeLists.txt");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     {
       errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w");
       if (err != 0 || srcCmakeListsPath == NULL) {
@@ -196,7 +198,8 @@ static int write_makefile(const char *const output_directory,
   FILE *f;
   char *p;
   asprintf(&p, "%s" PATH_SEP "%s", output_directory, "Makefile");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&f, p, "w");
     if (err != 0 || f == NULL) {
@@ -278,7 +281,8 @@ static int write_meson(const char *const output_directory,
   FILE *f;
   char *p;
   asprintf(&p, "%s" PATH_SEP "%s", output_directory, "meson.build");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&f, p, "w");
     if (err != 0 || f == NULL) {
@@ -349,7 +353,8 @@ static int write_bazel(const char *const output_directory,
   FILE *f;
   char *p;
   asprintf(&p, "%s" PATH_SEP "%s", output_directory, "BUILD");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&f, p, "w");
     if (err != 0 || f == NULL) {

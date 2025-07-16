@@ -170,21 +170,38 @@ int HazE_to_json(const struct HazE *const haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
 
+  if (haz_e == NULL) {
+    jasprintf(json, "null");
+    return *json == NULL ? ENOMEM : 0;
+  }
+
   jasprintf(json, "{");
   if (*json == NULL)
     return ENOMEM;
-  jasprintf(json, "\"bzr\": \"%s\",", haz_e->bzr);
-  if (Tank_to_str(haz_e->tank, &tank_str) != 0)
+
+  if (haz_e->bzr) {
+    jasprintf(json, "\"bzr\": \"%s\",", haz_e->bzr);
+  } else {
+    jasprintf(json, "\"bzr\": null,");
+  }
+  if (*json == NULL)
     return ENOMEM;
+
+  if (Tank_to_str(haz_e->tank, &tank_str) != 0) {
+    rc = ENOMEM;
+    goto cleanup;
+  }
   jasprintf(json, "\"tank\": \"%s\"", tank_str);
   if (*json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
+
   jasprintf(json, "}");
   if (*json == NULL) {
     rc = ENOMEM;
   }
+
 cleanup:
   free(tank_str);
   return rc;
@@ -192,8 +209,8 @@ cleanup:
 
 int HazE_from_jsonObject(const JSON_Object *const jsonObject,
                          struct HazE **haz_e) {
-  const char *bzr_str = NULL;
-  const char *tank_str = NULL;
+  const char *bzr_str;
+  const char *tank_str;
   int rc;
   enum Tank tank_val;
 
@@ -201,8 +218,6 @@ int HazE_from_jsonObject(const JSON_Object *const jsonObject,
     return EINVAL;
 
   bzr_str = json_object_get_string(jsonObject, "bzr");
-  if (bzr_str == NULL)
-    return EINVAL;
 
   tank_str = json_object_get_string(jsonObject, "tank");
   if (tank_str == NULL)
@@ -216,11 +231,15 @@ int HazE_from_jsonObject(const JSON_Object *const jsonObject,
   if (*haz_e == NULL)
     return ENOMEM;
 
-  (*haz_e)->bzr = strdup(bzr_str);
-  if ((*haz_e)->bzr == NULL) {
-    free(*haz_e);
-    *haz_e = NULL;
-    return ENOMEM;
+  if (bzr_str) {
+    (*haz_e)->bzr = strdup(bzr_str);
+    if ((*haz_e)->bzr == NULL) {
+      free(*haz_e);
+      *haz_e = NULL;
+      return ENOMEM;
+    }
+  } else {
+    (*haz_e)->bzr = NULL;
   }
 
   (*haz_e)->tank = tank_val;
@@ -347,26 +366,41 @@ int FooE_to_json(const struct FooE *const foo_e, char **const json) {
   char *haz_e_json = NULL;
   int rc = 0;
 
+  if (foo_e == NULL) {
+    jasprintf(json, "null");
+    return *json == NULL ? ENOMEM : 0;
+  }
+
   jasprintf(json, "{");
   if (*json == NULL)
     return ENOMEM;
-  jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
+
+  if (foo_e->bar) {
+    jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
+  } else {
+    jasprintf(json, "\"bar\": null,");
+  }
   if (*json == NULL)
     return ENOMEM;
+
   jasprintf(json, "\"can\": %d,", foo_e->can);
   if (*json == NULL)
     return ENOMEM;
+
   if (HazE_to_json(foo_e->haz, &haz_e_json) != 0)
     return ENOMEM;
+
   jasprintf(json, "\"haz\":%s", haz_e_json);
   if (*json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
+
   jasprintf(json, "}");
   if (*json == NULL) {
     rc = ENOMEM;
   }
+
 cleanup:
   free(haz_e_json);
   return rc;
@@ -374,7 +408,7 @@ cleanup:
 
 int FooE_from_jsonObject(const JSON_Object *const jsonObject,
                          struct FooE **const foo_e) {
-  int rc;
+  int rc = 0;
   const char *bar_str = NULL;
   const JSON_Object *haz_obj = NULL;
 
@@ -382,35 +416,33 @@ int FooE_from_jsonObject(const JSON_Object *const jsonObject,
     return EINVAL;
 
   bar_str = json_object_get_string(jsonObject, "bar");
-  if (bar_str == NULL)
-    return EINVAL;
+  /* bar_str is NULL if the JSON value is `null` */
 
-  *foo_e = malloc(sizeof(**foo_e));
+  *foo_e = calloc(sizeof(**foo_e), 1);
   if (*foo_e == NULL)
     return ENOMEM;
 
-  (*foo_e)->bar = strdup(bar_str);
-  if ((*foo_e)->bar == NULL) {
-    free(*foo_e);
-    *foo_e = NULL;
-    return ENOMEM;
+  if (bar_str) {
+    (*foo_e)->bar = strdup(bar_str);
+    if ((*foo_e)->bar == NULL) {
+      free(*foo_e);
+      *foo_e = NULL;
+      return ENOMEM;
+    }
   }
 
   (*foo_e)->can = (int)json_object_get_number(jsonObject, "can");
 
   haz_obj = json_object_get_object(jsonObject, "haz");
-  if (haz_obj == NULL) {
-    free((void *)(*foo_e)->bar);
-    free(*foo_e);
-    *foo_e = NULL;
-    return EINVAL;
-  }
-
-  rc = HazE_from_jsonObject(haz_obj, &(*foo_e)->haz);
-  if (rc != 0) {
-    free((void *)(*foo_e)->bar);
-    free(*foo_e);
-    *foo_e = NULL;
+  if (haz_obj != NULL) {
+    rc = HazE_from_jsonObject(haz_obj, &(*foo_e)->haz);
+    if (rc != 0) {
+      if ((*foo_e)->bar)
+        free((void *)(*foo_e)->bar);
+      free(*foo_e);
+      *foo_e = NULL;
+      return rc;
+    }
   }
 
   return rc;

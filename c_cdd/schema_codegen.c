@@ -220,7 +220,8 @@ static int generate_header(const char *const basename,
   guard_macro[j] = 0;
 
   snprintf(header_filename, sizeof(header_filename), "%s.h", basename);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&hfile, header_filename, "w");
     if (err != 0 || hfile == NULL) {
@@ -291,7 +292,8 @@ static int generate_source(const char *const basename,
   FILE *cfile = NULL;
 
   snprintf(source_filename, sizeof(source_filename), "%s.c", basename);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&cfile, source_filename, "w");
     if (err != 0 || cfile == NULL) {
