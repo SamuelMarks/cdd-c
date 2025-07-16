@@ -61,4 +61,3 @@ target_include_directories(
         PRIVATE
         ${parson_INCLUDE_DIRS}
 )
-message(STATUS "parson_INCLUDE_DIRS = ${parson_INCLUDE_DIRS}")
