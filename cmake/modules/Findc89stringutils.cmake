@@ -16,7 +16,7 @@ if(NOT c89stringutils_FOUND)
     FetchContent_Declare(
             c89stringutils
             GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-            GIT_TAG        f9c7fae45fed53a1f790ec935788462a958af01e
+            GIT_TAG        b6d73d252b2e0286acd2976fa4eb7c7f13eee577
             GIT_SHALLOW    TRUE
     )
 
