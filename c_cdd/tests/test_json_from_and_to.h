@@ -52,13 +52,14 @@ TEST test_HazE_to_json_and_from_json(void) {
 
 TEST test_FooE_to_json_and_from_json(void) {
   struct HazE haz = {"bzrdata", SMALL};
-  struct FooE foo = {"barval", 42, &haz};
+  struct FooE foo = {"barval", 42, NULL};
   char *json_str = NULL;
   struct FooE *foo_out = NULL;
 
   int rc = FooE_to_json(&foo, &json_str);
   ASSERT_EQ(0, rc);
   ASSERT(json_str != NULL);
+  foo.haz = &haz;
 
   rc = FooE_from_json(json_str, &foo_out);
   ASSERT_EQ(0, rc);

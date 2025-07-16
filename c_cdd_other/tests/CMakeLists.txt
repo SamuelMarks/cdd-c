@@ -98,7 +98,11 @@ set_target_properties(
 )
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 
-find_package(c_str_span CONFIG REQUIRED)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+    find_package(c_str_span REQUIRED)
+else ()
+    find_package(c_str_span CONFIG REQUIRED)
+endif ()
 target_link_libraries(
         "${EXEC_NAME}"
         PRIVATE

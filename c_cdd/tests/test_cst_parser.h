@@ -38,6 +38,7 @@ static void make_simple_token_list(struct TokenList *tl) {
 /* Test add_node: Adding nodes increases size, capacity expands */
 TEST add_node_basic(void) {
   struct CstNodeList list = {NULL, 0, 0};
+  size_t i;
 
   ASSERT_EQ(0, add_node(&list, CST_NODE_STRUCT, (const uint8_t *)"abc", 3));
   ASSERT_EQ(1, list.size);
@@ -47,7 +48,6 @@ TEST add_node_basic(void) {
   ASSERT_EQ(3, list.nodes[0].length);
 
   /* Add more to force realloc */
-  size_t i;
   for (i = 1; i < 100; i++) {
     ASSERT_EQ(0, add_node(&list, CST_NODE_COMMENT, (const uint8_t *)"x", 1));
   }
@@ -109,15 +109,6 @@ TEST parse_tokens_empty(void) {
   ASSERT(cst_nodes.nodes == NULL);
 
   free_cst_node_list(&cst_nodes);
-  PASS();
-}
-
-/* Test add_node with NULL list */
-TEST add_node_null_list(void) {
-  /* We expect the function to crash or handle gracefully since no explicit
-   * check */
-  /* Since no guard in add_node, this is undefined; skip or document */
-
   PASS();
 }
 

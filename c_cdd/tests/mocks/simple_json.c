@@ -39,7 +39,7 @@ int quote_or_null(const char *const s, char **s1) {
 }
 
 bool c_str_eq(const char *const s0, const char *const s1) {
-  return s0 == NULL && s1 == NULL ||
+  return (s0 == NULL && s1 == NULL) ||
          (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0);
 }
 

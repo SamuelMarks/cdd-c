@@ -21,16 +21,22 @@ elseif ((MSVC_VERSION STRLESS_EQUAL "1900"
             "${CMAKE_BINARY_DIR}/c89stringutils_export.h")
 endif ()
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
-    # add compiler warning flags just when building this project via
-    # the BUILD_INTERFACE genex
+    target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+
     set(gcc_like "$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
     set(msvc "$<COMPILE_LANG_AND_ID:C,CXX,MSVC>")
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
     )
+    # -fprofile-arcs;-ftest-coverage
+#    target_link_options(
+#            "${PROJECT_NAME}_compiler_flags"
+#            INTERFACE
+#            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:--coverage>>"
+#    )
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
 # Set the build directories
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows"
@@ -81,11 +87,16 @@ if (DEFINED HAVE_ASPRINTF)
     add_compile_definitions(HAVE_ASPRINTF)
 endif (DEFINED HAVE_ASPRINTF)
 
-
 if (NOT DEFINED TARGET_ARCH)
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_arch.cmake")
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+    find_package(parson REQUIRED)
+    include_directories(${parson_INCLUDE_DIRS})
+endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
 
 # configure a header file to pass the version number only
 configure_file(
