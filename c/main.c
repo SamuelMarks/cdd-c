@@ -6,7 +6,8 @@ extern int yylex();
 extern void yyerror(const char *);
 
 int main(int argc, char *argv[]) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&yyin, argv[1], "r");
     if (err != 0 || yyin == NULL) {
