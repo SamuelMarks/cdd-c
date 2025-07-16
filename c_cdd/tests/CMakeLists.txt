@@ -97,13 +97,6 @@ set_target_properties(
 )
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 
-find_package(c_str_span CONFIG REQUIRED)
-target_link_libraries(
-        "${EXEC_NAME}"
-        PRIVATE
-        c_str_span c_str_span_compiler_flags
-)
-
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
 #################################
@@ -113,3 +106,4 @@ add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 add_subdirectory("mocks")
 
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")
+target_link_libraries("${LIBRARY_NAME}" INTERFACE "parson::parson")

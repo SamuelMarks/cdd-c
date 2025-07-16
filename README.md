@@ -33,12 +33,12 @@ Use-cases:
 
 ## Why
 
-There are four reasons to write in C:
+In 2025, IMHO, there are four reasons to write in C:
 
-0. Maintain an existing codebase
-1. Write low-level code (e.g., kernels, drivers, microcontrollers, compilers, assembly helpers)
-2. Write performant code (e.g., databases, filesystems, math libraries)
-3. Write interoperable code.
+  0. Maintain an existing codebase;
+  1. Write low-level code (e.g., kernels, drivers, microcontrollers, compilers, assembly helpers);
+  2. Write performant code (e.g., databases, filesystems, math libraries);
+  3. Write interoperable code.
 
 The focus of this venture is the final point… **interoperability**:
 
@@ -88,13 +88,15 @@ graph TD
   C --> Erlang
 
   C --> R
-  C --> VisualBasic
+  C --> Zig
   C --> Forth
 ```
 
+(40 popular programming languages which can easily call into C)
+
 ## Design
 
-This C compiler has a very unusual design, the macro and C language are treated as one. The foci are:
+This C compiler has a very unusual design, the macro and C languages are treated as one. The foci are:
 
 - location start/end of function, `struct`, and feature macros (e.g., `#ifdef JSON_EMIT` then `#endif /* JSON_EMIT */`);
 - `struct` fields.

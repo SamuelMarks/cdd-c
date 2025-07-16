@@ -12,14 +12,27 @@ include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")
 generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
 
-find_package(c89stringutils CONFIG REQUIRED)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+    find_package(c89stringutils REQUIRED)
+else ()
+    find_package(c89stringutils CONFIG REQUIRED)
+endif ()
 target_link_libraries("${LIBRARY_NAME}" PUBLIC "c89stringutils" "c89stringutils_compiler_flags")
 
-find_package(parson CONFIG REQUIRED)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+    find_package(parson REQUIRED)
+else ()
+    find_package(parson CONFIG REQUIRED)
+endif ()
 target_link_libraries(
         "${LIBRARY_NAME}"
         PRIVATE
         "parson::parson"
+)
+target_include_directories(
+        "${LIBRARY_NAME}"
+        PRIVATE
+        ${parson_INCLUDE_DIRS}
 )
 
 target_include_directories(
@@ -43,3 +56,9 @@ set_target_properties(
 
 add_executable(mocks "main.c")
 target_link_libraries(mocks "${LIBRARY_NAME}")
+target_include_directories(
+        "${LIBRARY_NAME}"
+        PRIVATE
+        ${parson_INCLUDE_DIRS}
+)
+message(STATUS "parson_INCLUDE_DIRS = ${parson_INCLUDE_DIRS}")

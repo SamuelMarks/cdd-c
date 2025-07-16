@@ -19,11 +19,12 @@ int main(void) {
   const enum Tank t = BIG;
   char *tank_as_str = NULL;
   struct HazE haz_e = {"some_bzr", SMALL};
-  const struct FooE foo_e = {"some_bar", 5, (struct HazE *)&haz_e};
+  struct FooE foo_e = {"some_bar", 5, NULL};
   char *haz_e_json = NULL;
   char *foo_e_json = NULL;
   struct HazE *haz_e0 = malloc(sizeof(*haz_e0));
   struct FooE *foo_e0 = malloc(sizeof(*foo_e0));
+  foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)
     return ENOMEM;

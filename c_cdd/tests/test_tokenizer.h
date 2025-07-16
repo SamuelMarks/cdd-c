@@ -76,11 +76,11 @@ TEST tokenize_keywords_and_idents(void) {
   struct TokenList tl = {NULL, 0, 0};
 
   int ret = tokenize(code, &tl);
+  char buf[64];
   ASSERT_EQ(0, ret);
 
   ASSERT_GTE(tl.size, 14);
 
-  char buf[64];
   ASSERT_EQ(TOKEN_KEYWORD_ENUM, tl.tokens[0].kind);
   ASSERT_STR_EQ("enum", token_to_cstr(buf, sizeof(buf), &tl.tokens[0]));
 
@@ -129,11 +129,11 @@ TEST tokenize_with_comments(void) {
       "/* comment */\nstruct S { int x; }; // trailing comment");
   struct TokenList tl = {NULL, 0, 0};
   int ret = tokenize(code, &tl);
+  char buf[64];
   ASSERT_EQ(0, ret);
 
   ASSERT_GTE(tl.size, 16);
 
-  char buf[64];
   ASSERT_EQ(TOKEN_COMMENT, tl.tokens[0].kind);
   ASSERT_STR_EQ("/* comment */",
                 token_to_cstr(buf, sizeof(buf), &tl.tokens[0]));
