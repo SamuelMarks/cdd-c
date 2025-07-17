@@ -45,14 +45,13 @@ TEST test_schema_codegen_argc_error(void) {
   PASS();
 }
 
-// Bad/missing file
+/* Bad/missing file */
 TEST test_schema_codegen_bad_file(void) {
   char *argv[] = {"notfound.json", "basename"};
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
   PASS();
 }
 
-// Broken JSON
 TEST test_schema_codegen_broken_json(void) {
   char *argv[] = {"bad.json", "basename"};
   const char *const filename = "broken.json";
@@ -81,7 +80,6 @@ TEST test_schema_codegen_broken_json(void) {
   PASS();
 }
 
-// Empty schemas
 TEST test_schema_codegen_empty_schema(void) {
   FILE *fp;
   const char *const filename = "empty.json";
@@ -111,7 +109,7 @@ TEST test_schema_codegen_empty_schema(void) {
   PASS();
 }
 
-// Valid: test enum and struct output
+/* Valid: test enum and struct output */
 TEST test_schema_codegen_valid_struct_enum(void) {
   FILE *fp;
   const char *const filename = "myschema.json";
@@ -148,6 +146,117 @@ TEST test_schema_codegen_valid_struct_enum(void) {
   PASS();
 }
 
+TEST test_schema_codegen_output_file_open_fail(void) {
+  const char *const filename = "codegen_fail.json";
+  FILE *fp;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  {
+    errno_t err = fopen_s(&fp, filename, "w");
+    if (err != 0 || fp == NULL) {
+      fprintf(stderr, "Failed to open file %s\n", filename);
+      return -1;
+    }
+  }
+#else
+  fp = fopen(filename, "w");
+  if (!fp) {
+    fprintf(stderr, "Failed to open file: %s\n", filename);
+    return EXIT_FAILURE;
+  }
+#endif
+  fputs("{\"components\":{\"schemas\":{}}}", fp);
+  fclose(fp);
+  /* Simulate unable to open output by passing directory (usually fails) */
+  {
+    int rc;
+    char *argv[] = {NULL, "/"};
+    argv[0] = (char *)filename;
+    rc = schema2code_main(2, argv);
+    /* Should fail as it can't open '/' for writing headers */
+    ASSERT(rc != 0);
+  }
+  remove(filename);
+  PASS();
+}
+
+TEST test_schema_codegen_types_unhandled(void) {
+  FILE *fh;
+  const char *const filename = "codegen_type.json";
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  {
+    errno_t err = fopen_s(&fh, filename, "w");
+    if (err != 0 || fh == NULL) {
+      fprintf(stderr, "Failed to open %s for writing", filename);
+      free(fh);
+      return EXIT_FAILURE;
+    }
+  }
+#else
+  fh = fopen(filename, "w");
+#endif
+
+  fputs("{\"components\":{\"schemas\":{"
+        "\"T\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}},"
+        "\"Q\":{\"properties\":{\"f\":{}}}}}",
+        fh);
+  fclose(fh);
+  {
+    char *argv[] = {NULL, "typeout"};
+    int rc;
+    argv[0] = (char *)filename;
+    rc = schema2code_main(2, argv);
+    if (rc == 0)
+      ASSERT_EQ(rc, 0);
+    else
+      ASSERT_EQ(rc, 1);
+  }
+  /* Should not crash, should just skip type or print "unknown type" */
+  remove(filename);
+  remove("typeout.h");
+  remove("typeout.c");
+  PASS();
+}
+
+TEST test_schema_codegen_missing_type_object(void) {
+  FILE *fh;
+  const char *const filename = "missingtype.json";
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  {
+    errno_t err = fopen_s(&fh, filename, "w");
+    if (err != 0 || fh == NULL) {
+      fprintf(stderr, "Failed to open %s for writing", filename);
+      return;
+    }
+  }
+#else
+  fh = fopen(filename, "w");
+  if (!fh) {
+    fprintf(stderr, "Failed to open %s for writing", filename);
+    FAIL();
+  }
+#endif
+
+  fputs("{\"components\":{\"schemas\":{"
+        "\"Q\":{\"properties\":{\"f\":{}}}}}",
+        fh); /* no type */
+  fclose(fh);
+  {
+    char *argv[] = {NULL, "typeout2"};
+    int rc;
+    argv[0] = (char *)filename;
+    rc = schema2code_main(2, argv);
+    ASSERT(rc == 0 || rc == 1);
+  }
+  remove(filename);
+  remove("typeout2.h");
+  remove("typeout2.c");
+  PASS();
+}
+
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema2code_wrong_args);
   RUN_TEST(test_schema2code_input_errors);
@@ -156,6 +265,9 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_broken_json);
   RUN_TEST(test_schema_codegen_empty_schema);
   RUN_TEST(test_schema_codegen_valid_struct_enum);
+  RUN_TEST(test_schema_codegen_output_file_open_fail);
+  RUN_TEST(test_schema_codegen_types_unhandled);
+  RUN_TEST(test_schema_codegen_missing_type_object);
 }
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

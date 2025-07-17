@@ -199,7 +199,7 @@ TEST test_code2schema_file_not_found(void) {
   PASS();
 }
 
-// Lines not matching anything (should be ignored)
+/* Lines not matching anything (should be ignored) */
 TEST test_code2schema_unknown_lines(void) {
   const char *const filename = "test2.h";
   const int rc = write_tmp_file(
@@ -245,7 +245,7 @@ TEST test_json_object_to_struct_fields_missing_properties(void) {
   JSON_Value *root = json_value_init_object();
   JSON_Object *obj = json_value_get_object(root);
   struct StructFields sf = {0};
-  // object with no "properties"
+  /* object with no "properties" */
   ASSERT_EQ(-2, json_object_to_struct_fields(obj, &sf));
   json_value_free(root);
   PASS();
