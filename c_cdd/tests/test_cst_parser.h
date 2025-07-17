@@ -174,12 +174,21 @@ TEST parse_tokens_enum(void) {
   PASS();
 }
 
+TEST test_free_cst_node_list_edge(void) {
+  struct CstNodeList list = {NULL, 0, 0};
+  free_cst_node_list(&list);
+  /* Call again to check idempotence */
+  free_cst_node_list(&list);
+  PASS();
+}
+
 /* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
   RUN_TEST(parse_tokens_empty);
   RUN_TEST(parse_tokens_enum);
+  RUN_TEST(test_free_cst_node_list_edge);
 }
 
 #endif /* !TEST_CST_PARSER_H */
