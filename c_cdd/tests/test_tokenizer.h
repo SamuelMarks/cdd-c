@@ -185,12 +185,48 @@ TEST tokenize_with_comments(void) {
   PASS();
 }
 
+TEST tokenize_specials_and_errors(void) {
+  // Covers single-char tokens, char literal, string literal, macro, etc.
+  const az_span code = AZ_SPAN_FROM_STR("a 123 'x' \"foo\"\n"
+                                        "#macro\n"
+                                        "/*block*/\n"
+                                        "//line\n"
+                                        ",;{}");
+  struct TokenList tl = {0};
+  const int rc = tokenize(code, &tl);
+  int found_comment = 0, found_macro = 0, found_str = 0, found_char = 0;
+  size_t i;
+  ASSERT_EQ(0, rc);
+  for (i = 0; i < tl.size; ++i) {
+    switch (tl.tokens[i].kind) {
+    case TOKEN_COMMENT:
+      found_comment = 1;
+      break;
+    case TOKEN_MACRO:
+      found_macro = 1;
+      break;
+    case TOKEN_STRING_LITERAL:
+      found_str = 1;
+      break;
+    case TOKEN_CHAR_LITERAL:
+      found_char = 1;
+      break;
+    default:
+      break;
+    }
+  }
+  ASSERT(found_comment && found_macro && found_str && found_char);
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_simple_struct);
   RUN_TEST(tokenize_empty);
   RUN_TEST(tokenize_keywords_and_idents);
   RUN_TEST(tokenize_with_comments);
+  RUN_TEST(tokenize_specials_and_errors);
 }
 
 #endif /* !TEST_TOKENIZER_H */
