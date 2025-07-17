@@ -28,15 +28,14 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic;-fprofile-arcs;-ftest-coverage>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
     )
-    # -fprofile-arcs;-ftest-coverage
-#    target_link_options(
-#            "${PROJECT_NAME}_compiler_flags"
-#            INTERFACE
-#            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:--coverage>>"
-#    )
+    target_link_options(
+            "${PROJECT_NAME}_compiler_flags"
+            INTERFACE
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:--coverage>>"
+    )
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
 # Set the build directories
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows"
@@ -76,9 +75,9 @@ if (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 else ()
     include("${CMAKE_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
     ensure_symbol(
-            TARGET      "${PROJECT_NAME}_compiler_flags"
-            SYMBOL      "asprintf"
-            INCLUDES    "stdio.h"
+            TARGET "${PROJECT_NAME}_compiler_flags"
+            SYMBOL "asprintf"
+            INCLUDES "stdio.h"
             DEFINITIONS "_GNU_SOURCE" "_BSD_SOURCE"
     )
 endif (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
@@ -92,11 +91,11 @@ if (NOT DEFINED TARGET_ARCH)
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND (NOT DEFINED VCPKG_TOOLCHAIN OR VCPKG_TOOLCHAIN STREQUAL ""))
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
     find_package(parson REQUIRED)
     include_directories(${parson_INCLUDE_DIRS})
-endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND (NOT DEFINED VCPKG_TOOLCHAIN OR VCPKG_TOOLCHAIN STREQUAL ""))
 
 # configure a header file to pass the version number only
 configure_file(
@@ -116,9 +115,11 @@ if (BUILD_C)
 endif (BUILD_C)
 
 include(CTest)
-if (BUILD_TESTING)
+option(BUILD_TESTING "Build the tests" OFF)
+option(C_CDD_BUILD_TESTING "Build the tests" OFF)
+if (BUILD_TESTING AND C_CDD_BUILD_TESTING)
     add_subdirectory("${PROJECT_NAME}/tests")
-endif (BUILD_TESTING)
+endif (BUILD_TESTING AND C_CDD_BUILD_TESTING)
 
 ###########
 # Install #
