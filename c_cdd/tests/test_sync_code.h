@@ -154,6 +154,37 @@ TEST test_sync_code_impl_file_cannot_open(void) {
   PASS();
 }
 
+TEST test_sync_code_null_impl_file(void) {
+  FILE *fp;
+  const char *const filename = "headeronly.h";
+  int rc;
+  /* Create valid file */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    FAIL();
+  }
+#else
+  fp = fopen(filename, "w");
+  if (!fp) {
+    FAIL();
+  }
+#endif
+  fputs("struct S { int i; };", fp);
+  fclose(fp);
+  /* Null impl_filename, should fail */
+  {
+    char *argv[] = {NULL, NULL};
+    argv[0] = (char *)filename;
+    argv[1] = NULL;
+    rc = sync_code_main(2, argv);
+    ASSERT(rc == EXIT_FAILURE || rc == -1);
+  }
+  remove(filename);
+  PASS();
+}
+
 SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);
@@ -162,6 +193,7 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_empty_header);
   RUN_TEST(test_sync_code_no_struct_or_enum);
   RUN_TEST(test_sync_code_impl_file_cannot_open);
+  RUN_TEST(test_sync_code_null_impl_file);
 }
 
 #endif /* !TEST_SYNC_CODE_H */

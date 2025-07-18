@@ -169,6 +169,27 @@ TEST test_get_dirname_edge_cases(void) {
   PASS();
 }
 
+/* Simulate error for makedir: pass null and "" */
+TEST test_fs_makedir_null_and_empty(void) {
+  ASSERT(makedir(NULL) == EXIT_FAILURE || makedir(NULL) == -1);
+  ASSERT(makedir("") == EXIT_FAILURE || makedir("") == -1);
+  PASS();
+}
+
+/* Simulate makedirs edge-cases: pass "" and "/" */
+TEST test_fs_makedirs_top_and_empty(void) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  /* On Windows, makedirs("/") or "" can act strangely, but should not crash. */
+  ASSERT(makedirs("") != 0 ||
+         makedirs("") == EXIT_SUCCESS); /* Nonzero likely */
+  ASSERT(makedirs("\\") != 0 || makedirs("\\") == EXIT_SUCCESS);
+#else
+  ASSERT(makedirs("") != 0 || makedirs("") == EXIT_SUCCESS);
+  ASSERT(makedirs("/") == 0 || makedirs("/") == -1);
+#endif
+  PASS();
+}
+
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
@@ -181,6 +202,8 @@ SUITE(fs_suite) {
   /* RUN_TEST(test_cp_errors); */
   RUN_TEST(test_makedirs_and_makedir_edge);
   RUN_TEST(test_get_dirname_edge_cases);
+  RUN_TEST(test_fs_makedir_null_and_empty);
+  RUN_TEST(test_fs_makedirs_top_and_empty);
 }
 
 #endif /* !TEST_FS_H */

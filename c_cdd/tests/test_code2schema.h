@@ -263,6 +263,17 @@ TEST test_struct_fields_add_long_names(void) {
   PASS();
 }
 
+TEST test_enum_members_free_null(void) {
+  struct EnumMembers em = {0, 0, NULL};
+  enum_members_free(&em);
+  PASS();
+}
+TEST test_struct_fields_free_null(void) {
+  struct StructFields sf = {0, 0, NULL};
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_parse_struct_member_line);
   RUN_TEST(test_str_starts_with);
@@ -281,6 +292,8 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_json_object_to_struct_fields_null);
   RUN_TEST(test_json_object_to_struct_fields_missing_properties);
   RUN_TEST(test_struct_fields_add_long_names);
+  RUN_TEST(test_enum_members_free_null);
+  RUN_TEST(test_struct_fields_free_null);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */

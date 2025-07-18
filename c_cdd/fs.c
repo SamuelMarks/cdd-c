@@ -130,6 +130,12 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
   FILE *f;
   size_t read_length;
 
+  if (!f_name || !mode || !err || !f_size) {
+    if (err)
+      *err = FILE_NOT_EXIST;
+    return NULL;
+  }
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
@@ -236,6 +242,9 @@ out_error:
 
 int makedir(const char *const p) {
   int rc = EXIT_SUCCESS;
+  if (p == NULL)
+    return EXIT_FAILURE;
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (mkdir(p) == -1) {
 #else
@@ -291,6 +300,8 @@ int makedirs(const char *const path) {
   char *p;
   int result = -1;
   mode_t mode = 0777;
+  if (path == NULL)
+    return EXIT_FAILURE;
 
   errno = 0;
 
