@@ -220,6 +220,12 @@ TEST tokenize_specials_and_errors(void) {
   PASS();
 }
 
+TEST tokenizer_free_token_list_null(void) {
+  struct TokenList tl0 = {NULL, 0, 0};
+  free_token_list(&tl0);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_simple_struct);
@@ -227,6 +233,7 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_keywords_and_idents);
   RUN_TEST(tokenize_with_comments);
   RUN_TEST(tokenize_specials_and_errors);
+  RUN_TEST(tokenizer_free_token_list_null);
 }
 
 #endif /* !TEST_TOKENIZER_H */

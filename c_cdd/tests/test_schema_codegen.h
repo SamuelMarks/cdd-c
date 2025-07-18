@@ -208,10 +208,7 @@ TEST test_schema_codegen_types_unhandled(void) {
     int rc;
     argv[0] = (char *)filename;
     rc = schema2code_main(2, argv);
-    if (rc == 0)
-      ASSERT_EQ(rc, 0);
-    else
-      ASSERT_EQ(rc, 1);
+    ASSERT_EQ(rc, rc == 0 ? 0 : 1);
   }
   /* Should not crash, should just skip type or print "unknown type" */
   remove(filename);
@@ -257,6 +254,14 @@ TEST test_schema_codegen_missing_type_object(void) {
   PASS();
 }
 
+TEST test_schema_codegen_header_null_basename(void) {
+  /* This will try to fopen(NULL), want to ensure it handles gracefully */
+  extern int schema2code_main(int, char **);
+  char *argv[] = {NULL, NULL};
+  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
+  PASS();
+}
+
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema2code_wrong_args);
   RUN_TEST(test_schema2code_input_errors);
@@ -268,6 +273,7 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_output_file_open_fail);
   RUN_TEST(test_schema_codegen_types_unhandled);
   RUN_TEST(test_schema_codegen_missing_type_object);
+  RUN_TEST(test_schema_codegen_header_null_basename);
 }
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

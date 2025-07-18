@@ -37,6 +37,7 @@ set(Header_Files
         "test_json_from_and_to.h"
         "test_parsing.h"
         "test_schema_codegen.h"
+        "test_simple_json.h"
         "test_sync_code.h"
         "test_tokenizer.h"
 )
@@ -107,3 +108,30 @@ add_subdirectory("mocks")
 
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "parson::parson")
+
+
+set(EXEC_NAME "test_simple_json")
+
+set(Header_Files "${EXEC_NAME}.h")
+source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
+
+set(Source_Files "${EXEC_NAME}.c")
+source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
+
+add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
+
+target_include_directories(
+        "${EXEC_NAME}"
+        PRIVATE
+        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
+)
+set_target_properties(
+        "${EXEC_NAME}"
+        PROPERTIES
+        LINKER_LANGUAGE
+        C
+)
+target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
+
+add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")

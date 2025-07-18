@@ -182,6 +182,12 @@ TEST test_free_cst_node_list_edge(void) {
   PASS();
 }
 
+TEST free_cst_node_list_null(void) {
+  struct CstNodeList list = {NULL, 0, 0};
+  free_cst_node_list(&list);
+  PASS();
+}
+
 /* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
@@ -189,6 +195,7 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_empty);
   RUN_TEST(parse_tokens_enum);
   RUN_TEST(test_free_cst_node_list_edge);
+  RUN_TEST(free_cst_node_list_null);
 }
 
 #endif /* !TEST_CST_PARSER_H */
