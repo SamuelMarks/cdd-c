@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     name: ${{ matrix.os }}
 
@@ -37,30 +37,33 @@ jobs:
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
 
       - name: Setup vcpkg (Windows)
-        run: vcpkg\bootstrap-vcpkg.bat
+        run: vcpkg\bootstrap-vcpkg.bat -disableMetrics
         shell: cmd
         if: matrix.os == 'windows-latest'
 
       - name: Setup vcpkg (non-Windows)
-        run: ./vcpkg/bootstrap-vcpkg.sh
+        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
         if: matrix.os != 'windows-latest'
 
       - name: configure (with vcpkg on Windows)
-        working-directory: ./build
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" \
+                -DBUILD_TESTING=1 \
+                -DC_CDD_BUILD_TESTING=1 \
+                -S . -B build
         shell: cmd
         if: matrix.os == 'windows-latest'
 
       - name: configure (with vcpkg on non-Windows)
-        working-directory: ./build
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+          cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" \
+                -DBUILD_TESTING=1 \
+                -DC_CDD_BUILD_TESTING=1 \
+                -S . -B build
         if: matrix.os != 'windows-latest'
 
       - name: build
-        working-directory: ./build
-        run: cmake --build .
+        run: cmake --build build
 
       - name: test
         working-directory: ./build
@@ -86,4 +89,5 @@ jobs:
           cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build "build_gen\cmake_debug_build"
           #ctest -C "Debug" --build-run-dir "build_gen\cmake_debug_build" --verbose
-        if: matrix.os != 'windows-latest'
+        shell: cmd
+        if: matrix.os == 'windows-latest'
