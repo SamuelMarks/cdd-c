@@ -107,6 +107,11 @@ add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 add_subdirectory("mocks")
 
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+    find_package(parson REQUIRED)
+else ()
+    find_package(parson CONFIG REQUIRED)
+endif ()
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "parson::parson")
 
 

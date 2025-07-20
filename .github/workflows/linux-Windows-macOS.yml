@@ -47,10 +47,7 @@ jobs:
 
       - name: configure (with vcpkg on Windows)
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" \
-                -DBUILD_TESTING=1 \
-                -DC_CDD_BUILD_TESTING=1 \
-                -S . -B build
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=1 -DC_CDD_BUILD_TESTING=1 -S . -B build
         shell: cmd
         if: matrix.os == 'windows-latest'
 
