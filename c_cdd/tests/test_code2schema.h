@@ -164,7 +164,7 @@ static int write_tmp_file(const char *const name, const char *const contents) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err = fopen_s(&fh, name, "w");
-    if (err != 0 || rootCmakeLists == NULL) {
+    if (err != 0 || name == NULL) {
       fprintf(stderr, "Failed to open %s for writing", name);
       free(fh);
       return EXIT_FAILURE;
