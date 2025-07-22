@@ -1,38 +1,41 @@
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 
+#include <greatest.h>
+
 #include <mocks/simple_json.h>
 
-#include <greatest.h>
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#else
+#include <sys/errno.h>
+#endif
 
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL;
   struct FooE *foo1 = NULL;
+  struct FooE *foo2 = NULL;
   int rc;
 
   rc = FooE_default(&foo0);
-  if (rc != 0 || foo0 == NULL)
-    FAIL();
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(foo0 != NULL);
 
   rc = FooE_deepcopy(foo0, &foo1);
-  if (rc != 0 || foo1 == NULL) {
-    FooE_cleanup(foo0);
-    FAIL();
-  }
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(foo1 != NULL);
 
-  puts("foo0");
-  FooE_display(foo0, stdout);
-  puts("##########");
-  puts("foo1");
-  FooE_display(foo1, stdout);
-  puts("----------");
   ASSERT(FooE_eq(foo0, foo1));
 
   foo0->can = 53;
   ASSERT(!FooE_eq(foo0, foo1));
 
+  rc = FooE_deepcopy(NULL, &foo2);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(NULL, foo2);
+
   FooE_cleanup(foo0);
   FooE_cleanup(foo1);
+  FooE_cleanup(foo2);
 
   PASS();
 }
@@ -40,26 +43,47 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL;
   struct HazE *h1 = NULL;
+  struct HazE *h2 = NULL;
   int rc;
 
   rc = HazE_default(&h0);
-  if (rc != 0 || h0 == NULL)
-    FAIL();
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(h0 != NULL);
 
   rc = HazE_deepcopy(h0, &h1);
-  if (rc != 0 || h1 == NULL) {
-    HazE_cleanup(h0);
-    FAIL();
-  }
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(h1 != NULL);
 
   ASSERT(HazE_eq(h0, h1));
 
-  /* Modifying h0 invalidates equality */
   h0->tank = (h0->tank == BIG) ? SMALL : BIG;
   ASSERT(!HazE_eq(h0, h1));
 
+  rc = HazE_deepcopy(NULL, &h2);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(NULL, h2);
+
   HazE_cleanup(h0);
   HazE_cleanup(h1);
+  HazE_cleanup(h2);
+
+  PASS();
+}
+
+TEST test_json_roundtrip_and_errors(void) {
+  const char *const bad_json = "{ \"bar\": \"hello\" "; /* Incomplete */
+  const char *const haz_json_no_tank = "{\"bzr\": \"bzrval\"}";
+  struct FooE *foo_out = NULL;
+  struct HazE *haz_out = NULL;
+
+  ASSERT_EQ(EINVAL, FooE_from_json(bad_json, &foo_out));
+  ASSERT_EQ(NULL, foo_out);
+
+  ASSERT_EQ(EINVAL, FooE_from_json(NULL, &foo_out));
+  ASSERT_EQ(EINVAL, FooE_from_json("{}", NULL));
+
+  ASSERT_EQ(EINVAL, HazE_from_json(haz_json_no_tank, &haz_out));
+  ASSERT_EQ(NULL, haz_out);
 
   PASS();
 }
@@ -73,24 +97,19 @@ TEST test_FooE_json_roundtrip(void) {
   int rc;
 
   rc = FooE_from_json(json, &foo_in);
-  if (rc != 0 || foo_in == NULL)
-    FAIL();
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(foo_in != NULL);
 
   rc = FooE_to_json(foo_in, &json_out);
-  if (rc != 0 || json_out == NULL) {
-    FooE_cleanup(foo_in);
-    FAIL();
-  }
+  ASSERT_EQ_FMT(0, rc, "%d");
+  ASSERT(json_out != NULL);
 
   /* Deserialize again */
   {
     struct FooE *foo_out = NULL;
     rc = FooE_from_json(json_out, &foo_out);
-    if (rc != 0 || foo_out == NULL) {
-      free(json_out);
-      FooE_cleanup(foo_in);
-      FAIL();
-    }
+    ASSERT_EQ_FMT(0, rc, "%d");
+    ASSERT(foo_out != NULL);
 
     ASSERT(FooE_eq(foo_in, foo_out));
 
@@ -150,37 +169,33 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
   free(str);
+  str = NULL;
 
   rc = Tank_to_str(SMALL, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("SMALL", str);
   free(str);
+  str = NULL;
 
-  /* Unknown value */
   rc = Tank_to_str(-42, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("UNKNOWN", str);
   free(str);
+  str = NULL;
 
   rc = Tank_from_str("BIG", &val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(BIG, val);
 
-  rc = Tank_from_str("SMALL", &val);
+  rc = Tank_from_str(NULL, &val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(SMALL, val);
+  ASSERT_EQ(UNKNOWN, val);
 
   rc = Tank_from_str("foo", &val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(UNKNOWN, val);
 
-  rc = Tank_from_str(NULL, &val);
-  ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, val);
-
-  rc = Tank_from_str("UNKNOWN", &val);
-  ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, val);
+  ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
 
   PASS();
 }
@@ -191,19 +206,13 @@ TEST test_debug_and_display(void) {
   struct HazE *haz = NULL;
   int rc;
   rc = FooE_default(&foo);
-  if (rc != 0 || foo == NULL)
-    FAIL();
-
+  ASSERT_EQ(0, rc);
   rc = HazE_default(&haz);
-  if (rc != 0 || haz == NULL) {
-    FooE_cleanup(foo);
-    FAIL();
-  }
-
-  /* Redirect stdout to buffer or use FILE* memory buffer for testing?
-     For simplicity, just test the functions do not return errors */
+  ASSERT_EQ(0, rc);
 
   rc = FooE_debug(foo, stdout);
+  ASSERT_EQ(0, rc);
+  rc = FooE_debug(NULL, stdout);
   ASSERT_EQ(0, rc);
 
   rc = FooE_display(foo, stdout);
@@ -212,12 +221,35 @@ TEST test_debug_and_display(void) {
   rc = HazE_debug(haz, stdout);
   ASSERT_EQ(0, rc);
 
-  /*rc = HazE_display(haz, stdout);
-  ASSERT_EQ(0, rc);*/
-
   FooE_cleanup(foo);
   HazE_cleanup(haz);
 
+  PASS();
+}
+
+TEST test_eq_null_cases(void) {
+  struct FooE *f1 = NULL, *f2 = NULL;
+
+  FooE_default(&f1);
+  FooE_default(&f2);
+
+  ASSERT(FooE_eq(NULL, NULL));
+  ASSERT(!FooE_eq(f1, NULL));
+  ASSERT(!FooE_eq(NULL, f1));
+
+  /* Test one string is NULL, other is not */
+  free((void *)f1->bar);
+  f1->bar = NULL;
+  f2->bar = strdup("not null");
+  ASSERT(!FooE_eq(f1, f2));
+  /* And the other way */
+  f1->bar = strdup("not null");
+  free((void *)f2->bar);
+  f2->bar = NULL;
+  ASSERT(!FooE_eq(f1, f2));
+
+  FooE_cleanup(f1);
+  FooE_cleanup(f2);
   PASS();
 }
 
@@ -234,9 +266,11 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_FooE_json_roundtrip);
   RUN_TEST(test_HazE_json_roundtrip);
+  RUN_TEST(test_json_roundtrip_and_errors);
   RUN_TEST(test_Tank_to_str_from_str);
   RUN_TEST(test_debug_and_display);
   RUN_TEST(test_cleanup_null);
+  RUN_TEST(test_eq_null_cases);
 }
 
 #endif /* TEST_DATACLASSES_H */
