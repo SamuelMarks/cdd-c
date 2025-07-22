@@ -4,10 +4,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 #include "cdd_test_helpers_export.h"
+#include <stdio.h>
 
 extern CDD_TEST_HELPERS_EXPORT void cdd_precondition_failed(void);
+
+extern CDD_TEST_HELPERS_EXPORT int write_to_file(const char *, const char *);
 
 /*extern CDD_TEST_HELPERS_EXPORT void
 debug_tokenized_with_mock(const struct tokenizer_az_span_elem *tokenized,
