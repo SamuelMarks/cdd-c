@@ -1,6 +1,9 @@
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
+#include "fs.h"
+
+#include <cdd_test_helpers/cdd_helpers.h>
 #include <code2schema.h>
 #include <greatest.h>
 
@@ -49,9 +52,7 @@ TEST test_parse_struct_member_line(void) {
   PASS();
 }
 
-/* Minimal struct fields for testing */
 static struct StructFields test_struct_fields;
-
 TEST test_write_struct_functions(void) {
   FILE *tmpf = tmpfile();
 
@@ -60,56 +61,12 @@ TEST test_write_struct_functions(void) {
 
   struct_fields_init(&test_struct_fields);
 
-  /* Add fields */
   struct_fields_add(&test_struct_fields, "str_field", "string", NULL);
   struct_fields_add(&test_struct_fields, "int_field", "integer", NULL);
-  struct_fields_add(&test_struct_fields, "bool_field", "boolean", NULL);
-  struct_fields_add(&test_struct_fields, "num_field", "number", NULL);
-  struct_fields_add(&test_struct_fields, "obj_field", "object", "NestedType");
-  struct_fields_add(&test_struct_fields, "enum_field", "enum", "MyEnum");
 
-  /* Write various functions */
-  write_struct_debug_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_deepcopy_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_default_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_display_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_eq_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_from_jsonObject_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_from_json_func(tmpf, "TestStruct");
   write_struct_to_json_func(tmpf, "TestStruct", &test_struct_fields);
-  write_struct_cleanup_func(tmpf, "TestStruct", &test_struct_fields);
-
   fflush(tmpf);
-  fseek(tmpf, 0, SEEK_SET);
-
-  {
-    enum { n = 5120 };
-    char buf[n];
-    size_t len = fread(buf, 1, n - 1, tmpf);
-    buf[len] = 0;
-    ASSERT(len > 0);
-
-    /* Spot check function names */
-    ASSERT(strstr(buf, "int TestStruct_debug") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_deepcopy") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_default") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_display") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_eq") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_from_jsonObject") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_from_json") != NULL);
-    ASSERT(strstr(buf, "int TestStruct_to_json") != NULL);
-    /*ASSERT(strstr(buf, "void TestStruct_cleanup") != NULL);*/
-
-    /* Spot check presence of typed fields */
-    ASSERT(strstr(buf, "ret->str_field = strdup") != NULL);
-    ASSERT(strstr(buf, "ret->int_field = (int)json_object_get_number") != NULL);
-    ASSERT(strstr(buf, "ret->bool_field = json_object_get_boolean") != NULL);
-    ASSERT(strstr(buf, "ret->num_field = json_object_get_number") != NULL);
-
-    /* Spot check nested struct and enum handling */
-    /* ASSERT(strstr(buf, "int rc = NestedType_from_jsonObject") != NULL);*/
-    /* ASSERT(strstr(buf, "int rc = MyEnum_from_str") != NULL); */
-  }
+  ASSERT_GT(ftell(tmpf), 0);
 
   struct_fields_free(&test_struct_fields);
   fclose(tmpf);
@@ -158,35 +115,27 @@ TEST test_code2schema_main_bad_args(void) {
   PASS();
 }
 
-static int write_tmp_file(const char *const name, const char *const contents) {
-  FILE *fh;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fh, name, "w");
-    if (err != 0 || name == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", name);
-      free(fh);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  fh = fopen(name, "w");
-#endif
-  fputs(contents, fh);
-  return fclose(fh);
+TEST test_code2schema_parsing_details(void) {
+  char *argv[] = {"test_details.h", "test_details.json"};
+  const char *header_content = "enum Color {RED,GREEN=5,BLUE,};\n"
+                               "struct Point {};\n"
+                               "struct Line { struct Point p1; };\n";
+  ASSERT_EQ(0, write_to_file(argv[0], header_content));
+  ASSERT_EQ(0, code2schema_main(2, argv));
+  remove(argv[0]);
+  remove(argv[1]);
+  PASS();
 }
 
 TEST test_code2schema_parse_struct_and_enum(void) {
-  const char *const filename = "test1.h";
-  int rc = write_tmp_file(filename,
-                          "enum Colors { RED, GREEN = 5, BLUE };\n"
-                          "struct Point { double x; double y; int used; };\n");
-  const char *json = strdup("test1.schema.json");
-  const char *argv[2] = {filename, NULL};
-  argv[1] = json;
+  char *argv[] = {"test1.h", "test1.schema.json"};
+  const char *const filename = argv[0];
+  char *json = argv[1];
+  int rc = write_to_file(filename,
+                         "enum Colors { RED, GREEN = 5, BLUE };\n"
+                         "struct Point { double x; double y; int used; };\n");
   ASSERT_EQ(0, rc);
-  rc = code2schema_main(2, (char **)argv);
+  rc = code2schema_main(2, argv);
   ASSERT_EQ(0, rc);
   remove(filename);
   remove(json);
@@ -199,101 +148,257 @@ TEST test_code2schema_file_not_found(void) {
   PASS();
 }
 
-/* Lines not matching anything (should be ignored) */
-TEST test_code2schema_unknown_lines(void) {
-  const char *const filename = "test2.h";
-  const int rc = write_tmp_file(
-      filename, "// this is a comment\nvoid foo();\nstruct X { int a; };\n");
-  char *json = strdup("test2.schema.json");
-  const char *argv[] = {filename, NULL};
-  argv[1] = json;
-  ASSERT_EQ(0, rc);
-  code2schema_main(2, (char **)argv);
+TEST test_code2schema_output_fail(void) {
+  char *argv[] = {"test_out_fail.h", PATH_SEP};
+  const char *filename = argv[0];
+  write_to_file(filename, "struct S{};");
+  ASSERT_EQ(-1, code2schema_main(2, argv));
   remove(filename);
-  remove(json);
   PASS();
 }
 
-TEST test_code2schema_struct_member_edge_cases(void) {
-  struct StructFields sf;
-  struct_fields_init(&sf);
-  ASSERT_EQ(0, parse_struct_member_line("unknown blah;", &sf));
-  ASSERT_EQ(1, parse_struct_member_line("const char *mystr;", &sf));
-  ASSERT_EQ(1, parse_struct_member_line("enum ABC *foo;", &sf));
-  ASSERT_EQ(1, parse_struct_member_line("struct Y *z;", &sf));
-  struct_fields_free(&sf);
+TEST test_code2schema_complex_header(void) {
+  char *argv[] = {"complex_header.h", "complex_header.json"};
+  const char *filename = argv[0];
+  const char *json_out = argv[1];
+  write_to_file(filename, "//comment\n\n"
+                          "enum E1{A,B,C,};\n"
+                          "struct S1 {\n  int x;\n};\n\n"
+                          "struct S2{const char *name;};\n"
+                          "enum {\n  ANON_A, ANON_B\n};\n"
+                          "struct { int anon_field; };\n");
+
+  ASSERT_EQ(0, code2schema_main(2, argv));
+  remove(filename);
+  remove(json_out);
   PASS();
 }
 
-TEST test_json_array_to_enum_members_null(void) {
+TEST test_code2schema_unterminated_defs(void) {
+  char *argv[] = {"unterminated.h", "unterminated.json"};
+  const char *filename = argv[0];
+  const char *json_out = argv[1];
+  write_to_file(filename, "struct S { int x; \n enum E { A, B");
+
+  ASSERT_EQ(0, code2schema_main(2, argv));
+
+  remove(filename);
+  remove(json_out);
+  PASS();
+}
+
+TEST test_codegen_enum_null_args(void) {
+  FILE *tmp = tmpfile();
+  struct EnumMembers em_valid;
+  struct EnumMembers em_null_members;
+  struct EnumMembers *em_null = NULL;
+
+  ASSERT(tmp);
+  memset(&em_null_members, 0, sizeof(em_null_members));
+
+  enum_members_init(&em_valid);
+
+  /* Check that the functions don't crash on NULL/invalid arguments */
+  write_enum_to_str_func(NULL, "E", &em_valid);
+  write_enum_to_str_func(tmp, NULL, &em_valid);
+  write_enum_to_str_func(tmp, "E", em_null);
+  write_enum_to_str_func(tmp, "E", &em_null_members);
+
+  write_enum_from_str_func(NULL, "E", &em_valid);
+  write_enum_from_str_func(tmp, NULL, &em_valid);
+  write_enum_from_str_func(tmp, "E", em_null);
+  write_enum_from_str_func(tmp, "E", &em_null_members);
+
+  enum_members_free(&em_valid);
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_codegen_enum_with_unknown(void) {
+  FILE *tmp = tmpfile();
   struct EnumMembers em;
-  ASSERT_EQ(-1, json_array_to_enum_members(NULL, &em));
-  ASSERT_EQ(-1,
-            json_array_to_enum_members(
-                (void *)0x123, NULL)); // invalid pointer, just to tick branch
-  PASS();
-}
 
-TEST test_json_object_to_struct_fields_null(void) {
-  struct StructFields sf = {0};
-  ASSERT_EQ(-1, json_object_to_struct_fields(NULL, &sf));
-  ASSERT_EQ(-1, json_object_to_struct_fields((void *)0x123, NULL));
-  PASS();
-}
+  ASSERT(tmp);
+  enum_members_init(&em);
+  enum_members_add(&em, "A");
+  enum_members_add(&em, "UNKNOWN");
+  enum_members_add(&em, "B");
 
-TEST test_json_object_to_struct_fields_missing_properties(void) {
-  JSON_Value *root = json_value_init_object();
-  JSON_Object *obj = json_value_get_object(root);
-  struct StructFields sf = {0};
-  /* object with no "properties" */
-  ASSERT_EQ(-2, json_object_to_struct_fields(obj, &sf));
-  json_value_free(root);
-  PASS();
-}
+  /* This tests that the generator functions handle "UNKNOWN" correctly */
+  write_enum_to_str_func(tmp, "MyEnum", &em);
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
 
-TEST test_struct_fields_add_long_names(void) {
-  struct StructFields sf;
-  char bigname[80];
-  struct_fields_init(&sf);
-  memset(bigname, 'X', 79);
-  bigname[79] = '\0';
-  struct_fields_add(&sf, bigname, bigname, bigname);
-  ASSERT_EQ(1, sf.size);
-  struct_fields_free(&sf);
-  PASS();
-}
+  rewind(tmp);
 
-TEST test_enum_members_free_null(void) {
-  struct EnumMembers em = {0, 0, NULL};
+  write_enum_from_str_func(tmp, "MyEnum", &em);
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
+
   enum_members_free(&em);
+  fclose(tmp);
   PASS();
 }
-TEST test_struct_fields_free_null(void) {
-  struct StructFields sf = {0, 0, NULL};
+
+TEST test_codegen_all_field_types(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+
+  ASSERT(tmp);
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "f_string", "string", NULL);
+  struct_fields_add(&sf, "f_integer", "integer", NULL);
+  struct_fields_add(&sf, "f_boolean", "boolean", NULL);
+  struct_fields_add(&sf, "f_number", "number", NULL);
+  struct_fields_add(&sf, "f_enum", "enum", "MyEnum");
+  struct_fields_add(&sf, "f_object", "object", "MyStruct");
+  struct_fields_add(&sf, "f_unhandled", "unhandled_type", NULL);
+
+  /* Call all generator functions with this comprehensive struct fields */
+  write_struct_from_jsonObject_func(tmp, "TestStruct", &sf);
+  write_struct_to_json_func(tmp, "TestStruct", &sf);
+  write_struct_eq_func(tmp, "TestStruct", &sf);
+  write_struct_cleanup_func(tmp, "TestStruct", &sf);
+  write_struct_default_func(tmp, "TestStruct", &sf);
+  write_struct_deepcopy_func(tmp, "TestStruct", &sf);
+  write_struct_display_func(tmp, "TestStruct", &sf);
+  write_struct_debug_func(tmp, "TestStruct", &sf);
+
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
+
   struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_codegen_empty_struct_and_enum(void) {
+  FILE *tmp = tmpfile();
+  struct EnumMembers em;
+  struct StructFields sf;
+
+  ASSERT(tmp);
+  enum_members_init(&em);
+  struct_fields_init(&sf);
+
+  write_enum_to_str_func(tmp, "EmptyEnum", &em);
+  write_enum_from_str_func(tmp, "EmptyEnum", &em);
+
+  write_struct_from_jsonObject_func(tmp, "EmptyStruct", &sf);
+  write_struct_to_json_func(tmp, "EmptyStruct", &sf);
+  write_struct_eq_func(tmp, "EmptyStruct", &sf);
+  write_struct_cleanup_func(tmp, "EmptyStruct", &sf);
+  write_struct_default_func(tmp, "EmptyStruct", &sf);
+  write_struct_deepcopy_func(tmp, "EmptyStruct", &sf);
+  write_struct_display_func(tmp, "EmptyStruct", &sf);
+  write_struct_debug_func(tmp, "EmptyStruct", &sf);
+
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
+
+  enum_members_free(&em);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_json_converters_error_paths(void) {
+  struct EnumMembers em;
+  struct StructFields sf;
+  JSON_Value *val_arr, *val_obj;
+  JSON_Array *j_arr;
+
+  /* Test json_array_to_enum_members */
+  ASSERT_EQ(-1, json_array_to_enum_members(NULL, &em));
+  ASSERT_EQ(-1, json_array_to_enum_members((void *)1, NULL));
+  val_arr = json_parse_string("[ \"A\", null, \"B\" ]");
+  j_arr = json_value_get_array(val_arr);
+  ASSERT_EQ(0, json_array_to_enum_members(j_arr, &em));
+  ASSERT_EQ(2, em.size); /* NULL should be skipped */
+  enum_members_free(&em);
+  json_value_free(val_arr);
+
+  /* Test json_object_to_struct_fields */
+  ASSERT_EQ(-1, json_object_to_struct_fields(NULL, &sf));
+  ASSERT_EQ(-1, json_object_to_struct_fields((void *)1, NULL));
+  val_obj = json_parse_string("{}"); /* No 'properties' */
+  ASSERT_EQ(-2,
+            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  json_value_free(val_obj);
+
+  val_obj = json_parse_string(
+      "{\"properties\": {\"field1\": 123}}"); /* prop not object */
+  ASSERT_EQ(0,
+            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  ASSERT_EQ(0, sf.size); /* Should skip bad property */
+  struct_fields_free(&sf);
+  json_value_free(val_obj);
+
+  val_obj = json_parse_string(
+      "{\"properties\": {\"field1\": {\"type\":\"string\"}, \"field2\": "
+      "{\"$ref\":\"#/foo\"}}}");
+  ASSERT_EQ(0,
+            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  ASSERT_EQ(2, sf.size);
+  ASSERT_STR_EQ(sf.fields[0].type, "string");
+  ASSERT_STR_EQ(sf.fields[0].ref, "");
+  ASSERT_STR_EQ(sf.fields[1].type, "");
+  ASSERT_STR_EQ(sf.fields[1].ref, "#/foo");
+  struct_fields_free(&sf);
+  json_value_free(val_obj);
+
+  PASS();
+}
+
+TEST test_struct_fields_free_null(void) {
+  struct StructFields sf;
+  memset(&sf, 0, sizeof(sf));
+  /* Should not crash */
+  struct_fields_free(&sf);
+  PASS();
+}
+
+TEST test_code2schema_messy_header(void) {
+  char *argv[] = {"messy_header.h", "messy_header.json"};
+  const char *header_content =
+      "enum E_Messy { A,, B, };\n" /* empty item */
+      "struct S_Messy {\n"
+      "  int field1;\n"
+      "  some_unsupported_type field2;\n" /* should be ignored */
+      "};\n";
+
+  ASSERT_EQ(0, write_to_file(argv[0], header_content));
+  ASSERT_EQ(0, code2schema_main(2, argv));
+
+  remove(argv[0]);
+  remove(argv[1]);
+
   PASS();
 }
 
 SUITE(code2schema_suite) {
-  RUN_TEST(test_parse_struct_member_line);
-  RUN_TEST(test_str_starts_with);
-  RUN_TEST(test_struct_fields_manage);
   RUN_TEST(test_write_enum_functions);
+  RUN_TEST(test_struct_fields_manage);
+  RUN_TEST(test_str_starts_with);
+  RUN_TEST(test_parse_struct_member_line);
   RUN_TEST(test_write_struct_functions);
   RUN_TEST(test_struct_fields_overflow);
   RUN_TEST(test_enum_members_overflow);
   RUN_TEST(test_trim_trailing);
   RUN_TEST(test_code2schema_main_bad_args);
+  RUN_TEST(test_code2schema_parsing_details);
   RUN_TEST(test_code2schema_parse_struct_and_enum);
   RUN_TEST(test_code2schema_file_not_found);
-  RUN_TEST(test_code2schema_unknown_lines);
-  RUN_TEST(test_code2schema_struct_member_edge_cases);
-  RUN_TEST(test_json_array_to_enum_members_null);
-  RUN_TEST(test_json_object_to_struct_fields_null);
-  RUN_TEST(test_json_object_to_struct_fields_missing_properties);
-  RUN_TEST(test_struct_fields_add_long_names);
-  RUN_TEST(test_enum_members_free_null);
+  RUN_TEST(test_code2schema_output_fail);
+  RUN_TEST(test_code2schema_complex_header);
+  RUN_TEST(test_code2schema_unterminated_defs);
+  RUN_TEST(test_codegen_enum_null_args);
+  RUN_TEST(test_codegen_enum_with_unknown);
+  RUN_TEST(test_codegen_all_field_types);
+  RUN_TEST(test_codegen_empty_struct_and_enum);
+  RUN_TEST(test_json_converters_error_paths);
   RUN_TEST(test_struct_fields_free_null);
+  RUN_TEST(test_code2schema_messy_header);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */

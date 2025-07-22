@@ -23,7 +23,7 @@ extern "C" {
 
 #include "codegen.h"
 
-extern C_CDD_EXPORT int code2schema_main(int, char **);
+extern C_CDD_EXPORT int code2schema_main(int, char **argv);
 
 extern C_CDD_EXPORT void struct_fields_free(struct StructFields *);
 

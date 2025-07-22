@@ -222,30 +222,15 @@ TEST test_fs_c_read_file_error(void) {
 }
 
 TEST test_fs_c_read_file_success(void) {
-  FILE *fh;
   const char *const filename = "testfs.txt";
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fh, filename, "w");
-    if (err != 0 || fh == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", filename);
-      free(fh);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  fh = fopen(filename, "w");
-#endif
-  fputs("Hello", fh);
-  fclose(fh);
-  {
-    int err;
-    size_t sz;
-    char *data = c_read_file(filename, &err, &sz, "r");
-    ASSERT(data != NULL && sz == 5);
-    free(data);
-  }
+  int err;
+  size_t sz;
+  char *data;
+  ASSERT_EQ(EXIT_SUCCESS, write_to_file(filename, "Hello"));
+  data = c_read_file(filename, &err, &sz, "r");
+  ASSERT(data != NULL && sz == 5);
+  ASSERT_EQ(err, /* FILE_OK */ 0);
+  free(data);
   remove(filename);
   PASS();
 }

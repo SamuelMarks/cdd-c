@@ -88,53 +88,23 @@ TEST test_schema2tests_success(void) {
 TEST test_schema2tests_output_file_open_fail(void) {
   /* Output file which can't be written
    * (write to a directory - not always portable, but usually fails) */
-  FILE *fh;
   const char *const filename = "schema.2tests.json";
-  int rc;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fh, filename, "w");
-  if (err != 0 || fh == NULL) {
-    fprintf(stderr, "Failed to open %s for writing", filename);
-    free(fh);
-    return EXIT_FAILURE;
-  }
-#else
-  fh = fopen(filename, "w");
-#endif
-  fputs("{\"$defs\":{}}", fh);
-  fclose(fh);
-  {
-    char *argv[] = {"schema.2tests.json", "header.h", PATH_SEP};
-    rc = jsonschema2tests_main(3, (char **)argv);
-  }
+  char *argv[] = {"schema.2tests.json", "header.h", PATH_SEP};
+  int rc = write_to_file(filename, "{\"$defs\":{}}");
+  ASSERT_EQ(EXIT_SUCCESS, rc);
+  rc = jsonschema2tests_main(3, argv);
   ASSERT(rc == EXIT_FAILURE || rc == -1);
   remove("schema.2tests.json");
   PASS();
 }
 
 TEST test_schema2tests_defs_fallback(void) {
-  FILE *fh;
   const char *const filename = "defs_schema.json";
-  int rc;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fh, filename, "w");
-  if (err != 0 || fh == NULL) {
-    fprintf(stderr, "Failed to open %s for writing", filename);
-    free(fh);
-    return EXIT_FAILURE;
-  }
-#else
-  fh = fopen(filename, "w");
-#endif
-
-  fputs("{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}", fh);
-  fclose(fh);
-  {
-    char *argv[] = {"defs_schema.json", "header.h", "defs_out.h"};
-    rc = jsonschema2tests_main(3, argv);
-  }
+  char *argv[] = {"defs_schema.json", "header.h", "defs_out.h"};
+  int rc = write_to_file(
+      filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
+  ASSERT_EQ(EXIT_SUCCESS, rc);
+  rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
   remove("defs_schema.json");
   remove("defs_out.h");

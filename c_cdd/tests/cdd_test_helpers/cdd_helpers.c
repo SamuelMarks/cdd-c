@@ -1,8 +1,34 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cdd_helpers.h"
 
 void cdd_precondition_failed(void) { fputs("cdd_precondition_failed", stderr); }
+
+int write_to_file(const char *const filename, const char *const contents) {
+  FILE *fh;
+  int rc = 0, rc1;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  errno_t err = fopen_s(&fh, filename, "w");
+  if (err != 0 || fh == NULL) {
+    fprintf(stderr, "Failed to open for writing %s\n", filename);
+    free(fh);
+    return EXIT_FAILURE;
+  }
+#else
+  fh = fopen(filename, "w");
+  if (fh == NULL)
+    return EXIT_FAILURE;
+#endif
+  rc = fputs(contents, fh);
+  if (rc > 0)
+    rc = EXIT_SUCCESS;
+  else
+    fprintf(stderr, "Failure to write to %s\n", filename);
+  rc1 = fclose(fh);
+  return rc == EXIT_SUCCESS ? rc1 : rc;
+}
 
 /*
 void debug_tokenized_with_mock(const struct tokenizer_az_span_elem *tokenized,

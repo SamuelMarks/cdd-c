@@ -11,6 +11,6 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-extern C_CDD_EXPORT int sync_code_main(int, char **);
+extern C_CDD_EXPORT int sync_code_main(int, char **argv);
 
 #endif /* !SYNC_CODE_H */
