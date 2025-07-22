@@ -25,28 +25,44 @@
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 const char *get_basename(const char *const path) {
-  /*char *pch;
-  char *ans;
-  pch = strtok_r(path, PATH_SEP, &ans);
-  if (pch == NULL)
-    ans = path;
-  while (pch != NULL) {
-    ans = pch;
-    pch = strtok_r(NULL, PATH_SEP, &ans);
+  /* BSD licensed OpenBSD implementation from lib/libc/gen/basename.c
+   * @ ff5bc0. */
+  static char bname[PATH_MAX];
+  size_t len;
+  const char *endp, *startp;
+
+  /* Empty or NULL string gets treated as "." */
+  if (path == NULL || *path == '\0') {
+    bname[0] = '.';
+    bname[1] = '\0';
+    return bname;
   }
-  return ans;*/
 
-  const char *last_slash;
-  if (path == NULL)
-    return path;
+  /* Strip any trailing slashes */
+  endp = path + strlen(path) - 1;
+  while (endp > path && *endp == PATH_SEP_C)
+    endp--;
 
-  last_slash = strrchr(path, PATH_SEP_C);
-
-  if (last_slash != NULL) {
-    return last_slash + 1;
-  } else {
-    return path;
+  /* All slashes becomes "/" */
+  if (endp == path && *endp == PATH_SEP_C) {
+    bname[0] = PATH_SEP_C;
+    bname[1] = '\0';
+    return bname;
   }
+
+  /* Find the start of the base */
+  startp = endp;
+  while (startp > path && *(startp - 1) != PATH_SEP_C)
+    startp--;
+
+  len = endp - startp + 1;
+  if (len >= sizeof(bname)) {
+    errno = ENAMETOOLONG;
+    return NULL;
+  }
+  memcpy(bname, startp, len);
+  bname[len] = '\0';
+  return bname;
 }
 
 const char *get_dirname(char *path) {
@@ -59,25 +75,24 @@ const char *get_dirname(char *path) {
   size_t outSize;
   LPWSTR ptr = NULL;
   HRESULT rc;
-  mbstowcs_s(&outSize, wtext, n + 1, path, n - 1);
+  mbstowcs_s(&outSize, wtext, n + 1, path, n);
 
   ptr = wtext;
-  rc = PathCchRemoveFileSpec(ptr, n);
-  free(ptr);
-  free(wtext);
-  if (rc != S_OK)
+  rc = PathCchRemoveFileSpec(ptr, n + 1);
+  if (rc != S_OK) {
+    free(wtext);
     return path;
-  return NULL;
+  }
+  wcstombs_s(&outSize, path, n + 1, wtext, n);
+  free(wtext);
+  return path;
 #else
   char *dir;
   size_t len;
   char *p;
 
   if (path == NULL || *path == '\0') {
-    dir = (char *)malloc(2);
-    if (dir != NULL)
-      strcpy_s(dir, 2, ".");
-    return dir;
+    return ".";
   }
 
   len = strlen(path);
@@ -86,37 +101,71 @@ const char *get_dirname(char *path) {
     return NULL;
 
   /* Use strcpy_s for safer copy */
-  strcpy_s(dir, len + 1, path);
+  strcpy(dir, path);
 
   /* Strip trailing slashes */
-  while (len > 1 && (dir[len - 1] == '\\' || dir[len - 1] == '/')) {
-    dir[len - 1] = '\0';
-    len--;
-  }
+  for (p = dir + len - 1; p > dir && (*p == '\\' || *p == PATH_SEP_C); p--)
+    *p = '\0';
 
   /* Find last directory separator */
   p = strrchr(dir, PATH_SEP_C);
-  if (p == NULL)
-    p = dir;
-
-  if (p == NULL) {
-    free(dir);
-    dir = (char *)malloc(2);
-    if (dir)
-      strcpy_s(dir, 2, ".");
-    return dir;
+  if (p != NULL) {
+    /* If root like "C:\" or "\\" */
+    if (p == dir) {
+      *(p + 1) = '\0';
+    } else {
+      *p = '\0';
+    }
+  } else {
+    strcpy(dir, ".");
   }
-
-  /* If root like "C:\" or "\\" */
-  if (p == dir)
-    p[1] = '\0';
-  else
-    *p = '\0';
-
-  return dir;
+  strcpy(path, dir);
+  free(dir);
+  return path;
 #endif /* PATHCCH_LIB */
 #else
-  return dirname(path);
+  /* BSD licensed OpenBSD implementation from lib/libc/gen/dirname.c
+   * @ ff5bc0. */
+  static char dname[PATH_MAX];
+  size_t len;
+  const char *endp;
+
+  /* Empty or NULL string gets treated as "." */
+  if (path == NULL || *path == '\0') {
+    dname[0] = '.';
+    dname[1] = '\0';
+    return dname;
+  }
+
+  /* Strip any trailing slashes */
+  endp = path + strlen(path) - 1;
+  while (endp > path && *endp == PATH_SEP_C)
+    endp--;
+
+  /* Find the start of the dir */
+  while (endp > path && *endp != PATH_SEP_C)
+    endp--;
+
+  /* Either the dir is "/" or there are no slashes */
+  if (endp == path) {
+    dname[0] = *endp == PATH_SEP_C ? PATH_SEP_C : '.';
+    dname[1] = '\0';
+    return (dname);
+  } else {
+    /* Move forward past the separating slashes */
+    do {
+      endp--;
+    } while (endp > path && *endp == PATH_SEP_C);
+  }
+
+  len = endp - path + 1;
+  if (len >= sizeof(dname)) {
+    errno = ENAMETOOLONG;
+    return NULL;
+  }
+  memcpy(dname, path, len);
+  dname[len] = '\0';
+  return dname;
 #endif
 }
 
@@ -311,14 +360,14 @@ int makedirs(const char *const path) {
 
   /* Iterate the string */
   for (p = _path + 1; *p; p++) {
-    if (*p == '/') {
+    if (*p == PATH_SEP_C) {
       /* Temporarily truncate */
       *p = '\0';
 
       if (maybe_mkdir(_path, mode) != 0)
         goto out;
 
-      *p = '/';
+      *p = PATH_SEP_C;
     }
   }
 

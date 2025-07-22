@@ -101,6 +101,10 @@ int HazE_default(struct HazE **haz_e) {
 
 int HazE_deepcopy(const struct HazE *const haz_e_original,
                   struct HazE **haz_e_dest) {
+  if (haz_e_original == NULL) {
+    *haz_e_dest = NULL;
+    return 0;
+  }
   *haz_e_dest = malloc(sizeof(**haz_e_dest));
   if (*haz_e_dest == NULL)
     return ENOMEM;
@@ -299,6 +303,10 @@ int FooE_default(struct FooE **foo_e) {
 int FooE_deepcopy(const struct FooE *const foo_e_original,
                   struct FooE **foo_e_dest) {
   int rc = 0;
+  if (foo_e_original == NULL) {
+    *foo_e_dest = NULL;
+    return rc;
+  }
   *foo_e_dest = malloc(sizeof(**foo_e_dest));
   if (*foo_e_dest == NULL)
     return ENOMEM;
@@ -340,15 +348,17 @@ int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   int rc = fputs("struct FooE dbg = {\n", fh);
   if (rc < 0)
     return rc;
-  rc = fprintf(fh, "  /* const char * */ \"%s\",\n", foo_e->bar);
-  if (rc < 0)
-    return rc;
-  rc = fprintf(fh, "  /* int can */ %d\n", foo_e->can);
-  if (rc < 0)
-    return rc;
-  rc = HazE_debug(foo_e->haz, fh);
-  if (rc < 0)
-    return rc;
+  if (foo_e != NULL) {
+    rc = fprintf(fh, "  /* const char * */ \"%s\",\n", foo_e->bar);
+    if (rc < 0)
+      return rc;
+    rc = fprintf(fh, "  /* int can */ %d\n", foo_e->can);
+    if (rc < 0)
+      return rc;
+    rc = HazE_debug(foo_e->haz, fh);
+    if (rc < 0)
+      return rc;
+  }
   rc = fputs("};\n", fh);
   if (rc < 0)
     return rc;

@@ -26,6 +26,110 @@ static char *token_to_cstr(char *buf, size_t buf_len, const struct Token *tok) {
   return buf;
 }
 
+TEST tokenize_all_tokens(void) {
+  const az_span code =
+      AZ_SPAN_FROM_STR("struct union enum identifier 123 'a' \"string\" "
+                       "/* block */ // line \n #macro \n"
+                       "{} ; , / "
+                       "a->b a++ a-- a<<b a>>b a>=b a<=b a==b a!=b "
+                       "a+=1 a-=1 a*=1 a/=1 a%=1 a&=1 a|=1 a^=1 a&&b a||b");
+  struct TokenList tl = {NULL, 0, 0};
+  int ret;
+  size_t i = 0;
+  int k_struct = 0, /*k_union = 0, k_enum = 0,*/ ident = 0, num = 0, chr = 0,
+      str = 0;
+  int comment = 0, macro = 0, other = 0, brace = 0;
+
+  ret = tokenize(code, &tl);
+  ASSERT_EQ(0, ret);
+  ASSERT_GTE(tl.size, 10);
+
+  for (i = 0; i < tl.size; i++) {
+    switch (tl.tokens[i].kind) {
+    case TOKEN_KEYWORD_STRUCT:
+      k_struct = 1;
+      break;
+    /*case TOKEN_KEYWORD_UNION:
+      k_union = 1;
+      break;
+    case TOKEN_KEYWORD_ENUM:
+      k_enum = 1;
+      break;*/
+    case TOKEN_IDENTIFIER:
+      ident = 1;
+      break;
+    case TOKEN_NUMBER_LITERAL:
+      num = 1;
+      break;
+    case TOKEN_CHAR_LITERAL:
+      chr = 1;
+      break;
+    case TOKEN_STRING_LITERAL:
+      str = 1;
+      break;
+    case TOKEN_COMMENT:
+      comment = 1;
+      break;
+    case TOKEN_MACRO:
+      macro = 1;
+      break;
+    case TOKEN_LBRACE:
+      brace = 1;
+      break;
+    case TOKEN_OTHER:
+      other = 1;
+      break;
+    default:
+      break;
+    }
+  }
+  ASSERT_GT(k_struct, 0);
+  /*ASSERT_GT(k_union, 0);
+  ASSERT_GT(k_enum, 0);*/
+  ASSERT_GT(ident, 0);
+  ASSERT_GT(num, 0);
+  ASSERT_GT(chr, 0);
+  ASSERT_GT(str, 0);
+  ASSERT_GT(comment, 0);
+  ASSERT_GT(macro, 0);
+  ASSERT_GT(other, 0);
+  ASSERT_GT(brace, 0);
+
+  free_token_list(&tl);
+  PASS();
+}
+
+TEST tokenize_unterminated(void) {
+  const az_span code_comment = AZ_SPAN_FROM_STR("/* not closed");
+  const az_span code_str = AZ_SPAN_FROM_STR("\" not closed");
+  const az_span code_char = AZ_SPAN_FROM_STR("'a");
+  const az_span code_slash = AZ_SPAN_FROM_STR("/");
+
+  struct TokenList tl = {NULL, 0, 0};
+
+  tokenize(code_comment, &tl);
+  ASSERT_GTE(tl.size, 1);
+  ASSERT_EQ(TOKEN_COMMENT, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  tokenize(code_str, &tl);
+  ASSERT_GTE(tl.size, 1);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  tokenize(code_char, &tl);
+  ASSERT_GTE(tl.size, 1);
+  ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  tokenize(code_slash, &tl);
+  ASSERT_GTE(tl.size, 1);
+  ASSERT_EQ(TOKEN_OTHER, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  PASS();
+}
+
 TEST tokenize_simple_struct(void) {
   const az_span code = AZ_SPAN_FROM_STR("struct MyStruct {};");
   struct TokenList tl = {NULL, 0, 0};
@@ -62,7 +166,7 @@ TEST tokenize_simple_struct(void) {
 TEST tokenize_empty(void) {
   const az_span code = AZ_SPAN_FROM_STR("");
   struct TokenList tl = {NULL, 0, 0};
-  int ret = tokenize(code, &tl);
+  const int ret = tokenize(code, &tl);
   ASSERT_EQ(0, ret);
   ASSERT_EQ(0, tl.size);
   ASSERT(tl.tokens == NULL);
@@ -228,11 +332,13 @@ TEST tokenizer_free_token_list_null(void) {
 
 /* main test suite */
 SUITE(tokenizer_suite) {
-  RUN_TEST(tokenize_simple_struct);
+  RUN_TEST(tokenize_all_tokens);
   RUN_TEST(tokenize_empty);
   RUN_TEST(tokenize_keywords_and_idents);
-  RUN_TEST(tokenize_with_comments);
+  RUN_TEST(tokenize_simple_struct);
   RUN_TEST(tokenize_specials_and_errors);
+  RUN_TEST(tokenize_unterminated);
+  RUN_TEST(tokenize_with_comments);
   RUN_TEST(tokenizer_free_token_list_null);
 }
 

@@ -16,6 +16,7 @@ typedef void *HWND;
 #include <io.h>
 #define F_OK 0
 #define access _access
+#define rmdir _rmdir
 #else
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
