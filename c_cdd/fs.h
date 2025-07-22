@@ -17,10 +17,15 @@ typedef void *HWND;
 #define F_OK 0
 #define access _access
 #define rmdir _rmdir
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif /* !PATH_MAX */
 #else
+#include <limits.h>
+#include <unistd.h>
+
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
-#include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 extern C_CDD_EXPORT const char *get_basename(const char *);

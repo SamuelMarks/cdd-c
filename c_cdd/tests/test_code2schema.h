@@ -376,6 +376,89 @@ TEST test_code2schema_messy_header(void) {
   PASS();
 }
 
+TEST test_codegen_enum_with_null_member(void) {
+  FILE *tmp = tmpfile();
+  struct EnumMembers em;
+
+  ASSERT(tmp);
+  enum_members_init(&em);
+  enum_members_add(&em, "A");
+
+  /* Manually add a NULL to test the null-check inside the loop */
+  if (em.size >= em.capacity) {
+    em.capacity *= 2;
+    em.members = (char **)realloc(em.members, em.capacity * sizeof(char *));
+    ASSERT(em.members != NULL);
+  }
+  em.members[em.size++] = NULL;
+
+  enum_members_add(&em, "B");
+
+  /* This tests that the generator functions handle a NULL member correctly */
+  write_enum_to_str_func(tmp, "MyEnum", &em);
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
+
+  rewind(tmp);
+
+  write_enum_from_str_func(tmp, "MyEnum", &em);
+  fseek(tmp, 0, SEEK_END);
+  ASSERT_GT(ftell(tmp), 0L);
+
+  enum_members_free(&em);
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_codegen_struct_null_args(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf_valid;
+  struct StructFields *sf_null = NULL;
+
+  ASSERT(tmp);
+  struct_fields_init(&sf_valid);
+  struct_fields_add(&sf_valid, "field", "string", NULL);
+
+  write_struct_from_jsonObject_func(NULL, "S", &sf_valid);
+  write_struct_from_jsonObject_func(tmp, NULL, &sf_valid);
+  write_struct_from_jsonObject_func(tmp, "S", sf_null);
+
+  write_struct_from_json_func(NULL, "S");
+  write_struct_from_json_func(tmp, NULL);
+
+  write_struct_to_json_func(NULL, "S", &sf_valid);
+  write_struct_to_json_func(tmp, NULL, &sf_valid);
+  write_struct_to_json_func(tmp, "S", sf_null);
+
+  write_struct_eq_func(NULL, "S", &sf_valid);
+  write_struct_eq_func(tmp, NULL, &sf_valid);
+  write_struct_eq_func(tmp, "S", sf_null);
+
+  write_struct_cleanup_func(NULL, "S", &sf_valid);
+  write_struct_cleanup_func(tmp, NULL, &sf_valid);
+  write_struct_cleanup_func(tmp, "S", sf_null);
+
+  write_struct_default_func(NULL, "S", &sf_valid);
+  write_struct_default_func(tmp, NULL, &sf_valid);
+  write_struct_default_func(tmp, "S", sf_null);
+
+  write_struct_deepcopy_func(NULL, "S", &sf_valid);
+  write_struct_deepcopy_func(tmp, NULL, &sf_valid);
+  write_struct_deepcopy_func(tmp, "S", sf_null);
+
+  write_struct_display_func(NULL, "S", &sf_valid);
+  write_struct_display_func(tmp, NULL, &sf_valid);
+  write_struct_display_func(tmp, "S", sf_null);
+
+  write_struct_debug_func(NULL, "S", &sf_valid);
+  write_struct_debug_func(tmp, NULL, &sf_valid);
+  write_struct_debug_func(tmp, "S", sf_null);
+
+  struct_fields_free(&sf_valid);
+  fclose(tmp);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -399,6 +482,8 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_json_converters_error_paths);
   RUN_TEST(test_struct_fields_free_null);
   RUN_TEST(test_code2schema_messy_header);
+  RUN_TEST(test_codegen_enum_with_null_member);
+  RUN_TEST(test_codegen_struct_null_args);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */
