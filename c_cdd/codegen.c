@@ -88,35 +88,14 @@ void write_enum_from_str_func(FILE *cfile, const char *const enum_name,
         cfile);
 }
 
-/* Generate struct declaration */
-void write_struct_declaration(FILE *hfile, const char *struct_name,
-                              const struct StructFields *sf) {
-  size_t i;
-  fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name);
-  for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
-    if (strcmp(f->type, "string") == 0) {
-      fprintf(hfile, "  const char *%s;\n", f->name);
-    } else if (strcmp(f->type, "integer") == 0) {
-      fprintf(hfile, "  int %s;\n", f->name);
-    } else if (strcmp(f->type, "boolean") == 0) {
-      fprintf(hfile, "  int %s;\n", f->name);
-    } else if (strcmp(f->type, "number") == 0) {
-      fprintf(hfile, "  double %s;\n", f->name);
-    } else if (strcmp(f->type, "enum") == 0) {
-      fprintf(hfile, "  enum %s %s;\n", f->ref, f->name);
-    } else if (strcmp(f->type, "object") == 0) {
-      fprintf(hfile, "  struct %s *%s;\n", f->ref, f->name);
-    }
-  }
-  fputs("};\n\n", hfile);
-}
-
 /* from_jsonObject: parse JSON_Object into struct safely */
 void write_struct_from_jsonObject_func(FILE *cfile,
                                        const char *const struct_name,
                                        const struct StructFields *const sf) {
   size_t i;
+
+  if (!cfile || !struct_name || !sf)
+    return;
 
   fprintf(cfile,
           "int %s_from_jsonObject(const JSON_Object *const jsonObject, struct "
@@ -202,6 +181,8 @@ void write_struct_from_jsonObject_func(FILE *cfile,
 
 /* Wrapper for from_json parsing a JSON string */
 void write_struct_from_json_func(FILE *cfile, const char *const struct_name) {
+  if (!cfile || !struct_name)
+    return;
   fprintf(
       cfile,
       "int %s_from_json(const char *const json_str, struct %s **const out) {\n"
@@ -224,6 +205,8 @@ void write_struct_from_json_func(FILE *cfile, const char *const struct_name) {
 void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
                                const struct StructFields *const fields) {
   size_t i;
+  if (!cfile || !struct_name || !fields)
+    return;
 
   fprintf(cfile,
           "int %s_to_json(const struct %s *const obj, char **const json) {\n",
@@ -342,7 +325,8 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
 void write_struct_eq_func(FILE *cfile, const char *struct_name,
                           const struct StructFields *sf) {
   size_t i;
-
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile,
           "int %s_eq(const struct %s *const a, const struct %s *const b) {\n",
           struct_name, struct_name, struct_name);
@@ -377,7 +361,8 @@ void write_struct_eq_func(FILE *cfile, const char *struct_name,
 void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
                                const struct StructFields *sf) {
   size_t i;
-
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile, "void %s_cleanup(struct %s *const obj) {\n", struct_name,
           struct_name);
   fprintf(cfile, "  if (obj == NULL) return;\n");
@@ -399,7 +384,8 @@ void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
 void write_struct_default_func(FILE *cfile, const char *struct_name,
                                const struct StructFields *sf) {
   size_t i;
-
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile, "int %s_default(struct %s **out) {\n", struct_name,
           struct_name);
   fputs("  if (!out) return EINVAL;\n", cfile);
@@ -435,7 +421,8 @@ void write_struct_default_func(FILE *cfile, const char *struct_name,
 void write_struct_deepcopy_func(FILE *cfile, const char *struct_name,
                                 const struct StructFields *sf) {
   size_t i;
-
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
           struct_name, struct_name, struct_name);
   fputs("  if (!dest) return EINVAL;\n", cfile);
@@ -481,7 +468,8 @@ void write_struct_deepcopy_func(FILE *cfile, const char *struct_name,
 /* Display: print JSON string to file */
 void write_struct_display_func(FILE *cfile, const char *struct_name,
                                const struct StructFields *sf) {
-  (void)sf;
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile,
           "int %s_display(const struct %s *obj, FILE *fh) {\n"
           "  char *json_str = NULL;\n"
@@ -499,6 +487,8 @@ void write_struct_display_func(FILE *cfile, const char *struct_name,
 void write_struct_debug_func(FILE *cfile, const char *struct_name,
                              const struct StructFields *sf) {
   size_t i;
+  if (!cfile || !struct_name || !sf)
+    return;
   fprintf(cfile,
           "int %s_debug(const struct %s *obj, FILE *fh) {\n"
           "  int rc;\n"
