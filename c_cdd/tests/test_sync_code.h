@@ -122,6 +122,18 @@ TEST test_sync_code_messy_decls(void) {
   PASS();
 }
 
+TEST test_sync_code_single_line_defs(void) {
+  const char *const filename = "sync_oneline.h";
+  char *argv[] = {(char *)filename, "sync_oneline.c"};
+  ASSERT_EQ(0,
+            write_to_file(filename, "enum E { A, B, C };\n"
+                                    "struct S { int x; const char *s; };\n"));
+  ASSERT_EQ(0, sync_code_main(2, argv));
+  remove(filename);
+  remove("sync_oneline.c");
+  PASS();
+}
+
 SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);
@@ -133,6 +145,7 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_too_many_defs);
   RUN_TEST(test_sync_code_unterminated_defs);
   RUN_TEST(test_sync_code_messy_decls);
+  RUN_TEST(test_sync_code_single_line_defs);
 }
 
 #endif /* !TEST_SYNC_CODE_H */

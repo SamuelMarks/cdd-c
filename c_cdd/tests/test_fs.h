@@ -103,16 +103,16 @@ TEST test_fs_c_read_file_empty(void) {
   const char *const filename = "empty.tmp";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
-  if (err != 0 || fp == NULL) {
+  errno_t err_s = fopen_s(&fp, filename, "w");
+  if (err_s != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
-    return -1;
+    return;
   }
 #else
   fp = fopen(filename, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fclose(fp);
@@ -137,15 +137,15 @@ TEST test_fs_cp(void) {
   {
     errno_t err = fopen_s(&fp, src, "w");
     if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", filename);
-      return -1;
+      fprintf(stderr, "Failed to open header file %s\n", src);
+      return;
     }
   }
 #else
   fp = fopen(src, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", src);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fputs("hello", fp);
@@ -165,15 +165,15 @@ TEST test_fs_cp(void) {
   {
     errno_t err = fopen_s(&fp, src, "w");
     if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", filename);
-      return -1;
+      fprintf(stderr, "Failed to open header file %s\n", src);
+      return;
     }
   }
 #else
   fp = fopen(src, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", src);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fputs("hello", fp);
@@ -195,14 +195,14 @@ TEST test_makedirs_path_is_file(void) {
     errno_t err = fopen_s(&fp, file_path, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", file_path);
-      return -1;
+      return;
     }
   }
 #else
   fp = fopen(file_path, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", file_path);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fclose(fp);
@@ -341,6 +341,35 @@ TEST test_fs_makedirs_top_and_empty(void) {
   PASS();
 }
 
+TEST test_get_basename_long(void) {
+  char long_path[PATH_MAX + 20];
+  const char *res;
+
+  /* Create a path that is too long */
+  memset(long_path, 'a', sizeof(long_path) - 1);
+  long_path[sizeof(long_path) - 1] = '\0';
+
+  res = get_basename(long_path);
+  ASSERT_EQ(NULL, res);
+
+  PASS();
+}
+
+TEST test_get_dirname_long(void) {
+#if !defined(_MSC_VER) || defined(PATHCCH_LIB)
+  char long_path[PATH_MAX + 20];
+  char *res;
+
+  /* This test is for non-MSVC or MSVC with PathCch */
+  memset(long_path, 'a', sizeof(long_path) - 1);
+  long_path[sizeof(long_path) - 1] = '\0';
+
+  res = (char *)get_dirname(long_path);
+  ASSERT_STR_EQ(".", res);
+#endif
+  PASS();
+}
+
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
@@ -358,6 +387,8 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_makedirs_top_and_empty);
   RUN_TEST(test_makedirs_path_is_file);
   RUN_TEST(test_fs_cp);
+  RUN_TEST(test_get_basename_long);
+  RUN_TEST(test_get_dirname_long);
 }
 
 #endif /* !TEST_FS_H */

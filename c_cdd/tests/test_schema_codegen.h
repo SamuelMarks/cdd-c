@@ -24,10 +24,10 @@ TEST test_schema2code_input_errors(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, broken_json, "r");
+    errno_t err = fopen_s(&fp, broken_json, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", broken_json);
-      return -1;
+      return;
     }
   }
 #else
@@ -82,14 +82,14 @@ TEST test_schema_codegen_broken_json(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return -1;
+      return;
     }
   }
 #else
   fp = fopen(filename, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
 
@@ -97,6 +97,7 @@ TEST test_schema_codegen_broken_json(void) {
   fclose(fp);
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
   remove("bad.json");
+  remove("broken.json");
   PASS();
 }
 
@@ -109,14 +110,14 @@ TEST test_schema_codegen_empty_schema(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return -1;
+      return;
     }
   }
 #else
   fp = fopen(filename, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fputs("{\"components\": {\"schemas\": {}}}", fp);
@@ -126,6 +127,8 @@ TEST test_schema_codegen_empty_schema(void) {
     schema2code_main(2, argv);
   }
   remove("empty.json");
+  remove("basename.h");
+  remove("basename.c");
   PASS();
 }
 
@@ -185,7 +188,6 @@ TEST test_schema_codegen_complex_schema(void) {
          "\"StructWithBadRef\": {\"type\": \"object\", \"properties\": "
          "{\"ref_prop\": {\"$ref\": \"#/c/s/Other\"}}}"
          "}}}");
-  complex_schema_json[COUNT] = '\0';
   rc = write_to_file(filename, complex_schema_json);
   free(complex_schema_json);
   ASSERT_EQ(0, rc);
@@ -213,14 +215,14 @@ TEST test_schema_codegen_valid_struct_enum(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return -1;
+      return;
     }
   }
 #else
   fp = fopen(filename, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fputs("{\"components\": {\"schemas\": {"
@@ -246,14 +248,14 @@ TEST test_schema_codegen_output_file_open_fail(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return -1;
+      return;
     }
   }
 #else
   fp = fopen(filename, "w");
   if (!fp) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
-    return EXIT_FAILURE;
+    FAIL();
   }
 #endif
   fputs("{\"components\":{\"schemas\":{}}}", fp);
