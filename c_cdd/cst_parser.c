@@ -28,15 +28,16 @@ int add_node(struct CstNodeList *const list, const enum CstNodeKind1 kind,
 
 int parse_tokens(const struct TokenList *const tokens,
                  struct CstNodeList *const out) {
-  size_t i;
-  for (i = 0; i < tokens->size;) {
+  size_t i = 0;
+  while (i < tokens->size) {
     const struct Token tok = tokens->tokens[i];
     switch (tok.kind) {
     case TOKEN_KEYWORD_STRUCT:
     case TOKEN_KEYWORD_ENUM:
     case TOKEN_KEYWORD_UNION: {
-      enum CstNodeKind1 node_kind;
-      size_t brace_count;
+      enum CstNodeKind1 node_kind = CST_NODE_UNKNOWN;
+      size_t end_pos = i;
+
       switch (tok.kind) {
       case TOKEN_KEYWORD_STRUCT:
         node_kind = CST_NODE_STRUCT;
@@ -47,37 +48,41 @@ int parse_tokens(const struct TokenList *const tokens,
       case TOKEN_KEYWORD_UNION:
       default:
         node_kind = CST_NODE_UNION;
+        break;
+      }
+      end_pos++;
+
+      /* Skip optional identifier */
+      if (end_pos < tokens->size &&
+          tokens->tokens[end_pos].kind == TOKEN_IDENTIFIER) {
+        end_pos++;
       }
 
-      i++;
-
-      if (i < tokens->size && tokens->tokens[i].kind == TOKEN_IDENTIFIER)
-        i++;
-
-      if (i >= tokens->size || tokens->tokens[i].kind != TOKEN_LBRACE) {
-        const size_t end = i;
-        const size_t length = tokens->tokens[end - 1].start +
-                              tokens->tokens[end - 1].length - tok.start;
-        if (add_node(out, node_kind, tok.start, length) != 0)
-          return -1;
-        continue;
+      /* Skip whitespace to find '{' or ';' */
+      while (end_pos < tokens->size &&
+             tokens->tokens[end_pos].kind == TOKEN_WHITESPACE) {
+        end_pos++;
       }
 
-      brace_count = 1;
-      i++;
-
-      while (i < tokens->size && brace_count > 0) {
-        if (tokens->tokens[i].kind == TOKEN_LBRACE)
-          brace_count++;
-        else if (tokens->tokens[i].kind == TOKEN_RBRACE)
-          brace_count--;
-        i++;
+      if (end_pos < tokens->size &&
+          tokens->tokens[end_pos].kind == TOKEN_LBRACE) {
+        size_t brace_count = 1;
+        end_pos++;
+        while (end_pos < tokens->size && brace_count > 0) {
+          if (tokens->tokens[end_pos].kind == TOKEN_LBRACE)
+            brace_count++;
+          else if (tokens->tokens[end_pos].kind == TOKEN_RBRACE)
+            brace_count--;
+          end_pos++;
+        }
       }
+
       {
-        const size_t length = tokens->tokens[i - 1].start +
-                              tokens->tokens[i - 1].length - tok.start;
+        const size_t length = tokens->tokens[end_pos - 1].start +
+                              tokens->tokens[end_pos - 1].length - tok.start;
         if (add_node(out, node_kind, tok.start, length) != 0)
           return -1;
+        i = end_pos;
       }
       break;
     }

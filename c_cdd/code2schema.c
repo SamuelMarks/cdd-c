@@ -5,7 +5,6 @@
  *
  * Minimal parser for enums and structs that follow the conventions.
  *
- * C89 only.
  */
 
 #include <ctype.h>
@@ -88,7 +87,7 @@ void enum_members_add(struct EnumMembers *em, const char *const name) {
   if (em->size >= em->capacity) {
     em->capacity *= 2;
     em->members = realloc(em->members, em->capacity * sizeof(char *));
-    if (!em->members) {
+    if (em->members == NULL) {
       fputs("malloc failed", stderr);
       exit(1);
     }
@@ -320,6 +319,11 @@ void write_struct_to_json_schema(JSON_Object *schemas_obj,
       snprintf(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
                sf->fields[i].ref);
       json_object_set_string(field_obj, "$ref", ref_buf);
+    } else if (strcmp(type, "enum") == 0) {
+      char ref_buf[128];
+      snprintf(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
+               sf->fields[i].ref);
+      json_object_set_string(field_obj, "$ref", ref_buf);
     }
 
     json_object_set_value(props_obj, name, field_val);
@@ -384,129 +388,102 @@ static int parse_header_file(const char *header_filename,
   struct_fields_init(&sf);
 
   while (read_line(fp, line, sizeof(line))) {
-    char *trim = line;
-    /* Skip empty or comment lines */
-    if (line[0] == '\0')
+    char *trimmed_line = line;
+    while (isspace((unsigned char)*trimmed_line))
+      trimmed_line++;
+    if (strlen(trimmed_line) == 0)
       continue;
-    while (isspace((unsigned char)*trim))
-      trim++;
 
-    switch (state) {
-    case NONE:
-      if (str_starts_with(trim, "enum ")) {
-        /* Start enum parse */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sscanf_s(trim + 5, "%63s", enum_name, (unsigned int)sizeof(enum_name));
-#else
-        sscanf(trim + 5, "%63s", enum_name);
-#endif
-
-        /* Strip trailing { if present */
+    if (state == NONE) {
+      if (str_starts_with(trimmed_line, "enum ")) {
+        char *brace = strchr(trimmed_line, '{');
+        sscanf(trimmed_line + 5, "%63s", enum_name);
         {
-          char *brace = strchr(enum_name, '{');
-          if (brace)
-            *brace = '\0';
+          char *name_brace = strchr(enum_name, '{');
+          if (name_brace)
+            *name_brace = '\0';
         }
-
         enum_members_free(&em);
         enum_members_init(&em);
         state = IN_ENUM;
-      } else if (str_starts_with(trim, "struct ")) {
-        /* Start struct parse */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sscanf_s(trim + 7, "%63s", struct_name,
-                 (unsigned int)sizeof(struct_name));
-#else
-        sscanf(trim + 7, "%63s", struct_name);
-#endif
 
-        /* Strip trailing { if present */
+        if (brace)
+          trimmed_line = brace + 1;
+        else
+          continue;
+      } else if (str_starts_with(trimmed_line, "struct ")) {
+        char *brace = strchr(trimmed_line, '{');
+        sscanf(trimmed_line + 7, "%63s", struct_name);
         {
-          char *brace = strchr(struct_name, '{');
-          if (brace)
-            *brace = '\0';
+          char *name_brace = strchr(struct_name, '{');
+          if (name_brace)
+            *name_brace = '\0';
         }
-
         struct_fields_free(&sf);
         struct_fields_init(&sf);
         state = IN_STRUCT;
-      }
-      break;
 
-    case IN_ENUM:
-      /* Parse enum members until '};' */
+        if (brace)
+          trimmed_line = brace + 1;
+        else
+          continue;
+      }
+    }
+
+    if (state == IN_ENUM) {
+      char *end_brace = strchr(trimmed_line, '}');
+      if (end_brace)
+        *end_brace = '\0';
+
       {
         char *context = NULL;
-        char *brace_close = strtok_r(trim, "}", &context);
-        char tmp[128];
-        if (brace_close) {
-          char *token = strtok_r(trim, ",", &context);
-          /* Enum end: parse last members on this line before } */
-          *brace_close = 0;
-          while (token) {
-            /* Trim token */
-            while (isspace((unsigned char)*token))
-              token++;
-            trim_trailing(token);
-            if (strlen(token) > 0) {
-              /* Remove any '= ...' */
-              char *eq = strchr(token, '=');
-              if (eq)
-                *eq = 0;
-              /* Strip trailing spaces */
-              trim_trailing(token);
-              if (strlen(token) > 0)
-                enum_members_add(&em, token);
-            }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            token = strtok_r(NULL, ",", &context);
-#else
-            token = strtok(NULL, ",");
-#endif
+        char *token = strtok_r(trimmed_line, ",", &context);
+        while (token) {
+          char *p = token;
+          while (isspace((unsigned char)*p))
+            p++;
+          trim_trailing(p);
+          if (strlen(p) > 0) {
+            char *eq = strchr(p, '=');
+            if (eq)
+              *eq = '\0';
+            trim_trailing(p);
+            if (strlen(p) > 0)
+              enum_members_add(&em, p);
           }
-          /* Done enum: write to JSON */
-          write_enum_to_json_schema(schemas_obj, enum_name, &em);
-          state = NONE;
-          break;
-        }
-        /* Not end line, parse enum member from this line */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        strcpy_s(tmp, sizeof(tmp), trim);
-#else
-        strcpy(tmp, trim);
-#endif
-        trim_trailing(tmp);
-        /* Parse member */
-        {
-          char *eq = strchr(tmp, '=');
-          if (eq)
-            *eq = 0;
-          /* Remove trailing spaces */
-          trim_trailing(tmp);
-          if (strlen(tmp) > 0)
-            enum_members_add(&em, tmp);
+          token = strtok_r(NULL, ",", &context);
         }
       }
-      break;
 
-    case IN_STRUCT:
-      /* Parse struct members until '};' */
-      if (strchr(trim, '}')) {
-        /* Struct end */
-        /* Write struct to JSON schema */
+      if (end_brace) {
+        write_enum_to_json_schema(schemas_obj, enum_name, &em);
+        state = NONE;
+      }
+
+    } else if (state == IN_STRUCT) {
+      char *end_brace = strchr(trimmed_line, '}');
+      if (end_brace)
+        *end_brace = '\0';
+      {
+
+        char *context = NULL;
+        char *token = strtok_r(trimmed_line, ";", &context);
+        while (token) {
+          char *p = token;
+          while (isspace((unsigned char)*p))
+            p++;
+          if (strlen(p) > 0)
+            parse_struct_member_line(p, &sf);
+          token = strtok_r(NULL, ";", &context);
+        }
+      }
+
+      if (end_brace) {
         write_struct_to_json_schema(schemas_obj, struct_name, &sf);
         state = NONE;
-      } else {
-        /* Parse member line */
-        if (parse_struct_member_line(trim, &sf) == 0) {
-          /* Ignore unrecognized lines */
-          /* For your restricted format, most lines will parse */
-        }
       }
-      break;
     }
   }
-
   fclose(fp);
 
   /* Write JSON to output path */

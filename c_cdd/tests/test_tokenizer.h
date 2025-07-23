@@ -330,6 +330,64 @@ TEST tokenizer_free_token_list_null(void) {
   PASS();
 }
 
+TEST tokenize_various_edge_cases(void) {
+  struct TokenList tl = {NULL, 0, 0};
+
+  /* Slash at end of input */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("test/"), &tl));
+  ASSERT_EQ(2, tl.size);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[0].kind);
+  ASSERT_EQ(TOKEN_OTHER, tl.tokens[1].kind);
+  free_token_list(&tl);
+
+  /* Unterminated block comment */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("/* foo"), &tl));
+  ASSERT_EQ(1, tl.size);
+  ASSERT_EQ(TOKEN_COMMENT, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  /* String with escaped quote */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("\"hello\\\"world\""), &tl));
+  ASSERT_EQ(1, tl.size);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[0].kind);
+  free_token_list(&tl);
+
+  /* Char with escaped char and unterminated */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("'\\''a"), &tl));
+  ASSERT_EQ(2, tl.size);
+  ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[0].kind);
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[1].kind);
+  free_token_list(&tl);
+
+  /* Other characters */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("@`$"), &tl));
+  ASSERT_EQ(3, tl.size);
+  ASSERT_EQ(TOKEN_OTHER, tl.tokens[0].kind);
+  ASSERT_EQ(TOKEN_OTHER, tl.tokens[1].kind);
+  ASSERT_EQ(TOKEN_OTHER, tl.tokens[2].kind);
+  free_token_list(&tl);
+
+  PASS();
+}
+
+TEST tokenize_realloc(void) {
+  enum { n = 1025 };
+  char long_string[n];
+  size_t i;
+  struct TokenList tl = {NULL, 0, 0};
+
+  for (i = 0; i < n - 2; i += 2) {
+    long_string[i] = 'a';
+    long_string[i + 1] = ' ';
+  }
+  long_string[n - 1] = '\0';
+
+  ASSERT_EQ(0, tokenize(az_span_create_from_str(long_string), &tl));
+  ASSERT_GT(tl.size, 64); /* Default capacity */
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -340,6 +398,8 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_unterminated);
   RUN_TEST(tokenize_with_comments);
   RUN_TEST(tokenizer_free_token_list_null);
+  RUN_TEST(tokenize_various_edge_cases);
+  RUN_TEST(tokenize_realloc);
 }
 
 #endif /* !TEST_TOKENIZER_H */

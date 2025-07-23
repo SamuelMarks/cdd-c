@@ -231,7 +231,7 @@ TEST test_display_fail(void) {
   if (err != 0 || fh_w == NULL) {
     fprintf(stderr, "Failed to open for writing %s\n", tmp_fname);
     free(fh_w);
-    return EXIT_FAILURE;
+    return;
   }
 #else
   fh_w = fopen(tmp_fname, "w");
@@ -242,11 +242,13 @@ TEST test_display_fail(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fh_r, tmp_fname, "r");
-  if (err != 0 || fh_r == NULL) {
-    fprintf(stderr, "Failed to open for reading %s\n", tmp_fname);
-    free(fh_w);
-    return EXIT_FAILURE;
+  {
+    errno_t err = fopen_s(&fh_r, tmp_fname, "r");
+    if (err != 0 || fh_r == NULL) {
+      fprintf(stderr, "Failed to open for reading %s\n", tmp_fname);
+      free(fh_w);
+      return;
+    }
   }
 #else
   fh_r = fopen(tmp_fname, "r");
@@ -334,6 +336,10 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(UNKNOWN, val);
 
+  rc = Tank_from_str("UNKNOWN", &val);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(UNKNOWN, val);
+
   rc = Tank_from_str("foo", &val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(UNKNOWN, val);
@@ -346,6 +352,50 @@ TEST test_Tank_to_str_from_str(void) {
 TEST test_cleanup_null(void) {
   FooE_cleanup(NULL);
   HazE_cleanup(NULL);
+  PASS();
+}
+
+TEST test_to_json_with_null_fields(void) {
+  struct HazE haz = {NULL, BIG};
+  struct FooE foo = {NULL, 12, NULL};
+  char *json_out = NULL;
+  int rc;
+
+  foo.haz = &haz;
+
+  rc = HazE_to_json(&haz, &json_out);
+  ASSERT_EQ(0, rc);
+  {
+    JSON_Value *val = json_parse_string(json_out);
+    JSON_Object *obj = json_value_get_object(val);
+    ASSERT(obj != NULL);
+    ASSERT_EQ(JSONNull, json_value_get_type(json_object_get_value(obj, "bzr")));
+    ASSERT_STR_EQ("BIG", json_object_get_string(obj, "tank"));
+    json_value_free(val);
+  }
+  free(json_out);
+  json_out = NULL;
+
+  rc = FooE_to_json(&foo, &json_out);
+  ASSERT_EQ(0, rc);
+  {
+    JSON_Value *val = json_parse_string(json_out);
+    JSON_Object *obj = json_value_get_object(val);
+    ASSERT(obj != NULL);
+    ASSERT_EQ(JSONNull, json_value_get_type(json_object_get_value(obj, "bar")));
+    ASSERT_EQ(12, (int)json_object_get_number(obj, "can"));
+    {
+      JSON_Object *haz_obj = json_object_get_object(obj, "haz");
+      ASSERT(haz_obj != NULL);
+      ASSERT_EQ(JSONNull,
+                json_value_get_type(json_object_get_value(haz_obj, "bzr")));
+      ASSERT_STR_EQ("BIG", json_object_get_string(haz_obj, "tank"));
+    }
+    json_value_free(val);
+  }
+  free(json_out);
+  json_out = NULL;
+
   PASS();
 }
 
@@ -362,6 +412,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_eq_null_cases);
   RUN_TEST(test_Tank_to_str_from_str);
   RUN_TEST(test_cleanup_null);
+  RUN_TEST(test_to_json_with_null_fields);
 }
 
 #endif /* TEST_DATACLASSES_H */

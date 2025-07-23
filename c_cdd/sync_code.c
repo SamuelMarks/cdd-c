@@ -81,72 +81,79 @@ int sync_code_main(int argc, char **argv) {
   struct_fields_init(&sf);
 
   while (fgets(line, sizeof(line), fp)) {
-    char *trim = line;
-    while (isspace((unsigned char)*trim))
-      trim++;
-    if (*trim == '\0')
+    char *trimmed_line = line;
+    while (isspace((unsigned char)*trimmed_line))
+      trimmed_line++;
+    if (strlen(trimmed_line) == 0)
       continue;
 
-    switch (state) {
-    case NONE:
-      if (str_starts_with(trim, "enum ")) {
-        char *brace;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sscanf_s(trim + 5, "%63s", enum_name, (unsigned int)sizeof(enum_name));
-#else
-        sscanf(trim + 5, "%63s", enum_name);
-#endif
-        brace = strchr(enum_name, '{');
-        if (brace)
-          *brace = 0;
+    if (state == NONE) {
+      if (str_starts_with(trimmed_line, "enum ")) {
+        char *brace = strchr(trimmed_line, '{');
+        sscanf(trimmed_line + 5, "%63s", enum_name);
+        {
+          char *name_brace = strchr(enum_name, '{');
+          if (name_brace)
+            *name_brace = '\0';
+        }
         enum_members_free(&em);
         enum_members_init(&em);
         state = IN_ENUM;
-      } else if (str_starts_with(trim, "struct ")) {
-        char *brace;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        sscanf_s(trim + 7, "%63s", struct_name,
-                 (unsigned int)sizeof(struct_name));
-#else
-        sscanf(trim + 7, "%63s", struct_name);
-#endif
-        brace = strchr(struct_name, '{');
+
         if (brace)
-          *brace = 0;
+          trimmed_line = brace + 1;
+        else
+          continue;
+      } else if (str_starts_with(trimmed_line, "struct ")) {
+        char *brace = strchr(trimmed_line, '{');
+        sscanf(trimmed_line + 7, "%63s", struct_name);
+        {
+          char *name_brace = strchr(struct_name, '{');
+          if (name_brace)
+            *name_brace = '\0';
+        }
         struct_fields_free(&sf);
         struct_fields_init(&sf);
         state = IN_STRUCT;
-      }
-      break;
 
-    case IN_ENUM: {
-      char *closing = strchr(trim, '}');
-      char tmp[128];
-      if (closing) {
+        if (brace)
+          trimmed_line = brace + 1;
+        else
+          continue;
+      }
+    }
+
+    if (state == IN_ENUM) {
+      char *end_brace = strchr(trimmed_line, '}');
+      if (end_brace)
+        *end_brace = '\0';
+
+      {
         char *context = NULL;
-        char *tok = strtok_r(trim, ",", &context);
-        *closing = 0;
-        while (tok) {
-          while (isspace((unsigned char)*tok))
-            tok++;
-          trim_trailing(tok);
-          if (*tok) {
-            char *eq = strchr(tok, '=');
+        char *token = strtok_r(trimmed_line, ",", &context);
+        while (token) {
+          char *p = token;
+          while (isspace((unsigned char)*p))
+            p++;
+          trim_trailing(p);
+          if (strlen(p) > 0) {
+            char *eq = strchr(p, '=');
             if (eq)
-              *eq = 0;
-            trim_trailing(tok);
-            if (*tok)
-              enum_members_add(&em, tok);
+              *eq = '\0';
+            trim_trailing(p);
+            if (strlen(p) > 0)
+              enum_members_add(&em, p);
           }
-          tok = strtok_r(NULL, ",", &context);
+          token = strtok_r(NULL, ",", &context);
         }
-        /* Store enum */
+      }
+
+      if (end_brace) {
         if (enum_count < sizeof(enums) / sizeof(enums[0])) {
           size_t j;
           enum_members_init(&enums[enum_count]);
           for (j = 0; j < em.size; j++)
             enum_members_add(&enums[enum_count], em.members[j]);
-
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           strncpy_s(enum_names[enum_count], sizeof(enum_names[enum_count]),
                     enum_name, _TRUNCATE);
@@ -158,27 +165,25 @@ int sync_code_main(int argc, char **argv) {
           enum_count++;
         }
         state = NONE;
-        break;
       }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      strcpy_s(tmp, sizeof(tmp), trim);
-#else
-      strcpy(tmp, trim);
-#endif
-      trim_trailing(tmp);
+    } else if (state == IN_STRUCT) {
+      char *end_brace = strchr(trimmed_line, '}');
+      if (end_brace)
+        *end_brace = '\0';
       {
-        char *eq = strchr(tmp, '=');
-        if (eq)
-          *eq = 0;
-        trim_trailing(tmp);
-        if (*tmp)
-          enum_members_add(&em, tmp);
+        char *context = NULL;
+        char *token = strtok_r(trimmed_line, ";", &context);
+        while (token) {
+          char *p = token;
+          while (isspace((unsigned char)*p))
+            p++;
+          if (strlen(p) > 0)
+            parse_struct_member_line(p, &sf);
+          token = strtok_r(NULL, ";", &context);
+        }
       }
-      break;
-    }
-    case IN_STRUCT:
-      if (strchr(trim, '}')) {
-        /* Store struct */
+
+      if (end_brace) {
         if (struct_count < sizeof(structs) / sizeof(structs[0])) {
           size_t j;
           struct_fields_init(&structs[struct_count]);
@@ -198,10 +203,7 @@ int sync_code_main(int argc, char **argv) {
           struct_count++;
         }
         state = NONE;
-      } else {
-        parse_struct_member_line(trim, &sf);
       }
-      break;
     }
   }
 
