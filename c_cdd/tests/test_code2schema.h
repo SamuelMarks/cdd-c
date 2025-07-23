@@ -519,7 +519,7 @@ TEST test_code2schema_single_line_defs(void) {
         json_object_get_object(obj, "components"), "schemas");
     JSON_Object *s_obj = json_object_get_object(schemas, "S");
     JSON_Object *e_obj = json_object_get_object(schemas, "E");
-    ASSERT_EQ(s_obj, NULL);
+    ASSERT(s_obj != NULL);
     ASSERT(e_obj != NULL);
     ASSERT_EQ(2, json_array_get_count(json_object_get_array(e_obj, "enum")));
   }
@@ -528,6 +528,58 @@ TEST test_code2schema_single_line_defs(void) {
   free(json_content);
   remove(argv[0]);
   remove(argv[1]);
+  PASS();
+}
+
+TEST test_code2schema_forward_declarations(void) {
+  char *argv[] = {"fwd.h", "fwd.json"};
+  const char *header_content = "struct MyStruct;\n"
+                               "enum MyEnum;\n"
+                               "struct RealStruct { int x; };\n";
+  char *json_content;
+  int err;
+  size_t size;
+  JSON_Value *val;
+
+  ASSERT_EQ(0, write_to_file(argv[0], header_content));
+  ASSERT_EQ(0, code2schema_main(2, argv));
+
+  json_content = c_read_file(argv[1], &err, &size, "r");
+  ASSERT_EQ(0, err);
+  val = json_parse_string(json_content);
+  ASSERT(val != NULL);
+
+  {
+    JSON_Object *obj = json_value_get_object(val);
+    JSON_Object *schemas = json_object_get_object(
+        json_object_get_object(obj, "components"), "schemas");
+    ASSERT(schemas != NULL);
+    /* Forward declarations should not result in schemas */
+    ASSERT_EQ(NULL, json_object_get_object(schemas, "MyStruct"));
+    ASSERT_EQ(NULL, json_object_get_object(schemas, "MyEnum"));
+    /* Only RealStruct should be present */
+    ASSERT(json_object_get_object(schemas, "RealStruct") != NULL);
+    ASSERT_EQ(1, json_object_get_count(schemas));
+  }
+
+  json_value_free(val);
+  free(json_content);
+  remove(argv[0]);
+  remove(argv[1]);
+
+  PASS();
+}
+
+TEST test_parse_struct_member_unhandled_line(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  /* This should not be parsed as a field */
+  ASSERT_EQ(0, parse_struct_member_line("struct Other s;", &sf));
+  ASSERT_EQ(0, sf.size);
+  /* This should not be parsed either */
+  ASSERT_EQ(0, parse_struct_member_line("void* ptr;", &sf));
+  ASSERT_EQ(0, sf.size);
+  struct_fields_free(&sf);
   PASS();
 }
 
@@ -558,6 +610,8 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_codegen_struct_null_args);
   RUN_TEST(test_code2schema_with_enum_field);
   RUN_TEST(test_code2schema_single_line_defs);
+  RUN_TEST(test_code2schema_forward_declarations);
+  RUN_TEST(test_parse_struct_member_unhandled_line);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */

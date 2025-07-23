@@ -8,6 +8,7 @@
  */
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -248,7 +249,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   if (matched == 2) {
     const size_t n = strlen(namebuf);
     /* Strip trailing semicolon in case */
-    if (n > 0 && namebuf[n - 1] == ';' && namebuf[strlen(namebuf) - 1] == ';')
+    if (n > 0 && namebuf[n - 1] == ';')
       namebuf[strlen(namebuf) - 1] = '\0';
 
     struct_fields_add(sf, namebuf, "object", struct_name);
@@ -347,7 +348,6 @@ static int parse_header_file(const char *header_filename,
   char struct_name[64] = {0};
   struct StructFields sf;
 
-  /* Prepare JSON root and components/schemas */
   JSON_Value *root_val;
   JSON_Object *root_obj;
   JSON_Value *components_val;
@@ -372,7 +372,6 @@ static int parse_header_file(const char *header_filename,
   }
 #endif
 
-  /* Prepare JSON root and components/schemas */
   root_val = json_value_init_object();
   root_obj = json_value_get_object(root_val);
   components_val = json_value_init_object();
@@ -380,7 +379,6 @@ static int parse_header_file(const char *header_filename,
   schemas_val = json_value_init_object();
   schemas_obj = json_value_get_object(schemas_val);
 
-  /* Setup root */
   json_object_set_value(root_obj, "components", components_val);
   json_object_set_value(components_obj, "schemas", schemas_val);
 
@@ -388,99 +386,143 @@ static int parse_header_file(const char *header_filename,
   struct_fields_init(&sf);
 
   while (read_line(fp, line, sizeof(line))) {
-    char *trimmed_line = line;
-    while (isspace((unsigned char)*trimmed_line))
-      trimmed_line++;
-    if (strlen(trimmed_line) == 0)
+    char *p = line;
+  process_line:
+    while (isspace((unsigned char)*p))
+      p++;
+    if (!*p)
       continue;
 
     if (state == NONE) {
-      if (str_starts_with(trimmed_line, "enum ")) {
-        char *brace = strchr(trimmed_line, '{');
-        sscanf(trimmed_line + 5, "%63s", enum_name);
-        {
-          char *name_brace = strchr(enum_name, '{');
-          if (name_brace)
-            *name_brace = '\0';
-        }
-        enum_members_free(&em);
-        enum_members_init(&em);
-        state = IN_ENUM;
-
-        if (brace)
-          trimmed_line = brace + 1;
-        else
+      if (str_starts_with(p, "enum ")) {
+        char *brace = strchr(p, '{');
+        if (brace) {
+          sscanf(p + 5, "%63s", enum_name);
+          {
+            char *name_brace = strchr(enum_name, '{');
+            if (name_brace)
+              *name_brace = '\0';
+          }
+          enum_members_free(&em);
+          enum_members_init(&em);
+          state = IN_ENUM;
+          p = brace + 1;
+        } else {
           continue;
-      } else if (str_starts_with(trimmed_line, "struct ")) {
-        char *brace = strchr(trimmed_line, '{');
-        sscanf(trimmed_line + 7, "%63s", struct_name);
-        {
-          char *name_brace = strchr(struct_name, '{');
-          if (name_brace)
-            *name_brace = '\0';
         }
-        struct_fields_free(&sf);
-        struct_fields_init(&sf);
-        state = IN_STRUCT;
-
-        if (brace)
-          trimmed_line = brace + 1;
-        else
+      } else if (str_starts_with(p, "struct ")) {
+        char *brace = strchr(p, '{');
+        if (brace) {
+          sscanf(p + 7, "%63s", struct_name);
+          {
+            char *name_brace = strchr(struct_name, '{');
+            if (name_brace)
+              *name_brace = '\0';
+          }
+          struct_fields_free(&sf);
+          struct_fields_init(&sf);
+          state = IN_STRUCT;
+          p = brace + 1;
+        } else {
           continue;
+        }
+      } else {
+        continue;
       }
     }
 
     if (state == IN_ENUM) {
-      char *end_brace = strchr(trimmed_line, '}');
-      if (end_brace)
-        *end_brace = '\0';
+      char *end_brace = strchr(p, '}');
+      char *body_to_parse;
+
+      if (end_brace) {
+        size_t len = end_brace - p;
+        body_to_parse = (char *)malloc(len + 1);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+        strncpy(body_to_parse, p, len);
+        body_to_parse[len] = '\0';
+      } else {
+        body_to_parse = strdup(p);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+      }
 
       {
         char *context = NULL;
-        char *token = strtok_r(trimmed_line, ",", &context);
+        char *token = strtok_r(body_to_parse, ",", &context);
         while (token) {
-          char *p = token;
-          while (isspace((unsigned char)*p))
-            p++;
-          trim_trailing(p);
-          if (strlen(p) > 0) {
-            char *eq = strchr(p, '=');
+          char *member_p = token;
+          while (isspace((unsigned char)*member_p))
+            member_p++;
+          trim_trailing(member_p);
+          if (strlen(member_p) > 0) {
+            char *eq = strchr(member_p, '=');
             if (eq)
               *eq = '\0';
-            trim_trailing(p);
-            if (strlen(p) > 0)
-              enum_members_add(&em, p);
+            trim_trailing(member_p);
+            if (strlen(member_p) > 0)
+              enum_members_add(&em, member_p);
           }
           token = strtok_r(NULL, ",", &context);
         }
       }
+      free(body_to_parse);
 
       if (end_brace) {
         write_enum_to_json_schema(schemas_obj, enum_name, &em);
         state = NONE;
+        p = end_brace + 1;
+        while (*p && (isspace((unsigned char)*p) || *p == ';'))
+          p++;
+        if (*p)
+          goto process_line;
       }
-
     } else if (state == IN_STRUCT) {
-      char *end_brace = strchr(trimmed_line, '}');
-      if (end_brace)
-        *end_brace = '\0';
-      {
-
-        char *context = NULL;
-        char *token = strtok_r(trimmed_line, ";", &context);
-        while (token) {
-          char *p = token;
-          while (isspace((unsigned char)*p))
-            p++;
-          if (strlen(p) > 0)
-            parse_struct_member_line(p, &sf);
-          token = strtok_r(NULL, ";", &context);
+      char *end_brace = strchr(p, '}');
+      char *body_to_parse;
+      if (end_brace) {
+        size_t len = end_brace - p;
+        body_to_parse = (char *)malloc(len + 1);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+        strncpy(body_to_parse, p, len);
+        body_to_parse[len] = '\0';
+      } else {
+        body_to_parse = strdup(p);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
         }
       }
 
+      {
+        char *context = NULL;
+        char *token = strtok_r(body_to_parse, ";", &context);
+        while (token) {
+          char *field_p = token;
+          while (isspace((unsigned char)*field_p))
+            field_p++;
+          if (strlen(field_p) > 0)
+            parse_struct_member_line(field_p, &sf);
+          token = strtok_r(NULL, ";", &context);
+        }
+      }
+      free(body_to_parse);
       if (end_brace) {
         write_struct_to_json_schema(schemas_obj, struct_name, &sf);
         state = NONE;
+        p = end_brace + 1;
+        while (*p && (isspace((unsigned char)*p) || *p == ';'))
+          p++;
+        if (*p)
+          goto process_line;
       }
     }
   }

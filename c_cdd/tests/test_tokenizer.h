@@ -13,16 +13,14 @@
  * Helper: copy token text (az_span) into null-terminated C string buffer.
  */
 static char *token_to_cstr(char *buf, size_t buf_len, const struct Token *tok) {
+  size_t copy_len;
   if (buf_len == 0)
     return NULL;
 
-  {
-    size_t copy_len = (tok->length < (int32_t)(buf_len - 1))
-                          ? tok->length
-                          : (int32_t)(buf_len - 1);
-    memcpy(buf, tok->start, copy_len);
-    buf[copy_len] = '\0';
-  }
+  copy_len = (tok->length < (buf_len - 1)) ? tok->length : (buf_len - 1);
+  memcpy(buf, tok->start, copy_len);
+  buf[copy_len] = '\0';
+
   return buf;
 }
 
@@ -36,8 +34,7 @@ TEST tokenize_all_tokens(void) {
   struct TokenList tl = {NULL, 0, 0};
   int ret;
   size_t i = 0;
-  int k_struct = 0, /*k_union = 0, k_enum = 0,*/ ident = 0, num = 0, chr = 0,
-      str = 0;
+  int k_struct = 0, ident = 0, num = 0, chr = 0, str = 0;
   int comment = 0, macro = 0, other = 0, brace = 0;
 
   ret = tokenize(code, &tl);
@@ -49,12 +46,6 @@ TEST tokenize_all_tokens(void) {
     case TOKEN_KEYWORD_STRUCT:
       k_struct = 1;
       break;
-    /*case TOKEN_KEYWORD_UNION:
-      k_union = 1;
-      break;
-    case TOKEN_KEYWORD_ENUM:
-      k_enum = 1;
-      break;*/
     case TOKEN_IDENTIFIER:
       ident = 1;
       break;
@@ -84,8 +75,6 @@ TEST tokenize_all_tokens(void) {
     }
   }
   ASSERT_GT(k_struct, 0);
-  /*ASSERT_GT(k_union, 0);
-  ASSERT_GT(k_enum, 0);*/
   ASSERT_GT(ident, 0);
   ASSERT_GT(num, 0);
   ASSERT_GT(chr, 0);
@@ -244,8 +233,8 @@ TEST tokenize_with_comments(void) {
 
   ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[1].kind);
 
-  /*ASSERT_EQ(TOKEN_KEYWORD_STRUCT, tl.tokens[2].kind);
-  ASSERT_STR_EQ("struct", token_to_cstr(buf, sizeof(buf), &tl.tokens[2]));*/
+  ASSERT_EQ(TOKEN_KEYWORD_STRUCT, tl.tokens[2].kind);
+  ASSERT_STR_EQ("struct", token_to_cstr(buf, sizeof(buf), &tl.tokens[2]));
 
   ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[3].kind);
 
@@ -260,8 +249,8 @@ TEST tokenize_with_comments(void) {
 
   ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[7].kind);
 
-  /*ASSERT_EQ(TOKEN_KEYWORD_INT, tl.tokens[8].kind);
-  ASSERT_STR_EQ("int", token_to_cstr(buf, sizeof(buf), &tl.tokens[8]));*/
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[8].kind);
+  ASSERT_STR_EQ("int", token_to_cstr(buf, sizeof(buf), &tl.tokens[8]));
 
   ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[9].kind);
 
@@ -388,6 +377,51 @@ TEST tokenize_realloc(void) {
   PASS();
 }
 
+TEST tokenize_operators(void) {
+  const az_span code = AZ_SPAN_FROM_STR("-> ++ -- << >> <= >= == != && || "
+                                        "+= -= *= /= %= &= |= ^= "
+                                        "{ } ; , . / : ? ~ ! & * + - ^ |");
+  struct TokenList tl = {NULL, 0, 0};
+  ASSERT_EQ(0, tokenize(code, &tl));
+  /* Just checking it doesn't crash and produces tokens */
+  ASSERT_GT(tl.size, 20);
+  free_token_list(&tl);
+  PASS();
+}
+
+TEST tokenize_more_unterminated(void) {
+  struct TokenList tl = {NULL, 0, 0};
+
+  /* unterminated block comment at end of file */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("int x; /*"), &tl));
+  ASSERT_GT(tl.size, 0);
+  ASSERT_EQ(TOKEN_COMMENT, tl.tokens[tl.size - 1].kind);
+  free_token_list(&tl);
+
+  /* unterminated string at end of file */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("const char* s = \"abc"), &tl));
+  ASSERT_GT(tl.size, 0);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[tl.size - 1].kind);
+  free_token_list(&tl);
+
+  /* unterminated char at end of file */
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("char c = 'a"), &tl));
+  ASSERT_GT(tl.size, 0);
+  ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[tl.size - 1].kind);
+  free_token_list(&tl);
+
+  PASS();
+}
+
+TEST tokenize_escaped_backslash_in_string(void) {
+  struct TokenList tl = {NULL, 0, 0};
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("\"foo\\\\\""), &tl));
+  ASSERT_EQ(1, tl.size);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[0].kind);
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -400,6 +434,9 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenizer_free_token_list_null);
   RUN_TEST(tokenize_various_edge_cases);
   RUN_TEST(tokenize_realloc);
+  RUN_TEST(tokenize_operators);
+  RUN_TEST(tokenize_more_unterminated);
+  RUN_TEST(tokenize_escaped_backslash_in_string);
 }
 
 #endif /* !TEST_TOKENIZER_H */

@@ -9,6 +9,8 @@
 #include <sys/errno.h>
 #endif
 
+#include "cdd_test_helpers/cdd_helpers.h"
+
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
@@ -223,50 +225,24 @@ TEST test_display_fail(void) {
   struct HazE *haz = NULL;
   int rc;
   const char *const tmp_fname = "display_test.tmp";
-  FILE *fh_w, *fh_r;
+  FILE *fh;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fh_w, tmp_fname, "w");
-  if (err != 0 || fh_w == NULL) {
-    fprintf(stderr, "Failed to open for writing %s\n", tmp_fname);
-    free(fh_w);
-    return;
-  }
-#else
-  fh_w = fopen(tmp_fname, "w");
-  ASSERT(fh_w != NULL);
-#endif
-  fputs("content", fh_w);
-  fclose(fh_w);
+  write_to_file(tmp_fname, "content");
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fh_r, tmp_fname, "r");
-    if (err != 0 || fh_r == NULL) {
-      fprintf(stderr, "Failed to open for reading %s\n", tmp_fname);
-      free(fh_w);
-      return;
-    }
-  }
-#else
-  fh_r = fopen(tmp_fname, "r");
-  ASSERT(fh_r != NULL);
-#endif
-  ASSERT(fh_r != NULL);
+  fh = fopen(tmp_fname, "r");
+  ASSERT(fh != NULL);
 
   FooE_default(&foo);
-  rc = FooE_display(foo, fh_r); /* Try to write to read-only stream */
+  rc = FooE_display(foo, fh); /* Try to write to read-only stream */
   ASSERT(rc != 0);
   FooE_cleanup(foo);
 
   HazE_default(&haz);
-  /*rc = HazE_display(haz, fh_r);*/
+  rc = HazE_display(haz, fh);
   ASSERT(rc != 0);
   HazE_cleanup(haz);
 
-  fclose(fh_r);
+  fclose(fh);
   remove(tmp_fname);
 
   PASS();
@@ -399,6 +375,118 @@ TEST test_to_json_with_null_fields(void) {
   PASS();
 }
 
+TEST test_debug_fail(void) {
+  struct FooE *foo = NULL;
+  struct HazE *haz = NULL;
+  int rc;
+  const char *const tmp_fname = "debug_test.tmp";
+  FILE *fh;
+
+  write_to_file(tmp_fname, "content");
+
+  fh = fopen(tmp_fname, "r");
+  ASSERT(fh != NULL);
+
+  FooE_default(&foo);
+  rc = FooE_debug(foo, fh); /* Try to write to read-only stream */
+  ASSERT(rc != 0);
+  FooE_cleanup(foo);
+
+  rewind(fh); /* reset for next test */
+
+  HazE_default(&haz);
+  rc = HazE_debug(haz, fh); /* Try to write to read-only stream */
+  ASSERT(rc != 0);
+  HazE_cleanup(haz);
+
+  fclose(fh);
+  remove(tmp_fname);
+  PASS();
+}
+
+TEST test_json_parsing_wrong_types(void) {
+  struct FooE *f = NULL;
+  struct HazE *h = NULL;
+
+  /* tank is not a string */
+  ASSERT_EQ(EINVAL, HazE_from_json("{\"bzr\": \"v\", \"tank\": 123}", &h));
+
+  /* bar is not a string */
+  ASSERT_EQ(0, FooE_from_json("{\"bar\": 123, \"can\": 1, \"haz\": {\"bzr\": "
+                              "\"v\", \"tank\": \"BIG\"}}",
+                              &f));
+  ASSERT(f->bar == NULL);
+  FooE_cleanup(f);
+  f = NULL;
+
+  /* can is not a number */
+  ASSERT_EQ(0,
+            FooE_from_json("{\"bar\": \"v\", \"can\": \"notanumber\", \"haz\": "
+                           "{\"bzr\": \"v\", \"tank\": \"BIG\"}}",
+                           &f));
+  ASSERT(f->can == 0);
+  FooE_cleanup(f);
+  f = NULL;
+
+  /* haz is not an object */
+  ASSERT_EQ(0,
+            FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": 123}", &f));
+  ASSERT(f->haz == NULL);
+  FooE_cleanup(f);
+
+  PASS();
+}
+
+TEST test_deepcopy_null_fields(void) {
+  struct HazE haz_in = {NULL, BIG};
+  struct HazE *haz_out = NULL;
+  struct FooE foo_in = {NULL, 42, NULL};
+  struct FooE *foo_out = NULL;
+  int rc;
+
+  /* Deepcopy HazE with NULL bzr */
+  rc = HazE_deepcopy(&haz_in, &haz_out);
+  ASSERT_EQ(0, rc);
+  ASSERT(haz_out != NULL);
+  ASSERT(haz_out->bzr == NULL);
+  ASSERT(haz_out->tank == BIG);
+  HazE_cleanup(haz_out);
+
+  /* Deepcopy FooE with NULL bar and NULL haz */
+  rc = FooE_deepcopy(&foo_in, &foo_out);
+  ASSERT_EQ(0, rc);
+  ASSERT(foo_out != NULL);
+  ASSERT(foo_out->bar == NULL);
+  ASSERT(foo_out->can == 42);
+  ASSERT(foo_out->haz == NULL);
+  FooE_cleanup(foo_out);
+
+  PASS();
+}
+
+TEST test_json_parsing_missing_fields(void) {
+  struct FooE *f = NULL;
+  int rc;
+
+  /* `bar` is optional and can be missing */
+  rc = FooE_from_json(
+      "{\"can\": 1, \"haz\": {\"bzr\": \"v\", \"tank\": \"BIG\"}}", &f);
+  ASSERT_EQ(0, rc);
+  ASSERT(f != NULL);
+  ASSERT(f->bar == NULL);
+  FooE_cleanup(f);
+  f = NULL;
+
+  /* `haz` being missing (null) is fine */
+  rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1}", &f);
+  ASSERT_EQ(0, rc);
+  ASSERT(f != NULL);
+  ASSERT(f->haz == NULL);
+  FooE_cleanup(f);
+
+  PASS();
+}
+
 SUITE(dataclasses_suite) {
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
@@ -413,6 +501,10 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_Tank_to_str_from_str);
   RUN_TEST(test_cleanup_null);
   RUN_TEST(test_to_json_with_null_fields);
+  RUN_TEST(test_debug_fail);
+  RUN_TEST(test_json_parsing_wrong_types);
+  RUN_TEST(test_deepcopy_null_fields);
+  RUN_TEST(test_json_parsing_missing_fields);
 }
 
 #endif /* TEST_DATACLASSES_H */
