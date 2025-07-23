@@ -1,8 +1,14 @@
 #ifndef TEST_FS_H
 #define TEST_FS_H
 
+#include "cdd_test_helpers/cdd_helpers.h"
+#include <errno.h>
 #include <fs.h>
 #include <greatest.h>
+
+#if !defined(_MSC_VER)
+#include <sys/stat.h>
+#endif
 
 TEST test_get_basename(void) {
   const char *res;
@@ -106,7 +112,7 @@ TEST test_fs_c_read_file_empty(void) {
   errno_t err_s = fopen_s(&fp, filename, "w");
   if (err_s != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
-    return;
+    FAIL();
   }
 #else
   fp = fopen(filename, "w");
@@ -138,7 +144,7 @@ TEST test_fs_cp(void) {
     errno_t err = fopen_s(&fp, src, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
-      return;
+      FAIL();
     }
   }
 #else
@@ -166,7 +172,7 @@ TEST test_fs_cp(void) {
     errno_t err = fopen_s(&fp, src, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
-      return;
+      FAIL();
     }
   }
 #else
@@ -195,7 +201,7 @@ TEST test_makedirs_path_is_file(void) {
     errno_t err = fopen_s(&fp, file_path, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", file_path);
-      return;
+      FAIL();
     }
   }
 #else
@@ -243,54 +249,6 @@ TEST test_c_read_file_nulls(void) {
   PASS();
 }
 
-/* TODO: get working
-TEST test_cp_errors(void) {
-  FILE *fh0, *fh1;
-  const char *const filename0 = "copy_exists.txt";
-  const char *const filename1 = "copy_exists_dest.txt";
-  ASSERT_EQ(-1, cp("copy_test_out.txt", "copy_test_nowhere.txt"));
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-  defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fh0, filename0, "w");
-    if (err != 0 || fh == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", filename0);
-      free(fh);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  fh0 = fopen(filename0, "w");
-#endif
-
-  fputs("test", fh0);
-  fclose(fh0);
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-  defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fh1, filename1, "w");
-    if (err != 0 || fh == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", filename1);
-      free(fh1);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  fh1 = fopen(filename1, "w");
-#endif
-
-  fputs("test", fh1);
-  fclose(fh1);
-  ASSERT_EQ(1, cp(filename1, filename0));
-  ASSERT_EQ(-1, cp(filename1, filename0));
-  remove(filename0);
-  remove(filename1);
-  PASS();
-}
-*/
-
 TEST test_makedirs_and_makedir_edge(void) {
   const char *const deep = "dir1" PATH_SEP "dir2" PATH_SEP "dir3";
   ASSERT_EQ(makedirs(deep), 0);
@@ -304,6 +262,8 @@ TEST test_makedirs_and_makedir_edge(void) {
   ASSERT(makedirs(NULL) != 0);
 
   rmdir(deep);
+  rmdir("dir1" PATH_SEP "dir2");
+  rmdir("dir1");
   PASS();
 }
 
@@ -355,7 +315,7 @@ TEST test_get_basename_long(void) {
   PASS();
 }
 
-TEST test_get_dirname_long(void) {
+TEST test_get_dirname_long_filename_no_path(void) {
 #if !defined(_MSC_VER) || defined(PATHCCH_LIB)
   char long_path[PATH_MAX + 20];
   char *res;
@@ -370,6 +330,85 @@ TEST test_get_dirname_long(void) {
   PASS();
 }
 
+TEST test_get_dirname_long_path(void) {
+#if !defined(_MSC_VER)
+  char long_path[PATH_MAX + 20];
+  const char *res;
+
+  memset(long_path, 'a', sizeof(long_path) - 1);
+  long_path[sizeof(long_path) - 1] = '\0';
+
+  /* Make it a path by adding a slash */
+  long_path[PATH_MAX + 5] = '/';
+  long_path[PATH_MAX + 6] = 'b';
+
+  res = get_dirname(long_path);
+  ASSERT_EQ(NULL, res);
+  ASSERT_EQ(ENAMETOOLONG, errno);
+#endif
+  PASS();
+}
+
+TEST test_dirname_msvc_root(void) {
+#if defined(_MSC_VER) && !defined(PATHCCH_LIB)
+  char path[] = "C:\\";
+  ASSERT_STR_EQ("C:\\", get_dirname(path));
+  strcpy(path, "\\\\server\\share");
+  ASSERT_STR_EQ("\\\\server\\share", get_dirname(path));
+#endif
+  PASS();
+}
+
+TEST test_write_to_file_fail(void) {
+  const char *dir = "test_dir_for_write";
+  ASSERT_EQ(0, makedir(dir));
+  ASSERT_NEQ(0, write_to_file(dir, "some content"));
+  rmdir(dir);
+  PASS();
+}
+
+TEST test_get_basename_root_path(void) {
+  ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP));
+  ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP PATH_SEP PATH_SEP));
+  PASS();
+}
+
+TEST test_cp_dest_exists(void) {
+#if !defined(_MSC_VER)
+  const char *src = "cp_src_exist.tmp";
+  const char *dst = "cp_dst_exist.tmp";
+
+  write_to_file(src, "src content");
+  write_to_file(dst, "dst content");
+
+  /* cp should fail if destination exists and O_EXCL is used */
+  ASSERT_NEQ(0, cp(dst, src));
+
+  remove(src);
+  remove(dst);
+#endif
+  PASS();
+}
+
+TEST test_makedirs_stat_fail(void) {
+#if !defined(_MSC_VER)
+  const char *path = "perm_dir/sub";
+  ASSERT_EQ(0, makedir("perm_dir"));
+
+  /* Make perm_dir non-searchable */
+  ASSERT_EQ(0, chmod("perm_dir", 0666)); /* no x bit */
+
+  errno = 0;
+  ASSERT_NEQ(0, makedirs(path));
+  ASSERT(errno == EACCES || errno == ENOTDIR); /* EACCES is more likely */
+
+  /* Cleanup */
+  chmod("perm_dir", 0777);
+  rmdir("perm_dir");
+#endif
+  PASS();
+}
+
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
@@ -380,7 +419,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_c_read_file_success);
   RUN_TEST(test_fs_c_read_file_empty);
   RUN_TEST(test_c_read_file_nulls);
-  /* RUN_TEST(test_cp_errors); */
   RUN_TEST(test_makedirs_and_makedir_edge);
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);
@@ -388,7 +426,13 @@ SUITE(fs_suite) {
   RUN_TEST(test_makedirs_path_is_file);
   RUN_TEST(test_fs_cp);
   RUN_TEST(test_get_basename_long);
-  RUN_TEST(test_get_dirname_long);
+  RUN_TEST(test_get_dirname_long_filename_no_path);
+  RUN_TEST(test_get_dirname_long_path);
+  RUN_TEST(test_dirname_msvc_root);
+  RUN_TEST(test_write_to_file_fail);
+  RUN_TEST(test_get_basename_root_path);
+  RUN_TEST(test_cp_dest_exists);
+  RUN_TEST(test_makedirs_stat_fail);
 }
 
 #endif /* !TEST_FS_H */

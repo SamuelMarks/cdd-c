@@ -27,7 +27,7 @@ TEST test_schema2code_input_errors(void) {
     errno_t err = fopen_s(&fp, broken_json, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", broken_json);
-      return;
+      FAIL();
     }
   }
 #else
@@ -82,7 +82,7 @@ TEST test_schema_codegen_broken_json(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return;
+      FAIL();
     }
   }
 #else
@@ -95,9 +95,9 @@ TEST test_schema_codegen_broken_json(void) {
 
   fputs("{broken", fp);
   fclose(fp);
+  argv[0] = (char *)filename;
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
-  remove("bad.json");
-  remove("broken.json");
+  remove(filename);
   PASS();
 }
 
@@ -110,7 +110,7 @@ TEST test_schema_codegen_empty_schema(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return;
+      FAIL();
     }
   }
 #else
@@ -162,13 +162,10 @@ TEST test_schema_codegen_complex_schema(void) {
   const char *const filename = "complex_schema.json";
   const char *argv[] = {filename, "complex"};
   int rc;
-
-  /* string literal of length 629 exceeds maximum length
-   * 509 that C90 compilers are required to support */
   enum { COUNT = 630 };
-  char *const complex_schema_json = malloc(COUNT * sizeof(complex_schema_json));
+  char *const schema_str[COUNT];
   strcpy(
-      complex_schema_json,
+      (char *)schema_str,
       "{\"components\": {\"schemas\": {"
       "\"EnumNoUnknown\": {\"type\": \"string\", \"enum\": [\"A\", null, "
       "\"B\"]},"
@@ -179,17 +176,18 @@ TEST test_schema_codegen_complex_schema(void) {
       "null}},"
       "\"StructWithNoTypeProp\": {\"type\": \"object\", \"properties\": "
       "{\"p1\": {}}},"
-      "\"StructWithArray\": {\"type\": \"object\", \"properties\": {\"arr\": "
-      "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
-      "\"StringNotEnum\": {\"type\": \"string\"},"
-      "\"TopLevelArray\": {\"type\": \"array\", \"ite");
-  strcat(complex_schema_json,
-         "ms\": {\"type\": \"integer\"}},"
+      "\"StructWithArray\": ");
+  strcat((char *)schema_str,
+         "{\"type\": \"object\", \"properties\": {\"arr\": "
+         "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
+         "\"StringNotEnum\": {\"type\": \"string\"},"
+         "\"TopLevelArray\": {\"type\": \"array\", \"items\": {\"type\": "
+         "\"integer\"}},"
          "\"StructWithBadRef\": {\"type\": \"object\", \"properties\": "
          "{\"ref_prop\": {\"$ref\": \"#/c/s/Other\"}}}"
-         "}}}");
-  rc = write_to_file(filename, complex_schema_json);
-  free(complex_schema_json);
+         "}}}\0");
+
+  rc = write_to_file(filename, (char *)schema_str);
   ASSERT_EQ(0, rc);
 
   rc = schema2code_main(2, (char **)argv);
@@ -215,7 +213,7 @@ TEST test_schema_codegen_valid_struct_enum(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return;
+      FAIL();
     }
   }
 #else
@@ -248,7 +246,7 @@ TEST test_schema_codegen_output_file_open_fail(void) {
     errno_t err = fopen_s(&fp, filename, "w");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", filename);
-      return;
+      FAIL();
     }
   }
 #else
@@ -276,14 +274,13 @@ TEST test_schema_codegen_output_file_open_fail(void) {
 TEST test_schema_codegen_types_unhandled(void) {
   const char *const filename = "codegen_type.json";
   char *argv[] = {NULL, "typeout"};
-  int rc = write_to_file(
-      filename, "{\"components\":{\"schemas\":{"
-                "\"T\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}},"
-                "\"Q\":{\"properties\":{\"f\":{}}}}}");
+  ASSERT_EQ(0, write_to_file(
+                   filename,
+                   "{\"components\":{\"schemas\":{"
+                   "\"T\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}},"
+                   "\"Q\":{\"properties\":{\"f\":{}}}}}}"));
   argv[0] = (char *)filename;
-  rc = schema2code_main(2, argv);
-  ASSERT_EQ(rc, rc == 0 ? 0 : 1);
-  /* Should not crash, should just skip type or print "unknown type" */
+  ASSERT_EQ(0, schema2code_main(2, argv));
   remove(filename);
   remove("typeout.h");
   remove("typeout.c");
@@ -295,11 +292,11 @@ TEST test_schema_codegen_missing_type_object(void) {
   char *argv[] = {NULL, "typeout2"};
   int rc = write_to_file(filename,
                          "{\"components\":{\"schemas\":{"
-                         "\"Q\":{\"properties\":{\"f\":{}}}}}"); /* no type */
+                         "\"Q\":{\"properties\":{\"f\":{}}}}}}"); /* no type */
   ASSERT_EQ(EXIT_SUCCESS, rc);
   argv[0] = (char *)filename;
   rc = schema2code_main(2, argv);
-  ASSERT(rc == 0 || rc == 1);
+  ASSERT_EQ(0, rc);
   remove(filename);
   remove("typeout2.h");
   remove("typeout2.c");
@@ -308,8 +305,62 @@ TEST test_schema_codegen_missing_type_object(void) {
 
 TEST test_schema_codegen_header_null_basename(void) {
   /* This will try to fopen(NULL), want to ensure it handles gracefully */
-  char *argv[] = {NULL, NULL};
+  char *argv[] = {"schema.json", "."};
+  write_to_file("schema.json", "{}");
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
+  PASS();
+}
+
+TEST test_schema_codegen_various_types(void) {
+  const char *const filename = "various_types.json";
+  const char *argv[] = {filename, "various_types_out"};
+  int rc;
+  const char *schema =
+      "{\"components\": {\"schemas\": {"
+      "\"S1\": {\"type\": \"object\", \"properties\": {"
+      "\"p_str\": {\"type\": \"string\"},"
+      "\"p_int\": {\"type\": \"integer\"},"
+      "\"p_num\": {\"type\": \"number\"},"
+      "\"p_bool\": {\"type\": \"boolean\"},"
+      "\"p_obj_unresolved\": {\"type\": \"object\"},"
+      "\"p_arr\": {\"type\": \"array\", \"items\": "
+      "{\"$ref\": \"#/c/s/Other\"}},"
+      "\"p_arr_no_ref\": {\"type\": \"array\"},"
+      "\"p_arr_no_items\": {\"type\": \"array\", \"items\": {}},"
+      "\"p_unhandled\": {\"type\": \"null\"}"
+      "  }},"
+      "\"E1\": {\"type\": \"string\", \"enum\": [\"A\", null, \"B\"]},"
+      "\"ToplevelArray\": {\"type\": \"array\"}"
+      "}}}";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  remove(filename);
+  remove("various_types_out.h");
+  remove("various_types_out.c");
+  PASS();
+}
+
+TEST test_schema_codegen_malformed_props(void) {
+  const char *const filename = "malformed_props.json";
+  const char *argv[] = {filename, "malformed_props_out"};
+  int rc;
+  const char *schema =
+      "{\"components\":{\"schemas\":{"
+      "\"S1\": {\"type\": \"object\", \"properties\": {\"p1\": null, \"p2\": "
+      "{\"type\": \"string\"}}}"
+      "}}}";
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+  remove(filename);
+  remove("malformed_props_out.h");
+  remove("malformed_props_out.c");
   PASS();
 }
 
@@ -327,6 +378,8 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_types_unhandled);
   RUN_TEST(test_schema_codegen_missing_type_object);
   RUN_TEST(test_schema_codegen_header_null_basename);
+  RUN_TEST(test_schema_codegen_various_types);
+  RUN_TEST(test_schema_codegen_malformed_props);
 }
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

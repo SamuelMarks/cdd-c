@@ -28,6 +28,17 @@
 
 #include <fs.h>
 
+static int read_line_sync(FILE *fp, char *buf, size_t bufsz) {
+  if (!fgets(buf, (int)bufsz, fp))
+    return 0;
+  {
+    const size_t len = strlen(buf);
+    if (len && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
+      buf[len - 1] = '\0';
+  }
+  return 1;
+}
+
 /*
  * The main function: parse header, generate full .c file implementing sync
  * functions.
@@ -80,73 +91,93 @@ int sync_code_main(int argc, char **argv) {
   enum_members_init(&em);
   struct_fields_init(&sf);
 
-  while (fgets(line, sizeof(line), fp)) {
-    char *trimmed_line = line;
-    while (isspace((unsigned char)*trimmed_line))
-      trimmed_line++;
-    if (strlen(trimmed_line) == 0)
+  while (read_line_sync(fp, line, sizeof(line))) {
+    char *p = line;
+  process_line_sync:
+    while (isspace((unsigned char)*p))
+      p++;
+    if (!*p)
       continue;
 
     if (state == NONE) {
-      if (str_starts_with(trimmed_line, "enum ")) {
-        char *brace = strchr(trimmed_line, '{');
-        sscanf(trimmed_line + 5, "%63s", enum_name);
-        {
-          char *name_brace = strchr(enum_name, '{');
-          if (name_brace)
-            *name_brace = '\0';
-        }
-        enum_members_free(&em);
-        enum_members_init(&em);
-        state = IN_ENUM;
-
-        if (brace)
-          trimmed_line = brace + 1;
-        else
+      if (str_starts_with(p, "enum ")) {
+        char *brace = strchr(p, '{');
+        if (brace) {
+          sscanf(p + 5, "%63s", enum_name);
+          {
+            char *name_brace = strchr(enum_name, '{');
+            if (name_brace)
+              *name_brace = '\0';
+          }
+          enum_members_free(&em);
+          enum_members_init(&em);
+          state = IN_ENUM;
+          p = brace + 1;
+        } else {
           continue;
-      } else if (str_starts_with(trimmed_line, "struct ")) {
-        char *brace = strchr(trimmed_line, '{');
-        sscanf(trimmed_line + 7, "%63s", struct_name);
-        {
-          char *name_brace = strchr(struct_name, '{');
-          if (name_brace)
-            *name_brace = '\0';
         }
-        struct_fields_free(&sf);
-        struct_fields_init(&sf);
-        state = IN_STRUCT;
-
-        if (brace)
-          trimmed_line = brace + 1;
-        else
+      } else if (str_starts_with(p, "struct ")) {
+        char *brace = strchr(p, '{');
+        if (brace) {
+          sscanf(p + 7, "%63s", struct_name);
+          {
+            char *name_brace = strchr(struct_name, '{');
+            if (name_brace)
+              *name_brace = '\0';
+          }
+          struct_fields_free(&sf);
+          struct_fields_init(&sf);
+          state = IN_STRUCT;
+          p = brace + 1;
+        } else {
           continue;
+        }
+      } else {
+        continue;
       }
     }
 
     if (state == IN_ENUM) {
-      char *end_brace = strchr(trimmed_line, '}');
-      if (end_brace)
-        *end_brace = '\0';
+      char *end_brace = strchr(p, '}');
+      char *body_to_parse;
+
+      if (end_brace) {
+        size_t len = end_brace - p;
+        body_to_parse = (char *)malloc(len + 1);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+        strncpy(body_to_parse, p, len);
+        body_to_parse[len] = '\0';
+      } else {
+        body_to_parse = strdup(p);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+      }
 
       {
         char *context = NULL;
-        char *token = strtok_r(trimmed_line, ",", &context);
+        char *token = strtok_r(body_to_parse, ",", &context);
         while (token) {
-          char *p = token;
-          while (isspace((unsigned char)*p))
-            p++;
-          trim_trailing(p);
-          if (strlen(p) > 0) {
-            char *eq = strchr(p, '=');
+          char *member_p = token;
+          while (isspace((unsigned char)*member_p))
+            member_p++;
+          trim_trailing(member_p);
+          if (strlen(member_p) > 0) {
+            char *eq = strchr(member_p, '=');
             if (eq)
               *eq = '\0';
-            trim_trailing(p);
-            if (strlen(p) > 0)
-              enum_members_add(&em, p);
+            trim_trailing(member_p);
+            if (strlen(member_p) > 0)
+              enum_members_add(&em, member_p);
           }
           token = strtok_r(NULL, ",", &context);
         }
       }
+      free(body_to_parse);
 
       if (end_brace) {
         if (enum_count < sizeof(enums) / sizeof(enums[0])) {
@@ -165,23 +196,46 @@ int sync_code_main(int argc, char **argv) {
           enum_count++;
         }
         state = NONE;
+        p = end_brace + 1;
+        while (*p && (isspace((unsigned char)*p) || *p == ';'))
+          p++;
+        if (*p)
+          goto process_line_sync;
       }
     } else if (state == IN_STRUCT) {
-      char *end_brace = strchr(trimmed_line, '}');
-      if (end_brace)
-        *end_brace = '\0';
+      char *end_brace = strchr(p, '}');
+      char *body_to_parse;
+
+      if (end_brace) {
+        size_t len = end_brace - p;
+        body_to_parse = (char *)malloc(len + 1);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+        strncpy(body_to_parse, p, len);
+        body_to_parse[len] = '\0';
+      } else {
+        body_to_parse = strdup(p);
+        if (!body_to_parse) {
+          state = NONE;
+          continue;
+        }
+      }
+
       {
         char *context = NULL;
-        char *token = strtok_r(trimmed_line, ";", &context);
+        char *token = strtok_r(body_to_parse, ";", &context);
         while (token) {
-          char *p = token;
-          while (isspace((unsigned char)*p))
-            p++;
-          if (strlen(p) > 0)
-            parse_struct_member_line(p, &sf);
+          char *field_p = token;
+          while (isspace((unsigned char)*field_p))
+            field_p++;
+          if (strlen(field_p) > 0)
+            parse_struct_member_line(field_p, &sf);
           token = strtok_r(NULL, ";", &context);
         }
       }
+      free(body_to_parse);
 
       if (end_brace) {
         if (struct_count < sizeof(structs) / sizeof(structs[0])) {
@@ -203,6 +257,11 @@ int sync_code_main(int argc, char **argv) {
           struct_count++;
         }
         state = NONE;
+        p = end_brace + 1;
+        while (*p && (isspace((unsigned char)*p) || *p == ';'))
+          p++;
+        if (*p)
+          goto process_line_sync;
       }
     }
   }

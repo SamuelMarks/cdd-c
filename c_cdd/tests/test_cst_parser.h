@@ -44,7 +44,7 @@ TEST add_node_basic(void) {
   ASSERT_EQ(1, list.size);
   ASSERT(list.nodes != NULL);
   ASSERT_EQ(CST_NODE_STRUCT, list.nodes[0].kind);
-  ASSERT_STR_EQ("abc", (const char *)list.nodes[0].start);
+  ASSERT_STRN_EQ("abc", (const char *)list.nodes[0].start, 3);
   ASSERT_EQ(3, list.nodes[0].length);
 
   /* Add more to force realloc */
@@ -85,7 +85,9 @@ TEST parse_tokens_basic(void) {
 
   /* Test free_cst_node_list clears nodes */
   /* Prepare copy to test free */
-  copy_nodes = cst_nodes;
+  copy_nodes.nodes = cst_nodes.nodes;
+  copy_nodes.size = cst_nodes.size;
+  copy_nodes.capacity = cst_nodes.capacity;
   free_cst_node_list(&copy_nodes);
   /* After free, size and nodes must be zero/null */
   ASSERT_EQ(0, copy_nodes.size);
@@ -94,7 +96,7 @@ TEST parse_tokens_basic(void) {
 
   /* Cleanup */
   free_token_list(&tokens);
-  /*free_cst_node_list(&cst_nodes);*/
+  /* cst_nodes.nodes was freed with copy_nodes */
 
   PASS();
 }
@@ -220,6 +222,23 @@ TEST parse_tokens_anonymous_struct(void) {
   PASS();
 }
 
+TEST parse_tokens_union(void) {
+  struct TokenList tokens = {NULL, 0, 0};
+  struct CstNodeList cst_nodes = {NULL, 0, 0};
+  const char code_str[] = "union MyUnion { int i; float f; };";
+  const az_span code = az_span_create_from_str((char *)code_str);
+
+  ASSERT_EQ(0, tokenize(code, &tokens));
+  ASSERT_EQ(0, parse_tokens(&tokens, &cst_nodes));
+
+  ASSERT_GTE(cst_nodes.size, 1);
+  ASSERT_EQ(CST_NODE_UNION, cst_nodes.nodes[0].kind);
+
+  free_token_list(&tokens);
+  free_cst_node_list(&cst_nodes);
+  PASS();
+}
+
 /* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
@@ -230,6 +249,7 @@ SUITE(cst_parser_suite) {
   RUN_TEST(free_cst_node_list_null);
   RUN_TEST(parse_tokens_forward_declaration);
   RUN_TEST(parse_tokens_anonymous_struct);
+  RUN_TEST(parse_tokens_union);
 }
 
 #endif /* !TEST_CST_PARSER_H */

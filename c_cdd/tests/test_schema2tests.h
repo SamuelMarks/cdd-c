@@ -39,11 +39,12 @@ TEST test_schema2tests_success(void) {
     errno_t err = fopen_s(&f, "min_schema.json", "w");
     if (err != 0 || f == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
-      return;
+      FAIL();
     }
   }
 #else
   f = fopen("min_schema.json", "w");
+  ASSERT(f);
 #endif
   fputs("{\"components\": {\"schemas\": "
         "{\"E\":{\"type\":\"string\",\"enum\":[\"X\",\"Y\"]},"
@@ -52,13 +53,14 @@ TEST test_schema2tests_success(void) {
         f);
   fclose(f);
   {
-    char *argv[] = {"min_schema.json", "header.h", "test_s2t.h"};
+    char *argv[] = {"min_schema.json", "header.h", "build/test_s2t.h"};
     const int rc = jsonschema2tests_main(3, argv);
     ASSERT_EQ(0, rc);
   }
   remove("min_schema.json");
-  remove("test_s2t.h");
-  remove("test_main.c");
+  remove("build/test_s2t.h");
+  remove("build/test_main.c");
+  rmdir("build");
   PASS();
 }
 
@@ -82,6 +84,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     ASSERT_EQ(0, fopen_s(&f, out_dir_as_file, "w"));
+    ASSERT(f);
 #else
     f = fopen(out_dir_as_file, "w");
     ASSERT(f);
@@ -101,15 +104,16 @@ TEST test_schema2tests_output_file_open_fail(void) {
 
 TEST test_schema2tests_defs_fallback(void) {
   const char *const filename = "defs_schema.json";
-  char *argv[] = {"defs_schema.json", "header.h", "defs_out.h"};
+  char *argv[] = {"defs_schema.json", "header.h", "build/defs_out.h"};
   int rc = write_to_file(
       filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
   remove("defs_schema.json");
-  remove("defs_out.h");
-  remove("test_main.c");
+  remove("build/defs_out.h");
+  remove("build/test_main.c");
+  rmdir("build");
   PASS();
 }
 
@@ -131,7 +135,7 @@ TEST test_schema2tests_no_schemas_object(void) {
 }
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
-  char *argv[] = {(char *)schema_file, "header.h", "out.h"};
+  char *argv[] = {(char *)schema_file, "header.h", "build/out.h"};
   int rc;
   /* non-object schema, no type, non-string enum member */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"
@@ -143,8 +147,24 @@ TEST test_schema2tests_malformed_schemas(void) {
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed but generate empty/partial tests */
   remove(schema_file);
-  remove("out.h");
-  remove("test_main.c");
+  remove("build/out.h");
+  remove("build/test_main.c");
+  rmdir("build");
+  PASS();
+}
+
+TEST test_schema2tests_with_null_enum_val(void) {
+  const char *const filename = "null_enum.json";
+  char *argv[] = {"null_enum.json", "header.h", "build/null_enum_out.h"};
+  int rc = write_to_file(filename, "{\"$defs\":{\"E\":{\"type\":\"string\","
+                                   "\"enum\":[\"X\", null, \"Y\"]}}}");
+  ASSERT_EQ(EXIT_SUCCESS, rc);
+  rc = jsonschema2tests_main(3, argv);
+  ASSERT_EQ(0, rc); /* Should succeed, just skipping the null value */
+  remove(filename);
+  remove("build/null_enum_out.h");
+  remove("build/test_main.c");
+  rmdir("build");
   PASS();
 }
 
@@ -158,6 +178,7 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_invalid_schema_root);
   RUN_TEST(test_schema2tests_no_schemas_object);
   RUN_TEST(test_schema2tests_malformed_schemas);
+  RUN_TEST(test_schema2tests_with_null_enum_val);
 }
 
 #endif /* !TEST_SCHEMA2TESTS_H */

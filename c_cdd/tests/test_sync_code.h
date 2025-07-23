@@ -77,6 +77,7 @@ TEST test_sync_code_too_many_defs(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   ASSERT_EQ(0, fopen_s(&f, filename, "w"));
+  ASSERT(f);
 #else
   f = fopen(filename, "w");
   ASSERT(f);
@@ -126,11 +127,22 @@ TEST test_sync_code_single_line_defs(void) {
   const char *const filename = "sync_oneline.h";
   char *argv[] = {(char *)filename, "sync_oneline.c"};
   ASSERT_EQ(0,
-            write_to_file(filename, "enum E { A, B, C };\n"
-                                    "struct S { int x; const char *s; };\n"));
+            write_to_file(
+                filename,
+                "enum E { A, B, C }; struct S { int x; const char *s; };\n"));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
   remove("sync_oneline.c");
+  PASS();
+}
+
+TEST test_sync_code_compact_defs(void) {
+  const char *const filename = "compact_defs.h";
+  char *argv[] = {(char *)filename, "compact_defs.c"};
+  ASSERT_EQ(0, write_to_file(filename, "struct S {int i;}; enum E{A,B};"));
+  ASSERT_EQ(0, sync_code_main(2, argv));
+  remove(filename);
+  remove("compact_defs.c");
   PASS();
 }
 
@@ -146,6 +158,7 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_unterminated_defs);
   RUN_TEST(test_sync_code_messy_decls);
   RUN_TEST(test_sync_code_single_line_defs);
+  RUN_TEST(test_sync_code_compact_defs);
 }
 
 #endif /* !TEST_SYNC_CODE_H */
