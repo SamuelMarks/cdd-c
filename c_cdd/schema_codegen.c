@@ -348,7 +348,7 @@ static int generate_source(const char *const basename,
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {
-    const char *const schema_name = json_object_get_name(schemas_obj, i);
+    const char *schema_name = json_object_get_name(schemas_obj, i);
     const JSON_Value *const val = json_object_get_value_at(schemas_obj, i);
     const JSON_Object *const schema_obj = json_value_get_object(val);
     const char *type_str;

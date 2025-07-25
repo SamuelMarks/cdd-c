@@ -46,8 +46,11 @@ int parse_tokens(const struct TokenList *const tokens,
         node_kind = CST_NODE_ENUM;
         break;
       case TOKEN_KEYWORD_UNION:
-      default:
         node_kind = CST_NODE_UNION;
+        break;
+      default:
+        /* This path should not be reachable due to the outer switch */
+        node_kind = CST_NODE_UNKNOWN;
         break;
       }
       end_pos++;

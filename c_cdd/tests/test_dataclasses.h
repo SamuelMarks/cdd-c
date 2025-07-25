@@ -483,7 +483,31 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT(f != NULL);
   ASSERT(f->haz == NULL);
   FooE_cleanup(f);
+  f = NULL;
 
+  /* `can` optional and can be missing */
+  rc = FooE_from_json(
+      "{\"bar\": \"v\", \"haz\": {\"bzr\": \"v\", \"tank\": \"BIG\"}}", &f);
+  ASSERT_EQ(0, rc);
+  ASSERT(f != NULL);
+  ASSERT(f->can == 0);
+  FooE_cleanup(f);
+
+  PASS();
+}
+
+TEST test_debug_with_null_nested(void) {
+  struct FooE *f = NULL;
+  int rc;
+
+  rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f);
+  ASSERT_EQ(0, rc);
+  ASSERT(f != NULL);
+
+  rc = FooE_debug(f, stdout);
+  ASSERT_EQ(0, rc);
+
+  FooE_cleanup(f);
   PASS();
 }
 
@@ -505,6 +529,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_json_parsing_wrong_types);
   RUN_TEST(test_deepcopy_null_fields);
   RUN_TEST(test_json_parsing_missing_fields);
+  RUN_TEST(test_debug_with_null_nested);
 }
 
 #endif /* TEST_DATACLASSES_H */

@@ -147,9 +147,6 @@ TEST test_schema2tests_malformed_schemas(void) {
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed but generate empty/partial tests */
   remove(schema_file);
-  remove("build/out.h");
-  remove("build/test_main.c");
-  rmdir("build");
   PASS();
 }
 

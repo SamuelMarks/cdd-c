@@ -178,6 +178,7 @@ bool HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
 int HazE_to_json(const struct HazE *const haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
+  int need_comma = 0;
 
   if (json == NULL)
     return EINVAL;
@@ -191,13 +192,20 @@ int HazE_to_json(const struct HazE *const haz_e, char **json) {
     return ENOMEM;
 
   if (haz_e->bzr) {
-    jasprintf(json, "\"bzr\": \"%s\",", haz_e->bzr);
+    jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
+    need_comma = 1;
   } else {
-    jasprintf(json, "\"bzr\": null,");
+    jasprintf(json, "\"bzr\": null");
+    need_comma = 1;
   }
   if (*json == NULL)
     return ENOMEM;
 
+  if (need_comma) {
+    jasprintf(json, ",");
+    if (*json == NULL)
+      return ENOMEM;
+  }
   if (Tank_to_str(haz_e->tank, &tank_str) != 0) {
     rc = ENOMEM;
     goto cleanup;
@@ -220,7 +228,7 @@ cleanup:
 
 int HazE_from_jsonObject(const JSON_Object *const jsonObject,
                          struct HazE **haz_e) {
-  const char *bzr_str;
+  const char *bzr_str = NULL;
   const char *tank_str;
   int rc = 0;
   enum Tank tank_val;
@@ -234,7 +242,7 @@ int HazE_from_jsonObject(const JSON_Object *const jsonObject,
     return EINVAL;
   rc = Tank_from_str(tank_str, &tank_val);
   if (rc != 0)
-    return rc; /* Should not happen based on Tank_from_str */
+    return rc;
 
   new_haz = malloc(sizeof(*new_haz));
   if (new_haz == NULL)
@@ -274,7 +282,6 @@ int HazE_from_json(const char *const json, struct HazE **haz_e) {
   }
 
   rc = HazE_from_jsonObject(jsonObject, haz_e);
-
   json_value_free(root);
   return rc;
 }
@@ -499,7 +506,6 @@ int FooE_from_json(const char *const json, struct FooE **const foo_e) {
   }
 
   rc = FooE_from_jsonObject(jsonObject, foo_e);
-
   json_value_free(root);
   return rc;
 }

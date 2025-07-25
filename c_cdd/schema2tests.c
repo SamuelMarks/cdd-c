@@ -96,6 +96,7 @@ static int write_test_enum(FILE *f, const char *const enum_name,
 static int write_test_struct(FILE *f, const char *const struct_name,
                              const JSON_Object *schema_obj) {
   char c_struct_name[128];
+  (void)schema_obj;
   to_c_ident(c_struct_name, sizeof(c_struct_name), struct_name);
 
   fprintf(f,
@@ -147,8 +148,9 @@ static int write_test_struct(FILE *f, const char *const struct_name,
           "\n"
           "  PASS();\n"
           "}\n\n",
-          struct_name, struct_name, struct_name, struct_name, struct_name,
-          struct_name, struct_name, struct_name, struct_name);
+          c_struct_name, c_struct_name, c_struct_name, c_struct_name,
+          c_struct_name, c_struct_name, c_struct_name, c_struct_name,
+          c_struct_name);
 
   return 0;
 }
@@ -207,15 +209,18 @@ int jsonschema2tests_main(int argc, char **argv) {
       if (output_dir == NULL) {
         fprintf(stderr, "Failed to get dirname of output file: %s\n",
                 output_file);
+        free(output_d);
         json_value_free(root_val);
         return EINVAL;
       }
       rc = makedirs(output_dir);
       if (rc != 0) {
         fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+        free(output_d);
         json_value_free(root_val);
         return rc;
       }
+      free(output_d);
     }
 
     /* Output file */
@@ -239,8 +244,8 @@ int jsonschema2tests_main(int argc, char **argv) {
       to_c_ident(sanitized, sizeof(sanitized), get_basename(schema_file));
 
       fprintf(f,
-              "#ifndef %s_H\n"
-              "#define %s_H\n"
+              "#ifndef %s_TESTS_H\n"
+              "#define %s_TESTS_H\n"
               "/* Auto-generated test source from JSON Schema %s */\n\n"
               "#include <stdlib.h>\n"
               "#include <string.h>\n\n"
@@ -364,7 +369,7 @@ int jsonschema2tests_main(int argc, char **argv) {
         }
       }
 
-      fprintf(f, "}\n\n#endif /* !%s_H */\n", sanitized);
+      fprintf(f, "}\n\n#endif /* !%s_TESTS_H */\n", sanitized);
 
       fclose(f);
     }
@@ -372,9 +377,11 @@ int jsonschema2tests_main(int argc, char **argv) {
     json_value_free(root_val);
 
     {
+      char *output_d_copy = strdup(output_file);
       char *p;
-      asprintf(&p, "%s" PATH_SEP "%s", get_dirname((char *)output_file),
+      asprintf(&p, "%s" PATH_SEP "%s", get_dirname(output_d_copy),
                "test_main.c");
+      free(output_d_copy);
       {
         FILE *f0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -382,13 +389,14 @@ int jsonschema2tests_main(int argc, char **argv) {
         errno_t err = fopen_s(&f0, p, "w");
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
+          free(p);
           return EXIT_FAILURE;
         }
 #else
         f0 = fopen(p, "w");
         if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);
-          json_value_free(root_val);
+          free(p);
           return EXIT_FAILURE;
         }
 #endif

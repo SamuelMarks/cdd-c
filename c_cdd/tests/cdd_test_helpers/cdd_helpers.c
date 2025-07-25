@@ -13,7 +13,6 @@ int write_to_file(const char *const filename, const char *const contents) {
   errno_t err = fopen_s(&fh, filename, "w");
   if (err != 0 || fh == NULL) {
     fprintf(stderr, "Failed to open for writing %s\n", filename);
-    free(fh);
     return EXIT_FAILURE;
   }
 #else
@@ -22,7 +21,7 @@ int write_to_file(const char *const filename, const char *const contents) {
     return EXIT_FAILURE;
 #endif
   rc = fputs(contents, fh);
-  if (rc > 0)
+  if (rc >= 0)
     rc = EXIT_SUCCESS;
   else
     fprintf(stderr, "Failure to write to %s\n", filename);

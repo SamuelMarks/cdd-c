@@ -240,11 +240,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
   /* struct SomeType *name; */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  matched = sscanf_s(line, "struct %63s *%63[^; \t]", struct_name,
+  matched = sscanf_s(line, "struct %63s * %63[^; \t]", struct_name,
                      (unsigned int)sizeof(struct_name), namebuf,
                      (unsigned int)sizeof(namebuf));
 #else
-  matched = sscanf(line, "struct %63s *%63[^; \t]", struct_name, namebuf);
+  matched = sscanf(line, "struct %63s * %63[^; \t]", struct_name, namebuf);
 #endif
   if (matched == 2) {
     const size_t n = strlen(namebuf);
@@ -638,7 +638,15 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
 #else
       strncpy(field->ref, ref_str, sizeof(field->ref));
       field->ref[sizeof(field->ref) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif                 /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+      if (!type_str) { /* If type not specified, but $ref is, assume object */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strncpy_s(field->type, sizeof(field->type), "object", sizeof("object"));
+#else
+        strncpy(field->type, "object", sizeof(field->type));
+        field->type[sizeof(field->type) - 1] = '\0';
+#endif
+      }
     } else {
       field->ref[0] = '\0';
     }

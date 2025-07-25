@@ -11,19 +11,23 @@ TEST test_simple_cleanup_and_null(void) {
 
   {
     struct Haz *hz = malloc(sizeof(*hz));
-    ASSERT(hz != NULL);
-    hz->bzr = "hello";
-    Haz_cleanup(hz);
+    if (hz) {
+      hz->bzr = "hello";
+      Haz_cleanup(hz);
+    }
   }
 
   {
     struct Foo *foo = calloc(sizeof(*foo), 1);
-    ASSERT(foo != NULL);
-    foo->bar = NULL;
-    foo->can = 0;
-    foo->haz = calloc(sizeof(*foo->haz), 1);
-    ASSERT(foo->haz != NULL);
-    Foo_cleanup(foo); /* This will free haz and foo */
+    if (foo) {
+      foo->bar = NULL;
+      foo->can = 0;
+      foo->haz = calloc(sizeof(*foo->haz), 1);
+      if (foo->haz)
+        Foo_cleanup(foo); /* This will free haz and foo */
+      else
+        free(foo);
+    }
   }
 
   PASS();
