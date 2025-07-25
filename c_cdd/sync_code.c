@@ -186,8 +186,8 @@ int sync_code_main(int argc, char **argv) {
           for (j = 0; j < em.size; j++)
             enum_members_add(&enums[enum_count], em.members[j]);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          strncpy_s(enum_names[enum_count], sizeof(enum_names[enum_count]),
-                    enum_name, _TRUNCATE);
+          strncpy_s((char *)enum_names[enum_count],
+                    sizeof(enum_names[enum_count]), enum_name, _TRUNCATE);
 #else
           strncpy(enum_names[enum_count], enum_name,
                   sizeof(enum_names[enum_count]));

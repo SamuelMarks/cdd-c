@@ -197,7 +197,6 @@ TEST parse_tokens_forward_declaration(void) {
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(&tl, &cst));
-
   ASSERT_EQ(3, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
 
@@ -214,6 +213,8 @@ TEST parse_tokens_anonymous_struct(void) {
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(&tl, &cst));
 
+  /* Expects [CST_NODE_STRUCT for "struct {...}"] and [CST_NODE_OTHER for ";"]
+   */
   ASSERT_EQ(2, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
 
@@ -239,6 +240,48 @@ TEST parse_tokens_union(void) {
   PASS();
 }
 
+TEST parse_tokens_nested_struct(void) {
+  struct TokenList tl = {0};
+  struct CstNodeList cst = {0};
+  const az_span code =
+      AZ_SPAN_FROM_STR("struct Outer { struct Inner { int y; } in; };");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(&tl, &cst));
+
+  {
+    size_t struct_count = 0;
+    size_t i;
+    for (i = 0; i < cst.size; ++i) {
+      if (cst.nodes[i].kind == CST_NODE_STRUCT) {
+        struct_count++;
+      }
+    }
+    ASSERT_EQ(2, struct_count);
+  }
+
+  free_token_list(&tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_tokens_other_tokens(void) {
+  struct TokenList tl = {0};
+  struct CstNodeList cst = {0};
+  const az_span code = AZ_SPAN_FROM_STR("int x = 5;");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(&tl, &cst));
+
+  ASSERT(cst.size > 0);
+  ASSERT_EQ(CST_NODE_OTHER,
+            cst.nodes[0].kind); /* for "int" which is not a handled keyword */
+
+  free_token_list(&tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
 /* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
@@ -250,6 +293,8 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_forward_declaration);
   RUN_TEST(parse_tokens_anonymous_struct);
   RUN_TEST(parse_tokens_union);
+  RUN_TEST(parse_tokens_nested_struct);
+  RUN_TEST(parse_tokens_other_tokens);
 }
 
 #endif /* !TEST_CST_PARSER_H */

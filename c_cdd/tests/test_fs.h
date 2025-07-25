@@ -280,6 +280,14 @@ TEST test_get_dirname_edge_cases(void) {
   PASS();
 }
 
+TEST test_write_to_file_fail(void) {
+  const char *dir = "test_dir_for_write";
+  ASSERT_EQ(0, makedir(dir));
+  ASSERT_NEQ(0, write_to_file(dir, "some content"));
+  rmdir(dir);
+  PASS();
+}
+
 /* Simulate error for makedir: pass null and "" */
 TEST test_fs_makedir_null_and_empty(void) {
   ASSERT(makedir(NULL) == EXIT_FAILURE || makedir(NULL) == -1);
@@ -356,14 +364,6 @@ TEST test_dirname_msvc_root(void) {
   strcpy(path, "\\\\server\\share");
   ASSERT_STR_EQ("\\\\server\\share", get_dirname(path));
 #endif
-  PASS();
-}
-
-TEST test_write_to_file_fail(void) {
-  const char *dir = "test_dir_for_write";
-  ASSERT_EQ(0, makedir(dir));
-  ASSERT_NEQ(0, write_to_file(dir, "some content"));
-  rmdir(dir);
   PASS();
 }
 

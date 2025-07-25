@@ -236,11 +236,11 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
 
 int cp(const char *const to, const char *const from) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  return CopyFile(from, to, FALSE);
+  return CopyFile(from, to, FALSE) ? 0 : -1;
 #else
   int fd_to, fd_from;
   char buf[4096];
-  ssize_t nread;
+  long nread;
   int saved_errno;
 
   fd_from = open(from, O_RDONLY);
@@ -251,9 +251,9 @@ int cp(const char *const to, const char *const from) {
   if (fd_to < 0)
     goto out_error;
 
-  while (nread = read(fd_from, buf, sizeof buf), nread > 0) {
+  while ((nread = read(fd_from, buf, sizeof buf)) > 0) {
     char *out_ptr = buf;
-    ssize_t nwritten;
+    long nwritten;
 
     do {
       nwritten = write(fd_to, out_ptr, nread);
@@ -291,14 +291,13 @@ out_error:
 
 int makedir(const char *const p) {
   int rc = EXIT_SUCCESS;
-  if (p == NULL)
+  if (p == NULL || *p == '\0')
     return EXIT_FAILURE;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (mkdir(p) == -1) {
 #else
   if (mkdir(p, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
-    fprintf(stderr, "Error: %s\n", strerror(errno));
 #endif
     rc = EXIT_FAILURE;
   }
@@ -349,7 +348,7 @@ int makedirs(const char *const path) {
   char *p;
   int result = -1;
   mode_t mode = 0777;
-  if (path == NULL)
+  if (path == NULL || *path == '\0')
     return EXIT_FAILURE;
 
   errno = 0;

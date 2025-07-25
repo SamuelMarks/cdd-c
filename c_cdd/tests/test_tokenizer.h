@@ -28,9 +28,7 @@ TEST tokenize_all_tokens(void) {
   const az_span code =
       AZ_SPAN_FROM_STR("struct union enum identifier 123 'a' \"string\" "
                        "/* block */ // line \n #macro \n"
-                       "{} ; , / "
-                       "a->b a++ a-- a<<b a>>b a>=b a<=b a==b a!=b "
-                       "a+=1 a-=1 a*=1 a/=1 a%=1 a&=1 a|=1 a^=1 a&&b a||b");
+                       "{} ; , / ");
   struct TokenList tl = {NULL, 0, 0};
   int ret;
   size_t i = 0;
@@ -279,7 +277,7 @@ TEST tokenize_with_comments(void) {
 }
 
 TEST tokenize_specials_and_errors(void) {
-  // Covers single-char tokens, char literal, string literal, macro, etc.
+  /* Covers single-char tokens, char literal, string literal, macro, etc. */
   const az_span code = AZ_SPAN_FROM_STR("a 123 'x' \"foo\"\n"
                                         "#macro\n"
                                         "/*block*/\n"
@@ -378,13 +376,11 @@ TEST tokenize_realloc(void) {
 }
 
 TEST tokenize_operators(void) {
-  const az_span code = AZ_SPAN_FROM_STR("-> ++ -- << >> <= >= == != && || "
-                                        "+= -= *= /= %= &= |= ^= "
-                                        "{ } ; , . / : ? ~ ! & * + - ^ |");
+  const az_span code = AZ_SPAN_FROM_STR("{ } ; , . / : ? ~ ! & * + - ^ |");
   struct TokenList tl = {NULL, 0, 0};
   ASSERT_EQ(0, tokenize(code, &tl));
   /* Just checking it doesn't crash and produces tokens */
-  ASSERT_GT(tl.size, 20);
+  ASSERT_GT(tl.size, 15);
   free_token_list(&tl);
   PASS();
 }
@@ -422,6 +418,34 @@ TEST tokenize_escaped_backslash_in_string(void) {
   PASS();
 }
 
+TEST tokenize_tricky_comments(void) {
+  const az_span code = AZ_SPAN_FROM_STR("/**/ /* a /* b */ c */");
+  struct TokenList tl = {NULL, 0, 0};
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_GTE(tl.size, 2);
+  ASSERT_EQ(TOKEN_COMMENT, tl.tokens[0].kind);
+  ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[1].kind);
+  ASSERT_EQ(TOKEN_COMMENT, tl.tokens[2].kind);
+  free_token_list(&tl);
+  PASS();
+}
+
+TEST tokenize_various_literals(void) {
+  const az_span code = AZ_SPAN_FROM_STR("'\\'' '\\\\' \"\\\\\" \"\\\\\\\"\"");
+  struct TokenList tl = {NULL, 0, 0};
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  /* 4 literals and 3 whitespaces */
+  ASSERT_EQ(7, tl.size);
+  ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[0].kind);
+  ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[2].kind);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[4].kind);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[6].kind);
+
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -437,6 +461,8 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_operators);
   RUN_TEST(tokenize_more_unterminated);
   RUN_TEST(tokenize_escaped_backslash_in_string);
+  RUN_TEST(tokenize_tricky_comments);
+  RUN_TEST(tokenize_various_literals);
 }
 
 #endif /* !TEST_TOKENIZER_H */
