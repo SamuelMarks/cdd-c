@@ -424,6 +424,12 @@ TEST test_get_dirname_multiple_separators(void) {
   PASS();
 }
 
+TEST test_write_to_file_null_args(void) {
+  ASSERT_NEQ(0, write_to_file(NULL, "content"));
+  ASSERT_NEQ(0, write_to_file("filename.txt", NULL));
+  PASS();
+}
+
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
@@ -449,6 +455,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_cp_dest_exists);
   RUN_TEST(test_makedirs_stat_fail);
   RUN_TEST(test_get_dirname_multiple_separators);
+  RUN_TEST(test_write_to_file_null_args);
 }
 
 #endif /* !TEST_FS_H */

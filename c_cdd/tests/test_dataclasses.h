@@ -540,6 +540,50 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
   PASS();
 }
 
+TEST test_simple_json_more_eq_cases(void) {
+  struct FooE *f1 = NULL, *f2 = NULL;
+  FooE_default(&f1);
+  FooE_default(&f2);
+
+  /* Test can member inequality */
+  f1->can = 1;
+  f2->can = 2;
+  ASSERT(!FooE_eq(f1, f2));
+  f2->can = 1;
+  ASSERT(FooE_eq(f1, f2)); /* Back to equal */
+
+  /* Test one-sided null haz */
+  HazE_cleanup(f1->haz);
+  f1->haz = NULL;
+  ASSERT(!FooE_eq(f1, f2));
+
+  FooE_cleanup(f1);
+  FooE_cleanup(f2);
+  PASS();
+}
+
+TEST test_simple_json_HazE_more_eq_cases(void) {
+  struct HazE *h1 = NULL, *h2 = NULL;
+  HazE_default(&h1);
+  HazE_default(&h2);
+
+  /* Test bzr member inequality */
+  free((void *)h1->bzr);
+  h1->bzr = strdup("abc");
+  free((void *)h2->bzr);
+  h2->bzr = strdup("def");
+  ASSERT(!HazE_eq(h1, h2));
+
+  /* Test one-sided null bzr */
+  free((void *)h1->bzr);
+  h1->bzr = NULL;
+  ASSERT(!HazE_eq(h1, h2));
+
+  HazE_cleanup(h1);
+  HazE_cleanup(h2);
+  PASS();
+}
+
 SUITE(dataclasses_suite) {
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
@@ -561,6 +605,8 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_debug_with_null_nested);
   RUN_TEST(test_debug_with_empty_strings);
   RUN_TEST(test_HazE_deepcopy_alloc_fail);
+  RUN_TEST(test_simple_json_more_eq_cases);
+  RUN_TEST(test_simple_json_HazE_more_eq_cases);
 }
 
 #endif /* TEST_DATACLASSES_H */

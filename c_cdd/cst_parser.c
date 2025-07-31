@@ -3,7 +3,8 @@
 
 #include "cst_parser.h"
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#if defined(_MSC_VER)
+#include <errno.h>
 #else
 #include <sys/errno.h>
 #endif
@@ -112,15 +113,14 @@ int parse_tokens(const struct TokenList *const tokens,
               if (add_node(out, CST_NODE_STRUCT, tokens->tokens[k].start,
                            tokens->tokens[k].length) != 0)
                 return -1;
-              else if (tokens->tokens[k].kind == TOKEN_KEYWORD_ENUM) {
-                if (add_node(out, CST_NODE_ENUM, tokens->tokens[k].start,
-                             tokens->tokens[k].length) != 0)
-                  return -1;
-                else if (tokens->tokens[k].kind == TOKEN_KEYWORD_UNION)
-                  if (add_node(out, CST_NODE_UNION, tokens->tokens[k].start,
-                               tokens->tokens[k].length) != 0)
-                    return -1;
-              }
+            } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_ENUM) {
+              if (add_node(out, CST_NODE_ENUM, tokens->tokens[k].start,
+                           tokens->tokens[k].length) != 0)
+                return -1;
+            } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_UNION) {
+              if (add_node(out, CST_NODE_UNION, tokens->tokens[k].start,
+                           tokens->tokens[k].length) != 0)
+                return -1;
             }
           }
         }
