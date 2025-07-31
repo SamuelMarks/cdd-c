@@ -170,7 +170,6 @@ void struct_fields_add(struct StructFields *sf, const char *const name,
  */
 int parse_struct_member_line(const char *line, struct StructFields *sf) {
   char namebuf[64] = {0};
-  char struct_name[64] = {0};
   int matched = 0;
 
   /* Try parse "const char *name;" */
@@ -220,40 +219,92 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     return 1;
   }
 
-  /* enum pointer */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  matched = sscanf_s(line, "enum %63s *%63[^; \t]", struct_name,
-                     (unsigned int)sizeof(struct_name), namebuf,
-                     (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "enum %63s *%63[^; \t]", struct_name, namebuf);
-#endif
-  if (matched == 2) {
-    /* strip trailing semicolon from namebuf */
-    size_t len = strlen(namebuf);
-    if (len > 0 && namebuf[len - 1] == ';')
-      namebuf[len - 1] = '\0';
+  /* enum pointer: handles "enum Type * name;" and "enum Type*name;" */
+  if (strncmp(line, "enum ", 5) == 0) {
+    const char *p = line + 5;
+    const char *type_start, *type_end, *name_start, *name_end;
+    char type_buf[64], name_buf[64];
 
-    struct_fields_add(sf, namebuf, "enum", struct_name);
-    return 1;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    type_start = p;
+    while (*p && !isspace((unsigned char)*p) && *p != '*')
+      p++;
+    type_end = p;
+
+    if (type_end > type_start) {
+      size_t len = type_end - type_start;
+      strncpy(type_buf, type_start,
+              len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1);
+      type_buf[len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1] = '\0';
+
+      while (*p && isspace((unsigned char)*p))
+        p++;
+      if (*p == '*') {
+        p++;
+        while (*p && isspace((unsigned char)*p))
+          p++;
+        name_start = p;
+        name_end = name_start;
+        while (*name_end && *name_end != ';' &&
+               !isspace((unsigned char)*name_end))
+          name_end++;
+
+        if (name_end > name_start) {
+          len = name_end - name_start;
+          strncpy(name_buf, name_start,
+                  len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1);
+          name_buf[len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1] =
+              '\0';
+          struct_fields_add(sf, name_buf, "enum", type_buf);
+          return 1;
+        }
+      }
+    }
   }
 
-  /* struct SomeType *name; */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  matched = sscanf_s(line, "struct %63s * %63[^; \t]", struct_name,
-                     (unsigned int)sizeof(struct_name), namebuf,
-                     (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "struct %63s * %63[^; \t]", struct_name, namebuf);
-#endif
-  if (matched == 2) {
-    const size_t n = strlen(namebuf);
-    /* Strip trailing semicolon in case */
-    if (n > 0 && namebuf[n - 1] == ';')
-      namebuf[strlen(namebuf) - 1] = '\0';
+  /* struct pointer: handles "struct Type * name;" and "struct Type*name;" */
+  if (strncmp(line, "struct ", 7) == 0) {
+    const char *p = line + 7;
+    const char *type_start, *type_end, *name_start, *name_end;
+    char type_buf[64], name_buf[64];
 
-    struct_fields_add(sf, namebuf, "object", struct_name);
-    return 1;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    type_start = p;
+    while (*p && !isspace((unsigned char)*p) && *p != '*')
+      p++;
+    type_end = p;
+
+    if (type_end > type_start) {
+      size_t len = type_end - type_start;
+      strncpy(type_buf, type_start,
+              len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1);
+      type_buf[len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1] = '\0';
+
+      while (*p && isspace((unsigned char)*p))
+        p++;
+      if (*p == '*') {
+        p++;
+        while (*p && isspace((unsigned char)*p))
+          p++;
+        name_start = p;
+        name_end = name_start;
+        while (*name_end && *name_end != ';' &&
+               !isspace((unsigned char)*name_end))
+          name_end++;
+
+        if (name_end > name_start) {
+          len = name_end - name_start;
+          strncpy(name_buf, name_start,
+                  len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1);
+          name_buf[len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1] =
+              '\0';
+          struct_fields_add(sf, name_buf, "object", type_buf);
+          return 1;
+        }
+      }
+    }
   }
 
   /* Fallback: ignore or unrecognized */

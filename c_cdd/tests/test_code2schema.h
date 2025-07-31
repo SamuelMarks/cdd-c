@@ -586,6 +586,42 @@ TEST test_parse_struct_member_unhandled_line(void) {
   PASS();
 }
 
+TEST test_parse_struct_member_line_no_space_after_ptr(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  ASSERT_EQ(1, parse_struct_member_line("struct Point*p;", &sf));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("p", sf.fields[0].name);
+  ASSERT_STR_EQ("object", sf.fields[0].type);
+  ASSERT_STR_EQ("Point", sf.fields[0].ref);
+  struct_fields_free(&sf);
+  PASS();
+}
+
+TEST test_json_object_to_struct_fields_with_ref_resolution(void) {
+  const char *schema_str = "{"
+                           "\"properties\": {\"my_enum_field\": {\"$ref\": "
+                           "\"#/components/schemas/MyEnum\"}},"
+                           "\"components\": {\"schemas\": {\"MyEnum\": "
+                           "{\"type\": \"string\", \"enum\": [\"A\"]}}}"
+                           "}";
+  JSON_Value *root_val = json_parse_string(schema_str);
+  JSON_Object *root_obj, *components, *schemas;
+  struct StructFields sf;
+  ASSERT(root_val);
+  root_obj = json_value_get_object(root_val);
+  components = json_object_get_object(root_obj, "components");
+  schemas = json_object_get_object(components, "schemas");
+
+  ASSERT_EQ(0, json_object_to_struct_fields(root_obj, &sf, schemas));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("enum", sf.fields[0].type);
+
+  struct_fields_free(&sf);
+  json_value_free(root_val);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -615,6 +651,8 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_code2schema_single_line_defs);
   RUN_TEST(test_code2schema_forward_declarations);
   RUN_TEST(test_parse_struct_member_unhandled_line);
+  RUN_TEST(test_parse_struct_member_line_no_space_after_ptr);
+  RUN_TEST(test_json_object_to_struct_fields_with_ref_resolution);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */
