@@ -511,6 +511,35 @@ TEST test_debug_with_null_nested(void) {
   PASS();
 }
 
+TEST test_debug_with_empty_strings(void) {
+  struct HazE haz = {"", Tank_SMALL};
+  struct FooE foo = {"", 0, NULL};
+  FILE *tmp = tmpfile();
+  ASSERT(tmp != NULL);
+  foo.haz = &haz;
+
+  ASSERT_EQ(0, HazE_debug(&haz, tmp));
+  ASSERT_EQ(0, FooE_debug(&foo, tmp));
+
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_HazE_deepcopy_alloc_fail(void) {
+  struct HazE haz_in = {"test", Tank_BIG};
+  struct HazE *haz_out = NULL;
+
+  const int rc = HazE_deepcopy(&haz_in, &haz_out);
+  if (rc == ENOMEM) {
+    ASSERT_EQ(NULL, haz_out);
+  } else {
+    ASSERT_EQ(0, rc);
+    ASSERT(haz_out != NULL);
+    HazE_cleanup(haz_out);
+  }
+  PASS();
+}
+
 SUITE(dataclasses_suite) {
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
@@ -530,6 +559,8 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_deepcopy_null_fields);
   RUN_TEST(test_json_parsing_missing_fields);
   RUN_TEST(test_debug_with_null_nested);
+  RUN_TEST(test_debug_with_empty_strings);
+  RUN_TEST(test_HazE_deepcopy_alloc_fail);
 }
 
 #endif /* TEST_DATACLASSES_H */

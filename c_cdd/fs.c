@@ -4,6 +4,8 @@
 
 #include "fs.h"
 
+#include <stdlib.h>
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include <direct.h>
 #include <fileapi.h>
@@ -124,8 +126,7 @@ const char *get_dirname(char *path) {
   return path;
 #endif /* PATHCCH_LIB */
 #else
-  /* BSD licensed OpenBSD implementation from lib/libc/gen/dirname.c
-   * @ ff5bc0. */
+  /* Corrected implementation based on POSIX behavior */
   static char dname[PATH_MAX];
   size_t len;
   const char *endp;
@@ -151,12 +152,11 @@ const char *get_dirname(char *path) {
     dname[0] = *endp == PATH_SEP_C ? PATH_SEP_C : '.';
     dname[1] = '\0';
     return (dname);
-  } else {
-    /* Move forward past the separating slashes */
-    do {
-      endp--;
-    } while (endp > path && *endp == PATH_SEP_C);
   }
+
+  /* Move back past any separating slashes */
+  while (endp > path && *endp == PATH_SEP_C)
+    endp--;
 
   len = endp - path + 1;
   if (len >= sizeof(dname)) {

@@ -446,6 +446,15 @@ TEST tokenize_various_literals(void) {
   PASS();
 }
 
+TEST tokenize_escaped_quote_in_string(void) {
+  struct TokenList tl = {NULL, 0, 0};
+  ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("\"foo\\\"\""), &tl));
+  ASSERT_EQ(1, tl.size);
+  ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[0].kind);
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -463,6 +472,7 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_escaped_backslash_in_string);
   RUN_TEST(tokenize_tricky_comments);
   RUN_TEST(tokenize_various_literals);
+  RUN_TEST(tokenize_escaped_quote_in_string);
 }
 
 #endif /* !TEST_TOKENIZER_H */

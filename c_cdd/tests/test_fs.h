@@ -409,6 +409,21 @@ TEST test_makedirs_stat_fail(void) {
   PASS();
 }
 
+TEST test_get_dirname_multiple_separators(void) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#else
+  char path1[] = PATH_SEP "foo" PATH_SEP PATH_SEP "bar" PATH_SEP;
+  char path2[] = PATH_SEP PATH_SEP "foo" PATH_SEP;
+  char path3[] = PATH_SEP PATH_SEP PATH_SEP;
+
+  ASSERT_STR_EQ(PATH_SEP "foo", get_dirname(path1));
+  ASSERT_STR_EQ(PATH_SEP, get_dirname(path2));
+  ASSERT_STR_EQ(PATH_SEP, get_dirname(path3));
+
+#endif
+  PASS();
+}
+
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
@@ -433,6 +448,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_get_basename_root_path);
   RUN_TEST(test_cp_dest_exists);
   RUN_TEST(test_makedirs_stat_fail);
+  RUN_TEST(test_get_dirname_multiple_separators);
 }
 
 #endif /* !TEST_FS_H */
