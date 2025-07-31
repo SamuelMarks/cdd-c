@@ -308,6 +308,10 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(Tank_BIG, val);
 
+  rc = Tank_from_str("SMALL", &val);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(Tank_SMALL, val);
+
   rc = Tank_from_str(NULL, &val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(Tank_UNKNOWN, val);
@@ -578,6 +582,10 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   free((void *)h1->bzr);
   h1->bzr = NULL;
   ASSERT(!HazE_eq(h1, h2));
+
+  free((void *)h2->bzr);
+  h2->bzr = strdup("abc");
+  ASSERT(!HazE_eq(h2, h1));
 
   HazE_cleanup(h1);
   HazE_cleanup(h2);

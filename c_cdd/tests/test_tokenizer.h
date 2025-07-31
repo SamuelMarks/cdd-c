@@ -455,6 +455,23 @@ TEST tokenize_escaped_quote_in_string(void) {
   PASS();
 }
 
+TEST test_token_to_cstr_edge_cases(void) {
+  struct Token tok;
+  char buf[5];
+
+  tok.start = (const uint8_t *)"hello world";
+  tok.length = 11;
+
+  /* Test truncation */
+  token_to_cstr(buf, sizeof(buf), &tok);
+  ASSERT_STR_EQ("hell", buf);
+
+  /* Test zero-length buffer */
+  ASSERT_EQ(NULL, token_to_cstr(buf, 0, &tok));
+
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -473,6 +490,7 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_tricky_comments);
   RUN_TEST(tokenize_various_literals);
   RUN_TEST(tokenize_escaped_quote_in_string);
+  RUN_TEST(test_token_to_cstr_edge_cases);
 }
 
 #endif /* !TEST_TOKENIZER_H */
