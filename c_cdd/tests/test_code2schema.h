@@ -622,6 +622,19 @@ TEST test_json_object_to_struct_fields_with_ref_resolution(void) {
   PASS();
 }
 
+TEST test_get_type_from_ref_no_slash_or_null(void) {
+  const char *ref_no_slash = "MyType";
+  const char *type;
+
+  type = get_type_from_ref(ref_no_slash);
+  ASSERT_STR_EQ("MyType", type);
+
+  type = get_type_from_ref(NULL);
+  ASSERT_STR_EQ("", type);
+
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -653,6 +666,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_parse_struct_member_unhandled_line);
   RUN_TEST(test_parse_struct_member_line_no_space_after_ptr);
   RUN_TEST(test_json_object_to_struct_fields_with_ref_resolution);
+  RUN_TEST(test_get_type_from_ref_no_slash_or_null);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */

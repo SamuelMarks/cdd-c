@@ -234,9 +234,9 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
     if (type_end > type_start) {
       size_t len = type_end - type_start;
-      strncpy(type_buf, type_start,
-              len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1);
-      type_buf[len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1] = '\0';
+      size_t copy_len = len < sizeof(type_buf) ? len : sizeof(type_buf) - 1;
+      memcpy(type_buf, type_start, copy_len);
+      type_buf[copy_len] = '\0';
 
       while (*p && isspace((unsigned char)*p))
         p++;
@@ -252,10 +252,9 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          strncpy(name_buf, name_start,
-                  len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1);
-          name_buf[len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1] =
-              '\0';
+          copy_len = len < sizeof(name_buf) ? len : sizeof(name_buf) - 1;
+          memcpy(name_buf, name_start, copy_len);
+          name_buf[copy_len] = '\0';
           struct_fields_add(sf, name_buf, "enum", type_buf);
           return 1;
         }
@@ -278,9 +277,9 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
     if (type_end > type_start) {
       size_t len = type_end - type_start;
-      strncpy(type_buf, type_start,
-              len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1);
-      type_buf[len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1] = '\0';
+      size_t copy_len = len < sizeof(type_buf) ? len : sizeof(type_buf) - 1;
+      memcpy(type_buf, type_start, copy_len);
+      type_buf[copy_len] = '\0';
 
       while (*p && isspace((unsigned char)*p))
         p++;
@@ -296,10 +295,10 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          strncpy(name_buf, name_start,
-                  len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1);
-          name_buf[len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1] =
-              '\0';
+          copy_len = len < sizeof(name_buf) ? len : sizeof(name_buf) - 1;
+          memcpy(name_buf, name_start, copy_len);
+          name_buf[copy_len] = '\0';
+
           struct_fields_add(sf, name_buf, "object", type_buf);
           return 1;
         }
@@ -448,7 +447,11 @@ static int parse_header_file(const char *header_filename,
       if (str_starts_with(p, "enum ")) {
         char *brace = strchr(p, '{');
         if (brace) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
+#else
           sscanf(p + 5, "%63s", enum_name);
+#endif
           {
             char *name_brace = strchr(enum_name, '{');
             if (name_brace)
@@ -464,7 +467,11 @@ static int parse_header_file(const char *header_filename,
       } else if (str_starts_with(p, "struct ")) {
         char *brace = strchr(p, '{');
         if (brace) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sscanf_s(p + 7, "%63s", struct_name, (unsigned)sizeof(struct_name));
+#else
           sscanf(p + 7, "%63s", struct_name);
+#endif
           {
             char *name_brace = strchr(struct_name, '{');
             if (name_brace)
@@ -493,7 +500,7 @@ static int parse_header_file(const char *header_filename,
           state = NONE;
           continue;
         }
-        strncpy(body_to_parse, p, len);
+        memcpy(body_to_parse, p, len);
         body_to_parse[len] = '\0';
       } else {
         body_to_parse = strdup(p);
@@ -543,7 +550,7 @@ static int parse_header_file(const char *header_filename,
           state = NONE;
           continue;
         }
-        strncpy(body_to_parse, p, len);
+        memcpy(body_to_parse, p, len);
         body_to_parse[len] = '\0';
       } else {
         body_to_parse = strdup(p);
@@ -702,12 +709,24 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
             (strcmp(json_object_get_string(ref_schema, "type"), "string") ==
              0) &&
             json_object_get_array(ref_schema, "enum") != NULL) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          strcpy_s(field->type, sizeof(field->type), "enum");
+#else
           strcpy(field->type, "enum");
+#endif
         } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          strcpy_s(field->type, sizeof(field->type), "object");
+#else
           strcpy(field->type, "object");
+#endif
         }
       } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strcpy_s(field->type, sizeof(field->type), "object");
+#else
         strcpy(field->type, "object"); /* Fallback */
+#endif
       }
     } else {
       field->ref[0] = '\0';

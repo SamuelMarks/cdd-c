@@ -102,8 +102,11 @@ const char *get_dirname(char *path) {
   if (dir == NULL)
     return NULL;
 
-  /* Use strcpy_s for safer copy */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strcpy_s(dir, len + 1, path);
+#else
   strcpy(dir, path);
+#endif
 
   /* Strip trailing slashes */
   for (p = dir + len - 1; p > dir && (*p == '\\' || *p == PATH_SEP_C); p--)
@@ -119,9 +122,18 @@ const char *get_dirname(char *path) {
       *p = '\0';
     }
   } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strcpy_s(dir, len + 1, ".");
+#else
     strcpy(dir, ".");
+#endif
   }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strcpy_s(path, len + 1, dir);
+#else
   strcpy(path, dir);
+#endif
+
   free(dir);
   return path;
 #endif /* PATHCCH_LIB */
