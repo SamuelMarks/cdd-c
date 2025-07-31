@@ -8,6 +8,8 @@ void cdd_precondition_failed(void) { fputs("cdd_precondition_failed", stderr); }
 int write_to_file(const char *const filename, const char *const contents) {
   FILE *fh;
   int rc = 0, rc1;
+  if (filename == NULL || contents == NULL)
+    return EXIT_FAILURE;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   errno_t err = fopen_s(&fh, filename, "w");
