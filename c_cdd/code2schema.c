@@ -173,7 +173,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   int matched = 0;
 
   /* Try parse "const char *name;" */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER)
   matched = sscanf_s(line, "const char *%63[^; \t]", namebuf,
                      (unsigned int)sizeof(namebuf));
 #else
@@ -185,7 +185,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   }
 
   /* int name; or double name; */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER)
   matched =
       sscanf_s(line, "int %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
 #else
@@ -196,7 +196,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     return 1;
   }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER)
   matched = sscanf_s(line, "double %63[^; \t]", namebuf,
                      (unsigned int)sizeof(namebuf));
 #else
@@ -208,7 +208,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   }
 
   /* int used for bool in your code, treat as boolean */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER)
   matched =
       sscanf_s(line, "bool %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
 #else
@@ -234,7 +234,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
     if (type_end > type_start) {
       size_t len = type_end - type_start;
-      size_t copy_len = len < sizeof(type_buf) ? len : sizeof(type_buf) - 1;
+      size_t copy_len = len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1;
       memcpy(type_buf, type_start, copy_len);
       type_buf[copy_len] = '\0';
 
@@ -252,7 +252,8 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          copy_len = len < sizeof(name_buf) ? len : sizeof(name_buf) - 1;
+          copy_len =
+              len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
           memcpy(name_buf, name_start, copy_len);
           name_buf[copy_len] = '\0';
           struct_fields_add(sf, name_buf, "enum", type_buf);
@@ -277,7 +278,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
     if (type_end > type_start) {
       size_t len = type_end - type_start;
-      size_t copy_len = len < sizeof(type_buf) ? len : sizeof(type_buf) - 1;
+      size_t copy_len = len < sizeof(type_buf) - 1 ? len : sizeof(type_buf) - 1;
       memcpy(type_buf, type_start, copy_len);
       type_buf[copy_len] = '\0';
 
@@ -295,7 +296,8 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          copy_len = len < sizeof(name_buf) ? len : sizeof(name_buf) - 1;
+          copy_len =
+              len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
           memcpy(name_buf, name_start, copy_len);
           name_buf[copy_len] = '\0';
 
@@ -447,7 +449,7 @@ static int parse_header_file(const char *header_filename,
       if (str_starts_with(p, "enum ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
           sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
 #else
           sscanf(p + 5, "%63s", enum_name);
@@ -467,8 +469,9 @@ static int parse_header_file(const char *header_filename,
       } else if (str_starts_with(p, "struct ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sscanf_s(p + 7, "%63s", struct_name, (unsigned)sizeof(struct_name));
+#ifdef _MSC_VER
+          sscanf_s(p + 7, "%63s", struct_name,
+                   (unsigned)sizeof(struct_name));
 #else
           sscanf(p + 7, "%63s", struct_name);
 #endif
@@ -670,22 +673,22 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     field = &fields->fields[fields->size];
 
     /* Set field name */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
     strncpy_s(field->name, sizeof(field->name), key, _TRUNCATE);
 #else
     strncpy(field->name, key, sizeof(field->name));
     field->name[sizeof(field->name) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* _MSC_VER */
 
     /* Read "type" */
     type_str = json_object_get_string(prop_obj, "type");
     if (type_str) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
       strncpy_s(field->type, sizeof(field->type), type_str, _TRUNCATE);
 #else
       strncpy(field->type, type_str, sizeof(field->type));
       field->type[sizeof(field->type) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* _MSC_VER */
     } else {
       field->type[0] = '\0'; /* no type */
     }
@@ -693,12 +696,12 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     /* Read "$ref" if present (usually for nested structs) */
     ref_str = json_object_get_string(prop_obj, "$ref");
     if (ref_str != NULL) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
       strncpy_s(field->ref, sizeof(field->ref), ref_str, _TRUNCATE);
 #else
       strncpy(field->ref, ref_str, sizeof(field->ref));
       field->ref[sizeof(field->ref) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* _MSC_VER */
 
       /* If $ref is present, it determines the type */
       if (schemas_obj_root != NULL) {
@@ -709,20 +712,20 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
             (strcmp(json_object_get_string(ref_schema, "type"), "string") ==
              0) &&
             json_object_get_array(ref_schema, "enum") != NULL) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
           strcpy_s(field->type, sizeof(field->type), "enum");
 #else
           strcpy(field->type, "enum");
 #endif
         } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
           strcpy_s(field->type, sizeof(field->type), "object");
 #else
           strcpy(field->type, "object");
 #endif
         }
       } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
         strcpy_s(field->type, sizeof(field->type), "object");
 #else
         strcpy(field->type, "object"); /* Fallback */
