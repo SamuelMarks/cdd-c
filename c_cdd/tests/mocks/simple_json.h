@@ -17,7 +17,7 @@ extern "C" {
 
 #include "simple_mocks_export.h"
 
-enum SIMPLE_MOCKS_EXPORT Tank { BIG, SMALL, UNKNOWN = -1 };
+enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 
 extern SIMPLE_MOCKS_EXPORT enum Tank Tank_default(void);
 

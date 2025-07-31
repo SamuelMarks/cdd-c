@@ -43,19 +43,19 @@ bool c_str_eq(const char *const s0, const char *const s1) {
          (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0);
 }
 
-enum Tank Tank_default(void) { return BIG; }
+enum Tank Tank_default(void) { return Tank_BIG; }
 
 int Tank_to_str(const enum Tank tank, char **const str) {
   if (str == NULL)
     return EINVAL;
   switch (tank) {
-  case BIG:
+  case Tank_BIG:
     *str = strdup("BIG");
     break;
-  case SMALL:
+  case Tank_SMALL:
     *str = strdup("SMALL");
     break;
-  case UNKNOWN:
+  case Tank_UNKNOWN:
   default:
     *str = strdup("UNKNOWN");
   }
@@ -70,15 +70,15 @@ int Tank_from_str(const char *str, enum Tank *val) {
   if (val == NULL)
     return EINVAL;
   else if (str == NULL)
-    *val = UNKNOWN;
+    *val = Tank_UNKNOWN;
   else if (strcmp(str, "BIG") == 0)
-    *val = BIG;
+    *val = Tank_BIG;
   else if (strcmp(str, "SMALL") == 0)
-    *val = SMALL;
+    *val = Tank_SMALL;
   else if (strcmp(str, "UNKNOWN") == 0)
-    *val = UNKNOWN;
+    *val = Tank_UNKNOWN;
   else
-    *val = UNKNOWN;
+    *val = Tank_UNKNOWN;
   return 0;
 }
 

@@ -51,7 +51,7 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
 
   ASSERT(HazE_eq(h0, h1));
 
-  h0->tank = (h0->tank == BIG) ? SMALL : BIG;
+  h0->tank = (h0->tank == Tank_BIG) ? Tank_SMALL : Tank_BIG;
   ASSERT(!HazE_eq(h0, h1));
 
   rc = HazE_deepcopy(NULL, &h2);
@@ -168,13 +168,13 @@ TEST test_json_parsing_corner_cases(void) {
 
 TEST test_null_args_and_errors(void) {
   char *str = NULL;
-  struct HazE h = {"", BIG};
+  struct HazE h = {"", Tank_BIG};
   struct FooE f = {"", 1, NULL};
   struct HazE *haz_e_ptr = &h;
   struct FooE *foo_e_ptr = &f;
   f.haz = haz_e_ptr;
 
-  ASSERT_EQ(EINVAL, Tank_to_str(BIG, NULL));
+  ASSERT_EQ(EINVAL, Tank_to_str(Tank_BIG, NULL));
   ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
 
   ASSERT_EQ(EINVAL, HazE_to_json(haz_e_ptr, NULL));
@@ -286,13 +286,13 @@ TEST test_Tank_to_str_from_str(void) {
   enum Tank val;
   int rc;
 
-  rc = Tank_to_str(BIG, &str);
+  rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
   free(str);
   str = NULL;
 
-  rc = Tank_to_str(SMALL, &str);
+  rc = Tank_to_str(Tank_SMALL, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("SMALL", str);
   free(str);
@@ -306,19 +306,19 @@ TEST test_Tank_to_str_from_str(void) {
 
   rc = Tank_from_str("BIG", &val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(BIG, val);
+  ASSERT_EQ(Tank_BIG, val);
 
   rc = Tank_from_str(NULL, &val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, val);
+  ASSERT_EQ(Tank_UNKNOWN, val);
 
   rc = Tank_from_str("UNKNOWN", &val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, val);
+  ASSERT_EQ(Tank_UNKNOWN, val);
 
   rc = Tank_from_str("foo", &val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, val);
+  ASSERT_EQ(Tank_UNKNOWN, val);
 
   ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
 
@@ -332,7 +332,7 @@ TEST test_cleanup_null(void) {
 }
 
 TEST test_to_json_with_null_fields(void) {
-  struct HazE haz = {NULL, BIG};
+  struct HazE haz = {NULL, Tank_BIG};
   struct FooE foo = {NULL, 12, NULL};
   char *json_out = NULL;
   int rc;
@@ -438,7 +438,7 @@ TEST test_json_parsing_wrong_types(void) {
 }
 
 TEST test_deepcopy_null_fields(void) {
-  struct HazE haz_in = {NULL, BIG};
+  struct HazE haz_in = {NULL, Tank_BIG};
   struct HazE *haz_out = NULL;
   struct FooE foo_in = {NULL, 42, NULL};
   struct FooE *foo_out = NULL;
@@ -449,7 +449,7 @@ TEST test_deepcopy_null_fields(void) {
   ASSERT_EQ(0, rc);
   ASSERT(haz_out != NULL);
   ASSERT(haz_out->bzr == NULL);
-  ASSERT(haz_out->tank == BIG);
+  ASSERT(haz_out->tank == Tank_BIG);
   HazE_cleanup(haz_out);
 
   /* Deepcopy FooE with NULL bar and NULL haz */

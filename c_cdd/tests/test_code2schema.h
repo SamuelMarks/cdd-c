@@ -312,25 +312,26 @@ TEST test_json_converters_error_paths(void) {
   /* Test json_array_to_enum_members */
   ASSERT_EQ(-1, json_array_to_enum_members(NULL, &em));
   ASSERT_EQ(-1, json_array_to_enum_members((void *)1, NULL));
-  val_arr = json_parse_string("[ \"A\", null, \"B\" ]");
+  val_arr = json_parse_string("[\"A\", null, \"B\"]");
   j_arr = json_value_get_array(val_arr);
   ASSERT_EQ(0, json_array_to_enum_members(j_arr, &em));
   ASSERT_EQ(2, em.size); /* NULL should be skipped */
   enum_members_free(&em);
   json_value_free(val_arr);
 
-  /* Test json_object_to_struct_fields */
-  ASSERT_EQ(-1, json_object_to_struct_fields(NULL, &sf));
-  ASSERT_EQ(-1, json_object_to_struct_fields((void *)1, NULL));
-  val_obj = json_parse_string("{}"); /* No 'properties' */
-  ASSERT_EQ(-2,
-            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  /* Test json_object_to_struct_fields error paths */
+  ASSERT_EQ(-1, json_object_to_struct_fields(NULL, &sf, NULL));
+  ASSERT_EQ(-1, json_object_to_struct_fields((void *)1, NULL, NULL));
+  val_obj = json_parse_string(
+      "{}"); /* No 'properties', should be handled as valid empty object */
+  ASSERT_EQ(0, json_object_to_struct_fields(json_value_get_object(val_obj), &sf,
+                                            NULL));
   json_value_free(val_obj);
 
   val_obj = json_parse_string(
       "{\"properties\": {\"field1\": 123}}"); /* prop not object */
-  ASSERT_EQ(0,
-            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  ASSERT_EQ(0, json_object_to_struct_fields(json_value_get_object(val_obj), &sf,
+                                            NULL));
   ASSERT_EQ(0, sf.size); /* Should skip bad property */
   struct_fields_free(&sf);
   json_value_free(val_obj);
@@ -338,12 +339,13 @@ TEST test_json_converters_error_paths(void) {
   val_obj = json_parse_string(
       "{\"properties\": {\"field1\": {\"type\":\"string\"}, \"field2\": "
       "{\"$ref\":\"#/foo\"}}}");
-  ASSERT_EQ(0,
-            json_object_to_struct_fields(json_value_get_object(val_obj), &sf));
+  ASSERT_EQ(0, json_object_to_struct_fields(json_value_get_object(val_obj), &sf,
+                                            NULL));
   ASSERT_EQ(2, sf.size);
   ASSERT_STR_EQ(sf.fields[0].type, "string");
   ASSERT_STR_EQ(sf.fields[0].ref, "");
-  ASSERT_STR_EQ(sf.fields[1].type, "object");
+  ASSERT_STR_EQ(sf.fields[1].type,
+                "object"); /* fallback when schemas_obj is NULL */
   ASSERT_STR_EQ(sf.fields[1].ref, "#/foo");
   struct_fields_free(&sf);
   json_value_free(val_obj);

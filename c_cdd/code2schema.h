@@ -52,7 +52,8 @@ extern C_CDD_EXPORT int json_array_to_enum_members(const JSON_Array *,
                                                    struct EnumMembers *);
 
 extern C_CDD_EXPORT int json_object_to_struct_fields(const JSON_Object *,
-                                                     struct StructFields *);
+                                                     struct StructFields *,
+                                                     const JSON_Object *);
 
 #ifdef __cplusplus
 }
