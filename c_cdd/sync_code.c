@@ -103,7 +103,11 @@ int sync_code_main(int argc, char **argv) {
       if (str_starts_with(p, "enum ")) {
         char *brace = strchr(p, '{');
         if (brace) {
+#ifdef _MSC_VER
+          sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
+#else
           sscanf(p + 5, "%63s", enum_name);
+#endif
           {
             char *name_brace = strchr(enum_name, '{');
             if (name_brace)
@@ -119,7 +123,12 @@ int sync_code_main(int argc, char **argv) {
       } else if (str_starts_with(p, "struct ")) {
         char *brace = strchr(p, '{');
         if (brace) {
+#ifdef _MSC_VER
+          sscanf_s(p + 7, "%63s", struct_name,
+                   (unsigned)sizeof(struct_name));
+#else
           sscanf(p + 7, "%63s", struct_name);
+#endif
           {
             char *name_brace = strchr(struct_name, '{');
             if (name_brace)
@@ -185,14 +194,14 @@ int sync_code_main(int argc, char **argv) {
           enum_members_init(&enums[enum_count]);
           for (j = 0; j < em.size; j++)
             enum_members_add(&enums[enum_count], em.members[j]);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
           strncpy_s((char *)enum_names[enum_count],
                     sizeof(enum_names[enum_count]), enum_name, _TRUNCATE);
 #else
           strncpy(enum_names[enum_count], enum_name,
                   sizeof(enum_names[enum_count]));
           enum_names[enum_count][sizeof(enum_names[enum_count]) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* _MSC_VER */
           enum_count++;
         }
         state = NONE;
@@ -245,7 +254,7 @@ int sync_code_main(int argc, char **argv) {
             struct_fields_add(&structs[struct_count], sf.fields[j].name,
                               sf.fields[j].type, sf.fields[j].ref);
           }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _MSC_VER
           strncpy_s(struct_names[struct_count],
                     sizeof(struct_names[struct_count]), struct_name, _TRUNCATE);
 #else
@@ -253,7 +262,7 @@ int sync_code_main(int argc, char **argv) {
                   sizeof(struct_names[struct_count]));
           struct_names[struct_count][sizeof(struct_names[struct_count]) - 1] =
               '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* _MSC_VER */
           struct_count++;
         }
         state = NONE;
