@@ -78,6 +78,9 @@ extern C_CDD_EXPORT void write_struct_from_json_func(FILE *, const char *);
 
 extern C_CDD_EXPORT void write_struct_to_json_func(FILE *, const char *,
                                                    const struct StructFields *);
+/* helpers */
+
+extern C_CDD_EXPORT const char *get_type_from_ref(const char *);
 
 #ifdef __cplusplus
 }

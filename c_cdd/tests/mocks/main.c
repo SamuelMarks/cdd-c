@@ -16,9 +16,9 @@ static const char *const foo_e_mock0 =
     "\"some_bzr\",\"tank\": \"SMALL\"}}";
 
 int main(void) {
-  const enum Tank t = BIG;
+  const enum Tank t = Tank_BIG;
   char *tank_as_str = NULL;
-  struct HazE haz_e = {"some_bzr", SMALL};
+  struct HazE haz_e = {"some_bzr", Tank_SMALL};
   struct FooE foo_e = {"some_bar", 5, NULL};
   char *haz_e_json = NULL;
   char *foo_e_json = NULL;

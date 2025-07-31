@@ -4,6 +4,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
 
+#include "fs.h"
 #include <schema2tests.h>
 
 TEST test_jsonschema2tests_wrong_args(void) {
@@ -165,6 +166,53 @@ TEST test_schema2tests_with_null_enum_val(void) {
   PASS();
 }
 
+TEST test_schema2tests_generated_output(void) {
+#define OUT_DIR "build_s2t_test_output"
+  char *argv[] = {OUT_DIR PATH_SEP "check_test_output.json",
+                  OUT_DIR PATH_SEP "check_header_output.h",
+                  OUT_DIR PATH_SEP "check_test_gen.h"};
+  const char *const schema_file = argv[0];
+  /* const char *const header_name = argv[1]; */
+  const char *const output_file = argv[2];
+  const char main_c_path[] = OUT_DIR PATH_SEP "test_main.c";
+
+  makedirs(OUT_DIR);
+
+  write_to_file(schema_file,
+                "{\"components\":{\"schemas\":{"
+                "\"MyEnum\":{\"type\":\"string\",\"enum\":[\"VAL1\","
+                "\"VAL2\"]},"
+                "\"MyStruct\":{\"type\":\"object\",\"properties\":{"
+                "\"num\":{\"type\":\"integer\"}}}}}}");
+
+  ASSERT_EQ(0, jsonschema2tests_main(3, argv));
+
+  {
+    int err;
+    size_t size;
+    char *const test_content = c_read_file(output_file, &err, &size, "r");
+    ASSERT_EQ(0, err);
+    ASSERT(test_content != NULL);
+
+    ASSERT(strstr(test_content, "TEST test_MyEnum_to_str_from_str(void)"));
+    ASSERT(strstr(test_content, "ASSERT_STR_EQ(\"VAL1\", str);"));
+    ASSERT(strstr(test_content, "RUN_TEST(test_MyEnum_to_str_from_str);"));
+    ASSERT(strstr(test_content,
+                  "TEST test_MyStruct_default_deepcopy_eq_cleanup(void)"));
+    ASSERT(strstr(test_content, "RUN_TEST(test_MyStruct_json_roundtrip);"));
+
+    free(test_content);
+  }
+
+  remove(main_c_path);
+  remove(schema_file);
+  remove(output_file);
+  rmdir(OUT_DIR);
+
+  PASS();
+#undef OUT_DIR
+}
+
 SUITE(schema2tests_suite) {
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
@@ -176,6 +224,7 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_no_schemas_object);
   RUN_TEST(test_schema2tests_malformed_schemas);
   RUN_TEST(test_schema2tests_with_null_enum_val);
+  RUN_TEST(test_schema2tests_generated_output);
 }
 
 #endif /* !TEST_SCHEMA2TESTS_H */

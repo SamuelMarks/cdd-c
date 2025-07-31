@@ -566,11 +566,11 @@ int json_array_to_enum_members(const JSON_Array *enum_arr,
 }
 
 int json_object_to_struct_fields(const JSON_Object *schema_obj,
-                                 struct StructFields *fields) {
-  size_t i;
+                                 struct StructFields *fields,
+                                 const JSON_Object *schemas_obj_root) {
   const char *ref_str;
   const JSON_Object *properties_obj;
-  size_t count;
+  size_t count, i;
   struct StructField *field;
 
   if (!schema_obj || !fields)
@@ -582,11 +582,13 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
   fields->fields = NULL;
 
   properties_obj = json_object_get_object(schema_obj, "properties");
-  if (!properties_obj)
-    return -2;
+
+  if (properties_obj == NULL) {
+    /* Valid for an object to have no properties. */
+    return 0;
+  }
 
   count = json_object_get_count(properties_obj);
-
   for (i = 0; i < count; i++) {
     const char *key = json_object_get_name(properties_obj, i);
     const JSON_Value *val = json_object_get_value_at(properties_obj, i);
@@ -632,20 +634,29 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
 
     /* Read "$ref" if present (usually for nested structs) */
     ref_str = json_object_get_string(prop_obj, "$ref");
-    if (ref_str) {
+    if (ref_str != NULL) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       strncpy_s(field->ref, sizeof(field->ref), ref_str, _TRUNCATE);
 #else
       strncpy(field->ref, ref_str, sizeof(field->ref));
       field->ref[sizeof(field->ref) - 1] = '\0';
-#endif                 /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
-      if (!type_str) { /* If type not specified, but $ref is, assume object */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        strncpy_s(field->type, sizeof(field->type), "object", sizeof("object"));
-#else
-        strncpy(field->type, "object", sizeof(field->type));
-        field->type[sizeof(field->type) - 1] = '\0';
-#endif
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
+      /* If $ref is present, it determines the type */
+      if (schemas_obj_root != NULL) {
+        const char *const ref_name = get_type_from_ref(ref_str);
+        const JSON_Object *ref_schema =
+            json_object_get_object(schemas_obj_root, ref_name);
+        if (ref_schema != NULL &&
+            (strcmp(json_object_get_string(ref_schema, "type"), "string") ==
+             0) &&
+            json_object_get_array(ref_schema, "enum") != NULL) {
+          strcpy(field->type, "enum");
+        } else {
+          strcpy(field->type, "object");
+        }
+      } else {
+        strcpy(field->type, "object"); /* Fallback */
       }
     } else {
       field->ref[0] = '\0';

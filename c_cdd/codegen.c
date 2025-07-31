@@ -1,6 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if __STDC_VERSION__ >= 199901L
+#include <stdbool.h>
+#else
+#include <c_cdd_stdbool.h>
+#endif /* __STDC_VERSION__ >= 199901L */
+
 #include "codegen.h"
 #include "fs.h"
 
@@ -17,6 +23,20 @@
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)
 #define strdup _strdup
 #endif
+
+/* Extract type name from JSON pointer, e.g., "#/components/schemas/TypeName"
+ * -> "TypeName" */
+const char *get_type_from_ref(const char *ref) {
+  if (ref == NULL)
+    return ""; /* Return empty string to avoid segfaults in printf */
+  {
+    const char *last_slash = strrchr(ref, '/');
+    if (last_slash) {
+      return last_slash + 1;
+    }
+  }
+  return ref;
+}
 
 /* Enum -> string conversion */
 void write_enum_to_str_func(FILE *cfile, const char *const enum_name,
@@ -40,14 +60,14 @@ void write_enum_to_str_func(FILE *cfile, const char *const enum_name,
       continue;
 
     fprintf(cfile,
-            "    case %s:\n"
+            "    case %s_%s:\n"
             "      *str_out = strdup(\"%s\");\n"
             "      break;\n",
-            member, member);
+            enum_name, member, member);
   }
 
-  fputs("    case UNKNOWN:\n"
-        "    default:\n"
+  fprintf(cfile, "    case %s_UNKNOWN:\n", enum_name);
+  fputs("    default:\n"
         "      *str_out = strdup(\"UNKNOWN\");\n"
         "      break;\n"
         "  }\n"
@@ -67,23 +87,20 @@ void write_enum_from_str_func(FILE *cfile, const char *const enum_name,
   fprintf(cfile,
           "int %s_from_str(const char *const str, enum %s *val) {\n"
           "  if (val == NULL) return EINVAL;\n"
-          "  else if (str == NULL) *val = UNKNOWN;\n",
-          enum_name, enum_name);
+          "  else if (str == NULL) *val = %s_UNKNOWN;\n",
+          enum_name, enum_name, enum_name);
 
   for (i = 0; i < em->size; i++) {
     const char *member = em->members[i];
     if (!member)
       continue;
 
-    if (strcmp(member, "UNKNOWN") == 0)
-      continue;
-
-    fprintf(cfile, "  else if (strcmp(str, \"%s\") == 0) *val = %s;\n", member,
-            member);
+    fprintf(cfile, "  else if (strcmp(str, \"%s\") == 0) *val = %s_%s;\n",
+            member, enum_name, member);
   }
 
-  fputs("  else *val = UNKNOWN;\n"
-        "  return 0;\n"
+  fprintf(cfile, "  else *val = %s_UNKNOWN;\n", enum_name);
+  fputs("  return 0;\n"
         "}\n",
         cfile);
 }
@@ -93,14 +110,27 @@ void write_struct_from_jsonObject_func(FILE *cfile,
                                        const char *const struct_name,
                                        const struct StructFields *const sf) {
   size_t i;
+  bool needs_rc = false;
 
   if (!cfile || !struct_name || !sf)
     return;
+
+  for (i = 0; i < sf->size; i++) {
+    const struct StructField *f = &sf->fields[i];
+    if (strcmp(f->type, "enum") == 0 || strcmp(f->type, "object") == 0) {
+      needs_rc = true;
+      break;
+    }
+  }
 
   fprintf(cfile,
           "int %s_from_jsonObject(const JSON_Object *const jsonObject, struct "
           "%s **const out) {\n",
           struct_name, struct_name);
+
+  if (needs_rc) {
+    fprintf(cfile, "  int rc;\n");
+  }
 
   fprintf(cfile, "  struct %s *ret;\n", struct_name);
 
@@ -154,23 +184,23 @@ void write_struct_from_jsonObject_func(FILE *cfile,
     } else if (strcmp(f->type, "enum") == 0) {
       fprintf(cfile,
               "  _%s_str = json_object_get_string(jsonObject, \"%s\");\n"
-              "  if (!_%s_str) { %s_cleanup(ret); return EINVAL; }\n"
+              "  if (_%s_str == NULL) { %s_cleanup(ret); return EINVAL; }\n"
               "  rc = %s_from_str(_%s_str, &ret->%s);\n"
               "  if (rc) { %s_cleanup(ret); return rc; }\n",
-              f->name, f->name, f->name, struct_name, f->ref, f->name, f->name,
-              struct_name);
+              f->name, f->name, f->name, struct_name, get_type_from_ref(f->ref),
+              f->name, f->name, struct_name);
 
     } else if (strcmp(f->type, "object") == 0) {
       fprintf(cfile,
               "  _%s_obj = json_object_get_object(jsonObject, \"%s\");\n"
               "  if (_%s_obj) {\n"
               "    rc = %s_from_jsonObject(_%s_obj, &ret->%s);\n"
-              "    if (rc) { %s_cleanup(ret); return rc; }\n"
+              "    if (rc != 0) { %s_cleanup(ret); return rc; }\n"
               "  } else {\n"
               "    ret->%s = NULL;\n"
               "  }\n",
-              f->name, f->name, f->name, f->ref, f->name, f->name, struct_name,
-              f->name);
+              f->name, f->name, f->name, get_type_from_ref(f->ref), f->name,
+              f->name, struct_name, f->name);
     }
   }
 
@@ -205,13 +235,25 @@ void write_struct_from_json_func(FILE *cfile, const char *const struct_name) {
 void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
                                const struct StructFields *const fields) {
   size_t i;
+  bool needs_rc = false;
   if (!cfile || !struct_name || !fields)
     return;
+
+  for (i = 0; i < fields->size; i++) {
+    const struct StructField *f = &fields->fields[i];
+    if (strcmp(f->type, "enum") == 0 || strcmp(f->type, "object") == 0) {
+      needs_rc = true;
+      break;
+    }
+  }
 
   fprintf(cfile,
           "int %s_to_json(const struct %s *const obj, char **const json) {\n",
           struct_name, struct_name);
 
+  if (needs_rc) {
+    fprintf(cfile, "  int rc;\n");
+  }
   fputs("  int need_comma = 0;\n"
         "  if (obj == NULL || json == NULL) return EINVAL;\n"
         "  jasprintf(json, \"{\");\n"
@@ -274,13 +316,16 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
               "    jasprintf(json, \",\");\n"
               "    if (*json == NULL) return ENOMEM;\n"
               "  }\n"
-              "  rc = %s_to_str(obj->%s, &enum_str);\n"
-              "  if (rc) { free(enum_str); return rc; }\n"
+              "  {\n"
+              "    char *enum_str = NULL;\n"
+              "    rc = %s_to_str(obj->%s, &enum_str);\n"
+              "    if (rc) { free(enum_str); return rc; }\n"
               "  jasprintf(json, \"\\\"%s\\\": \\\"%%s\\\"\", enum_str);\n"
               "  free(enum_str);\n"
               "  if (*json == NULL) return ENOMEM;\n"
-              "  need_comma = 1;\n\n",
-              f->ref, name, name);
+              "  need_comma = 1;\n\n"
+              "  }\n",
+              get_type_from_ref(f->ref), name, name);
 
     } else if (strcmp(type, "object") == 0) {
       fprintf(cfile,
@@ -289,10 +334,13 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
               "      jasprintf(json, \",\");\n"
               "      if (*json == NULL) return ENOMEM;\n"
               "    }\n"
+              "    {\n"
+              "      char *nested_json = NULL;\n"
               "    rc = %s_to_json(obj->%s, &nested_json);\n"
               "    if (rc) { free(nested_json); return rc; }\n"
               "    jasprintf(json, \"\\\"%s\\\": %%s\", nested_json);\n"
               "    free(nested_json);\n"
+              "    }\n"
               "    if (*json == NULL) return ENOMEM;\n"
               "    need_comma = 1;\n"
               "  } else {\n"
@@ -300,7 +348,7 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
               "      jasprintf(json, \",\");\n"
               "      if (*json == NULL) return ENOMEM;\n"
               "    }\n",
-              name, f->ref, name, name);
+              name, get_type_from_ref(f->ref), name, name);
       fprintf(cfile,
               "    jasprintf(json, \"\\\"%s\\\": null\");\n"
               "    if (*json == NULL) return ENOMEM;\n"
@@ -343,8 +391,8 @@ void write_struct_eq_func(FILE *cfile, const char *struct_name,
               f->name, f->name, f->name, f->name, f->name, f->name);
 
     } else if (strcmp(f->type, "object") == 0) {
-      fprintf(cfile, "  if (!%s_eq(a->%s, b->%s)) return 0;\n", f->ref, f->name,
-              f->name);
+      fprintf(cfile, "  if (!%s_eq(a->%s, b->%s)) return 0;\n",
+              get_type_from_ref(f->ref), f->name, f->name);
 
     } else if (strcmp(f->type, "enum") == 0 ||
                strcmp(f->type, "integer") == 0 ||
@@ -372,7 +420,8 @@ void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile, "  free((void *)obj->%s);\n", f->name);
     } else if (strcmp(f->type, "object") == 0) {
-      fprintf(cfile, "  %s_cleanup(obj->%s);\n", f->ref, f->name);
+      fprintf(cfile, "  %s_cleanup(obj->%s);\n", get_type_from_ref(f->ref),
+              f->name);
     }
   }
 
@@ -402,7 +451,8 @@ void write_struct_default_func(FILE *cfile, const char *struct_name,
                strcmp(f->type, "number") == 0) {
       fprintf(cfile, "  (*out)->%s = 0;\n", f->name);
     } else if (strcmp(f->type, "enum") == 0) {
-      fprintf(cfile, "  (*out)->%s = %s_UNKNOWN;\n", f->name, f->ref);
+      fprintf(cfile, "  (*out)->%s = %s_UNKNOWN;\n", f->name,
+              get_type_from_ref(f->ref));
     } else if (strcmp(f->type, "object") == 0) {
       fprintf(cfile,
               "  if (%s_default(&(*out)->%s) != 0) {\n"
@@ -410,7 +460,7 @@ void write_struct_default_func(FILE *cfile, const char *struct_name,
               "    *out = NULL;\n"
               "    return ENOMEM;\n"
               "  }\n",
-              f->ref, f->name);
+              get_type_from_ref(f->ref), f->name);
     }
   }
 
@@ -458,7 +508,8 @@ void write_struct_deepcopy_func(FILE *cfile, const char *struct_name,
           "  } else {\n"
           "    (*dest)->%s = NULL;\n"
           "  }\n",
-          f->name, f->ref, f->name, f->name, struct_name, f->name);
+          f->name, get_type_from_ref(f->ref), f->name, f->name, struct_name,
+          f->name);
     }
   }
 
@@ -541,7 +592,7 @@ void write_struct_debug_func(FILE *cfile, const char *struct_name,
               "    rc = %s_debug(obj->%s, fh);\n"
               "    if (rc != 0) return rc;\n"
               "  }\n",
-              f->name, f->ref, f->name);
+              f->name, get_type_from_ref(f->ref), f->name);
     }
   }
 

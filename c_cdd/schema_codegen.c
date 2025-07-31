@@ -54,8 +54,21 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
   const char *const ref = json_object_get_string(prop_obj, "$ref");
 
   if (ref != NULL && schemas_obj != NULL) {
-    /* existing code unchanged... */
-
+    const char *const ref_name = get_type_from_ref(ref);
+    const JSON_Object *ref_schema =
+        json_object_get_object(schemas_obj, ref_name);
+    if (ref_schema) {
+      const char *const ref_type_str =
+          json_object_get_string(ref_schema, "type");
+      if (ref_type_str && strcmp(ref_type_str, "string") == 0 &&
+          json_object_has_value(ref_schema, "enum")) {
+        fprintf(hfile, "  enum %s %s;\n", ref_name, prop_name);
+        return;
+      }
+    }
+    /* Default for ref is a pointer to a struct */
+    fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name);
+    return;
   } else if (type_str == NULL) {
     fprintf(hfile, "  /* unknown type for %s */\n", prop_name);
   } else if (strcmp(type_str, "string") == 0) {
@@ -110,14 +123,14 @@ static void print_enum_declaration(FILE *const hfile,
     if (strcmp(val, "UNKNOWN") == 0)
       has_unknown = true;
 
-    fprintf(hfile, "  %s", val);
+    fprintf(hfile, "  %s_%s", enum_name, val);
     if (i + 1 < n)
       fputs(",", hfile);
   }
 
   /* Add UNKNOWN = -1 if it's not present */
   if (!has_unknown)
-    fprintf(hfile, ",\n  UNKNOWN = -1\n");
+    fprintf(hfile, ",\n  %s_UNKNOWN = -1\n", enum_name);
   else
     fputc('\n', hfile);
 
@@ -381,7 +394,8 @@ static int generate_source(const char *const basename,
 
     if (strcmp(type_str, "object") == 0) {
       struct StructFields fields;
-      const int rc = json_object_to_struct_fields(schema_obj, &fields);
+      const int rc =
+          json_object_to_struct_fields(schema_obj, &fields, schemas_obj);
       if (rc != 0) {
         fprintf(stderr, "Failed to parse struct fields for %s\n", schema_name);
         continue;

@@ -9,18 +9,18 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;
   enum Tank tank_val;
 
-  int rc = Tank_to_str(BIG, &str);
+  int rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("BIG", str);
   free(str);
 
   rc = Tank_from_str("SMALL", &tank_val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(SMALL, tank_val);
+  ASSERT_EQ(Tank_SMALL, tank_val);
 
   rc = Tank_from_str("INVALID", &tank_val);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(UNKNOWN, tank_val);
+  ASSERT_EQ(Tank_UNKNOWN, tank_val);
 
   PASS();
 }
@@ -28,7 +28,7 @@ TEST test_enum_tank_to_str_and_from_str(void) {
 /* Test struct HazE to_json/from_json roundtrip */
 
 TEST test_HazE_to_json_and_from_json(void) {
-  struct HazE haz = {"example", BIG};
+  struct HazE haz = {"example", Tank_BIG};
   char *json_str = NULL;
   struct HazE *haz_out = NULL;
 
@@ -72,7 +72,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
 }
 
 TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
-  struct HazE haz_in = {"bzr_data_here", BIG};
+  struct HazE haz_in = {"bzr_data_here", Tank_BIG};
   struct FooE foo_in = {"bar_data_here", 777, NULL};
   char *json_str = NULL;
   struct FooE *foo_out = NULL;
