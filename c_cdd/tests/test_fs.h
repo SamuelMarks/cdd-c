@@ -6,9 +6,9 @@
 #include <fs.h>
 #include <greatest.h>
 
-#if !defined(_MSC_VER)
+#ifndef _MSC_VER
 #include <sys/stat.h>
-#endif
+#endif /* !_MSC_VER */
 
 TEST test_get_basename(void) {
   const char *res;
@@ -275,7 +275,7 @@ TEST test_get_dirname_edge_cases(void) {
 
   {
     const char *res2 = (char *)get_dirname(NULL);
-    ASSERT(res2 == NULL || strcmp(res2, ".") == 0 || strcmp(res2, "") == 0);
+    ASSERT(res2 != NULL && (strcmp(res2, ".") == 0 || strcmp(res2, "") == 0));
   }
   PASS();
 }
@@ -301,7 +301,7 @@ TEST test_fs_makedirs_top_and_empty(void) {
   /* On Windows, makedirs("/") or "" can act strangely, but should not crash. */
   ASSERT(makedirs("") != 0 ||
          makedirs("") == EXIT_SUCCESS); /* Nonzero likely */
-  ASSERT(makedirs("\\") != 0 || makedirs("\\") == EXIT_SUCCESS);
+  ASSERT(makedirs("\\") == 0);
 #else
   ASSERT(makedirs("") != 0 || makedirs("") == EXIT_SUCCESS);
   ASSERT(makedirs("/") == 0 || makedirs("/") == -1);
@@ -324,17 +324,14 @@ TEST test_get_basename_long(void) {
 }
 
 TEST test_get_dirname_long_filename_no_path(void) {
-#if !defined(_MSC_VER) || defined(PATHCCH_LIB)
   char long_path[PATH_MAX + 20];
   char *res;
 
-  /* This test is for non-MSVC or MSVC with PathCch */
   memset(long_path, 'a', sizeof(long_path) - 1);
   long_path[sizeof(long_path) - 1] = '\0';
 
   res = (char *)get_dirname(long_path);
   ASSERT_STR_EQ(".", res);
-#endif
   PASS();
 }
 
@@ -358,11 +355,12 @@ TEST test_get_dirname_long_path(void) {
 }
 
 TEST test_dirname_msvc_root(void) {
-#if defined(_MSC_VER) && !defined(PATHCCH_LIB)
-  char path[] = "C:\\";
-  ASSERT_STR_EQ("C:\\", get_dirname(path));
-  strcpy(path, "\\\\server\\share");
-  ASSERT_STR_EQ("\\\\server\\share", get_dirname(path));
+#if defined(_MSC_VER)
+  char path_drive[] = "C:\\";
+  char path_server_share[] = "\\\\server\\share";
+
+  ASSERT_STR_EQ("C:\\", get_dirname(path_drive));
+  ASSERT_STR_EQ("\\\\server\\share", get_dirname(path_server_share));
 #endif
   PASS();
 }
@@ -391,7 +389,7 @@ TEST test_cp_dest_exists(void) {
 }
 
 TEST test_makedirs_stat_fail(void) {
-#if !defined(_MSC_VER)
+#ifndef _MSC_VER
   const char *path = "perm_dir/sub";
   ASSERT_EQ(0, makedir("perm_dir"));
 
@@ -410,8 +408,6 @@ TEST test_makedirs_stat_fail(void) {
 }
 
 TEST test_get_dirname_multiple_separators(void) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#else
   char path1[] = PATH_SEP "foo" PATH_SEP PATH_SEP "bar" PATH_SEP;
   char path2[] = PATH_SEP PATH_SEP "foo" PATH_SEP;
   char path3[] = PATH_SEP PATH_SEP PATH_SEP;
@@ -419,8 +415,6 @@ TEST test_get_dirname_multiple_separators(void) {
   ASSERT_STR_EQ(PATH_SEP "foo", get_dirname(path1));
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path2));
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path3));
-
-#endif
   PASS();
 }
 

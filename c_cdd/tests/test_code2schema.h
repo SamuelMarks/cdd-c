@@ -6,6 +6,7 @@
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <code2schema.h>
 #include <greatest.h>
+#include <stdint.h>
 
 TEST test_write_enum_functions(void) {
   struct EnumMembers em;
@@ -76,14 +77,20 @@ TEST test_write_struct_functions(void) {
 
 TEST test_struct_fields_overflow(void) {
   struct StructFields sf;
-  int i;
+  uint8_t i;
+  enum { n = 32 };
   struct_fields_init(&sf);
   for (i = 0; i < 200; ++i) {
-    char name[32];
+    char name[n];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    sprintf_s(name, sizeof(name), "f%d", i);
+#else
     sprintf(name, "f%d", i);
+#endif
     struct_fields_add(&sf, name, "string", NULL);
   }
-  ASSERT_GT(sf.size, 64);
+  ASSERT_GT(sf.size, n * 2);
   struct_fields_free(&sf);
 
   PASS();
@@ -91,14 +98,20 @@ TEST test_struct_fields_overflow(void) {
 
 TEST test_enum_members_overflow(void) {
   struct EnumMembers em;
-  int i;
+  uint8_t i;
+  enum { n = 32 };
   enum_members_init(&em);
   for (i = 0; i < 200; ++i) {
-    char name[32];
+    char name[n];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    sprintf_s(name, sizeof(name), "E%d", i);
+#else
     sprintf(name, "E%d", i);
+#endif
     enum_members_add(&em, name);
   }
-  ASSERT_GT(em.size, 64);
+  ASSERT_GT(em.size, n * 2);
   enum_members_free(&em);
   PASS();
 }

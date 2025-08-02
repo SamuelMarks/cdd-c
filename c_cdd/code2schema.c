@@ -57,9 +57,9 @@ static int read_line(FILE *fp, char *buf, size_t bufsz) {
     return 0;
   /* Strip newline */
   {
-    const size_t len = strlen(buf);
-    if (len && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
-      buf[len - 1] = '\0';
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
+      buf[--len] = '\0';
   }
   return 1;
 }
@@ -128,32 +128,35 @@ void struct_fields_add(struct StructFields *sf, const char *const name,
     }
   }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strncpy_s(sf->fields[sf->size].name, sizeof(sf->fields[sf->size].name), name,
             _TRUNCATE);
 #else
   strncpy(sf->fields[sf->size].name, name, sizeof(sf->fields[sf->size].name));
   sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif
 
   sf->fields[sf->size].name[sizeof(sf->fields[sf->size].name) - 1] = 0;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strncpy_s(sf->fields[sf->size].type, sizeof(sf->fields[sf->size].type), type,
             _TRUNCATE);
 #else
   strncpy(sf->fields[sf->size].type, type, sizeof(sf->fields[sf->size].type));
   sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif
 
   sf->fields[sf->size].type[sizeof(sf->fields[sf->size].type) - 1] = 0;
   if (ref) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strncpy_s(sf->fields[sf->size].ref, sizeof(sf->fields[sf->size].ref), ref,
               _TRUNCATE);
 #else
     strncpy(sf->fields[sf->size].ref, ref, sizeof(sf->fields[sf->size].ref));
     sf->fields[sf->size].ref[sizeof(sf->fields[sf->size].ref) - 1] = '\0';
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif
   } else
     sf->fields[sf->size].ref[0] = 0;
   sf->fields[sf->size].ref[sizeof(sf->fields[sf->size].ref) - 1] = 0;
@@ -172,20 +175,35 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   char namebuf[64] = {0};
   int matched = 0;
 
-  /* Try parse "const char *name;" */
-#if defined(_MSC_VER)
-  matched = sscanf_s(line, "const char *%63[^; \t]", namebuf,
-                     (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "const char *%63[^; \t]", namebuf);
-#endif
-  if (matched == 1) {
-    struct_fields_add(sf, namebuf, "string", NULL);
-    return 1;
+  /* Try parse "const char *name;" manually */
+  if (strncmp(line, "const char", 10) == 0) {
+    const char *p = line + 10;
+    const char *name_start, *name_end;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    if (*p == '*') {
+      p++;
+      while (*p && isspace((unsigned char)*p))
+        p++;
+      name_start = p;
+      while (*p && !isspace((unsigned char)*p) && *p != ';')
+        p++;
+      name_end = p;
+      if (name_end > name_start) {
+        size_t len = name_end - name_start;
+        if (len < sizeof(namebuf)) {
+          memcpy(namebuf, name_start, len);
+          namebuf[len] = '\0';
+          struct_fields_add(sf, namebuf, "string", NULL);
+          return 1;
+        }
+      }
+    }
   }
 
   /* int name; or double name; */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   matched =
       sscanf_s(line, "int %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
 #else
@@ -196,7 +214,8 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     return 1;
   }
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   matched = sscanf_s(line, "double %63[^; \t]", namebuf,
                      (unsigned int)sizeof(namebuf));
 #else
@@ -208,7 +227,8 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   }
 
   /* int used for bool in your code, treat as boolean */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   matched =
       sscanf_s(line, "bool %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
 #else
@@ -252,8 +272,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          copy_len =
-              len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
+          copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
           memcpy(name_buf, name_start, copy_len);
           name_buf[copy_len] = '\0';
           struct_fields_add(sf, name_buf, "enum", type_buf);
@@ -296,8 +315,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
         if (name_end > name_start) {
           len = name_end - name_start;
-          copy_len =
-              len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
+          copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
           memcpy(name_buf, name_start, copy_len);
           name_buf[copy_len] = '\0';
 
@@ -310,6 +328,24 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
   /* Fallback: ignore or unrecognized */
   return 0;
+}
+
+static void extract_name(char *dest, size_t dest_sz, const char *start,
+                         const char *end) {
+  const char *name_start = start;
+  const char *name_end;
+  while (isspace((unsigned char)*name_start))
+    name_start++;
+  name_end = name_start;
+  while (name_end < end && !isspace((unsigned char)*name_end))
+    name_end++;
+
+  if (name_end > name_start && (size_t)(name_end - name_start) < dest_sz) {
+    memcpy(dest, name_start, name_end - name_start);
+    dest[name_end - name_start] = '\0';
+  } else {
+    dest[0] = '\0'; /* Anonymous */
+  }
 }
 
 /*
@@ -449,16 +485,7 @@ static int parse_header_file(const char *header_filename,
       if (str_starts_with(p, "enum ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#ifdef _MSC_VER
-          sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
-#else
-          sscanf(p + 5, "%63s", enum_name);
-#endif
-          {
-            char *name_brace = strchr(enum_name, '{');
-            if (name_brace)
-              *name_brace = '\0';
-          }
+          extract_name(enum_name, sizeof(enum_name), p + 5, brace);
           enum_members_free(&em);
           enum_members_init(&em);
           state = IN_ENUM;
@@ -469,17 +496,7 @@ static int parse_header_file(const char *header_filename,
       } else if (str_starts_with(p, "struct ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#ifdef _MSC_VER
-          sscanf_s(p + 7, "%63s", struct_name,
-                   (unsigned)sizeof(struct_name));
-#else
-          sscanf(p + 7, "%63s", struct_name);
-#endif
-          {
-            char *name_brace = strchr(struct_name, '{');
-            if (name_brace)
-              *name_brace = '\0';
-          }
+          extract_name(struct_name, sizeof(struct_name), p + 7, brace);
           struct_fields_free(&sf);
           struct_fields_init(&sf);
           state = IN_STRUCT;
@@ -535,7 +552,8 @@ static int parse_header_file(const char *header_filename,
       free(body_to_parse);
 
       if (end_brace) {
-        write_enum_to_json_schema(schemas_obj, enum_name, &em);
+        if (strlen(enum_name) > 0)
+          write_enum_to_json_schema(schemas_obj, enum_name, &em);
         state = NONE;
         p = end_brace + 1;
         while (*p && (isspace((unsigned char)*p) || *p == ';'))
@@ -577,7 +595,8 @@ static int parse_header_file(const char *header_filename,
       }
       free(body_to_parse);
       if (end_brace) {
-        write_struct_to_json_schema(schemas_obj, struct_name, &sf);
+        if (strlen(struct_name) > 0)
+          write_struct_to_json_schema(schemas_obj, struct_name, &sf);
         state = NONE;
         p = end_brace + 1;
         while (*p && (isspace((unsigned char)*p) || *p == ';'))
@@ -673,22 +692,24 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     field = &fields->fields[fields->size];
 
     /* Set field name */
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strncpy_s(field->name, sizeof(field->name), key, _TRUNCATE);
 #else
     strncpy(field->name, key, sizeof(field->name));
     field->name[sizeof(field->name) - 1] = '\0';
-#endif /* _MSC_VER */
+#endif
 
     /* Read "type" */
     type_str = json_object_get_string(prop_obj, "type");
     if (type_str) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       strncpy_s(field->type, sizeof(field->type), type_str, _TRUNCATE);
 #else
       strncpy(field->type, type_str, sizeof(field->type));
       field->type[sizeof(field->type) - 1] = '\0';
-#endif /* _MSC_VER */
+#endif
     } else {
       field->type[0] = '\0'; /* no type */
     }
@@ -696,12 +717,13 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
     /* Read "$ref" if present (usually for nested structs) */
     ref_str = json_object_get_string(prop_obj, "$ref");
     if (ref_str != NULL) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       strncpy_s(field->ref, sizeof(field->ref), ref_str, _TRUNCATE);
 #else
       strncpy(field->ref, ref_str, sizeof(field->ref));
       field->ref[sizeof(field->ref) - 1] = '\0';
-#endif /* _MSC_VER */
+#endif
 
       /* If $ref is present, it determines the type */
       if (schemas_obj_root != NULL) {
@@ -712,20 +734,23 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
             (strcmp(json_object_get_string(ref_schema, "type"), "string") ==
              0) &&
             json_object_get_array(ref_schema, "enum") != NULL) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strcpy_s(field->type, sizeof(field->type), "enum");
 #else
           strcpy(field->type, "enum");
 #endif
         } else {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strcpy_s(field->type, sizeof(field->type), "object");
 #else
           strcpy(field->type, "object");
 #endif
         }
       } else {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
         strcpy_s(field->type, sizeof(field->type), "object");
 #else
         strcpy(field->type, "object"); /* Fallback */

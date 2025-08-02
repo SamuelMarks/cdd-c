@@ -1,9 +1,10 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "cst_parser.h"
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #include <errno.h>
 #else
 #include <sys/errno.h>
