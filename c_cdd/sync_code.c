@@ -103,7 +103,8 @@ int sync_code_main(int argc, char **argv) {
       if (str_starts_with(p, "enum ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
 #else
           sscanf(p + 5, "%63s", enum_name);
@@ -123,9 +124,9 @@ int sync_code_main(int argc, char **argv) {
       } else if (str_starts_with(p, "struct ")) {
         char *brace = strchr(p, '{');
         if (brace) {
-#ifdef _MSC_VER
-          sscanf_s(p + 7, "%63s", struct_name,
-                   (unsigned)sizeof(struct_name));
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sscanf_s(p + 7, "%63s", struct_name, (unsigned)sizeof(struct_name));
 #else
           sscanf(p + 7, "%63s", struct_name);
 #endif
@@ -151,13 +152,18 @@ int sync_code_main(int argc, char **argv) {
       char *body_to_parse;
 
       if (end_brace) {
-        size_t len = end_brace - p;
+        const size_t len = end_brace - p;
         body_to_parse = (char *)malloc(len + 1);
         if (!body_to_parse) {
           state = NONE;
           continue;
         }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+        strncpy_s(body_to_parse, sizeof(body_to_parse), p, len);
+#else
         strncpy(body_to_parse, p, len);
+#endif
         body_to_parse[len] = '\0';
       } else {
         body_to_parse = strdup(p);
@@ -194,14 +200,15 @@ int sync_code_main(int argc, char **argv) {
           enum_members_init(&enums[enum_count]);
           for (j = 0; j < em.size; j++)
             enum_members_add(&enums[enum_count], em.members[j]);
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strncpy_s((char *)enum_names[enum_count],
                     sizeof(enum_names[enum_count]), enum_name, _TRUNCATE);
 #else
           strncpy(enum_names[enum_count], enum_name,
                   sizeof(enum_names[enum_count]));
           enum_names[enum_count][sizeof(enum_names[enum_count]) - 1] = '\0';
-#endif /* _MSC_VER */
+#endif
           enum_count++;
         }
         state = NONE;
@@ -222,8 +229,13 @@ int sync_code_main(int argc, char **argv) {
           state = NONE;
           continue;
         }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+        strncpy_s(body_to_parse, sizeof(body_to_parse), p, len);
+#else
         strncpy(body_to_parse, p, len);
         body_to_parse[len] = '\0';
+#endif
       } else {
         body_to_parse = strdup(p);
         if (!body_to_parse) {
@@ -254,7 +266,8 @@ int sync_code_main(int argc, char **argv) {
             struct_fields_add(&structs[struct_count], sf.fields[j].name,
                               sf.fields[j].type, sf.fields[j].ref);
           }
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strncpy_s(struct_names[struct_count],
                     sizeof(struct_names[struct_count]), struct_name, _TRUNCATE);
 #else
@@ -262,7 +275,7 @@ int sync_code_main(int argc, char **argv) {
                   sizeof(struct_names[struct_count]));
           struct_names[struct_count][sizeof(struct_names[struct_count]) - 1] =
               '\0';
-#endif /* _MSC_VER */
+#endif
           struct_count++;
         }
         state = NONE;

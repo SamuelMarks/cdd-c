@@ -401,9 +401,6 @@ int jsonschema2tests_main(int argc, char **argv) {
         }
 #endif
         fprintf(f0,
-                "#ifdef _MSC_VER\n"
-                "  #define _CRT_SECURE_NO_WARNINGS 1\n"
-                "#endif /* _MSC_VER */\n\n"
                 "#include <greatest.h>\n"
                 "#include \"%s\"\n\n"
                 "GREATEST_MAIN_DEFS();\n\n"

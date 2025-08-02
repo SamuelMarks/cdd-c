@@ -36,12 +36,10 @@ TEST test_schema2tests_success(void) {
   FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&f, "min_schema.json", "w");
-    if (err != 0 || f == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
-      FAIL();
-    }
+  errno_t err = fopen_s(&f, "min_schema.json", "w");
+  if (err != 0 || f == NULL) {
+    fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
+    FAIL();
   }
 #else
   f = fopen("min_schema.json", "w");
@@ -92,7 +90,13 @@ TEST test_schema2tests_output_file_open_fail(void) {
 #endif
     fclose(f);
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    sprintf_s(out_path, sizeof(out_path), "%s%sout.h", out_dir_as_file,
+              PATH_SEP);
+#else
     sprintf(out_path, "%s%sout.h", out_dir_as_file, PATH_SEP);
+#endif
     argv[2] = out_path;
 
     rc = jsonschema2tests_main(3, argv);

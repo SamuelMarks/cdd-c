@@ -78,12 +78,10 @@ TEST test_schema_codegen_broken_json(void) {
   FILE *fp;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, filename, "w");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open file %s\n", filename);
-      FAIL();
-    }
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    fprintf(stderr, "Failed to open file %s\n", filename);
+    FAIL();
   }
 #else
   fp = fopen(filename, "w");
@@ -106,12 +104,10 @@ TEST test_schema_codegen_empty_schema(void) {
   const char *const filename = "empty.json";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, filename, "w");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open file %s\n", filename);
-      FAIL();
-    }
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    fprintf(stderr, "Failed to open file %s\n", filename);
+    FAIL();
   }
 #else
   fp = fopen(filename, "w");
@@ -140,11 +136,9 @@ TEST test_schema_codegen_no_defs(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, filename, "w");
-    if (err != 0 || fp == NULL) {
-      FAILm("Failed to open file");
-    }
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    FAILm("Failed to open file");
   }
 #else
   fp = fopen(filename, "w");
@@ -162,10 +156,9 @@ TEST test_schema_codegen_complex_schema(void) {
   const char *const filename = "complex_schema.json";
   const char *argv[] = {filename, "complex"};
   int rc;
-  enum { COUNT = 630 };
+  enum { COUNT = 630, str0 = 345, str1 = 289 };
   char *const schema_str[COUNT];
-  strcpy(
-      (char *)schema_str,
+  const char add_str0[str0] =
       "{\"components\": {\"schemas\": {"
       "\"EnumNoUnknown\": {\"type\": \"string\", \"enum\": [\"A\", null, "
       "\"B\"]},"
@@ -176,16 +169,25 @@ TEST test_schema_codegen_complex_schema(void) {
       "null}},"
       "\"StructWithNoTypeProp\": {\"type\": \"object\", \"properties\": "
       "{\"p1\": {}}},"
-      "\"StructWithArray\": ");
-  strcat((char *)schema_str,
-         "{\"type\": \"object\", \"properties\": {\"arr\": "
-         "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
-         "\"StringNotEnum\": {\"type\": \"string\"},"
-         "\"TopLevelArray\": {\"type\": \"array\", \"items\": {\"type\": "
-         "\"integer\"}},"
-         "\"StructWithBadRef\": {\"type\": \"object\", \"properties\": "
-         "{\"ref_prop\": {\"$ref\": \"#/c/s/Other\"}}}"
-         "}}}\0");
+      "\"StructWithArray\": ";
+  const char add_str1[str1] =
+      "{\"type\": \"object\", \"properties\": {\"arr\": "
+      "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
+      "\"StringNotEnum\": {\"type\": \"string\"},"
+      "\"TopLevelArray\": {\"type\": \"array\", \"items\": {\"type\": "
+      "\"integer\"}},"
+      "\"StructWithBadRef\": {\"type\": \"object\", \"properties\": "
+      "{\"ref_prop\": {\"$ref\": \"#/c/s/Other\"}}}"
+      "}}}\0";
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s((char *)schema_str, COUNT, add_str0);
+  strcat_s((char *)schema_str, COUNT, add_str1);
+#else
+  strcpy((char *)schema_str, add_str0);
+  strcat((char *)schema_str, add_str1);
+#endif
 
   rc = write_to_file(filename, (char *)schema_str);
   ASSERT_EQ(0, rc);
@@ -209,12 +211,10 @@ TEST test_schema_codegen_valid_struct_enum(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, filename, "w");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open file %s\n", filename);
-      FAIL();
-    }
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    fprintf(stderr, "Failed to open file %s\n", filename);
+    FAIL();
   }
 #else
   fp = fopen(filename, "w");
@@ -242,12 +242,10 @@ TEST test_schema_codegen_output_file_open_fail(void) {
   FILE *fp;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, filename, "w");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open file %s\n", filename);
-      FAIL();
-    }
+  errno_t err = fopen_s(&fp, filename, "w");
+  if (err != 0 || fp == NULL) {
+    fprintf(stderr, "Failed to open file %s\n", filename);
+    FAIL();
   }
 #else
   fp = fopen(filename, "w");

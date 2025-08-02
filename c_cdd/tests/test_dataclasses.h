@@ -5,6 +5,9 @@
 #include <mocks/simple_json.h>
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif
 #else
 #include <sys/errno.h>
 #endif
@@ -229,8 +232,19 @@ TEST test_display_fail(void) {
 
   write_to_file(tmp_fname, "content");
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  {
+    const errno_t err = fopen_s(&fh, tmp_fname, "r");
+    if (err != 0 || fh == NULL) {
+      fprintf(stderr, "Failed to read file %s\n", tmp_fname);
+      return EXIT_FAILURE;
+    }
+  }
+#else
   fh = fopen(tmp_fname, "r");
   ASSERT(fh != NULL);
+#endif
 
   FooE_default(&foo);
   rc = FooE_display(foo, fh); /* Try to write to read-only stream */
@@ -388,8 +402,19 @@ TEST test_debug_fail(void) {
 
   write_to_file(tmp_fname, "content");
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  {
+    const errno_t err = fopen_s(&fh, tmp_fname, "r");
+    if (err != 0 || fh == NULL) {
+      fprintf(stderr, "Failed to read file %s\n", tmp_fname);
+      return EXIT_FAILURE;
+    }
+  }
+#else
   fh = fopen(tmp_fname, "r");
   ASSERT(fh != NULL);
+#endif
 
   FooE_default(&foo);
   rc = FooE_debug(foo, fh); /* Try to write to read-only stream */

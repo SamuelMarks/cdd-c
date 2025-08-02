@@ -13,7 +13,9 @@ extern "C" {
 #define strtok_r strtok_s
 #include "c_cddConfig.h"
 typedef void *HWND;
+#include <direct.h>
 #include <io.h>
+#include <sys/stat.h>
 #define F_OK 0
 #define access _access
 #define rmdir _rmdir
@@ -22,6 +24,7 @@ typedef void *HWND;
 #endif /* !PATH_MAX */
 #else
 #include <limits.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #define PATH_SEP "/"
