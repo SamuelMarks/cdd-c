@@ -101,6 +101,17 @@ TEST test_fs_dirname(void) {
   PASS();
 }
 
+TEST test_fs_dirname_windows_specific(void) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  char path_drive_rel[] = "C:foo";
+  char path_drive_abs[] = "C:\\foo";
+
+  ASSERT_STR_EQ("C:", get_dirname(path_drive_rel));
+  ASSERT_STR_EQ("C:\\", get_dirname(path_drive_abs));
+#endif
+  PASS();
+}
+
 TEST test_fs_c_read_file_empty(void) {
   FILE *fp;
   int err;
@@ -422,6 +433,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_makedirs_stat_fail);
   RUN_TEST(test_get_dirname_multiple_separators);
   RUN_TEST(test_write_to_file_null_args);
+  RUN_TEST(test_fs_dirname_windows_specific);
 }
 
 #endif /* !TEST_FS_H */

@@ -144,12 +144,13 @@ TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[] = {(char *)schema_file, "header.h", "build" PATH_SEP "out.h"};
   int rc;
-  /* non-object schema, no type, non-string enum member */
+  /* non-object schema, no type, non-string enum member, special char name */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"
                              "\"E1\":{\"type\":\"string\",\"enum\":[\"X\",1]},"
                              "\"S1\":null,"
                              "\"S2\":{\"properties\":{}},"
-                             "\"S3\":{\"type\":\"object\"}"
+                             "\"S3\":{\"type\":\"object\"},"
+                             "\"@#$\":{\"type\":\"object\"}"
                              "}}}");
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed but generate empty/partial tests */
@@ -222,6 +223,42 @@ TEST test_schema2tests_generated_output(void) {
 #undef OUT_DIR
 }
 
+TEST test_schema2tests_header_inclusion_logic(void) {
+#define OUT_DIR "build_s2t_include"
+  char *argv[] = {OUT_DIR PATH_SEP "schema.json", "header.h",
+                  OUT_DIR PATH_SEP "test.h"};
+  const char *const schema_content =
+      "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
+  const char *const mock_header_path = OUT_DIR PATH_SEP "MyStruct.h";
+  char *generated_content;
+  int err;
+  size_t size;
+
+  makedirs(OUT_DIR);
+  write_to_file(argv[0], schema_content);
+  /* Create a mock header that should be included */
+  write_to_file(mock_header_path, "/* mock header */");
+
+  ASSERT_EQ(0, jsonschema2tests_main(3, argv));
+
+  generated_content = c_read_file(argv[2], &err, &size, "r");
+  ASSERT_EQ(0, err);
+  ASSERT(generated_content != NULL);
+
+  /* Check if the mock header is included */
+  ASSERT(strstr(generated_content, "#include \"MyStruct.h\""));
+
+  free(generated_content);
+  remove(argv[0]);
+  remove(mock_header_path);
+  remove(argv[2]);
+  remove(OUT_DIR PATH_SEP "test_main.c");
+  rmdir(OUT_DIR);
+
+  PASS();
+#undef OUT_DIR
+}
+
 SUITE(schema2tests_suite) {
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
@@ -234,6 +271,7 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_malformed_schemas);
   RUN_TEST(test_schema2tests_with_null_enum_val);
   RUN_TEST(test_schema2tests_generated_output);
+  RUN_TEST(test_schema2tests_header_inclusion_logic);
 }
 
 #endif /* !TEST_SCHEMA2TESTS_H */
