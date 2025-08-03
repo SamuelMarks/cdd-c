@@ -41,7 +41,7 @@ typedef struct HWND__ *HWND;
 
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
-#define delete_file unlink(filename);
+#define delete_file unlink
 
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 

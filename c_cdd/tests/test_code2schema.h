@@ -30,7 +30,7 @@ TEST test_write_enum_functions(void) {
   }
 #else
   tmp = fopen(filename, "w");
-  if (!rootCmakeLists) {
+  if (!tmp) {
     fprintf(stderr, "Failed to open %s for writing", filename);
     free(tmp);
     return EXIT_FAILURE;

@@ -21,12 +21,14 @@
 #else
 #include <fcntl.h>
 #include <libgen.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 /* <windows_utils> */
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 /* example usage
   const size_t n = strlen(s);
   wchar_t *const wide_buffer = malloc(sizeof(*wide_buffer) * n);
@@ -76,7 +78,7 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
     return result - 1;
   }
 }
-
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* </windows_utils> */
 
 const char *get_basename(const char *const path) {
@@ -119,12 +121,19 @@ const char *get_basename(const char *const path) {
 const char *get_dirname(char *s) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifdef PATHCCH_LIB
-  const size_t n = strlen(s) + 1;
-  wchar_t *wide_buffer = malloc(sizeof(*wide_buffer) * n);
-  if (!wide_buffer)
-    return s;
+  size_t n;
+  wchar_t *wide_buffer;
+  if (!s || !*s)
+    return ".";
 
-  if (ascii_to_wide(s, wide_buffer, n) != -1) {
+  n = strlen(s) + 1;
+  wide_buffer = (wchar_t *)malloc(sizeof(wchar_t) * n);
+  if (wide_buffer == NULL) {
+    errno = ENOMEM;
+    return NULL;
+  }
+
+  if (ascii_to_wide(s, wide_buffer, n) > 0) {
     if (PathCchRemoveFileSpec(wide_buffer, n) == S_OK) {
       wide_to_ascii(wide_buffer, s, n);
     }
@@ -142,6 +151,12 @@ const char *get_dirname(char *s) {
     return dot;
 
   len = strlen(s);
+  if (strrchr(s, '/') == NULL && strrchr(s, '\\') == NULL)
+    return ".";
+  if (len >= PATH_MAX) {
+    errno = ENAMETOOLONG;
+    return NULL;
+  }
   end_ptr = s + len - 1;
 
   while (end_ptr > s && IS_SEPARATOR(*end_ptr))
@@ -171,22 +186,34 @@ const char *get_dirname(char *s) {
   return s;
 #endif /* PATHCCH_LIB */
 #else
-  /* from MIT licensed MUSL libc
-   * https://git.musl-libc.org/cgit/musl/tree/src/misc/dirname.c?id=507faa6 */
-  size_t i;
-  if (!s || !*s)
+  char *p;
+  if (s == NULL || *s == '\0')
     return ".";
-  i = strlen(s) - 1;
-  for (; s[i] == '/'; i--)
-    if (!i)
-      return "/";
-  for (; s[i] != '/'; i--)
-    if (!i)
-      return ".";
-  for (; s[i] == '/'; i--)
-    if (!i)
-      return "/";
-  s[i + 1] = 0;
+
+  if (strchr(s, '/') == NULL)
+    return ".";
+
+  if (strlen(s) >= PATH_MAX) {
+    errno = ENAMETOOLONG;
+    return NULL;
+  }
+
+  p = s + strlen(s) - 1;
+  while (p > s && *p == '/')
+    *p-- = '\0';
+
+  while (p >= s && *p != '/')
+    p--;
+
+  if (p < s)
+    return "/";
+
+  while (p > s && *p == '/')
+    *p-- = '\0';
+
+  if (*s == '\0')
+    return "/";
+
   return s;
 #endif
 }
@@ -300,7 +327,7 @@ int cp(const char *const to, const char *const from) {
       fd_to = -1;
       goto out_error;
     }
-    close(from);
+    close(fd_from);
     return EXIT_SUCCESS;
   }
 
@@ -322,16 +349,35 @@ out_error:
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
-/* Make a directory; already existing dir okay */
 #ifndef _MSC_VER
+/*
+ * Make a directory, return 0 for success.
+ * It's okay if the directory already exists.
+ * It's an error if the path exists but is not a directory.
+ */
 static int maybe_mkdir(const char *const path) {
   struct c_stat st;
+
+  /* Try to create directory */
   if (mkdir(path, 0777) == 0)
     return 0;
+
+  /* If mkdir failed, check if it's because it already exists */
   if (errno != EEXIST)
     return -1;
+
+  /* Path exists, check if it's a directory */
   if (c_stat(path, &st) != 0)
-    return -1;
+    return -1; /* stat failed, can't proceed */
+
+  if (access(path, W_OK) != 0) {
+    /* It could be we don't have permissions to stat,
+     * so let's try a simple access check */
+    struct c_stat st_parent;
+    if (c_stat(".", &st_parent) == 0 && (st_parent.st_mode & S_IWUSR) == 0)
+      return -1;
+  }
+
   if (!IS_DIR(st.st_mode)) {
     errno = ENOTDIR;
     return -1;

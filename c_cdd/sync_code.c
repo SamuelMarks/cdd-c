@@ -163,8 +163,8 @@ int sync_code_main(int argc, char **argv) {
         strncpy_s(body_to_parse, len + 1, p, len);
 #else
         strncpy(body_to_parse, p, len);
-#endif
         body_to_parse[len] = '\0';
+#endif
       } else {
         body_to_parse = strdup(p);
         if (!body_to_parse) {
