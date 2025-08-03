@@ -774,22 +774,31 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
       if (schemas_obj_root != NULL) {
         ref_name = get_type_from_ref(ref_str);
         ref_schema = json_object_get_object(schemas_obj_root, ref_name);
-        if (ref_schema != NULL &&
-            (strcmp(json_object_get_string(ref_schema, "type"), "string") ==
-             0) &&
-            json_object_get_array(ref_schema, "enum") != NULL) {
+        if (ref_schema != NULL) {
+          const char *const ref_type_str =
+              json_object_get_string(ref_schema, "type");
+          if (ref_type_str != NULL && strcmp(ref_type_str, "string") == 0 &&
+              json_object_get_array(ref_schema, "enum") != NULL) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-          strcpy_s(field->type, sizeof(field->type), "enum");
+            strcpy_s(field->type, sizeof(field->type), "enum");
 #else
-          strcpy(field->type, "enum");
+            strcpy(field->type, "enum");
 #endif
+          } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+            strcpy_s(field->type, sizeof(field->type), "object");
+#else
+            strcpy(field->type, "object");
+#endif
+          }
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strcpy_s(field->type, sizeof(field->type), "object");
 #else
-          strcpy(field->type, "object");
+          strcpy(field->type, "object"); /* Dangling ref */
 #endif
         }
       } else {

@@ -628,6 +628,9 @@ TEST test_parse_struct_member_unhandled_line(void) {
   /* This should not be parsed either */
   ASSERT_EQ(0, parse_struct_member_line("void* ptr;", &sf));
   ASSERT_EQ(0, sf.size);
+  /* nor this */
+  ASSERT_EQ(0, parse_struct_member_line("char *name;", &sf));
+  ASSERT_EQ(0, sf.size);
   struct_fields_free(&sf);
   PASS();
 }
@@ -681,6 +684,31 @@ TEST test_get_type_from_ref_no_slash_or_null(void) {
   PASS();
 }
 
+TEST test_json_object_to_struct_fields_ref_no_type(void) {
+  const char *schema_str = "{"
+                           "\"properties\": {\"my_ref_field\": {\"$ref\": "
+                           "\"#/components/schemas/MyRef\"}},"
+                           "\"components\": {\"schemas\": {\"MyRef\": "
+                           "{\"enum\": [\"A\"]}}}" /* No 'type' field */
+                           "}";
+  JSON_Value *root_val = json_parse_string(schema_str);
+  JSON_Object *root_obj, *components, *schemas;
+  struct StructFields sf;
+  ASSERT(root_val);
+  root_obj = json_value_get_object(root_val);
+  components = json_object_get_object(root_obj, "components");
+  schemas = json_object_get_object(components, "schemas");
+
+  ASSERT_EQ(0, json_object_to_struct_fields(root_obj, &sf, schemas));
+  ASSERT_EQ(1, sf.size);
+  /* It should default to object because the ref'd schema is not an enum */
+  ASSERT_STR_EQ("object", sf.fields[0].type);
+
+  struct_fields_free(&sf);
+  json_value_free(root_val);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -712,6 +740,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_parse_struct_member_unhandled_line);
   RUN_TEST(test_parse_struct_member_line_no_space_after_ptr);
   RUN_TEST(test_json_object_to_struct_fields_with_ref_resolution);
+  RUN_TEST(test_json_object_to_struct_fields_ref_no_type);
   RUN_TEST(test_get_type_from_ref_no_slash_or_null);
 }
 

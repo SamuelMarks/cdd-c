@@ -33,6 +33,20 @@ TEST test_simple_cleanup_and_null(void) {
   PASS();
 }
 
-SUITE(simple_mocks_suite) { RUN_TEST(test_simple_cleanup_and_null); }
+TEST test_foo_cleanup_with_null_haz(void) {
+  struct Foo *foo = calloc(sizeof(*foo), 1);
+  if (foo) {
+    foo->bar = NULL;
+    foo->can = 0;
+    foo->haz = NULL;  /* Haz is null */
+    Foo_cleanup(foo); /* Should call Haz_cleanup(NULL) */
+  }
+  PASS();
+}
+
+SUITE(simple_mocks_suite) {
+  RUN_TEST(test_simple_cleanup_and_null);
+  RUN_TEST(test_foo_cleanup_with_null_haz);
+}
 
 #endif /* !TEST_SIMPLE_JSON_H */

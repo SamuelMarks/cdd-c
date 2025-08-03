@@ -16,6 +16,9 @@
 #endif
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif
 #else
 #include <sys/errno.h>
 #endif
@@ -48,7 +51,7 @@ static int write_test_enum(FILE *f, const char *const enum_name,
           "  char *str = NULL;\n"
           "  enum %s val;\n"
           "  int rc;\n\n",
-          c_enum_name, c_enum_name);
+          c_enum_name, enum_name);
 
   /* Test to_str for each enum value */
   for (i = 0; i < n; i++) {
@@ -59,11 +62,11 @@ static int write_test_enum(FILE *f, const char *const enum_name,
     to_c_ident(c_val, sizeof(c_val), val);
 
     fprintf(f,
-            "  rc = %s_to_str(%s, &str);\n"
+            "  rc = %s_to_str(%s_%s, &str);\n"
             "  ASSERT_EQ(0, rc);\n"
             "  ASSERT_STR_EQ(\"%s\", str);\n"
             "  free(str);\n\n",
-            c_enum_name, c_val, val);
+            enum_name, enum_name, c_val, val);
   }
 
   /* Test from_str for each enum value */
@@ -77,15 +80,16 @@ static int write_test_enum(FILE *f, const char *const enum_name,
     fprintf(f,
             "  rc = %s_from_str(\"%s\", &val);\n"
             "  ASSERT_EQ(0, rc);\n"
-            "  ASSERT_EQ(%s, val);\n\n",
-            c_enum_name, val, c_val);
+            "  ASSERT_EQ(%s_%s, val);\n\n",
+            enum_name, val, enum_name, c_val);
   }
 
   /* Test from_str unknown string */
   fprintf(f,
           "  rc = %s_from_str(\"INVALID\", &val);\n"
-          "  ASSERT_EQ(0, rc);\n\n",
-          c_enum_name);
+          "  ASSERT_EQ(0, rc);\n"
+          "  ASSERT_EQ(%s_UNKNOWN, val);\n\n",
+          enum_name, enum_name);
 
   fputs("  PASS();\n}\n", f);
 
@@ -116,9 +120,8 @@ static int write_test_struct(FILE *f, const char *const struct_name,
           "  %s_cleanup(obj1);\n\n"
           "  PASS();\n"
           "}\n\n",
-          struct_name, c_struct_name, c_struct_name, c_struct_name,
-          c_struct_name, c_struct_name, c_struct_name, c_struct_name,
-          c_struct_name, c_struct_name);
+          struct_name, c_struct_name, struct_name, struct_name, struct_name,
+          struct_name, struct_name, struct_name, struct_name, struct_name);
 
   /* Add JSON roundtrip test */
   fprintf(f,
@@ -148,9 +151,8 @@ static int write_test_struct(FILE *f, const char *const struct_name,
           "\n"
           "  PASS();\n"
           "}\n\n",
-          c_struct_name, c_struct_name, c_struct_name, c_struct_name,
-          c_struct_name, c_struct_name, c_struct_name, c_struct_name,
-          c_struct_name);
+          c_struct_name, struct_name, struct_name, struct_name, struct_name,
+          struct_name, struct_name, struct_name, struct_name);
 
   return 0;
 }
@@ -256,6 +258,8 @@ int jsonschema2tests_main(int argc, char **argv) {
 
       /* include headers referenced by schema names */
       {
+        char *output_d_copy = strdup(output_file);
+        const char *output_dir = get_dirname(output_d_copy);
         const size_t count = json_object_get_count(schemas_obj);
         size_t i;
         for (i = 0; i < count; i++) {
@@ -263,15 +267,30 @@ int jsonschema2tests_main(int argc, char **argv) {
           char sanitized_name[128];
           to_c_ident(sanitized_name, sizeof(sanitized_name), schema_name);
           {
-            char *s;
-            asprintf(&s, "%s.h", sanitized_name);
-            if (access(s, F_OK) == 0)
-              fprintf(f, "#include \"%s\"\n", s);
-            free(s);
+            char *path_to_check = NULL;
+            char *include_name = NULL;
+
+            asprintf(&include_name, "%s.h", sanitized_name);
+            if (!include_name)
+              continue;
+
+            if (strcmp(output_dir, ".") != 0) {
+              asprintf(&path_to_check, "%s%s%s", output_dir, PATH_SEP,
+                       include_name);
+            } else {
+              path_to_check = strdup(include_name);
+            }
+
+            if (path_to_check && access(path_to_check, F_OK) == 0) {
+              fprintf(f, "#include \"%s\"\n", include_name);
+            }
+            free(path_to_check);
+            free(include_name);
           }
         }
-        fprintf(f, "\n");
+        free(output_d_copy);
       }
+      fprintf(f, "\n");
 
       /* Generate test functions for enums and structs */
       {

@@ -146,6 +146,28 @@ TEST test_sync_code_compact_defs(void) {
   PASS();
 }
 
+TEST test_sync_code_forward_declarations(void) {
+  const char *const filename = "fwd_sync.h";
+  char *argv[] = {(char *)filename, "fwd_sync.c"};
+  ASSERT_EQ(0, write_to_file(filename, "struct MyStruct;\nenum MyEnum;\n"));
+  ASSERT_EQ(0, sync_code_main(2, argv));
+  /* Check that the impl file is generated but is empty of functions */
+  {
+    int err;
+    size_t size;
+    char *content = c_read_file(argv[1], &err, &size, "r");
+    ASSERT_EQ(0, err);
+    ASSERT_NEQ(NULL, content);
+    /* Should only contain includes */
+    ASSERT(strstr(content, "#include <stdlib.h>"));
+    ASSERT(strstr(content, "/*") == NULL); /* No functions generated */
+    free(content);
+  }
+  remove(filename);
+  remove(argv[1]);
+  PASS();
+}
+
 SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);
@@ -159,6 +181,7 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_messy_decls);
   RUN_TEST(test_sync_code_single_line_defs);
   RUN_TEST(test_sync_code_compact_defs);
+  RUN_TEST(test_sync_code_forward_declarations);
 }
 
 #endif /* !TEST_SYNC_CODE_H */
