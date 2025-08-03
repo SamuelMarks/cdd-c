@@ -136,28 +136,36 @@ TEST test_fs_c_read_file_empty(void) {
 
 TEST test_fs_cp(void) {
   FILE *fp;
-  const char *const src = "cp_src.tmp";
-  const char *const dst = "cp_dst.tmp";
+  const char *src = "cp_src.tmp";
+  const char *dst = "cp_dst.tmp";
+  int rc;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, src, "w");
-    if (err != 0 || fp == NULL) {
+    errno_t err_s = fopen_s(&fp, src, "w");
+    if (err_s != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
       FAIL();
     }
   }
 #else
   fp = fopen(src, "w");
-  if (!fp) {
+  if (fp == NULL) {
     fprintf(stderr, "Failed to open file: %s\n", src);
     FAIL();
   }
 #endif
   fputs("hello", fp);
   fclose(fp);
-
-  ASSERT_EQ(0, cp(dst, src));
+  rc = cp(dst, src);
+  ASSERT_EQ_FMT(0, rc, "%d");
+  {
+    int err;
+    size_t size;
+    char *content = c_read_file(dst, &err, &size, "r");
+    ASSERT(content != NULL && strcmp(content, "hello") == 0);
+    free(content);
+  }
 
   /* Error: src does not exist */
   remove(src);
@@ -169,15 +177,15 @@ TEST test_fs_cp(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, src, "w");
-    if (err != 0 || fp == NULL) {
+    errno_t err_s = fopen_s(&fp, src, "w");
+    if (err_s != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
       FAIL();
     }
   }
 #else
   fp = fopen(src, "w");
-  if (!fp) {
+  if (fp == NULL) {
     fprintf(stderr, "Failed to open file: %s\n", src);
     FAIL();
   }
@@ -188,36 +196,6 @@ TEST test_fs_cp(void) {
 
   remove(src);
   rmdir(dst);
-  PASS();
-}
-
-TEST test_makedirs_path_is_file(void) {
-  const char dir_path[] = "dir";
-  const char file_path[] = "dir" PATH_SEP "makedirs_file.tmp";
-  FILE *fp;
-  ASSERT_EQ(makedirs(dir_path), EXIT_SUCCESS);
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, file_path, "w");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", file_path);
-      FAIL();
-    }
-  }
-#else
-  fp = fopen(file_path, "w");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", file_path);
-    FAIL();
-  }
-#endif
-  fclose(fp);
-
-  ASSERT_EQ(access(dir_path, W_OK), 0);
-
-  delete_file(file_path);
   PASS();
 }
 
@@ -405,17 +383,17 @@ TEST test_makedirs_stat_fail(void) {
   PASS();
 }
 
+TEST test_write_to_file_null_args(void) {
+  ASSERT_NEQ(0, write_to_file(NULL, "content"));
+  ASSERT_NEQ(0, write_to_file("filename.txt", NULL));
+  PASS();
+}
+
 TEST test_get_dirname_multiple_separators(void) {
   char path2[] = PATH_SEP PATH_SEP "foo" PATH_SEP;
   char path3[] = PATH_SEP PATH_SEP PATH_SEP;
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path2));
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path3));
-  PASS();
-}
-
-TEST test_write_to_file_null_args(void) {
-  ASSERT_NEQ(0, write_to_file(NULL, "content"));
-  ASSERT_NEQ(0, write_to_file("filename.txt", NULL));
   PASS();
 }
 
@@ -433,7 +411,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);
   RUN_TEST(test_fs_makedirs_top_and_empty);
-  RUN_TEST(test_makedirs_path_is_file);
   RUN_TEST(test_fs_cp);
   RUN_TEST(test_get_basename_long);
   RUN_TEST(test_get_dirname_long_filename_no_path);

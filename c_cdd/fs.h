@@ -34,6 +34,9 @@ typedef struct HWND__ *HWND;
 #define PATH_MAX _MAX_PATH
 #endif                     /* !PATH_MAX */
 #define delete_file remove /* `DeleteFile` requires winbase.h :( */
+#ifndef W_OK
+#define W_OK 0
+#endif /* !W_OK */
 #else
 #include <limits.h>
 #include <sys/stat.h>

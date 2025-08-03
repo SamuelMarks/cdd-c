@@ -384,7 +384,7 @@ static int maybe_mkdir(const char *const path) {
   }
   return 0;
 }
-#endif
+#endif /* !_MSC_VER */
 
 int makedirs(const char *const path) {
   int result;
@@ -442,8 +442,10 @@ int makedir(const char *const p) {
   if (p == NULL || *p == '\0')
     return EXIT_FAILURE;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  return _mkdir(p) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  return _mkdir(p) == 0
 #else
-  return mkdir(p, 0777) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  return mkdir(p, 0777) == 0
 #endif
+             ? EXIT_SUCCESS
+             : EXIT_FAILURE;
 }
