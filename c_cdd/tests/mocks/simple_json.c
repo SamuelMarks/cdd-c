@@ -308,7 +308,6 @@ int FooE_default(struct FooE **foo_e) {
   rc = HazE_default(&(*foo_e)->haz);
   if (rc != 0) {
     free(*foo_e);
-    *foo_e = NULL;
     return ENOMEM;
   }
   return 0;

@@ -569,28 +569,6 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
   PASS();
 }
 
-TEST test_simple_json_more_eq_cases(void) {
-  struct FooE *f1 = NULL, *f2 = NULL;
-  FooE_default(&f1);
-  FooE_default(&f2);
-
-  /* Test can member inequality */
-  f1->can = 1;
-  f2->can = 2;
-  ASSERT(!FooE_eq(f1, f2));
-  f2->can = 1;
-  ASSERT(FooE_eq(f1, f2)); /* Back to equal */
-
-  /* Test one-sided null haz */
-  HazE_cleanup(f1->haz);
-  f1->haz = NULL;
-  ASSERT(!FooE_eq(f1, f2));
-
-  FooE_cleanup(f1);
-  FooE_cleanup(f2);
-  PASS();
-}
-
 TEST test_simple_json_HazE_more_eq_cases(void) {
   struct HazE *h1 = NULL, *h2 = NULL;
   HazE_default(&h1);
@@ -614,6 +592,28 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
 
   HazE_cleanup(h1);
   HazE_cleanup(h2);
+  PASS();
+}
+
+TEST test_simple_json_more_eq_cases(void) {
+  struct FooE *f1 = NULL, *f2 = NULL;
+  FooE_default(&f1);
+  FooE_default(&f2);
+
+  /* Test can member inequality */
+  f1->can = 1;
+  f2->can = 2;
+  ASSERT(!FooE_eq(f1, f2));
+  f2->can = 1;
+  ASSERT(FooE_eq(f1, f2)); /* Back to equal */
+
+  /* Test one-sided null haz */
+  HazE_cleanup(f1->haz);
+  f1->haz = NULL;
+  ASSERT(!FooE_eq(f1, f2));
+
+  FooE_cleanup(f1);
+  FooE_cleanup(f2);
   PASS();
 }
 

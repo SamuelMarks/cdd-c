@@ -511,7 +511,6 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_other_tokens);
   RUN_TEST(parse_tokens_unclosed_struct);
   RUN_TEST(parse_tokens_with_empty_struct_body);
-  RUN_TEST(parse_tokens_struct_variable_declaration);
   RUN_TEST(parse_tokens_struct_variable_declaration_no_semicolon);
   RUN_TEST(parse_tokens_nested_enum_and_union);
   RUN_TEST(parse_tokens_anonymous_enum);
@@ -519,6 +518,7 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_comment_and_macro);
   RUN_TEST(parse_tokens_struct_followed_by_keyword);
   RUN_TEST(parse_tokens_struct_var_with_space);
+  RUN_TEST(parse_tokens_struct_variable_declaration);
 }
 
 #endif /* !TEST_CST_PARSER_H */

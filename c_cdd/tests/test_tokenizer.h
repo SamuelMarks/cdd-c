@@ -487,9 +487,9 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_operators);
   RUN_TEST(tokenize_more_unterminated);
   RUN_TEST(tokenize_escaped_backslash_in_string);
+  RUN_TEST(tokenize_escaped_quote_in_string);
   RUN_TEST(tokenize_tricky_comments);
   RUN_TEST(tokenize_various_literals);
-  RUN_TEST(tokenize_escaped_quote_in_string);
   RUN_TEST(test_token_to_cstr_edge_cases);
 }
 
