@@ -186,26 +186,10 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     line++;
   }
 
-  /* int name; or double name; */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  matched =
-      sscanf_s(line, "int %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "int %63[^; \t]", namebuf);
-#endif
-  if (matched == 1) {
-    struct_fields_add(sf, namebuf, "integer", NULL);
-    return 1;
-  }
-
   /* Must appear before `const char` */
   if (strncmp(line, "const ", 6) != 0 && strncmp(line, "char", 4) == 0) {
     return 0;
   }
-
-  memset(namebuf, 0, sizeof(namebuf));
-  matched = 0;
 
   /* Try parse "const char *name;" manually */
   if (strncmp(line, "const char", 10) == 0) {
@@ -291,20 +275,21 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
         p++;
         while (*p && isspace((unsigned char)*p))
           p++;
-      }
-      name_start = p;
-      name_end = name_start;
-      while (*name_end && *name_end != ';' && *name_end != '[' &&
-             !isspace((unsigned char)*name_end))
-        name_end++;
 
-      if (name_end > name_start) {
-        len = name_end - name_start;
-        copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
-        memcpy(name_buf, name_start, copy_len);
-        name_buf[copy_len] = '\0';
-        struct_fields_add(sf, name_buf, "enum", type_buf);
-        return 1;
+        name_start = p;
+        name_end = name_start;
+        while (*name_end && *name_end != ';' && *name_end != '[' &&
+               !isspace((unsigned char)*name_end))
+          name_end++;
+
+        if (name_end > name_start) {
+          len = name_end - name_start;
+          copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
+          memcpy(name_buf, name_start, copy_len);
+          name_buf[copy_len] = '\0';
+          struct_fields_add(sf, name_buf, "enum", type_buf);
+          return 1;
+        }
       }
     }
   }
@@ -331,21 +316,21 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
         p++;
         while (*p && isspace((unsigned char)*p))
           p++;
-      }
 
-      name_start = p;
-      name_end = name_start;
-      while (*name_end && *name_end != ';' && *name_end != '[' &&
-             !isspace((unsigned char)*name_end))
-        name_end++;
+        name_start = p;
+        name_end = name_start;
+        while (*name_end && *name_end != ';' && *name_end != '[' &&
+               !isspace((unsigned char)*name_end))
+          name_end++;
 
-      if (name_end > name_start) {
-        len = name_end - name_start;
-        copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
-        memcpy(name_buf, name_start, copy_len);
-        name_buf[copy_len] = '\0';
-        struct_fields_add(sf, name_buf, "object", type_buf);
-        return 1;
+        if (name_end > name_start) {
+          len = name_end - name_start;
+          copy_len = len < sizeof(name_buf) - 1 ? len : sizeof(name_buf) - 1;
+          memcpy(name_buf, name_start, copy_len);
+          name_buf[copy_len] = '\0';
+          struct_fields_add(sf, name_buf, "object", type_buf);
+          return 1;
+        }
       }
     }
   }

@@ -117,74 +117,62 @@ const char *get_basename(const char *const path) {
 }
 
 const char *get_dirname(char *s) {
-  /* from MIT licensed MUSL libc
-   * https://git.musl-libc.org/cgit/musl/tree/src/misc/dirname.c?id=507faa6 */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifdef PATHCCH_LIB
-  const size_t n = strlen(s);
-  wchar_t *const wide_buffer = malloc(sizeof(*wide_buffer) * n);
-  const int chars_converted = ascii_to_wide(s, wide_buffer, n);
-  if (chars_converted != -1) {
-  } else {
-    fprintf(stderr, "Conversion failed. Error code: %lu\n", GetLastError());
+  const size_t n = strlen(s) + 1;
+  wchar_t *wide_buffer = malloc(sizeof(*wide_buffer) * n);
+  if (!wide_buffer)
     return s;
-  }
-  {
-    const int rc = PathCchRemoveFileSpec(wide_buffer, n);
-    switch (rc) {
-    case S_OK:
-    case S_FALSE: {
-      const size_t w_len = wcslen(wide_buffer);
-      if (s[w_len] == PATH_SEP_C) {
-        if (s[w_len - 1] == PATH_SEP_C)
-          s[w_len - 1] = '\0';
-        s[w_len] = '\0';
-      }
-      return s;
-    }
-    default:
-      fprintf(stderr, "`PathCchRemoveFileSpec` failed with %d.\n", rc);
-      return s;
+
+  if (ascii_to_wide(s, wide_buffer, n) != -1) {
+    if (PathCchRemoveFileSpec(wide_buffer, n) == S_OK) {
+      wide_to_ascii(wide_buffer, s, n);
     }
   }
+
+  free(wide_buffer);
+  return s;
 #else
+#define IS_SEPARATOR(c) ((c) == '/' || (c) == '\\')
   static char dot[] = ".";
   size_t len;
   char *end_ptr;
 
-  if (path == NULL || *path == '\0')
+  if (s == NULL || *s == '\0')
     return dot;
 
-  len = strlen(path);
-  end_ptr = path + len - 1;
+  len = strlen(s);
+  end_ptr = s + len - 1;
 
-  while (end_ptr > path && (*end_ptr) == PATH_SEP)
+  while (end_ptr > s && IS_SEPARATOR(*end_ptr))
     end_ptr--;
 
-  while (end_ptr >= path && (*end_ptr) != PATH_SEP)
+  while (end_ptr >= s && !IS_SEPARATOR(*end_ptr))
     end_ptr--;
 
-  if (end_ptr < path)
+  if (end_ptr < s)
     return dot;
 
-  if (end_ptr > path && *(end_ptr - 1) == ':') {
+  if (end_ptr > s && *(end_ptr - 1) == ':') {
     *(end_ptr + 1) = '\0';
-    return path;
+    return s;
   }
 
-  if (end_ptr == path) {
+  if (end_ptr == s) {
     *(end_ptr + 1) = '\0';
-    return path;
+    return s;
   }
 
-  while (end_ptr > path && IS_SEPARATOR(*(end_ptr - 1)))
+  while (end_ptr > s && IS_SEPARATOR(*(end_ptr - 1)))
     end_ptr--;
 
   *end_ptr = '\0';
 
-  return path;
+  return s;
 #endif /* PATHCCH_LIB */
 #else
+  /* from MIT licensed MUSL libc
+   * https://git.musl-libc.org/cgit/musl/tree/src/misc/dirname.c?id=507faa6 */
   size_t i;
   if (!s || !*s)
     return ".";
@@ -348,19 +336,6 @@ static int maybe_mkdir(const char *const path) {
     errno = ENOTDIR;
     return -1;
   }
-
-  if (errno != EEXIST) {
-    return -1;
-  }
-
-  if (c_stat(path, &st) != 0)
-    return -1;
-
-  if (!IS_DIR(st.st_mode)) {
-    errno = ENOTDIR;
-    return -1;
-  }
-
   return 0;
 }
 #endif
@@ -397,7 +372,7 @@ int makedirs(const char *const path) {
           continue;
 #endif
         *p = '\0';
-        if (maybe_mkdir(_path) != 0 && errno != EEXIST) {
+        if (maybe_mkdir(_path) != 0) {
           *p = PATH_SEP_C;
           goto out;
         }
