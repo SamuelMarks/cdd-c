@@ -12,7 +12,18 @@ extern "C" {
 #define PATH_SEP_C '\\'
 #define strtok_r strtok_s
 #include "c_cddConfig.h"
-typedef void *HWND;
+/*typedef void *HWND;*/
+/* ref learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types */
+typedef void *PVOID;
+typedef PVOID HANDLE;
+//-typedef HANDLE HWND;
+
+/*struct HWND__ {
+  int unused;
+};*/
+typedef struct HWND__ *HWND;
+
+/*#include <minwinbase.h>*/
 #include <direct.h>
 #include <io.h>
 #include <sys/stat.h>
@@ -21,7 +32,8 @@ typedef void *HWND;
 #define rmdir _rmdir
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
-#endif /* !PATH_MAX */
+#endif                     /* !PATH_MAX */
+#define delete_file remove /* `DeleteFile` requires winbase.h :( */
 #else
 #include <limits.h>
 #include <sys/stat.h>
@@ -29,6 +41,8 @@ typedef void *HWND;
 
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
+#define delete_file unlink(filename);
+
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 extern C_CDD_EXPORT const char *get_basename(const char *);

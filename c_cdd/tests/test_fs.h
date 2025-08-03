@@ -193,8 +193,9 @@ TEST test_fs_cp(void) {
 
 TEST test_makedirs_path_is_file(void) {
   const char *file_path = "makedirs_file.tmp";
-  const char *dir_path = "makedirs_file.tmp" PATH_SEP "dir";
+  const char dir_path[] = "dir" PATH_SEP "makedirs_file.tmp";
   FILE *fp;
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
@@ -215,15 +216,15 @@ TEST test_makedirs_path_is_file(void) {
 
   ASSERT(makedirs(dir_path) != 0);
 
-  remove(file_path);
+  delete_file(file_path);
   PASS();
 }
 
 TEST test_fs_c_read_file_error(void) {
   int err;
   size_t sz;
-  ASSERT_EQ(NULL, c_read_file(PATH_SEP "not" PATH_SEP "a" PATH_SEP "file", &err,
-                              &sz, "r"));
+  const char path[] = PATH_SEP "not" PATH_SEP "a" PATH_SEP "file";
+  ASSERT_EQ(NULL, c_read_file(path, &err, &sz, "r"));
   PASS();
 }
 
@@ -251,9 +252,8 @@ TEST test_c_read_file_nulls(void) {
 
 TEST test_makedirs_and_makedir_edge(void) {
   const char *const deep = "dir1" PATH_SEP "dir2" PATH_SEP "dir3";
-  ASSERT_EQ(makedirs(deep), 0);
-  ASSERT_EQ(makedir("dir1"), EXIT_FAILURE);
-  /* ASSERT(0 != makedirs(deep)); */
+  ASSERT_EQ(0, makedirs(deep));
+  ASSERT_EQ(EXIT_FAILURE, makedir("dir1"));
   ASSERT_EQ(EXIT_FAILURE, makedir("dir1"));
 
   /* Null and empty paths should fail */
@@ -297,13 +297,10 @@ TEST test_fs_makedir_null_and_empty(void) {
 
 /* Simulate makedirs edge-cases: pass "" and "/" */
 TEST test_fs_makedirs_top_and_empty(void) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* On Windows, makedirs("/") or "" can act strangely, but should not crash. */
-  ASSERT(makedirs("") != 0 ||
-         makedirs("") == EXIT_SUCCESS); /* Nonzero likely */
-  ASSERT(makedirs("\\") == 0);
-#else
   ASSERT(makedirs("") != 0 || makedirs("") == EXIT_SUCCESS);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  ASSERT_EQ(0, makedirs("\\"));
+#else
   ASSERT(makedirs("/") == 0 || makedirs("/") == -1);
 #endif
   PASS();
@@ -412,7 +409,7 @@ TEST test_get_dirname_multiple_separators(void) {
   char path2[] = PATH_SEP PATH_SEP "foo" PATH_SEP;
   char path3[] = PATH_SEP PATH_SEP PATH_SEP;
 
-  ASSERT_STR_EQ(PATH_SEP "foo", get_dirname(path1));
+  ASSERT_STR_EQ(PATH_SEP "foo" PATH_SEP PATH_SEP "bar", get_dirname(path1));
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path2));
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path3));
   PASS();

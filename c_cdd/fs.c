@@ -9,18 +9,79 @@
 #include <direct.h>
 #include <fileapi.h>
 #include <winbase.h>
-#define SAFE_STRCPY(dest, size, src) strcpy_s(dest, size, src)
-#define SAFE_STRDUP(src) _strdup(src)
+#include <winerror.h>
+#define strtok_r strtok_s
+#define mkdir _mkdir
+#define strdup _strdup
+
+#ifdef PATHCCH_LIB
+#include <pathcch.h>
+#endif /* !PATHCCH_LIB */
+#include <shlobj_core.h>
 #else
 #include <fcntl.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <unistd.h>
-#define SAFE_STRCPY(dest, size, src) strcpy(dest, src)
-#define SAFE_STRDUP(src) strdup(src)
-#endif
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+
+/* <windows_utils> */
+
+/* example usage
+  const size_t n = strlen(s);
+  wchar_t *const wide_buffer = malloc(sizeof(*wide_buffer) * n);
+  const int chars_converted = c_str_to_pwstr(s, wide_buffer, n);
+  if (chars_converted != -1) {
+  } else {
+    vfprintf(stderr, L"Conversion failed. Error code: %lu\n", GetLastError());
+    return s;
+  }
+*/
+int ascii_to_wide(const char *const s, wchar_t *ws, const size_t len) {
+  if (s == NULL || ws == NULL || len == 0)
+    return -1;
+  {
+    const int result = MultiByteToWideChar(
+        /* Code Page */ CP_ACP,
+        /* dwFlags */ 0,
+        /* lpMultiByteStr */ s,
+        /* cbMultiByte */ -1,
+        /* lpWideCharStr */ ws,
+        /* cchWideChar */ (int)len);
+
+    if (result == 0)
+      return -1;
+
+    return result - 1;
+  }
+}
+
+int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
+  if (ws == NULL || s == NULL || len == 0)
+    return -1;
+  {
+    const int result = WideCharToMultiByte(
+        /* Code Page */ CP_ACP,
+        /* dwFlags */ 0,
+        /* lpWideCharStr */ ws,
+        /* cchWideChar */ -1,
+        /* lpMultiByteStr */ s,
+        /* cbMultiByte */ (int)len,
+        /* lpDefaultChar */ NULL,
+        /* lpUsedDefaultChar */ NULL);
+
+    if (result == 0)
+      return -1;
+
+    return result - 1;
+  }
+}
+
+/* </windows_utils> */
 
 const char *get_basename(const char *const path) {
+  /* BSD licensed OpenBSD implementation from lib/libc/gen/basename.c
+   * @ ff5bc0. */
   static char bname[PATH_MAX];
   size_t len;
   const char *endp, *startp;
@@ -55,59 +116,91 @@ const char *get_basename(const char *const path) {
   return bname;
 }
 
-const char *get_dirname(char *path) {
-  static char dname[PATH_MAX];
-  char *p;
-  size_t len;
-
-  if (path == NULL || *path == '\0') {
-    SAFE_STRCPY(dname, sizeof(dname), ".");
-    return dname;
+const char *get_dirname(char *s) {
+  /* from MIT licensed MUSL libc
+   * https://git.musl-libc.org/cgit/musl/tree/src/misc/dirname.c?id=507faa6 */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef PATHCCH_LIB
+  const size_t n = strlen(s);
+  wchar_t *const wide_buffer = malloc(sizeof(*wide_buffer) * n);
+  const int chars_converted = ascii_to_wide(s, wide_buffer, n);
+  if (chars_converted != -1) {
+  } else {
+    fprintf(stderr, "Conversion failed. Error code: %lu\n", GetLastError());
+    return s;
   }
+  {
+    const int rc = PathCchRemoveFileSpec(wide_buffer, n);
+    switch (rc) {
+    case S_OK:
+    case S_FALSE: {
+      const size_t w_len = wcslen(wide_buffer);
+      if (s[w_len] == PATH_SEP_C) {
+        if (s[w_len - 1] == PATH_SEP_C)
+          s[w_len - 1] = '\0';
+        s[w_len] = '\0';
+      }
+      return s;
+    }
+    default:
+      fprintf(stderr, "`PathCchRemoveFileSpec` failed with %d.\n", rc);
+      return s;
+    }
+  }
+#else
+  static char dot[] = ".";
+  size_t len;
+  char *end_ptr;
+
+  if (path == NULL || *path == '\0')
+    return dot;
 
   len = strlen(path);
-  if (len >= sizeof(dname)) {
-    errno = ENAMETOOLONG;
-    return NULL;
-  }
-  SAFE_STRCPY(dname, sizeof(dname), path);
-  p = dname + len;
+  end_ptr = path + len - 1;
 
-  while (p > dname && (*(p - 1) == '/' || *(p - 1) == '\\')) {
-    p--;
-  }
-  *p = '\0';
+  while (end_ptr > path && (*end_ptr) == PATH_SEP)
+    end_ptr--;
 
-  if (*dname == '\0') { /* Path was all slashes e.g. "///" */
-    SAFE_STRCPY(dname, sizeof(dname), PATH_SEP);
-    return dname;
+  while (end_ptr >= path && (*end_ptr) != PATH_SEP)
+    end_ptr--;
+
+  if (end_ptr < path)
+    return dot;
+
+  if (end_ptr > path && *(end_ptr - 1) == ':') {
+    *(end_ptr + 1) = '\0';
+    return path;
   }
 
-  /* Find last separator */
-  p = strrchr(dname, '/');
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  {
-    char *p2 = strrchr(dname, '\\');
-    if (p < p2)
-      p = p2;
+  if (end_ptr == path) {
+    *(end_ptr + 1) = '\0';
+    return path;
   }
+
+  while (end_ptr > path && IS_SEPARATOR(*(end_ptr - 1)))
+    end_ptr--;
+
+  *end_ptr = '\0';
+
+  return path;
+#endif /* PATHCCH_LIB */
+#else
+  size_t i;
+  if (!s || !*s)
+    return ".";
+  i = strlen(s) - 1;
+  for (; s[i] == '/'; i--)
+    if (!i)
+      return "/";
+  for (; s[i] != '/'; i--)
+    if (!i)
+      return ".";
+  for (; s[i] == '/'; i--)
+    if (!i)
+      return "/";
+  s[i + 1] = 0;
+  return s;
 #endif
-
-  if (p == NULL) { /* No separator */
-    SAFE_STRCPY(dname, sizeof(dname), ".");
-  } else if (p == dname) { /* Root like /foo */
-    dname[1] = '\0';
-  }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  else if (p == dname + 2 && dname[1] == ':') { /* Drive root like C:\foo */
-    *(p + 1) = '\0'; /* keep the backslash */
-  }
-#endif
-  else { /* Normal case */
-    *p = '\0';
-  }
-
-  return dname;
 }
 
 enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
@@ -118,6 +211,7 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
   size_t length;
   FILE *f;
   size_t read_length;
+  long length_long;
 
   if (!f_name || !mode || !err || !f_size) {
     if (err)
@@ -127,7 +221,8 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t e = fopen_s(&f, f_name, mode);
+    errno_t e;
+    e = fopen_s(&f, f_name, mode);
     if (e != 0 || f == NULL) {
       *err = FILE_NOT_EXIST;
       return NULL;
@@ -141,7 +236,13 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
   }
 #endif
   fseek(f, 0, SEEK_END);
-  length = (size_t)ftell(f);
+  length_long = ftell(f);
+  if (length_long < 0) {
+    *err = FILE_READ_ERROR;
+    fclose(f);
+    return NULL;
+  }
+  length = (size_t)length_long;
   fseek(f, 0, SEEK_SET);
 
   if (length > 1073741824) {
@@ -152,6 +253,7 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
 
   buffer = (char *)malloc(length + 1);
   if (!buffer) {
+    *err = FILE_READ_ERROR;
     fclose(f);
     return NULL;
   }
@@ -181,6 +283,8 @@ int cp(const char *const to, const char *const from) {
   char buf[4096];
   ssize_t nread;
   int saved_errno;
+  char *out_ptr;
+  ssize_t nwritten;
 
   fd_from = open(from, O_RDONLY);
   if (fd_from < 0)
@@ -191,8 +295,7 @@ int cp(const char *const to, const char *const from) {
     goto out_error;
 
   while ((nread = read(fd_from, buf, sizeof buf)) > 0) {
-    char *out_ptr = buf;
-    ssize_t nwritten;
+    out_ptr = buf;
     do {
       nwritten = write(fd_to, out_ptr, nread);
       if (nwritten >= 0) {
@@ -209,7 +312,7 @@ int cp(const char *const to, const char *const from) {
       fd_to = -1;
       goto out_error;
     }
-    close(fd_from);
+    close(from);
     return EXIT_SUCCESS;
   }
 
@@ -225,34 +328,28 @@ out_error:
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define c_stat _stat
-#define IS_DIR(mode) (((mode)&_S_IFMT) == _S_IFDIR)
+#define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
 #define c_stat stat
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
 /* Make a directory; already existing dir okay */
+#ifndef _MSC_VER
 static int maybe_mkdir(const char *const path) {
   struct c_stat st;
-  int res;
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  res = _mkdir(path);
-#else
-  res = mkdir(path, 0777);
-#endif
-
-  if (res == 0)
+  if (mkdir(path, 0777) == 0)
     return 0;
+  if (errno != EEXIST)
+    return -1;
+  if (c_stat(path, &st) != 0)
+    return -1;
+  if (!IS_DIR(st.st_mode)) {
+    errno = ENOTDIR;
+    return -1;
+  }
 
   if (errno != EEXIST) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    if (errno == EINVAL && strlen(path) == 2 && path[1] == ':') {
-      if (c_stat(path, &st) == 0 && IS_DIR(st.st_mode)) {
-        return 0;
-      }
-    }
-#endif
     return -1;
   }
 
@@ -266,45 +363,57 @@ static int maybe_mkdir(const char *const path) {
 
   return 0;
 }
+#endif
 
 int makedirs(const char *const path) {
-  char *_path = NULL;
-  char *p;
-  int result = -1;
+  int result;
 
   if (path == NULL || *path == '\0')
     return EXIT_FAILURE;
-
-  errno = 0;
-
-  _path = SAFE_STRDUP(path);
-  if (_path == NULL)
-    goto out;
-
-  for (p = _path; *p; p++) {
-    if (*p == '/' || *p == '\\') {
-      if (p == _path)
-        continue;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      if (p > _path && *(p - 1) == ':')
-        continue;
-#endif
-      *p = '\0';
-      if (maybe_mkdir(_path) != 0) {
-        *p = PATH_SEP_C;
-        goto out;
-      }
-      *p = PATH_SEP_C;
-    }
+  result = SHCreateDirectoryEx(NULL, path, NULL);
+  if (result == ERROR_SUCCESS || result == ERROR_ALREADY_EXISTS) {
+    return EXIT_SUCCESS;
   }
+  return EXIT_FAILURE;
+#else
+  {
+    char *_path, *p;
+    _path = NULL;
+    p = NULL;
+    errno = 0;
+    result = EXIT_FAILURE;
 
-  if (maybe_mkdir(_path) != 0)
-    goto out;
+    _path = strdup(path);
+    if (_path == NULL)
+      goto out;
 
-  result = 0;
+    for (p = _path; *p; p++) {
+      if (*p == '/' || *p == '\\') {
+        if (p == _path)
+          continue;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        if (p > _path && *(p - 1) == ':')
+          continue;
+#endif
+        *p = '\0';
+        if (maybe_mkdir(_path) != 0 && errno != EEXIST) {
+          *p = PATH_SEP_C;
+          goto out;
+        }
+        *p = PATH_SEP_C;
+      }
+    }
 
-out:
-  free(_path);
+    if (maybe_mkdir(_path) != 0)
+      goto out;
+
+    result = 0;
+
+  out:
+    free(_path);
+  }
+#endif
   return result;
 }
 

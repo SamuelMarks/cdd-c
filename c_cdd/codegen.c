@@ -27,13 +27,12 @@
 /* Extract type name from JSON pointer, e.g., "#/components/schemas/TypeName"
  * -> "TypeName" */
 const char *get_type_from_ref(const char *ref) {
+  const char *last_slash;
   if (ref == NULL)
     return ""; /* Return empty string to avoid segfaults in printf */
-  {
-    const char *last_slash = strrchr(ref, '/');
-    if (last_slash) {
-      return last_slash + 1;
-    }
+  last_slash = strrchr(ref, '/');
+  if (last_slash) {
+    return last_slash + 1;
   }
   return ref;
 }
@@ -42,6 +41,7 @@ const char *get_type_from_ref(const char *ref) {
 void write_enum_to_str_func(FILE *cfile, const char *const enum_name,
                             const struct EnumMembers *em) {
   size_t i;
+  const char *member;
   if (!cfile || !enum_name || !em || !em->members)
     return;
 
@@ -52,7 +52,7 @@ void write_enum_to_str_func(FILE *cfile, const char *const enum_name,
           enum_name, enum_name);
 
   for (i = 0; i < em->size; i++) {
-    const char *member = em->members[i];
+    member = em->members[i];
     if (!member)
       continue;
 
@@ -81,6 +81,7 @@ void write_enum_to_str_func(FILE *cfile, const char *const enum_name,
 void write_enum_from_str_func(FILE *cfile, const char *const enum_name,
                               const struct EnumMembers *em) {
   size_t i;
+  const char *member;
   if (!cfile || !enum_name || !em || !em->members)
     return;
 
@@ -91,7 +92,7 @@ void write_enum_from_str_func(FILE *cfile, const char *const enum_name,
           enum_name, enum_name, enum_name);
 
   for (i = 0; i < em->size; i++) {
-    const char *member = em->members[i];
+    member = em->members[i];
     if (!member)
       continue;
 
@@ -111,12 +112,13 @@ void write_struct_from_jsonObject_func(FILE *cfile,
                                        const struct StructFields *const sf) {
   size_t i;
   bool needs_rc = false;
+  const struct StructField *f;
 
   if (!cfile || !struct_name || !sf)
     return;
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
     if (strcmp(f->type, "enum") == 0 || strcmp(f->type, "object") == 0) {
       needs_rc = true;
       break;
@@ -135,7 +137,7 @@ void write_struct_from_jsonObject_func(FILE *cfile,
   fprintf(cfile, "  struct %s *ret;\n", struct_name);
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
     if (strcmp(f->type, "enum") == 0)
       fprintf(cfile, "  const char *_%s_str = NULL;\n", f->name);
     else if (strcmp(f->type, "object") == 0)
@@ -150,7 +152,7 @@ void write_struct_from_jsonObject_func(FILE *cfile,
           struct_name);
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
 
     if (strcmp(f->type, "string") == 0) {
       fprintf(
@@ -236,11 +238,15 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
                                const struct StructFields *const fields) {
   size_t i;
   bool needs_rc = false;
+  const struct StructField *f;
+  const char *name;
+  const char *type;
+
   if (!cfile || !struct_name || !fields)
     return;
 
   for (i = 0; i < fields->size; i++) {
-    const struct StructField *f = &fields->fields[i];
+    f = &fields->fields[i];
     if (strcmp(f->type, "enum") == 0 || strcmp(f->type, "object") == 0) {
       needs_rc = true;
       break;
@@ -262,9 +268,9 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
         cfile);
 
   for (i = 0; i < fields->size; i++) {
-    const struct StructField *f = &fields->fields[i];
-    const char *name = f->name;
-    const char *type = f->type;
+    f = &fields->fields[i];
+    name = f->name;
+    type = f->type;
 
     if (strcmp(type, "string") == 0) {
       /* Print comma only if this field will be emitted */
@@ -373,6 +379,7 @@ void write_struct_to_json_func(FILE *cfile, const char *const struct_name,
 void write_struct_eq_func(FILE *cfile, const char *struct_name,
                           const struct StructFields *sf) {
   size_t i;
+  const struct StructField *f;
   if (!cfile || !struct_name || !sf)
     return;
   fprintf(cfile,
@@ -381,7 +388,7 @@ void write_struct_eq_func(FILE *cfile, const char *struct_name,
   fprintf(cfile, "  if (a == NULL || b == NULL) return a == b;\n");
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
 
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile,
@@ -409,6 +416,7 @@ void write_struct_eq_func(FILE *cfile, const char *struct_name,
 void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
                                const struct StructFields *sf) {
   size_t i;
+  const struct StructField *f;
   if (!cfile || !struct_name || !sf)
     return;
   fprintf(cfile, "void %s_cleanup(struct %s *const obj) {\n", struct_name,
@@ -416,7 +424,7 @@ void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
   fprintf(cfile, "  if (obj == NULL) return;\n");
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile, "  free((void *)obj->%s);\n", f->name);
     } else if (strcmp(f->type, "object") == 0) {
@@ -433,6 +441,7 @@ void write_struct_cleanup_func(FILE *cfile, const char *struct_name,
 void write_struct_default_func(FILE *cfile, const char *struct_name,
                                const struct StructFields *sf) {
   size_t i;
+  const struct StructField *f;
   if (!cfile || !struct_name || !sf)
     return;
   fprintf(cfile, "int %s_default(struct %s **out) {\n", struct_name,
@@ -443,7 +452,7 @@ void write_struct_default_func(FILE *cfile, const char *struct_name,
                  "  memset(*out, 0, sizeof(**out));\n");
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile, "  (*out)->%s = NULL;\n", f->name);
     } else if (strcmp(f->type, "integer") == 0 ||
@@ -471,6 +480,7 @@ void write_struct_default_func(FILE *cfile, const char *struct_name,
 void write_struct_deepcopy_func(FILE *cfile, const char *struct_name,
                                 const struct StructFields *sf) {
   size_t i;
+  const struct StructField *f;
   if (!cfile || !struct_name || !sf)
     return;
   fprintf(cfile, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
@@ -481,7 +491,7 @@ void write_struct_deepcopy_func(FILE *cfile, const char *struct_name,
                  "  if (!src) { free(*dest); *dest = NULL; return 0; }\n");
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
 
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile,
@@ -538,6 +548,7 @@ void write_struct_display_func(FILE *cfile, const char *struct_name,
 void write_struct_debug_func(FILE *cfile, const char *struct_name,
                              const struct StructFields *sf) {
   size_t i;
+  const struct StructField *f;
   if (!cfile || !struct_name || !sf)
     return;
   fprintf(cfile,
@@ -552,7 +563,7 @@ void write_struct_debug_func(FILE *cfile, const char *struct_name,
           struct_name, struct_name, struct_name, struct_name);
 
   for (i = 0; i < sf->size; i++) {
-    const struct StructField *f = &sf->fields[i];
+    f = &sf->fields[i];
     if (strcmp(f->type, "string") == 0) {
       fprintf(cfile,
               "  {\n"
