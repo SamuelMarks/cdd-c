@@ -160,7 +160,7 @@ int sync_code_main(int argc, char **argv) {
         }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-        strncpy_s(body_to_parse, sizeof(body_to_parse), p, len);
+        strncpy_s(body_to_parse, len + 1, p, len);
 #else
         strncpy(body_to_parse, p, len);
 #endif
@@ -231,7 +231,7 @@ int sync_code_main(int argc, char **argv) {
         }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-        strncpy_s(body_to_parse, sizeof(body_to_parse), p, len);
+        strncpy_s(body_to_parse, len + 1, p, len);
 #else
         strncpy(body_to_parse, p, len);
         body_to_parse[len] = '\0';

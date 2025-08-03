@@ -7,21 +7,43 @@
 #include <code2schema.h>
 #include <greatest.h>
 #include <stdint.h>
+#include <string.h>
 
 TEST test_write_enum_functions(void) {
   struct EnumMembers em;
+  FILE *tmp;
+  const char *const filename = "test_write_enum_functions.c";
   enum_members_init(&em);
   enum_members_add(&em, "FOO");
   enum_members_add(&em, "BAR");
   enum_members_add(&em, "UNKNOWN");
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    FILE *tmp = tmpfile();
-    ASSERT(tmp != NULL);
-    write_enum_to_str_func(tmp, "MyEnum", &em);
-    write_enum_from_str_func(tmp, "MyEnum", &em);
-    fclose(tmp);
+    errno_t err = fopen_s(&tmp, filename, "w");
+    if (err != 0 || tmp == NULL) {
+      fprintf(stderr, "Failed to open %s for writing", filename);
+      free(tmp);
+      return EXIT_FAILURE;
+    }
   }
+#else
+  tmp = fopen(filename, "w");
+  if (!rootCmakeLists) {
+    fprintf(stderr, "Failed to open %s for writing", filename);
+    free(tmp);
+    return EXIT_FAILURE;
+  }
+#endif
+
+  ASSERT(tmp != NULL);
+  write_enum_to_str_func(tmp, "MyEnum", &em);
+  write_enum_from_str_func(tmp, "MyEnum", &em);
+  fclose(tmp);
+
   enum_members_free(&em);
+  delete_file(filename);
   PASS();
 }
 
@@ -117,7 +139,14 @@ TEST test_enum_members_overflow(void) {
 }
 
 TEST test_trim_trailing(void) {
-  char a[32] = "foo   \t;";
+  enum { n = 32 };
+  char a[n];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s(a, n, "foo   \t;");
+#else
+  strcpy(a, "foo   \t;");
+#endif
   trim_trailing(a);
   ASSERT_STR_EQ("foo", a);
   PASS();
@@ -163,11 +192,13 @@ TEST test_code2schema_file_not_found(void) {
 }
 
 TEST test_code2schema_output_fail(void) {
-  char *argv[] = {"test_out_fail.h", PATH_SEP};
+  char *argv[] = {"test_out_fail.h", "a_dir"};
   const char *filename = argv[0];
   write_to_file(filename, "struct S{};");
+  makedir("a_dir");
   ASSERT_EQ(-1, code2schema_main(2, argv));
   remove(filename);
+  rmdir("a_dir");
   PASS();
 }
 
@@ -519,6 +550,10 @@ TEST test_code2schema_single_line_defs(void) {
   int err;
   size_t size;
   JSON_Value *val;
+  JSON_Object *obj;
+  JSON_Object *schemas;
+  JSON_Object *s_obj;
+  JSON_Object *e_obj;
 
   ASSERT_EQ(0, write_to_file(argv[0], header_content));
   ASSERT_EQ(0, code2schema_main(2, argv));
@@ -529,16 +564,14 @@ TEST test_code2schema_single_line_defs(void) {
   ASSERT(val != NULL);
 
   /* Quick verification of output */
-  {
-    JSON_Object *obj = json_value_get_object(val);
-    JSON_Object *schemas = json_object_get_object(
-        json_object_get_object(obj, "components"), "schemas");
-    JSON_Object *s_obj = json_object_get_object(schemas, "S");
-    JSON_Object *e_obj = json_object_get_object(schemas, "E");
-    ASSERT(s_obj != NULL);
-    ASSERT(e_obj != NULL);
-    ASSERT_EQ(2, json_array_get_count(json_object_get_array(e_obj, "enum")));
-  }
+  obj = json_value_get_object(val);
+  schemas = json_object_get_object(json_object_get_object(obj, "components"),
+                                   "schemas");
+  s_obj = json_object_get_object(schemas, "S");
+  e_obj = json_object_get_object(schemas, "E");
+  ASSERT(s_obj != NULL);
+  ASSERT(e_obj != NULL);
+  ASSERT_EQ(2, json_array_get_count(json_object_get_array(e_obj, "enum")));
 
   json_value_free(val);
   free(json_content);
@@ -556,6 +589,8 @@ TEST test_code2schema_forward_declarations(void) {
   int err;
   size_t size;
   JSON_Value *val;
+  JSON_Object *obj;
+  JSON_Object *schemas;
 
   ASSERT_EQ(0, write_to_file(argv[0], header_content));
   ASSERT_EQ(0, code2schema_main(2, argv));
@@ -565,18 +600,16 @@ TEST test_code2schema_forward_declarations(void) {
   val = json_parse_string(json_content);
   ASSERT(val != NULL);
 
-  {
-    JSON_Object *obj = json_value_get_object(val);
-    JSON_Object *schemas = json_object_get_object(
-        json_object_get_object(obj, "components"), "schemas");
-    ASSERT(schemas != NULL);
-    /* Forward declarations should not result in schemas */
-    ASSERT_EQ(NULL, json_object_get_object(schemas, "MyStruct"));
-    ASSERT_EQ(NULL, json_object_get_object(schemas, "MyEnum"));
-    /* Only RealStruct should be present */
-    ASSERT(json_object_get_object(schemas, "RealStruct") != NULL);
-    ASSERT_EQ(1, json_object_get_count(schemas));
-  }
+  obj = json_value_get_object(val);
+  schemas = json_object_get_object(json_object_get_object(obj, "components"),
+                                   "schemas");
+  ASSERT(schemas != NULL);
+  /* Forward declarations should not result in schemas */
+  ASSERT_EQ(NULL, json_object_get_object(schemas, "MyStruct"));
+  ASSERT_EQ(NULL, json_object_get_object(schemas, "MyEnum"));
+  /* Only RealStruct should be present */
+  ASSERT(json_object_get_object(schemas, "RealStruct") != NULL);
+  ASSERT_EQ(1, json_object_get_count(schemas));
 
   json_value_free(val);
   free(json_content);

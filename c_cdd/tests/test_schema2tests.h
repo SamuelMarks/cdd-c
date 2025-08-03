@@ -23,17 +23,17 @@ TEST test_schema2tests_argc_error(void) {
 TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
   int rc = write_to_file(filename, "{bad json");
+  char *argv[] = {(char *)filename, "header.h", "out.h"};
   ASSERT_EQ(rc, EXIT_SUCCESS);
-  {
-    const char *argv[] = {filename, "header.h", "out.h"};
-    ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, (char **)argv));
-  }
+  ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
   remove(filename);
   PASS();
 }
 
 TEST test_schema2tests_success(void) {
   FILE *f;
+  char *argv[] = {"min_schema.json", "header.h", "build" PATH_SEP "test_s2t.h"};
+  int rc_main;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   errno_t err = fopen_s(&f, "min_schema.json", "w");
@@ -51,14 +51,13 @@ TEST test_schema2tests_success(void) {
         "{\"type\":\"string\"}}}}}}",
         f);
   fclose(f);
-  {
-    char *argv[] = {"min_schema.json", "header.h", "build/test_s2t.h"};
-    const int rc = jsonschema2tests_main(3, argv);
-    ASSERT_EQ(0, rc);
-  }
+
+  rc_main = jsonschema2tests_main(3, argv);
+  ASSERT_EQ(0, rc_main);
+
   remove("min_schema.json");
-  remove("build/test_s2t.h");
-  remove("build/test_main.c");
+  remove("build" PATH_SEP "test_s2t.h");
+  remove("build" PATH_SEP "test_main.c");
   rmdir("build");
   PASS();
 }
@@ -67,12 +66,14 @@ TEST test_schema2tests_output_file_open_fail(void) {
   /* Output file which can't be written
    * (write to a directory - not always portable, but usually fails) */
   const char *const schema_filename = "schema.2tests.json";
-  char *argv[] = {(char *)schema_filename, "header.h", PATH_SEP};
+  char *argv[] = {(char *)schema_filename, "header.h", "a_dir"};
   int rc = write_to_file(schema_filename, "{\"$defs\":{}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
+  makedir("a_dir");
   rc = jsonschema2tests_main(3, argv);
   ASSERT(rc == EXIT_FAILURE || rc == -1);
   remove(schema_filename);
+  rmdir("a_dir");
 
   /* Test makedirs failure by creating a file with the same name as output dir
    */
@@ -109,15 +110,16 @@ TEST test_schema2tests_output_file_open_fail(void) {
 
 TEST test_schema2tests_defs_fallback(void) {
   const char *const filename = "defs_schema.json";
-  char *argv[] = {"defs_schema.json", "header.h", "build/defs_out.h"};
+  char *argv[] = {"defs_schema.json", "header.h",
+                  "build" PATH_SEP "defs_out.h"};
   int rc = write_to_file(
       filename, "{\"$defs\":{\"E\":{\"type\":\"string\",\"enum\":[\"X\"]}}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
   remove("defs_schema.json");
-  remove("build/defs_out.h");
-  remove("build/test_main.c");
+  remove("build" PATH_SEP "defs_out.h");
+  remove("build" PATH_SEP "test_main.c");
   rmdir("build");
   PASS();
 }
@@ -140,7 +142,7 @@ TEST test_schema2tests_no_schemas_object(void) {
 }
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
-  char *argv[] = {(char *)schema_file, "header.h", "build/out.h"};
+  char *argv[] = {(char *)schema_file, "header.h", "build" PATH_SEP "out.h"};
   int rc;
   /* non-object schema, no type, non-string enum member */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"
@@ -152,20 +154,24 @@ TEST test_schema2tests_malformed_schemas(void) {
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed but generate empty/partial tests */
   remove(schema_file);
+  remove("build" PATH_SEP "out.h");
+  remove("build" PATH_SEP "test_main.c");
+  rmdir("build");
   PASS();
 }
 
 TEST test_schema2tests_with_null_enum_val(void) {
   const char *const filename = "null_enum.json";
-  char *argv[] = {"null_enum.json", "header.h", "build/null_enum_out.h"};
+  char *argv[] = {"null_enum.json", "header.h",
+                  "build" PATH_SEP "null_enum_out.h"};
   int rc = write_to_file(filename, "{\"$defs\":{\"E\":{\"type\":\"string\","
                                    "\"enum\":[\"X\", null, \"Y\"]}}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc); /* Should succeed, just skipping the null value */
   remove(filename);
-  remove("build/null_enum_out.h");
-  remove("build/test_main.c");
+  remove("build" PATH_SEP "null_enum_out.h");
+  remove("build" PATH_SEP "test_main.c");
   rmdir("build");
   PASS();
 }
@@ -179,6 +185,9 @@ TEST test_schema2tests_generated_output(void) {
   /* const char *const header_name = argv[1]; */
   const char *const output_file = argv[2];
   const char main_c_path[] = OUT_DIR PATH_SEP "test_main.c";
+  int err;
+  size_t size;
+  char *test_content;
 
   makedirs(OUT_DIR);
 
@@ -191,22 +200,18 @@ TEST test_schema2tests_generated_output(void) {
 
   ASSERT_EQ(0, jsonschema2tests_main(3, argv));
 
-  {
-    int err;
-    size_t size;
-    char *const test_content = c_read_file(output_file, &err, &size, "r");
-    ASSERT_EQ(0, err);
-    ASSERT(test_content != NULL);
+  test_content = c_read_file(output_file, &err, &size, "r");
+  ASSERT_EQ(0, err);
+  ASSERT(test_content != NULL);
 
-    ASSERT(strstr(test_content, "TEST test_MyEnum_to_str_from_str(void)"));
-    ASSERT(strstr(test_content, "ASSERT_STR_EQ(\"VAL1\", str);"));
-    ASSERT(strstr(test_content, "RUN_TEST(test_MyEnum_to_str_from_str);"));
-    ASSERT(strstr(test_content,
-                  "TEST test_MyStruct_default_deepcopy_eq_cleanup(void)"));
-    ASSERT(strstr(test_content, "RUN_TEST(test_MyStruct_json_roundtrip);"));
+  ASSERT(strstr(test_content, "TEST test_MyEnum_to_str_from_str(void)"));
+  ASSERT(strstr(test_content, "ASSERT_STR_EQ(\"VAL1\", str);"));
+  ASSERT(strstr(test_content, "RUN_TEST(test_MyEnum_to_str_from_str);"));
+  ASSERT(strstr(test_content,
+                "TEST test_MyStruct_default_deepcopy_eq_cleanup(void)"));
+  ASSERT(strstr(test_content, "RUN_TEST(test_MyStruct_json_roundtrip);"));
 
-    free(test_content);
-  }
+  free(test_content);
 
   remove(main_c_path);
   remove(schema_file);
