@@ -74,7 +74,7 @@ jobs:
           #build/bin/c_cdd_cli jsonschema2tests 'c_cdd/tests/mocks/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
           cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake'
           cmake --build 'build_gen/cmake_debug_build'
-          #ctest -C 'Debug' --build-run-dir 'build_gen/cmake_debug_build' --verbose
+          ctest -C 'Debug' --build-run-dir 'build_gen/cmake_debug_build' --verbose
         if: matrix.os != 'windows-latest'
 
       - name: generate then build & test generated (Windows)
@@ -85,6 +85,6 @@ jobs:
           :: build\bin\c_cdd_cli jsonschema2tests "c_cdd\tests\mocks\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
           cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build "build_gen\cmake_debug_build"
-          #ctest -C "Debug" --build-run-dir "build_gen\cmake_debug_build" --verbose
+          ctest -C "Debug" --build-run-dir "build_gen\cmake_debug_build" --verbose
         shell: cmd
         if: matrix.os == 'windows-latest'
