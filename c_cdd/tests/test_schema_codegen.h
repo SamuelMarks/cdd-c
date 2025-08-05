@@ -2,8 +2,9 @@
 #define TEST_SCHEMA_CODEGEN_H
 
 #include <greatest.h>
-
 #include <schema_codegen.h>
+
+#include "fs.h" // <-- Add this include for PATH_SEP
 
 TEST test_schema2code_wrong_args(void) {
   char *argv[] = {"program", NULL};
@@ -238,34 +239,66 @@ TEST test_schema_codegen_valid_struct_enum(void) {
 }
 
 TEST test_schema_codegen_output_file_open_fail(void) {
-  const char *const filename = "codegen_fail.json";
+  const char *const schema_filename = "codegen_fail_schema.json";
+  const char *const out_dir_as_file = "codegen_fail_dir_is_file";
+  char out_path_base[256];
   FILE *fp;
+
+  // 1. Create a dummy schema file
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
+  errno_t err = fopen_s(&fp, schema_filename, "w");
   if (err != 0 || fp == NULL) {
-    fprintf(stderr, "Failed to open file %s\n", filename);
     FAIL();
   }
 #else
-  fp = fopen(filename, "w");
+  fp = fopen(schema_filename, "w");
   if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", filename);
     FAIL();
   }
 #endif
   fputs("{\"components\":{\"schemas\":{}}}", fp);
   fclose(fp);
-  /* Simulate unable to open output by passing directory (usually fails) */
+
+  // 2. Create a file that we will try to use as a directory
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  err = fopen_s(&fp, out_dir_as_file, "w");
+  if (err != 0 || fp == NULL) {
+    remove(schema_filename);
+    FAIL();
+  }
+#else
+  fp = fopen(out_dir_as_file, "w");
+  if (!fp) {
+    remove(schema_filename);
+    FAIL();
+  }
+#endif
+  fclose(fp);
+
+  // 3. Construct the invalid output basename (e.g., "some_file/basename")
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  sprintf_s(out_path_base, sizeof(out_path_base), "%s%sout_base",
+            out_dir_as_file, PATH_SEP);
+#else
+  sprintf(out_path_base, "%s%sout_base", out_dir_as_file, PATH_SEP);
+#endif
+
+  // 4. Run the function and assert it fails
   {
     int rc;
-    char *argv[] = {NULL, "/"};
-    argv[0] = (char *)filename;
+    char *argv[] = {(char *)schema_filename, out_path_base};
     rc = schema2code_main(2, argv);
-    /* Should fail as it can't open '/' for writing headers */
+    /* Should fail as 'out_dir_as_file' in the path is a file, not a directory
+     */
     ASSERT(rc != 0);
   }
-  remove(filename);
+
+  // 5. Cleanup
+  remove(schema_filename);
+  remove(out_dir_as_file);
   PASS();
 }
 
@@ -306,6 +339,7 @@ TEST test_schema_codegen_header_null_basename(void) {
   char *argv[] = {"schema.json", "."};
   write_to_file("schema.json", "{}");
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
+  remove("schema.json");
   PASS();
 }
 
