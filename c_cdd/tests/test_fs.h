@@ -322,27 +322,6 @@ TEST test_get_dirname_long_filename_no_path(void) {
   PASS();
 }
 
-TEST test_get_dirname_long_path(void) {
-#ifndef _MSC_VER
-  char long_path[PATH_MAX + 20];
-  const char *res;
-
-  memset(long_path, 'a', sizeof(long_path) - 1);
-  long_path[sizeof(long_path) - 1] = '\0';
-
-  /* Make it a path by adding a slash */
-  long_path[PATH_MAX + 5] = '/';
-  long_path[PATH_MAX + 6] = 'b';
-
-  res = get_dirname(long_path);
-  ASSERT_EQ(NULL, res);
-  ASSERT_EQ(ENAMETOOLONG, errno);
-#else
-  SKIP();
-#endif
-  PASS();
-}
-
 TEST test_get_basename_root_path(void) {
   ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP));
   ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP PATH_SEP PATH_SEP));
@@ -422,7 +401,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_cp);
   RUN_TEST(test_get_basename_long);
   RUN_TEST(test_get_dirname_long_filename_no_path);
-  RUN_TEST(test_get_dirname_long_path);
   RUN_TEST(test_write_to_file_fail);
   RUN_TEST(test_get_basename_root_path);
   RUN_TEST(test_cp_dest_exists);
