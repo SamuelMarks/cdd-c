@@ -39,6 +39,23 @@ static int read_line_sync(FILE *fp, char *buf, size_t bufsz) {
   return 1;
 }
 
+static void extract_name_sync(char *dest, size_t dest_sz, const char *start,
+                              const char *end) {
+  const char *name_start = start;
+  const char *name_end;
+  while (isspace((unsigned char)*name_start))
+    name_start++;
+  name_end = name_start;
+  while (name_end < end && !isspace((unsigned char)*name_end))
+    name_end++;
+  if (name_end > name_start && (size_t)(name_end - name_start) < dest_sz) {
+    memcpy(dest, name_start, name_end - name_start);
+    dest[name_end - name_start] = '\0';
+  } else {
+    dest[0] = '\0';
+  }
+}
+
 /*
  * The main function: parse header, generate full .c file implementing sync
  * functions.
@@ -100,59 +117,40 @@ int sync_code_main(int argc, char **argv) {
       continue;
 
     if (state == NONE) {
-      if (str_starts_with(p, "enum ")) {
-        char *brace = strchr(p, '{');
-        if (brace) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-          sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name));
-#else
-          sscanf(p + 5, "%63s", enum_name);
-#endif
-          {
-            char *name_brace = strchr(enum_name, '{');
-            if (name_brace)
-              *name_brace = '\0';
-          }
+      char *brace = strchr(p, '{');
+      char *semi = strchr(p, ';');
+
+      if ((str_starts_with(p, "enum ") || str_starts_with(p, "struct ")) &&
+          semi && (!brace || semi < brace)) {
+        p = semi + 1;
+        goto process_line_sync;
+      }
+
+      if ((str_starts_with(p, "enum ") || str_starts_with(p, "struct ")) &&
+          brace) {
+        if (str_starts_with(p, "enum ")) {
+          extract_name_sync(enum_name, sizeof(enum_name), p + 5, brace);
           enum_members_free(&em);
           enum_members_init(&em);
           state = IN_ENUM;
-          p = brace + 1;
-        } else {
-          continue;
-        }
-      } else if (str_starts_with(p, "struct ")) {
-        char *brace = strchr(p, '{');
-        if (brace) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-          sscanf_s(p + 7, "%63s", struct_name, (unsigned)sizeof(struct_name));
-#else
-          sscanf(p + 7, "%63s", struct_name);
-#endif
-          {
-            char *name_brace = strchr(struct_name, '{');
-            if (name_brace)
-              *name_brace = '\0';
-          }
+        } else { /* struct */
+          extract_name_sync(struct_name, sizeof(struct_name), p + 7, brace);
           struct_fields_free(&sf);
           struct_fields_init(&sf);
           state = IN_STRUCT;
-          p = brace + 1;
-        } else {
-          continue;
         }
-      } else {
-        continue;
+        p = brace + 1;
+        goto process_line_sync;
       }
     }
 
     if (state == IN_ENUM) {
       char *end_brace = strchr(p, '}');
       char *body_to_parse;
+      size_t len;
 
       if (end_brace) {
-        const size_t len = end_brace - p;
+        len = end_brace - p;
         body_to_parse = (char *)malloc(len + 1);
         if (!body_to_parse) {
           state = NONE;
@@ -221,9 +219,10 @@ int sync_code_main(int argc, char **argv) {
     } else if (state == IN_STRUCT) {
       char *end_brace = strchr(p, '}');
       char *body_to_parse;
+      size_t len;
 
       if (end_brace) {
-        size_t len = end_brace - p;
+        len = end_brace - p;
         body_to_parse = (char *)malloc(len + 1);
         if (!body_to_parse) {
           state = NONE;

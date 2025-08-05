@@ -36,6 +36,7 @@ typedef struct HWND__ *HWND;
 #define delete_file remove /* `DeleteFile` requires winbase.h :( */
 #ifndef W_OK
 #define W_OK 0
+extern C_CDD_EXPORT int path_is_unc(const char *path);
 #endif /* !W_OK */
 #else
 #include <limits.h>

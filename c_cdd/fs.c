@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,104 +119,73 @@ const char *get_basename(const char *const path) {
   return bname;
 }
 
-const char *get_dirname(char *s) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#ifdef PATHCCH_LIB
-  size_t n;
-  wchar_t *wide_buffer;
-  if (!s || !*s)
-    return ".";
-
-  n = strlen(s) + 1;
-  wide_buffer = (wchar_t *)malloc(sizeof(wchar_t) * n);
-  if (wide_buffer == NULL) {
-    errno = ENOMEM;
-    return NULL;
-  }
-
-  if (ascii_to_wide(s, wide_buffer, n) > 0) {
-    if (PathCchRemoveFileSpec(wide_buffer, n) == S_OK) {
-      wide_to_ascii(wide_buffer, s, n);
-    }
-  }
-
-  free(wide_buffer);
-  return s;
-#else
-#define IS_SEPARATOR(c) ((c) == '/' || (c) == '\\')
+const char *get_dirname(char *path) {
   static char dot[] = ".";
   size_t len;
-  char *end_ptr;
-
-  if (s == NULL || *s == '\0')
-    return dot;
-
-  len = strlen(s);
-  if (strrchr(s, '/') == NULL && strrchr(s, '\\') == NULL)
-    return ".";
-  if (len >= PATH_MAX) {
-    errno = ENAMETOOLONG;
-    return NULL;
-  }
-  end_ptr = s + len - 1;
-
-  while (end_ptr > s && IS_SEPARATOR(*end_ptr))
-    end_ptr--;
-
-  while (end_ptr >= s && !IS_SEPARATOR(*end_ptr))
-    end_ptr--;
-
-  if (end_ptr < s)
-    return dot;
-
-  if (end_ptr > s && *(end_ptr - 1) == ':') {
-    *(end_ptr + 1) = '\0';
-    return s;
-  }
-
-  if (end_ptr == s) {
-    *(end_ptr + 1) = '\0';
-    return s;
-  }
-
-  while (end_ptr > s && IS_SEPARATOR(*(end_ptr - 1)))
-    end_ptr--;
-
-  *end_ptr = '\0';
-
-  return s;
-#endif /* PATHCCH_LIB */
-#else
   char *p;
-  if (s == NULL || *s == '\0')
-    return ".";
 
-  if (strchr(s, '/') == NULL)
-    return ".";
+  if (path == NULL || *path == '\0') {
+    return dot;
+  }
+  len = strlen(path);
 
-  if (strlen(s) >= PATH_MAX) {
-    errno = ENAMETOOLONG;
-    return NULL;
+  /* Strip trailing slashes */
+  p = path + len - 1;
+  while (p >= path && (*p == '/' || *p == '\\')) {
+    p--;
+  }
+  *(p + 1) = '\0';
+  len = p - path + 1;
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (len == 2 && path[1] == ':') { /* "C:" */
+    return path;
+  }
+  if (path_is_unc(path)) {
+    char *p_sep = path + 2;
+    int sep_count = 0;
+    while (*p_sep) {
+      if (*p_sep == '\\' || *p_sep == '/') {
+        sep_count++;
+      }
+      p_sep++;
+    }
+    if (sep_count < 2) {
+      return path;
+    }
+  }
+#endif
+
+  /* Find the last separator */
+  p = path + len - 1;
+  while (p >= path && *p != '/' && *p != '\\') {
+    p--;
   }
 
-  p = s + strlen(s) - 1;
-  while (p > s && *p == '/')
-    *p-- = '\0';
-
-  while (p >= s && *p != '/')
-    p--;
-
-  if (p < s)
-    return "/";
-
-  while (p > s && *p == '/')
-    *p-- = '\0';
-
-  if (*s == '\0')
-    return "/";
-
-  return s;
+  if (p < path) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    if (len > 1 && path[1] == ':') {
+      path[2] = '\0';
+      return path;
+    }
 #endif
+    return dot;
+  }
+
+  if (p == path) { /* "/foo" -> "/" */
+    *(p + 1) = '\0';
+    return path;
+  }
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (p == path + 2 && path[1] == ':') { /* "C:\foo" -> "C:\" */
+    *(p + 1) = '\0';
+    return path;
+  }
+#endif
+
+  *p = '\0';
+  return path;
 }
 
 enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
@@ -349,7 +319,6 @@ out_error:
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
-#ifndef _MSC_VER
 /*
  * Make a directory, return 0 for success.
  * It's okay if the directory already exists.
@@ -357,26 +326,22 @@ out_error:
  */
 static int maybe_mkdir(const char *const path) {
   struct c_stat st;
+  int res;
 
-  /* Try to create directory */
-  if (mkdir(path, 0777) == 0)
+#if defined(_MSC_VER)
+  res = _mkdir(path);
+#else
+  res = mkdir(path, 0777);
+#endif
+
+  if (res == 0)
     return 0;
 
-  /* If mkdir failed, check if it's because it already exists */
   if (errno != EEXIST)
     return -1;
 
-  /* Path exists, check if it's a directory */
   if (c_stat(path, &st) != 0)
-    return -1; /* stat failed, can't proceed */
-
-  if (access(path, W_OK) != 0) {
-    /* It could be we don't have permissions to stat,
-     * so let's try a simple access check */
-    struct c_stat st_parent;
-    if (c_stat(".", &st_parent) == 0 && (st_parent.st_mode & S_IWUSR) == 0)
-      return -1;
-  }
+    return -1;
 
   if (!IS_DIR(st.st_mode)) {
     errno = ENOTDIR;
@@ -384,58 +349,50 @@ static int maybe_mkdir(const char *const path) {
   }
   return 0;
 }
-#endif /* !_MSC_VER */
 
 int makedirs(const char *const path) {
-  int result;
+  char *dup_path, *p;
 
-  if (path == NULL || *path == '\0')
+  if (path == NULL || *path == '\0') {
+    errno = EINVAL;
     return EXIT_FAILURE;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  result = SHCreateDirectoryEx(NULL, path, NULL);
-  if (result == ERROR_SUCCESS || result == ERROR_ALREADY_EXISTS) {
+  }
+#if defined(_MSC_VER)
+  if ((strlen(path) == 1 && (path[0] == '/' || path[0] == '\\')) ||
+      (strlen(path) == 2 && path[1] == ':') ||
+      (strlen(path) == 3 && path[1] == ':' &&
+       (path[2] == '/' || path[2] == '\\'))) {
     return EXIT_SUCCESS;
   }
-  return EXIT_FAILURE;
 #else
-  {
-    char *_path, *p;
-    _path = NULL;
-    p = NULL;
-    errno = 0;
-    result = EXIT_FAILURE;
-
-    _path = strdup(path);
-    if (_path == NULL)
-      goto out;
-
-    for (p = _path; *p; p++) {
-      if (*p == '/' || *p == '\\') {
-        if (p == _path)
-          continue;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        if (p > _path && *(p - 1) == ':')
-          continue;
+  if (strlen(path) == 1 && path[0] == '/')
+    return EXIT_SUCCESS;
 #endif
-        *p = '\0';
-        if (maybe_mkdir(_path) != 0) {
-          *p = PATH_SEP_C;
-          goto out;
-        }
-        *p = PATH_SEP_C;
+
+  dup_path = strdup(path);
+  if (dup_path == NULL)
+    return EXIT_FAILURE;
+
+  for (p = dup_path; *p; ++p) {
+    if (*p == '/' || *p == '\\') {
+      if (p == dup_path)
+        continue;
+      *p = '\0';
+      if (maybe_mkdir(dup_path) != 0) {
+        free(dup_path);
+        return EXIT_FAILURE;
       }
+      *p = PATH_SEP_C;
     }
-
-    if (maybe_mkdir(_path) != 0)
-      goto out;
-
-    result = 0;
-
-  out:
-    free(_path);
   }
-#endif
-  return result;
+
+  if (maybe_mkdir(dup_path) != 0) {
+    free(dup_path);
+    return EXIT_FAILURE;
+  }
+
+  free(dup_path);
+  return EXIT_SUCCESS;
 }
 
 int makedir(const char *const p) {
@@ -449,3 +406,9 @@ int makedir(const char *const p) {
              ? EXIT_SUCCESS
              : EXIT_FAILURE;
 }
+
+#ifdef _MSC_VER
+int path_is_unc(const char *path) {
+  return strlen(path) > 2 && path[0] == '\\' && path[1] == '\\';
+}
+#endif /* _MSC_VER */

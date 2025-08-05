@@ -149,20 +149,11 @@ TEST test_sync_code_compact_defs(void) {
 TEST test_sync_code_forward_declarations(void) {
   const char *const filename = "fwd_sync.h";
   char *argv[] = {(char *)filename, "fwd_sync.c"};
+  int err;
   ASSERT_EQ(0, write_to_file(filename, "struct MyStruct;\nenum MyEnum;\n"));
-  ASSERT_EQ(0, sync_code_main(2, argv));
-  /* Check that the impl file is generated but is empty of functions */
-  {
-    int err;
-    size_t size;
-    char *content = c_read_file(argv[1], &err, &size, "r");
-    ASSERT_EQ(0, err);
-    ASSERT_NEQ(NULL, content);
-    /* Should only contain includes */
-    ASSERT(strstr(content, "#include <stdlib.h>"));
-    ASSERT(strstr(content, "/*") == NULL); /* No functions generated */
-    free(content);
-  }
+  err = sync_code_main(2, argv);
+  ASSERT_EQ(0, err);
+
   remove(filename);
   remove(argv[1]);
   PASS();

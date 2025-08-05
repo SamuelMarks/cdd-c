@@ -174,7 +174,6 @@ void struct_fields_add(struct StructFields *sf, const char *const name,
  */
 int parse_struct_member_line(const char *line, struct StructFields *sf) {
   char namebuf[64];
-  int matched;
   const char *p;
   const char *name_start, *name_end;
   size_t len;
@@ -216,43 +215,63 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     }
   }
 
-  /* int used for bool in your code, treat as boolean */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  matched =
-      sscanf_s(line, "bool %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "bool %63[^; \t]", namebuf);
-#endif
-  if (matched == 1) {
-    struct_fields_add(sf, namebuf, "boolean", NULL);
-    return 1;
+  if (strncmp(line, "bool ", 5) == 0) {
+    p = line + 5;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    name_start = p;
+    while (*p && !isspace((unsigned char)*p) && *p != ';')
+      p++;
+    name_end = p;
+    if (name_end > name_start) {
+      len = name_end - name_start;
+      if (len < sizeof(namebuf)) {
+        memcpy(namebuf, name_start, len);
+        namebuf[len] = '\0';
+        struct_fields_add(sf, namebuf, "boolean", NULL);
+        return 1;
+      }
+    }
   }
 
-  /* int name; or double name; */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  matched =
-      sscanf_s(line, "int %63[^; \t]", namebuf, (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "int %63[^; \t]", namebuf);
-#endif
-  if (matched == 1) {
-    struct_fields_add(sf, namebuf, "integer", NULL);
-    return 1;
+  if (strncmp(line, "int ", 4) == 0) {
+    p = line + 4;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    name_start = p;
+    while (*p && !isspace((unsigned char)*p) && *p != ';')
+      p++;
+    name_end = p;
+    if (name_end > name_start) {
+      len = name_end - name_start;
+      if (len < sizeof(namebuf)) {
+        memcpy(namebuf, name_start, len);
+        namebuf[len] = '\0';
+        struct_fields_add(sf, namebuf, "integer", NULL);
+        return 1;
+      }
+    }
   }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  matched = sscanf_s(line, "double %63[^; \t]", namebuf,
-                     (unsigned int)sizeof(namebuf));
-#else
-  matched = sscanf(line, "double %63[^; \t]", namebuf);
-#endif
-  if (matched == 1) {
-    struct_fields_add(sf, namebuf, "number", NULL);
-    return 1;
+  if (strncmp(line, "double ", 7) == 0) {
+    p = line + 7;
+    while (*p && isspace((unsigned char)*p))
+      p++;
+    name_start = p;
+    while (*p && !isspace((unsigned char)*p) && *p != ';')
+      p++;
+    name_end = p;
+    if (name_end > name_start) {
+      len = name_end - name_start;
+      if (len < sizeof(namebuf)) {
+        memcpy(namebuf, name_start, len);
+        namebuf[len] = '\0';
+        struct_fields_add(sf, namebuf, "number", NULL);
+        return 1;
+      }
+    }
   }
+
   /* enum pointer: handles "enum Type * name;" and "enum Type*name;" */
   if (strncmp(line, "enum ", 5) == 0) {
     p = line + 5;
@@ -415,13 +434,23 @@ void write_struct_to_json_schema(JSON_Object *schemas_obj,
       json_object_set_string(field_obj, "type", "number");
     } else if (strcmp(type, "object") == 0) {
       char ref_buf[128];
-      snprintf(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
-               sf->fields[i].ref);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      sprintf_s(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
+                sf->fields[i].ref);
+#else
+      sprintf(ref_buf, "#/components/schemas/%s", sf->fields[i].ref);
+#endif
       json_object_set_string(field_obj, "$ref", ref_buf);
     } else if (strcmp(type, "enum") == 0) {
       char ref_buf[128];
-      snprintf(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
-               sf->fields[i].ref);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      sprintf_s(ref_buf, sizeof(ref_buf), "#/components/schemas/%s",
+                sf->fields[i].ref);
+#else
+      sprintf(ref_buf, "#/components/schemas/%s", sf->fields[i].ref);
+#endif
       json_object_set_string(field_obj, "$ref", ref_buf);
     }
 
@@ -457,7 +486,6 @@ static int parse_header_file(const char *header_filename,
 
   char *p;
   char *brace;
-  char *semi;
   char *end_brace;
   char *body_to_parse;
   size_t len;
@@ -467,6 +495,7 @@ static int parse_header_file(const char *header_filename,
   char *eq;
   char *field_p;
   JSON_Value *final_val;
+  char *semi;
 
   memset(enum_name, 0, sizeof(enum_name));
   memset(struct_name, 0, sizeof(struct_name));
@@ -510,46 +539,30 @@ static int parse_header_file(const char *header_filename,
       continue;
 
     if (state == P_NONE) {
-      if (str_starts_with(p, "enum ")) {
-        brace = strchr(p, '{');
-        if (brace) {
-          extract_name(enum_name, sizeof(enum_name), p + 5, brace);
-          enum_members_free(&em);
-          enum_members_init(&em);
-          state = P_IN_ENUM;
-          p = brace + 1;
-          goto process_line;
-        } else {
-          semi = strchr(p, ';');
-          if (semi) {
-            p = semi + 1;
-            goto process_line;
-          } else {
-            /* Unhandled, maybe just keyword, go to next line */
-            goto next_line;
-          }
-        }
-      } else if (str_starts_with(p, "struct ")) {
-        brace = strchr(p, '{');
-        if (brace) {
-          extract_name(struct_name, sizeof(struct_name), p + 7, brace);
-          struct_fields_free(&sf);
-          struct_fields_init(&sf);
-          state = P_IN_STRUCT;
-          p = brace + 1;
-          goto process_line;
-        } else {
-          semi = strchr(p, ';');
-          if (semi) {
-            p = semi + 1;
-            goto process_line;
-          } else {
-            /* Unhandled, maybe just keyword, go to next line */
-            goto next_line;
-          }
-        }
-      } else {
-        continue;
+      brace = strchr(p, '{');
+      semi = strchr(p, ';');
+
+      if ((str_starts_with(p, "enum ") || str_starts_with(p, "struct ")) &&
+          semi && (!brace || semi < brace)) {
+        /* Forward declaration */
+        p = semi + 1;
+        goto process_line;
+      }
+
+      if (str_starts_with(p, "enum ") && brace) {
+        extract_name(enum_name, sizeof(enum_name), p + 5, brace);
+        enum_members_free(&em);
+        enum_members_init(&em);
+        state = P_IN_ENUM;
+        p = brace + 1;
+        goto process_line;
+      } else if (str_starts_with(p, "struct ") && brace) {
+        extract_name(struct_name, sizeof(struct_name), p + 7, brace);
+        struct_fields_free(&sf);
+        struct_fields_init(&sf);
+        state = P_IN_STRUCT;
+        p = brace + 1;
+        goto process_line;
       }
     }
 
@@ -643,7 +656,6 @@ static int parse_header_file(const char *header_filename,
           goto process_line;
       }
     }
-  next_line:;
   }
   fclose(fp);
 
