@@ -4,7 +4,7 @@
 #include <greatest.h>
 #include <schema_codegen.h>
 
-#include "fs.h" // <-- Add this include for PATH_SEP
+#include "fs.h"
 
 TEST test_schema2code_wrong_args(void) {
   char *argv[] = {"program", NULL};
@@ -241,10 +241,10 @@ TEST test_schema_codegen_valid_struct_enum(void) {
 TEST test_schema_codegen_output_file_open_fail(void) {
   const char *const schema_filename = "codegen_fail_schema.json";
   const char *const out_dir_as_file = "codegen_fail_dir_is_file";
-  char out_path_base[256];
+  const char out_path_base[] = "codegen_fail_dir_is_file" PATH_SEP "out_base";
   FILE *fp;
 
-  // 1. Create a dummy schema file
+  /* 1. Create a dummy schema file */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   errno_t err = fopen_s(&fp, schema_filename, "w");
@@ -260,7 +260,7 @@ TEST test_schema_codegen_output_file_open_fail(void) {
   fputs("{\"components\":{\"schemas\":{}}}", fp);
   fclose(fp);
 
-  // 2. Create a file that we will try to use as a directory
+  /* 2. Create a file that we will try to use as a directory */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   err = fopen_s(&fp, out_dir_as_file, "w");
@@ -277,26 +277,18 @@ TEST test_schema_codegen_output_file_open_fail(void) {
 #endif
   fclose(fp);
 
-  // 3. Construct the invalid output basename (e.g., "some_file/basename")
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  sprintf_s(out_path_base, sizeof(out_path_base), "%s%sout_base",
-            out_dir_as_file, PATH_SEP);
-#else
-  sprintf(out_path_base, "%s%sout_base", out_dir_as_file, PATH_SEP);
-#endif
-
-  // 4. Run the function and assert it fails
+  /* 3. Run the function and assert it fails */
   {
     int rc;
-    char *argv[] = {(char *)schema_filename, out_path_base};
+    char *argv[] = {(char *)schema_filename, NULL};
+    argv[1] = (char *)out_path_base;
     rc = schema2code_main(2, argv);
     /* Should fail as 'out_dir_as_file' in the path is a file, not a directory
      */
     ASSERT(rc != 0);
   }
 
-  // 5. Cleanup
+  /* 5. Cleanup */
   remove(schema_filename);
   remove(out_dir_as_file);
   PASS();
@@ -396,6 +388,35 @@ TEST test_schema_codegen_malformed_props(void) {
   PASS();
 }
 
+TEST test_schema_codegen_empty_properties(void) {
+  const char *const filename = "empty_props.json";
+  const char *argv[] = {filename, "empty_props_out"};
+  int rc;
+  const char *schema = "{\"components\":{\"schemas\":{"
+                       "\"S1\": {\"type\": \"object\", \"properties\": {}}"
+                       "}}}";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  /* Check generated files. Should be a struct with no fields. */
+  {
+    int err;
+    size_t fsize;
+    char *content = c_read_file("empty_props_out.h", &err, &fsize, "r");
+    ASSERT_EQ(0, err);
+    ASSERT(strstr(content, "struct LIB_EXPORT S1 {\n};") != NULL);
+    free(content);
+  }
+
+  remove(filename);
+  remove("empty_props_out.h");
+  remove("empty_props_out.c");
+  PASS();
+}
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema2code_wrong_args);
   RUN_TEST(test_schema2code_input_errors);
@@ -412,6 +433,7 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema_codegen_header_null_basename);
   RUN_TEST(test_schema_codegen_various_types);
   RUN_TEST(test_schema_codegen_malformed_props);
+  RUN_TEST(test_schema_codegen_empty_properties);
 }
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

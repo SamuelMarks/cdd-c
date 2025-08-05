@@ -472,6 +472,24 @@ TEST test_token_to_cstr_edge_cases(void) {
   PASS();
 }
 
+TEST tokenize_identifier_with_underscore(void) {
+  const az_span code = AZ_SPAN_FROM_STR("_my_var another_var an_other_");
+  struct TokenList tl = {NULL, 0, 0};
+  char buf[64];
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(5, tl.size); /* 3 idents, 2 spaces */
+
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[0].kind);
+  ASSERT_STR_EQ("_my_var", token_to_cstr(buf, sizeof(buf), &tl.tokens[0]));
+
+  ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[2].kind);
+  ASSERT_STR_EQ("another_var", token_to_cstr(buf, sizeof(buf), &tl.tokens[2]));
+
+  free_token_list(&tl);
+  PASS();
+}
+
 /* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
@@ -491,6 +509,7 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_tricky_comments);
   RUN_TEST(tokenize_various_literals);
   RUN_TEST(test_token_to_cstr_edge_cases);
+  RUN_TEST(tokenize_identifier_with_underscore);
 }
 
 #endif /* !TEST_TOKENIZER_H */
