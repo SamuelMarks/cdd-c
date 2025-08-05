@@ -231,6 +231,28 @@ TEST test_schema2tests_header_inclusion_logic(void) {
 #undef OUT_DIR
 }
 
+TEST test_schema2tests_sanitize_names(void) {
+  char *argv[] = {"sanitize_schema.json", "h.h",
+                  "build" PATH_SEP "test_sanitize.h"};
+  const char *const schema_file = argv[0];
+  int rc;
+
+  rc = write_to_file(schema_file, "{\"$defs\":{\"E-1\":{\"type\":\"string\","
+                                  "\"enum\":[\"val-1\"]}}}");
+  ASSERT_EQ(0, rc);
+
+  rc = jsonschema2tests_main(3, argv);
+  ASSERT_EQ(0, rc);
+
+  /* The generated test function name should be `test_E_1_to_str_from_str`.
+   * The enum member would be `E_1_val_1`. This test mainly ensures that
+   * the generator doesn't crash on such names. */
+
+  remove(schema_file);
+  remove("build" PATH_SEP "test_sanitize.h");
+  remove("build" PATH_SEP "test_main.c");
+  PASS();
+}
 SUITE(schema2tests_suite) {
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
@@ -244,6 +266,7 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_with_null_enum_val);
   RUN_TEST(test_schema2tests_generated_output);
   RUN_TEST(test_schema2tests_header_inclusion_logic);
+  RUN_TEST(test_schema2tests_sanitize_names);
 }
 
 #endif /* !TEST_SCHEMA2TESTS_H */

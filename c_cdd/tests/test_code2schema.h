@@ -68,7 +68,7 @@ TEST test_parse_struct_member_line(void) {
   ASSERT_EQ(1, parse_struct_member_line("const char *foo;", &sf));
   ASSERT_EQ(1, parse_struct_member_line("int bar;", &sf));
   ASSERT_EQ(1, parse_struct_member_line("double x;", &sf));
-  /* ASSERT_EQ(1, parse_struct_member_line("bool b;", &sf)); */
+  ASSERT_EQ(1, parse_struct_member_line("bool b;", &sf));
   ASSERT_EQ(1, parse_struct_member_line("enum Color *e;", &sf));
   ASSERT_EQ(1, parse_struct_member_line("struct Point * p;", &sf));
   struct_fields_free(&sf);
@@ -229,6 +229,16 @@ TEST test_code2schema_unterminated_defs(void) {
 
   remove(filename);
   remove(json_out);
+  PASS();
+}
+
+TEST test_parse_struct_member_line_ignore(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  /* Should be ignored, not a pointer and not a simple type */
+  ASSERT_EQ(0, parse_struct_member_line("char foo[10];", &sf));
+  ASSERT_EQ(0, sf.size);
+  struct_fields_free(&sf);
   PASS();
 }
 
@@ -644,6 +654,29 @@ TEST test_json_object_to_struct_fields_ref_no_type(void) {
   PASS();
 }
 
+TEST test_json_object_to_struct_fields_ref_to_object(void) {
+  const char *schema_str = "{"
+                           "\"properties\": {\"my_obj_field\": {\"$ref\": "
+                           "\"#/c/s/MyObj\"}},"
+                           "\"c\": {\"s\": {\"MyObj\": {\"type\": \"object\"}}}"
+                           "}";
+  JSON_Value *root_val = json_parse_string(schema_str);
+  JSON_Object *root_obj, *c, *s;
+  struct StructFields sf;
+  ASSERT(root_val);
+  root_obj = json_value_get_object(root_val);
+  c = json_object_get_object(root_obj, "c");
+  s = json_object_get_object(c, "s");
+
+  ASSERT_EQ(0, json_object_to_struct_fields(root_obj, &sf, s));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("object", sf.fields[0].type);
+
+  struct_fields_free(&sf);
+  json_value_free(root_val);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -676,7 +709,9 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_parse_struct_member_line_no_space_after_ptr);
   RUN_TEST(test_json_object_to_struct_fields_with_ref_resolution);
   RUN_TEST(test_json_object_to_struct_fields_ref_no_type);
+  RUN_TEST(test_json_object_to_struct_fields_ref_to_object);
   RUN_TEST(test_get_type_from_ref_no_slash_or_null);
+  RUN_TEST(test_parse_struct_member_line_ignore);
 }
 
 #endif /* !TEST_CODE2SCHEMA_H */

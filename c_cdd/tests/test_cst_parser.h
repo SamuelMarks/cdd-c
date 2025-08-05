@@ -496,6 +496,37 @@ TEST parse_tokens_struct_var_with_space(void) {
   PASS();
 }
 
+TEST parse_tokens_deeply_nested(void) {
+  struct TokenList tl = {0};
+  struct CstNodeList cst = {0};
+  const az_span code = AZ_SPAN_FROM_STR(
+      "struct O { struct M { union I { int i; } in; } mid; };");
+  size_t i, struct_count = 0, union_count = 0;
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(&tl, &cst));
+
+  for (i = 0; i < cst.size; i++) {
+    switch (cst.nodes[i].kind) {
+    case CST_NODE_STRUCT:
+      struct_count++;
+      break;
+    case CST_NODE_UNION:
+      union_count++;
+      break;
+    default:
+      break;
+    }
+  }
+
+  ASSERT_EQ(2, struct_count);
+  ASSERT_EQ(1, union_count);
+
+  free_token_list(&tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
 /* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
@@ -519,6 +550,7 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_struct_followed_by_keyword);
   RUN_TEST(parse_tokens_struct_var_with_space);
   RUN_TEST(parse_tokens_struct_variable_declaration);
+  RUN_TEST(parse_tokens_deeply_nested);
 }
 
 #endif /* !TEST_CST_PARSER_H */

@@ -617,6 +617,24 @@ TEST test_simple_json_more_eq_cases(void) {
   PASS();
 }
 
+TEST test_FooE_eq_nested_diff(void) {
+  struct FooE *f1 = NULL, *f2 = NULL;
+  FooE_default(&f1);
+  FooE_default(&f2);
+
+  /* Test haz member inequality */
+  f1->haz->tank = Tank_BIG;
+  f2->haz->tank = Tank_SMALL;
+  ASSERT(!FooE_eq(f1, f2));
+
+  f2->haz->tank = Tank_BIG;
+  ASSERT(FooE_eq(f1, f2));
+
+  FooE_cleanup(f1);
+  FooE_cleanup(f2);
+  PASS();
+}
+
 SUITE(dataclasses_suite) {
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
@@ -640,6 +658,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_HazE_deepcopy_alloc_fail);
   RUN_TEST(test_simple_json_more_eq_cases);
   RUN_TEST(test_simple_json_HazE_more_eq_cases);
+  RUN_TEST(test_FooE_eq_nested_diff);
 }
 
 #endif /* TEST_DATACLASSES_H */
