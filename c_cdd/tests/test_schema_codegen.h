@@ -389,8 +389,8 @@ TEST test_schema_codegen_malformed_props(void) {
 }
 
 TEST test_schema_codegen_empty_properties(void) {
-  const char *const filename = "empty_props.json";
-  const char *argv[] = {filename, "empty_props_out"};
+  const char *argv[] = {"empty_props.json", "empty_props_out"};
+  const char *const filename = argv[0];
   int rc;
   const char *schema = "{\"components\":{\"schemas\":{"
                        "\"S1\": {\"type\": \"object\", \"properties\": {}}"

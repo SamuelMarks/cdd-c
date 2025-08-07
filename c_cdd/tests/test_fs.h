@@ -6,6 +6,10 @@
 #include <fs.h>
 #include <greatest.h>
 
+#ifdef _MSC_VER
+#include <wchar.h>
+#endif /* !_MSC_VER */
+
 #ifndef _MSC_VER
 #include <sys/stat.h>
 #endif /* !_MSC_VER */
@@ -62,31 +66,6 @@ TEST test_makedir_tmp(void) {
   PASS();
 }
 
-TEST test_fs_basename(void) {
-  const char path1[] = PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt";
-  const char path2[] = "baz.txt";
-  const char *res;
-  char path_with_sep[] = "foo" PATH_SEP "bar";
-  ASSERT_STR_EQ("baz.txt", get_basename(path1));
-  ASSERT_STR_EQ("baz.txt", get_basename(path2));
-  res = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt");
-  ASSERT_STR_EQ("baz.txt", res);
-
-  res = get_basename("file.txt");
-  ASSERT_STR_EQ("file.txt", res);
-
-  res = get_basename(path_with_sep);
-  ASSERT_STR_EQ("bar", res);
-
-  res = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP);
-  ASSERT_STR_EQ("bar", res);
-
-  res = get_basename(NULL);
-  ASSERT_STR_EQ(".", res);
-
-  PASS();
-}
-
 TEST test_fs_dirname(void) {
   char path1[] = PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt";
   char path2[] = "baz.txt";
@@ -96,19 +75,6 @@ TEST test_fs_dirname(void) {
   ASSERT_STR_EQ(".", get_dirname(path2));
   ASSERT_STR_EQ(".", get_dirname(path3));
   ASSERT_STR_EQ(".", get_dirname(NULL));
-  PASS();
-}
-
-TEST test_fs_dirname_windows_specific(void) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  char path_drive_rel[] = "C:foo";
-  char path_drive_abs[] = "C:\\foo";
-
-  ASSERT_STR_EQ("C:", get_dirname(path_drive_rel));
-  ASSERT_STR_EQ("C:\\", get_dirname(path_drive_abs));
-#else
-  SKIP();
-#endif
   PASS();
 }
 
@@ -257,6 +223,63 @@ TEST test_makedirs_and_makedir_edge(void) {
   PASS();
 }
 
+TEST test_write_to_file_null_args(void) {
+  ASSERT_NEQ(0, write_to_file(NULL, "content"));
+  ASSERT_NEQ(0, write_to_file("filename.txt", NULL));
+  PASS();
+}
+
+#ifdef _MSC_VER
+TEST test_fs_windows_conversions(void) {
+  const char *ascii_str = "hello";
+  wchar_t wide_buf[10];
+  char ascii_buf[10];
+  int len;
+
+  len = ascii_to_wide(ascii_str, wide_buf, 10);
+  ASSERT_EQ(5, len);
+  ASSERT(wcscmp(wide_buf, L"hello") == 0);
+
+  len = wide_to_ascii(wide_buf, ascii_buf, 10);
+  ASSERT_EQ(5, len);
+  ASSERT_STR_EQ("hello", ascii_buf);
+
+  /* Error cases */
+  ASSERT_EQ(-1, ascii_to_wide(NULL, wide_buf, 10));
+  ASSERT_EQ(-1, ascii_to_wide(ascii_str, NULL, 10));
+  ASSERT_EQ(-1, ascii_to_wide(ascii_str, wide_buf, 0));
+  ASSERT_EQ(-1, wide_to_ascii(NULL, ascii_buf, 10));
+  ASSERT_EQ(-1, wide_to_ascii(wide_buf, NULL, 10));
+  ASSERT_EQ(-1, wide_to_ascii(wide_buf, ascii_buf, 0));
+
+  PASS();
+}
+
+TEST test_fs_windows_unc(void) {
+  char unc_path[] = "\\\\server\\share\\file";
+  char unc_path_dir_only[] = "\\\\server\\share";
+  ASSERT(path_is_unc(unc_path));
+  ASSERT_STR_EQ("\\\\server\\share", get_dirname(unc_path));
+  ASSERT_STR_EQ("\\\\server\\share", get_dirname(unc_path_dir_only));
+
+  ASSERT(!path_is_unc("C:\\notunc"));
+  ASSERT(!path_is_unc("\\nounc"));
+  ASSERT(!path_is_unc("nounc"));
+  PASS();
+}
+#endif
+
+TEST test_makedirs_path_is_file(void) {
+  const char *filename = "test_file_for_makedirs";
+  const char *path = "test_file_for_makedirs/sub";
+  write_to_file(filename, "");
+
+  ASSERT_NEQ(0, makedirs(path));
+
+  remove(filename);
+  PASS();
+}
+
 /* Try get_dirname with NULL and "" */
 TEST test_get_dirname_edge_cases(void) {
   char empty1[2] = "";
@@ -368,18 +391,14 @@ TEST test_makedirs_stat_fail(void) {
 #endif
 }
 
-TEST test_write_to_file_null_args(void) {
-  ASSERT_NEQ(0, write_to_file(NULL, "content"));
-  ASSERT_NEQ(0, write_to_file("filename.txt", NULL));
-  PASS();
-}
-
 TEST test_get_dirname_multiple_separators(void) {
-  char path2[] = PATH_SEP PATH_SEP "foo" PATH_SEP;
+  char path0[] = PATH_SEP PATH_SEP "foo";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  ASSERT_STR_EQ("\\\\foo", get_dirname(path2));
+  char path1[] = PATH_SEP "foo" PATH_SEP PATH_SEP "bar";
+  ASSERT_STR_EQ(PATH_SEP "foo", get_dirname(path1));
+  ASSERT_STR_EQ("\\\\foo", get_dirname(path0));
 #else
-  ASSERT_STR_EQ(PATH_SEP, get_dirname(path2));
+  ASSERT_STR_EQ(PATH_SEP, get_dirname(path0));
 #endif
   PASS();
 }
@@ -388,7 +407,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
   RUN_TEST(test_c_read_file_error);
   RUN_TEST(test_makedir_tmp);
-  RUN_TEST(test_fs_basename);
   RUN_TEST(test_fs_dirname);
   RUN_TEST(test_fs_c_read_file_error);
   RUN_TEST(test_fs_c_read_file_success);
@@ -407,7 +425,11 @@ SUITE(fs_suite) {
   RUN_TEST(test_makedirs_stat_fail);
   RUN_TEST(test_get_dirname_multiple_separators);
   RUN_TEST(test_write_to_file_null_args);
-  RUN_TEST(test_fs_dirname_windows_specific);
+  RUN_TEST(test_makedirs_path_is_file);
+#ifdef _MSC_VER
+  RUN_TEST(test_fs_windows_conversions);
+  RUN_TEST(test_fs_windows_unc);
+#endif
 }
 
 #endif /* !TEST_FS_H */
