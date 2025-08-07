@@ -253,6 +253,66 @@ TEST test_schema2tests_sanitize_names(void) {
   remove("build" PATH_SEP "test_main.c");
   PASS();
 }
+
+TEST test_schema2tests_header_inclusion_not_found(void) {
+#define OUT_DIR "build_s2t_include_not_found"
+  char *argv[] = {
+      OUT_DIR PATH_SEP "schema.json",
+      "header.h",
+      OUT_DIR PATH_SEP "test.h",
+  };
+  const char *const schema_content =
+      "{\"$defs\": {\"NonExistent\": {\"type\":\"object\"}}}";
+  char non_existent_header_path[256];
+  int err;
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  sprintf_s(non_existent_header_path, sizeof(non_existent_header_path),
+            "%s%s%s", OUT_DIR, PATH_SEP, "NonExistent.h");
+#else
+  sprintf(non_existent_header_path, "%s%s%s", OUT_DIR, PATH_SEP,
+          "NonExistent.h");
+#endif
+
+  err = makedirs(OUT_DIR);
+  ASSERT_EQ(0, err);
+
+  write_to_file(argv[0], schema_content);
+
+  /* Ensure the header does not exist */
+  remove(non_existent_header_path);
+
+  err = jsonschema2tests_main(3, argv);
+  ASSERT_EQ(0, err);
+
+  {
+    int read_err;
+    size_t fsize;
+    char *content = c_read_file(argv[2], &read_err, &fsize, "r");
+    ASSERT_EQ(0, read_err);
+    ASSERT(strstr(content, "#include \"NonExistent.h\"") == NULL);
+    free(content);
+  }
+
+  remove(argv[0]);
+  remove(argv[2]);
+  remove(OUT_DIR PATH_SEP "test_main.c");
+  rmdir(OUT_DIR);
+
+  PASS();
+#undef OUT_DIR
+}
+
+TEST test_schema2tests_output_in_current_dir(void) {
+  char *argv[] = {"schema_cur.json", "header.h", "test_cur.h"};
+  const char *const schema_content =
+      "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
+  ASSERT_EQ(0, write_to_file(argv[0], schema_content));
+  ASSERT_EQ(0, jsonschema2tests_main(3, argv));
+  PASS();
+}
+
 SUITE(schema2tests_suite) {
   RUN_TEST(test_jsonschema2tests_wrong_args);
   RUN_TEST(test_schema2tests_argc_error);
@@ -267,6 +327,8 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_generated_output);
   RUN_TEST(test_schema2tests_header_inclusion_logic);
   RUN_TEST(test_schema2tests_sanitize_names);
+  RUN_TEST(test_schema2tests_header_inclusion_not_found);
+  RUN_TEST(test_schema2tests_output_in_current_dir);
 }
 
 #endif /* !TEST_SCHEMA2TESTS_H */
