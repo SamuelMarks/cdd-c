@@ -37,6 +37,8 @@ typedef struct HWND__ *HWND;
 #ifndef W_OK
 #define W_OK 0
 extern C_CDD_EXPORT int path_is_unc(const char *path);
+extern C_CDD_EXPORT int ascii_to_wide(const char *, wchar_t *, size_t);
+extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *, char *, size_t);
 #endif /* !W_OK */
 #else
 #include <limits.h>
