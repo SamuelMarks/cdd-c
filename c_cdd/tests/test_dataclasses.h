@@ -235,7 +235,7 @@ TEST test_display_fail(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r");
+    const errno_t err = fopen_s(&fh, tmp_fname, "r, ccs=UTF-8");
     if (err != 0 || fh == NULL) {
       fprintf(stderr, "Failed to read file %s\n", tmp_fname);
       return EXIT_FAILURE;
@@ -405,7 +405,7 @@ TEST test_debug_fail(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r");
+    const errno_t err = fopen_s(&fh, tmp_fname, "r, ccs=UTF-8");
     if (err != 0 || fh == NULL) {
       fprintf(stderr, "Failed to read file %s\n", tmp_fname);
       return EXIT_FAILURE;

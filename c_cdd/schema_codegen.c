@@ -236,7 +236,7 @@ static int generate_header(const char *const basename,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&hfile, header_filename, "w");
+    errno_t err = fopen_s(&hfile, header_filename, "w, ccs=UTF-8");
     if (err != 0 || hfile == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", header_filename);
       return -1;
@@ -308,7 +308,7 @@ static int generate_source(const char *const basename,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&cfile, source_filename, "w");
+    errno_t err = fopen_s(&cfile, source_filename, "w, ccs=UTF-8");
     if (err != 0 || cfile == NULL) {
       fprintf(stderr, "Failed to open source file %s\n", source_filename);
       return -1;

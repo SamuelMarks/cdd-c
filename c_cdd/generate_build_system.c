@@ -24,7 +24,7 @@ static int write_cmake(const char *const output_directory,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&rootCmakeLists, rootCmakeListsPath, "w");
+    errno_t err = fopen_s(&rootCmakeLists, rootCmakeListsPath, "w, ccs=UTF-8");
     if (err != 0 || rootCmakeLists == NULL) {
       fprintf(stderr, "Failed to open %s for writing", rootCmakeListsPath);
       free(rootCmakeListsPath);
@@ -86,7 +86,7 @@ static int write_cmake(const char *const output_directory,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     {
-      errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w");
+      errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w, ccs=UTF-8");
       if (err != 0 || srcCmakeListsPath == NULL) {
         fprintf(stderr, "Failed to open %s for writing", srcCmakeListsPath);
         free(srcCmakeListsPath);
@@ -201,7 +201,7 @@ static int write_makefile(const char *const output_directory,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&f, p, "w");
+    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
     if (err != 0 || f == NULL) {
       fprintf(stderr, "Failed to open %s for writing\n", p);
       free(p);
@@ -284,7 +284,7 @@ static int write_meson(const char *const output_directory,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&f, p, "w");
+    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
     if (err != 0 || f == NULL) {
       fprintf(stderr, "Failed to open %s for writing\n", p);
       free(p);
@@ -356,7 +356,7 @@ static int write_bazel(const char *const output_directory,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&f, p, "w");
+    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
     if (err != 0 || f == NULL) {
       fprintf(stderr, "Failed to open %s for writing\n", p);
       free(p);

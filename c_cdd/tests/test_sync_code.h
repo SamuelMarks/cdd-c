@@ -76,7 +76,7 @@ TEST test_sync_code_too_many_defs(void) {
   int i;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  ASSERT_EQ(0, fopen_s(&f, filename, "w"));
+  ASSERT_EQ(0, fopen_s(&f, filename, "w, ccs=UTF-8"));
   ASSERT(f);
 #else
   f = fopen(filename, "w");
