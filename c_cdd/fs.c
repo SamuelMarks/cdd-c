@@ -190,8 +190,8 @@ const char *get_dirname(char *path) {
 
 enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
 
-char *c_read_file(const char *const f_name, int *err, size_t *f_size,
-                  const char *const mode) {
+char *read_to_file(const char *const f_name, int *err, size_t *f_size,
+                   const char *const mode) {
   char *buffer;
   size_t length;
   FILE *f;
@@ -207,7 +207,7 @@ char *c_read_file(const char *const f_name, int *err, size_t *f_size,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t e;
-    e = fopen_s(&f, f_name, mode);
+    e = fopen_s(&f, f_name, strcmp(mode, "r") == 0 ? "r, ccs=UTF-8" : mode);
     if (e != 0 || f == NULL) {
       *err = FILE_NOT_EXIST;
       return NULL;

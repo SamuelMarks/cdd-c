@@ -25,7 +25,7 @@ TEST test_schema2code_input_errors(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, broken_json, "w");
+    errno_t err = fopen_s(&fp, broken_json, "w, ccs=UTF-8");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open file %s\n", broken_json);
       FAIL();
@@ -44,7 +44,7 @@ TEST test_schema2code_input_errors(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, "bad_schema.json", "w");
+    errno_t err = fopen_s(&fp, "bad_schema.json", "w, ccs=UTF-8");
     if (err != 0 || fp == NULL) {
       FAILm("Failed to open file");
     }
@@ -79,7 +79,7 @@ TEST test_schema_codegen_broken_json(void) {
   FILE *fp;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
+  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
     FAIL();
@@ -105,7 +105,7 @@ TEST test_schema_codegen_empty_schema(void) {
   const char *const filename = "empty.json";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
+  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
     FAIL();
@@ -137,7 +137,7 @@ TEST test_schema_codegen_no_defs(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
+  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     FAILm("Failed to open file");
   }
@@ -212,7 +212,7 @@ TEST test_schema_codegen_valid_struct_enum(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w");
+  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
     FAIL();
@@ -247,7 +247,7 @@ TEST test_schema_codegen_output_file_open_fail(void) {
   /* 1. Create a dummy schema file */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, schema_filename, "w");
+  errno_t err = fopen_s(&fp, schema_filename, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     FAIL();
   }
@@ -263,7 +263,7 @@ TEST test_schema_codegen_output_file_open_fail(void) {
   /* 2. Create a file that we will try to use as a directory */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  err = fopen_s(&fp, out_dir_as_file, "w");
+  err = fopen_s(&fp, out_dir_as_file, "w, ccs=UTF-8");
   if (err != 0 || fp == NULL) {
     remove(schema_filename);
     FAIL();
@@ -406,7 +406,7 @@ TEST test_schema_codegen_empty_properties(void) {
   {
     int err;
     size_t fsize;
-    char *content = c_read_file("empty_props_out.h", &err, &fsize, "r");
+    char *content = read_to_file("empty_props_out.h", &err, &fsize, "rb");
     ASSERT_EQ(0, err);
     ASSERT(strstr(content, "struct LIB_EXPORT S1 {\n};") != NULL);
     free(content);

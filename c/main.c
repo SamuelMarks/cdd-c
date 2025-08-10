@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&yyin, argv[1], "r");
+    errno_t err = fopen_s(&yyin, argv[1], "r, ccs=UTF-8");
     if (err != 0 || yyin == NULL) {
       fprintf(stderr, "couldn't open file for reading %s\n", argv[1]);
       return EXIT_FAILURE;

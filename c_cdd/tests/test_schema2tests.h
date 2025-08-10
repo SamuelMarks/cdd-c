@@ -36,7 +36,7 @@ TEST test_schema2tests_success(void) {
   int rc_main;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&f, "min_schema.json", "w");
+  errno_t err = fopen_s(&f, "min_schema.json", "w, ccs=UTF-8");
   if (err != 0 || f == NULL) {
     fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
     FAIL();
@@ -78,7 +78,7 @@ TEST test_schema2tests_output_file_open_fail(void) {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    ASSERT_EQ(0, fopen_s(&f, out_dir_as_file, "w"));
+    ASSERT_EQ(0, fopen_s(&f, out_dir_as_file, "w, ccs=UTF-8"));
     ASSERT(f);
 #else
     f = fopen(out_dir_as_file, "w");
@@ -289,7 +289,7 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
   {
     int read_err;
     size_t fsize;
-    char *content = c_read_file(argv[2], &read_err, &fsize, "r");
+    char *content = read_to_file(argv[2], &read_err, &fsize, "r");
     ASSERT_EQ(0, read_err);
     ASSERT(strstr(content, "#include \"NonExistent.h\"") == NULL);
     free(content);

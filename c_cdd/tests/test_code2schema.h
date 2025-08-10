@@ -21,7 +21,7 @@ TEST test_write_enum_functions(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&tmp, filename, "w");
+    errno_t err = fopen_s(&tmp, filename, "w, ccs=UTF-8");
     if (err != 0 || tmp == NULL) {
       fprintf(stderr, "Failed to open %s for writing", filename);
       free(tmp);

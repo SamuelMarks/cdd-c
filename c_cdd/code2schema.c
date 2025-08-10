@@ -503,7 +503,7 @@ static int parse_header_file(const char *header_filename,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&fp, header_filename, "r");
+    errno_t err = fopen_s(&fp, header_filename, "r, ccs=UTF-8");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", header_filename);
       return -1;

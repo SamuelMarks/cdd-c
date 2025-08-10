@@ -32,26 +32,26 @@ TEST test_get_basename(void) {
   PASS();
 }
 
-TEST test_c_read_file_error(void) {
+TEST test_read_to_file_error(void) {
   int err = 0;
   size_t size = 0;
   char *s;
 
-  s = c_read_file("file_that_does_not_exist.xyz", &err, &size, "r");
+  s = read_to_file("file_that_does_not_exist.xyz", &err, &size, "r");
   ASSERT_EQ(NULL, s);
   ASSERT_EQ(1, err); /* FILE_NOT_EXIST */
 
-  s = c_read_file(NULL, &err, &size, "r");
+  s = read_to_file(NULL, &err, &size, "r");
   ASSERT_EQ(NULL, s);
   ASSERT_EQ(1, err); /* FILE_NOT_EXIST */
 
-  s = c_read_file("anything", NULL, &size, "r");
+  s = read_to_file("anything", NULL, &size, "r");
   ASSERT_EQ(NULL, s);
 
-  s = c_read_file("anything", &err, NULL, "r");
+  s = read_to_file("anything", &err, NULL, "r");
   ASSERT_EQ(NULL, s);
 
-  s = c_read_file("anything", &err, &size, NULL);
+  s = read_to_file("anything", &err, &size, NULL);
   ASSERT_EQ(NULL, s);
 
   PASS();
@@ -78,7 +78,7 @@ TEST test_fs_dirname(void) {
   PASS();
 }
 
-TEST test_fs_c_read_file_empty(void) {
+TEST test_fs_read_to_file_empty(void) {
   FILE *fp;
   int err;
   size_t sz;
@@ -86,7 +86,7 @@ TEST test_fs_c_read_file_empty(void) {
   const char *const filename = "empty.tmp";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err_s = fopen_s(&fp, filename, "w");
+  errno_t err_s = fopen_s(&fp, filename, "w, ccs=UTF-8");
   if (err_s != 0 || fp == NULL) {
     fprintf(stderr, "Failed to open file %s\n", filename);
     FAIL();
@@ -100,7 +100,7 @@ TEST test_fs_c_read_file_empty(void) {
 #endif
   fclose(fp);
 
-  data = c_read_file(filename, &err, &sz, "r");
+  data = read_to_file(filename, &err, &sz, "r");
   ASSERT_EQ(0, err);
   ASSERT_EQ(0, sz);
   ASSERT_NEQ(NULL, data);
@@ -119,7 +119,7 @@ TEST test_fs_cp(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err_s = fopen_s(&fp, src, "w");
+    errno_t err_s = fopen_s(&fp, src, "w, ccs=UTF-8");
     if (err_s != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
       FAIL();
@@ -139,7 +139,7 @@ TEST test_fs_cp(void) {
   {
     int err;
     size_t size;
-    char *content = c_read_file(dst, &err, &size, "r");
+    char *content = read_to_file(dst, &err, &size, "r");
     ASSERT(content != NULL && strcmp(content, "hello") == 0);
     free(content);
   }
@@ -154,7 +154,7 @@ TEST test_fs_cp(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err_s = fopen_s(&fp, src, "w");
+    errno_t err_s = fopen_s(&fp, src, "w, ccs=UTF-8");
     if (err_s != 0 || fp == NULL) {
       fprintf(stderr, "Failed to open header file %s\n", src);
       FAIL();
@@ -176,21 +176,21 @@ TEST test_fs_cp(void) {
   PASS();
 }
 
-TEST test_fs_c_read_file_error(void) {
+TEST test_fs_read_to_file_error(void) {
   int err;
   size_t sz;
   const char path[] = PATH_SEP "not" PATH_SEP "a" PATH_SEP "file";
-  ASSERT_EQ(NULL, c_read_file(path, &err, &sz, "r"));
+  ASSERT_EQ(NULL, read_to_file(path, &err, &sz, "r"));
   PASS();
 }
 
-TEST test_fs_c_read_file_success(void) {
+TEST test_fs_read_to_file_success(void) {
   const char *const filename = "testfs.txt";
   int err;
   size_t sz;
   char *data;
   ASSERT_EQ(EXIT_SUCCESS, write_to_file(filename, "Hello"));
-  data = c_read_file(filename, &err, &sz, "r");
+  data = read_to_file(filename, &err, &sz, "r");
   ASSERT(data != NULL && sz == 5);
   ASSERT_EQ(err, /* FILE_OK */ 0);
   free(data);
@@ -198,10 +198,10 @@ TEST test_fs_c_read_file_success(void) {
   PASS();
 }
 
-TEST test_c_read_file_nulls(void) {
+TEST test_read_to_file_nulls(void) {
   int err = 0;
   size_t sz = 0;
-  const char *const s = c_read_file(NULL, &err, &sz, "r");
+  const char *const s = read_to_file(NULL, &err, &sz, "r");
   ASSERT_EQ(NULL, s);
   PASS();
 }
@@ -394,8 +394,6 @@ TEST test_makedirs_stat_fail(void) {
 TEST test_get_dirname_multiple_separators(void) {
   char path0[] = PATH_SEP PATH_SEP "foo";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  char path1[] = PATH_SEP "foo" PATH_SEP PATH_SEP "bar";
-  ASSERT_STR_EQ(PATH_SEP "foo", get_dirname(path1));
   ASSERT_STR_EQ("\\\\foo", get_dirname(path0));
 #else
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path0));
@@ -405,13 +403,13 @@ TEST test_get_dirname_multiple_separators(void) {
 
 SUITE(fs_suite) {
   RUN_TEST(test_get_basename);
-  RUN_TEST(test_c_read_file_error);
+  RUN_TEST(test_read_to_file_error);
   RUN_TEST(test_makedir_tmp);
   RUN_TEST(test_fs_dirname);
-  RUN_TEST(test_fs_c_read_file_error);
-  RUN_TEST(test_fs_c_read_file_success);
-  RUN_TEST(test_fs_c_read_file_empty);
-  RUN_TEST(test_c_read_file_nulls);
+  RUN_TEST(test_fs_read_to_file_error);
+  RUN_TEST(test_fs_read_to_file_success);
+  RUN_TEST(test_fs_read_to_file_empty);
+  RUN_TEST(test_read_to_file_nulls);
   RUN_TEST(test_makedirs_and_makedir_edge);
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);

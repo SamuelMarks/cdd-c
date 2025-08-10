@@ -55,8 +55,8 @@ extern C_CDD_EXPORT const char *get_basename(const char *);
 
 extern C_CDD_EXPORT const char *get_dirname(char *);
 
-extern C_CDD_EXPORT char *c_read_file(const char *, int *, size_t *,
-                                      const char *);
+extern C_CDD_EXPORT char *read_to_file(const char *, int *, size_t *,
+                                       const char *);
 
 extern C_CDD_EXPORT int cp(const char *, const char *);
 
