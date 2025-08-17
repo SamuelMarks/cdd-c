@@ -82,132 +82,145 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* </windows_utils> */
 
-const char *get_basename(const char *const path) {
-  /* BSD licensed OpenBSD implementation from lib/libc/gen/basename.c
-   * @ ff5bc0. */
-  static char bname[PATH_MAX];
+/*
+ * A safe, re-entrant implementation of basename.
+ * The caller is responsible for freeing the returned string.
+ * Returns NULL on allocation failure.
+ */
+static char *get_basename_s(const char *path) {
+  const char *start_p, *p;
+  char *ret;
   size_t len;
-  const char *endp, *startp;
 
-  if (path == NULL || *path == '\0') {
+  if (!path || !*path) {
+    return strdup(".");
+  }
+
+  p = path + strlen(path) - 1;
+  while (p > path && (*p == '/' || *p == '\\')) {
+    p--;
+  }
+
+  start_p = p;
+  while (start_p > path && *(start_p - 1) != '/' && *(start_p - 1) != '\\') {
+    start_p--;
+  }
+
+  len = (p - start_p) + 1;
+  ret = (char *)malloc(len + 1);
+  if (!ret)
+    return NULL;
+
+  memcpy(ret, start_p, len);
+  ret[len] = '\0';
+
+  return ret;
+}
+
+const char *get_basename(const char *path) {
+  static char bname[PATH_MAX];
+  char* s_ret = get_basename_s(path);
+  if(s_ret) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strncpy_s(bname, PATH_MAX, s_ret, _TRUNCATE);
+#else
+    strncpy(bname, s_ret, PATH_MAX - 1);
+    bname[PATH_MAX-1] = '\0';
+#endif
+    free(s_ret);
+  } else {
     bname[0] = '.';
     bname[1] = '\0';
-    return bname;
   }
-
-  endp = path + strlen(path) - 1;
-  while (endp > path && (*endp == '/' || *endp == '\\'))
-    endp--;
-
-  if (endp == path && (*endp == '/' || *endp == '\\')) {
-    bname[0] = *endp;
-    bname[1] = '\0';
-    return bname;
-  }
-
-  startp = endp;
-  while (startp > path && (*(startp - 1) != '/' && *(startp - 1) != '\\'))
-    startp--;
-
-  len = endp - startp + 1;
-  if (len >= sizeof(bname)) {
-    errno = ENAMETOOLONG;
-    return NULL;
-  }
-  memcpy(bname, startp, len);
-  bname[len] = '\0';
   return bname;
 }
 
+/*
+ * A safe, re-entrant implementation of dirname.
+ * The input `path` is NOT modified.
+ * The caller is responsible for freeing the returned string.
+ * Returns NULL on allocation failure.
+ */
+static char *get_dirname_s(const char *path) {
+    char *ret;
+    const char *p;
+    size_t len;
+
+    if (!path || !*path)
+        return strdup(".");
+
+    p = path + strlen(path) - 1;
+    while (p > path && (*p == '/' || *p == '\\')) {
+        p--;
+    }
+
+    while (p > path && *p != '/' && *p != '\\') {
+        p--;
+    }
+
+    /* If path is like "/foo", p now points to '/'. We want to return "/" */
+    if (p == path && (*p == '/' || *p == '\\')) {
+        len = 1;
+    } else {
+        len = p - path;
+    }
+
+    if (len == 0) {
+        return strdup(".");
+    }
+
+    ret = (char*)malloc(len + 1);
+    if (!ret)
+        return NULL;
+
+    memcpy(ret, path, len);
+    ret[len] = '\0';
+    return ret;
+}
+
 const char *get_dirname(char *path) {
-  static char dot[] = ".";
-  size_t len;
-  char *p;
-
-  if (path == NULL || *path == '\0') {
-    return dot;
-  }
-  len = strlen(path);
-
-  /* Strip trailing slashes */
-  p = path + len - 1;
-  while (p >= path && (*p == '/' || *p == '\\')) {
-    p--;
-  }
-  *(p + 1) = '\0';
-  len = p - path + 1;
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  if (len == 2 && path[1] == ':') { /* "C:" */
-    return path;
-  }
-  if (path_is_unc(path)) {
-    char *p_sep = path + 2;
-    int sep_count = 0;
-    while (*p_sep) {
-      if (*p_sep == '\\' || *p_sep == '/') {
-        sep_count++;
-      }
-      p_sep++;
-    }
-    if (sep_count < 2) {
-      return path;
-    }
-  }
+  static char dname[PATH_MAX];
+  char* s_ret = get_dirname_s(path);
+  if(s_ret) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strncpy_s(dname, PATH_MAX, s_ret, _TRUNCATE);
+#else
+    strncpy(dname, s_ret, PATH_MAX - 1);
+    dname[PATH_MAX-1] = '\0';
 #endif
-
-  /* Find the last separator */
-  p = path + len - 1;
-  while (p >= path && *p != '/' && *p != '\\') {
-    p--;
+    free(s_ret);
+  } else {
+    dname[0] = '.';
+    dname[1] = '\0';
   }
-
-  if (p < path) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    if (len > 1 && path[1] == ':') {
-      path[2] = '\0';
-      return path;
-    }
-#endif
-    return dot;
-  }
-
-  if (p == path) { /* "/foo" -> "/" */
-    *(p + 1) = '\0';
-    return path;
-  }
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  if (p == path + 2 && path[1] == ':') { /* "C:\foo" -> "C:\" */
-    *(p + 1) = '\0';
-    return path;
-  }
-#endif
-
-  *p = '\0';
-  return path;
+  return dname;
 }
 
 enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
 
+#define READ_CHUNK_SIZE 4096
+
 char *read_to_file(const char *const f_name, int *err, size_t *f_size,
                    const char *const mode) {
-  char *buffer;
-  size_t length;
-  FILE *f;
-  size_t read_length;
-  long length_long;
+  char *buffer = NULL;
+  size_t total_read = 0;
+  size_t capacity = 0;
+  FILE *f = NULL;
+  size_t read_now;
 
   if (!f_name || !mode || !err || !f_size) {
     if (err)
       *err = FILE_NOT_EXIST;
     return NULL;
   }
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t e;
-    e = fopen_s(&f, f_name, strcmp(mode, "r") == 0 ? "r, ccs=UTF-8" : mode);
+    e = fopen_s(&f, f_name, mode);
     if (e != 0 || f == NULL) {
       *err = FILE_NOT_EXIST;
       return NULL;
@@ -215,48 +228,40 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
   }
 #else
   f = fopen(f_name, mode);
-  if (!f) {
+  if (f == NULL) {
     *err = FILE_NOT_EXIST;
     return NULL;
   }
 #endif
-  fseek(f, 0, SEEK_END);
-  length_long = ftell(f);
-  if (length_long < 0) {
-    *err = FILE_READ_ERROR;
-    fclose(f);
-    return NULL;
-  }
-  length = (size_t)length_long;
-  fseek(f, 0, SEEK_SET);
 
-  if (length > 1073741824) {
-    *err = FILE_TOO_LARGE;
-    fclose(f);
-    return NULL;
-  }
-
-  buffer = (char *)malloc(length + 1);
-  if (!buffer) {
-    *err = FILE_READ_ERROR;
-    fclose(f);
-    return NULL;
-  }
-
-  if (length > 0) {
-    read_length = fread(buffer, 1, length, f);
-    if (length != read_length) {
-      free(buffer);
-      fclose(f);
-      *err = FILE_READ_ERROR;
-      return NULL;
+  do {
+    if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
+      size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
+      char *new_buffer = (char *)realloc(buffer, new_capacity);
+      if (!new_buffer) {
+        free(buffer);
+        fclose(f);
+        *err = FILE_READ_ERROR; /* Represents ENOMEM */
+        return NULL;
+      }
+      buffer = new_buffer;
+      capacity = new_capacity;
     }
+    read_now = fread(buffer + total_read, 1, READ_CHUNK_SIZE, f);
+    total_read += read_now;
+  } while (read_now == READ_CHUNK_SIZE);
+
+  if (ferror(f)) {
+    free(buffer);
+    fclose(f);
+    *err = FILE_READ_ERROR;
+    return NULL;
   }
 
   fclose(f);
   *err = FILE_OK;
-  buffer[length] = '\0';
-  *f_size = length;
+  buffer[total_read] = '\0';
+  *f_size = total_read;
   return buffer;
 }
 
@@ -405,6 +410,28 @@ int makedir(const char *const p) {
 #endif
              ? EXIT_SUCCESS
              : EXIT_FAILURE;
+}
+
+int tempdir(const char **tmpdir) {
+  char pathname[L_tmpnam+1];
+  char *ptr;
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  errno_t err = tmpnam_s( pathname, L_tmpnam_s);
+  if (err) return err;
+  *tmpdir = get_dirname(strdup(pathname));
+  return EXIT_SUCCESS;
+#else
+  ptr = tmpnam(pathname);
+#endif
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  *tmpdir = get_dirname(ptr);
+#else
+  *tmpdir = dirname(ptr);
+#endif
+  return EXIT_SUCCESS;
 }
 
 #ifdef _MSC_VER
