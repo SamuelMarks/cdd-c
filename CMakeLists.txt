@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.11)
 
 project(c_cdd VERSION 0.0.2 LANGUAGES C)
+ 
+if(MSVC)
+    # Enforce the same C runtime library for all targets to avoid CRT mismatches.
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "MSVC C runtime library" FORCE)
+endif()
 
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
