@@ -1,10 +1,15 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define _CRT_RAND_S
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 #include <stdlib.h>
 #include <string.h>
 
 #include "fs.h"
+#include "str_includes.h"
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include <direct.h>
@@ -119,14 +124,14 @@ static char *get_basename_s(const char *path) {
 
 const char *get_basename(const char *path) {
   static char bname[PATH_MAX];
-  char* s_ret = get_basename_s(path);
-  if(s_ret) {
+  char *s_ret = get_basename_s(path);
+  if (s_ret) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strncpy_s(bname, PATH_MAX, s_ret, _TRUNCATE);
 #else
     strncpy(bname, s_ret, PATH_MAX - 1);
-    bname[PATH_MAX-1] = '\0';
+    bname[PATH_MAX - 1] = '\0';
 #endif
     free(s_ret);
   } else {
@@ -143,52 +148,52 @@ const char *get_basename(const char *path) {
  * Returns NULL on allocation failure.
  */
 static char *get_dirname_s(const char *path) {
-    char *ret;
-    const char *p;
-    size_t len;
+  char *ret;
+  const char *p;
+  size_t len;
 
-    if (!path || !*path)
-        return strdup(".");
+  if (!path || !*path)
+    return strdup(".");
 
-    p = path + strlen(path) - 1;
-    while (p > path && (*p == '/' || *p == '\\')) {
-        p--;
-    }
+  p = path + strlen(path) - 1;
+  while (p > path && (*p == '/' || *p == '\\')) {
+    p--;
+  }
 
-    while (p > path && *p != '/' && *p != '\\') {
-        p--;
-    }
+  while (p > path && *p != '/' && *p != '\\') {
+    p--;
+  }
 
-    /* If path is like "/foo", p now points to '/'. We want to return "/" */
-    if (p == path && (*p == '/' || *p == '\\')) {
-        len = 1;
-    } else {
-        len = p - path;
-    }
+  /* If path is like "/foo", p now points to '/'. We want to return "/" */
+  if (p == path && (*p == '/' || *p == '\\')) {
+    len = 1;
+  } else {
+    len = p - path;
+  }
 
-    if (len == 0) {
-        return strdup(".");
-    }
+  if (len == 0) {
+    return strdup(".");
+  }
 
-    ret = (char*)malloc(len + 1);
-    if (!ret)
-        return NULL;
+  ret = (char *)malloc(len + 1);
+  if (!ret)
+    return NULL;
 
-    memcpy(ret, path, len);
-    ret[len] = '\0';
-    return ret;
+  memcpy(ret, path, len);
+  ret[len] = '\0';
+  return ret;
 }
 
 const char *get_dirname(char *path) {
   static char dname[PATH_MAX];
-  char* s_ret = get_dirname_s(path);
-  if(s_ret) {
+  char *s_ret = get_dirname_s(path);
+  if (s_ret) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strncpy_s(dname, PATH_MAX, s_ret, _TRUNCATE);
 #else
     strncpy(dname, s_ret, PATH_MAX - 1);
-    dname[PATH_MAX-1] = '\0';
+    dname[PATH_MAX - 1] = '\0';
 #endif
     free(s_ret);
   } else {
@@ -413,13 +418,14 @@ int makedir(const char *const p) {
 }
 
 int tempdir(const char **tmpdir) {
-  char pathname[L_tmpnam+1];
+  char pathname[L_tmpnam + 1];
   char *ptr;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = tmpnam_s( pathname, L_tmpnam_s);
-  if (err) return err;
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  errno_t err = tmpnam_s(pathname, L_tmpnam_s);
+  if (err)
+    return err;
   *tmpdir = get_dirname(strdup(pathname));
   return EXIT_SUCCESS;
 #else
@@ -432,6 +438,60 @@ defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   *tmpdir = dirname(ptr);
 #endif
   return EXIT_SUCCESS;
+}
+
+int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
+                            char const *mode, const char **temp_filename,
+                            FILE **temp_fh) {
+  size_t i;
+  const char *tmpdir;
+  int rc = tempdir(&tmpdir);
+  char *tmpfilename;
+  if (rc != 0)
+    return rc;
+  for (i = 9; i != 0; --i) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    {
+      unsigned int number;
+      errno_t err = rand_s(&number);
+      if (err)
+        return err;
+      asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir, PATH_SEP_C, prefix, number,
+               suffix);
+    }
+#else
+    {
+      uint32_t number = arc4random();
+      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix,
+               number, suffix);
+    }
+#endif
+    if (access(tmpfilename, F_OK) != 0) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      {
+        errno_t err = fopen_s(temp_fh, tmpfilename, mode);
+        if (err != 0 || temp_fh == NULL) {
+          fprintf(stderr, "Failed to open %s\n", tmpfilename);
+          free(*temp_fh);
+          return EXIT_FAILURE;
+        }
+      }
+#else
+      *temp_fh = fopen(tmpfilename, mode);
+      if (!*temp_fh) {
+        fprintf(stderr, "Failed to open %s", tmpfilename);
+        free(*temp_fh);
+        return EXIT_FAILURE;
+      }
+#endif
+      *temp_filename = tmpfilename;
+      return EXIT_SUCCESS;
+    }
+    free(tmpfilename);
+  }
+  return EXIT_FAILURE;
 }
 
 #ifdef _MSC_VER

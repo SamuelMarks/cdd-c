@@ -66,7 +66,11 @@ extern C_CDD_EXPORT int makedirs(const char *);
 
 extern C_CDD_EXPORT int tempdir(const char **);
 
-extern C_CDD_EXPORT int mktmpfileandname(char *, FILE**);
+extern C_CDD_EXPORT int mktmpfilegetnameandfile(const char *prefix,
+                                                const char *suffix,
+                                                char const *mode,
+                                                const char **temp_filename,
+                                                FILE **temp_fh);
 
 #ifdef __cplusplus
 }

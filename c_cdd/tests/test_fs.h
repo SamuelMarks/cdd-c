@@ -407,6 +407,8 @@ TEST test_tempdir(void) {
   ASSERT_EQ(EXIT_SUCCESS, rc);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   ASSERT_STR_EQ(tmpdir, getenv("TEMP"));
+#else
+  ASSERT_STR_EQ(tmpdir, getenv("TMP"));
 #endif
   PASS();
 }
