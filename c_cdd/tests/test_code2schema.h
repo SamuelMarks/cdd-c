@@ -8,9 +8,9 @@
 
 #include "fs.h"
 
+#include <cdd_test_helpers/cdd_helpers.h>
 #include <code2schema.h>
 #include <codegen.h>
-#include <cdd_test_helpers/cdd_helpers.h>
 
 TEST test_write_enum_functions(void) {
   struct EnumMembers em;
@@ -30,7 +30,8 @@ TEST test_write_enum_functions(void) {
   }
 #else
   tmp = tmpfile();
-  if (!tmp) FAILm("Failed to open file for writing");
+  if (!tmp)
+    FAILm("Failed to open file for writing");
 #endif
 
   write_enum_to_str_func(tmp_fh, "MyEnum", &em);
