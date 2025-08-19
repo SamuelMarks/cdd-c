@@ -83,31 +83,15 @@ TEST test_fs_read_to_file_empty(void) {
   int err;
   size_t sz;
   char *data;
-  const char *const filename = "empty.tmp";
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err_s = fopen_s(&fp, filename, "w, ccs=UTF-8");
-  if (err_s != 0 || fp == NULL) {
-    fprintf(stderr, "Failed to open file %s\n", filename);
-    FAIL();
-  }
-#else
-  fp = fopen(filename, "w");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", filename);
-    FAIL();
-  }
-#endif
-  fclose(fp);
-
-  data = read_to_file(filename, &err, &sz, "r");
-  ASSERT_EQ(0, err);
+  struct FilenameAndPtr *file = malloc(sizeof(*file));
+  ASSERT_EQ(0, mktmpfilegetnameandfile(NULL, "empty.tmp", "wb", file));
+  data = read_to_file(file->filename, &err, &sz, "rb");
+  ASSERT_EQ(FOPEN_OK, err);
   ASSERT_EQ(0, sz);
   ASSERT_NEQ(NULL, data);
   ASSERT_EQ('\0', data[0]);
 
-  free(data);
-  remove(filename);
+  FilenameAndPtr_delete_and_cleanup(file);
   PASS();
 }
 
@@ -319,6 +303,8 @@ TEST test_fs_makedirs_top_and_empty(void) {
   PASS();
 }
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#else
 TEST test_get_basename_long(void) {
   char long_path[PATH_MAX + 20];
   const char *res;
@@ -332,6 +318,7 @@ TEST test_get_basename_long(void) {
 
   PASS();
 }
+#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 TEST test_get_dirname_long_filename_no_path(void) {
   char long_path[PATH_MAX + 20];
@@ -392,10 +379,11 @@ TEST test_makedirs_stat_fail(void) {
 }
 
 TEST test_get_dirname_multiple_separators(void) {
-  char path0[] = PATH_SEP PATH_SEP "foo";
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  char path0[] = PATH_SEP PATH_SEP PATH_SEP PATH_SEP "foo";
   ASSERT_STR_EQ("\\\\foo", get_dirname(path0));
 #else
+  char path0[] = PATH_SEP PATH_SEP "foo";
   ASSERT_STR_EQ(PATH_SEP, get_dirname(path0));
 #endif
   PASS();
@@ -432,7 +420,10 @@ SUITE(fs_suite) {
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);
   RUN_TEST(test_fs_makedirs_top_and_empty);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#else
   RUN_TEST(test_get_basename_long);
+#endif
   RUN_TEST(test_get_dirname_long_filename_no_path);
   RUN_TEST(test_write_to_file_fail);
   RUN_TEST(test_get_basename_root_path);

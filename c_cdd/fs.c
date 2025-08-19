@@ -11,6 +11,8 @@
 #include "fs.h"
 #include "str_includes.h"
 
+#include <stdint.h>
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include <direct.h>
 #include <fileapi.h>
@@ -203,9 +205,26 @@ const char *get_dirname(char *path) {
   return dname;
 }
 
-enum { FILE_OK, FILE_NOT_EXIST, FILE_TOO_LARGE, FILE_READ_ERROR };
+enum { READ_CHUNK_SIZE = 4096 };
 
-#define READ_CHUNK_SIZE 4096
+enum FopenError fopen_error_from(int fopen_error) {
+  switch (fopen_error) {
+  case EINVAL:
+    return FOPEN_INVALID_PARAMETER;
+  case EMFILE:
+    return FOPEN_TOO_MANY_OPEN_FILES;
+  case ENOMEM:
+    return FOPEN_OUT_OF_MEMORY;
+  case ENOENT:
+    return FOPEN_FILE_NOT_FOUND;
+  case EACCES:
+    return FOPEN_PERMISSION_DENIED;
+  case ERANGE:
+    return FOPEN_FILENAME_TOO_LONG;
+  default:
+    return FOPEN_UNKNOWN_ERROR;
+  }
+}
 
 char *read_to_file(const char *const f_name, int *err, size_t *f_size,
                    const char *const mode) {
@@ -214,27 +233,32 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
   size_t capacity = 0;
   FILE *f = NULL;
   size_t read_now;
+  int rc;
 
-  if (!f_name || !mode || !err || !f_size) {
+  if (!f_name || !mode || !f_size) {
     if (err)
-      *err = FILE_NOT_EXIST;
+      *err = FOPEN_INVALID_PARAMETER;
     return NULL;
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t e;
-    e = fopen_s(&f, f_name, mode);
-    if (e != 0 || f == NULL) {
-      *err = FILE_NOT_EXIST;
+    errno_t e = fopen_s(&f, f_name, mode);
+    if (e != 0) {
+      if (err)
+        *err = fopen_error_from(e);
+      return NULL;
+    } else if (f == NULL) {
+      if (err)
+        *err = FOPEN_UNKNOWN_ERROR;
       return NULL;
     }
   }
 #else
   f = fopen(f_name, mode);
   if (f == NULL) {
-    *err = FILE_NOT_EXIST;
+    *err = fopen_error_from(errno);
     return NULL;
   }
 #endif
@@ -246,7 +270,8 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
       if (!new_buffer) {
         free(buffer);
         fclose(f);
-        *err = FILE_READ_ERROR; /* Represents ENOMEM */
+        if (err)
+          *err = FOPEN_OUT_OF_MEMORY; /* Represents ENOMEM */
         return NULL;
       }
       buffer = new_buffer;
@@ -256,18 +281,96 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
     total_read += read_now;
   } while (read_now == READ_CHUNK_SIZE);
 
-  if (ferror(f)) {
+  rc = ferror(f);
+  if (rc) {
     free(buffer);
     fclose(f);
-    *err = FILE_READ_ERROR;
+    if (err)
+      *err = fopen_error_from(rc);
     return NULL;
   }
 
   fclose(f);
-  *err = FILE_OK;
+  if (err)
+    *err = FOPEN_OK;
   buffer[total_read] = '\0';
   *f_size = total_read;
   return buffer;
+}
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+VOID CALLBACK FileIOCompletionRoutine(__in DWORD dwErrorCode,
+                                      __in DWORD dwNumberOfBytesTransfered,
+                                      __in LPOVERLAPPED lpOverlapped) {
+  /*_tprintf(TEXT("Error code:\t%x\n"), dwErrorCode);
+  _tprintf(TEXT("Number of bytes:\t%x\n"), dwNumberOfBytesTransfered);*/
+}
+#endif
+
+char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
+  char *buffer = NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  HANDLE hFile = fh;
+  LARGE_INTEGER file_size;
+  OVERLAPPED ol = {0};
+  if (!GetFileSizeEx(hFile, &file_size)) {
+    if (err)
+      *err = GetLastError();
+    return NULL;
+  }
+  char *const ReadBuffer = malloc(sizeof(ReadBuffer) * (file_size.QuadPart + 1));
+
+  if (FALSE == ReadFileEx(hFile, ReadBuffer, file_size.QuadPart, &ol,
+                          FileIOCompletionRoutine)) {
+    if (err)
+      *err = GetLastError();
+    free(ReadBuffer);
+    return NULL;
+  }
+  return ReadBuffer;
+#else
+  size_t total_read = 0;
+  size_t capacity = 0;
+  size_t read_now;
+  int rc;
+
+  if (!fh || f_size == NULL) {
+    if (err)
+      *err = FOPEN_INVALID_PARAMETER;
+    return NULL;
+  }
+
+  do {
+    if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
+      size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
+      char *new_buffer = (char *)realloc(buffer, new_capacity);
+      if (!new_buffer) {
+        free(buffer);
+        if (err)
+          *err = FOPEN_OUT_OF_MEMORY; /* Represents ENOMEM */
+        return NULL;
+      }
+      buffer = new_buffer;
+      capacity = new_capacity;
+    }
+    read_now = fread(buffer + total_read, 1, READ_CHUNK_SIZE, f);
+    total_read += read_now;
+  } while (read_now == READ_CHUNK_SIZE);
+
+  rc = ferror(fh);
+  if (rc) {
+    free(buffer);
+    if (err)
+      *err = fopen_error_from(rc);
+    return NULL;
+  }
+
+  if (err)
+    *err = FOPEN_OK;
+  buffer[total_read] = '\0';
+  *f_size = total_read;
+  return buffer;
+#endif
 }
 
 int cp(const char *const to, const char *const from) {
@@ -275,7 +378,7 @@ int cp(const char *const to, const char *const from) {
   return CopyFile(from, to, TRUE) ? 0 : -1;
 #else
   int fd_to, fd_from;
-  char buf[4096];
+  char buf[READ_CHUNK_SIZE];
   ssize_t nread;
   int saved_errno;
   char *out_ptr;
@@ -440,15 +543,32 @@ int tempdir(const char **tmpdir) {
   return EXIT_SUCCESS;
 }
 
+void FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
+  if (file == NULL)
+    return;
+  fclose(file->fh);
+  file->fh = NULL;
+  free(file->filename);
+  file->filename = NULL;
+}
+
+void FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
+  if (file == NULL)
+    return;
+  FilenameAndPtr_cleanup(file);
+  unlink(file->filename);
+}
+
 int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
-                            char const *mode, const char **temp_filename,
-                            FILE **temp_fh) {
-  size_t i;
+                            char const *mode, struct FilenameAndPtr *file) {
+  uint8_t i;
   const char *tmpdir;
   int rc = tempdir(&tmpdir);
   char *tmpfilename;
   if (rc != 0)
     return rc;
+  if (file == NULL)
+    file = malloc(sizeof(*file));
   for (i = 9; i != 0; --i) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -457,24 +577,25 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       errno_t err = rand_s(&number);
       if (err)
         return err;
-      asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir, PATH_SEP_C, prefix, number,
-               suffix);
+      asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir, PATH_SEP_C,
+               prefix == NULL ? "" : prefix, number,
+               suffix == NULL ? "" : suffix);
     }
 #else
     {
       uint32_t number = arc4random();
-      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix,
-               number, suffix);
+      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix == NULL ? "",
+               number, suffix == NULL ? "" : suffix);
     }
 #endif
     if (access(tmpfilename, F_OK) != 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       {
-        errno_t err = fopen_s(temp_fh, tmpfilename, mode);
-        if (err != 0 || temp_fh == NULL) {
+        errno_t err = fopen_s(&file->fh, tmpfilename, mode);
+        if (err != 0 || file->fh == NULL) {
           fprintf(stderr, "Failed to open %s\n", tmpfilename);
-          free(*temp_fh);
+          free(file->fh);
           return EXIT_FAILURE;
         }
       }
@@ -486,7 +607,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
         return EXIT_FAILURE;
       }
 #endif
-      *temp_filename = tmpfilename;
+      file->filename = tmpfilename;
       return EXIT_SUCCESS;
     }
     free(tmpfilename);
