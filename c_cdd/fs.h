@@ -7,6 +7,8 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
+#include <errno.h>
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'

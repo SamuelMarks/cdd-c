@@ -29,8 +29,8 @@ TEST test_write_enum_functions(void) {
       FAILm("Failed to open file for writing");
   }
 #else
-  tmp = tmpfile();
-  if (!tmp)
+  tmp_fh = tmpfile();
+  if (!tmp_fh)
     FAILm("Failed to open file for writing");
 #endif
 
@@ -694,6 +694,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_code2schema_with_enum_field);
   RUN_TEST(test_code2schema_single_line_defs);
   RUN_TEST(test_code2schema_forward_declarations);
+  RUN_TEST(test_code2schema_messy_header);
 #endif
   RUN_TEST(test_codegen_enum_null_args);
   RUN_TEST(test_codegen_enum_with_unknown);
