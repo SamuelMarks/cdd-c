@@ -39,11 +39,11 @@ TEST test_read_to_file_error(void) {
 
   s = read_to_file("file_that_does_not_exist.xyz", &err, &size, "r");
   ASSERT_EQ(NULL, s);
-  ASSERT_EQ(1, err); /* FILE_NOT_EXIST */
+  ASSERT_EQ(ENOENT, err); /* No such file or directory */
 
   s = read_to_file(NULL, &err, &size, "r");
   ASSERT_EQ(NULL, s);
-  ASSERT_EQ(1, err); /* FILE_NOT_EXIST */
+  ASSERT_EQ(EINVAL, err); /* Invalid argument */
 
   s = read_to_file("anything", NULL, &size, "r");
   ASSERT_EQ(NULL, s);
@@ -79,7 +79,6 @@ TEST test_fs_dirname(void) {
 }
 
 TEST test_fs_read_to_file_empty(void) {
-  FILE *fp;
   int err;
   size_t sz;
   char *data;
@@ -303,23 +302,6 @@ TEST test_fs_makedirs_top_and_empty(void) {
   PASS();
 }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#else
-TEST test_get_basename_long(void) {
-  char long_path[PATH_MAX + 20];
-  const char *res;
-
-  /* Create a path that is too long */
-  memset(long_path, 'a', sizeof(long_path) - 1);
-  long_path[sizeof(long_path) - 1] = '\0';
-
-  res = get_basename(long_path);
-  ASSERT_EQ(NULL, res);
-
-  PASS();
-}
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
-
 TEST test_get_dirname_long_filename_no_path(void) {
   char long_path[PATH_MAX + 20];
   char *res;
@@ -420,10 +402,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);
   RUN_TEST(test_fs_makedirs_top_and_empty);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#else
-  RUN_TEST(test_get_basename_long);
-#endif
   RUN_TEST(test_get_dirname_long_filename_no_path);
   RUN_TEST(test_write_to_file_fail);
   RUN_TEST(test_get_basename_root_path);

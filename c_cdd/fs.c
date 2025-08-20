@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -258,7 +259,7 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
 #else
   f = fopen(f_name, mode);
   if (f == NULL) {
-    *err = fopen_error_from(errno);
+    if (err) *err = fopen_error_from(errno);
     return NULL;
   }
 #endif
@@ -353,7 +354,7 @@ char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
       buffer = new_buffer;
       capacity = new_capacity;
     }
-    read_now = fread(buffer + total_read, 1, READ_CHUNK_SIZE, f);
+    read_now = fread(buffer + total_read, 1, READ_CHUNK_SIZE, fh);
     total_read += read_now;
   } while (read_now == READ_CHUNK_SIZE);
 
@@ -584,7 +585,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #else
     {
       uint32_t number = arc4random();
-      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix == NULL ? "",
+      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix == NULL ? "" : prefix,
                number, suffix == NULL ? "" : suffix);
     }
 #endif
@@ -600,10 +601,11 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
         }
       }
 #else
-      *temp_fh = fopen(tmpfilename, mode);
-      if (!*temp_fh) {
+      file->fh = fopen(tmpfilename, mode);
+      if (!file->fh) {
         fprintf(stderr, "Failed to open %s", tmpfilename);
-        free(*temp_fh);
+        free(file->fh);
+        file->fh = NULL;
         return EXIT_FAILURE;
       }
 #endif
