@@ -259,7 +259,8 @@ char *read_to_file(const char *const f_name, int *err, size_t *f_size,
 #else
   f = fopen(f_name, mode);
   if (f == NULL) {
-    if (err) *err = fopen_error_from(errno);
+    if (err)
+      *err = fopen_error_from(errno);
     return NULL;
   }
 #endif
@@ -319,7 +320,8 @@ char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
       *err = GetLastError();
     return NULL;
   }
-  char *const ReadBuffer = malloc(sizeof(ReadBuffer) * (file_size.QuadPart + 1));
+  char *const ReadBuffer =
+      malloc(sizeof(ReadBuffer) * (file_size.QuadPart + 1));
 
   if (FALSE == ReadFileEx(hFile, ReadBuffer, file_size.QuadPart, &ol,
                           FileIOCompletionRoutine)) {
@@ -533,7 +535,15 @@ int tempdir(const char **tmpdir) {
   *tmpdir = get_dirname(strdup(pathname));
   return EXIT_SUCCESS;
 #else
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif /* defined(__GNUC__) || defined(__clang__) */
   ptr = tmpnam(pathname);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif /* defined(__GNUC__) || defined(__clang__) */
 #endif
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -585,8 +595,9 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #else
     {
       uint32_t number = arc4random();
-      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C, prefix == NULL ? "" : prefix,
-               number, suffix == NULL ? "" : suffix);
+      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C,
+               prefix == NULL ? "" : prefix, number,
+               suffix == NULL ? "" : suffix);
     }
 #endif
     if (access(tmpfilename, F_OK) != 0) {
