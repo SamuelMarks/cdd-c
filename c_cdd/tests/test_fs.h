@@ -378,7 +378,13 @@ TEST test_tempdir(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   ASSERT_STR_EQ(tmpdir, getenv("TEMP"));
 #else
+
+#if defined(__APPLE__) && defined(__MACH__)
+  ASSERT_STR_EQ(tmpdir, "/var/tmp");
+#else
   ASSERT_STR_EQ(tmpdir, getenv("TMP"));
+#endif /* defined(__APPLE__) && defined(__MACH__) */
+
 #endif
   PASS();
 }
