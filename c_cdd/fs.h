@@ -18,7 +18,7 @@ extern "C" {
 /* ref learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types */
 typedef void *PVOID;
 typedef PVOID HANDLE;
-//-typedef HANDLE HWND;
+/* typedef HANDLE HWND; */
 
 /*struct HWND__ {
   int unused;
