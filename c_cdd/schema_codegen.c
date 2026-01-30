@@ -1,9 +1,14 @@
-/* TODO: Generate prototypes in header file
- * TODO: Upsert `struct`/`enum`/function
+/**
+ * @file schema_codegen.c
+ * @brief Implementation of C code generation from JSON Schema.
+ * Refactored to ensure strict error propagation and memory safety.
+ * @author Samuel Marks
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <parson.h>
 
@@ -28,28 +33,43 @@
 #include "codegen.h"
 #include "fs.h"
 
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if ((x) < 0)                                                               \
+      return EIO;                                                              \
+  } while (0)
+
+#define CHECK_RC(x)                                                            \
+  do {                                                                         \
+    const int err_code = (x);                                                  \
+    if (err_code != 0)                                                         \
+      return err_code;                                                         \
+  } while (0)
+
 /*
  * Write the #ifndef guard header string to the .h file.
  */
-static void print_header_guard(FILE *const hfile, const char *const basename) {
-  fprintf(hfile, "#ifndef %s_H\n", basename);
-  fprintf(hfile, "#define %s_H\n\n", basename);
+static int print_header_guard(FILE *const hfile, const char *const basename) {
+  CHECK_IO(fprintf(hfile, "#ifndef %s_H\n", basename));
+  CHECK_IO(fprintf(hfile, "#define %s_H\n\n", basename));
+  return 0;
 }
 
 /*
  * Close the #ifndef guard
  */
-static void print_header_guard_end(FILE *const hfile,
-                                   const char *const basename) {
-  fprintf(hfile, "#endif /* !%s_H */\n", basename);
+static int print_header_guard_end(FILE *const hfile,
+                                  const char *const basename) {
+  CHECK_IO(fprintf(hfile, "#endif /* !%s_H */\n", basename));
+  return 0;
 }
 
 /* Map JSON types to C types for header struct fields */
 /* $ref is a JSON pointer: #/components/schemas/TypeName */
-static void print_c_type_for_schema_prop(FILE *const hfile,
-                                         const char *const prop_name,
-                                         const JSON_Object *const prop_obj,
-                                         JSON_Object *const schemas_obj) {
+static int print_c_type_for_schema_prop(FILE *const hfile,
+                                        const char *const prop_name,
+                                        const JSON_Object *const prop_obj,
+                                        const JSON_Object *const schemas_obj) {
   const char *const type_str = json_object_get_string(prop_obj, "type");
   const char *const ref = json_object_get_string(prop_obj, "$ref");
 
@@ -62,25 +82,26 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
           json_object_get_string(ref_schema, "type");
       if (ref_type_str && strcmp(ref_type_str, "string") == 0 &&
           json_object_has_value(ref_schema, "enum")) {
-        fprintf(hfile, "  enum %s %s;\n", ref_name, prop_name);
-        return;
+        CHECK_IO(fprintf(hfile, "  enum %s %s;\n", ref_name, prop_name));
+        return 0;
       }
     }
     /* Default for ref is a pointer to a struct */
-    fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name);
-    return;
+    CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name));
+    return 0;
   } else if (type_str == NULL) {
-    fprintf(hfile, "  /* unknown type for %s */\n", prop_name);
+    CHECK_IO(fprintf(hfile, "  /* unknown type for %s */\n", prop_name));
   } else if (strcmp(type_str, "string") == 0) {
-    fprintf(hfile, "  const char *%s;\n", prop_name);
+    CHECK_IO(fprintf(hfile, "  const char *%s;\n", prop_name));
   } else if (strcmp(type_str, "integer") == 0) {
-    fprintf(hfile, "  int %s;\n", prop_name);
+    CHECK_IO(fprintf(hfile, "  int %s;\n", prop_name));
   } else if (strcmp(type_str, "number") == 0) {
-    fprintf(hfile, "  double %s;\n", prop_name);
+    CHECK_IO(fprintf(hfile, "  double %s;\n", prop_name));
   } else if (strcmp(type_str, "boolean") == 0) {
-    fprintf(hfile, "  int %s;\n", prop_name);
+    CHECK_IO(fprintf(hfile, "  int %s;\n", prop_name));
   } else if (strcmp(type_str, "object") == 0) {
-    fprintf(hfile, "  /* object property (unresolved) %s */\n", prop_name);
+    CHECK_IO(
+        fprintf(hfile, "  /* object property (unresolved) %s */\n", prop_name));
   } else if (strcmp(type_str, "array") == 0) {
     /* New: handle array type fields with $ref items */
     const JSON_Object *const items_obj =
@@ -92,28 +113,30 @@ static void print_c_type_for_schema_prop(FILE *const hfile,
     if (items_ref != NULL) {
       const char *const last_slash = strrchr(items_ref, '/');
       const char *const ref_name = last_slash ? last_slash + 1 : items_ref;
-      fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name);
-      /* fprintf(hfile, "  size_t %s_count;\n", prop_name); */
+      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", ref_name, prop_name));
     } else {
-      fprintf(hfile, "  /* array of unknown items for %s */\n", prop_name);
+      CHECK_IO(
+          fprintf(hfile, "  /* array of unknown items for %s */\n", prop_name));
     }
   } else {
-    fprintf(hfile, "  /* unhandled type %s for %s */\n", type_str, prop_name);
+    CHECK_IO(fprintf(hfile, "  /* unhandled type %s for %s */\n", type_str,
+                     prop_name));
   }
+  return 0;
 }
 
 /*
  * Write enum declaration and function prototypes to header.
  * The JSON `enum` array must be strings.
  */
-static void print_enum_declaration(FILE *const hfile,
-                                   const char *const enum_name,
-                                   const JSON_Array *const enum_values) {
+static int print_enum_declaration(FILE *const hfile,
+                                  const char *const enum_name,
+                                  const JSON_Array *const enum_values) {
   size_t i;
   const size_t n = json_array_get_count(enum_values);
-  bool has_unknown = false;
+  int has_unknown = 0;
 
-  fprintf(hfile, "enum LIB_EXPORT %s {\n", enum_name);
+  CHECK_IO(fprintf(hfile, "enum LIB_EXPORT %s {\n", enum_name));
 
   for (i = 0; i < n; i++) {
     const char *val = json_array_get_string(enum_values, i);
@@ -121,47 +144,47 @@ static void print_enum_declaration(FILE *const hfile,
       continue;
 
     if (strcmp(val, "UNKNOWN") == 0)
-      has_unknown = true;
+      has_unknown = 1;
 
-    fprintf(hfile, "  %s_%s", enum_name, val);
+    CHECK_IO(fprintf(hfile, "  %s_%s", enum_name, val));
     if (i + 1 < n)
-      fputs(",", hfile);
+      CHECK_IO(fputs(",", hfile));
   }
 
   /* Add UNKNOWN = -1 if it's not present */
   if (!has_unknown)
-    fprintf(hfile, ",\n  %s_UNKNOWN = -1\n", enum_name);
+    CHECK_IO(fprintf(hfile, ",\n  %s_UNKNOWN = -1\n", enum_name));
   else
-    fputc('\n', hfile);
+    CHECK_IO(fputc('\n', hfile));
 
-  fputs("};\n", hfile);
+  CHECK_IO(fputs("};\n", hfile));
 
   /* Declare enum related functions */
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_to_str(enum %s e, char **str_out);\n",
-          enum_name, enum_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_from_str(const char *str, enum %s *e);\n\n",
-          enum_name, enum_name);
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_to_str(enum %s e, char "
+                   "**str_out);\n",
+                   enum_name, enum_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_str(const char *str, enum %s "
+                   "*e);\n\n",
+                   enum_name, enum_name));
+  return 0;
 }
 
 /*
  * Print struct declaration and function prototypes for struct.
  * Prints required fields in required array.
  */
-static void print_struct_declaration(FILE *const hfile,
-                                     const char *const struct_name,
-                                     const JSON_Object *const schema_obj,
-                                     JSON_Object *const schemas_obj) {
-  const size_t nprops =
-      json_object_get_count(json_object_get_object(schema_obj, "properties"));
+static int print_struct_declaration(FILE *const hfile,
+                                    const char *const struct_name,
+                                    const JSON_Object *const schema_obj,
+                                    const JSON_Object *const schemas_obj) {
   const JSON_Object *const props =
       json_object_get_object(schema_obj, "properties");
-  /* const JSON_Array *required_arr = json_object_get_array(schema_obj,
-   * "required"); */
+  const size_t nprops = props ? json_object_get_count(props) : 0;
   size_t i;
 
-  fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name);
+  CHECK_IO(fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name));
   /* or if no properties: empty struct */
   if (props) {
     for (i = 0; i < nprops; i++) {
@@ -171,39 +194,46 @@ static void print_struct_declaration(FILE *const hfile,
       if (!prop_obj)
         continue;
 
-      print_c_type_for_schema_prop(hfile, prop_name, prop_obj, schemas_obj);
+      CHECK_RC(print_c_type_for_schema_prop(hfile, prop_name, prop_obj,
+                                            schemas_obj));
     }
   }
-  fputs("};\n\n", hfile);
+  CHECK_IO(fputs("};\n\n", hfile));
 
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n\n",
-          struct_name, struct_name);
-  fprintf(
-      hfile,
-      "extern LIB_EXPORT int %s_deepcopy(const struct %s *, struct %s **);\n",
-      struct_name, struct_name, struct_name);
-  fprintf(hfile, "extern LIB_EXPORT int %s_default(struct %s **);\n",
-          struct_name, struct_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
-          struct_name, struct_name);
-  fprintf(
-      hfile,
-      "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s *);\n\n",
-      struct_name, struct_name, struct_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_from_json(const char *, struct %s **);\n",
-          struct_name, struct_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_from_jsonObject(const JSON_Object *, "
-          "struct %s **);\n",
-          struct_name, struct_name);
-  fprintf(hfile,
-          "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
-          struct_name, struct_name);
-  fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
-          struct_name, struct_name);
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_debug(const struct %s *, FILE "
+                   "*);\n\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_deepcopy(const struct %s *, "
+                   "struct %s **);\n",
+                   struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "extern LIB_EXPORT int %s_default(struct %s **);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_display(const struct %s *, FILE "
+                   "*);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_eq(const struct %s *, const "
+                   "struct %s *);\n\n",
+                   struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_json(const char *, struct %s "
+                   "**);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_jsonObject(const JSON_Object "
+                   "*, "
+                   "struct %s **);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_to_json(const struct %s *, char "
+                   "**);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
+                   struct_name, struct_name));
+  return 0;
 }
 
 /*
@@ -220,8 +250,11 @@ static int generate_header(const char *const basename,
 
   char guard_macro[128];
   size_t j;
-  const size_t len = strlen(basename);
-  for (j = 0; j < len && j + 1 < sizeof(guard_macro); j++) {
+  size_t len = strlen(basename);
+  if (len > 127)
+    len = 127; /* Cap length */
+
+  for (j = 0; j < len; j++) {
     const char c = basename[j];
     if (c >= 'a' && c <= 'z')
       guard_macro[j] = (char)(c - ('a' - 'A'));
@@ -232,32 +265,35 @@ static int generate_header(const char *const basename,
   }
   guard_macro[j] = 0;
 
-  snprintf(header_filename, sizeof(header_filename), "%s.h", basename);
+  /* Check for truncation or snprintf failure, C89 doesn't have snprintf in std,
+   * but codebase has string_extras or platform */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  sprintf_s(header_filename, sizeof(header_filename), "%s.h", basename);
   {
     errno_t err = fopen_s(&hfile, header_filename, "w, ccs=UTF-8");
     if (err != 0 || hfile == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", header_filename);
-      return -1;
+      if (err == EINVAL)
+        return EINVAL;
+      return errno ? errno : EIO;
     }
   }
 #else
+  snprintf(header_filename, sizeof(header_filename), "%s.h", basename);
   hfile = fopen(header_filename, "w");
   if (!hfile) {
-    fprintf(stderr, "Failed to open header file: %s\n", header_filename);
-    return -1;
+    return errno ? errno : EIO;
   }
 #endif
 
-  print_header_guard(hfile, guard_macro);
-  fprintf(hfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
+  CHECK_RC(print_header_guard(hfile, guard_macro));
+  CHECK_IO(fprintf(hfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
-  fprintf(hfile, "#include <stdlib.h>\n"
-                 "#include <stdbool.h>\n"
-                 "#include <stdio.h>\n\n"
-                 "#include <parson.h>\n\n"
-                 "#include \"lib_export.h\"\n\n");
+  CHECK_IO(fprintf(hfile, "#include <stdlib.h>\n"
+                          "#include <stdbool.h>\n"
+                          "#include <stdio.h>\n\n"
+                          "#include <parson.h>\n\n"
+                          "#include \"lib_export.h\"\n\n"));
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {
@@ -270,24 +306,25 @@ static int generate_header(const char *const basename,
 
     type_str = json_object_get_string(schema_obj, "type");
 
-    if (!type_str)
+    if (!type_str) {
       continue;
-    else if (strcmp(type_str, "array") == 0) {
+    } else if (strcmp(type_str, "array") == 0) {
       fprintf(stderr, "Skipping top-level array schema: %s\n", schema_name);
     } else if (strcmp(type_str, "string") == 0) {
       const JSON_Array *const enum_arr =
           json_object_get_array(schema_obj, "enum");
       if (enum_arr != NULL) {
-        print_enum_declaration(hfile, schema_name, enum_arr);
+        CHECK_RC(print_enum_declaration(hfile, schema_name, enum_arr));
         continue;
       }
     } else if (strcmp(type_str, "object") == 0) {
-      print_struct_declaration(hfile, schema_name, schema_obj, schemas_obj);
+      CHECK_RC(print_struct_declaration(hfile, schema_name, schema_obj,
+                                        schemas_obj));
     }
   }
 
-  fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n\n");
-  print_header_guard_end(hfile, guard_macro);
+  CHECK_IO(fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n\n"));
+  CHECK_RC(print_header_guard_end(hfile, guard_macro));
 
   fclose(hfile);
   printf("Generated header: %s\n", header_filename);
@@ -304,60 +341,63 @@ static int generate_source(const char *const basename,
   char source_filename[PATH_MAX];
   FILE *cfile = NULL;
 
-  snprintf(source_filename, sizeof(source_filename), "%s.c", basename);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  sprintf_s(source_filename, sizeof(source_filename), "%s.c", basename);
   {
     errno_t err = fopen_s(&cfile, source_filename, "w, ccs=UTF-8");
     if (err != 0 || cfile == NULL) {
-      fprintf(stderr, "Failed to open source file %s\n", source_filename);
-      return -1;
+      return (int)err;
     }
   }
 #else
+  snprintf(source_filename, sizeof(source_filename), "%s.c", basename);
   cfile = fopen(source_filename, "w");
   if (!cfile) {
-    fprintf(stderr, "Failed to open source file: %s\n", source_filename);
-    return -1;
+    return errno ? errno : EIO;
   }
 #endif
 
-  fputs("#include <stdlib.h>\n"
-        "#include <string.h>\n"
-        "#include <stdio.h>\n\n"
-        "#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)\n"
-        "#else\n"
-        "#include <sys/errno.h>\n"
-        "#endif\n"
-        "#include <parson.h>\n\n"
-        "#include <c89stringutils_string_extras.h>\n\n",
-        cfile);
+  CHECK_IO(fputs(
+      "#include <stdlib.h>\n"
+      "#include <string.h>\n"
+      "#include <stdio.h>\n\n"
+      "#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)\n"
+      "#else\n"
+      "#include <sys/errno.h>\n"
+      "#endif\n"
+      "#include <parson.h>\n\n"
+      "#include <c89stringutils_string_extras.h>\n\n",
+      cfile));
 
   {
-    const char *const base_name = get_basename(basename);
-    fprintf(cfile, "#include \"%s.h\"\n\n", base_name);
+    char *base_name_str = NULL;
+    CHECK_RC(get_basename(basename, &base_name_str));
+    CHECK_IO(fprintf(cfile, "#include \"%s.h\"\n\n", base_name_str));
+    free(base_name_str);
   }
 
-  fprintf(cfile,
-          "/* Helper for debug: quote string or replace null with '(null)' */\n"
-          "static int quote_or_null(const char *s, char **out) {\n"
-          "  size_t n;\n"
-          "  size_t i;\n"
-          "  char *buf;\n"
-          "  if (s == NULL) {\n"
-          "    *out = strdup(\"(null)\");\n"
-          "    return *out == NULL ? ENOMEM : 0;\n"
-          "  }\n"
-          "  n = strlen(s);\n"
-          "  buf = (char *)malloc(n + 3);\n"
-          "  if (!buf) return ENOMEM;\n"
-          "  buf[0] = '\"';\n"
-          "  for (i = 0; i < n; i++) buf[i + 1] = s[i];\n"
-          "  buf[n + 1] = '\"';\n"
-          "  buf[n + 2] = '\\0';\n"
-          "  *out = buf;\n"
-          "  return 0;\n"
-          "}\n\n");
+  CHECK_IO(fprintf(
+      cfile,
+      "/* Helper for debug: quote string or replace null with '(null)' */\n"
+      "static int quote_or_null(const char *s, char **out) {\n"
+      "  size_t n;\n"
+      "  size_t i;\n"
+      "  char *buf;\n"
+      "  if (s == NULL) {\n"
+      "    *out = strdup(\"(null)\");\n"
+      "    return *out == NULL ? ENOMEM : 0;\n"
+      "  }\n"
+      "  n = strlen(s);\n"
+      "  buf = (char *)malloc(n + 3);\n"
+      "  if (!buf) return ENOMEM;\n"
+      "  buf[0] = '\"';\n"
+      "  for (i = 0; i < n; i++) buf[i + 1] = s[i];\n"
+      "  buf[n + 1] = '\"';\n"
+      "  buf[n + 2] = '\\0';\n"
+      "  *out = buf;\n"
+      "  return 0;\n"
+      "}\n\n"));
 
   /* Iterate schemas */
   for (i = 0; i < n; i++) {
@@ -378,15 +418,17 @@ static int generate_source(const char *const basename,
           json_object_get_array(schema_obj, "enum");
       if (enum_arr != NULL) {
         struct EnumMembers em;
-        const int rc = json_array_to_enum_members(enum_arr, &em);
+        int rc = json_array_to_enum_members(enum_arr, &em);
         if (rc == 0) {
-          write_enum_to_str_func(cfile, schema_name, &em);
-          write_enum_from_str_func(cfile, schema_name, &em);
+          CHECK_RC(write_enum_to_str_func(cfile, schema_name, &em));
+          CHECK_RC(write_enum_from_str_func(cfile, schema_name, &em));
           enum_members_free(&em);
         } else {
           fprintf(stderr,
-                  "Failed to convert enum JSON array to EnumMembers for %s\n",
-                  schema_name);
+                  "Failed to convert enum JSON array to EnumMembers for %s "
+                  "(rc=%d)\n",
+                  schema_name, rc);
+          return rc;
         }
       }
       continue;
@@ -394,22 +436,22 @@ static int generate_source(const char *const basename,
 
     if (strcmp(type_str, "object") == 0) {
       struct StructFields fields;
-      const int rc =
-          json_object_to_struct_fields(schema_obj, &fields, schemas_obj);
+      int rc = json_object_to_struct_fields(schema_obj, &fields, schemas_obj);
       if (rc != 0) {
-        fprintf(stderr, "Failed to parse struct fields for %s\n", schema_name);
-        continue;
+        fprintf(stderr, "Failed to parse struct fields for %s (rc=%d)\n",
+                schema_name, rc);
+        return rc;
       }
 
-      write_struct_debug_func(cfile, schema_name, &fields);
-      write_struct_deepcopy_func(cfile, schema_name, &fields);
-      write_struct_default_func(cfile, schema_name, &fields);
-      write_struct_display_func(cfile, schema_name, &fields);
-      write_struct_eq_func(cfile, schema_name, &fields);
-      write_struct_from_jsonObject_func(cfile, schema_name, &fields);
-      write_struct_from_json_func(cfile, schema_name);
-      write_struct_to_json_func(cfile, schema_name, &fields);
-      write_struct_cleanup_func(cfile, schema_name, &fields);
+      CHECK_RC(write_struct_debug_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_deepcopy_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_default_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_display_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_eq_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_from_jsonObject_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_from_json_func(cfile, schema_name));
+      CHECK_RC(write_struct_to_json_func(cfile, schema_name, &fields));
+      CHECK_RC(write_struct_cleanup_func(cfile, schema_name, &fields));
 
       /* Free fields data */
       if (fields.fields) {
@@ -471,15 +513,17 @@ int schema2code_main(int argc, char **argv) {
 
   ret = generate_header(basename, schemas_obj);
   if (ret != 0) {
+    fprintf(stderr, "generate_header failed with code %d\n", ret);
     json_value_free(root_val);
-    return EXIT_FAILURE;
+    return ret; /* Propagate specific error code */
   }
   ret = generate_source(basename, schemas_obj);
   if (ret != 0) {
+    fprintf(stderr, "generate_source failed with code %d\n", ret);
     json_value_free(root_val);
-    return EXIT_FAILURE;
+    return ret;
   }
 
   json_value_free(root_val);
-  return EXIT_SUCCESS;
+  return 0;
 }

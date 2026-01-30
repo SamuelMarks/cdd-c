@@ -1,18 +1,17 @@
-/*
- * sync_code.c
- *
- * Synchronize .c implementation file with structs/enums declared in .h file.
- *
- * Overwrites the .c file with regenerated functions.
+/**
+ * @file sync_code.c
+ * @brief Implementation of code synchronization.
+ * Refactored to ensure strict error checking and resource management.
+ * @author Samuel Marks
  */
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <parson.h>
-
-/* Reuse struct definitions and parsing utilities from code2schema.c above */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
@@ -23,10 +22,16 @@
 
 #include "sync_code.h"
 
-#include "code2schema.h"
-#include "codegen.h"
+#include "code2schema.h" /* For struct/enum list parsing */
+#include "codegen.h"     /* For code generation functions */
+#include "fs.h"          /* For utilities */
 
-#include <fs.h>
+#define CHECK_RC(x)                                                            \
+  do {                                                                         \
+    const int err_code = (x);                                                  \
+    if (err_code != 0)                                                         \
+      return err_code;                                                         \
+  } while (0)
 
 static int read_line_sync(FILE *fp, char *buf, size_t bufsz) {
   if (!fgets(buf, (int)bufsz, fp))
@@ -56,13 +61,9 @@ static void extract_name_sync(char *dest, size_t dest_sz, const char *start,
   }
 }
 
-/*
- * The main function: parse header, generate full .c file implementing sync
- * functions.
- */
 int sync_code_main(int argc, char **argv) {
   const char *header_filename, *impl_filename;
-  FILE *fp, *out;
+  FILE *fp = NULL, *out = NULL;
 
   enum { NONE, IN_ENUM, IN_STRUCT } state = NONE;
 
@@ -72,6 +73,8 @@ int sync_code_main(int argc, char **argv) {
   char struct_name[64] = {0};
   struct StructFields sf;
 
+  /* Assuming static limits for now as per original design, or can make dynamic
+   * list */
   struct EnumMembers enums[64];
   size_t enum_count = 0;
   char enum_names[64][64];
@@ -79,9 +82,10 @@ int sync_code_main(int argc, char **argv) {
   struct StructFields structs[64];
   char struct_names[64][64];
   size_t struct_count = 0, i;
+  int rc = 0;
 
   if (argc != 2) {
-    fputs("Usage: sync_code <header.h> <impl.c>", stderr);
+    fputs("Usage: sync_code <header.h> <impl.c>\n", stderr);
     return EXIT_FAILURE;
   }
 
@@ -94,19 +98,26 @@ int sync_code_main(int argc, char **argv) {
     errno_t err = fopen_s(&fp, header_filename, "r, ccs=UTF-8");
     if (err != 0 || fp == NULL) {
       fprintf(stderr, "Failed to header file %s\n", header_filename);
-      return EXIT_FAILURE;
+      return (int)err;
     }
   }
 #else
   fp = fopen(header_filename, "r");
   if (!fp) {
     fprintf(stderr, "Failed to open header file: %s\n", header_filename);
-    return EXIT_FAILURE;
+    return errno ? errno : ENOENT;
   }
 #endif
 
-  enum_members_init(&em);
-  struct_fields_init(&sf);
+  if ((rc = enum_members_init(&em)) != 0) {
+    fclose(fp);
+    return rc;
+  }
+  if ((rc = struct_fields_init(&sf)) != 0) {
+    enum_members_free(&em);
+    fclose(fp);
+    return rc;
+  }
 
   while (read_line_sync(fp, line, sizeof(line))) {
     char *p = line;
@@ -131,12 +142,12 @@ int sync_code_main(int argc, char **argv) {
         if (str_starts_with(p, "enum ")) {
           extract_name_sync(enum_name, sizeof(enum_name), p + 5, brace);
           enum_members_free(&em);
-          enum_members_init(&em);
+          CHECK_RC(enum_members_init(&em));
           state = IN_ENUM;
         } else { /* struct */
           extract_name_sync(struct_name, sizeof(struct_name), p + 7, brace);
           struct_fields_free(&sf);
-          struct_fields_init(&sf);
+          CHECK_RC(struct_fields_init(&sf));
           state = IN_STRUCT;
         }
         p = brace + 1;
@@ -154,7 +165,8 @@ int sync_code_main(int argc, char **argv) {
         body_to_parse = (char *)malloc(len + 1);
         if (!body_to_parse) {
           state = NONE;
-          continue;
+          rc = ENOMEM;
+          goto cleanup;
         }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -167,7 +179,8 @@ int sync_code_main(int argc, char **argv) {
         body_to_parse = strdup(p);
         if (!body_to_parse) {
           state = NONE;
-          continue;
+          rc = ENOMEM;
+          goto cleanup;
         }
       }
 
@@ -184,8 +197,13 @@ int sync_code_main(int argc, char **argv) {
             if (eq)
               *eq = '\0';
             trim_trailing(member_p);
-            if (strlen(member_p) > 0)
-              enum_members_add(&em, member_p);
+            if (strlen(member_p) > 0) {
+              rc = enum_members_add(&em, member_p);
+              if (rc != 0) {
+                free(body_to_parse);
+                goto cleanup;
+              }
+            }
           }
           token = strtok_r(NULL, ",", &context);
         }
@@ -195,9 +213,15 @@ int sync_code_main(int argc, char **argv) {
       if (end_brace) {
         if (enum_count < sizeof(enums) / sizeof(enums[0])) {
           size_t j;
-          enum_members_init(&enums[enum_count]);
-          for (j = 0; j < em.size; j++)
-            enum_members_add(&enums[enum_count], em.members[j]);
+          rc = enum_members_init(&enums[enum_count]);
+          if (rc != 0)
+            goto cleanup;
+
+          for (j = 0; j < em.size; j++) {
+            rc = enum_members_add(&enums[enum_count], em.members[j]);
+            if (rc != 0)
+              goto cleanup;
+          }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strncpy_s((char *)enum_names[enum_count],
@@ -226,7 +250,8 @@ int sync_code_main(int argc, char **argv) {
         body_to_parse = (char *)malloc(len + 1);
         if (!body_to_parse) {
           state = NONE;
-          continue;
+          rc = ENOMEM;
+          goto cleanup;
         }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -239,7 +264,8 @@ int sync_code_main(int argc, char **argv) {
         body_to_parse = strdup(p);
         if (!body_to_parse) {
           state = NONE;
-          continue;
+          rc = ENOMEM;
+          goto cleanup;
         }
       }
 
@@ -250,8 +276,19 @@ int sync_code_main(int argc, char **argv) {
           char *field_p = token;
           while (isspace((unsigned char)*field_p))
             field_p++;
-          if (strlen(field_p) > 0)
-            parse_struct_member_line(field_p, &sf);
+          if (strlen(field_p) > 0) {
+            rc = parse_struct_member_line(field_p, &sf);
+            if (rc < 0) { /* Negative implies memory error from our new
+                             semantics? No, parse returns 0 on success/ignored,
+                             ENOMEM on fail */
+              if (rc != 0) {
+                free(body_to_parse);
+                goto cleanup;
+              }
+            } else if (rc > 0) {
+              /* Was successfully added */
+            }
+          }
           token = strtok_r(NULL, ";", &context);
         }
       }
@@ -260,10 +297,15 @@ int sync_code_main(int argc, char **argv) {
       if (end_brace) {
         if (struct_count < sizeof(structs) / sizeof(structs[0])) {
           size_t j;
-          struct_fields_init(&structs[struct_count]);
+          rc = struct_fields_init(&structs[struct_count]);
+          if (rc != 0)
+            goto cleanup;
+
           for (j = 0; j < sf.size; j++) {
-            struct_fields_add(&structs[struct_count], sf.fields[j].name,
-                              sf.fields[j].type, sf.fields[j].ref);
+            rc = struct_fields_add(&structs[struct_count], sf.fields[j].name,
+                                   sf.fields[j].type, sf.fields[j].ref);
+            if (rc != 0)
+              goto cleanup;
           }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -288,10 +330,9 @@ int sync_code_main(int argc, char **argv) {
   }
 
   fclose(fp);
-  enum_members_free(&em);
-  struct_fields_free(&sf);
+  fp = NULL;
 
-  /* Write the impl file with all function implementations */
+  /* Output Phase */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -299,53 +340,84 @@ int sync_code_main(int argc, char **argv) {
     errno_t err = fopen_s(&out, impl_filename, "w, ccs=UTF-8");
     if (err != 0 || out == NULL) {
       fprintf(stderr, "Failed to open impl file %s\n", impl_filename);
-      return -1;
+      rc = (int)err;
+      goto cleanup_memory;
     }
   }
 #else
   out = fopen(impl_filename, "w");
   if (!out) {
     fprintf(stderr, "Failed to open impl file: %s\n", impl_filename);
-    return EXIT_FAILURE;
+    rc = errno ? errno : EIO;
+    goto cleanup_memory;
   }
 #endif
 
-  fputs("#include <stdlib.h>\n"
-        "#include <string.h>\n"
-        "#include <stdio.h>\n\n"
-        "#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)\n"
-        "#else\n"
-        "#include <sys/errno.h>\n"
-        "#endif\n"
-        "#include <parson.h>\n\n",
-        out);
-  fprintf(out, "#include \"%s\"\n\n", get_basename(header_filename));
+  if (fputs(
+          "#include <stdlib.h>\n"
+          "#include <string.h>\n"
+          "#include <stdio.h>\n\n"
+          "#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)\n"
+          "#else\n"
+          "#include <sys/errno.h>\n"
+          "#endif\n"
+          "#include <parson.h>\n\n",
+          out) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  {
+    char *basename_str = NULL;
+    if ((rc = get_basename(header_filename, &basename_str)) != 0)
+      goto cleanup;
+    if (fprintf(out, "#include \"%s\"\n\n", basename_str) < 0) {
+      free(basename_str);
+      rc = EIO;
+      goto cleanup;
+    }
+    free(basename_str);
+  }
 
-  /* Write enums code */
   for (i = 0; i < enum_count; i++) {
-    write_enum_to_str_func(out, enum_names[i], &enums[i]);
-    write_enum_from_str_func(out, enum_names[i], &enums[i]);
+    CHECK_RC(write_enum_to_str_func(out, enum_names[i], &enums[i]));
+    CHECK_RC(write_enum_from_str_func(out, enum_names[i], &enums[i]));
     enum_members_free(&enums[i]);
   }
 
-  /* Write structs code */
   for (i = 0; i < struct_count; i++) {
-    write_struct_debug_func(out, struct_names[i], &structs[i]);
-    write_struct_deepcopy_func(out, struct_names[i], &structs[i]);
-    write_struct_default_func(out, struct_names[i], &structs[i]);
-    write_struct_display_func(out, struct_names[i], &structs[i]);
-    write_struct_eq_func(out, struct_names[i], &structs[i]);
-    write_struct_from_jsonObject_func(out, struct_names[i], &structs[i]);
-    write_struct_from_json_func(out, struct_names[i]);
-    write_struct_to_json_func(out, struct_names[i], &structs[i]);
-    write_struct_cleanup_func(out, struct_names[i], &structs[i]);
+    CHECK_RC(write_struct_debug_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_deepcopy_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_default_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_display_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_eq_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(
+        write_struct_from_jsonObject_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_from_json_func(out, struct_names[i]));
+    CHECK_RC(write_struct_to_json_func(out, struct_names[i], &structs[i]));
+    CHECK_RC(write_struct_cleanup_func(out, struct_names[i], &structs[i]));
     struct_fields_free(&structs[i]);
   }
 
   fclose(out);
-
   printf("Synchronized implementation file %s from header %s\n", impl_filename,
          header_filename);
 
-  return 0;
+  rc = 0;
+
+cleanup:
+  if (fp)
+    fclose(fp);
+  if (out && rc != 0) { /* If error occurred during writing */
+    fclose(out);
+  }
+cleanup_memory:
+  enum_members_free(&em);
+  struct_fields_free(&sf);
+  /* Free any remaining stored structs/enums if error happened mid-loop */
+  for (i = 0; i < enum_count; i++)
+    enum_members_free(&enums[i]);
+  for (i = 0; i < struct_count; i++)
+    struct_fields_free(&structs[i]);
+
+  return rc;
 }

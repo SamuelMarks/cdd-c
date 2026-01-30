@@ -1,27 +1,30 @@
+/**
+ * @file fs.c
+ * @brief Implementation of filesystem utilities.
+ * @author Samuel Marks
+ */
+
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define _CRT_RAND_S
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 #include <stdlib.h>
 #include <string.h>
 
 #include "fs.h"
 #include "str_includes.h"
 
-#include <stdint.h>
-
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define _CRT_RAND_S
 #include <direct.h>
 #include <fileapi.h>
 #include <winbase.h>
 #include <winerror.h>
 #define strtok_r strtok_s
 #define mkdir _mkdir
+#ifndef strdup
 #define strdup _strdup
+#endif
 
 #ifdef PATHCCH_LIB
 #include <pathcch.h>
@@ -38,16 +41,6 @@
 /* <windows_utils> */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-/* example usage
-  const size_t n = strlen(s);
-  wchar_t *const wide_buffer = malloc(sizeof(*wide_buffer) * n);
-  const int chars_converted = c_str_to_pwstr(s, wide_buffer, n);
-  if (chars_converted != -1) {
-  } else {
-    vfprintf(stderr, L"Conversion failed. Error code: %lu\n", GetLastError());
-    return s;
-  }
-*/
 int ascii_to_wide(const char *const s, wchar_t *ws, const size_t len) {
   if (s == NULL || ws == NULL || len == 0)
     return -1;
@@ -90,126 +83,137 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* </windows_utils> */
 
-/*
- * A safe, re-entrant implementation of basename.
- * The caller is responsible for freeing the returned string.
- * Returns NULL on allocation failure.
+/**
+ * @brief Duplicate a string.
+ * Helper for cross-platform compatibility to ensure ENOMEM is handled cleanly
+ * if we were wrapping it, but here we just blindly use strdup and standard
+ * library behavior often sets errno.
  */
-static char *get_basename_s(const char *path) {
+static char *c_cdd_strdup(const char *s) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  return _strdup(s);
+#else
+  return strdup(s);
+#endif
+}
+
+int get_basename(const char *path, char **out) {
   const char *start_p, *p;
-  char *ret;
   size_t len;
+  char *ret;
+
+  if (out == NULL)
+    return EINVAL;
 
   if (!path || !*path) {
-    return strdup(".");
+    *out = c_cdd_strdup(".");
+    return *out == NULL ? ENOMEM : 0;
   }
 
   p = path + strlen(path) - 1;
+  /* Skip trailing separators */
   while (p > path && (*p == '/' || *p == '\\')) {
     p--;
   }
 
+  /* Check if it was all separators (e.g. "///") -> returns "/" */
+  if (p == path && (*p == '/' || *p == '\\')) {
+    *out = (char *)malloc(2);
+    if (!*out)
+      return ENOMEM;
+    (*out)[0] = PATH_SEP_C;
+    (*out)[1] = '\0';
+    return 0;
+  }
+
   start_p = p;
+  /* Move back to start of filename */
   while (start_p > path && *(start_p - 1) != '/' && *(start_p - 1) != '\\') {
     start_p--;
   }
 
-  len = (p - start_p) + 1;
+  len = (size_t)(p - start_p) + 1;
   ret = (char *)malloc(len + 1);
   if (!ret)
-    return NULL;
+    return ENOMEM;
 
   memcpy(ret, start_p, len);
   ret[len] = '\0';
 
-  return ret;
+  *out = ret;
+  return 0;
 }
 
-const char *get_basename(const char *path) {
-  static char bname[PATH_MAX];
-  char *s_ret = get_basename_s(path);
-  if (s_ret) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    strncpy_s(bname, PATH_MAX, s_ret, _TRUNCATE);
-#else
-    strncpy(bname, s_ret, PATH_MAX - 1);
-    bname[PATH_MAX - 1] = '\0';
-#endif
-    free(s_ret);
-  } else {
-    bname[0] = '.';
-    bname[1] = '\0';
-  }
-  return bname;
-}
-
-/*
- * A safe, re-entrant implementation of dirname.
- * The input `path` is NOT modified.
- * The caller is responsible for freeing the returned string.
- * Returns NULL on allocation failure.
- */
-static char *get_dirname_s(const char *path) {
-  char *ret;
+int get_dirname(const char *path, char **out) {
   const char *p;
   size_t len;
+  char *ret;
 
-  if (!path || !*path)
-    return strdup(".");
+  if (out == NULL)
+    return EINVAL;
+
+  if (!path || !*path) {
+    *out = c_cdd_strdup(".");
+    return *out == NULL ? ENOMEM : 0;
+  }
 
   p = path + strlen(path) - 1;
+  /* Skip trailing separators */
   while (p > path && (*p == '/' || *p == '\\')) {
     p--;
   }
 
+  /* Move back until separator found */
   while (p > path && *p != '/' && *p != '\\') {
     p--;
   }
 
-  /* If path is like "/foo", p now points to '/'. We want to return "/" */
-  if (p == path && (*p == '/' || *p == '\\')) {
-    len = 1;
+  /* If path is like "/foo", p now points to '/'. We want to return "/" (or "\"
+   * on win) */
+  if (p == path) {
+    if (*p == '/' || *p == '\\') {
+      len = 1; /* Root */
+    } else {
+      /* No separator found, e.g. "foo" -> "." */
+      *out = c_cdd_strdup(".");
+      return *out ? 0 : ENOMEM;
+    }
   } else {
-    len = p - path;
+    /* If we stopped at a separator, that's the end of dirname.
+     * Unless it's like "C:\", but this logic treats leading slash as root
+     * length 1. Handle repeated separators in the middle? e.g. "a//b". p points
+     * to the last separator (second slash). We should strip trailing separators
+     * from the dirname, e.g. "a//" -> "a".
+     */
+    while (p > path && (*p == '/' || *p == '\\')) {
+      p--;
+    }
+    len = (size_t)(p - path) + 1;
   }
 
   if (len == 0) {
-    return strdup(".");
+    /* Should technically be covered above by p==path check, but safety fallback
+     */
+    *out = c_cdd_strdup(".");
+    return *out ? 0 : ENOMEM;
   }
 
   ret = (char *)malloc(len + 1);
   if (!ret)
-    return NULL;
+    return ENOMEM;
 
   memcpy(ret, path, len);
   ret[len] = '\0';
-  return ret;
-}
-
-const char *get_dirname(char *path) {
-  static char dname[PATH_MAX];
-  char *s_ret = get_dirname_s(path);
-  if (s_ret) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    strncpy_s(dname, PATH_MAX, s_ret, _TRUNCATE);
-#else
-    strncpy(dname, s_ret, PATH_MAX - 1);
-    dname[PATH_MAX - 1] = '\0';
-#endif
-    free(s_ret);
-  } else {
-    dname[0] = '.';
-    dname[1] = '\0';
-  }
-  return dname;
+  *out = ret;
+  return 0;
 }
 
 enum { READ_CHUNK_SIZE = 4096 };
 
 enum FopenError fopen_error_from(int fopen_error) {
   switch (fopen_error) {
+  case 0:
+    return FOPEN_OK;
   case EINVAL:
     return FOPEN_INVALID_PARAMETER;
   case EMFILE:
@@ -227,121 +231,76 @@ enum FopenError fopen_error_from(int fopen_error) {
   }
 }
 
-char *read_to_file(const char *const f_name, int *err, size_t *f_size,
-                   const char *const mode) {
-  char *buffer = NULL;
-  size_t total_read = 0;
-  size_t capacity = 0;
+int read_to_file(const char *path, const char *mode, char **out_data,
+                 size_t *out_size) {
   FILE *f = NULL;
-  size_t read_now;
-  int rc;
+  int internal_rc = 0;
 
-  if (!f_name || !mode || !f_size) {
-    if (err)
-      *err = FOPEN_INVALID_PARAMETER;
-    return NULL;
-  }
+  if (!path || !mode || !out_data || !out_size)
+    return EINVAL;
+
+  *out_data = NULL;
+  *out_size = 0;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t e = fopen_s(&f, f_name, mode);
-    if (e != 0) {
-      if (err)
-        *err = fopen_error_from(e);
-      return NULL;
-    } else if (f == NULL) {
-      if (err)
-        *err = FOPEN_UNKNOWN_ERROR;
-      return NULL;
-    }
+    errno_t e = fopen_s(&f, path, mode);
+    if (e != 0)
+      return (int)e;
+    if (f == NULL)
+      return FOPEN_UNKNOWN_ERROR;
   }
 #else
-  f = fopen(f_name, mode);
-  if (f == NULL) {
-    if (err)
-      *err = fopen_error_from(errno);
-    return NULL;
-  }
+  f = fopen(path, mode);
+  if (f == NULL)
+    return errno;
 #endif
 
-  do {
-    if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
-      size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
-      char *new_buffer = (char *)realloc(buffer, new_capacity);
-      if (!new_buffer) {
-        free(buffer);
-        fclose(f);
-        if (err)
-          *err = FOPEN_OUT_OF_MEMORY; /* Represents ENOMEM */
-        return NULL;
-      }
-      buffer = new_buffer;
-      capacity = new_capacity;
-    }
-    read_now = fread(buffer + total_read, 1, READ_CHUNK_SIZE, f);
-    total_read += read_now;
-  } while (read_now == READ_CHUNK_SIZE);
+  internal_rc = read_from_fh(f, out_data, out_size);
 
-  rc = ferror(f);
-  if (rc) {
-    free(buffer);
-    fclose(f);
-    if (err)
-      *err = fopen_error_from(rc);
-    return NULL;
+  /* Preserve read error if it occurred, but also check fclose error */
+  if (fclose(f) != 0) {
+    if (internal_rc == 0) {
+      internal_rc = errno; /* Return fclose error if read was OK */
+    }
   }
 
-  fclose(f);
-  if (err)
-    *err = FOPEN_OK;
-  buffer[total_read] = '\0';
-  *f_size = total_read;
-  return buffer;
+  return internal_rc;
 }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-VOID CALLBACK FileIOCompletionRoutine(__in DWORD dwErrorCode,
-                                      __in DWORD dwNumberOfBytesTransfered,
-                                      __in LPOVERLAPPED lpOverlapped) {
-  /*_tprintf(TEXT("Error code:\t%x\n"), dwErrorCode);
-  _tprintf(TEXT("Number of bytes:\t%x\n"), dwNumberOfBytesTransfered);*/
+static VOID
+    CALLBACK FileIOCompletionRoutine(__in DWORD dwErrorCode,
+                                     __in DWORD dwNumberOfBytesTransfered,
+                                     __in LPOVERLAPPED lpOverlapped) {
+  (void)dwErrorCode;
+  (void)dwNumberOfBytesTransfered;
+  (void)lpOverlapped;
 }
 #endif
 
-char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
+int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  /* Windows implementation using ReadFileEx specific logic was in original
+   * code. However, mixing FILE* and HANDLE via casting `fh` is risky if passed
+   * standard stdio FILE*. The original code did `HANDLE hFile = fh;` which
+   * implies `fh` was actually a HANDLE? But `read_to_file` passes the result of
+   * `fopen`. `fopen` returns `FILE*`, not `HANDLE`. Standard C `fread` is safer
+   * and portable. The previous windows block was suspicious. We will implement
+   * the portable approach unless specifically required otherwise. Assuming
+   * standard fread is desired for correctness with fopen.
+   */
+#endif
+
   char *buffer = NULL;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  HANDLE hFile = fh;
-  LARGE_INTEGER file_size;
-  OVERLAPPED ol = {0};
-  if (!GetFileSizeEx(hFile, &file_size)) {
-    if (err)
-      *err = GetLastError();
-    return NULL;
-  }
-  char *const ReadBuffer =
-      malloc(sizeof(ReadBuffer) * (file_size.QuadPart + 1));
-
-  if (FALSE == ReadFileEx(hFile, ReadBuffer, file_size.QuadPart, &ol,
-                          FileIOCompletionRoutine)) {
-    if (err)
-      *err = GetLastError();
-    free(ReadBuffer);
-    return NULL;
-  }
-  return ReadBuffer;
-#else
   size_t total_read = 0;
   size_t capacity = 0;
   size_t read_now;
-  int rc;
+  int rc = 0;
 
-  if (!fh || f_size == NULL) {
-    if (err)
-      *err = FOPEN_INVALID_PARAMETER;
-    return NULL;
-  }
+  if (!fh || !out_data || !out_size)
+    return EINVAL;
 
   do {
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
@@ -349,9 +308,9 @@ char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
       char *new_buffer = (char *)realloc(buffer, new_capacity);
       if (!new_buffer) {
         free(buffer);
-        if (err)
-          *err = FOPEN_OUT_OF_MEMORY; /* Represents ENOMEM */
-        return NULL;
+        /* *out_data remains NULL from init or we could set it, but caller
+         * shouldn't use it on error */
+        return ENOMEM;
       }
       buffer = new_buffer;
       capacity = new_capacity;
@@ -360,25 +319,37 @@ char *read_from_fh(FILE *fh, int *err, size_t *f_size) {
     total_read += read_now;
   } while (read_now == READ_CHUNK_SIZE);
 
-  rc = ferror(fh);
-  if (rc) {
+  if (ferror(fh)) {
+    rc = errno;
+    /* If errno is not set by fread failure (rare but possible), default to EIO
+     */
+    if (rc == 0)
+      rc = EIO;
     free(buffer);
-    if (err)
-      *err = fopen_error_from(rc);
-    return NULL;
+    return rc;
   }
 
-  if (err)
-    *err = FOPEN_OK;
-  buffer[total_read] = '\0';
-  *f_size = total_read;
-  return buffer;
-#endif
+  /* Null terminate just in case text usage */
+  if (buffer) {
+    buffer[total_read] = '\0';
+  } else {
+    /* Empty file case, allocate distinct empty string */
+    buffer = (char *)malloc(1);
+    if (!buffer)
+      return ENOMEM;
+    buffer[0] = '\0';
+  }
+
+  *out_data = buffer;
+  *out_size = total_read;
+  return 0;
 }
 
-int cp(const char *const to, const char *const from) {
+int cp(const char *dst, const char *src) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  return CopyFile(from, to, TRUE) ? 0 : -1;
+  if (!CopyFile(src, dst, TRUE))
+    return (int)GetLastError(); /* Return Windows error code as int */
+  return 0;
 #else
   int fd_to, fd_from;
   char buf[READ_CHUNK_SIZE];
@@ -386,16 +357,23 @@ int cp(const char *const to, const char *const from) {
   int saved_errno;
   char *out_ptr;
   ssize_t nwritten;
+  int ret_val = 0;
 
-  fd_from = open(from, O_RDONLY);
+  fd_from = open(src, O_RDONLY);
   if (fd_from < 0)
-    return -1;
+    return errno;
 
-  fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
-  if (fd_to < 0)
-    goto out_error;
+  /* O_EXCL to fail if dest exists, matching Windows TRUE flag behavior usually
+     preferred for safety, but original 'cp' logic implies copy. Original
+     CopyFile used TRUE (fail if exists). So we use O_CREAT | O_EXCL. */
+  fd_to = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0666);
+  if (fd_to < 0) {
+    saved_errno = errno;
+    close(fd_from);
+    return saved_errno;
+  }
 
-  while ((nread = read(fd_from, buf, sizeof buf)) > 0) {
+  while ((nread = read(fd_from, buf, sizeof(buf))) > 0) {
     out_ptr = buf;
     do {
       nwritten = write(fd_to, out_ptr, nread);
@@ -403,27 +381,32 @@ int cp(const char *const to, const char *const from) {
         nread -= nwritten;
         out_ptr += nwritten;
       } else if (errno != EINTR) {
+        ret_val = errno;
         goto out_error;
       }
     } while (nread > 0);
   }
 
-  if (nread == 0) {
-    if (close(fd_to) < 0) {
-      fd_to = -1;
-      goto out_error;
-    }
-    close(fd_from);
-    return EXIT_SUCCESS;
+  if (nread < 0) {
+    ret_val = errno;
   }
 
 out_error:
-  saved_errno = errno;
-  close(fd_from);
-  if (fd_to >= 0)
+  if (ret_val != 0) {
+    /* If error, try to preserve it */
+    saved_errno = ret_val;
     close(fd_to);
-  errno = saved_errno;
-  return EXIT_FAILURE;
+    close(fd_from);
+    return saved_errno;
+  }
+
+  if (close(fd_to) < 0) {
+    saved_errno = errno;
+    close(fd_from);
+    return saved_errno;
+  }
+  close(fd_from);
+  return 0;
 #endif
 }
 
@@ -435,11 +418,6 @@ out_error:
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
-/*
- * Make a directory, return 0 for success.
- * It's okay if the directory already exists.
- * It's an error if the path exists but is not a directory.
- */
 static int maybe_mkdir(const char *const path) {
   struct c_stat st;
   int res;
@@ -453,89 +431,93 @@ static int maybe_mkdir(const char *const path) {
   if (res == 0)
     return 0;
 
-  if (errno != EEXIST)
-    return -1;
-
-  if (c_stat(path, &st) != 0)
-    return -1;
-
-  if (!IS_DIR(st.st_mode)) {
-    errno = ENOTDIR;
-    return -1;
+  /* Directories already existing is not an error for recursion generally,
+     but if it exists and is not a dir, it is. */
+  if (errno == EEXIST) {
+    if (c_stat(path, &st) != 0)
+      return errno;
+    if (!IS_DIR(st.st_mode))
+      return ENOTDIR;
+    return 0;
   }
-  return 0;
+
+  return errno;
 }
 
-int makedirs(const char *const path) {
+int makedirs(const char *path) {
   char *dup_path, *p;
+  int rc = 0;
 
   if (path == NULL || *path == '\0') {
-    errno = EINVAL;
-    return EXIT_FAILURE;
+    return EINVAL;
   }
+
+  /* Check usage of Windows drive letters or root paths which don't need
+   * creation */
 #if defined(_MSC_VER)
   if ((strlen(path) == 1 && (path[0] == '/' || path[0] == '\\')) ||
       (strlen(path) == 2 && path[1] == ':') ||
       (strlen(path) == 3 && path[1] == ':' &&
        (path[2] == '/' || path[2] == '\\'))) {
-    return EXIT_SUCCESS;
+    return 0;
   }
 #else
   if (strlen(path) == 1 && path[0] == '/')
-    return EXIT_SUCCESS;
+    return 0;
 #endif
 
-  dup_path = strdup(path);
+  dup_path = c_cdd_strdup(path);
   if (dup_path == NULL)
-    return EXIT_FAILURE;
+    return ENOMEM;
 
   for (p = dup_path; *p; ++p) {
     if (*p == '/' || *p == '\\') {
       if (p == dup_path)
         continue;
       *p = '\0';
-      if (maybe_mkdir(dup_path) != 0) {
+      rc = maybe_mkdir(dup_path);
+      if (rc != 0) {
         free(dup_path);
-        return EXIT_FAILURE;
+        return rc;
       }
       *p = PATH_SEP_C;
     }
   }
 
-  if (maybe_mkdir(dup_path) != 0) {
-    free(dup_path);
-    return EXIT_FAILURE;
-  }
-
+  rc = maybe_mkdir(dup_path);
   free(dup_path);
-  return EXIT_SUCCESS;
+  return rc;
 }
 
-int makedir(const char *const p) {
-  if (p == NULL || *p == '\0')
-    return EXIT_FAILURE;
+int makedir(const char *path) {
+  if (path == NULL || *path == '\0')
+    return EINVAL;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  return _mkdir(p) == 0
+  if (_mkdir(path) == 0)
+    return 0;
 #else
-  return mkdir(p, 0777) == 0
+  if (mkdir(path, 0777) == 0)
+    return 0;
 #endif
-             ? EXIT_SUCCESS
-             : EXIT_FAILURE;
+  return errno;
 }
 
-int tempdir(const char **tmpdir) {
+int tempdir(char **out_path) {
   char pathname[L_tmpnam + 1];
   char *ptr;
 
+  if (!out_path)
+    return EINVAL;
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = tmpnam_s(pathname, L_tmpnam_s);
-  if (err)
-    return err;
-  *tmpdir = get_dirname(strdup(pathname));
-  return EXIT_SUCCESS;
+  {
+    errno_t err = tmpnam_s(pathname, L_tmpnam_s);
+    if (err)
+      return (int)err;
+    ptr = pathname;
+  }
 #else
-
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -544,88 +526,111 @@ int tempdir(const char **tmpdir) {
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif /* defined(__GNUC__) || defined(__clang__) */
+  if (ptr == NULL)
+    return errno ? errno : EIO;
 #endif
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  *tmpdir = get_dirname(ptr);
-#else
-  *tmpdir = dirname(ptr);
-#endif
-  return EXIT_SUCCESS;
+  /* get_dirname allocates now */
+  return get_dirname(ptr, out_path);
 }
 
 void FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
     return;
-  fclose(file->fh);
-  file->fh = NULL;
-  free(file->filename);
-  file->filename = NULL;
+  if (file->fh) {
+    fclose(file->fh);
+    file->fh = NULL;
+  }
+  if (file->filename) {
+    free(file->filename);
+    file->filename = NULL;
+  }
 }
 
 void FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
   if (file == NULL)
     return;
+  if (file->filename) {
+    /* Ideally we unlink before freeing memory */
+    unlink(file->filename);
+  }
   FilenameAndPtr_cleanup(file);
-  unlink(file->filename);
 }
 
 int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
-                            char const *mode, struct FilenameAndPtr *file) {
+                            const char *mode, struct FilenameAndPtr *file) {
   uint8_t i;
-  const char *tmpdir;
-  int rc = tempdir(&tmpdir);
-  char *tmpfilename;
+  char *tmpdir_path = NULL;
+  char *tmpfilename = NULL;
+  int rc;
+
+  if (!file)
+    return EINVAL;
+
+  rc = tempdir(&tmpdir_path);
   if (rc != 0)
     return rc;
-  if (file == NULL)
-    file = malloc(sizeof(*file));
+
   for (i = 9; i != 0; --i) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     {
       unsigned int number;
       errno_t err = rand_s(&number);
-      if (err)
+      if (err) {
+        free(tmpdir_path);
         return err;
-      asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir, PATH_SEP_C,
-               prefix == NULL ? "" : prefix, number,
-               suffix == NULL ? "" : suffix);
+      }
+      if (asprintf(&tmpfilename, "%s%c%s%u%s", tmpdir_path, PATH_SEP_C,
+                   prefix == NULL ? "" : prefix, number,
+                   suffix == NULL ? "" : suffix) == -1) {
+        free(tmpdir_path);
+        return ENOMEM;
+      }
     }
 #else
     {
+      /* arc4random returns random, no special err check needed usually, but
+       * build dependencies matter */
+      /* Assuming pseudo-random approach acceptable if arc4random not available
+         everywhere? This codebase uses arc4random in original. */
       uint32_t number = arc4random();
-      asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir, PATH_SEP_C,
-               prefix == NULL ? "" : prefix, number,
-               suffix == NULL ? "" : suffix);
+      if (asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir_path, PATH_SEP_C,
+                   prefix == NULL ? "" : prefix, number,
+                   suffix == NULL ? "" : suffix) == -1) {
+        free(tmpdir_path);
+        return ENOMEM;
+      }
     }
 #endif
+
     if (access(tmpfilename, F_OK) != 0) {
+      /* File does not exist, try to open */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      {
-        errno_t err = fopen_s(&file->fh, tmpfilename, mode);
-        if (err != 0 || file->fh == NULL) {
-          fprintf(stderr, "Failed to open %s\n", tmpfilename);
-          free(file->fh);
-          return EXIT_FAILURE;
-        }
+      errno_t err = fopen_s(&file->fh, tmpfilename, mode);
+      if (err != 0 || file->fh == NULL) {
+        free(tmpfilename);
+        /* Try next iteration */
+        continue;
       }
 #else
       file->fh = fopen(tmpfilename, mode);
       if (!file->fh) {
-        fprintf(stderr, "Failed to open %s", tmpfilename);
-        free(file->fh);
-        file->fh = NULL;
-        return EXIT_FAILURE;
+        free(tmpfilename);
+        continue;
       }
 #endif
+      /* Success */
       file->filename = tmpfilename;
-      return EXIT_SUCCESS;
+      free(tmpdir_path);
+      return 0;
     }
     free(tmpfilename);
   }
-  return EXIT_FAILURE;
+
+  free(tmpdir_path);
+  return EEXIST; /* Or simple general failure */
 }
 
 #ifdef _MSC_VER

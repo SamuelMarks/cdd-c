@@ -1,3 +1,9 @@
+/**
+ * @file codegen.h
+ * @brief Code generation utility functions for C structs and enums.
+ * @author Samuel Marks
+ */
+
 #ifndef CODEGEN_H
 #define CODEGEN_H
 
@@ -9,78 +15,170 @@ extern "C" {
 
 #include <c_cdd_export.h>
 
-/*
- * Parse enum declaration lines:
- *
- * enum EnumName {
- *   MEMBER1,
- *   MEMBER2,
- *   MEMBER3 = -1
- * };
- *
- * fills array of members.
+/**
+ * @brief Container for enum members extracted from code or schema.
  */
 struct EnumMembers {
-  size_t capacity;
-  size_t size;
-  char **members;
+  size_t capacity; /**< allocated capacity of members array */
+  size_t size;     /**< number of members currently stored */
+  char **members;  /**< dynamic array of member names (strings) */
 };
 
-/*
- * Parse a struct member line and extract its name and type.
- * Supports patterns like:
- *   const char *field;
- *   int field;
- *   double field;
- *   int field;  // for bool treated as integer
- *   struct OtherType *field;
+/**
+ * @brief Represents a single field within a struct.
  */
 struct StructField {
-  char name[64];
-  char type[64]; /* e.g. string, integer, number, boolean, object(ref) */
-  char ref[64];  /* for struct * */
+  char name[64]; /**< Field name */
+  char type[64]; /**< Field type (e.g. "string", "integer", "object") */
+  char ref[64];  /**< Reference type name if type is "object" or "enum" */
 };
+
+/**
+ * @brief Container for fields of a struct.
+ */
 struct StructFields {
-  size_t capacity;
-  size_t size;
-  struct StructField *fields;
+  size_t capacity;            /**< allocated capacity of fields array */
+  size_t size;                /**< number of fields currently stored */
+  struct StructField *fields; /**< dynamic array of fields */
 };
 
-extern C_CDD_EXPORT void write_enum_from_str_func(FILE *, const char *,
-                                                  const struct EnumMembers *);
+/**
+ * @brief Write implementation of enum_from_str function to file.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the enum.
+ * @param[in] em Container of enum members.
+ * @return 0 on success, error code (EINVAL, EIO) on failure.
+ */
+extern C_CDD_EXPORT int write_enum_from_str_func(FILE *fp,
+                                                 const char *enum_name,
+                                                 const struct EnumMembers *em);
 
-extern C_CDD_EXPORT void write_enum_to_str_func(FILE *, const char *,
-                                                const struct EnumMembers *);
+/**
+ * @brief Write implementation of enum_to_str function to file.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] enum_name Name of the enum.
+ * @param[in] em Container of enum members.
+ * @return 0 on success, error code (EINVAL, EIO) on failure.
+ */
+extern C_CDD_EXPORT int write_enum_to_str_func(FILE *fp, const char *enum_name,
+                                               const struct EnumMembers *em);
 
-extern C_CDD_EXPORT void write_struct_cleanup_func(FILE *, const char *,
-                                                   const struct StructFields *);
+/**
+ * @brief Write implementation of struct_cleanup function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_cleanup_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf);
 
-extern C_CDD_EXPORT void write_struct_debug_func(FILE *, const char *,
-                                                 const struct StructFields *);
+/**
+ * @brief Write implementation of struct_debug function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int write_struct_debug_func(FILE *fp,
+                                                const char *struct_name,
+                                                const struct StructFields *sf);
 
-extern C_CDD_EXPORT void
-write_struct_deepcopy_func(FILE *, const char *, const struct StructFields *);
+/**
+ * @brief Write implementation of struct_deepcopy function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_deepcopy_func(FILE *fp, const char *struct_name,
+                           const struct StructFields *sf);
 
-extern C_CDD_EXPORT void write_struct_default_func(FILE *, const char *,
-                                                   const struct StructFields *);
+/**
+ * @brief Write implementation of struct_default function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_default_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf);
 
-extern C_CDD_EXPORT void write_struct_display_func(FILE *, const char *,
-                                                   const struct StructFields *);
+/**
+ * @brief Write implementation of struct_display function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_display_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf);
 
-extern C_CDD_EXPORT void write_struct_eq_func(FILE *, const char *,
-                                              const struct StructFields *);
+/**
+ * @brief Write implementation of struct_eq function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int write_struct_eq_func(FILE *fp, const char *struct_name,
+                                             const struct StructFields *sf);
 
-extern C_CDD_EXPORT void
-write_struct_from_jsonObject_func(FILE *, const char *,
-                                  const struct StructFields *);
+/**
+ * @brief Write implementation of struct_from_jsonObject function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
+                                  const struct StructFields *sf);
 
-extern C_CDD_EXPORT void write_struct_from_json_func(FILE *, const char *);
+/**
+ * @brief Write implementation of struct_from_json function string wrapper.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int write_struct_from_json_func(FILE *fp,
+                                                    const char *struct_name);
 
-extern C_CDD_EXPORT void write_struct_to_json_func(FILE *, const char *,
-                                                   const struct StructFields *);
+/**
+ * @brief Write implementation of struct_to_json function.
+ *
+ * @param[in] fp Output file stream.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Container of struct fields.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int
+write_struct_to_json_func(FILE *fp, const char *struct_name,
+                          const struct StructFields *sf);
+
 /* helpers */
 
-extern C_CDD_EXPORT const char *get_type_from_ref(const char *);
+/**
+ * @brief Extract just the type name from a JSON reference string.
+ *
+ * @param[in] ref The full reference string.
+ * @return Pointer to the start of the type name within ref, or ref itself.
+ */
+extern C_CDD_EXPORT const char *get_type_from_ref(const char *ref);
 
 #ifdef __cplusplus
 }

@@ -10,7 +10,8 @@
 #include "tokenizer.h"
 
 /**
- * Helper: copy token text (az_span) into null-terminated C string buffer.
+ * @brief Helper: copy token text (az_span) into null-terminated C string
+ * buffer.
  */
 static char *token_to_cstr(char *buf, size_t buf_len, const struct Token *tok) {
   size_t copy_len;
@@ -239,7 +240,6 @@ TEST tokenize_with_comments(void) {
   ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[4].kind);
   ASSERT_STR_EQ("S", token_to_cstr(buf, sizeof(buf), &tl.tokens[4]));
 
-  /* Additional tokens test for coverage */
   ASSERT_EQ(TOKEN_WHITESPACE, tl.tokens[5].kind);
 
   ASSERT_EQ(TOKEN_LBRACE, tl.tokens[6].kind);
@@ -277,7 +277,6 @@ TEST tokenize_with_comments(void) {
 }
 
 TEST tokenize_specials_and_errors(void) {
-  /* Covers single-char tokens, char literal, string literal, macro, etc. */
   const az_span code = AZ_SPAN_FROM_STR("a 123 'x' \"foo\"\n"
                                         "#macro\n"
                                         "/*block*/\n"
@@ -314,39 +313,35 @@ TEST tokenize_specials_and_errors(void) {
 TEST tokenizer_free_token_list_null(void) {
   struct TokenList tl0 = {NULL, 0, 0};
   free_token_list(&tl0);
+  free_token_list(NULL);
   PASS();
 }
 
 TEST tokenize_various_edge_cases(void) {
   struct TokenList tl = {NULL, 0, 0};
 
-  /* Slash at end of input */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("test/"), &tl));
   ASSERT_EQ(2, tl.size);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[0].kind);
   ASSERT_EQ(TOKEN_OTHER, tl.tokens[1].kind);
   free_token_list(&tl);
 
-  /* Unterminated block comment */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("/* foo"), &tl));
   ASSERT_EQ(1, tl.size);
   ASSERT_EQ(TOKEN_COMMENT, tl.tokens[0].kind);
   free_token_list(&tl);
 
-  /* String with escaped quote */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("\"hello\\\"world\""), &tl));
   ASSERT_EQ(1, tl.size);
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[0].kind);
   free_token_list(&tl);
 
-  /* Char with escaped char and unterminated */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("'\\''a"), &tl));
   ASSERT_EQ(2, tl.size);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[0].kind);
   ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[1].kind);
   free_token_list(&tl);
 
-  /* Other characters */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("@`$"), &tl));
   ASSERT_EQ(3, tl.size);
   ASSERT_EQ(TOKEN_OTHER, tl.tokens[0].kind);
@@ -370,7 +365,7 @@ TEST tokenize_realloc(void) {
   long_string[n - 1] = '\0';
 
   ASSERT_EQ(0, tokenize(az_span_create_from_str(long_string), &tl));
-  ASSERT_GT(tl.size, 64); /* Default capacity */
+  ASSERT_GT(tl.size, 64);
   free_token_list(&tl);
   PASS();
 }
@@ -379,7 +374,6 @@ TEST tokenize_operators(void) {
   const az_span code = AZ_SPAN_FROM_STR("{ } ; , . / : ? ~ ! & * + - ^ |");
   struct TokenList tl = {NULL, 0, 0};
   ASSERT_EQ(0, tokenize(code, &tl));
-  /* Just checking it doesn't crash and produces tokens */
   ASSERT_GT(tl.size, 15);
   free_token_list(&tl);
   PASS();
@@ -388,19 +382,16 @@ TEST tokenize_operators(void) {
 TEST tokenize_more_unterminated(void) {
   struct TokenList tl = {NULL, 0, 0};
 
-  /* unterminated block comment at end of file */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("int x; /*"), &tl));
   ASSERT_GT(tl.size, 0);
   ASSERT_EQ(TOKEN_COMMENT, tl.tokens[tl.size - 1].kind);
   free_token_list(&tl);
 
-  /* unterminated string at end of file */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("const char* s = \"abc"), &tl));
   ASSERT_GT(tl.size, 0);
   ASSERT_EQ(TOKEN_STRING_LITERAL, tl.tokens[tl.size - 1].kind);
   free_token_list(&tl);
 
-  /* unterminated char at end of file */
   ASSERT_EQ(0, tokenize(AZ_SPAN_FROM_STR("char c = 'a"), &tl));
   ASSERT_GT(tl.size, 0);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[tl.size - 1].kind);
@@ -435,7 +426,6 @@ TEST tokenize_various_literals(void) {
   struct TokenList tl = {NULL, 0, 0};
 
   ASSERT_EQ(0, tokenize(code, &tl));
-  /* 4 literals and 3 whitespaces */
   ASSERT_EQ(7, tl.size);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[0].kind);
   ASSERT_EQ(TOKEN_CHAR_LITERAL, tl.tokens[2].kind);
@@ -462,11 +452,9 @@ TEST test_token_to_cstr_edge_cases(void) {
   tok.start = (const uint8_t *)"hello world";
   tok.length = 11;
 
-  /* Test truncation */
   token_to_cstr(buf, sizeof(buf), &tok);
   ASSERT_STR_EQ("hell", buf);
 
-  /* Test zero-length buffer */
   ASSERT_EQ(NULL, token_to_cstr(buf, 0, &tok));
 
   PASS();
@@ -478,7 +466,7 @@ TEST tokenize_identifier_with_underscore(void) {
   char buf[64];
 
   ASSERT_EQ(0, tokenize(code, &tl));
-  ASSERT_EQ(5, tl.size); /* 3 idents, 2 spaces */
+  ASSERT_EQ(5, tl.size);
 
   ASSERT_EQ(TOKEN_IDENTIFIER, tl.tokens[0].kind);
   ASSERT_STR_EQ("_my_var", token_to_cstr(buf, sizeof(buf), &tl.tokens[0]));
@@ -490,7 +478,6 @@ TEST tokenize_identifier_with_underscore(void) {
   PASS();
 }
 
-/* main test suite */
 SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_all_tokens);
   RUN_TEST(tokenize_empty);

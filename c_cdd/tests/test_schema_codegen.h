@@ -9,7 +9,7 @@
 TEST test_schema2code_wrong_args(void) {
   char *argv[] = {"program", NULL};
   const int rc = schema2code_main(1, argv);
-  ASSERT_EQ(rc, EXIT_FAILURE);
+  ASSERT_EQ(EXIT_FAILURE, rc);
   PASS();
 }
 
@@ -121,7 +121,7 @@ TEST test_schema_codegen_empty_schema(void) {
   fclose(fp);
   {
     char *argv[] = {"empty.json", "basename"};
-    schema2code_main(2, argv);
+    ASSERT_EQ(0, schema2code_main(2, argv));
   }
   remove("empty.json");
   remove("basename.h");
@@ -157,9 +157,9 @@ TEST test_schema_codegen_complex_schema(void) {
   const char *const filename = "complex_schema.json";
   const char *argv[] = {filename, "complex"};
   int rc;
-  enum { COUNT = 630, str0 = 345, str1 = 289 };
-  char *const schema_str[COUNT];
-  const char add_str0[str0] =
+  enum { COUNT = 1000, str0 = 345, str1 = 289 };
+  char *const schema_str = calloc(COUNT, sizeof(char));
+  const char *add_str0 =
       "{\"components\": {\"schemas\": {"
       "\"EnumNoUnknown\": {\"type\": \"string\", \"enum\": [\"A\", null, "
       "\"B\"]},"
@@ -171,7 +171,7 @@ TEST test_schema_codegen_complex_schema(void) {
       "\"StructWithNoTypeProp\": {\"type\": \"object\", \"properties\": "
       "{\"p1\": {}}},"
       "\"StructWithArray\": ";
-  const char add_str1[str1] =
+  const char *add_str1 =
       "{\"type\": \"object\", \"properties\": {\"arr\": "
       "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
       "\"StringNotEnum\": {\"type\": \"string\"},"
@@ -196,6 +196,7 @@ TEST test_schema_codegen_complex_schema(void) {
   rc = schema2code_main(2, (char **)argv);
   ASSERT_EQ(0, rc);
 
+  free(schema_str);
   remove(filename);
   remove("complex.h");
   remove("complex.c");
@@ -330,6 +331,7 @@ TEST test_schema_codegen_header_null_basename(void) {
   /* This will try to fopen(NULL), want to ensure it handles gracefully */
   char *argv[] = {"schema.json", "."};
   write_to_file("schema.json", "{}");
+  /* It might fail with parsing or file opening, but shouldn't crash */
   ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
   remove("schema.json");
   PASS();
@@ -406,7 +408,8 @@ TEST test_schema_codegen_empty_properties(void) {
   {
     int err;
     size_t fsize;
-    char *content = read_to_file("empty_props_out.h", &err, &fsize, "r");
+    char *content = NULL;
+    err = read_to_file("empty_props_out.h", "r", &content, &fsize);
     ASSERT_EQ(0, err);
     ASSERT(strstr(content, "struct LIB_EXPORT S1 {\n};") != NULL);
     free(content);
@@ -417,6 +420,7 @@ TEST test_schema_codegen_empty_properties(void) {
   remove("empty_props_out.c");
   PASS();
 }
+
 SUITE(schema_codegen_suite) {
   RUN_TEST(test_schema2code_wrong_args);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
