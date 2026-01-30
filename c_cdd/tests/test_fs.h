@@ -105,6 +105,9 @@ TEST test_fs_read_to_file_empty(void) {
   size_t sz = 0;
   char *data = NULL;
   struct FilenameAndPtr *file = malloc(sizeof(*file));
+  if (!file)
+    FAILm("Memory allocation failed in test");
+
   ASSERT_EQ(0, mktmpfilegetnameandfile(NULL, "empty.tmp", "wb", file));
   /* Close handle so we can read it fresh */
   fclose(file->fh);
@@ -132,7 +135,7 @@ TEST test_fs_cp(void) {
   {
     errno_t err_s = fopen_s(&fp, src, "w, ccs=UTF-8");
     if (err_s != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", src);
+      fprintf(stderr, "Failed to open file %s\n", src);
       FAIL();
     }
   }
@@ -171,7 +174,7 @@ TEST test_fs_cp(void) {
   {
     errno_t err_s = fopen_s(&fp, src, "w, ccs=UTF-8");
     if (err_s != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open header file %s\n", src);
+      fprintf(stderr, "Failed to open file %s\n", src);
       FAIL();
     }
   }
@@ -255,23 +258,26 @@ TEST test_fs_windows_conversions(void) {
   const char *ascii_str = "hello";
   wchar_t wide_buf[10];
   char ascii_buf[10];
-  int len;
+  int rc;
+  size_t out_len;
 
-  len = ascii_to_wide(ascii_str, wide_buf, 10);
-  ASSERT_EQ(5, len);
+  rc = ascii_to_wide(ascii_str, wide_buf, 10, &out_len);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(5, out_len);
   ASSERT(wcscmp(wide_buf, L"hello") == 0);
 
-  len = wide_to_ascii(wide_buf, ascii_buf, 10);
-  ASSERT_EQ(5, len);
+  rc = wide_to_ascii(wide_buf, ascii_buf, 10, &out_len);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(5, out_len);
   ASSERT_STR_EQ("hello", ascii_buf);
 
   /* Error cases */
-  ASSERT_EQ(-1, ascii_to_wide(NULL, wide_buf, 10));
-  ASSERT_EQ(-1, ascii_to_wide(ascii_str, NULL, 10));
-  ASSERT_EQ(-1, ascii_to_wide(ascii_str, wide_buf, 0));
-  ASSERT_EQ(-1, wide_to_ascii(NULL, ascii_buf, 10));
-  ASSERT_EQ(-1, wide_to_ascii(wide_buf, NULL, 10));
-  ASSERT_EQ(-1, wide_to_ascii(wide_buf, ascii_buf, 0));
+  ASSERT_EQ(EINVAL, ascii_to_wide(NULL, wide_buf, 10, &out_len));
+  ASSERT_EQ(EINVAL, ascii_to_wide(ascii_str, NULL, 10, &out_len));
+  ASSERT_EQ(EINVAL, ascii_to_wide(ascii_str, wide_buf, 0, &out_len));
+  ASSERT_EQ(EINVAL, wide_to_ascii(NULL, ascii_buf, 10, &out_len));
+  ASSERT_EQ(EINVAL, wide_to_ascii(wide_buf, NULL, 10, &out_len));
+  ASSERT_EQ(EINVAL, wide_to_ascii(wide_buf, ascii_buf, 0, &out_len));
 
   PASS();
 }
@@ -330,8 +336,6 @@ TEST test_write_to_file_fail(void) {
   const char *dir = "test_dir_for_write";
   ASSERT_EQ(0, makedir(dir));
   ASSERT_NEQ(0, write_to_file(dir, "some content"));
-  /* Stderr output "Failed to open for writing test_dir_for_write" is expected
-   * here */
   rmdir(dir);
   PASS();
 }
@@ -460,7 +464,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_dirname);
   RUN_TEST(test_fs_read_to_file_failure);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* TODO: Get them to work on MSVC */
+  /* TODO: Fix file locking or sharing issues for these on Windows CI */
 #else
   RUN_TEST(test_fs_read_to_file_success);
   RUN_TEST(test_fs_cp);

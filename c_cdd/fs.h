@@ -22,9 +22,9 @@ extern "C" {
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
 #define strtok_r strtok_s
-#include "c_cddConfig.h"
+typedef struct _stat32 c_stat;
 
-/* Type definitions for Windows HANDLEs */
+/* Type definitions for Windows HANDLEs to avoid including windows.h globally */
 typedef void *PVOID;
 typedef PVOID HANDLE;
 typedef struct HWND__ *HWND;
@@ -54,6 +54,7 @@ typedef struct HWND__ *HWND;
 
 /**
  * @brief Check if a path is a UNC path (Windows only).
+ *
  * @param[in] path The path to check.
  * @return 1 if UNC, 0 otherwise.
  */
@@ -61,27 +62,35 @@ extern C_CDD_EXPORT int path_is_unc(const char *path);
 
 /**
  * @brief Convert ASCII string to Wide string (Windows only).
+ *
  * @param[in] s Source ASCII string.
  * @param[out] ws Destination Wide string buffer.
- * @param[in] len Size of the destination buffer in wchar_t elements.
- * @return Length of string on success, -1 on failure.
+ * @param[in] buf_cap Capacity of the destination buffer in wchar_t elements.
+ * @param[out] out_len Pointer to store the number of characters written.
+ * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT int ascii_to_wide(const char *s, wchar_t *ws, size_t len);
+extern C_CDD_EXPORT int ascii_to_wide(const char *s, wchar_t *ws,
+                                      size_t buf_cap, size_t *out_len);
 
 /**
  * @brief Convert Wide string to ASCII string (Windows only).
+ *
  * @param[in] ws Source Wide string.
  * @param[out] s Destination ASCII string buffer.
- * @param[in] len Size of the destination buffer in bytes.
- * @return Length of string on success, -1 on failure.
+ * @param[in] buf_cap Capacity of the destination buffer in bytes.
+ * @param[out] out_len Pointer to store the number of bytes written.
+ * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *ws, char *s, size_t len);
+extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *ws, char *s,
+                                      size_t buf_cap, size_t *out_len);
 
 #else
 /* POSIX systems */
 #include <limits.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+typedef struct stat c_stat;
 
 #define PATH_SEP "/"
 #define PATH_SEP_C '/'
@@ -106,6 +115,7 @@ enum FopenError {
 
 /**
  * @brief Helper to convert internal standard library errno to FopenError.
+ *
  * @param[in] fopen_error The errno value representing an error.
  * @return The corresponding FopenError enum value.
  */
@@ -168,6 +178,7 @@ extern C_CDD_EXPORT int read_from_fh(FILE *fh, char **out_data,
 
 /**
  * @brief Copy a file from source to destination.
+ * Fails if destination already exists.
  *
  * @param[in] dst Destination path.
  * @param[in] src Source path.
@@ -204,12 +215,14 @@ extern C_CDD_EXPORT int tempdir(char **out_path);
 
 /**
  * @brief Cleanup FilenameAndPtr struct (close file and free filename).
+ *
  * @param[in] file Pointer to struct to clean.
  */
 extern C_CDD_EXPORT void FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
 
 /**
  * @brief Cleanup struct and delete the file from the filesystem.
+ *
  * @param[in] file Pointer to struct.
  */
 extern C_CDD_EXPORT void

@@ -18,10 +18,13 @@
 #ifndef strdup
 #define strdup _strdup
 #endif /* !strdup */
-#define strtok_r strtok_s
+/* strtok_s is available */
+#else
+/* For non-MSVC, map strtok_s to strtok_r for consistent usage if available
+   or use strtok_r directly. Here we use standard strtok_r logic if needed. */
 #endif
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #include <c_cdd_stdbool.h>
@@ -29,10 +32,9 @@
 
 #include "code2schema.h"
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)
-#define strdup _strdup
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(strdup)  \
-        */
+#if defined(_WIN32)
+#define strtok_r strtok_s
+#endif
 
 void trim_trailing(char *const str) {
   size_t len;
@@ -196,6 +198,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   }
 
   if (strncmp(line, "const ", 6) != 0 && strncmp(line, "char", 4) == 0) {
+    /* char but not const char */
     return 0;
   }
 
@@ -412,7 +415,7 @@ static int write_enum_to_json_schema(JSON_Object *schemas_obj,
 
 int write_struct_to_json_schema(JSON_Object *schemas_obj,
                                 const char *struct_name,
-                                struct StructFields *sf) {
+                                const struct StructFields *sf) {
   JSON_Value *struct_val = json_value_init_object();
   JSON_Object *struct_obj;
   JSON_Value *props_val;
@@ -452,8 +455,9 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
     if (!field_val) {
       /* Cleanup done by caller usually, but parson objects are linked */
       /* If we fail here, the partial structure is already in struct_obj */
-      /* We can just return error and let caller free root */
-      /* But here we must cleanup return codes */
+      /* We can just return error and let caller free root if struct_val is
+       * attached to known root, but here it's dangling locally. Freeing
+       * struct_val frees its children including partial props. */
       json_value_free(struct_val);
       return ENOMEM;
     }

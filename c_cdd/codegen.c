@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #include <c_cdd_stdbool.h>
@@ -572,6 +572,7 @@ int write_struct_display_func(FILE *cfile, const char *struct_name,
                         "  if (rc != 0) return rc;\n"
                         "  rc = fprintf(fh, \"%%s\\n\", json_str);\n"
                         "  if (rc > 0) rc = 0;\n"
+                        "  else rc = EIO;\n"
                         "  free(json_str);\n"
                         "  return rc;\n"
                         "}\n\n",
@@ -590,10 +591,10 @@ int write_struct_debug_func(FILE *cfile, const char *struct_name,
                         "  int rc;\n"
                         "  if (obj == NULL) {\n"
                         "    rc = fputs(\"<null %s>\\n\", fh);\n"
-                        "    return rc < 0 ? rc : 0;\n"
+                        "    return rc < 0 ? EIO : 0;\n"
                         "  }\n"
                         "  rc = fputs(\"struct %s {\\n\", fh);\n"
-                        "  if (rc < 0) return rc;\n",
+                        "  if (rc < 0) return EIO;\n",
                         struct_name, struct_name, struct_name, struct_name));
 
   for (i = 0; i < sf->size; i++) {
@@ -606,7 +607,7 @@ int write_struct_debug_func(FILE *cfile, const char *struct_name,
                             "    if (rc != 0) return rc;\n"
                             "    rc = fprintf(fh, \"  %s = %%s\\n\", quoted);\n"
                             "    free(quoted);\n"
-                            "    if (rc < 0) return rc;\n"
+                            "    if (rc < 0) return EIO;\n"
                             "  }\n",
                             f->name, f->name));
     } else if (strcmp(f->type, "integer") == 0) {
@@ -614,22 +615,22 @@ int write_struct_debug_func(FILE *cfile, const char *struct_name,
           cfile,
           /* "  rc = fprintf(fh, \"  %s = %%" INT_FMT "\\n\", obj->%s);\n" */
           "  rc = fprintf(fh, \"  %s = %%d\\n\", obj->%s);\n"
-          "  if (rc < 0) return rc;\n",
+          "  if (rc < 0) return EIO;\n",
           f->name, f->name));
     } else if (strcmp(f->type, "boolean") == 0) {
       CHECK_FPRINTF(fprintf(cfile,
                             "  rc = fprintf(fh, \"  %s = %%d\\n\", obj->%s);\n"
-                            "  if (rc < 0) return rc;\n",
+                            "  if (rc < 0) return EIO;\n",
                             f->name, f->name));
     } else if (strcmp(f->type, "number") == 0) {
       CHECK_FPRINTF(fprintf(cfile,
                             "  rc = fprintf(fh, \"  %s = %%f\\n\", obj->%s);\n"
-                            "  if (rc < 0) return rc;\n",
+                            "  if (rc < 0) return EIO;\n",
                             f->name, f->name));
     } else if (strcmp(f->type, "enum") == 0) {
       CHECK_FPRINTF(fprintf(cfile,
                             "  rc = fprintf(fh, \"  %s = %%d\\n\", obj->%s);\n"
-                            "  if (rc < 0) return rc;\n",
+                            "  if (rc < 0) return EIO;\n",
                             f->name, f->name));
     } else if (strcmp(f->type, "object") == 0) {
       CHECK_FPRINTF(fprintf(cfile,
@@ -642,7 +643,7 @@ int write_struct_debug_func(FILE *cfile, const char *struct_name,
   }
 
   CHECK_FPRINTF(fprintf(cfile, "  rc = fputs(\"}\\n\", fh);\n"
-                               "  if (rc < 0) return rc;\n"
+                               "  if (rc < 0) return EIO;\n"
                                "  return 0;\n"
                                "}\n\n"));
   return 0;

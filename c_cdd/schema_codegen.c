@@ -21,7 +21,7 @@
 #include <limits.h>
 #endif
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #include <c_cdd_stdbool.h>
@@ -45,6 +45,10 @@
     if (err_code != 0)                                                         \
       return err_code;                                                         \
   } while (0)
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 
 /*
  * Write the #ifndef guard header string to the .h file.

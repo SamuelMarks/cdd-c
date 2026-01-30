@@ -6,7 +6,6 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +19,8 @@
 #include <fileapi.h>
 #include <winbase.h>
 #include <winerror.h>
-#define strtok_r strtok_s
+/* strtok_s is defined as a macro for strtok_r in fs.h if needed, or by system
+ * headers */
 #define mkdir _mkdir
 #ifndef strdup
 #define strdup _strdup
@@ -30,55 +30,69 @@
 #include <pathcch.h>
 #endif /* !PATHCCH_LIB */
 #include <shlobj_core.h>
-#else
+#else /* Not MSVC */
 #include <fcntl.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#include <inttypes.h>
+#endif
+
 /* <windows_utils> */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-int ascii_to_wide(const char *const s, wchar_t *ws, const size_t len) {
-  if (s == NULL || ws == NULL || len == 0)
-    return -1;
-  {
-    const int result = MultiByteToWideChar(
-        /* Code Page */ CP_ACP,
-        /* dwFlags */ 0,
-        /* lpMultiByteStr */ s,
-        /* cbMultiByte */ -1,
-        /* lpWideCharStr */ ws,
-        /* cchWideChar */ (int)len);
-
-    if (result == 0)
-      return -1;
-
-    return result - 1;
+int ascii_to_wide(const char *const s, wchar_t *ws, const size_t buf_cap,
+                  size_t *out_len) {
+  int result;
+  if (s == NULL || ws == NULL || buf_cap == 0 || out_len == NULL) {
+    return EINVAL;
   }
+
+  result = MultiByteToWideChar(
+      /* Code Page */ CP_ACP,
+      /* dwFlags */ 0,
+      /* lpMultiByteStr */ s,
+      /* cbMultiByte */ -1,
+      /* lpWideCharStr */ ws,
+      /* cchWideChar */ (int)buf_cap);
+
+  if (result == 0) {
+    /* GetLastError() could be mapped, but for now generic failure */
+    return EIO;
+  }
+
+  *out_len = (size_t)result - 1; /* Result includes null terminator count */
+  return 0;
 }
 
-int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
-  if (ws == NULL || s == NULL || len == 0)
-    return -1;
-  {
-    const int result = WideCharToMultiByte(
-        /* Code Page */ CP_ACP,
-        /* dwFlags */ 0,
-        /* lpWideCharStr */ ws,
-        /* cchWideChar */ -1,
-        /* lpMultiByteStr */ s,
-        /* cbMultiByte */ (int)len,
-        /* lpDefaultChar */ NULL,
-        /* lpUsedDefaultChar */ NULL);
-
-    if (result == 0)
-      return -1;
-
-    return result - 1;
+int wide_to_ascii(const wchar_t *const ws, char *s, const size_t buf_cap,
+                  size_t *out_len) {
+  int result;
+  if (ws == NULL || s == NULL || buf_cap == 0 || out_len == NULL) {
+    return EINVAL;
   }
+
+  result = WideCharToMultiByte(
+      /* Code Page */ CP_ACP,
+      /* dwFlags */ 0,
+      /* lpWideCharStr */ ws,
+      /* cchWideChar */ -1,
+      /* lpMultiByteStr */ s,
+      /* cbMultiByte */ (int)buf_cap,
+      /* lpDefaultChar */ NULL,
+      /* lpUsedDefaultChar */ NULL);
+
+  if (result == 0) {
+    return EIO;
+  }
+
+  *out_len = (size_t)result - 1;
+  return 0;
 }
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* </windows_utils> */
@@ -86,8 +100,8 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t len) {
 /**
  * @brief Duplicate a string.
  * Helper for cross-platform compatibility to ensure ENOMEM is handled cleanly
- * if we were wrapping it, but here we just blindly use strdup and standard
- * library behavior often sets errno.
+ * if we were wrapping it, but here we just blindly use strdup.
+ * Caller checks for NULL return.
  */
 static char *c_cdd_strdup(const char *s) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -181,9 +195,7 @@ int get_dirname(const char *path, char **out) {
   } else {
     /* If we stopped at a separator, that's the end of dirname.
      * Unless it's like "C:\", but this logic treats leading slash as root
-     * length 1. Handle repeated separators in the middle? e.g. "a//b". p points
-     * to the last separator (second slash). We should strip trailing separators
-     * from the dirname, e.g. "a//" -> "a".
+     * length 1. Strip trailing separators from the dirname, e.g. "a//" -> "a".
      */
     while (p > path && (*p == '/' || *p == '\\')) {
       p--;
@@ -192,8 +204,6 @@ int get_dirname(const char *path, char **out) {
   }
 
   if (len == 0) {
-    /* Should technically be covered above by p==path check, but safety fallback
-     */
     *out = c_cdd_strdup(".");
     return *out ? 0 : ENOMEM;
   }
@@ -269,30 +279,7 @@ int read_to_file(const char *path, const char *mode, char **out_data,
   return internal_rc;
 }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-static VOID
-    CALLBACK FileIOCompletionRoutine(__in DWORD dwErrorCode,
-                                     __in DWORD dwNumberOfBytesTransfered,
-                                     __in LPOVERLAPPED lpOverlapped) {
-  (void)dwErrorCode;
-  (void)dwNumberOfBytesTransfered;
-  (void)lpOverlapped;
-}
-#endif
-
 int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* Windows implementation using ReadFileEx specific logic was in original
-   * code. However, mixing FILE* and HANDLE via casting `fh` is risky if passed
-   * standard stdio FILE*. The original code did `HANDLE hFile = fh;` which
-   * implies `fh` was actually a HANDLE? But `read_to_file` passes the result of
-   * `fopen`. `fopen` returns `FILE*`, not `HANDLE`. Standard C `fread` is safer
-   * and portable. The previous windows block was suspicious. We will implement
-   * the portable approach unless specifically required otherwise. Assuming
-   * standard fread is desired for correctness with fopen.
-   */
-#endif
-
   char *buffer = NULL;
   size_t total_read = 0;
   size_t capacity = 0;
@@ -303,13 +290,12 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     return EINVAL;
 
   do {
+    /* If buffer handles huge files, standard capacity doubling is fine */
     if (total_read + READ_CHUNK_SIZE + 1 > capacity) {
       size_t new_capacity = capacity == 0 ? READ_CHUNK_SIZE + 1 : capacity * 2;
       char *new_buffer = (char *)realloc(buffer, new_capacity);
       if (!new_buffer) {
         free(buffer);
-        /* *out_data remains NULL from init or we could set it, but caller
-         * shouldn't use it on error */
         return ENOMEM;
       }
       buffer = new_buffer;
@@ -363,9 +349,7 @@ int cp(const char *dst, const char *src) {
   if (fd_from < 0)
     return errno;
 
-  /* O_EXCL to fail if dest exists, matching Windows TRUE flag behavior usually
-     preferred for safety, but original 'cp' logic implies copy. Original
-     CopyFile used TRUE (fail if exists). So we use O_CREAT | O_EXCL. */
+  /* O_EXCL to fail if dest exists */
   fd_to = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0666);
   if (fd_to < 0) {
     saved_errno = errno;
@@ -411,15 +395,15 @@ out_error:
 }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define c_stat _stat
+#define c_stat_func _stat
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
-#define c_stat stat
+#define c_stat_func stat
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
 static int maybe_mkdir(const char *const path) {
-  struct c_stat st;
+  c_stat st;
   int res;
 
 #if defined(_MSC_VER)
@@ -434,7 +418,7 @@ static int maybe_mkdir(const char *const path) {
   /* Directories already existing is not an error for recursion generally,
      but if it exists and is not a dir, it is. */
   if (errno == EEXIST) {
-    if (c_stat(path, &st) != 0)
+    if (c_stat_func(path, &st) != 0)
       return errno;
     if (!IS_DIR(st.st_mode))
       return ENOTDIR;
@@ -530,7 +514,7 @@ int tempdir(char **out_path) {
     return errno ? errno : EIO;
 #endif
 
-  /* get_dirname allocates now */
+  /* get_dirname allocates now, assuming tempfile names are paths */
   return get_dirname(ptr, out_path);
 }
 
@@ -590,10 +574,9 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
     }
 #else
     {
-      /* arc4random returns random, no special err check needed usually, but
-       * build dependencies matter */
-      /* Assuming pseudo-random approach acceptable if arc4random not available
-         everywhere? This codebase uses arc4random in original. */
+      /* Using arc4random on random-equipped systems, or simple rand if generic.
+       * The assumption is arc4random is available in this env based on previous
+       * context. */
       uint32_t number = arc4random();
       if (asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, number,

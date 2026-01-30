@@ -372,6 +372,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_code2schema_main_bad_args);
   RUN_TEST(test_code2schema_file_not_found);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  /* TODO: Fix file locking tests for MSVC */
 #else
   RUN_TEST(test_code2schema_parsing_details);
   RUN_TEST(test_code2schema_parse_struct_and_enum);
