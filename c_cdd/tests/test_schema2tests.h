@@ -10,7 +10,7 @@
 TEST test_jsonschema2tests_wrong_args(void) {
   char *argv[] = {"program", NULL};
   const int rc = jsonschema2tests_main(1, argv);
-  ASSERT_EQ(rc, EXIT_FAILURE);
+  ASSERT_EQ(EXIT_FAILURE, rc);
   PASS();
 }
 
@@ -24,7 +24,7 @@ TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
   int rc = write_to_file(filename, "{bad json");
   char *argv[] = {(char *)filename, "header.h", "out.h"};
-  ASSERT_EQ(rc, EXIT_SUCCESS);
+  ASSERT_EQ(EXIT_SUCCESS, rc);
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
   remove(filename);
   PASS();
@@ -69,7 +69,8 @@ TEST test_schema2tests_output_file_open_fail(void) {
   rc = write_to_file(schema_filename, "{\"$defs\":{}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
-  ASSERT(rc == EXIT_FAILURE || rc == -1);
+  /* Should fail due to empty output dir/filename */
+  ASSERT(rc != 0);
   remove(schema_filename);
 
   {
@@ -244,10 +245,6 @@ TEST test_schema2tests_sanitize_names(void) {
   rc = jsonschema2tests_main(3, argv);
   ASSERT_EQ(0, rc);
 
-  /* The generated test function name should be `test_E_1_to_str_from_str`.
-   * The enum member would be `E_1_val_1`. This test mainly ensures that
-   * the generator doesn't crash on such names. */
-
   remove(schema_file);
   remove("build" PATH_SEP "test_sanitize.h");
   remove("build" PATH_SEP "test_main.c");
@@ -289,7 +286,9 @@ TEST test_schema2tests_header_inclusion_not_found(void) {
   {
     int read_err;
     size_t fsize;
-    char *content = read_to_file(argv[2], &read_err, &fsize, "r");
+    char *content = NULL;
+    /* Updated to match new read_to_file signature */
+    read_err = read_to_file(argv[2], "r", &content, &fsize);
     ASSERT_EQ(0, read_err);
     ASSERT(strstr(content, "#include \"NonExistent.h\"") == NULL);
     free(content);
@@ -310,6 +309,9 @@ TEST test_schema2tests_output_in_current_dir(void) {
       "{\"$defs\": {\"MyStruct\": {\"type\":\"object\"}}}";
   ASSERT_EQ(0, write_to_file(argv[0], schema_content));
   ASSERT_EQ(0, jsonschema2tests_main(3, argv));
+  remove(argv[0]);
+  remove(argv[2]);
+  remove("test_main.c");
   PASS();
 }
 

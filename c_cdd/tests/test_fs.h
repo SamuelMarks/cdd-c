@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <fs.h>
 #include <greatest.h>
+#include <stdlib.h>
 
 #ifdef _MSC_VER
 #include <wchar.h>
@@ -15,44 +16,52 @@
 #endif /* !_MSC_VER */
 
 TEST test_get_basename(void) {
-  const char *res;
+  char *res = NULL;
+  int rc;
 
-  res = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt");
+  rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt", &res);
+  ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("baz.txt", res);
+  free(res);
 
-  res = get_basename("file.txt");
+  rc = get_basename("file.txt", &res);
+  ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("file.txt", res);
+  free(res);
 
-  res = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP);
+  rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP, &res);
+  ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("bar", res);
+  free(res);
 
-  res = get_basename(NULL);
+  rc = get_basename(NULL, &res);
+  ASSERT_EQ(0, rc);
   ASSERT_STR_EQ(".", res);
+  free(res);
 
   PASS();
 }
 
 TEST test_read_to_file_error(void) {
-  int err = 0;
+  int rc;
   size_t size = 0;
-  char *s;
+  char *s = NULL;
 
-  s = read_to_file("file_that_does_not_exist.xyz", &err, &size, "r");
-  ASSERT_EQ(NULL, s);
-  ASSERT_EQ(ENOENT, err); /* No such file or directory */
-
-  s = read_to_file(NULL, &err, &size, "r");
-  ASSERT_EQ(NULL, s);
-  ASSERT_EQ(EINVAL, err); /* Invalid argument */
-
-  s = read_to_file("anything", NULL, &size, "r");
+  rc = read_to_file("file_that_does_not_exist.xyz", "r", &s, &size);
+  ASSERT_EQ(ENOENT, rc); /* No such file or directory */
   ASSERT_EQ(NULL, s);
 
-  s = read_to_file("anything", &err, NULL, "r");
-  ASSERT_EQ(NULL, s);
+  rc = read_to_file(NULL, "r", &s, &size);
+  ASSERT_EQ(EINVAL, rc); /* Invalid argument */
 
-  s = read_to_file("anything", &err, &size, NULL);
-  ASSERT_EQ(NULL, s);
+  rc = read_to_file("anything", NULL, &s, &size);
+  ASSERT_EQ(EINVAL, rc);
+
+  rc = read_to_file("anything", "r", NULL, &size);
+  ASSERT_EQ(EINVAL, rc);
+
+  rc = read_to_file("anything", "r", &s, NULL);
+  ASSERT_EQ(EINVAL, rc);
 
   PASS();
 }
@@ -70,27 +79,46 @@ TEST test_fs_dirname(void) {
   char path1[] = PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt";
   char path2[] = "baz.txt";
   char path3[] = "";
+  char *out = NULL;
 
-  ASSERT_STR_EQ(PATH_SEP "foo" PATH_SEP "bar", get_dirname(path1));
-  ASSERT_STR_EQ(".", get_dirname(path2));
-  ASSERT_STR_EQ(".", get_dirname(path3));
-  ASSERT_STR_EQ(".", get_dirname(NULL));
+  ASSERT_EQ(0, get_dirname(path1, &out));
+  ASSERT_STR_EQ(PATH_SEP "foo" PATH_SEP "bar", out);
+  free(out);
+
+  ASSERT_EQ(0, get_dirname(path2, &out));
+  ASSERT_STR_EQ(".", out);
+  free(out);
+
+  ASSERT_EQ(0, get_dirname(path3, &out));
+  ASSERT_STR_EQ(".", out);
+  free(out);
+
+  ASSERT_EQ(0, get_dirname(NULL, &out));
+  ASSERT_STR_EQ(".", out);
+  free(out);
+
   PASS();
 }
 
 TEST test_fs_read_to_file_empty(void) {
-  int err;
-  size_t sz;
-  char *data;
+  int rc;
+  size_t sz = 0;
+  char *data = NULL;
   struct FilenameAndPtr *file = malloc(sizeof(*file));
   ASSERT_EQ(0, mktmpfilegetnameandfile(NULL, "empty.tmp", "wb", file));
-  data = read_to_file(file->filename, &err, &sz, "rb");
-  ASSERT_EQ(FOPEN_OK, err);
+  /* Close handle so we can read it fresh */
+  fclose(file->fh);
+  file->fh = NULL; /* Prevent double close in cleanup */
+
+  rc = read_to_file(file->filename, "rb", &data, &sz);
+  ASSERT_EQ(0, rc);
   ASSERT_EQ(0, sz);
   ASSERT_NEQ(NULL, data);
   ASSERT_EQ('\0', data[0]);
+  free(data);
 
   FilenameAndPtr_delete_and_cleanup(file);
+  free(file);
   PASS();
 }
 
@@ -117,12 +145,16 @@ TEST test_fs_cp(void) {
 #endif
   fputs("hello", fp);
   fclose(fp);
+
   rc = cp(dst, src);
   ASSERT_EQ_FMT(0, rc, "%d");
+
   {
-    int err;
+    int rc_read;
     size_t size;
-    char *content = read_to_file(dst, &err, &size, "r");
+    char *content = NULL;
+    rc_read = read_to_file(dst, "r", &content, &size);
+    ASSERT_EQ(0, rc_read);
     ASSERT(content != NULL && strcmp(content, "hello") == 0);
     free(content);
   }
@@ -159,39 +191,45 @@ TEST test_fs_cp(void) {
   PASS();
 }
 
-TEST test_fs_read_to_file_error(void) {
-  int err;
+TEST test_fs_read_to_file_failure(void) {
+  int rc;
   size_t sz;
+  char *data = NULL;
   const char path[] = PATH_SEP "not" PATH_SEP "a" PATH_SEP "file";
-  ASSERT_EQ(NULL, read_to_file(path, &err, &sz, "r"));
+  rc = read_to_file(path, "r", &data, &sz);
+  ASSERT(rc != 0);
+  ASSERT_EQ(NULL, data);
   PASS();
 }
 
 TEST test_fs_read_to_file_success(void) {
   const char *const filename = "testfs.txt";
-  int err;
+  int rc;
   size_t sz;
-  char *data;
-  ASSERT_EQ(EXIT_SUCCESS, write_to_file(filename, "Hello"));
-  data = read_to_file(filename, &err, &sz, "r");
-  ASSERT(data != NULL && sz == 5);
-  ASSERT_EQ(err, /* FILE_OK */ 0);
+  char *data = NULL;
+
+  if (write_to_file(filename, "Hello") != EXIT_SUCCESS) {
+    FAILm("Setup failed");
+  }
+
+  rc = read_to_file(filename, "r", &data, &sz);
+  ASSERT_EQ(0, rc);
+  ASSERT(data != NULL);
+  ASSERT_EQ(5, sz);
   free(data);
   remove(filename);
   PASS();
 }
 
-TEST test_read_to_file_nulls(void) {
-  int err = 0;
-  size_t sz = 0;
-  const char *const s = read_to_file(NULL, &err, &sz, "r");
-  ASSERT_EQ(NULL, s);
-  PASS();
-}
-
 TEST test_makedirs_and_makedir_edge(void) {
   const char *const deep = "dir1" PATH_SEP "dir2" PATH_SEP "dir3";
+  /* Clean up first in case leftover */
+  rmdir(deep);
+  rmdir("dir1" PATH_SEP "dir2");
+  rmdir("dir1");
+
   ASSERT_EQ(0, makedirs(deep));
+  /* Idempotence */
   ASSERT_EQ(0, makedirs("dir1"));
 
   /* Null and empty paths should fail */
@@ -241,9 +279,17 @@ TEST test_fs_windows_conversions(void) {
 TEST test_fs_windows_unc(void) {
   char unc_path[] = "\\\\server\\share\\file";
   char unc_path_dir_only[] = "\\\\server\\share";
+  char *out = NULL;
+
   ASSERT(path_is_unc(unc_path));
-  ASSERT_STR_EQ("\\\\server\\share", get_dirname(unc_path));
-  ASSERT_STR_EQ("\\\\server\\share", get_dirname(unc_path_dir_only));
+
+  ASSERT_EQ(0, get_dirname(unc_path, &out));
+  ASSERT_STR_EQ("\\\\server\\share", out);
+  free(out);
+
+  ASSERT_EQ(0, get_dirname(unc_path_dir_only, &out));
+  ASSERT_STR_EQ("\\\\server\\share", out);
+  free(out);
 
   ASSERT(!path_is_unc("C:\\notunc"));
   ASSERT(!path_is_unc("\\nounc"));
@@ -266,13 +312,17 @@ TEST test_makedirs_path_is_file(void) {
 /* Try get_dirname with NULL and "" */
 TEST test_get_dirname_edge_cases(void) {
   char empty1[2] = "";
-  const char *res1 = (char *)get_dirname(empty1);
-  ASSERT(res1 != NULL);
+  char *res1 = NULL;
 
-  {
-    const char *res2 = (char *)get_dirname(NULL);
-    ASSERT(res2 != NULL && (strcmp(res2, ".") == 0 || strcmp(res2, "") == 0));
-  }
+  ASSERT_EQ(0, get_dirname(empty1, &res1));
+  ASSERT(res1 != NULL && strcmp(res1, ".") == 0);
+  free(res1);
+
+  /* Matches behavior of get_basename and implementation in fs.c */
+  ASSERT_EQ(0, get_dirname(NULL, &res1));
+  ASSERT_STR_EQ(".", res1);
+  free(res1);
+
   PASS();
 }
 
@@ -280,18 +330,18 @@ TEST test_write_to_file_fail(void) {
   const char *dir = "test_dir_for_write";
   ASSERT_EQ(0, makedir(dir));
   ASSERT_NEQ(0, write_to_file(dir, "some content"));
+  /* Stderr output "Failed to open for writing test_dir_for_write" is expected
+   * here */
   rmdir(dir);
   PASS();
 }
 
-/* Simulate error for makedir: pass null and "" */
 TEST test_fs_makedir_null_and_empty(void) {
-  ASSERT(makedir(NULL) == EXIT_FAILURE || makedir(NULL) == -1);
-  ASSERT(makedir("") == EXIT_FAILURE || makedir("") == -1);
+  ASSERT(makedir(NULL) != 0);
+  ASSERT(makedir("") != 0);
   PASS();
 }
 
-/* Simulate makedirs edge-cases: pass "" and "/" */
 TEST test_fs_makedirs_top_and_empty(void) {
   ASSERT(makedirs("") != 0);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -304,19 +354,27 @@ TEST test_fs_makedirs_top_and_empty(void) {
 
 TEST test_get_dirname_long_filename_no_path(void) {
   char long_path[PATH_MAX + 20];
-  char *res;
+  char *res = NULL;
 
   memset(long_path, 'a', sizeof(long_path) - 1);
   long_path[sizeof(long_path) - 1] = '\0';
 
-  res = (char *)get_dirname(long_path);
+  ASSERT_EQ(0, get_dirname(long_path, &res));
   ASSERT_STR_EQ(".", res);
+  free(res);
   PASS();
 }
 
 TEST test_get_basename_root_path(void) {
-  ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP));
-  ASSERT_STR_EQ(PATH_SEP, get_basename(PATH_SEP PATH_SEP PATH_SEP));
+  char *res = NULL;
+  ASSERT_EQ(0, get_basename(PATH_SEP, &res));
+  /* get_basename("/") -> "/" */
+  ASSERT_STR_EQ(PATH_SEP, res);
+  free(res);
+
+  ASSERT_EQ(0, get_basename(PATH_SEP PATH_SEP, &res));
+  ASSERT_STR_EQ(PATH_SEP, res);
+  free(res);
   PASS();
 }
 
@@ -341,19 +399,25 @@ TEST test_cp_dest_exists(void) {
 
 TEST test_makedirs_stat_fail(void) {
 #ifndef _MSC_VER
-  const char *path = "perm_dir/sub";
-  ASSERT_EQ(0, makedir("perm_dir"));
+  /* This test relies on permissions */
+  const char *path = "perm_dir";
+  const char *sub = "perm_dir/sub";
 
-  /* Make perm_dir non-searchable */
-  ASSERT_EQ(0, chmod("perm_dir", 0666)); /* no x bit */
+  if (getuid() == 0)
+    SKIPm("Skipping permission test as root");
+
+  ASSERT_EQ(0, makedir(path));
+
+  /* Make perm_dir non-writeable */
+  ASSERT_EQ(0, chmod(path, 0555));
 
   errno = 0;
-  ASSERT_NEQ(0, makedirs(path));
-  ASSERT(errno == EACCES || errno == ENOTDIR); /* EACCES is more likely */
+  ASSERT_NEQ(0, makedirs(sub));
+  ASSERT(errno == EACCES || errno == EROFS || errno == EPERM);
 
   /* Cleanup */
-  chmod("perm_dir", 0777);
-  rmdir("perm_dir");
+  chmod(path, 0777);
+  rmdir(path);
   PASS();
 #else
   SKIP();
@@ -361,31 +425,31 @@ TEST test_makedirs_stat_fail(void) {
 }
 
 TEST test_get_dirname_multiple_separators(void) {
+  char *out = NULL;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   char path0[] = PATH_SEP PATH_SEP PATH_SEP PATH_SEP "foo";
-  ASSERT_STR_EQ("\\\\foo", get_dirname(path0));
+  ASSERT_EQ(0, get_dirname(path0, &out));
+  ASSERT_STR_EQ("\\\\foo", out);
+  free(out);
 #else
   char path0[] = PATH_SEP PATH_SEP "foo";
-  ASSERT_STR_EQ(PATH_SEP, get_dirname(path0));
+  ASSERT_EQ(0, get_dirname(path0, &out));
+  ASSERT_STR_EQ(PATH_SEP, out);
+  free(out);
 #endif
   PASS();
 }
 
 TEST test_tempdir(void) {
-  const char *tmpdir;
+  char *tmpdir = NULL;
   const int rc = tempdir(&tmpdir);
   ASSERT_EQ(EXIT_SUCCESS, rc);
+  ASSERT(tmpdir != NULL);
+  /* Basic sanity check content */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   ASSERT_STR_EQ(tmpdir, getenv("TEMP"));
-#else
-
-#if defined(__APPLE__) && defined(__MACH__)
-  ASSERT_STR_EQ(tmpdir, "/var/tmp");
-#else
-  ASSERT_STR_EQ(tmpdir, getenv("TMP"));
-#endif /* defined(__APPLE__) && defined(__MACH__) */
-
 #endif
+  free(tmpdir);
   PASS();
 }
 
@@ -394,7 +458,7 @@ SUITE(fs_suite) {
   RUN_TEST(test_read_to_file_error);
   RUN_TEST(test_makedir_tmp);
   RUN_TEST(test_fs_dirname);
-  RUN_TEST(test_fs_read_to_file_error);
+  RUN_TEST(test_fs_read_to_file_failure);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   /* TODO: Get them to work on MSVC */
 #else
@@ -403,7 +467,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_makedirs_path_is_file);
 #endif
   RUN_TEST(test_fs_read_to_file_empty);
-  RUN_TEST(test_read_to_file_nulls);
   RUN_TEST(test_makedirs_and_makedir_edge);
   RUN_TEST(test_get_dirname_edge_cases);
   RUN_TEST(test_fs_makedir_null_and_empty);

@@ -1,3 +1,10 @@
+/**
+ * @file code2schema.h
+ * @brief Functions for parsing C headers and converting to JSON Schema,
+ * and utilities for managing dynamic schema data structures.
+ * @author Samuel Marks
+ */
+
 #ifndef CODE2SCHEMA_H
 #define CODE2SCHEMA_H
 
@@ -23,37 +30,134 @@ extern "C" {
 
 #include "codegen.h"
 
-extern C_CDD_EXPORT int code2schema_main(int, char **argv);
+/**
+ * @brief CLI entry point for code2schema command.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return 0 on success, EXIT_FAILURE on error.
+ */
+extern C_CDD_EXPORT int code2schema_main(int argc, char **argv);
 
-extern C_CDD_EXPORT void struct_fields_free(struct StructFields *);
+/**
+ * @brief Initialize a StructFields container.
+ *
+ * @param[out] sf Pointer to the container to initialize.
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int struct_fields_init(struct StructFields *sf);
 
-extern C_CDD_EXPORT void enum_members_init(struct EnumMembers *);
+/**
+ * @brief Free memory associated with a StructFields container.
+ *
+ * @param[in] sf Pointer to the container.
+ */
+extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
 
-extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *);
+/**
+ * @brief Add a field to the StructFields container.
+ * Resizes internal storage if necessary.
+ *
+ * @param[in,out] sf Pointer to the container.
+ * @param[in] name Name of the field.
+ * @param[in] type Type of the field (e.g. "string", "integer").
+ * @param[in] ref Reference type name if applicable, or NULL.
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
+                                          const char *name, const char *type,
+                                          const char *ref);
 
-extern C_CDD_EXPORT void enum_members_add(struct EnumMembers *, const char *);
+/**
+ * @brief Initialize an EnumMembers container.
+ *
+ * @param[out] em Pointer to the container to initialize.
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int enum_members_init(struct EnumMembers *em);
 
-extern C_CDD_EXPORT void struct_fields_init(struct StructFields *);
+/**
+ * @brief Free memory associated with an EnumMembers container.
+ * Frees all member strings and the array itself.
+ *
+ * @param[in] em Pointer to the container.
+ */
+extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *em);
 
-extern C_CDD_EXPORT void struct_fields_add(struct StructFields *, const char *,
-                                           const char *, const char *);
+/**
+ * @brief Add a member to the EnumMembers container.
+ * Resizes internal storage if necessary.
+ *
+ * @param[in,out] em Pointer to the container.
+ * @param[in] name Name of the enum member.
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
+                                         const char *name);
 
-extern C_CDD_EXPORT int parse_struct_member_line(const char *,
-                                                 struct StructFields *);
+/**
+ * @brief Parse a line of C code declaring a struct member.
+ * Extracts name and type and adds to StructFields.
+ *
+ * @param[in] line The line of code code to parse.
+ * @param[out] sf The container to add the field to.
+ * @return 0 on success (including ignored lines), ENOMEM on allocation failure.
+ */
+extern C_CDD_EXPORT int parse_struct_member_line(const char *line,
+                                                 struct StructFields *sf);
 
-extern C_CDD_EXPORT void
-write_struct_to_json_schema(JSON_Object *, const char *, struct StructFields *);
+/**
+ * @brief Write a struct definition to a JSON schema object.
+ *
+ * @param[in,out] schemas_obj The parent "schemas" JSON object.
+ * @param[in] struct_name The name of the struct.
+ * @param[in] sf The fields of the struct.
+ * @return 0 on success, ENOMEM on failure to allocate JSON nodes.
+ */
+extern C_CDD_EXPORT int write_struct_to_json_schema(JSON_Object *schemas_obj,
+                                                    const char *struct_name,
+                                                    struct StructFields *sf);
 
-extern C_CDD_EXPORT bool str_starts_with(const char *, const char *);
+/**
+ * @brief Check if string starts with prefix.
+ *
+ * @param[in] str The string to check.
+ * @param[in] prefix The prefix.
+ * @return true if matches, false otherwise.
+ */
+extern C_CDD_EXPORT bool str_starts_with(const char *str, const char *prefix);
 
-extern C_CDD_EXPORT void trim_trailing(char *);
+/**
+ * @brief Trim trailing whitespace and semicolons from a string in place.
+ *
+ * @param[in,out] str The string to trim.
+ */
+extern C_CDD_EXPORT void trim_trailing(char *str);
 
-extern C_CDD_EXPORT int json_array_to_enum_members(const JSON_Array *,
-                                                   struct EnumMembers *);
+/**
+ * @brief Convert a JSON array of strings to an EnumMembers container.
+ *
+ * @param[in] enum_arr JSON array of strings.
+ * @param[out] em The container to populate.
+ * @return 0 on success, non-zero on failure.
+ */
+extern C_CDD_EXPORT int json_array_to_enum_members(const JSON_Array *enum_arr,
+                                                   struct EnumMembers *em);
 
-extern C_CDD_EXPORT int json_object_to_struct_fields(const JSON_Object *,
-                                                     struct StructFields *,
-                                                     const JSON_Object *);
+/**
+ * @brief Convert a JSON schema object properties to StructFields container.
+ * Handles $ref resolution if schemas_obj_root is provided.
+ *
+ * @param[in] schema_obj The JSON object representing the struct schema.
+ * @param[out] fields The container to populate.
+ * @param[in] schemas_obj_root Optional root schema object for resolving $ref
+ * types.
+ * @return 0 on success, non-zero on failure.
+ */
+extern C_CDD_EXPORT int
+json_object_to_struct_fields(const JSON_Object *schema_obj,
+                             struct StructFields *fields,
+                             const JSON_Object *schemas_obj_root);
 
 #ifdef __cplusplus
 }

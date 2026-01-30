@@ -1,3 +1,10 @@
+/**
+ * @file cst_parser.c
+ * @brief Implementation of CST parser logic.
+ * @author Samuel Marks
+ */
+
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +12,6 @@
 #include "cst_parser.h"
 
 #ifdef _MSC_VER
-#include <errno.h>
 #else
 #include <sys/errno.h>
 #endif
@@ -14,8 +20,8 @@ int add_node(struct CstNodeList *const list, const enum CstNodeKind1 kind,
              const uint8_t *const start, const size_t length) {
   if (list->size >= list->capacity) {
     const size_t new_capacity = list->capacity == 0 ? 64 : list->capacity * 2;
-    struct CstNode1 *new_nodes =
-        realloc(list->nodes, new_capacity * sizeof(*new_nodes));
+    struct CstNode1 *new_nodes = (struct CstNode1 *)realloc(
+        list->nodes, new_capacity * sizeof(struct CstNode1));
     if (!new_nodes)
       return ENOMEM;
     list->nodes = new_nodes;
@@ -32,6 +38,7 @@ int parse_tokens(const struct TokenList *const tokens,
                  struct CstNodeList *const out) {
   size_t i = 0;
   enum TokenKind last_significant_token = TOKEN_UNKNOWN;
+  int rc;
 
   while (i < tokens->size) {
     const struct Token *tok = &tokens->tokens[i];
@@ -53,9 +60,11 @@ int parse_tokens(const struct TokenList *const tokens,
       if (semicolon_pos < tokens->size &&
           tokens->tokens[semicolon_pos].kind == TOKEN_SEMICOLON) {
         const struct Token *last_tok = &tokens->tokens[semicolon_pos];
-        size_t length = (last_tok->start + last_tok->length) - tok->start;
-        if (add_node(out, CST_NODE_OTHER, tok->start, length) != 0)
-          return -1;
+        size_t length =
+            (size_t)((last_tok->start + last_tok->length) - tok->start);
+        rc = add_node(out, CST_NODE_OTHER, tok->start, length);
+        if (rc != 0)
+          return rc;
 
         i = semicolon_pos + 1;
         last_significant_token = TOKEN_SEMICOLON;
@@ -67,6 +76,7 @@ int parse_tokens(const struct TokenList *const tokens,
     if (tok->kind == TOKEN_KEYWORD_STRUCT || tok->kind == TOKEN_KEYWORD_ENUM ||
         tok->kind == TOKEN_KEYWORD_UNION) {
       size_t lookahead_pos = i + 1;
+      /* Skip optional identifier */
       while (lookahead_pos < tokens->size &&
              tokens->tokens[lookahead_pos].kind == TOKEN_WHITESPACE)
         lookahead_pos++;
@@ -78,11 +88,13 @@ int parse_tokens(const struct TokenList *const tokens,
           lookahead_pos++;
       }
 
+      /* Check for start of body */
       if (lookahead_pos < tokens->size &&
           tokens->tokens[lookahead_pos].kind == TOKEN_LBRACE) {
         size_t block_start_pos = lookahead_pos;
         size_t brace_count = 1;
         size_t block_end_pos = block_start_pos + 1;
+
         while (block_end_pos < tokens->size && brace_count > 0) {
           if (tokens->tokens[block_end_pos].kind == TOKEN_LBRACE)
             brace_count++;
@@ -97,31 +109,39 @@ int parse_tokens(const struct TokenList *const tokens,
               tok->kind == TOKEN_KEYWORD_STRUCT ? CST_NODE_STRUCT
               : tok->kind == TOKEN_KEYWORD_ENUM ? CST_NODE_ENUM
                                                 : CST_NODE_UNION;
+          /* If brace_count > 0, we hit end of stream (unterminated), take up to
+           * end */
           const struct Token *last_block_tok =
               brace_count == 0 ? &tokens->tokens[block_end_pos - 1]
                                : &tokens->tokens[tokens->size - 1];
           size_t k;
           const size_t length =
-              (last_block_tok->start + last_block_tok->length) - tok->start;
-          if (add_node(out, node_kind, tok->start, length) != 0)
-            return -1;
+              (size_t)((last_block_tok->start + last_block_tok->length) -
+                       tok->start);
+
+          rc = add_node(out, node_kind, tok->start, length);
+          if (rc != 0)
+            return rc;
 
           /* Secondary scan for nested struct/enum/union KEYWORDS inside the
-           * block
-           */
-          for (k = block_start_pos + 1; k < block_end_pos - 1; k++) {
+           * block */
+          for (k = block_start_pos + 1;
+               k < block_end_pos - (brace_count == 0 ? 1 : 0); k++) {
             if (tokens->tokens[k].kind == TOKEN_KEYWORD_STRUCT) {
-              if (add_node(out, CST_NODE_STRUCT, tokens->tokens[k].start,
-                           tokens->tokens[k].length) != 0)
-                return -1;
+              rc = add_node(out, CST_NODE_STRUCT, tokens->tokens[k].start,
+                            tokens->tokens[k].length);
+              if (rc != 0)
+                return rc;
             } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_ENUM) {
-              if (add_node(out, CST_NODE_ENUM, tokens->tokens[k].start,
-                           tokens->tokens[k].length) != 0)
-                return -1;
+              rc = add_node(out, CST_NODE_ENUM, tokens->tokens[k].start,
+                            tokens->tokens[k].length);
+              if (rc != 0)
+                return rc;
             } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_UNION) {
-              if (add_node(out, CST_NODE_UNION, tokens->tokens[k].start,
-                           tokens->tokens[k].length) != 0)
-                return -1;
+              rc = add_node(out, CST_NODE_UNION, tokens->tokens[k].start,
+                            tokens->tokens[k].length);
+              if (rc != 0)
+                return rc;
             }
           }
         }
@@ -155,8 +175,9 @@ int parse_tokens(const struct TokenList *const tokens,
       default:
         break;
       }
-      if (add_node(out, node_kind_default, tok->start, tok->length) != 0)
-        return -1;
+      rc = add_node(out, node_kind_default, tok->start, tok->length);
+      if (rc != 0)
+        return rc;
     }
 
     last_significant_token = tok->kind;
@@ -167,6 +188,10 @@ int parse_tokens(const struct TokenList *const tokens,
 }
 
 void free_cst_node_list(struct CstNodeList *const list) {
+  if (list == NULL)
+    return;
   free(list->nodes);
-  list->nodes = NULL, list->size = 0, list->capacity = 0;
+  list->nodes = NULL;
+  list->size = 0;
+  list->capacity = 0;
 }

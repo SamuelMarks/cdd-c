@@ -14,8 +14,10 @@ static void make_simple_token_list(struct TokenList *tl) {
   tl->size = 0;
   tl->capacity = 4;
   tl->tokens = (struct Token *)malloc(sizeof(struct Token) * tl->capacity);
+  /* Use assert or similar if malloc failed, but in test normally ok. */
+  if (!tl->tokens)
+    return;
 
-  /* Add a struct + identifier + brace + close brace tokens */
   tl->tokens[0].kind = TOKEN_KEYWORD_STRUCT;
   tl->tokens[0].start = (const uint8_t *)"struct";
   tl->tokens[0].length = strlen("struct");
@@ -35,7 +37,6 @@ static void make_simple_token_list(struct TokenList *tl) {
   tl->size = 4;
 }
 
-/* Test add_node: Adding nodes increases size, capacity expands */
 TEST add_node_basic(void) {
   struct CstNodeList list = {NULL, 0, 0};
   size_t i;
@@ -58,15 +59,15 @@ TEST add_node_basic(void) {
   PASS();
 }
 
-/* Test parse_tokens processes tokens as expected */
 TEST parse_tokens_basic(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
   struct CstNodeList copy_nodes = {NULL, 0, 0};
 
   make_simple_token_list(&tokens);
+  if (!tokens.tokens)
+    FAILm("Setup failed");
 
-  /* parse_tokens should return 0 */
   ASSERT_EQ(0, parse_tokens(&tokens, &cst_nodes));
   ASSERT_GT(cst_nodes.size, 0);
 
@@ -84,24 +85,20 @@ TEST parse_tokens_basic(void) {
   }
 
   /* Test free_cst_node_list clears nodes */
-  /* Prepare copy to test free */
   copy_nodes.nodes = cst_nodes.nodes;
   copy_nodes.size = cst_nodes.size;
   copy_nodes.capacity = cst_nodes.capacity;
   free_cst_node_list(&copy_nodes);
-  /* After free, size and nodes must be zero/null */
   ASSERT_EQ(0, copy_nodes.size);
   ASSERT_EQ(0, copy_nodes.capacity);
   ASSERT(copy_nodes.nodes == NULL);
 
   /* Cleanup */
   free_token_list(&tokens);
-  /* cst_nodes.nodes was freed with copy_nodes */
 
   PASS();
 }
 
-/* Test parse_tokens with empty list */
 TEST parse_tokens_empty(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
@@ -114,11 +111,12 @@ TEST parse_tokens_empty(void) {
   PASS();
 }
 
-/* Helper to create tokens for enum parsing */
 static void make_enum_tokens(struct TokenList *tl) {
   tl->size = 0;
   tl->capacity = 6;
   tl->tokens = (struct Token *)malloc(sizeof(struct Token) * tl->capacity);
+  if (!tl->tokens)
+    return;
 
   tl->tokens[0].kind = TOKEN_KEYWORD_ENUM;
   tl->tokens[0].start = (const uint8_t *)"enum";
@@ -147,17 +145,17 @@ static void make_enum_tokens(struct TokenList *tl) {
   tl->size = 6;
 }
 
-/* Test parse_tokens for enum token list */
 TEST parse_tokens_enum(void) {
   struct TokenList tokens = {NULL, 0, 0};
   struct CstNodeList cst_nodes = {NULL, 0, 0};
 
   make_enum_tokens(&tokens);
+  if (!tokens.tokens)
+    FAILm("Setup failed");
 
   ASSERT_EQ(0, parse_tokens(&tokens, &cst_nodes));
   ASSERT_GT(cst_nodes.size, 0);
 
-  /* We want to see at least one node with kind CST_NODE_ENUM */
   {
     size_t found_enum = 0;
     size_t i;
@@ -179,14 +177,12 @@ TEST parse_tokens_enum(void) {
 TEST test_free_cst_node_list_edge(void) {
   struct CstNodeList list = {NULL, 0, 0};
   free_cst_node_list(&list);
-  /* Call again to check idempotence */
   free_cst_node_list(&list);
   PASS();
 }
 
 TEST free_cst_node_list_null(void) {
-  struct CstNodeList list = {NULL, 0, 0};
-  free_cst_node_list(&list);
+  free_cst_node_list(NULL);
   PASS();
 }
 
@@ -213,8 +209,6 @@ TEST parse_tokens_anonymous_struct(void) {
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(&tl, &cst));
 
-  /* Expects [CST_NODE_STRUCT for "struct {...}"] and [CST_NODE_OTHER for ";"]
-   */
   ASSERT_EQ(2, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
 
@@ -274,8 +268,7 @@ TEST parse_tokens_other_tokens(void) {
   ASSERT_EQ(0, parse_tokens(&tl, &cst));
 
   ASSERT(cst.size > 0);
-  ASSERT_EQ(CST_NODE_OTHER,
-            cst.nodes[0].kind); /* for "int" which is not a handled keyword */
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
 
   free_token_list(&tl);
   free_cst_node_list(&cst);
@@ -405,7 +398,7 @@ TEST parse_tokens_anonymous_enum(void) {
 
   ASSERT_GTE(cst.size, 2);
   ASSERT_EQ(CST_NODE_ENUM, cst.nodes[0].kind);
-  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[1].kind); /* for the semicolon */
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[1].kind);
 
   free_token_list(&tl);
   free_cst_node_list(&cst);
@@ -460,12 +453,11 @@ TEST parse_tokens_struct_followed_by_keyword(void) {
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(&tl, &cst));
 
-  /* Expected: struct node, semicolon, enum node, semicolon */
   ASSERT_EQ(4, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
-  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[1].kind); /* for the first semicolon */
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[1].kind);
   ASSERT_EQ(CST_NODE_ENUM, cst.nodes[2].kind);
-  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[3].kind); /* for the second semicolon */
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[3].kind);
 
   free_token_list(&tl);
   free_cst_node_list(&cst);
@@ -527,7 +519,6 @@ TEST parse_tokens_deeply_nested(void) {
   PASS();
 }
 
-/* Suite definition */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);

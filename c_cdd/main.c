@@ -1,4 +1,13 @@
+/**
+ * @file main.c
+ * @brief Main entry point for the c_cdd CLI.
+ * Dispatches commands and handles error reporting based on return codes.
+ * @author Samuel Marks
+ */
+
+#include <errno.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "code2schema.h"
 #include "generate_build_system.h"
@@ -6,22 +15,73 @@
 #include "schema_codegen.h"
 #include "sync_code.h"
 
-/* main CLI dispatcher */
+/**
+ * @brief Helper to print human-readable error message based on error code.
+ *
+ * @param[in] rc The error code returned by a command function.
+ * @param[in] command_name The name of the command that failed.
+ */
+static void print_error(int rc, const char *command_name) {
+  if (rc == 0)
+    return;
+
+  fprintf(stderr, "Error executing '%s': ", command_name);
+  switch (rc) {
+  case ENOMEM:
+    fputs("Out of memory.\n", stderr);
+    break;
+  case EINVAL:
+    fputs("Invalid arguments.\n", stderr);
+    break;
+  case ENOENT:
+    fputs("File or directory not found.\n", stderr);
+    break;
+  case EACCES:
+    fputs("Permission denied.\n", stderr);
+    break;
+  case EIO:
+    fputs("I/O error.\n", stderr);
+    break;
+  case EXIT_FAILURE:
+    fputs("General failure.\n", stderr);
+    break;
+  default:
+    fprintf(stderr, "Unknown error code %d (%s).\n", rc, strerror(rc));
+    break;
+  }
+}
+
+/**
+ * @brief Main CLI dispatcher.
+ * Parses arguments and invokes the subcommand.
+ *
+ * @param[in] argc Argument count.
+ * @param[in] argv Argument vector.
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE on error.
+ */
 int main(int argc, char **argv) {
+  int rc = 0;
+  const char *cmd;
+
   if (argc < 2) {
     fprintf(
         stderr,
         "Usage: %s <command> [args]\n"
         "Commands:\n"
         "  code2schema <header.h> <schema.json>\n"
-        "  generate_build_system <build_system> <basename> [test_file]\n"
+        "  generate_build_system <build_system> <output_directory> <basename> "
+        "[test_file]\n"
         "  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>\n"
         "  schema2code <schema.json> <basename>\n"
         "  sync_code <header.h> <impl.c>\n",
         argc > 0 ? argv[0] : "c_cdd_cli");
     return EXIT_FAILURE;
-  } else if (strcmp(argv[1], "generate_build_system") == 0) {
-    if (argc < 4 || argc > 5) {
+  }
+
+  cmd = argv[1];
+
+  if (strcmp(cmd, "generate_build_system") == 0) {
+    if (argc < 5 || argc > 6) {
       fprintf(stderr,
               "Usage: %s generate_build_system <build_system> "
               "<output_directory> <basename> "
@@ -29,16 +89,15 @@ int main(int argc, char **argv) {
               argv[0]);
       return EXIT_FAILURE;
     }
-    return generate_build_system_main(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "code2schema") == 0) {
-    /* code2schema expects exactly 2 arguments */
+    rc = generate_build_system_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4) {
       fprintf(stderr, "Usage: %s code2schema <header.h> <schema.json>\n",
               argv[0]);
       return EXIT_FAILURE;
     }
-    return code2schema_main(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "jsonschema2tests") == 0) {
+    rc = code2schema_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "jsonschema2tests") == 0) {
     if (argc != 5) {
       fprintf(stderr,
               "Usage: %s jsonschema2tests <schema.json> <header_to_test.h> "
@@ -46,24 +105,32 @@ int main(int argc, char **argv) {
               argv[0]);
       return EXIT_FAILURE;
     }
-    return jsonschema2tests_main(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "schema2code") == 0) {
+    rc = jsonschema2tests_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "schema2code") == 0) {
     if (argc != 4) {
       fprintf(stderr, "Usage: %s schema2code <schema.json> <basename>\n",
               argv[0]);
       return EXIT_FAILURE;
     }
-    return schema2code_main(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "sync_code") == 0) {
-    /* sync_code expects exactly 2 arguments */
+    rc = schema2code_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "sync_code") == 0) {
     if (argc != 4) {
       fprintf(stderr, "Usage: %s sync_code <header.h> <impl.c>\n", argv[0]);
       return EXIT_FAILURE;
     }
-    return sync_code_main(argc - 2, argv + 2);
+    rc = sync_code_main(argc - 2, argv + 2);
   } else {
-    fprintf(stderr, "Unknown command: %s\n", argv[1]);
-    fputs("Available commands: code2schema, schema2code, sync_code\n", stderr);
+    fprintf(stderr, "Unknown command: %s\n", cmd);
+    fputs("Available commands: code2schema, generate_build_system, "
+          "jsonschema2tests, schema2code, sync_code\n",
+          stderr);
     return EXIT_FAILURE;
   }
+
+  if (rc != 0) {
+    print_error(rc, cmd);
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 }
