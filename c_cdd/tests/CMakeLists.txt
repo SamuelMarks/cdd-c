@@ -30,12 +30,17 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
+        "test_analysis.h"
+        "test_c_cdd_integration.h"
         "test_code2schema.h"
         "test_cst_parser.h"
         "test_dataclasses.h"
         "test_fs.h"
         "test_json_from_and_to.h"
         "test_parsing.h"
+        "test_rewriter_body.h"
+        "test_rewriter_sig.h"
+        "test_schema2tests.h"
         "test_schema_codegen.h"
         "test_simple_json.h"
         "test_sync_code.h"
@@ -113,7 +118,6 @@ else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "parson::parson")
-
 
 set(EXEC_NAME "test_simple_json")
 

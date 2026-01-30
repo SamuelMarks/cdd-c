@@ -24,6 +24,7 @@ enum C_CDD_EXPORT CstNodeKind1 {
   CST_NODE_STRUCT,     /**< Represents a `struct` definition */
   CST_NODE_ENUM,       /**< Represents an `enum` definition */
   CST_NODE_UNION,      /**< Represents a `union` definition */
+  CST_NODE_FUNCTION,   /**< Represents a function definition */
   CST_NODE_COMMENT,    /**< Represents a comment block */
   CST_NODE_MACRO,      /**< Represents a preprocessor macro */
   CST_NODE_WHITESPACE, /**< Represents whitespace */

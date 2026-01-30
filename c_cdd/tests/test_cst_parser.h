@@ -506,11 +506,16 @@ TEST parse_tokens_struct_followed_by_keyword(void) {
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
 
-  ASSERT_EQ(4, cst.size);
+  /*
+   * Semicolons following named struct/enum definitions are skipped/absorbed
+   * by CST parser to support cleaner ASTs in mixed code (e.g. function
+   * follows).
+   */
+  ASSERT_EQ(2, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
-  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[1].kind);
-  ASSERT_EQ(CST_NODE_ENUM, cst.nodes[2].kind);
-  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[3].kind);
+  /* No CST_NODE_OTHER for semicolon */
+  ASSERT_EQ(CST_NODE_ENUM, cst.nodes[1].kind);
+  /* No CST_NODE_OTHER for final semicolon */
 
   free_token_list(tl);
   free_cst_node_list(&cst);
@@ -572,6 +577,93 @@ TEST parse_tokens_deeply_nested(void) {
   PASS();
 }
 
+TEST parse_tokens_function_def_simple(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  const az_span code = AZ_SPAN_FROM_STR("int main(void) { return 0; }");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  ASSERT_EQ(1, cst.size);
+  ASSERT_EQ(CST_NODE_FUNCTION, cst.nodes[0].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_tokens_function_def_pointer_args(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  const az_span code =
+      AZ_SPAN_FROM_STR("void* func(int *a, char **b) { *a = 5; }");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  ASSERT_EQ(1, cst.size);
+  ASSERT_EQ(CST_NODE_FUNCTION, cst.nodes[0].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_tokens_function_decl_ignored(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  const az_span code = AZ_SPAN_FROM_STR("int proto(void);");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  /* Should NOT be CST_NODE_FUNCTION, effectively loose tokens */
+  ASSERT_NEQ(CST_NODE_FUNCTION, cst.nodes[0].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_tokens_function_in_mix(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  const az_span code =
+      AZ_SPAN_FROM_STR("struct S { int x; }; int f() {} enum E {A};");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  ASSERT_GTE(cst.size, 3);
+  ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
+  ASSERT_EQ(CST_NODE_FUNCTION, cst.nodes[1].kind);
+  ASSERT_EQ(CST_NODE_ENUM, cst.nodes[2].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_tokens_broken_function_syntax(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  /* Missing return type or ID before paren - heuristic check */
+  const az_span code = AZ_SPAN_FROM_STR("() {}");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  /* Should fail matching function def because no IDENTIFIER before parens */
+  if (cst.size > 0) {
+    ASSERT_NEQ(CST_NODE_FUNCTION, cst.nodes[0].kind);
+  }
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
@@ -596,6 +688,11 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_struct_var_with_space);
   RUN_TEST(parse_tokens_struct_variable_declaration);
   RUN_TEST(parse_tokens_deeply_nested);
+  RUN_TEST(parse_tokens_function_def_simple);
+  RUN_TEST(parse_tokens_function_def_pointer_args);
+  RUN_TEST(parse_tokens_function_decl_ignored);
+  RUN_TEST(parse_tokens_function_in_mix);
+  RUN_TEST(parse_tokens_broken_function_syntax);
 }
 
 #endif /* !TEST_CST_PARSER_H */

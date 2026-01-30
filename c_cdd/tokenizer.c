@@ -210,6 +210,12 @@ int tokenize(const az_span source, struct TokenList **const out) {
       case '}':
         k = TOKEN_RBRACE;
         break;
+      case '(':
+        k = TOKEN_LPAREN;
+        break;
+      case ')':
+        k = TOKEN_RPAREN;
+        break;
       case ';':
         k = TOKEN_SEMICOLON;
         break;
