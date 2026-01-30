@@ -13,11 +13,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <c_cdd_export.h>
-#if __STDC_VERSION__ >= 199901L
+#include <stddef.h>
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #include <c_cdd_stdbool.h>
 #endif /* __STDC_VERSION__ >= 199901L */
+
 #include <c_str_span.h>
 
 /**
@@ -62,21 +65,23 @@ struct C_CDD_EXPORT TokenList {
 
 /**
  * @brief Convert source code into a list of tokens.
- * Allocates memory within the TokenList which must be freed by
- * `free_token_list`.
+ * Allocates the TokenList structure and its internal memory.
+ * The caller is responsible for freeing the list using `free_token_list`.
  *
  * @param[in] source Span containing source C code.
- * @param[out] out List to be populated. struct should be zero-initialized.
- * @return 0 on success, ENOMEM on allocation failure.
+ * @param[out] out Pointer to a pointer to TokenList. Is set to allocated list
+ * on success.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL for invalid
+ * arguments.
  */
-extern C_CDD_EXPORT int tokenize(az_span source, struct TokenList *out);
+extern C_CDD_EXPORT int tokenize(az_span source, struct TokenList **out);
 
 /**
  * @brief Release memory associated with the token list.
- * Does not free the struct TokenList itself if it was stack allocated,
- * only the internal dyanmic array.
+ * Frees the internal token array and the TokenList structure itself.
+ * Safe to call with NULL.
  *
- * @param[in] tl Pointer to token list.
+ * @param[in] tl Pointer to token list to free.
  */
 extern C_CDD_EXPORT void free_token_list(struct TokenList *tl);
 

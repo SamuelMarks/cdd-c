@@ -16,7 +16,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #include <c_cdd_stdbool.h>
@@ -114,9 +114,9 @@ extern C_CDD_EXPORT int parse_struct_member_line(const char *line,
  * @param[in] sf The fields of the struct.
  * @return 0 on success, ENOMEM on failure to allocate JSON nodes.
  */
-extern C_CDD_EXPORT int write_struct_to_json_schema(JSON_Object *schemas_obj,
-                                                    const char *struct_name,
-                                                    struct StructFields *sf);
+extern C_CDD_EXPORT int
+write_struct_to_json_schema(JSON_Object *schemas_obj, const char *struct_name,
+                            const struct StructFields *sf);
 
 /**
  * @brief Check if string starts with prefix.

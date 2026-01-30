@@ -17,14 +17,14 @@ TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_unions, const size_t expected_comments,
                   const size_t expected_macros,
                   const size_t expected_whitespace) {
-  struct TokenList *tokens = calloc(1, sizeof *tokens);
+  struct TokenList *tokens = NULL;
   struct CstNodeList *cst_nodes = calloc(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
   int rc = EXIT_SUCCESS;
 
   printf("Running test: %s\n", test_name);
 
-  if (tokenize(source, tokens) != 0) {
+  if (tokenize(source, &tokens) != 0) {
     fprintf(stderr, "tokenize() failed in test %s\n", test_name);
     rc = EXIT_FAILURE;
     goto cleanup;
@@ -70,10 +70,11 @@ TEST parsing_test(const char *const test_name, const az_span source,
   printf("Test '%s' passed.\n", test_name);
 
 cleanup:
-  free_token_list(tokens);
-  free_cst_node_list(cst_nodes);
-  free(tokens);
-  free(cst_nodes);
+  free_token_list(tokens); /* Frees internal tokens AND the structure itself */
+  free_cst_node_list(
+      cst_nodes); /* Frees internal nodes but NOT the structure */
+  /* free(tokens); <-- Removed: double free */
+  free(cst_nodes); /* Frees the structure allocated by calloc above */
   if (rc == EXIT_SUCCESS)
     PASS();
   FAIL();

@@ -45,6 +45,14 @@
       return (err);                                                            \
   } while (0)
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+/* Use safe sprintf where available */
+#define SPRINTF_S(buf, sz, fmt, ...) sprintf_s(buf, sz, fmt, __VA_ARGS__)
+#else
+#define SPRINTF_S(buf, sz, fmt, ...) snprintf(buf, sz, fmt, __VA_ARGS__)
+#endif
+
 /* Sanitize string for C identifier (underscores for invalid chars) */
 static void to_c_ident(char *out, const size_t outsz, const char *const in) {
   size_t i;
@@ -242,14 +250,15 @@ int jsonschema2tests_main(int argc, char **argv) {
       char *output_dir = NULL;
       rc = get_dirname(output_file, &output_dir);
       if (rc != 0) {
-        fprintf(stderr, "Failed to get dirname of output file: %s\n",
-                output_file);
+        fprintf(stderr, "Failed to get dirname of output file: %s (rc %d)\n",
+                output_file, rc);
         json_value_free(root_val);
         return rc;
       }
       rc = makedirs(output_dir);
       if (rc != 0) {
-        fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+        fprintf(stderr, "Failed to create output directory: %s (rc %d)\n",
+                output_dir, rc);
         free(output_dir);
         json_value_free(root_val);
         return rc;

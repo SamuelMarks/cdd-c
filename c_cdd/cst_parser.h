@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <c_cdd_export.h>
+#include <stddef.h>
 
 #include "tokenizer.h"
 
@@ -52,11 +53,11 @@ struct C_CDD_EXPORT CstNodeList {
  * @brief Add a node to the list.
  * Exposed for testing and custom usage.
  *
- * @param[out] list The list to append to.
+ * @param[in,out] list The list to append to.
  * @param[in] kind The classification of node.
  * @param[in] start Pointer to start of text.
  * @param[in] length Length of text.
- * @return 0 on success, ENOMEM on allocation failure.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
 extern C_CDD_EXPORT int add_node(struct CstNodeList *list,
                                  enum CstNodeKind1 kind, const uint8_t *start,
@@ -65,6 +66,7 @@ extern C_CDD_EXPORT int add_node(struct CstNodeList *list,
 /**
  * @brief Parse a list of tokens into CST nodes.
  * Allocates memory in `out` which must be freed by `free_cst_node_list`.
+ * This function does not free the input tokens.
  *
  * @param[in] tokens The list of tokens to parse.
  * @param[out] out The destination CST node list.
@@ -75,6 +77,8 @@ extern C_CDD_EXPORT int parse_tokens(const struct TokenList *tokens,
 
 /**
  * @brief Release memory associated with the CST node list.
+ * Frees the internal `nodes` array but not the `struct CstNodeList` container
+ * itself (assumed to be managed by caller or stack-allocated).
  *
  * @param[in] list Pointer to the list structure.
  */

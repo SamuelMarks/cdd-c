@@ -9,15 +9,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cst_parser.h"
-
-#ifdef _MSC_VER
+/* Use system errno if standard includes don't provide it,
+   though stdlib/errno.h usually suffice. */
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #else
 #include <sys/errno.h>
 #endif
 
+#include "cst_parser.h"
+
 int add_node(struct CstNodeList *const list, const enum CstNodeKind1 kind,
              const uint8_t *const start, const size_t length) {
+  if (list == NULL)
+    return EINVAL;
+
   if (list->size >= list->capacity) {
     const size_t new_capacity = list->capacity == 0 ? 64 : list->capacity * 2;
     struct CstNode1 *new_nodes = (struct CstNode1 *)realloc(
@@ -40,6 +45,15 @@ int parse_tokens(const struct TokenList *const tokens,
   enum TokenKind last_significant_token = TOKEN_UNKNOWN;
   int rc;
 
+  if (tokens == NULL || out == NULL)
+    return EINVAL;
+
+  /* Initialize output list safely */
+  if (out->capacity == 0) {
+    out->nodes = NULL;
+    out->size = 0;
+  }
+
   while (i < tokens->size) {
     const struct Token *tok = &tokens->tokens[i];
 
@@ -50,6 +64,8 @@ int parse_tokens(const struct TokenList *const tokens,
 
     /* ====== CONTEXT-SENSITIVE GROUPING FOR an IDENTIFIER; after a struct
      * ====== */
+    /* e.g. "struct S { ... } varname;" -> handle "varname;" as CST_NODE_OTHER
+     */
     if (tok->kind == TOKEN_IDENTIFIER &&
         last_significant_token == TOKEN_RBRACE) {
       size_t semicolon_pos = i + 1;
@@ -64,7 +80,7 @@ int parse_tokens(const struct TokenList *const tokens,
             (size_t)((last_tok->start + last_tok->length) - tok->start);
         rc = add_node(out, CST_NODE_OTHER, tok->start, length);
         if (rc != 0)
-          return rc;
+          goto cleanup;
 
         i = semicolon_pos + 1;
         last_significant_token = TOKEN_SEMICOLON;
@@ -121,7 +137,7 @@ int parse_tokens(const struct TokenList *const tokens,
 
           rc = add_node(out, node_kind, tok->start, length);
           if (rc != 0)
-            return rc;
+            goto cleanup;
 
           /* Secondary scan for nested struct/enum/union KEYWORDS inside the
            * block */
@@ -131,17 +147,17 @@ int parse_tokens(const struct TokenList *const tokens,
               rc = add_node(out, CST_NODE_STRUCT, tokens->tokens[k].start,
                             tokens->tokens[k].length);
               if (rc != 0)
-                return rc;
+                goto cleanup;
             } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_ENUM) {
               rc = add_node(out, CST_NODE_ENUM, tokens->tokens[k].start,
                             tokens->tokens[k].length);
               if (rc != 0)
-                return rc;
+                goto cleanup;
             } else if (tokens->tokens[k].kind == TOKEN_KEYWORD_UNION) {
               rc = add_node(out, CST_NODE_UNION, tokens->tokens[k].start,
                             tokens->tokens[k].length);
               if (rc != 0)
-                return rc;
+                goto cleanup;
             }
           }
         }
@@ -177,7 +193,7 @@ int parse_tokens(const struct TokenList *const tokens,
       }
       rc = add_node(out, node_kind_default, tok->start, tok->length);
       if (rc != 0)
-        return rc;
+        goto cleanup;
     }
 
     last_significant_token = tok->kind;
@@ -185,13 +201,19 @@ int parse_tokens(const struct TokenList *const tokens,
   }
 
   return 0;
+
+cleanup:
+  free_cst_node_list(out);
+  return rc;
 }
 
 void free_cst_node_list(struct CstNodeList *const list) {
   if (list == NULL)
     return;
-  free(list->nodes);
-  list->nodes = NULL;
+  if (list->nodes != NULL) {
+    free(list->nodes);
+    list->nodes = NULL;
+  }
   list->size = 0;
   list->capacity = 0;
 }

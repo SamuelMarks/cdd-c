@@ -17,7 +17,12 @@
 #ifndef strdup
 #define strdup _strdup
 #endif /* !strdup */
-#define strtok_r strtok_s
+/* strtok_s is provided by MSVC runtime */
+#else
+/* Standard C doesn't have strtok_s, use strtok_r if available or fallback */
+#ifndef strtok_r
+#define strtok_r strtok_r
+#endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #include "sync_code.h"
@@ -32,6 +37,10 @@
     if (err_code != 0)                                                         \
       return err_code;                                                         \
   } while (0)
+
+#if defined(_win32)
+#define strtok_r strtok_s
+#endif
 
 static int read_line_sync(FILE *fp, char *buf, size_t bufsz) {
   if (!fgets(buf, (int)bufsz, fp))
@@ -104,7 +113,9 @@ int sync_code_main(int argc, char **argv) {
 #else
   fp = fopen(header_filename, "r");
   if (!fp) {
-    fprintf(stderr, "Failed to open header file: %s\n", header_filename);
+    /* fprintf(stderr, "Failed to open header file: %s\n", header_filename); */
+    /* Return ENOENT specifically to allow tests to verify error codes without
+     * stderr noise if desired */
     return errno ? errno : ENOENT;
   }
 #endif
