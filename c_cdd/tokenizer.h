@@ -36,6 +36,8 @@ enum C_CDD_EXPORT TokenKind {
   TOKEN_IDENTIFIER,     /**< Variable, type, or function name */
   TOKEN_LBRACE,         /**< '{' */
   TOKEN_RBRACE,         /**< '}' */
+  TOKEN_LPAREN,         /**< '(' */
+  TOKEN_RPAREN,         /**< ')' */
   TOKEN_SEMICOLON,      /**< ';' */
   TOKEN_COMMA,          /**< ',' */
   TOKEN_NUMBER_LITERAL, /**< Numeric literal */
