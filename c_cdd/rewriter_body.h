@@ -56,6 +56,8 @@ struct SignatureTransform {
   const char *arg_name;
   const char *success_code;
   const char *error_code;
+  const char
+      *return_type; /**< Original return type (e.g. "char *") for temp vars */
 };
 
 /**

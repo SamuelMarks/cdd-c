@@ -4,6 +4,9 @@
  * @author Samuel Marks
  */
 
+#include <stdlib.h>
+#include <time.h>
+
 #include <greatest.h>
 
 /* Forward declarations or include headers containing suites */
@@ -37,6 +40,9 @@ GREATEST_MAIN_DEFS();
  */
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
+
+  /* Seed random number generator for file-system tests to avoid collisions */
+  srand((unsigned int)time(NULL));
 
   /* Run all test suites */
   RUN_SUITE(analysis_suite);

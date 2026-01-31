@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "c_cddConfig.h"
 #include "code2schema.h"
 #include "generate_build_system.h"
 #include "project_audit.h"
@@ -77,18 +78,59 @@ static int handle_audit(int argc, char **argv) {
   audit_stats_init(&stats);
   rc = audit_project(argv[0], &stats);
 
-  if (rc != 0)
+  if (rc != 0) {
+    audit_stats_free(&stats);
     return rc;
+  }
 
   json = audit_print_json(&stats);
   if (json) {
     puts(json);
     free(json);
   } else {
-    return ENOMEM;
+    rc = ENOMEM;
   }
 
-  return 0;
+  audit_stats_free(&stats);
+  return rc;
+}
+
+/**
+ * @brief Implementation of --help output.
+ */
+static void print_help(const char *prog_name) {
+  printf("Usage: %s <command> [args]\n"
+         "\n"
+         "Commands:\n"
+         "  audit <directory>\n"
+         "      Scan a directory for memory safety issues and output a JSON "
+         "report.\n"
+         "  code2schema <header.h> <schema.json>\n"
+         "      Convert C header structs/enums to JSON Schema.\n"
+         "  fix <path> [--in-place] OR fix <input.c> <output.c>\n"
+         "      Refactor C file(s) to inject error handling. Supports "
+         "directories.\n"
+         "  generate_build_system <build_system> <output_directory> <basename> "
+         "[test_file]\n"
+         "      Generate CMake files.\n"
+         "  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>\n"
+         "      Generate test suite from schema.\n"
+         "  schema2code <schema.json> <basename>\n"
+         "      Generate C implementation from JSON Schema.\n"
+         "  sync_code <header.h> <impl.c>\n"
+         "      Sync implementation file with header declarations.\n"
+         "\n"
+         "Options:\n"
+         "  --version   Print version information.\n"
+         "  --help      Print this help message.\n",
+         prog_name);
+}
+
+/**
+ * @brief Implementation of --version output.
+ */
+static void print_version(void) {
+  printf("c_cdd_cli version %s\n", C_CDD_VERSION);
 }
 
 /**
@@ -104,24 +146,24 @@ int main(int argc, char **argv) {
   const char *cmd;
 
   if (argc < 2) {
-    fprintf(
-        stderr,
-        "Usage: %s <command> [args]\n"
-        "Commands:\n"
-        "  audit <directory>\n"
-        "  code2schema <header.h> <schema.json>\n"
-        "  fix <input.c> <output.c>\n"
-        "  generate_build_system <build_system> <output_directory> <basename> "
-        "[test_file]\n"
-        "  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>\n"
-        "  schema2code <schema.json> <basename>\n"
-        "  sync_code <header.h> <impl.c>\n",
-        argc > 0 ? argv[0] : "c_cdd_cli");
+    print_help(argc > 0 ? argv[0] : "c_cdd_cli");
     return EXIT_FAILURE;
   }
 
   cmd = argv[1];
 
+  /* Global Flags */
+  if (strcmp(cmd, "--version") == 0 || strcmp(cmd, "-v") == 0) {
+    print_version();
+    return EXIT_SUCCESS;
+  }
+
+  if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
+    print_help(argv[0]);
+    return EXIT_SUCCESS;
+  }
+
+  /* Subcommands */
   if (strcmp(cmd, "audit") == 0) {
     if (argc < 3) {
       fprintf(stderr, "Usage: %s audit <directory>\n", argv[0]);
@@ -129,8 +171,8 @@ int main(int argc, char **argv) {
     }
     rc = handle_audit(argc - 2, argv + 2);
   } else if (strcmp(cmd, "fix") == 0) {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s fix <input.c> <output.c>\n", argv[0]);
+    if (argc < 3) {
+      fprintf(stderr, "Usage: %s fix <args...>\n", argv[0]);
       return EXIT_FAILURE;
     }
     rc = fix_code_main(argc - 2, argv + 2);

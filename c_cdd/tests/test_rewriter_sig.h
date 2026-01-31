@@ -80,6 +80,18 @@ TEST test_rewrite_struct_ret(void) {
   PASS();
 }
 
+TEST test_rewrite_struct_ptr_ret(void) {
+  /* struct S *f() -> int f(struct S * *out) */
+  ASSERT_EQ(0, test_rewrite("struct S *f()", "int f(struct S * *out)"));
+  PASS();
+}
+
+TEST test_rewrite_struct_double_ptr_ret(void) {
+  /* struct S **f() -> int f(struct S ** *out) */
+  ASSERT_EQ(0, test_rewrite("struct S **f()", "int f(struct S ** *out)"));
+  PASS();
+}
+
 TEST test_rewrite_args_append(void) {
   /* double f(int x) -> int f(int x, double *out) */
   ASSERT_EQ(0, test_rewrite("double f(int x)", "int f(int x, double *out)"));
@@ -120,6 +132,20 @@ TEST test_rewrite_with_const(void) {
   PASS();
 }
 
+TEST test_rewrite_const_struct_ptr(void) {
+  /* const struct S *f() -> int f(const struct S * *out) */
+  ASSERT_EQ(
+      0, test_rewrite("const struct S *f()", "int f(const struct S * *out)"));
+  PASS();
+}
+
+TEST test_rewrite_struct_with_storage(void) {
+  /* static struct S f() -> static int f(struct S *out) */
+  ASSERT_EQ(0,
+            test_rewrite("static struct S f()", "static int f(struct S *out)"));
+  PASS();
+}
+
 /* Error cases */
 TEST test_rewrite_invalid_input(void) {
   struct TokenList tmpl = {0};
@@ -141,11 +167,15 @@ SUITE(rewriter_sig_suite) {
   RUN_TEST(test_rewrite_ptr_ret);
   RUN_TEST(test_rewrite_complex_ptr_ret);
   RUN_TEST(test_rewrite_struct_ret);
+  RUN_TEST(test_rewrite_struct_ptr_ret);
+  RUN_TEST(test_rewrite_struct_double_ptr_ret);
   RUN_TEST(test_rewrite_args_append);
   RUN_TEST(test_rewrite_args_void);
   RUN_TEST(test_rewrite_storage_class);
   RUN_TEST(test_rewrite_complex_type);
   RUN_TEST(test_rewrite_with_const);
+  RUN_TEST(test_rewrite_const_struct_ptr);
+  RUN_TEST(test_rewrite_struct_with_storage);
   RUN_TEST(test_rewrite_invalid_input);
   RUN_TEST(test_rewrite_no_parens);
 }

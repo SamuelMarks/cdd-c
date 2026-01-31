@@ -8,9 +8,11 @@
  * Supports:
  * - `void func(...)` -> `int func(...)`
  * - `Type func(...)` -> `int func(..., Type *out)`
+ * - `struct S func(...)` -> `int func(..., struct S *out)`
  * - `Type* func(...)` -> `int func(..., Type **out)`
  * - Preservation of storage specifiers (`static`, `extern`).
- * - Preservation of `const`, `volatile`, and complex pointer types.
+ * - Preservation of `const`, `volatile`, and complex pointer types (`char
+ * ***`).
  *
  * @author Samuel Marks
  */

@@ -128,12 +128,32 @@ TEST test_integration_safety_and_prop(void) {
   PASS();
 }
 
+TEST test_realloc_safety_injection(void) {
+  const char *input = "void f() { char *p; p = realloc(p, 100); }";
+  char *output = NULL;
+  int rc;
+
+  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
+  ASSERT_EQ(0, rc);
+
+  /* Should rewrite: p = realloc(p, 100); ->
+     { void *_safe_tmp = realloc(p, 100); if (!_safe_tmp) return ENOMEM; p =
+     _safe_tmp; } */
+  ASSERT(strstr(output, "void *_safe_tmp = realloc(p, 100);") != NULL);
+  ASSERT(strstr(output, "if (!_safe_tmp) return ENOMEM;") != NULL);
+  ASSERT(strstr(output, "p = _safe_tmp;") != NULL);
+
+  free(output);
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
   RUN_TEST(test_propagate_void_stmt);
   RUN_TEST(test_propagate_ptr_assignment);
   RUN_TEST(test_propagate_ptr_declaration);
   RUN_TEST(test_propagate_nested_hoisting);
   RUN_TEST(test_integration_safety_and_prop);
+  RUN_TEST(test_realloc_safety_injection);
 }
 
 #endif /* TEST_REWRITER_BODY_H */

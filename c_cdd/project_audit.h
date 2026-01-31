@@ -2,7 +2,7 @@
  * @file project_audit.h
  * @brief Analysis and auditing for C projects.
  * Provides functionality to walk directories, scan files, and report on memory
- * allocation safety.
+ * allocation safety with detailed traces.
  * @author Samuel Marks
  */
 
@@ -17,6 +17,26 @@ extern "C" {
 #include <stddef.h>
 
 /**
+ * @brief Represents a single unchecked allocation violation.
+ */
+struct AuditViolation {
+  char *file_path;      /**< Path to the file containing relative to root */
+  size_t line;          /**< Line number (1-based) */
+  size_t col;           /**< Column number (1-based) */
+  char *variable_name;  /**< Name of the unchecked variable, or NULL */
+  char *allocator_name; /**< Name of the allocator function used */
+};
+
+/**
+ * @brief Dynamic list of violations.
+ */
+struct AuditViolationList {
+  struct AuditViolation *items; /**< Array of violations */
+  size_t size;                  /**< Number of items */
+  size_t capacity;              /**< Allocated capacity */
+};
+
+/**
  * @brief Statistics collected during an audit.
  */
 struct C_CDD_EXPORT AuditStats {
@@ -25,6 +45,7 @@ struct C_CDD_EXPORT AuditStats {
   size_t allocations_unchecked; /**< Count of unsafe (unchecked) allocations */
   size_t functions_returning_alloc; /**< Count of functions directly returning
                                        new allocations */
+  struct AuditViolationList violations; /**< List of detailed violations */
 };
 
 /**
@@ -32,6 +53,13 @@ struct C_CDD_EXPORT AuditStats {
  * @param[out] stats Pointer to structure.
  */
 extern C_CDD_EXPORT void audit_stats_init(struct AuditStats *stats);
+
+/**
+ * @brief Cleanup audit statistics structure.
+ * Frees detailed violation list.
+ * @param[in] stats Pointer to structure.
+ */
+extern C_CDD_EXPORT void audit_stats_free(struct AuditStats *stats);
 
 /**
  * @brief Recursively audit a C project directory for allocation safety.

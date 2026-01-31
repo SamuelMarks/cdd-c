@@ -194,6 +194,7 @@ static int is_pure_int(const struct TokenList *tokens, size_t start,
         return 0;
       }
     } else {
+      /* Pointers, structs, other modifiers -> not pure int */
       return 0;
     }
   }
