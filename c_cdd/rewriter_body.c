@@ -1,6 +1,8 @@
 /**
  * @file rewriter_body.c
  * @brief Implementation of body rewriting and injection logic.
+ * Handles allocation checks, function call updates, and return statement
+ * transformation.
  * @author Samuel Marks
  */
 
@@ -10,10 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <c89stringutils_string_extras.h>
+#include <c_str_span.h>
 
-#include "rewriter_body.h"
-
+/* Use system errno if standard includes don't provide it */
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
@@ -21,6 +22,11 @@
 #else
 #include <sys/errno.h>
 #endif
+
+/* Assume asprintf is available via project headers/compat */
+#include <c89stringutils_string_extras.h>
+
+#include "rewriter_body.h"
 
 /* --- Internal Structures --- */
 
@@ -152,6 +158,97 @@ static char *tokens_to_string(const struct TokenList *tokens, size_t start,
 /* --- Logic --- */
 
 /**
+ * @brief Identify if the LHS of an assignment (`... =`) looks like a
+ * declaration.
+ *
+ * @param[in] tokens Token list.
+ * @param[in] start_idx Start of the statement.
+ * @param[in] eq_idx Index of the '=' token.
+ * @return 1 if it looks like a declaration, 0 if it looks like an assignment.
+ */
+static int is_declaration(const struct TokenList *tokens, size_t start_idx,
+                          size_t eq_idx) {
+  /*
+   * basic heuristic:
+   * A declaration has at least 2 significant tokens before '=' (Type Name).
+   * An assignment usually has 1 significant token (Var) or complex expr
+   * (Arr[i], *Ptr).
+   *
+   * Exceptions:
+   * - `typedef_name var;` (2 tokens) -> Decl
+   * - `var = ...` (1 token) -> Assign
+   * - `*ptr = ...` (2 tokens `*` `ptr`) -> Assign
+   * - `arr[i] = ...` (4 tokens) -> Assign
+   *
+   * Refined check:
+   * If starts with standard Type Keyword -> Decl.
+   * If starts with `*` or identifier followed by `[` or `.` or `->` -> Assign.
+   * If 2 identifiers `T x` -> Decl.
+   */
+  size_t i = start_idx;
+  int token_count = 0;
+  int has_type_keyword = 0;
+  int starts_deref = 0;
+
+  while (i < eq_idx) {
+    if (tokens->tokens[i].kind == TOKEN_WHITESPACE) {
+      i++;
+      continue;
+    }
+
+    if (token_count == 0) {
+      if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
+          tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM ||
+          tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
+          token_eq(&tokens->tokens[i], "int") ||
+          token_eq(&tokens->tokens[i], "char") ||
+          token_eq(&tokens->tokens[i], "void") || /* void* x */
+          token_eq(&tokens->tokens[i], "float") ||
+          token_eq(&tokens->tokens[i], "double") ||
+          token_eq(&tokens->tokens[i], "long") ||
+          token_eq(&tokens->tokens[i], "short") ||
+          token_eq(&tokens->tokens[i], "unsigned") ||
+          token_eq(&tokens->tokens[i], "signed") ||
+          token_eq(&tokens->tokens[i], "const") ||
+          token_eq(&tokens->tokens[i], "static") ||
+          token_eq(&tokens->tokens[i], "extern")) {
+        has_type_keyword = 1;
+      } else if (tokens->tokens[i].length == 1 &&
+                 *tokens->tokens[i].start == '*') {
+        starts_deref = 1;
+      }
+    }
+    token_count++;
+    i++;
+  }
+
+  if (has_type_keyword)
+    return 1;
+  if (starts_deref)
+    return 0; /* *p = ... */
+
+  /* If we have >= 2 significant tokens and no obvious assignment operators
+     like `->` or `.` or `[`, assume declaration (Typedef Name). */
+  /* This is heuristic but covers `Type var` (2) vs `var` (1). */
+  if (token_count >= 2) {
+    /* Check for structural assignment chars in the range */
+    size_t k;
+    for (k = start_idx; k < eq_idx; ++k) {
+      const struct Token *t = &tokens->tokens[k];
+      /* Check for [ or . or -> */
+      if (t->kind == TOKEN_LBRACE /* [ mapped to brace or other */ ||
+          (t->length == 1 && *t->start == '.') ||
+          (t->length == 2 && strncmp((char *)t->start, "->", 2) == 0)) {
+        return 0; /* Likely assignment */
+      }
+    }
+    return 1; /* Assume Decl */
+  }
+
+  return 0; /* Default to Assignment (single token) */
+}
+
+/**
  * @brief Generate check injections for unchecked allocations.
  */
 static int process_allocations(const struct TokenList *tokens,
@@ -165,21 +262,17 @@ static int process_allocations(const struct TokenList *tokens,
     if (allocs->sites[i].is_checked)
       continue;
 
-    /* Find the semicolon ending the malloc statement */
-    /* allocs->sites[i].token_index points to 'malloc' */
     semi_idx =
         find_next_token(tokens, allocs->sites[i].token_index, TOKEN_SEMICOLON);
 
     if (semi_idx >= tokens->size)
-      continue; /* Should not happen in valid C */
+      continue;
 
-    /* After semicolon, inject check */
     if (asprintf(&injection, " if (!%s) { return ENOMEM; }",
                  allocs->sites[i].var_name) == -1) {
       return ENOMEM;
     }
 
-    /* Insert range [semi_idx + 1, semi_idx + 1] means insert without delete */
     if (add_replacement(patches, semi_idx + 1, semi_idx + 1, injection) != 0) {
       return ENOMEM;
     }
@@ -203,7 +296,6 @@ static int process_function_calls(const struct TokenList *tokens,
     if (tokens->tokens[i].kind != TOKEN_IDENTIFIER)
       continue;
 
-    /* Check if this identifier matches a known refactored function */
     for (f_idx = 0; f_idx < func_count; ++f_idx) {
       if (token_eq(&tokens->tokens[i], funcs[f_idx].name)) {
         target = &funcs[f_idx];
@@ -214,8 +306,6 @@ static int process_function_calls(const struct TokenList *tokens,
     if (!target)
       continue;
 
-    /* Check if it looks like a call: Identifier followed by LPAREN */
-    /* Only whitespace allowed between */
     {
       size_t next = i + 1;
       while (next < tokens->size &&
@@ -223,10 +313,9 @@ static int process_function_calls(const struct TokenList *tokens,
         next++;
 
       if (next >= tokens->size || tokens->tokens[next].kind != TOKEN_LPAREN) {
-        continue; /* Not a call (maybe address taking or pointer) */
+        continue;
       }
 
-      /* Find matching RPAREN */
       {
         size_t lparen = next;
         size_t rparen = lparen + 1;
@@ -242,27 +331,16 @@ static int process_function_calls(const struct TokenList *tokens,
         rparen--; /* Points to ')' */
 
         if (depth != 0)
-          continue; /* Malformed/Unterminated */
+          continue;
 
-        /* Find Statement Terminator (Scanner should handle boundaries but we do
-         * naive scan) */
         {
           size_t semi = find_next_token(tokens, rparen, TOKEN_SEMICOLON);
           if (semi >= tokens->size)
             continue;
 
           if (target->type == REF_VOID_TO_INT) {
-            /* Transform: func(a,b); -> if (func(a,b) != 0) return EIO; */
-            /* We replace range [i, semi] inclusive? */
-            /* Scan backwards to ensure we consume the whole statement if
-               possible? Wait, void calls are usually standalone statements:
-               func(a);
-
-               We assume for simplicity it is a statement expression.
-            */
-            /* Construct replacement string */
-            char *original_call =
-                tokens_to_string(tokens, i, rparen + 1); /* func... ) */
+            /* func(...) -> if (func(...) != 0) return EIO; */
+            char *original_call = tokens_to_string(tokens, i, rparen + 1);
             char *replacement = NULL;
             if (!original_call)
               return ENOMEM;
@@ -274,21 +352,17 @@ static int process_function_calls(const struct TokenList *tokens,
             }
             free(original_call);
 
-            /* Replace from 'func' to ';' inclusive (assuming stand-alone) */
-            /* Checking if preceded by assign logic */
-            /* If void-to-int, implies it wasn't assigned before. */
             if (add_replacement(patches, i, semi + 1, replacement) != 0)
               return ENOMEM;
 
-            /* Advance i */
             i = semi;
           } else if (target->type == REF_PTR_TO_INT_OUT) {
-            /* Transform: var = func(a); -> if (func(a, &var) != 0) return EIO;
-             */
-            /* We need to find the variable assignment preceding the call */
-            /* Look backwards from 'i' (func name) for '=' */
+            /* var = func(...) -> if (func(..., &var) != 0) return EIO; */
             size_t eq_idx = i;
             int found_eq = 0;
+            size_t statement_start = 0;
+
+            /* Scan backwards for '=' */
             while (eq_idx > 0) {
               eq_idx--;
               if (tokens->tokens[eq_idx].kind == TOKEN_WHITESPACE)
@@ -300,7 +374,6 @@ static int process_function_calls(const struct TokenList *tokens,
                 found_eq = 1;
                 break;
               }
-              /* Hit statement boundary */
               if (tokens->tokens[eq_idx].kind == TOKEN_SEMICOLON ||
                   tokens->tokens[eq_idx].kind == TOKEN_LBRACE ||
                   tokens->tokens[eq_idx].kind == TOKEN_RBRACE) {
@@ -309,72 +382,126 @@ static int process_function_calls(const struct TokenList *tokens,
             }
 
             if (found_eq) {
-              /* Found 'var = func(...)'. */
-              /* Find 'var' identifier before '=' */
-              size_t var_idx = eq_idx;
-              int found_var = 0;
-              while (var_idx > 0) {
-                var_idx--;
-                if (tokens->tokens[var_idx].kind == TOKEN_WHITESPACE)
-                  continue;
-                if (tokens->tokens[var_idx].kind == TOKEN_IDENTIFIER) {
-                  found_var = 1;
+              /* Find start of statement to distinguish decl from assign */
+              statement_start = eq_idx;
+              while (statement_start > 0) {
+                size_t prev = statement_start - 1;
+                if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
+                    tokens->tokens[prev].kind == TOKEN_LBRACE ||
+                    tokens->tokens[prev].kind == TOKEN_RBRACE) {
                   break;
                 }
-                /* Ignore type keywords if declaration 'Type var =' */
-                /* Just assume the token before = (skipping ws) is valid lvalue
-                 * var */
-                found_var = 1; /* Assume checking done by compiler */
-                break;
+                statement_start--;
               }
 
-              if (found_var) {
-                /* Construct new call.
-                   Original args: from lparen+1 to rparen. */
-                char *var_name = tokens_to_string(tokens, var_idx, var_idx + 1);
-                char *args = tokens_to_string(tokens, lparen + 1, rparen);
-                char *replacement = NULL;
-                char *comma = "";
-
-                /* Are there existing args? */
-                int has_args = 0;
-                size_t k;
-                for (k = lparen + 1; k < rparen; k++) {
-                  if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
-                    has_args = 1;
+              /* Extract variable name (just before =) */
+              {
+                size_t var_idx = eq_idx;
+                int found_var = 0;
+                while (var_idx > statement_start) {
+                  var_idx--;
+                  if (tokens->tokens[var_idx].kind == TOKEN_WHITESPACE)
+                    continue;
+                  /* This logic assumes the last identifier before = is the
+                   * variable */
+                  if (tokens->tokens[var_idx].kind == TOKEN_IDENTIFIER) {
+                    found_var = 1;
+                    /* Capture var_idx for name extraction */
+                    /* Need to be precise */
                     break;
                   }
                 }
-                if (has_args)
-                  comma = ", ";
 
-                if (!var_name || !args) {
-                  free(var_name);
-                  free(args);
-                  return ENOMEM;
+                if (found_var) {
+                  /* Re-scan to find actual index */
+                  size_t real_var_idx = eq_idx;
+                  while (real_var_idx > statement_start) {
+                    real_var_idx--;
+                    if (tokens->tokens[real_var_idx].kind != TOKEN_WHITESPACE)
+                      break;
+                  }
+
+                  if (tokens->tokens[real_var_idx].kind == TOKEN_IDENTIFIER) {
+                    char *var_name = tokens_to_string(tokens, real_var_idx,
+                                                      real_var_idx + 1);
+                    char *args = tokens_to_string(tokens, lparen + 1, rparen);
+                    char *replacement = NULL;
+                    char *comma = "";
+                    size_t replace_start; /* Moved here for C89 */
+                    int is_decl =
+                        is_declaration(tokens, statement_start, eq_idx);
+
+                    /* Are there existing args? */
+                    int has_args = 0;
+                    size_t k;
+                    for (k = lparen + 1; k < rparen; k++) {
+                      if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
+                        has_args = 1;
+                        break;
+                      }
+                    }
+                    if (has_args)
+                      comma = ", ";
+
+                    if (!var_name || !args) {
+                      free(var_name);
+                      free(args);
+                      return ENOMEM;
+                    }
+
+                    if (is_decl) {
+                      /* Declaration: `Type var = func();` -> `Type var; if
+                       * (func(&var)...` */
+                      /* We replace from '=' to ';' */
+                      if (asprintf(&replacement,
+                                   "; if (%s(%s%s&%s) != 0) return EIO;",
+                                   target->name, args, comma, var_name) == -1) {
+                        free(var_name);
+                        free(args);
+                        return ENOMEM;
+                      }
+                      if (add_replacement(patches, eq_idx, semi + 1,
+                                          replacement) != 0) {
+                        free(var_name);
+                        free(args); /* add_replacement takes ownership of
+                                       replacement, handled by error return */
+                        return ENOMEM;
+                      }
+                    } else {
+                      /* Assignment: `var = func();` -> `if (func(&var)...` */
+
+                      if (asprintf(&replacement,
+                                   "if (%s(%s%s&%s) != 0) return EIO;",
+                                   target->name, args, comma, var_name) == -1) {
+                        free(var_name);
+                        free(args);
+                        return ENOMEM;
+                      }
+
+                      /* Note: statement_start might include whitespace after
+                       * prev semi. */
+                      /* We should skip leading whitespace in replacement range.
+                       */
+                      replace_start = statement_start;
+                      while (replace_start < eq_idx &&
+                             tokens->tokens[replace_start].kind ==
+                                 TOKEN_WHITESPACE) {
+                        replace_start++;
+                      }
+
+                      if (add_replacement(patches, replace_start, semi + 1,
+                                          replacement) != 0) {
+                        return ENOMEM;
+                      }
+                    }
+
+                    /* Cleanup if success */
+                    free(var_name);
+                    free(args);
+
+                    i = semi;
+                  }
                 }
-
-                /* Prepend "; " to terminate potential declaration (converting
-                 * assignment to statement) */
-                if (asprintf(&replacement,
-                             "; if (%s(%s%s&%s) != 0) return EIO;",
-                             target->name, args, comma, var_name) == -1) {
-                  free(var_name);
-                  free(args);
-                  return ENOMEM;
-                }
-                free(var_name);
-                free(args);
-
-                /* Replace from '=' to ';' inclusive (the assignment and
-                 * original statement terminator) */
-                /* Range: [eq_idx, semi + 1] will replace '= func(...);'
-                   Leaving 'var' or 'Type var' intact. */
-                if (add_replacement(patches, eq_idx, semi + 1, replacement) !=
-                    0)
-                  return ENOMEM;
-
-                i = semi;
               }
             }
           }
@@ -385,10 +512,79 @@ static int process_function_calls(const struct TokenList *tokens,
   return 0;
 }
 
+/**
+ * @brief Rewrite return statements based on function transformation spec.
+ */
+static int process_return_statements(const struct TokenList *tokens,
+                                     const struct SignatureTransform *transform,
+                                     struct PatchList *patches) {
+  size_t i;
+
+  if (!transform || transform->type == TRANSFORM_NONE)
+    return 0;
+
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER &&
+        token_eq(&tokens->tokens[i], "return")) {
+
+      size_t semi = find_next_token(tokens, i, TOKEN_SEMICOLON);
+      if (semi >= tokens->size)
+        continue;
+
+      if (transform->type == TRANSFORM_VOID_TO_INT) {
+        char *replacement = NULL;
+        if (asprintf(&replacement, "return %s;", transform->success_code) == -1)
+          return ENOMEM;
+
+        if (add_replacement(patches, i, semi + 1, replacement) != 0)
+          return ENOMEM;
+
+      } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
+        char *expr = NULL;
+        char *replacement = NULL;
+
+        size_t expr_start = i + 1;
+        while (expr_start < semi &&
+               tokens->tokens[expr_start].kind == TOKEN_WHITESPACE)
+          expr_start++;
+
+        if (expr_start == semi) {
+          expr = strdup("");
+        } else {
+          expr = tokens_to_string(tokens, expr_start, semi);
+        }
+
+        if (!expr)
+          return ENOMEM;
+
+        if (transform->error_code && strcmp(expr, "NULL") == 0) {
+          if (asprintf(&replacement, "return %s;", transform->error_code) ==
+              -1) {
+            free(expr);
+            return ENOMEM;
+          }
+        } else {
+          if (asprintf(&replacement, "{ *%s = %s; return %s; }",
+                       transform->arg_name, expr,
+                       transform->success_code) == -1) {
+            free(expr);
+            return ENOMEM;
+          }
+        }
+        free(expr);
+
+        if (add_replacement(patches, i, semi + 1, replacement) != 0)
+          return ENOMEM;
+      }
+    }
+  }
+  return 0;
+}
+
 int rewrite_body(const struct TokenList *tokens,
                  const struct AllocationSiteList *allocs,
                  const struct RefactoredFunction *funcs, size_t func_count,
-                 char **out_code) {
+                 const struct SignatureTransform *transform, char **out_code) {
   struct PatchList patches;
   int rc;
   char *output = NULL;
@@ -402,27 +598,27 @@ int rewrite_body(const struct TokenList *tokens,
   if (patch_list_init(&patches) != 0)
     return ENOMEM;
 
-  /* 1. Generate Allocation Checks */
   if (allocs) {
     rc = process_allocations(tokens, allocs, &patches);
     if (rc != 0)
       goto cleanup;
   }
 
-  /* 2. Generate Function Rewrites */
   if (funcs && func_count > 0) {
     rc = process_function_calls(tokens, funcs, func_count, &patches);
     if (rc != 0)
       goto cleanup;
   }
 
-  /* 3. Sort Patches */
+  if (transform) {
+    rc = process_return_statements(tokens, transform, &patches);
+    if (rc != 0)
+      goto cleanup;
+  }
+
   qsort(patches.items, patches.size, sizeof(struct Replacement),
         cmp_replacements);
 
-  /* 4. Apply Patches / Reconstruct String */
-  /* Estimate size? Alloc a reasonable buffer and grow. */
-  /* Safe simple buffer logic */
   {
     size_t cap = 1024;
     output = (char *)malloc(cap);
@@ -433,7 +629,6 @@ int rewrite_body(const struct TokenList *tokens,
     output[0] = '\0';
 
     while (current_token < tokens->size) {
-      /* Check for pending patch */
       if (p_idx < patches.size &&
           patches.items[p_idx].token_start == current_token) {
         struct Replacement *rep = &patches.items[p_idx];
@@ -441,7 +636,7 @@ int rewrite_body(const struct TokenList *tokens,
 
         while (out_len + rep_len + 1 > cap) {
           char *tmp;
-          cap *= 2;
+          cap = cap * 2 + rep_len;
           tmp = (char *)realloc(output, cap);
           if (!tmp) {
             rc = ENOMEM;
@@ -453,15 +648,15 @@ int rewrite_body(const struct TokenList *tokens,
         out_len += rep_len;
         output[out_len] = '\0';
 
-        /* Advance past replaced tokens */
         current_token = rep->token_end;
         p_idx++;
+
+        while (p_idx < patches.size &&
+               patches.items[p_idx].token_start < current_token) {
+          p_idx++;
+        }
+
       } else {
-        /* Append current token text */
-        /* Note: This simplistic reconstruction assumes tokens cover the file
-           densely or we accept whitespace loss if tokens don't include it. (Our
-           CST tokenizer includes WHITESPACE tokens, so exact reconstruction is
-           possible). */
         const struct Token *tok = &tokens->tokens[current_token];
         size_t tok_len = tok->length;
 
@@ -485,7 +680,7 @@ int rewrite_body(const struct TokenList *tokens,
   }
 
   *out_code = output;
-  output = NULL; /* Ownership transferred */
+  output = NULL;
   rc = 0;
 
 cleanup:

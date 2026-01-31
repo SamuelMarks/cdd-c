@@ -1,6 +1,8 @@
 /**
  * @file fs.c
  * @brief Implementation of filesystem utilities.
+ * Includes POSIX and Windows specific implementations for recursive directory
+ * walking.
  * @author Samuel Marks
  */
 
@@ -31,6 +33,7 @@
 #endif /* !PATHCCH_LIB */
 #include <shlobj_core.h>
 #else /* Not MSVC */
+#include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <libgen.h>
@@ -621,3 +624,118 @@ int path_is_unc(const char *path) {
   return strlen(path) > 2 && path[0] == '\\' && path[1] == '\\';
 }
 #endif /* _MSC_VER */
+
+/* --- Directory Walking Implementation --- */
+
+int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
+  char *full_path = NULL;
+  c_stat st;
+  int rc = 0;
+
+  if (!path || !cb)
+    return EINVAL;
+
+  /* Check if root exists and is directory */
+  if (c_stat_func(path, &st) != 0)
+    return errno;
+
+  if (!IS_DIR(st.st_mode)) {
+    /* Not a directory, just call back once?
+       Usually walk implies directory traversal.
+       If user passed a file, we process it. */
+    return cb(path, user_data);
+  }
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  {
+    /* Windows implementation using _findfirst / _findnext */
+    struct _finddata_t file_info;
+    intptr_t handle;
+    char *search_path = NULL;
+
+    /* Create search path: path + "\*" or "\*.*" */
+    if (asprintf(&search_path, "%s\\*", path) == -1) {
+      return ENOMEM;
+    }
+
+    handle = _findfirst(search_path, &file_info);
+    free(search_path);
+
+    if (handle == -1) {
+      /* Empty dir or error? ENOENT means strict empty or not found. */
+      if (errno == ENOENT)
+        return 0; /* Empty usually behaves like this */
+      return errno;
+    }
+
+    do {
+      if (strcmp(file_info.name, ".") == 0 ||
+          strcmp(file_info.name, "..") == 0) {
+        continue;
+      }
+
+      if (asprintf(&full_path, "%s\\%s", path, file_info.name) == -1) {
+        _findclose(handle);
+        return ENOMEM;
+      }
+
+      if (file_info.attrib & _A_SUBDIR) {
+        rc = walk_directory(full_path, cb, user_data);
+      } else {
+        rc = cb(full_path, user_data);
+      }
+      free(full_path);
+
+      if (rc != 0) {
+        _findclose(handle);
+        return rc;
+      }
+
+    } while (_findnext(handle, &file_info) == 0);
+
+    _findclose(handle);
+  }
+#else
+  {
+    /* POSIX implementation using opendir / readdir */
+    DIR *d = opendir(path);
+    struct dirent *entry;
+
+    if (!d)
+      return errno;
+
+    while ((entry = readdir(d)) != NULL) {
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        continue;
+      }
+
+      if (asprintf(&full_path, "%s/%s", path, entry->d_name) == -1) {
+        closedir(d);
+        return ENOMEM;
+      }
+
+      /* Need to stat to determine if dir or file, d_type is not standard posix
+         everywhere (though common). Safe approach is stat. */
+      if (c_stat_func(full_path, &st) == 0) {
+        if (IS_DIR(st.st_mode)) {
+          rc = walk_directory(full_path, cb, user_data);
+        } else {
+          rc = cb(full_path, user_data);
+        }
+      } else {
+        /* Failed to stat? Skip or warning. */
+      }
+
+      free(full_path);
+
+      if (rc != 0) {
+        closedir(d);
+        return rc;
+      }
+    }
+    closedir(d);
+  }
+#endif
+
+  return 0;
+}

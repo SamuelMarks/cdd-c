@@ -1,7 +1,7 @@
 /**
  * @file fs.h
  * @brief Filesystem utility functions for safe I/O, path manipulation, and
- * directory management.
+ * directory management. Includes directory traversal.
  * @author Samuel Marks
  */
 
@@ -242,6 +242,27 @@ extern C_CDD_EXPORT int mktmpfilegetnameandfile(const char *prefix,
                                                 const char *suffix,
                                                 const char *mode,
                                                 struct FilenameAndPtr *file);
+
+/**
+ * @brief Callback function type for directory walking.
+ *
+ * @param[in] path Full path of the current entry.
+ * @param[in] user_data User data pointer passed to walker.
+ * @return 0 to continue, non-zero to stop walking.
+ */
+typedef int (*fs_walk_cb)(const char *path, void *user_data);
+
+/**
+ * @brief Recursively walk a directory tree and call callback for each regular
+ * file.
+ *
+ * @param[in] path Root directory path to start traversal.
+ * @param[in] cb Callback function to invoke for each file.
+ * @param[in] user_data Opaque pointer passed to callback.
+ * @return 0 on success, error code (errno) on failure.
+ */
+extern C_CDD_EXPORT int walk_directory(const char *path, fs_walk_cb cb,
+                                       void *user_data);
 
 #ifdef __cplusplus
 }

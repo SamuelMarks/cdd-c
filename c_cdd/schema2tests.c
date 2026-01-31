@@ -1,7 +1,6 @@
 /**
  * @file schema2tests.c
  * @brief Implementation of test generation logic.
- * Refactored to use safe filesystem API and propagate errors.
  * @author Samuel Marks
  */
 
@@ -13,9 +12,8 @@
 
 #include <parson.h>
 
-#include "schema2tests.h"
-
 #include "fs.h"
+#include "schema2tests.h"
 
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
 #include <stdio.h>
@@ -44,14 +42,6 @@
     if ((x) == NULL)                                                           \
       return (err);                                                            \
   } while (0)
-
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-/* Use safe sprintf where available */
-#define SPRINTF_S(buf, sz, fmt, ...) sprintf_s(buf, sz, fmt, __VA_ARGS__)
-#else
-#define SPRINTF_S(buf, sz, fmt, ...) snprintf(buf, sz, fmt, __VA_ARGS__)
-#endif
 
 /* Sanitize string for C identifier (underscores for invalid chars) */
 static void to_c_ident(char *out, const size_t outsz, const char *const in) {

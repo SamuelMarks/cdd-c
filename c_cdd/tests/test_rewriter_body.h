@@ -11,7 +11,9 @@
 
 static int run_body_rewrite(const char *code,
                             const struct RefactoredFunction *funcs,
-                            size_t n_funcs, char **out) {
+                            size_t n_funcs,
+                            const struct SignatureTransform *transform,
+                            char **out) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   int rc;
@@ -25,7 +27,7 @@ static int run_body_rewrite(const char *code,
     return -2;
   }
 
-  rc = rewrite_body(tl, &sites, funcs, n_funcs, out);
+  rc = rewrite_body(tl, &sites, funcs, n_funcs, transform, out);
 
   allocation_site_list_free(&sites);
   free_token_list(tl);
@@ -37,7 +39,7 @@ TEST test_inject_malloc_check(void) {
   char *output = NULL;
   int rc;
 
-  rc = run_body_rewrite(input, NULL, 0, &output);
+  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
   ASSERT_EQ(0, rc);
   ASSERT(output != NULL);
 
@@ -52,7 +54,7 @@ TEST test_skipped_checked_malloc(void) {
   char *output = NULL;
   int rc;
 
-  rc = run_body_rewrite(input, NULL, 0, &output);
+  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
   ASSERT_EQ(0, rc);
 
   {
@@ -75,7 +77,7 @@ TEST test_rewrite_void_call(void) {
   struct RefactoredFunction funcs[] = {{"do_something", REF_VOID_TO_INT}};
   int rc;
 
-  rc = run_body_rewrite(input, funcs, 1, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
   ASSERT(strstr(output, "if (do_something(1, 2) != 0) return EIO;") != NULL);
@@ -84,17 +86,34 @@ TEST test_rewrite_void_call(void) {
   PASS();
 }
 
-TEST test_rewrite_ptr_call(void) {
+TEST test_rewrite_ptr_call_assignment(void) {
+  const char *input = "void f() { char *s; s = strdup(\"a\"); free(s); }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
+  int rc;
+
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
+  ASSERT_EQ(0, rc);
+
+  /* Expect: char *s; if (strdup("a", &s) != 0) return EIO; free(s); */
+  /* The assignment `s =` is removed. */
+  ASSERT(strstr(output, "char *s; if (strdup(\"a\", &s) != 0) return EIO;") !=
+         NULL);
+
+  free(output);
+  PASS();
+}
+
+TEST test_rewrite_ptr_call_declaration(void) {
   const char *input = "void f() { char *s = strdup(\"a\"); free(s); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
   int rc;
 
-  rc = run_body_rewrite(input, funcs, 1, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  /* Expect: char *s; if (strdup("a", &s) != 0) return EIO; */
-  /* We check usage of the injected semicolon. */
+  /* Expect: char *s ; if (strdup("a", &s) != 0) return EIO; */
   ASSERT(strstr(output, "char *s ; if (strdup(\"a\", &s) != 0) return EIO;") !=
          NULL);
 
@@ -102,40 +121,72 @@ TEST test_rewrite_ptr_call(void) {
   PASS();
 }
 
-TEST test_rewrite_ptr_call_spaces(void) {
-  const char *input = "void f() { char *s; s = get_str(); }";
+TEST test_rewrite_ptr_call_typedef(void) {
+  const char *input = "void f() { MyStr s = strdup(\"a\"); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"get_str", REF_PTR_TO_INT_OUT}};
+  struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
   int rc;
 
-  rc = run_body_rewrite(input, funcs, 1, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  /* Expect: s ; if (get_str(&s) != 0) return EIO; */
-  ASSERT(strstr(output, "s ; if (get_str(&s) != 0) return EIO;") != NULL);
+  /* Simple heuristic should Identify 'MyStr s' as declaration. */
+  ASSERT(strstr(output, "MyStr s ; if (strdup(\"a\", &s) != 0) return EIO;") !=
+         NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_mix_alloc_and_rewrite(void) {
-  const char *input = "void f() { char *p = malloc(10); func(); }";
+TEST test_rewrite_return_void_to_int(void) {
+  const char *input = "void f() { do_work(); return; }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"func", REF_VOID_TO_INT}};
+  struct SignatureTransform trans = {TRANSFORM_VOID_TO_INT, NULL, "0", NULL};
   int rc;
 
-  rc = run_body_rewrite(input, funcs, 1, &output);
+  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "malloc(10); if (!p) { return ENOMEM; }") != NULL);
-  ASSERT(strstr(output, "if (func() != 0) return EIO;") != NULL);
+  ASSERT(strstr(output, "return 0;") != NULL);
+
+  free(output);
+  PASS();
+}
+
+TEST test_rewrite_return_val_to_arg(void) {
+  const char *input = "char* f() { return strdup(\"x\"); }";
+  char *output = NULL;
+  struct SignatureTransform trans = {TRANSFORM_RET_PTR_TO_ARG, "out", "0",
+                                     "ENOMEM"};
+  int rc;
+
+  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(output, "{ *out = strdup(\"x\"); return 0; }") != NULL);
+
+  free(output);
+  PASS();
+}
+
+TEST test_rewrite_return_null_error(void) {
+  const char *input = "char* f() { return NULL; }";
+  char *output = NULL;
+  struct SignatureTransform trans = {TRANSFORM_RET_PTR_TO_ARG, "out", "0",
+                                     "ENOMEM"};
+  int rc;
+
+  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(output, "return ENOMEM;") != NULL);
 
   free(output);
   PASS();
 }
 
 TEST test_rewrite_body_null_args(void) {
-  ASSERT_EQ(EINVAL, rewrite_body(NULL, NULL, NULL, 0, NULL));
+  ASSERT_EQ(EINVAL, rewrite_body(NULL, NULL, NULL, 0, NULL, NULL));
   PASS();
 }
 
@@ -144,9 +195,12 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_inject_malloc_check);
   RUN_TEST(test_skipped_checked_malloc);
   RUN_TEST(test_rewrite_void_call);
-  RUN_TEST(test_rewrite_ptr_call);
-  RUN_TEST(test_rewrite_ptr_call_spaces);
-  RUN_TEST(test_mix_alloc_and_rewrite);
+  RUN_TEST(test_rewrite_ptr_call_assignment);
+  RUN_TEST(test_rewrite_ptr_call_declaration);
+  RUN_TEST(test_rewrite_ptr_call_typedef);
+  RUN_TEST(test_rewrite_return_void_to_int);
+  RUN_TEST(test_rewrite_return_val_to_arg);
+  RUN_TEST(test_rewrite_return_null_error);
 }
 
 #endif /* TEST_REWRITER_BODY_H */
