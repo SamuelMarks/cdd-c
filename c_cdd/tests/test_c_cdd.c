@@ -16,6 +16,8 @@
 #include "test_fs.h"
 #include "test_json_from_and_to.h"
 #include "test_parsing.h"
+#include "test_project_audit.h"
+#include "test_refactor_orchestrator.h"
 #include "test_rewriter_body.h"
 #include "test_rewriter_sig.h"
 #include "test_schema2tests.h"
@@ -45,6 +47,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(integration_suite);
   RUN_SUITE(json_from_and_to_suite);
   RUN_SUITE(parsing_suite);
+  RUN_SUITE(project_audit_suite);
+  RUN_SUITE(refactor_orchestrator_suite);
   RUN_SUITE(rewriter_body_suite);
   RUN_SUITE(rewriter_sig_suite);
   RUN_SUITE(schema2tests_suite);

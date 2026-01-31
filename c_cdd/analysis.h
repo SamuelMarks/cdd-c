@@ -45,7 +45,7 @@ enum AllocatorStyle {
 /**
  * @brief Specification for a known allocator function.
  */
-struct C_CDD_EXPORT AllocatorSpec {
+struct AllocatorSpec {
   const char *name;            /**< Function name (e.g. "malloc") */
   enum AllocatorStyle style;   /**< Style of allocation location */
   enum CheckStyle check_style; /**< How to verify success */
@@ -56,11 +56,11 @@ struct C_CDD_EXPORT AllocatorSpec {
 /**
  * @brief Represents a site where memory allocation occurs.
  */
-struct C_CDD_EXPORT AllocationSite {
+struct AllocationSite {
   size_t token_index; /**< Index of the allocator token (e.g. 'malloc') in the
                          list */
   char *var_name; /**< The variable name capturing result (LHS or arg), or NULL
-                     if return-stmt */
+                     if return-stmt/unassigned */
   int is_checked; /**< Boolean: 1 if checked, 0 otherwise */
   int used_before_check; /**< Boolean: 1 if dereferenced before validation */
   int is_return_stmt; /**< Boolean: 1 if allocation is immediately returned */
@@ -71,7 +71,7 @@ struct C_CDD_EXPORT AllocationSite {
 /**
  * @brief Dynamic list of allocation sites.
  */
-struct C_CDD_EXPORT AllocationSiteList {
+struct AllocationSiteList {
   struct AllocationSite *sites; /**< Array of AllocationSite structures */
   size_t size;                  /**< Number of items used */
   size_t capacity;              /**< Allocated capacity */

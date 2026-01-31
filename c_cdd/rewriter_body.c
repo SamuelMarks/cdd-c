@@ -1,8 +1,8 @@
 /**
  * @file rewriter_body.c
  * @brief Implementation of body rewriting and injection logic.
- * Handles stack variable injection, allocation checks, function call updates,
- * call-site transformation, and return statement transformation.
+ * Handles stack variable injection, safety injection for allocators,
+ * call-site propagation, and return statement transformation.
  * @author Samuel Marks
  */
 
@@ -32,21 +32,16 @@
 static const char *const STATUS_VAR_NAME = "rc";
 static const char *const STATUS_VAR_TYPE = "int";
 static const char *const STATUS_VAR_INIT = "0";
+static const char *const DEFAULT_ERROR_CODE = "ENOMEM";
 
 /* --- Internal Structures --- */
 
-/**
- * @brief Represents a text replacement at a specific token index.
- */
 struct Replacement {
-  size_t token_start; /**< Start index of tokens to replace (inclusive) */
-  size_t token_end;   /**< End index of tokens to replace (exclusive) */
-  char *text;         /**< Null-terminated replacement text */
+  size_t token_start;
+  size_t token_end;
+  char *text;
 };
 
-/**
- * @brief List of pending replacements.
- */
 struct PatchList {
   struct Replacement *items;
   size_t size;
@@ -77,10 +72,6 @@ static void patch_list_free(struct PatchList *pl) {
   }
 }
 
-/**
- * @brief Add a replacement request.
- * Takes ownership of `text`.
- */
 static int add_replacement(struct PatchList *pl, size_t start, size_t end,
                            char *text) {
   if (pl->size >= pl->capacity) {
@@ -101,9 +92,6 @@ static int add_replacement(struct PatchList *pl, size_t start, size_t end,
   return 0;
 }
 
-/**
- * @brief Compare function for qsort. Sorts by start index ascending.
- */
 static int cmp_replacements(const void *a, const void *b) {
   const struct Replacement *ra = (const struct Replacement *)a;
   const struct Replacement *rb = (const struct Replacement *)b;
@@ -114,17 +102,11 @@ static int cmp_replacements(const void *a, const void *b) {
   return 0;
 }
 
-/**
- * @brief Helper to find token matching string.
- */
 static int token_eq(const struct Token *tok, const char *s) {
   size_t len = strlen(s);
   return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
 }
 
-/**
- * @brief Find index of next occurrence of a specific token kind.
- */
 static size_t find_next_token(const struct TokenList *tokens, size_t start,
                               enum TokenKind kind) {
   size_t i;
@@ -135,18 +117,14 @@ static size_t find_next_token(const struct TokenList *tokens, size_t start,
   return tokens->size;
 }
 
-/**
- * @brief Convert a range of tokens back to a string (joins them).
- */
 static char *tokens_to_string(const struct TokenList *tokens, size_t start,
                               size_t end) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
 
-  /* Defensive check */
   if (start >= end) {
-    char *empty = malloc(1);
+    char *empty = (char *)malloc(1);
     if (empty)
       *empty = '\0';
     return empty;
@@ -168,20 +146,24 @@ static char *tokens_to_string(const struct TokenList *tokens, size_t start,
   return buf;
 }
 
-/* --- Logic --- */
+static char *get_first_arg_name(const struct TokenList *tokens,
+                                size_t lparen_idx) {
+  size_t i = lparen_idx + 1;
+  while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE)
+    i++;
 
-/**
- * @brief Check if a variable with the given name is declared in the token
- * scope.
- *
- * Simple heuristic: scans for IDENTIFIER matching name.
- * Does not perform full scope analysis (args are implicit if this is
- * body-only).
- *
- * @param[in] tokens Token list.
- * @param[in] name Variable name to check.
- * @return 1 if found, 0 otherwise.
- */
+  if (i < tokens->size && tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+    size_t next = i + 1;
+    while (next < tokens->size && tokens->tokens[next].kind == TOKEN_WHITESPACE)
+      next++;
+    if (next < tokens->size && (tokens->tokens[next].kind == TOKEN_COMMA ||
+                                tokens->tokens[next].kind == TOKEN_RPAREN)) {
+      return tokens_to_string(tokens, i, i + 1);
+    }
+  }
+  return NULL;
+}
+
 static int variable_exists(const struct TokenList *tokens, const char *name) {
   size_t i;
   for (i = 0; i < tokens->size; ++i) {
@@ -194,42 +176,6 @@ static int variable_exists(const struct TokenList *tokens, const char *name) {
   return 0;
 }
 
-/**
- * @brief Inject a stack variable declaration at the top of the block.
- *
- * Assumes C89 compliance requirement: typically declarations must be at the
- * start of the block. We insert immediately after the first '{'.
- *
- * @param[in] tokens The token stream.
- * @param[in] patches The patch list to modify.
- * @param[in] type Type string (e.g. "int").
- * @param[in] name Variable name (e.g. "rc").
- * @param[in] init_val Initial value (e.g. "0").
- * @return 0 on success, ENOMEM on failure.
- */
-static int inject_stack_variable(const struct TokenList *tokens,
-                                 struct PatchList *patches, const char *type,
-                                 const char *name, const char *init_val) {
-  size_t i;
-  /* Find first LBRACE */
-  for (i = 0; i < tokens->size; ++i) {
-    if (tokens->tokens[i].kind == TOKEN_LBRACE) {
-      /* Inject after this token */
-      char *decl = NULL;
-      /* Format: " int name = init; " */
-      if (asprintf(&decl, " %s %s = %s;", type, name, init_val) == -1) {
-        return ENOMEM;
-      }
-      return add_replacement(patches, i + 1, i + 1, decl);
-    }
-  }
-  return 0; /* No brace found, possibly abstract declaration or error, ignore */
-}
-
-/**
- * @brief Identify if the LHS of an assignment (`... =`) looks like a
- * declaration.
- */
 static int is_declaration(const struct TokenList *tokens, size_t start_idx,
                           size_t eq_idx) {
   size_t i = start_idx;
@@ -274,26 +220,103 @@ static int is_declaration(const struct TokenList *tokens, size_t start_idx,
   if (starts_deref)
     return 0;
 
-  /* Heuristic: multiple tokens -> decl */
   if (token_count >= 2) {
     size_t k;
     for (k = start_idx; k < eq_idx; ++k) {
       const struct Token *t = &tokens->tokens[k];
-      /* Check for [ or . or -> */
       if (t->kind == TOKEN_LBRACE || (t->length == 1 && *t->start == '.') ||
-          (t->length == 2 && strncmp((char *)t->start, "->", 2) == 0)) {
-        return 0; /* Likely assignment */
+          (t->length == 2 && strncmp((char *)t->start, "->", 2) == 0) ||
+          (t->length == 1 && *t->start == '[')) {
+        return 0;
       }
     }
-    return 1; /* Assume Decl */
+    return 1;
   }
 
-  return 0; /* Default to Assignment (single token) */
+  return 0;
 }
 
-/**
- * @brief Generate check injections for unchecked allocations.
- */
+/* --- Logic Implementations --- */
+
+static int process_realloc_safety(const struct TokenList *tokens,
+                                  const struct AllocationSite *site,
+                                  struct PatchList *patches, size_t semi_idx) {
+  char *arg1 = NULL;
+  size_t call_idx = site->token_index;
+  size_t lparen_idx;
+  size_t assign_op_idx = 0;
+  size_t stmt_start = 0;
+  int is_self_assign = 0;
+
+  if (!site->var_name)
+    return 0;
+
+  {
+    size_t i = call_idx;
+    while (i > 0) {
+      i--;
+      if (tokens->tokens[i].kind == TOKEN_OTHER &&
+          tokens->tokens[i].length == 1 && *tokens->tokens[i].start == '=') {
+        assign_op_idx = i;
+        break;
+      }
+      if (tokens->tokens[i].kind == TOKEN_SEMICOLON ||
+          tokens->tokens[i].kind == TOKEN_LBRACE ||
+          tokens->tokens[i].kind == TOKEN_RBRACE) {
+        break;
+      }
+    }
+  }
+
+  if (assign_op_idx == 0)
+    return 0;
+
+  stmt_start = assign_op_idx;
+  while (stmt_start > 0) {
+    size_t prev = stmt_start - 1;
+    if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
+        tokens->tokens[prev].kind == TOKEN_LBRACE ||
+        tokens->tokens[prev].kind == TOKEN_RBRACE) {
+      break;
+    }
+    stmt_start--;
+  }
+  while (stmt_start < assign_op_idx &&
+         tokens->tokens[stmt_start].kind == TOKEN_WHITESPACE)
+    stmt_start++;
+
+  lparen_idx = find_next_token(tokens, call_idx, TOKEN_LPAREN);
+  if (lparen_idx >= tokens->size)
+    return 0;
+
+  arg1 = get_first_arg_name(tokens, lparen_idx);
+  if (arg1 && strcmp(arg1, site->var_name) == 0) {
+    is_self_assign = 1;
+  }
+  free(arg1);
+
+  if (is_self_assign) {
+    char *call_expr = NULL;
+    char *replacement = NULL;
+
+    call_expr = tokens_to_string(tokens, call_idx, semi_idx);
+    if (!call_expr)
+      return ENOMEM;
+
+    if (asprintf(&replacement,
+                 "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                 "_safe_tmp; }",
+                 call_expr, DEFAULT_ERROR_CODE, site->var_name) == -1) {
+      free(call_expr);
+      return ENOMEM;
+    }
+    free(call_expr);
+
+    return add_replacement(patches, stmt_start, semi_idx + 1, replacement);
+  }
+  return 0;
+}
+
 static int process_allocations(const struct TokenList *tokens,
                                const struct AllocationSiteList *allocs,
                                struct PatchList *patches) {
@@ -301,19 +324,43 @@ static int process_allocations(const struct TokenList *tokens,
   for (i = 0; i < allocs->size; ++i) {
     size_t semi_idx;
     char *injection = NULL;
+    const struct AllocationSite *site = &allocs->sites[i];
 
-    if (allocs->sites[i].is_checked)
+    if (site->is_checked)
       continue;
 
-    semi_idx =
-        find_next_token(tokens, allocs->sites[i].token_index, TOKEN_SEMICOLON);
-
+    semi_idx = find_next_token(tokens, site->token_index, TOKEN_SEMICOLON);
     if (semi_idx >= tokens->size)
       continue;
 
-    if (asprintf(&injection, " if (!%s) { return ENOMEM; }",
-                 allocs->sites[i].var_name) == -1) {
-      return ENOMEM;
+    if (strcmp(site->spec->name, "realloc") == 0) {
+      size_t old_size = patches->size;
+      int rc_realloc = process_realloc_safety(tokens, site, patches, semi_idx);
+      if (rc_realloc != 0)
+        return rc_realloc;
+      if (patches->size > old_size)
+        continue;
+    }
+
+    /* Check valid var_name before injection attempt */
+    if (!site->var_name)
+      continue;
+
+    if (site->spec->check_style == CHECK_PTR_NULL) {
+      if (asprintf(&injection, " if (!%s) { return %s; }", site->var_name,
+                   DEFAULT_ERROR_CODE) == -1)
+        return ENOMEM;
+    } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
+      if (asprintf(&injection, " if (%s < 0) { return %s; }", site->var_name,
+                   DEFAULT_ERROR_CODE) == -1)
+        return ENOMEM;
+    } else if (site->spec->check_style == CHECK_INT_NONZERO) {
+      if (asprintf(&injection, " if (%s != 0) { return %s; }", site->var_name,
+                   DEFAULT_ERROR_CODE) == -1)
+        return ENOMEM;
+    } else {
+      /* Unknown style, skip */
+      continue;
     }
 
     if (add_replacement(patches, semi_idx + 1, semi_idx + 1, injection) != 0) {
@@ -323,17 +370,108 @@ static int process_allocations(const struct TokenList *tokens,
   return 0;
 }
 
-/**
- * @brief Identify and rewrite calls to refactored functions.
- * Returns *needs_stack_var = 1 if a rewrite logic requires `rc`.
- */
+static int process_return_statements(const struct TokenList *tokens,
+                                     const struct SignatureTransform *transform,
+                                     struct PatchList *patches) {
+  size_t i;
+
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER &&
+        token_eq(&tokens->tokens[i], "return")) {
+
+      size_t semi = find_next_token(tokens, i, TOKEN_SEMICOLON);
+      if (semi >= tokens->size)
+        continue;
+
+      if (transform->type == TRANSFORM_VOID_TO_INT) {
+        char *replacement = NULL;
+        if (asprintf(&replacement, "return %s;", transform->success_code) ==
+            -1) {
+          return ENOMEM;
+        }
+        if (add_replacement(patches, i, semi + 1, replacement) != 0) {
+          return ENOMEM;
+        }
+
+      } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
+        char *expr = NULL;
+        char *replacement = NULL;
+        size_t expr_start = i + 1;
+        while (expr_start < semi &&
+               tokens->tokens[expr_start].kind == TOKEN_WHITESPACE) {
+          expr_start++;
+        }
+
+        if (expr_start == semi) {
+          expr = strdup("");
+        } else {
+          expr = tokens_to_string(tokens, expr_start, semi);
+        }
+
+        if (!expr)
+          return ENOMEM;
+
+        if (transform->error_code && strcmp(expr, "NULL") == 0) {
+          if (asprintf(&replacement, "return %s;", transform->error_code) ==
+              -1) {
+            free(expr);
+            return ENOMEM;
+          }
+        } else if (transform->error_code && strcmp(expr, "0") == 0) {
+          if (asprintf(&replacement, "return %s;", transform->error_code) ==
+              -1) {
+            free(expr);
+            return ENOMEM;
+          }
+        } else {
+          if (asprintf(&replacement, "{ *%s = %s; return %s; }",
+                       transform->arg_name ? transform->arg_name : "out", expr,
+                       transform->success_code) == -1) {
+            free(expr);
+            return ENOMEM;
+          }
+        }
+        free(expr);
+
+        if (add_replacement(patches, i, semi + 1, replacement) != 0) {
+          return ENOMEM;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+static int inject_final_return(const struct TokenList *tokens,
+                               const struct SignatureTransform *transform,
+                               struct PatchList *patches) {
+  if (transform->type != TRANSFORM_VOID_TO_INT)
+    return 0;
+
+  /* Look for the final closing brace */
+  if (tokens->size > 0 &&
+      tokens->tokens[tokens->size - 1].kind == TOKEN_RBRACE) {
+    size_t rbrace_idx = tokens->size - 1;
+    char *injection = NULL;
+
+    /* We unconditionally inject return success.
+       If the function had void return, it falls through to this success code.
+     */
+    if (asprintf(&injection, " return %s;", transform->success_code) == -1) {
+      return ENOMEM;
+    }
+
+    return add_replacement(patches, rbrace_idx, rbrace_idx, injection);
+  }
+  return 0;
+}
+
 static int process_function_calls(const struct TokenList *tokens,
                                   const struct RefactoredFunction *funcs,
                                   size_t func_count, struct PatchList *patches,
                                   int *needs_stack_var) {
   size_t i;
 
-  /* Iterate over tokens to find function calls */
   for (i = 0; i < tokens->size; ++i) {
     size_t f_idx;
     const struct RefactoredFunction *target = NULL;
@@ -351,7 +489,6 @@ static int process_function_calls(const struct TokenList *tokens,
     if (!target)
       continue;
 
-    /* Look ahead for '(' */
     {
       size_t next = i + 1;
       while (next < tokens->size &&
@@ -374,270 +511,217 @@ static int process_function_calls(const struct TokenList *tokens,
             depth--;
           rparen++;
         }
-        rparen--; /* Points to ')' */
+        rparen--;
 
         if (depth != 0)
           continue;
 
-        {
+        if (target->type == REF_VOID_TO_INT) {
           size_t semi = find_next_token(tokens, rparen, TOKEN_SEMICOLON);
-          if (semi >= tokens->size)
-            continue;
-
-          /* Case 1: REF_VOID_TO_INT
-             Original: func(...);
-             Refactored: rc = func(...); if (rc != 0) return rc;
-          */
-          if (target->type == REF_VOID_TO_INT) {
-            char *original_call = tokens_to_string(tokens, i, rparen + 1);
-            char *replacement = NULL;
-            if (!original_call)
-              return ENOMEM;
-
-            if (asprintf(&replacement, "%s = %s; if (%s != 0) return %s;",
-                         STATUS_VAR_NAME, original_call, STATUS_VAR_NAME,
-                         STATUS_VAR_NAME) == -1) {
-              free(original_call);
-              return ENOMEM;
+          if (semi < tokens->size) {
+            size_t prev = i;
+            int is_standalone = 1;
+            while (prev > 0) {
+              prev--;
+              if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
+                  tokens->tokens[prev].kind == TOKEN_LBRACE ||
+                  tokens->tokens[prev].kind == TOKEN_RBRACE)
+                break;
+              if (tokens->tokens[prev].kind != TOKEN_WHITESPACE) {
+                is_standalone = 0;
+                break;
+              }
             }
-            free(original_call);
 
-            /* Replace from func start to semi (inclusive) or just before?
-               We found semi. We replace the whole statement `func(...);`
-               Replace range: [i, semi+1] (which includes semi) */
-            if (add_replacement(patches, i, semi + 1, replacement) != 0)
-              return ENOMEM;
-
-            if (needs_stack_var)
-              *needs_stack_var = 1;
-            i = semi; /* Advance loop */
+            if (is_standalone) {
+              char *call_str = tokens_to_string(tokens, i, rparen + 1);
+              char *replacement = NULL;
+              if (!call_str)
+                return ENOMEM;
+              if (asprintf(&replacement, "%s = %s; if (%s != 0) return %s;",
+                           STATUS_VAR_NAME, call_str, STATUS_VAR_NAME,
+                           STATUS_VAR_NAME) == -1) {
+                free(call_str);
+                return ENOMEM;
+              }
+              free(call_str);
+              if (add_replacement(patches, i, semi + 1, replacement) != 0)
+                return ENOMEM;
+              if (needs_stack_var)
+                *needs_stack_var = 1;
+              i = semi;
+              continue;
+            }
           }
-          /* Case 2: REF_PTR_TO_INT_OUT
-             Original: var = func(args);
-             Refactored: rc = func(args, &var); if (rc != 0) return rc;
-          */
-          else if (target->type == REF_PTR_TO_INT_OUT) {
-            size_t eq_idx = i;
-            int found_eq = 0;
-            size_t statement_start = 0;
+        } else if (target->type == REF_PTR_TO_INT_OUT) {
+          size_t stmt_start = i;
+          size_t eq_idx = 0;
+          int found_eq = 0;
 
-            /* Scan backwards for '=' to identify assignment context */
-            while (eq_idx > 0) {
-              eq_idx--;
-              if (tokens->tokens[eq_idx].kind == TOKEN_WHITESPACE)
-                continue;
-
-              if (tokens->tokens[eq_idx].kind == TOKEN_OTHER &&
-                  tokens->tokens[eq_idx].length == 1 &&
-                  *tokens->tokens[eq_idx].start == '=') {
-                found_eq = 1;
+          {
+            size_t cur = i;
+            while (cur > 0) {
+              cur--;
+              if (tokens->tokens[cur].kind == TOKEN_SEMICOLON ||
+                  tokens->tokens[cur].kind == TOKEN_LBRACE ||
+                  tokens->tokens[cur].kind == TOKEN_RBRACE) {
+                stmt_start = cur + 1;
                 break;
               }
-              if (tokens->tokens[eq_idx].kind == TOKEN_SEMICOLON ||
-                  tokens->tokens[eq_idx].kind == TOKEN_LBRACE ||
-                  tokens->tokens[eq_idx].kind == TOKEN_RBRACE) {
+              if (tokens->tokens[cur].kind == TOKEN_OTHER &&
+                  tokens->tokens[cur].length == 1 &&
+                  *tokens->tokens[cur].start == '=') {
+                found_eq = 1;
+                eq_idx = cur;
+              }
+            }
+            while (stmt_start < i &&
+                   tokens->tokens[stmt_start].kind == TOKEN_WHITESPACE)
+              stmt_start++;
+          }
+
+          if (found_eq) {
+            size_t var_idx = eq_idx;
+            int found_var = 0;
+            while (var_idx > stmt_start) {
+              var_idx--;
+              if (tokens->tokens[var_idx].kind == TOKEN_IDENTIFIER) {
+                found_var = 1;
                 break;
               }
             }
 
-            if (found_eq) {
-              /* Found LHS: var = func(...) */
-              statement_start = eq_idx;
-              while (statement_start > 0) {
-                size_t prev = statement_start - 1;
-                if (tokens->tokens[prev].kind == TOKEN_SEMICOLON ||
-                    tokens->tokens[prev].kind == TOKEN_LBRACE ||
-                    tokens->tokens[prev].kind == TOKEN_RBRACE) {
-                  break;
+            if (found_var) {
+              char *var_name = tokens_to_string(tokens, var_idx, var_idx + 1);
+              char *args = tokens_to_string(tokens, lparen + 1, rparen);
+              char *replacement = NULL;
+              char *comma = "";
+              int is_args_empty = 1;
+              size_t k;
+              size_t semi = find_next_token(tokens, rparen, TOKEN_SEMICOLON);
+
+              for (k = lparen + 1; k < rparen; k++)
+                if (tokens->tokens[k].kind != TOKEN_WHITESPACE)
+                  is_args_empty = 0;
+              if (!is_args_empty)
+                comma = ", ";
+
+              if (is_declaration(tokens, stmt_start, eq_idx)) {
+                if (asprintf(&replacement,
+                             "; %s = %s(%s%s&%s); if (%s != 0) return %s;",
+                             STATUS_VAR_NAME, target->name, args, comma,
+                             var_name, STATUS_VAR_NAME,
+                             STATUS_VAR_NAME) == -1) {
+                  free(var_name);
+                  free(args);
+                  return ENOMEM;
                 }
-                statement_start--;
+                if (add_replacement(patches, eq_idx, semi + 1, replacement) !=
+                    0) {
+                  free(var_name);
+                  free(args);
+                  return ENOMEM;
+                }
+              } else {
+                if (asprintf(&replacement,
+                             "%s = %s(%s%s&%s); if (%s != 0) return %s;",
+                             STATUS_VAR_NAME, target->name, args, comma,
+                             var_name, STATUS_VAR_NAME,
+                             STATUS_VAR_NAME) == -1) {
+                  free(var_name);
+                  free(args);
+                  return ENOMEM;
+                }
+                if (add_replacement(patches, stmt_start, semi + 1,
+                                    replacement) != 0) {
+                  free(var_name);
+                  free(args);
+                  return ENOMEM;
+                }
+              }
+              if (needs_stack_var)
+                *needs_stack_var = 1;
+              free(var_name);
+              free(args);
+              continue;
+            }
+          } else {
+            int is_nested = 0;
+            size_t k = i;
+            while (k > 0) {
+              k--;
+              if (tokens->tokens[k].kind == TOKEN_LPAREN) {
+                is_nested = 1;
+                break;
+              }
+              if (tokens->tokens[k].kind == TOKEN_SEMICOLON ||
+                  tokens->tokens[k].kind == TOKEN_LBRACE)
+                break;
+            }
+
+            if (is_nested && target->original_return_type) {
+              static int tmp_counter = 0;
+              char *tmp_var = NULL;
+              char *hoist_code = NULL;
+              char *args = tokens_to_string(tokens, lparen + 1, rparen);
+              char *comma = "";
+              int is_args_empty = 1;
+              size_t m;
+
+              for (m = lparen + 1; m < rparen; m++)
+                if (tokens->tokens[m].kind != TOKEN_WHITESPACE)
+                  is_args_empty = 0;
+              if (!is_args_empty)
+                comma = ", ";
+
+              if (asprintf(&tmp_var, "_tmp_cdd_%d", tmp_counter++) == -1) {
+                free(args);
+                return ENOMEM;
               }
 
-              /* Extract variable name from LHS */
+              if (asprintf(&hoist_code,
+                           "%s %s; %s = %s(%s%s&%s); if (%s != 0) return %s; ",
+                           target->original_return_type, tmp_var,
+                           STATUS_VAR_NAME, target->name, args, comma, tmp_var,
+                           STATUS_VAR_NAME, STATUS_VAR_NAME) == -1) {
+                free(args);
+                free(tmp_var);
+                return ENOMEM;
+              }
+
               {
-                /* Find last identifier before eq */
-                size_t var_idx = eq_idx;
-                int found_var = 0;
-                while (var_idx > statement_start) {
-                  var_idx--;
-                  if (tokens->tokens[var_idx].kind == TOKEN_WHITESPACE)
-                    continue;
-                  if (tokens->tokens[var_idx].kind == TOKEN_IDENTIFIER) {
-                    found_var = 1;
+                size_t st = i;
+                while (st > 0) {
+                  st--;
+                  if (tokens->tokens[st].kind == TOKEN_SEMICOLON ||
+                      tokens->tokens[st].kind == TOKEN_LBRACE ||
+                      tokens->tokens[st].kind == TOKEN_RBRACE) {
+                    st++;
                     break;
                   }
                 }
+                while (st < i && tokens->tokens[st].kind == TOKEN_WHITESPACE)
+                  st++;
 
-                if (found_var) {
-                  size_t real_var_idx = var_idx;
-                  /* (Note: var_idx loop above already skips whitespace backward
-                     from eq, so real_var_idx points to the ID) */
-
-                  if (tokens->tokens[real_var_idx].kind == TOKEN_IDENTIFIER) {
-                    char *var_name = tokens_to_string(tokens, real_var_idx,
-                                                      real_var_idx + 1);
-                    char *args = tokens_to_string(tokens, lparen + 1, rparen);
-                    char *replacement = NULL;
-                    char *comma = "";
-                    size_t replace_start;
-                    int is_decl =
-                        is_declaration(tokens, statement_start, eq_idx);
-
-                    int has_args = 0;
-                    size_t k;
-                    for (k = lparen + 1; k < rparen; k++) {
-                      if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
-                        has_args = 1;
-                        break;
-                      }
-                    }
-                    if (has_args)
-                      comma = ", ";
-
-                    if (!var_name || !args) {
-                      free(var_name);
-                      free(args);
-                      return ENOMEM;
-                    }
-
-                    if (is_decl) {
-                      /* Declaration: `Type var = func();`
-                         -> `Type var; rc = func(&var); if (rc) return rc;`
-                      */
-                      /* We replace from '=' onwards to ';' */
-                      /* e.g. " = func(args);" -> "; rc = func(args, &var);..."
-                       */
-
-                      if (asprintf(
-                              &replacement,
-                              "; %s = %s(%s%s&%s); if (%s != 0) return %s;",
-                              STATUS_VAR_NAME, target->name, args, comma,
-                              var_name, STATUS_VAR_NAME,
-                              STATUS_VAR_NAME) == -1) {
-                        free(var_name);
-                        free(args);
-                        return ENOMEM;
-                      }
-                      /* apply from eq_idx (the '=') to semi+1 */
-                      if (add_replacement(patches, eq_idx, semi + 1,
-                                          replacement) != 0) {
-                        free(var_name);
-                        free(args);
-                        return ENOMEM;
-                      }
-                    } else {
-                      /* Assignment: `var = func();`
-                         -> `rc = func(&var); if (rc) return rc;`
-                      */
-
-                      if (asprintf(&replacement,
-                                   "%s = %s(%s%s&%s); if (%s != 0) return %s;",
-                                   STATUS_VAR_NAME, target->name, args, comma,
-                                   var_name, STATUS_VAR_NAME,
-                                   STATUS_VAR_NAME) == -1) {
-                        free(var_name);
-                        free(args);
-                        return ENOMEM;
-                      }
-
-                      /* Skip leading whitespace in replacement range from
-                       * statement start */
-                      replace_start = statement_start;
-                      while (replace_start < eq_idx &&
-                             tokens->tokens[replace_start].kind ==
-                                 TOKEN_WHITESPACE) {
-                        replace_start++;
-                      }
-
-                      /* Replace full statement `var = func();` */
-                      if (add_replacement(patches, replace_start, semi + 1,
-                                          replacement) != 0) {
-                        free(var_name);
-                        free(args);
-                        return ENOMEM;
-                      }
-                    }
-
-                    if (needs_stack_var)
-                      *needs_stack_var = 1;
-                    free(var_name);
-                    free(args);
-
-                    i = semi;
-                  }
+                if (add_replacement(patches, st, st, hoist_code) != 0) {
+                  free(args);
+                  free(tmp_var);
+                  return ENOMEM;
                 }
               }
-            } else {
-              /* Case 3: Immediate Use / Return / Standalone?
-                 Standalone: `func(args);` (Return value ignored, leak?)
-                 Return: `return func(args);`
-                 If just `func(args);` but returns ptr -> logic above for
-                 finding eq fails. If it is just `char *p = func(args);` we
-                 caught it. What about `return func(args);` ?
 
-                 Find precedent 'return' token.
-              */
-              size_t prev_chk = i;
-              while (prev_chk > 0) {
-                prev_chk--;
-                if (tokens->tokens[prev_chk].kind == TOKEN_WHITESPACE)
-                  continue;
-                if (tokens->tokens[prev_chk].kind == TOKEN_IDENTIFIER &&
-                    token_eq(&tokens->tokens[prev_chk], "return")) {
-
-                  /* Found `return func(args);` */
-                  /* Transform to:
-                     `Type tmp; rc = func(args, &tmp); if (rc != 0) return rc;
-                     return tmp;` We need to know the Type. The
-                     `RefactoredFunction` struct doesn't strictly carry Type
-                     info yet, only refactor type enum. If we don't know the
-                     type, we can't create `tmp`. However, maybe we can use
-                     `void *` or inject a placeholder? Or maybe we assume we are
-                     converting `char* func()` to `int func(char**)` and the
-                     caller `return func()` signature matches.
-
-                     If the caller function returns `char*`, checking ref_func
-                     `func` which also returns `char*`: The caller must also be
-                     refactored? 'Call-Site Rewriter' normally assumes we are
-                     inside a function being refactored OR we are fixing a
-                     client. If we are just fixing client code without changing
-                     client signature: We can't return NULL/pointer if we got an
-                     int `rc`. But `func` now returns `int`. Original: `return
-                     func();` (returns ptr) New: `func` returns int (error).
-
-                     Standard Fix pattern:
-                     Client code `f()` calls `g()`. `g` changes to return int.
-                     `f` should normally propagate.
-                     If `f` signature is also being changed
-                     (TRANSFORM_RET_PTR_TO_ARG), then `return func()` inside `f`
-                     needs to become: `rc = func(..., &out_val); *out = out_val;
-                     return rc;`
-
-                     If `f` is NOT being changed (TRANSFORM_NONE), we have a
-                     type mismatch. This rewriter handles the BODY. If
-                     `transform` arg is set, we know our new signature.
-
-                     Let's assume we are rewriting `f` which is also being
-                     converted.
-                  */
-                  /* For now, handle simple `return func();` -> error
-                     propagation if void? RefactorType is the target function's
-                     change. If target is VOID_TO_INT: `return func();` ->
-                     `return func();`? Original `void func()` -> `int func()`.
-                     Caller `void caller() { return func(); }` (valid in C if
-                     func is void). New `int caller() { return func(); }`. This
-                     just works naturally if types align? But if we want to
-                     check `rc`: `rc = func(); if (rc) return rc; return 0;`
-                  */
-                  /* Implementation complexity High: requires knowing context
-                     return type. For 'Medium' scope defined here (Call-Site
-                     Rewriter), we focus on assignment/call. We will skip
-                     aggressive return-statement rewriting of calls until Type
-                     info is available.
-                  */
-                }
-                break;
+              if (add_replacement(patches, i, rparen + 1, strdup(tmp_var)) !=
+                  0) {
+                free(args);
+                free(tmp_var);
+                return ENOMEM;
               }
+
+              if (needs_stack_var)
+                *needs_stack_var = 1;
+              free(args);
+              free(tmp_var);
+              continue;
             }
           }
         }
@@ -647,74 +731,23 @@ static int process_function_calls(const struct TokenList *tokens,
   return 0;
 }
 
-/**
- * @brief Rewrite return statements based on function transformation spec.
- */
-static int process_return_statements(const struct TokenList *tokens,
-                                     const struct SignatureTransform *transform,
-                                     struct PatchList *patches) {
+static int inject_stack_variable(const struct TokenList *tokens,
+                                 struct PatchList *patches, const char *type,
+                                 const char *name, const char *init_val) {
   size_t i;
-
-  if (!transform || transform->type == TRANSFORM_NONE)
-    return 0;
-
   for (i = 0; i < tokens->size; ++i) {
-    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER &&
-        token_eq(&tokens->tokens[i], "return")) {
-
-      size_t semi = find_next_token(tokens, i, TOKEN_SEMICOLON);
-      if (semi >= tokens->size)
-        continue;
-
-      if (transform->type == TRANSFORM_VOID_TO_INT) {
-        char *replacement = NULL;
-        if (asprintf(&replacement, "return %s;", transform->success_code) == -1)
-          return ENOMEM;
-
-        if (add_replacement(patches, i, semi + 1, replacement) != 0)
-          return ENOMEM;
-
-      } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
-        char *expr = NULL;
-        char *replacement = NULL;
-
-        size_t expr_start = i + 1;
-        while (expr_start < semi &&
-               tokens->tokens[expr_start].kind == TOKEN_WHITESPACE)
-          expr_start++;
-
-        if (expr_start == semi) {
-          expr = strdup("");
-        } else {
-          expr = tokens_to_string(tokens, expr_start, semi);
-        }
-
-        if (!expr)
-          return ENOMEM;
-
-        if (transform->error_code && strcmp(expr, "NULL") == 0) {
-          if (asprintf(&replacement, "return %s;", transform->error_code) ==
-              -1) {
-            free(expr);
-            return ENOMEM;
-          }
-        } else {
-          if (asprintf(&replacement, "{ *%s = %s; return %s; }",
-                       transform->arg_name, expr,
-                       transform->success_code) == -1) {
-            free(expr);
-            return ENOMEM;
-          }
-        }
-        free(expr);
-
-        if (add_replacement(patches, i, semi + 1, replacement) != 0)
-          return ENOMEM;
+    if (tokens->tokens[i].kind == TOKEN_LBRACE) {
+      char *decl = NULL;
+      if (asprintf(&decl, " %s %s = %s;", type, name, init_val) == -1) {
+        return ENOMEM;
       }
+      return add_replacement(patches, i + 1, i + 1, decl);
     }
   }
   return 0;
 }
+
+/* --- Public API --- */
 
 int rewrite_body(const struct TokenList *tokens,
                  const struct AllocationSiteList *allocs,
@@ -751,16 +784,17 @@ int rewrite_body(const struct TokenList *tokens,
     rc = process_return_statements(tokens, transform, &patches);
     if (rc != 0)
       goto cleanup;
+
+    rc = inject_final_return(tokens, transform, &patches);
+    if (rc != 0)
+      goto cleanup;
   }
 
-  /* Check/Inject variable */
-  if (needs_stack_var) {
-    if (!variable_exists(tokens, STATUS_VAR_NAME)) {
-      rc = inject_stack_variable(tokens, &patches, STATUS_VAR_TYPE,
-                                 STATUS_VAR_NAME, STATUS_VAR_INIT);
-      if (rc != 0)
-        goto cleanup;
-    }
+  if (needs_stack_var && !variable_exists(tokens, STATUS_VAR_NAME)) {
+    rc = inject_stack_variable(tokens, &patches, STATUS_VAR_TYPE,
+                               STATUS_VAR_NAME, STATUS_VAR_INIT);
+    if (rc != 0)
+      goto cleanup;
   }
 
   qsort(patches.items, patches.size, sizeof(struct Replacement),
@@ -795,12 +829,16 @@ int rewrite_body(const struct TokenList *tokens,
         out_len += rep_len;
         output[out_len] = '\0';
 
-        current_token = rep->token_end;
+        if (rep->token_start < rep->token_end) {
+          current_token = rep->token_end;
+        }
         p_idx++;
 
         while (p_idx < patches.size &&
-               patches.items[p_idx].token_start < current_token) {
-          p_idx++;
+               patches.items[p_idx].token_start == current_token &&
+               patches.items[p_idx].token_start ==
+                   patches.items[p_idx].token_end) {
+          break;
         }
 
       } else {

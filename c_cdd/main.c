@@ -1,7 +1,8 @@
 /**
  * @file main.c
  * @brief Main entry point for the c_cdd CLI.
- * Dispatches commands and handles logic for auditing and refactoring.
+ * Dispatches commands and handles logic for auditing, refactoring, and code
+ * generation.
  * @author Samuel Marks
  */
 
@@ -10,18 +11,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "analysis.h"
 #include "code2schema.h"
-#include "cst_parser.h"
-#include "fs.h"
 #include "generate_build_system.h"
 #include "project_audit.h"
 #include "refactor_orchestrator.h"
-#include "rewriter_body.h"
 #include "schema2tests.h"
 #include "schema_codegen.h"
 #include "sync_code.h"
-#include "tokenizer.h"
 
 /**
  * @brief Helper to print human-readable error message based on error code.
@@ -60,6 +56,42 @@ static void print_error(int rc, const char *command_name) {
 }
 
 /**
+ * @brief Handler for the audit command.
+ * Finds all .c files in the directory, checks for safe allocation usage,
+ * and prints a JSON report.
+ *
+ * @param[in] argc Argument count (should be 1).
+ * @param[in] argv Argument vector (argv[0] is directory).
+ * @return EXIT_SUCCESS or EXIT_FAILURE.
+ */
+static int handle_audit(int argc, char **argv) {
+  struct AuditStats stats;
+  char *json = NULL;
+  int rc;
+
+  if (argc != 1) {
+    fprintf(stderr, "Usage: audit <directory>\n");
+    return EXIT_FAILURE;
+  }
+
+  audit_stats_init(&stats);
+  rc = audit_project(argv[0], &stats);
+
+  if (rc != 0)
+    return rc;
+
+  json = audit_print_json(&stats);
+  if (json) {
+    puts(json);
+    free(json);
+  } else {
+    return ENOMEM;
+  }
+
+  return 0;
+}
+
+/**
  * @brief Main CLI dispatcher.
  * Parses arguments and invokes the subcommand.
  *
@@ -76,6 +108,7 @@ int main(int argc, char **argv) {
         stderr,
         "Usage: %s <command> [args]\n"
         "Commands:\n"
+        "  audit <directory>\n"
         "  code2schema <header.h> <schema.json>\n"
         "  fix <input.c> <output.c>\n"
         "  generate_build_system <build_system> <output_directory> <basename> "
@@ -89,7 +122,19 @@ int main(int argc, char **argv) {
 
   cmd = argv[1];
 
-  if (strcmp(cmd, "generate_build_system") == 0) {
+  if (strcmp(cmd, "audit") == 0) {
+    if (argc < 3) {
+      fprintf(stderr, "Usage: %s audit <directory>\n", argv[0]);
+      return EXIT_FAILURE;
+    }
+    rc = handle_audit(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "fix") == 0) {
+    if (argc != 4) {
+      fprintf(stderr, "Usage: %s fix <input.c> <output.c>\n", argv[0]);
+      return EXIT_FAILURE;
+    }
+    rc = fix_code_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "generate_build_system") == 0) {
     if (argc < 5 || argc > 6) {
       fprintf(stderr,
               "Usage: %s generate_build_system <build_system> "
@@ -128,15 +173,6 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     rc = sync_code_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "fix") == 0) {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s fix <input.c> <output.c>\n", argv[0]);
-      return EXIT_FAILURE;
-    }
-    /* fix_code_main reads files from argv[0], argv[1].
-       main passes argv+2 as args to subcommand? No, argv[2] and argv[3].
-       Logic: argv[2] is input, argv[3] is output. */
-    rc = fix_code_main(argc - 2, argv + 2);
   } else {
     fprintf(stderr, "Unknown command: %s\n", cmd);
     return EXIT_FAILURE;
