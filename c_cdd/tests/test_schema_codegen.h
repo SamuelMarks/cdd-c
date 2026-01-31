@@ -128,7 +128,8 @@ TEST test_codegen_config_json_guards(void) {
 
   struct StructFields sf;
 
-  struct CodegenConfig config;
+  /* We use the specific config struct now */
+  struct CodegenJsonConfig config;
 
   char *content;
 
@@ -144,7 +145,7 @@ TEST test_codegen_config_json_guards(void) {
 
   memset(&config, 0, sizeof(config));
 
-  config.json_guard = "ENABLE_JSON";
+  config.guard_macro = "ENABLE_JSON";
 
   /* Generate */
 
@@ -209,7 +210,8 @@ TEST test_union_config_json_guards(void) {
 
   struct StructFields sf;
 
-  struct CodegenConfig config;
+  /* Specific config struct */
+  struct CodegenTypesConfig config;
 
   char *content;
 
@@ -266,7 +268,8 @@ TEST test_codegen_config_utils_guards(void) {
 
   struct StructFields sf;
 
-  struct CodegenConfig config;
+  /* Specific config struct */
+  struct CodegenStructConfig config;
 
   char *content;
 
@@ -280,7 +283,7 @@ TEST test_codegen_config_utils_guards(void) {
 
   memset(&config, 0, sizeof(config));
 
-  config.utils_guard = "DATA_UTILS";
+  config.guard_macro = "DATA_UTILS";
 
   /* Generate helpers */
 

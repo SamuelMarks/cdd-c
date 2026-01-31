@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "codegen.h"
+#include "codegen_types.h"
 
-/* Helper to capture output */
+/* Helper to capture output. Updated signature to match codegen_types functions.
+ */
 static char *
 generate_ra_code(int (*fn)(FILE *, const char *, const char *, const char *,
-                           const struct CodegenConfig *),
+                           const struct CodegenTypesConfig *),
                  const char *name, const char *type, const char *ref) {
   FILE *tmp = tmpfile();
   long sz;
@@ -113,6 +114,7 @@ TEST test_root_array_cleanup(void) {
   ASSERT(code);
   ASSERT(strstr(code, "void StrList_cleanup(char **in, size_t len)"));
   ASSERT(strstr(code, "free(in[i])"));
+  ASSERT(strstr(code, "free(in)"));
   free(code);
 
   /* Int cleanup (simple free) */

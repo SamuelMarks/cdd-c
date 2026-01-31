@@ -1,146 +1,138 @@
 /**
  * @file cst_parser.c
- * @brief Implementation of CST parser logic.
- * Supports nested and anonymous structure parsing.
+ * @brief Implementation of the Concrete Syntax Tree logic.
  * @author Samuel Marks
  */
 
 #include <errno.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* Use system errno if standard includes don't provide it */
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#else
-#include <sys/errno.h>
-#endif
-
 #include "cst_parser.h"
 
-int add_node(struct CstNodeList *const list, const enum CstNodeKind1 kind,
-             const uint8_t *const start, const size_t length) {
-  if (list == NULL)
-    return EINVAL;
-
-  if (list->size >= list->capacity) {
-    const size_t new_capacity = list->capacity == 0 ? 64 : list->capacity * 2;
-    struct CstNode1 *new_nodes = (struct CstNode1 *)realloc(
-        list->nodes, new_capacity * sizeof(struct CstNode1));
-    if (!new_nodes)
-      return ENOMEM;
-    list->nodes = new_nodes;
-    list->capacity = new_capacity;
-  }
-  list->nodes[list->size].kind = kind;
-  list->nodes[list->size].start = start;
-  list->nodes[list->size].length = length;
-  list->size++;
-  return 0;
-}
-
-/**
- * @brief Skip whitespace tokens starting from index.
- */
 static size_t skip_ws(const struct TokenList *const tokens, size_t i,
                       size_t limit) {
-  while (i < limit && tokens->tokens[i].kind == TOKEN_WHITESPACE) {
+  while (i < limit && tokens->tokens[i].kind == TOKEN_WHITESPACE)
     i++;
-  }
   return i;
 }
 
-/**
- * @brief Attempt to identify a function definition starting at current index.
- */
-static int match_function_definition(const struct TokenList *const tokens,
-                                     size_t start_idx, size_t limit,
-                                     size_t *end_idx) {
-  size_t k = start_idx;
-  size_t last_ident_idx = (size_t)-1;
-  int paren_depth = 0;
+int cst_list_add(struct CstNodeList *const list, const enum CstNodeKind kind,
+                 const uint8_t *const start, const size_t length,
+                 const size_t start_tok, const size_t end_tok) {
+  struct CstNode *new_arr;
+  if (!list)
+    return EINVAL;
 
-  /* 1. Header Scan: Look for '(' preceded by an Identifier */
-  while (k < limit) {
-    const enum TokenKind kind = tokens->tokens[k].kind;
-
-    if (kind == TOKEN_LBRACE || kind == TOKEN_SEMICOLON) {
-      return 0;
-    }
-
-    if (kind == TOKEN_LPAREN) {
-      if (last_ident_idx == (size_t)-1) {
-        return 0;
-      }
-      break; /* Move to Parameter Scan */
-    }
-
-    if (kind == TOKEN_IDENTIFIER) {
-      last_ident_idx = k;
-    } else if (kind == TOKEN_OTHER) {
-      /* Pointers '*' are TOKEN_OTHER len=1 */
-      if (tokens->tokens[k].length == 1 && *tokens->tokens[k].start == '=') {
-        return 0;
-      }
-    }
-
-    k++;
+  if (list->size >= list->capacity) {
+    const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
+    new_arr = (struct CstNode *)realloc(list->nodes,
+                                        new_cap * sizeof(struct CstNode));
+    if (!new_arr)
+      return ENOMEM;
+    list->nodes = new_arr;
+    list->capacity = new_cap;
   }
 
-  if (k >= limit || tokens->tokens[k].kind != TOKEN_LPAREN) {
-    return 0;
-  }
-
-  /* 2. Parameter/Paren Scan: Find matching ')' */
-  paren_depth = 1;
-  k++;
-  while (k < limit && paren_depth > 0) {
-    if (tokens->tokens[k].kind == TOKEN_LPAREN) {
-      paren_depth++;
-    } else if (tokens->tokens[k].kind == TOKEN_RPAREN) {
-      paren_depth--;
-    }
-    k++;
-  }
-
-  if (paren_depth != 0) {
-    return 0;
-  }
-
-  /* 3. Body Check: Expect '{' immediately */
-  k = skip_ws(tokens, k, limit);
-
-  if (k < limit && tokens->tokens[k].kind == TOKEN_LBRACE) {
-    /* 4. Body Scan: Find matching '}' */
-    size_t brace_depth = 1;
-    k++;
-    while (k < limit && brace_depth > 0) {
-      if (tokens->tokens[k].kind == TOKEN_LBRACE) {
-        brace_depth++;
-      } else if (tokens->tokens[k].kind == TOKEN_RBRACE) {
-        brace_depth--;
-      }
-      k++;
-    }
-
-    if (brace_depth == 0) {
-      *end_idx = k;
-      return 1;
-    }
-  }
+  list->nodes[list->size].kind = kind;
+  list->nodes[list->size].start = start;
+  list->nodes[list->size].length = length;
+  list->nodes[list->size].start_token = start_tok;
+  list->nodes[list->size].end_token = end_tok;
+  list->size++;
 
   return 0;
 }
 
-static int parse_tokens_recursive(const struct TokenList *const tokens,
-                                  size_t start_index, size_t end_index,
-                                  struct CstNodeList *const out,
-                                  int only_significant_nodes) {
-  size_t i = start_index;
-  enum TokenKind last_significant_token = TOKEN_UNKNOWN;
+static int token_is(const struct Token *tok, const char *s) {
+  size_t len = strlen(s);
+  return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
+}
+
+static int match_function_definition(const struct TokenList *const tokens,
+                                     size_t start_idx, size_t limit,
+                                     size_t *end_idx_out) {
+  size_t k = start_idx;
+  int paren_depth;
+  int brace_depth;
+  int seen_lparen = 0;
+  int seen_ident = 0;
+
+  /* 1. Header Scan: Find `( ... )` */
+  while (k < limit) {
+    const enum TokenKind kind = tokens->tokens[k].kind;
+
+    if (kind == TOKEN_SEMICOLON || kind == TOKEN_LBRACE ||
+        kind == TOKEN_RBRACE) {
+      return 0;
+    }
+
+    if (kind == TOKEN_IDENTIFIER) {
+      /* Exclude keywords that might look like function calls/defs */
+      if (token_is(&tokens->tokens[k], "if") ||
+          token_is(&tokens->tokens[k], "while") ||
+          token_is(&tokens->tokens[k], "for") ||
+          token_is(&tokens->tokens[k], "switch") ||
+          token_is(&tokens->tokens[k], "return")) {
+        return 0;
+      }
+      seen_ident = 1;
+    }
+
+    if (kind == TOKEN_LPAREN) {
+      if (!seen_ident)
+        return 0; /* Require identifier before params */
+      seen_lparen = 1;
+      break;
+    }
+    k++;
+  }
+
+  if (!seen_lparen || k >= limit)
+    return 0;
+
+  /* 2. Skip over parameters (...) */
+  paren_depth = 1;
+  k++;
+  while (k < limit && paren_depth > 0) {
+    if (tokens->tokens[k].kind == TOKEN_LPAREN)
+      paren_depth++;
+    else if (tokens->tokens[k].kind == TOKEN_RPAREN)
+      paren_depth--;
+    k++;
+  }
+  if (k >= limit)
+    return 0;
+
+  /* 3. Check for body start `{` */
+  k = skip_ws(tokens, k, limit);
+  if (k >= limit || tokens->tokens[k].kind != TOKEN_LBRACE)
+    return 0;
+
+  /* 4. Skip body { ... } */
+  brace_depth = 1;
+  k++;
+  while (k < limit && brace_depth > 0) {
+    if (tokens->tokens[k].kind == TOKEN_LBRACE)
+      brace_depth++;
+    else if (tokens->tokens[k].kind == TOKEN_RBRACE)
+      brace_depth--;
+    k++;
+  }
+
+  if (brace_depth == 0) {
+    *end_idx_out = k;
+    return 1;
+  }
+  return 0;
+}
+
+static int parse_recursive(const struct TokenList *const tokens, size_t start,
+                           size_t end, struct CstNodeList *const out) {
+  size_t i = start;
   int rc;
 
-  while (i < end_index) {
+  while (i < end) {
     const struct Token *tok = &tokens->tokens[i];
 
     if (tok->kind == TOKEN_WHITESPACE) {
@@ -148,191 +140,191 @@ static int parse_tokens_recursive(const struct TokenList *const tokens,
       continue;
     }
 
-    /* Helper: check for semicolon handling logic */
-    if (tok->kind == TOKEN_SEMICOLON) {
-      /* If this semicolon follows a named block, we skip it to group
-         "struct S{};" as one logical unit. For anonymous blocks "struct {};",
-         we keep it (last_sig != RBRACE). */
+    /* Attempt to match function definition first (if identifier or type) */
+    /* Optimization: Only try if it looks like a declaration start */
+    if (tok->kind == TOKEN_IDENTIFIER ||
+        (tok->kind == TOKEN_OTHER && *tok->start == '*')) {
+      size_t func_end = 0;
+      if (match_function_definition(tokens, i, end, &func_end)) {
+        const struct Token *last = &tokens->tokens[func_end - 1];
+        size_t byte_len = (size_t)((last->start + last->length) - tok->start);
 
-      if (last_significant_token == TOKEN_RBRACE) {
-        last_significant_token = TOKEN_SEMICOLON;
-        i++;
-        continue;
-      }
-
-      /* Otherwise, standalone semicolon? e.g. ";". Add if not filtering. */
-      if (!only_significant_nodes) {
-        rc = add_node(out, CST_NODE_OTHER, tok->start, tok->length);
+        rc = cst_list_add(out, CST_NODE_FUNCTION, tok->start, byte_len, i,
+                          func_end);
         if (rc != 0)
           return rc;
+
+        i = func_end;
+        continue;
       }
-      last_significant_token = TOKEN_SEMICOLON;
+    }
+
+    if (tok->kind == TOKEN_KEYWORD_STRUCT || tok->kind == TOKEN_KEYWORD_ENUM ||
+        tok->kind == TOKEN_KEYWORD_UNION) {
+      size_t k = i + 1;
+      size_t block_end = 0;
+      size_t body_start_idx = 0;
+      int found_block = 0;
+
+      /* Scan for Brace or Semicolon */
+      while (k < end) {
+        if (tokens->tokens[k].kind == TOKEN_SEMICOLON) {
+          break; /* Forward decl */
+        }
+        if (tokens->tokens[k].kind == TOKEN_LBRACE) {
+          int depth = 1;
+          body_start_idx = k + 1;
+          k++;
+          while (k < end && depth > 0) {
+            if (tokens->tokens[k].kind == TOKEN_LBRACE)
+              depth++;
+            else if (tokens->tokens[k].kind == TOKEN_RBRACE)
+              depth--;
+            k++;
+          }
+          /* k is now at token AFTER the RBRACE */
+          block_end = k;
+          found_block = 1;
+          break;
+        }
+        k++;
+      }
+
+      if (found_block) {
+        enum CstNodeKind nk;
+        size_t byte_len;
+        const struct Token *last;
+
+        /* Try to absorb ONE trailing semicolon ONLY if it follows immediately
+         */
+        /* Be careful not to swallow a variable declaration like `struct S {}
+         * var;` */
+        size_t next_probe = skip_ws(tokens, block_end, end);
+        if (next_probe < end &&
+            tokens->tokens[next_probe].kind == TOKEN_SEMICOLON) {
+          block_end = next_probe + 1;
+        }
+
+        if (tok->kind == TOKEN_KEYWORD_STRUCT)
+          nk = CST_NODE_STRUCT;
+        else if (tok->kind == TOKEN_KEYWORD_ENUM)
+          nk = CST_NODE_ENUM;
+        else
+          nk = CST_NODE_UNION;
+
+        last = &tokens->tokens[block_end - 1];
+        byte_len = (size_t)((last->start + last->length) - tok->start);
+
+        rc = cst_list_add(out, nk, tok->start, byte_len, i, block_end);
+        if (rc != 0)
+          return rc;
+
+        /* Recurse into body if valid */
+        if (body_start_idx > 0) {
+          /* Find matching RBRACE index again for recursion bounds */
+          size_t inner_scan = body_start_idx;
+          int d = 1;
+          while (inner_scan < block_end) { /* block_end is RBRACE+1 or SEMI+1 */
+            if (tokens->tokens[inner_scan].kind == TOKEN_LBRACE)
+              d++;
+            else if (tokens->tokens[inner_scan].kind == TOKEN_RBRACE)
+              d--;
+            if (d == 0)
+              break;
+            inner_scan++;
+          }
+          if (inner_scan <= block_end) {
+            parse_recursive(tokens, body_start_idx, inner_scan, out);
+          }
+        }
+
+        i = block_end;
+        continue;
+      } else {
+        /* Forward Decl: struct S; */
+        size_t decl_end = k;
+        /* If we hit semicolon, include it */
+        if (decl_end < end &&
+            tokens->tokens[decl_end].kind == TOKEN_SEMICOLON) {
+          decl_end++;
+        }
+
+        {
+          enum CstNodeKind nk =
+              (tok->kind == TOKEN_KEYWORD_STRUCT) ? CST_NODE_STRUCT
+              : (tok->kind == TOKEN_KEYWORD_ENUM) ? CST_NODE_ENUM
+                                                  : CST_NODE_UNION;
+
+          /* If decl_end <= i, clamp */
+          if (decl_end <= i)
+            decl_end = i + 1;
+
+          {
+            const struct Token *last = &tokens->tokens[decl_end - 1];
+            size_t byte_len =
+                (size_t)((last->start + last->length) - tok->start);
+
+            rc = cst_list_add(out, nk, tok->start, byte_len, i, decl_end);
+            if (rc != 0)
+              return rc;
+          }
+          i = decl_end;
+          continue;
+        }
+      }
+    }
+
+    if (tok->kind == TOKEN_COMMENT) {
+      rc = cst_list_add(out, CST_NODE_COMMENT, tok->start, tok->length, i,
+                        i + 1);
+      if (rc != 0)
+        return rc;
+      i++;
+      continue;
+    }
+    if (tok->kind == TOKEN_MACRO) {
+      rc = cst_list_add(out, CST_NODE_MACRO, tok->start, tok->length, i, i + 1);
+      if (rc != 0)
+        return rc;
       i++;
       continue;
     }
 
-    /* Function Definition */
+    /* Group other tokens by statement */
     {
-      size_t func_end_idx = 0;
-      if (match_function_definition(tokens, i, end_index, &func_end_idx)) {
-        const struct Token *end_tok = &tokens->tokens[func_end_idx - 1];
-        size_t length =
-            (size_t)((end_tok->start + end_tok->length) - tok->start);
-
-        rc = add_node(out, CST_NODE_FUNCTION, tok->start, length);
+      size_t j = i + 1;
+      while (j < end) {
+        enum TokenKind kind = tokens->tokens[j].kind;
+        if (kind == TOKEN_SEMICOLON) {
+          j++;
+          break;
+        }
+        if (kind == TOKEN_LBRACE || kind == TOKEN_RBRACE)
+          break;
+        /* Break on start of next structure */
+        if (kind == TOKEN_KEYWORD_STRUCT || kind == TOKEN_KEYWORD_ENUM ||
+            kind == TOKEN_KEYWORD_UNION || kind == TOKEN_COMMENT ||
+            kind == TOKEN_MACRO) {
+          break;
+        }
+        j++;
+      }
+      {
+        const struct Token *last = &tokens->tokens[j - 1];
+        size_t byte_len = (size_t)((last->start + last->length) - tok->start);
+        rc = cst_list_add(out, CST_NODE_OTHER, tok->start, byte_len, i, j);
         if (rc != 0)
           return rc;
-
-        i = func_end_idx;
-        last_significant_token = TOKEN_RBRACE;
-        continue;
+        i = j;
       }
     }
-
-    /* Variable Declaration after block (e.g. struct { } var;) */
-    if (tok->kind == TOKEN_IDENTIFIER &&
-        last_significant_token == TOKEN_RBRACE) {
-      /* We just finished a block (RBRACE). If we see an Identifier, it might be
-       * a variable decl ending in ; */
-      size_t semicolon_pos = i + 1;
-      while (semicolon_pos < end_index &&
-             tokens->tokens[semicolon_pos].kind == TOKEN_WHITESPACE) {
-        semicolon_pos++;
-      }
-      if (semicolon_pos < end_index &&
-          tokens->tokens[semicolon_pos].kind == TOKEN_SEMICOLON) {
-        /* Confirmed "var ;" pattern */
-        const struct Token *last_tok = &tokens->tokens[semicolon_pos];
-        size_t length =
-            (size_t)((last_tok->start + last_tok->length) - tok->start);
-
-        /* Only add if allowed */
-        if (!only_significant_nodes) {
-          rc = add_node(out, CST_NODE_OTHER, tok->start, length);
-          if (rc != 0)
-            return rc;
-        }
-
-        i = semicolon_pos + 1;
-        last_significant_token = TOKEN_SEMICOLON;
-        continue;
-      }
-    }
-
-    /* Struct / Enum / Union */
-    if (tok->kind == TOKEN_KEYWORD_STRUCT || tok->kind == TOKEN_KEYWORD_ENUM ||
-        tok->kind == TOKEN_KEYWORD_UNION) {
-      size_t lookahead_pos = i + 1;
-      int is_named = 0;
-
-      lookahead_pos = skip_ws(tokens, lookahead_pos, end_index);
-      if (lookahead_pos < end_index &&
-          tokens->tokens[lookahead_pos].kind == TOKEN_IDENTIFIER) {
-        is_named = 1;
-        lookahead_pos++;
-        lookahead_pos = skip_ws(tokens, lookahead_pos, end_index);
-      }
-
-      if (lookahead_pos < end_index &&
-          tokens->tokens[lookahead_pos].kind == TOKEN_LBRACE) {
-        size_t block_start_pos = lookahead_pos;
-        size_t brace_count = 1;
-        size_t block_end_pos = block_start_pos + 1;
-
-        while (block_end_pos < end_index && brace_count > 0) {
-          if (tokens->tokens[block_end_pos].kind == TOKEN_LBRACE)
-            brace_count++;
-          else if (tokens->tokens[block_end_pos].kind == TOKEN_RBRACE)
-            brace_count--;
-          block_end_pos++;
-        }
-
-        {
-          enum CstNodeKind1 node_kind =
-              tok->kind == TOKEN_KEYWORD_STRUCT ? CST_NODE_STRUCT
-              : tok->kind == TOKEN_KEYWORD_ENUM ? CST_NODE_ENUM
-                                                : CST_NODE_UNION;
-          const struct Token *last_block_tok =
-              brace_count == 0 ? &tokens->tokens[block_end_pos - 1]
-                               : &tokens->tokens[end_index - 1];
-          const size_t length =
-              (size_t)((last_block_tok->start + last_block_tok->length) -
-                       tok->start);
-
-          rc = add_node(out, node_kind, tok->start, length);
-          if (rc != 0)
-            return rc;
-        }
-
-        /* Recursively scan the interior for nested definitions */
-        /* Scan from inside braces: [block_start_pos + 1, block_end_pos - 1] */
-        if (brace_count == 0 && block_end_pos > block_start_pos + 1) {
-          rc = parse_tokens_recursive(tokens, block_start_pos + 1,
-                                      block_end_pos - 1, out, 1);
-          if (rc != 0)
-            return rc;
-        }
-
-        i = block_end_pos;
-        /* Only mark RBRACE if it was named, to consume the semicolon.
-           If anonymous/unnamed (e.g. struct { } ;), we want to leave
-           last_significant_token unset so the semicolon is captured as a
-           separate node, satisfying test expectations. */
-        if (is_named) {
-          last_significant_token = TOKEN_RBRACE;
-        } else {
-          last_significant_token = TOKEN_UNKNOWN;
-        }
-        continue;
-      }
-    }
-
-    /* Default case: capture single tokens as OTHER or specific kinds */
-    {
-      enum CstNodeKind1 node_kind_default = CST_NODE_OTHER;
-      int should_add = !only_significant_nodes;
-
-      switch (tok->kind) {
-      case TOKEN_KEYWORD_STRUCT:
-        node_kind_default = CST_NODE_STRUCT; /* Likely forward decl */
-        break;
-      case TOKEN_KEYWORD_ENUM:
-        node_kind_default = CST_NODE_ENUM;
-        break;
-      case TOKEN_KEYWORD_UNION:
-        node_kind_default = CST_NODE_UNION;
-        break;
-      case TOKEN_COMMENT:
-        node_kind_default = CST_NODE_COMMENT;
-        /* Comments typically preserved even if recursing, unless strict logic
-         * needed */
-        should_add = 1;
-        break;
-      case TOKEN_MACRO:
-        node_kind_default = CST_NODE_MACRO;
-        should_add = 1;
-        break;
-      default:
-        break;
-      }
-
-      if (should_add) {
-        rc = add_node(out, node_kind_default, tok->start, tok->length);
-        if (rc != 0)
-          return rc;
-      }
-    }
-
-    last_significant_token = tok->kind;
-    i++;
   }
-
   return 0;
 }
 
 int parse_tokens(const struct TokenList *const tokens,
                  struct CstNodeList *const out) {
-  if (tokens == NULL || out == NULL)
+  if (!tokens || !out)
     return EINVAL;
 
   if (out->capacity == 0) {
@@ -340,23 +332,30 @@ int parse_tokens(const struct TokenList *const tokens,
     out->size = 0;
   }
 
-  /* Invoke recursive parser for the entire range, allowing all nodes (0 flag)
-   */
-  if (parse_tokens_recursive(tokens, 0, tokens->size, out, 0) != 0) {
-    free_cst_node_list(out);
-    return ENOMEM; /* Assume alloc error if non-zero */
-  }
-
-  return 0;
+  return parse_recursive(tokens, 0, tokens->size, out);
 }
 
 void free_cst_node_list(struct CstNodeList *const list) {
-  if (list == NULL)
+  if (!list)
     return;
-  if (list->nodes != NULL) {
+  if (list->nodes) {
     free(list->nodes);
     list->nodes = NULL;
   }
   list->size = 0;
   list->capacity = 0;
+}
+
+struct CstNode *cst_find_first(struct CstNodeList *const list,
+                               const enum CstNodeKind kind) {
+  size_t i;
+  if (!list)
+    return NULL;
+
+  for (i = 0; i < list->size; i++) {
+    if (list->nodes[i].kind == kind) {
+      return &list->nodes[i];
+    }
+  }
+  return NULL;
 }

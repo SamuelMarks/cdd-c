@@ -1,92 +1,111 @@
 /**
  * @file cst_parser.h
- * @brief Concrete Syntax Tree parser.
- * Groups tokens into meaningful high-level nodes like structs, enums, etc.
+ * @brief Concrete Syntax Tree (CST) Parser.
+ *
+ * Groups linear tokens into semantic blocks (Functions, Structs, Enums).
+ * Enriched CST nodes now contain direct token indices to allow O(1)
+ * lookups into the token stream, replacing legacy byte-pointer arithmetic.
+ *
  * @author Samuel Marks
  */
 
-#ifndef CST_PARSER_H
-#define CST_PARSER_H
+#ifndef C_CDD_CST_PARSER_H
+#define C_CDD_CST_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include <c_cdd_export.h>
 #include <stddef.h>
 
+#include "c_cdd_export.h"
 #include "tokenizer.h"
 
 /**
- * @brief Type of a CST Node.
+ * @brief High-level classification of CST Nodes.
  */
-enum C_CDD_EXPORT CstNodeKind1 {
-  CST_NODE_STRUCT,     /**< Represents a `struct` definition */
-  CST_NODE_ENUM,       /**< Represents an `enum` definition */
-  CST_NODE_UNION,      /**< Represents a `union` definition */
-  CST_NODE_FUNCTION,   /**< Represents a function definition */
-  CST_NODE_COMMENT,    /**< Represents a comment block */
-  CST_NODE_MACRO,      /**< Represents a preprocessor macro */
-  CST_NODE_WHITESPACE, /**< Represents whitespace */
-  CST_NODE_OTHER,      /**< Any other sequence (e.g. variable decl) */
-  CST_NODE_UNKNOWN     /**< Unclassified */
+enum CstNodeKind {
+  CST_NODE_STRUCT,     /**< Struct definition block */
+  CST_NODE_ENUM,       /**< Enum definition block */
+  CST_NODE_UNION,      /**< Union definition block */
+  CST_NODE_FUNCTION,   /**< Function definition (signature + body) */
+  CST_NODE_COMMENT,    /**< Comment block (preserved for rewriting) */
+  CST_NODE_MACRO,      /**< Preprocessor macro */
+  CST_NODE_WHITESPACE, /**< Whitespace block */
+  CST_NODE_OTHER,      /**< Unclassified sentence (e.g. global var decl) */
+  CST_NODE_UNKNOWN     /**< Error sentinel */
 };
 
 /**
- * @brief A node in the Concrete Syntax Tree.
+ * @brief A node in the CST.
+ * Represents a logical grouping of tokens.
  */
-struct C_CDD_EXPORT CstNode1 {
-  enum CstNodeKind1 kind; /**< Kind of node */
-  const uint8_t *start;   /**< Pointer to start in source buffer */
-  size_t length;          /**< Total length covered by this node */
+struct CstNode {
+  enum CstNodeKind kind; /**< Type of the node */
+  const uint8_t *start;  /**< Byte pointer to start in source */
+  size_t length;         /**< Length in bytes */
+
+  /* --- Navigation Metadata --- */
+  size_t start_token; /**< Index of first token in TokenList */
+  size_t end_token;   /**< Index of token AFTER the last token (Exclusive) */
 };
 
 /**
  * @brief Dynamic list of CST nodes.
  */
-struct C_CDD_EXPORT CstNodeList {
-  struct CstNode1 *nodes; /**< Array of nodes */
-  size_t size;            /**< Number of active nodes */
-  size_t capacity;        /**< Allocated capacity */
+struct CstNodeList {
+  struct CstNode *nodes; /**< Array of nodes */
+  size_t size;           /**< Number of nodes */
+  size_t capacity;       /**< Capacity */
 };
 
 /**
- * @brief Add a node to the list.
- * Exposed for testing and custom usage.
+ * @brief Parse a token stream into CST nodes.
  *
- * @param[in,out] list The list to append to.
- * @param[in] kind The classification of node.
- * @param[in] start Pointer to start of text.
- * @param[in] length Length of text.
- * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
- */
-extern C_CDD_EXPORT int add_node(struct CstNodeList *list,
-                                 enum CstNodeKind1 kind, const uint8_t *start,
-                                 size_t length);
-
-/**
- * @brief Parse a list of tokens into CST nodes.
- * Allocates memory in `out` which must be freed by `free_cst_node_list`.
- * This function does not free the input tokens.
- *
- * @param[in] tokens The list of tokens to parse.
- * @param[out] out The destination CST node list.
- * @return 0 on success, error code (e.g. ENOMEM) on failure.
+ * @param[in] tokens The token stream.
+ * @param[out] out Destination structure (managed by caller, internal array
+ * alloc'd).
+ * @return 0 on success, ENOMEM on allocation failure.
  */
 extern C_CDD_EXPORT int parse_tokens(const struct TokenList *tokens,
                                      struct CstNodeList *out);
 
 /**
- * @brief Release memory associated with the CST node list.
- * Frees the internal `nodes` array but not the `struct CstNodeList` container
- * itself (assumed to be managed by caller or stack-allocated).
+ * @brief Add a node manually (exposed for testing/manual construction).
  *
- * @param[in] list Pointer to the list structure.
+ * @param[in,out] list The list to append to.
+ * @param[in] kind Node classification.
+ * @param[in] start Byte pointer start.
+ * @param[in] length Byte length.
+ * @param[in] start_tok Token start index.
+ * @param[in] end_tok Token end index (exclusive).
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int cst_list_add(struct CstNodeList *list,
+                                     enum CstNodeKind kind,
+                                     const uint8_t *start, size_t length,
+                                     size_t start_tok, size_t end_tok);
+
+/**
+ * @brief Free internal memory of CST list.
+ * Does not free the `struct CstNodeList` pointer itself.
+ *
+ * @param[in] list The list to clean.
  */
 extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *list);
+
+/**
+ * @brief Find the first node of a specific kind in the list.
+ *
+ * @param[in] list The list to search.
+ * @param[in] kind The kind to search for.
+ * @return Pointer to the found node, or NULL if not found.
+ */
+extern C_CDD_EXPORT struct CstNode *cst_find_first(struct CstNodeList *list,
+                                                   enum CstNodeKind kind);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CST_PARSER_H */
+#endif /* C_CDD_CST_PARSER_H */
