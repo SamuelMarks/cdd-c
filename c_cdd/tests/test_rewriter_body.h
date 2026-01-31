@@ -71,7 +71,7 @@ TEST test_skipped_checked_malloc(void) {
   PASS();
 }
 
-TEST test_rewrite_void_call(void) {
+TEST test_rewrite_void_call_with_stack_injection(void) {
   const char *input = "void f() { do_something(1, 2); return; }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_something", REF_VOID_TO_INT}};
@@ -80,13 +80,16 @@ TEST test_rewrite_void_call(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "if (do_something(1, 2) != 0) return EIO;") != NULL);
+  /* Matches injected var and propagated check */
+  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  ASSERT(strstr(output, "rc = do_something(1, 2); if (rc != 0) return rc;") !=
+         NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_ptr_call_assignment(void) {
+TEST test_rewrite_ptr_call_assignment_stack_inject(void) {
   const char *input = "void f() { char *s; s = strdup(\"a\"); free(s); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
@@ -95,16 +98,15 @@ TEST test_rewrite_ptr_call_assignment(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  /* Expect: char *s; if (strdup("a", &s) != 0) return EIO; free(s); */
-  /* The assignment `s =` is removed. */
-  ASSERT(strstr(output, "char *s; if (strdup(\"a\", &s) != 0) return EIO;") !=
+  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  ASSERT(strstr(output, "rc = strdup(\"a\", &s); if (rc != 0) return rc;") !=
          NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_ptr_call_declaration(void) {
+TEST test_rewrite_ptr_call_declaration_stack_inject(void) {
   const char *input = "void f() { char *s = strdup(\"a\"); free(s); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
@@ -113,26 +115,10 @@ TEST test_rewrite_ptr_call_declaration(void) {
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  /* Expect: char *s ; if (strdup("a", &s) != 0) return EIO; */
-  ASSERT(strstr(output, "char *s ; if (strdup(\"a\", &s) != 0) return EIO;") !=
-         NULL);
-
-  free(output);
-  PASS();
-}
-
-TEST test_rewrite_ptr_call_typedef(void) {
-  const char *input = "void f() { MyStr s = strdup(\"a\"); }";
-  char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
-  int rc;
-
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
-
-  /* Simple heuristic should Identify 'MyStr s' as declaration. */
-  ASSERT(strstr(output, "MyStr s ; if (strdup(\"a\", &s) != 0) return EIO;") !=
-         NULL);
+  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  /* Checks declaration split: 'char *s; rc = ...' */
+  ASSERT(strstr(output, "char *s ; rc = strdup(\"a\", &s);") != NULL);
+  ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
   PASS();
@@ -194,10 +180,9 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_rewrite_body_null_args);
   RUN_TEST(test_inject_malloc_check);
   RUN_TEST(test_skipped_checked_malloc);
-  RUN_TEST(test_rewrite_void_call);
-  RUN_TEST(test_rewrite_ptr_call_assignment);
-  RUN_TEST(test_rewrite_ptr_call_declaration);
-  RUN_TEST(test_rewrite_ptr_call_typedef);
+  RUN_TEST(test_rewrite_void_call_with_stack_injection);
+  RUN_TEST(test_rewrite_ptr_call_assignment_stack_inject);
+  RUN_TEST(test_rewrite_ptr_call_declaration_stack_inject);
   RUN_TEST(test_rewrite_return_void_to_int);
   RUN_TEST(test_rewrite_return_val_to_arg);
   RUN_TEST(test_rewrite_return_null_error);

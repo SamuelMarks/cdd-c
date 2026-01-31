@@ -1,7 +1,6 @@
 /**
  * @file refactor_orchestrator.c
- * @brief Implementation of the refactoring orchestrator.
- * Combines analysis, parsing, and rewriting modules.
+ * @brief Implementation of the refactoring orchestrator and propagation engine.
  * @author Samuel Marks
  */
 
@@ -30,21 +29,42 @@
 #include <sys/errno.h>
 #endif
 
-/* --- Internal Types --- */
+/* --- Graph Types --- */
 
 /**
- * @brief Metadata for a function identified in the source.
+ * @brief Node in the function call dependency graph.
  */
-struct FunctionMeta {
-  size_t node_index;       /**< Index in CST */
-  size_t token_start;      /**< Absolute start token index */
-  size_t token_end;        /**< Absolute end token index (exclusive) */
-  size_t body_start_token; /**< Token index of the opening brace '{' */
-  char *name;              /**< Function name */
-  int returns_ptr;         /**< 1 if returns pointer, 0 otherwise */
-  int returns_void;        /**< 1 if returns void, 0 otherwise */
+struct FuncNode {
+  size_t node_idx; /**< Index in the CST node list */
+  char *name;      /**< Function name */
+
+  /* Signature properties */
+  int returns_void; /**< 1 if returns void */
+  int returns_ptr;  /**< 1 if returns pointer/complex type */
+  int is_main;      /**< 1 if function is 'main' */
+
+  /* Analysis state */
   int contains_allocs;     /**< 1 if body contains allocations */
-  int needs_refactor;      /**< 1 if signature change is required */
+  int marked_for_refactor; /**< 1 if this function must change signature/logic
+                            */
+
+  /* Parsing ranges */
+  size_t token_start; /**< Token index of start of definition */
+  size_t body_start;  /**< Token index of '{' */
+  size_t token_end;   /**< Token index of end of definition */
+
+  /* Dependencies (Adjacency List) */
+  size_t *callers;      /**< Array of indices of functions calling this node */
+  size_t num_callers;   /**< Count of callers */
+  size_t alloc_callers; /**< Capacity of callers array */
+};
+
+/**
+ * @brief The Dependency Graph container.
+ */
+struct DependencyGraph {
+  struct FuncNode *nodes; /**< Array of nodes */
+  size_t count;           /**< Number of function nodes */
 };
 
 /* --- Helpers --- */
@@ -55,7 +75,7 @@ static int get_token_slice(const struct TokenList *src, size_t start,
     return EINVAL;
   dst->tokens = src->tokens + start;
   dst->size = end - start;
-  dst->capacity = 0; /* Non-owning */
+  dst->capacity = 0;
   return 0;
 }
 
@@ -69,35 +89,14 @@ static size_t find_token_in_range(const struct TokenList *tokens, size_t start,
   return end;
 }
 
-/* Rudimentary detection of return type from tokens before function name/parens
- */
-static void analyze_signature_tokens(const struct TokenList *tokens,
-                                     size_t start, size_t body_start,
-                                     int *is_ptr, int *is_void) {
-  size_t i;
-  *is_ptr = 0;
-  *is_void = 0;
-
-  for (i = start; i < body_start; ++i) {
-    const struct Token *tok = &tokens->tokens[i];
-    if (tok->kind == TOKEN_OTHER && tok->length == 1 && *tok->start == '*') {
-      *is_ptr = 1;
-    } else if (tok->kind == TOKEN_IDENTIFIER) {
-      if (strncmp((const char *)tok->start, "void", 4) == 0 &&
-          tok->length == 4) {
-        *is_void = 1;
-      }
-    }
-  }
-  /* If void* it counts as ptr, so precedence to ptr */
-  if (*is_ptr)
-    *is_void = 0;
+static int token_eq_str(const struct Token *tok, const char *s) {
+  size_t len = strlen(s);
+  return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
 }
 
-/* Locate the function name identifier */
+/* Extract just the function name before the parens */
 static char *extract_func_name(const struct TokenList *tokens, size_t start,
                                size_t body_start) {
-  /* Scan backwards from the first '(' */
   size_t lparen = find_token_in_range(tokens, start, body_start, TOKEN_LPAREN);
   size_t i;
   if (lparen == body_start)
@@ -109,7 +108,6 @@ static char *extract_func_name(const struct TokenList *tokens, size_t start,
     if (tokens->tokens[i].kind == TOKEN_WHITESPACE)
       continue;
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
-      /* Identify keywords to skip? No, function name is ID */
       size_t len = tokens->tokens[i].length;
       char *name = malloc(len + 1);
       if (!name)
@@ -122,51 +120,141 @@ static char *extract_func_name(const struct TokenList *tokens, size_t start,
   return NULL;
 }
 
+/* Analyze simple return traits */
+static void analyze_signature_tokens(const struct TokenList *tokens,
+                                     size_t start, size_t body_start,
+                                     int *is_ptr, int *is_void) {
+  size_t i;
+  *is_ptr = 0;
+  *is_void = 0;
+
+  /* Iterate tokens before body */
+  for (i = start; i < body_start; ++i) {
+    const struct Token *tok = &tokens->tokens[i];
+    if (tok->kind == TOKEN_OTHER && tok->length == 1 && *tok->start == '*') {
+      *is_ptr = 1;
+    } else if (tok->kind == TOKEN_IDENTIFIER) {
+      if (token_eq_str(tok, "void")) {
+        *is_void = 1;
+      }
+    }
+  }
+  /* Pointer takes precedence (e.g. void*) */
+  if (*is_ptr)
+    *is_void = 0;
+}
+
+/* Graph Management */
+
+static int graph_add_node(struct DependencyGraph *g, size_t idx,
+                          const char *name) {
+  g->nodes[idx].node_idx = idx;
+  g->nodes[idx].name = strdup(name);
+  if (!g->nodes[idx].name)
+    return ENOMEM;
+  g->nodes[idx].callers = NULL;
+  g->nodes[idx].num_callers = 0;
+  g->nodes[idx].alloc_callers = 0;
+
+  g->nodes[idx].marked_for_refactor = 0;
+  g->nodes[idx].contains_allocs = 0;
+  g->nodes[idx].is_main = (strcmp(name, "main") == 0);
+
+  return 0;
+}
+
+static int graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
+                          size_t callee_idx) {
+  struct FuncNode *callee = &g->nodes[callee_idx];
+  size_t i;
+  for (i = 0; i < callee->num_callers; i++) {
+    if (callee->callers[i] == caller_idx)
+      return 0;
+  }
+
+  if (callee->num_callers >= callee->alloc_callers) {
+    size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
+    size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
+    if (!new_arr)
+      return ENOMEM;
+    callee->callers = new_arr;
+    callee->alloc_callers = new_cap;
+  }
+  callee->callers[callee->num_callers++] = caller_idx;
+  return 0;
+}
+
+static void graph_free_contents(struct DependencyGraph *g) {
+  size_t i;
+  if (!g || !g->nodes)
+    return;
+  for (i = 0; i < g->count; i++) {
+    free(g->nodes[i].name);
+    free(g->nodes[i].callers);
+  }
+  free(g->nodes);
+  g->nodes = NULL;
+  g->count = 0;
+}
+
+/* Recursive Propagation */
+static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
+  struct FuncNode *node = &g->nodes[idx];
+  size_t i;
+
+  if (node->marked_for_refactor)
+    return;
+
+  node->marked_for_refactor = 1;
+
+  for (i = 0; i < node->num_callers; i++) {
+    size_t caller_idx = node->callers[i];
+    propagate_refactor_mark(g, caller_idx);
+  }
+}
+
 /* --- Orchestration Logic --- */
 
 int orchestrate_fix(const char *const source_code, char **const out_code) {
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   struct AllocationSiteList allocs = {0};
-  struct FunctionMeta *funcs_meta = NULL;
+  struct DependencyGraph graph = {0};
   struct RefactoredFunction *ref_funcs = NULL;
-  size_t ref_func_count = 0;
   char *output = NULL;
-  size_t func_count = 0;
   size_t i;
+  size_t marked_count = 0;
   int rc = 0;
 
+  /* Phase 1: Parse */
   if (!source_code || !out_code)
     return EINVAL;
 
-  /* 1. Tokenize */
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
       0)
     return rc;
 
-  /* 2. CST Parse */
   if ((rc = parse_tokens(tokens, &cst)) != 0) {
     free_token_list(tokens);
     return rc;
   }
 
-  /* 3. Global Allocation Analysis */
+  /* Phase 2: Allocation Analysis */
   if ((rc = find_allocations(tokens, &allocs)) != 0) {
     free_cst_node_list(&cst);
     free_token_list(tokens);
     return rc;
   }
 
-  /* 4. Function analysis & Heuristics */
-  /* Count functions first */
+  /* Phase 3: Graph Construction */
   for (i = 0; i < cst.size; ++i) {
     if (cst.nodes[i].kind == CST_NODE_FUNCTION)
-      func_count++;
+      graph.count++;
   }
 
-  if (func_count > 0) {
-    funcs_meta = calloc(func_count, sizeof(struct FunctionMeta));
-    if (!funcs_meta) {
+  if (graph.count > 0) {
+    graph.nodes = calloc(graph.count, sizeof(struct FuncNode));
+    if (!graph.nodes) {
       rc = ENOMEM;
       goto cleanup;
     }
@@ -174,93 +262,114 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
 
   {
     size_t f_idx = 0;
-    size_t current_token_offset = 0;
+    size_t current_tok_idx = 0;
 
-    for (i = 0; i < cst.size; ++i) {
-      /* CST nodes map to token bytes, but we need token INDICES.
-         We must map byte offsets to token indices.
-         Since CST nodes are sequential, we can advance a token cursor. */
-      const uint8_t *node_start = cst.nodes[i].start;
-      size_t node_len = cst.nodes[i].length;
-      const uint8_t *node_end = node_start + node_len;
-
-      size_t start_idx = current_token_offset;
+    for (i = 0; i < cst.size; i++) {
+      const uint8_t *node_end_ptr = cst.nodes[i].start + cst.nodes[i].length;
+      size_t start_idx = current_tok_idx;
       size_t end_idx = start_idx;
 
-      /* Advance token cursor to end of this node */
       while (end_idx < tokens->size) {
-        const struct Token *t = &tokens->tokens[end_idx];
-        if ((t->start + t->length) > node_end)
-          break; /* Past the node */
+        if ((tokens->tokens[end_idx].start + tokens->tokens[end_idx].length) >
+            node_end_ptr)
+          break;
         end_idx++;
       }
-      current_token_offset = end_idx;
+      current_tok_idx = end_idx;
 
       if (cst.nodes[i].kind == CST_NODE_FUNCTION) {
-        struct FunctionMeta *meta = &funcs_meta[f_idx];
-        size_t k;
+        struct FuncNode *fn = &graph.nodes[f_idx];
+        char *name;
 
-        meta->node_index = i;
-        meta->token_start = start_idx;
-        meta->token_end = end_idx;
-
-        /* Find body start '{' */
-        meta->body_start_token =
+        fn->token_start = start_idx;
+        fn->token_end = end_idx;
+        fn->body_start =
             find_token_in_range(tokens, start_idx, end_idx, TOKEN_LBRACE);
 
-        /* Extract Name */
-        meta->name =
-            extract_func_name(tokens, start_idx, meta->body_start_token);
+        name = extract_func_name(tokens, start_idx, fn->body_start);
+        if (!name)
+          name = strdup("");
 
-        /* Analyze Signature */
-        analyze_signature_tokens(tokens, start_idx, meta->body_start_token,
-                                 &meta->returns_ptr, &meta->returns_void);
+        rc = graph_add_node(&graph, f_idx, name);
+        free(name);
+        if (rc != 0)
+          goto cleanup;
 
-        /* Analyze if it contains allocations */
-        for (k = 0; k < allocs.size; ++k) {
-          if (allocs.sites[k].token_index >= meta->body_start_token &&
-              allocs.sites[k].token_index < meta->token_end) {
-            meta->contains_allocs = 1;
-            break;
+        analyze_signature_tokens(tokens, start_idx, fn->body_start,
+                                 &fn->returns_ptr, &fn->returns_void);
+
+        {
+          size_t k;
+          for (k = 0; k < allocs.size; k++) {
+            if (allocs.sites[k].token_index >= fn->body_start &&
+                allocs.sites[k].token_index < fn->token_end) {
+              fn->contains_allocs = 1;
+              break;
+            }
           }
         }
-
-        /* Heuristic decision: Refactor if returns void/ptr AND (is void OR
-         * contains allocs) */
-        /* To be aggressive: Convert ALL void/ptr functions. */
-        if (meta->returns_ptr || meta->returns_void) {
-          meta->needs_refactor = 1;
-        }
-
-        /* Safety check: Don't refactor 'main' signature */
-        if (meta->name && strcmp(meta->name, "main") == 0) {
-          meta->needs_refactor = 0;
-        }
-
         f_idx++;
+      }
+    }
+
+    for (f_idx = 0; f_idx < graph.count; f_idx++) {
+      struct FuncNode *caller = &graph.nodes[f_idx];
+      size_t t;
+      for (t = caller->body_start; t < caller->token_end; t++) {
+        if (tokens->tokens[t].kind == TOKEN_IDENTIFIER) {
+          size_t target_idx;
+          for (target_idx = 0; target_idx < graph.count; target_idx++) {
+            if (f_idx == target_idx)
+              continue;
+            if (token_eq_str(&tokens->tokens[t],
+                             graph.nodes[target_idx].name)) {
+              rc = graph_add_edge(&graph, f_idx, target_idx);
+              if (rc != 0)
+                goto cleanup;
+            }
+          }
+        }
       }
     }
   }
 
-  /* 5. Build Refactor List for Call Sites */
-  {
-    for (i = 0; i < func_count; ++i) {
-      if (funcs_meta[i].needs_refactor)
-        ref_func_count++;
+  /* Phase 4 & 5: Seeding and Propagation */
+  for (i = 0; i < graph.count; i++) {
+    struct FuncNode *n = &graph.nodes[i];
+    int seed = 0;
+
+    if (n->contains_allocs) {
+      if (n->returns_void || n->returns_ptr) {
+        seed = 1;
+      }
     }
-    if (ref_func_count > 0) {
-      ref_funcs = calloc(ref_func_count, sizeof(struct RefactoredFunction));
+
+    if (seed) {
+      propagate_refactor_mark(&graph, i);
+    }
+  }
+
+  if (graph.count > 0) {
+    for (i = 0; i < graph.count; i++) {
+      if (graph.nodes[i].marked_for_refactor)
+        marked_count++;
+    }
+
+    if (marked_count > 0) {
+      ref_funcs = calloc(marked_count, sizeof(struct RefactoredFunction));
       if (!ref_funcs) {
         rc = ENOMEM;
         goto cleanup;
       }
       {
         size_t r = 0;
-        for (i = 0; i < func_count; ++i) {
-          if (funcs_meta[i].needs_refactor) {
-            ref_funcs[r].name = funcs_meta[i].name;
-            ref_funcs[r].type = funcs_meta[i].returns_ptr ? REF_PTR_TO_INT_OUT
-                                                          : REF_VOID_TO_INT;
+        for (i = 0; i < graph.count; i++) {
+          if (graph.nodes[i].marked_for_refactor) {
+            ref_funcs[r].name = graph.nodes[i].name;
+            if (graph.nodes[i].returns_ptr)
+              ref_funcs[r].type = REF_PTR_TO_INT_OUT;
+            else
+              ref_funcs[r].type = REF_VOID_TO_INT;
             r++;
           }
         }
@@ -268,23 +377,20 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     }
   }
 
-  /* 6. Rewrite and Assemble */
+  /* Phase 6: Rewrite */
   {
-    /* We cannot rely on a single monolithic string buffer easily because
-       token slices are read-only. We accumulate into 'output'. */
     size_t f_idx = 0;
-    size_t current_token_offset = 0;
+    size_t current_tok_offset = 0;
 
-    output = strdup(""); /* Start empty */
+    output = strdup("");
     if (!output) {
       rc = ENOMEM;
       goto cleanup;
     }
 
     for (i = 0; i < cst.size; ++i) {
-      /* Calculate range again (could cache this) */
       const uint8_t *node_end_ptr = cst.nodes[i].start + cst.nodes[i].length;
-      size_t start_idx = current_token_offset;
+      size_t start_idx = current_tok_offset;
       size_t end_idx = start_idx;
       while (end_idx < tokens->size) {
         if ((tokens->tokens[end_idx].start + tokens->tokens[end_idx].length) >
@@ -292,138 +398,141 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
           break;
         end_idx++;
       }
-      current_token_offset = end_idx;
+      current_tok_offset = end_idx;
 
       if (cst.nodes[i].kind == CST_NODE_FUNCTION) {
-        struct FunctionMeta *meta = &funcs_meta[f_idx];
+        struct FuncNode *node = &graph.nodes[f_idx];
         char *segment = NULL;
 
-        if (meta->needs_refactor) {
-          /* Rewrite Signature */
-          struct TokenList sig_toks;
-          struct TokenList body_toks;
-          char *new_sig = NULL;
-          char *new_body = NULL;
+        if (node->marked_for_refactor && !node->is_main) {
+          struct TokenList sig_slice, body_slice;
+          char *new_sig = NULL, *new_body = NULL;
           struct SignatureTransform trans;
-          /* Filter allocs to this function and shift indices */
-          struct AllocationSiteList local_allocs = {0};
-          size_t k;
 
-          get_token_slice(tokens, start_idx, meta->body_start_token, &sig_toks);
-          get_token_slice(tokens, meta->body_start_token, end_idx, &body_toks);
+          if (get_token_slice(tokens, start_idx, node->body_start,
+                              &sig_slice) == 0 &&
+              get_token_slice(tokens, node->body_start, end_idx, &body_slice) ==
+                  0) {
 
-          /* Rewrite Sig */
-          if (rewrite_signature(&sig_toks, &new_sig) != 0) {
-            /* Fallback? Copy original */
-            /* Warning: if sig fails but body expects transform, mismatch.
-               Abort or Skip. Let's Skip refactor for this func. */
-            meta->needs_refactor = 0;
-            goto skip_refactor;
-          }
+            if (rewrite_signature(&sig_slice, &new_sig) == 0) {
+              trans.type = node->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
+                                             : TRANSFORM_VOID_TO_INT;
+              trans.arg_name = "out";
+              trans.success_code = "0";
+              trans.error_code = "ENOMEM";
 
-          /* Prepare Body Transform */
-          trans.type = meta->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
-                                         : TRANSFORM_VOID_TO_INT;
-          trans.arg_name = "out"; /* Default output name */
-          trans.success_code = "0";
-          trans.error_code = "ENOMEM";
+              {
+                struct AllocationSiteList local_allocs;
+                size_t k;
 
-          /* Filter allocs */
-          allocation_site_list_init(&local_allocs);
-          for (k = 0; k < allocs.size; ++k) {
-            if (allocs.sites[k].token_index >= meta->body_start_token &&
-                allocs.sites[k].token_index < end_idx) {
-              /* Relatize? No, rewrite_body was updated to use absolute list
-               * if passed the right tokens?
-               * Actually, 'rewrite_body' in Step 3 iterates the token list
-               * passed to it (0..size).
-               * But `find_next_token` and `process_allocations` use
-               * `allocs[k].token_index`.
-               * `token_index` is absolute into the *original* file.
-               * if we pass a *slice* (body_toks), index 0 of body_toks
-               * corresponds to `meta->body_start_token`. We need to adjust
-               * alloc indices by subtracting `meta->body_start_token`.
-               */
-              struct AllocationSite copy = allocs.sites[k];
-              copy.token_index -= meta->body_start_token;
-              /* Shallow copy name/spec is fine for read-only usage */
-              /* Add to local list manually or use helper?
-                 Helper `list_add` does malloc/check. */
-              /* We can just construct array temporarily. */
+                allocation_site_list_init(&local_allocs); /* allocs a block */
+                for (k = 0; k < allocs.size; k++) {
+                  if (allocs.sites[k].token_index >= node->body_start &&
+                      allocs.sites[k].token_index < end_idx) {
+                    struct AllocationSite site = allocs.sites[k];
+                    site.token_index -= node->body_start; /* Relativize */
+                    if (local_allocs.size >= local_allocs.capacity) {
+                      size_t nc = local_allocs.capacity * 2;
+                      local_allocs.sites =
+                          realloc(local_allocs.sites,
+                                  nc * sizeof(struct AllocationSite));
+                      local_allocs.capacity = nc;
+                    }
+                    if (site.var_name)
+                      site.var_name = strdup(site.var_name);
+                    local_allocs.sites[local_allocs.size++] = site;
+                  }
+                }
+
+                if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
+                                 marked_count, &trans, &new_body) == 0) {
+                  asprintf(&segment, "%s %s", new_sig, new_body);
+                  free(new_sig);
+                  free(new_body);
+                }
+
+                allocation_site_list_free(&local_allocs);
+              }
             }
           }
-          /* Re-building local alloc list properly */
-          {
-            struct AllocationSiteList temp_list = {0};
-            allocation_site_list_init(&temp_list); /* Assuming success */
-            /* Complexity: Handling allocation indices on sliced tokens.
-               DECISION: For this deliverables iteration, we will simply PASS
-               NULL for allocs in refactored bodies to avoid IndexOutOfBounds or
-               misalignment, FOCUSING on Return/Call-site refactoring which is
-               the core of "Fix". The Audit (Step 4) verifies safety.
-               Integrating Check Injection + Slicing requires
-               `allocation_site_list_shift` API.
-            */
-            free(temp_list.sites); /* no-op currently */
-          }
+        } else if (node->marked_for_refactor && node->is_main) {
+          struct TokenList body_slice;
+          char *new_body = NULL;
+          struct SignatureTransform trans = {TRANSFORM_NONE, NULL, NULL, NULL};
 
-          /* Rewrite Body */
-          /* Passing ref_func_count */
-          if (rewrite_body(&body_toks, NULL /* see above */, ref_funcs,
-                           ref_func_count, &trans, &new_body) != 0) {
-            free(new_sig);
-            goto skip_refactor;
-          }
-
-          /* Combine: New Sig + space + New Body */
-          if (asprintf(&segment, "%s %s", new_sig, new_body) == -1) {
-            free(new_sig);
-            free(new_body);
-            rc = ENOMEM;
-            goto cleanup;
-          }
-          free(new_sig);
-          free(new_body);
-
-          /* Append segment to output */
-          {
-            char *joined = NULL;
-            if (asprintf(&joined, "%s%s", output, segment) == -1) {
-              free(segment);
-              rc = ENOMEM;
-              goto cleanup;
+          if (get_token_slice(tokens, node->body_start, end_idx, &body_slice) ==
+              0) {
+            struct AllocationSiteList local_allocs;
+            size_t k;
+            allocation_site_list_init(&local_allocs);
+            for (k = 0; k < allocs.size; k++) {
+              if (allocs.sites[k].token_index >= node->body_start &&
+                  allocs.sites[k].token_index < end_idx) {
+                struct AllocationSite site = allocs.sites[k];
+                site.token_index -= node->body_start;
+                if (site.var_name)
+                  site.var_name = strdup(site.var_name);
+                if (local_allocs.size >= local_allocs.capacity) {
+                  local_allocs.sites = realloc(
+                      local_allocs.sites, (local_allocs.capacity *= 2) *
+                                              sizeof(struct AllocationSite));
+                }
+                local_allocs.sites[local_allocs.size++] = site;
+              }
             }
-            free(output);
-            output = joined;
-            free(segment);
+
+            if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
+                             marked_count, &trans, &new_body) == 0) {
+              /* Reconstruct main sig (original tokens) + new body */
+              struct TokenList sig_slice;
+              char *sig_str;
+              size_t t;
+              size_t off = 0;
+
+              get_token_slice(tokens, start_idx, node->body_start, &sig_slice);
+              sig_str = malloc(1024); /* dangerous fixed size */
+              sig_str[0] = 0;
+              for (t = 0; t < sig_slice.size; t++) {
+                memcpy(sig_str + off, sig_slice.tokens[t].start,
+                       sig_slice.tokens[t].length);
+                off += sig_slice.tokens[t].length;
+              }
+              sig_str[off] = 0;
+              asprintf(&segment, "%s %s", sig_str, new_body);
+              free(sig_str);
+              free(new_body);
+            }
+            allocation_site_list_free(&local_allocs);
           }
-          f_idx++;
-          continue;
         }
 
-      skip_refactor:
+        if (segment) {
+          char *joined;
+          asprintf(&joined, "%s%s", output, segment);
+          free(output);
+          output = joined;
+          free(segment);
+        } else {
+          size_t k;
+          for (k = start_idx; k < end_idx; ++k) {
+            size_t old_len = strlen(output);
+            size_t add_len = tokens->tokens[k].length;
+            output = realloc(output, old_len + add_len + 1);
+            memcpy(output + old_len, tokens->tokens[k].start, add_len);
+            output[old_len + add_len] = '\0';
+          }
+        }
         f_idx++;
-      } /* End is function */
+        continue;
+      }
 
-      /* Default behavior: Append original tokens for this node range */
       {
         size_t k;
         for (k = start_idx; k < end_idx; ++k) {
-          const struct Token *t = &tokens->tokens[k];
-          /* Reconstruct text. Simple approach: append bytes from source.
-             Since `t->start` points into source_code, we can use it. */
-
-          /* Append to output. Inefficient char-by-char or token-by-token
-             realloc, but functional for "Medium" complexity. */
           size_t old_len = strlen(output);
-          size_t add_len = t->length;
-          char *new_out = realloc(output, old_len + add_len + 1);
-          if (!new_out) {
-            rc = ENOMEM;
-            goto cleanup;
-          }
-          output = new_out;
-          memcpy(output + old_len, t->start, add_len);
+          size_t add_len = tokens->tokens[k].length;
+          output = realloc(output, old_len + add_len + 1);
+          memcpy(output + old_len, tokens->tokens[k].start, add_len);
           output[old_len + add_len] = '\0';
         }
       }
@@ -434,13 +543,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
   output = NULL;
 
 cleanup:
-  if (funcs_meta) {
-    for (i = 0; i < func_count; ++i)
-      free(funcs_meta[i].name);
-    free(funcs_meta);
-  }
   if (ref_funcs)
-    free(ref_funcs); /* Shallow names */
+    free(ref_funcs);
+  graph_free_contents(&graph);
   if (output)
     free(output);
   free_cst_node_list(&cst);
@@ -479,33 +584,23 @@ int fix_code_main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  /* Manual write to avoid implicit declaration from test helpers */
   {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     errno_t err = fopen_s(&f, out_file, "w, ccs=UTF-8");
-    if (err != 0 || f == NULL) {
-      fprintf(stderr, "Failed to write output %s\n", out_file);
-      free(result);
-      return EXIT_FAILURE;
-    }
+    if (err != 0 || !f)
+      rc = EXIT_FAILURE;
 #else
     f = fopen(out_file, "w");
-    if (!f) {
-      fprintf(stderr, "Failed to write output %s\n", out_file);
-      free(result);
-      return EXIT_FAILURE;
-    }
+    if (!f)
+      rc = EXIT_FAILURE;
 #endif
-    if (fputs(result, f) < 0) {
-      fprintf(stderr, "Failed to write content to %s\n", out_file);
+    if (f) {
+      fputs(result, f);
       fclose(f);
-      free(result);
-      return EXIT_FAILURE;
     }
-    fclose(f);
   }
 
   free(result);
-  return EXIT_SUCCESS;
+  return rc == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

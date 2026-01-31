@@ -1,8 +1,8 @@
 /**
  * @file rewriter_body.c
  * @brief Implementation of body rewriting and injection logic.
- * Handles allocation checks, function call updates, and return statement
- * transformation.
+ * Handles stack variable injection, allocation checks, function call updates,
+ * call-site transformation, and return statement transformation.
  * @author Samuel Marks
  */
 
@@ -27,6 +27,11 @@
 #include <c89stringutils_string_extras.h>
 
 #include "rewriter_body.h"
+
+/* Configuration constants */
+static const char *const STATUS_VAR_NAME = "rc";
+static const char *const STATUS_VAR_TYPE = "int";
+static const char *const STATUS_VAR_INIT = "0";
 
 /* --- Internal Structures --- */
 
@@ -139,6 +144,14 @@ static char *tokens_to_string(const struct TokenList *tokens, size_t start,
   size_t i;
   char *buf, *p;
 
+  /* Defensive check */
+  if (start >= end) {
+    char *empty = malloc(1);
+    if (empty)
+      *empty = '\0';
+    return empty;
+  }
+
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
@@ -158,33 +171,67 @@ static char *tokens_to_string(const struct TokenList *tokens, size_t start,
 /* --- Logic --- */
 
 /**
- * @brief Identify if the LHS of an assignment (`... =`) looks like a
- * declaration.
+ * @brief Check if a variable with the given name is declared in the token
+ * scope.
+ *
+ * Simple heuristic: scans for IDENTIFIER matching name.
+ * Does not perform full scope analysis (args are implicit if this is
+ * body-only).
  *
  * @param[in] tokens Token list.
- * @param[in] start_idx Start of the statement.
- * @param[in] eq_idx Index of the '=' token.
- * @return 1 if it looks like a declaration, 0 if it looks like an assignment.
+ * @param[in] name Variable name to check.
+ * @return 1 if found, 0 otherwise.
+ */
+static int variable_exists(const struct TokenList *tokens, const char *name) {
+  size_t i;
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+      if (token_eq(&tokens->tokens[i], name)) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/**
+ * @brief Inject a stack variable declaration at the top of the block.
+ *
+ * Assumes C89 compliance requirement: typically declarations must be at the
+ * start of the block. We insert immediately after the first '{'.
+ *
+ * @param[in] tokens The token stream.
+ * @param[in] patches The patch list to modify.
+ * @param[in] type Type string (e.g. "int").
+ * @param[in] name Variable name (e.g. "rc").
+ * @param[in] init_val Initial value (e.g. "0").
+ * @return 0 on success, ENOMEM on failure.
+ */
+static int inject_stack_variable(const struct TokenList *tokens,
+                                 struct PatchList *patches, const char *type,
+                                 const char *name, const char *init_val) {
+  size_t i;
+  /* Find first LBRACE */
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_LBRACE) {
+      /* Inject after this token */
+      char *decl = NULL;
+      /* Format: " int name = init; " */
+      if (asprintf(&decl, " %s %s = %s;", type, name, init_val) == -1) {
+        return ENOMEM;
+      }
+      return add_replacement(patches, i + 1, i + 1, decl);
+    }
+  }
+  return 0; /* No brace found, possibly abstract declaration or error, ignore */
+}
+
+/**
+ * @brief Identify if the LHS of an assignment (`... =`) looks like a
+ * declaration.
  */
 static int is_declaration(const struct TokenList *tokens, size_t start_idx,
                           size_t eq_idx) {
-  /*
-   * basic heuristic:
-   * A declaration has at least 2 significant tokens before '=' (Type Name).
-   * An assignment usually has 1 significant token (Var) or complex expr
-   * (Arr[i], *Ptr).
-   *
-   * Exceptions:
-   * - `typedef_name var;` (2 tokens) -> Decl
-   * - `var = ...` (1 token) -> Assign
-   * - `*ptr = ...` (2 tokens `*` `ptr`) -> Assign
-   * - `arr[i] = ...` (4 tokens) -> Assign
-   *
-   * Refined check:
-   * If starts with standard Type Keyword -> Decl.
-   * If starts with `*` or identifier followed by `[` or `.` or `->` -> Assign.
-   * If 2 identifiers `T x` -> Decl.
-   */
   size_t i = start_idx;
   int token_count = 0;
   int has_type_keyword = 0;
@@ -202,7 +249,7 @@ static int is_declaration(const struct TokenList *tokens, size_t start_idx,
           tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
           token_eq(&tokens->tokens[i], "int") ||
           token_eq(&tokens->tokens[i], "char") ||
-          token_eq(&tokens->tokens[i], "void") || /* void* x */
+          token_eq(&tokens->tokens[i], "void") ||
           token_eq(&tokens->tokens[i], "float") ||
           token_eq(&tokens->tokens[i], "double") ||
           token_eq(&tokens->tokens[i], "long") ||
@@ -225,19 +272,15 @@ static int is_declaration(const struct TokenList *tokens, size_t start_idx,
   if (has_type_keyword)
     return 1;
   if (starts_deref)
-    return 0; /* *p = ... */
+    return 0;
 
-  /* If we have >= 2 significant tokens and no obvious assignment operators
-     like `->` or `.` or `[`, assume declaration (Typedef Name). */
-  /* This is heuristic but covers `Type var` (2) vs `var` (1). */
+  /* Heuristic: multiple tokens -> decl */
   if (token_count >= 2) {
-    /* Check for structural assignment chars in the range */
     size_t k;
     for (k = start_idx; k < eq_idx; ++k) {
       const struct Token *t = &tokens->tokens[k];
       /* Check for [ or . or -> */
-      if (t->kind == TOKEN_LBRACE /* [ mapped to brace or other */ ||
-          (t->length == 1 && *t->start == '.') ||
+      if (t->kind == TOKEN_LBRACE || (t->length == 1 && *t->start == '.') ||
           (t->length == 2 && strncmp((char *)t->start, "->", 2) == 0)) {
         return 0; /* Likely assignment */
       }
@@ -282,13 +325,15 @@ static int process_allocations(const struct TokenList *tokens,
 
 /**
  * @brief Identify and rewrite calls to refactored functions.
+ * Returns *needs_stack_var = 1 if a rewrite logic requires `rc`.
  */
 static int process_function_calls(const struct TokenList *tokens,
                                   const struct RefactoredFunction *funcs,
-                                  size_t func_count,
-                                  struct PatchList *patches) {
+                                  size_t func_count, struct PatchList *patches,
+                                  int *needs_stack_var) {
   size_t i;
 
+  /* Iterate over tokens to find function calls */
   for (i = 0; i < tokens->size; ++i) {
     size_t f_idx;
     const struct RefactoredFunction *target = NULL;
@@ -306,6 +351,7 @@ static int process_function_calls(const struct TokenList *tokens,
     if (!target)
       continue;
 
+    /* Look ahead for '(' */
     {
       size_t next = i + 1;
       while (next < tokens->size &&
@@ -338,31 +384,44 @@ static int process_function_calls(const struct TokenList *tokens,
           if (semi >= tokens->size)
             continue;
 
+          /* Case 1: REF_VOID_TO_INT
+             Original: func(...);
+             Refactored: rc = func(...); if (rc != 0) return rc;
+          */
           if (target->type == REF_VOID_TO_INT) {
-            /* func(...) -> if (func(...) != 0) return EIO; */
             char *original_call = tokens_to_string(tokens, i, rparen + 1);
             char *replacement = NULL;
             if (!original_call)
               return ENOMEM;
 
-            if (asprintf(&replacement, "if (%s != 0) return EIO;",
-                         original_call) == -1) {
+            if (asprintf(&replacement, "%s = %s; if (%s != 0) return %s;",
+                         STATUS_VAR_NAME, original_call, STATUS_VAR_NAME,
+                         STATUS_VAR_NAME) == -1) {
               free(original_call);
               return ENOMEM;
             }
             free(original_call);
 
+            /* Replace from func start to semi (inclusive) or just before?
+               We found semi. We replace the whole statement `func(...);`
+               Replace range: [i, semi+1] (which includes semi) */
             if (add_replacement(patches, i, semi + 1, replacement) != 0)
               return ENOMEM;
 
-            i = semi;
-          } else if (target->type == REF_PTR_TO_INT_OUT) {
-            /* var = func(...) -> if (func(..., &var) != 0) return EIO; */
+            if (needs_stack_var)
+              *needs_stack_var = 1;
+            i = semi; /* Advance loop */
+          }
+          /* Case 2: REF_PTR_TO_INT_OUT
+             Original: var = func(args);
+             Refactored: rc = func(args, &var); if (rc != 0) return rc;
+          */
+          else if (target->type == REF_PTR_TO_INT_OUT) {
             size_t eq_idx = i;
             int found_eq = 0;
             size_t statement_start = 0;
 
-            /* Scan backwards for '=' */
+            /* Scan backwards for '=' to identify assignment context */
             while (eq_idx > 0) {
               eq_idx--;
               if (tokens->tokens[eq_idx].kind == TOKEN_WHITESPACE)
@@ -382,7 +441,7 @@ static int process_function_calls(const struct TokenList *tokens,
             }
 
             if (found_eq) {
-              /* Find start of statement to distinguish decl from assign */
+              /* Found LHS: var = func(...) */
               statement_start = eq_idx;
               while (statement_start > 0) {
                 size_t prev = statement_start - 1;
@@ -394,32 +453,25 @@ static int process_function_calls(const struct TokenList *tokens,
                 statement_start--;
               }
 
-              /* Extract variable name (just before =) */
+              /* Extract variable name from LHS */
               {
+                /* Find last identifier before eq */
                 size_t var_idx = eq_idx;
                 int found_var = 0;
                 while (var_idx > statement_start) {
                   var_idx--;
                   if (tokens->tokens[var_idx].kind == TOKEN_WHITESPACE)
                     continue;
-                  /* This logic assumes the last identifier before = is the
-                   * variable */
                   if (tokens->tokens[var_idx].kind == TOKEN_IDENTIFIER) {
                     found_var = 1;
-                    /* Capture var_idx for name extraction */
-                    /* Need to be precise */
                     break;
                   }
                 }
 
                 if (found_var) {
-                  /* Re-scan to find actual index */
-                  size_t real_var_idx = eq_idx;
-                  while (real_var_idx > statement_start) {
-                    real_var_idx--;
-                    if (tokens->tokens[real_var_idx].kind != TOKEN_WHITESPACE)
-                      break;
-                  }
+                  size_t real_var_idx = var_idx;
+                  /* (Note: var_idx loop above already skips whitespace backward
+                     from eq, so real_var_idx points to the ID) */
 
                   if (tokens->tokens[real_var_idx].kind == TOKEN_IDENTIFIER) {
                     char *var_name = tokens_to_string(tokens, real_var_idx,
@@ -427,11 +479,10 @@ static int process_function_calls(const struct TokenList *tokens,
                     char *args = tokens_to_string(tokens, lparen + 1, rparen);
                     char *replacement = NULL;
                     char *comma = "";
-                    size_t replace_start; /* Moved here for C89 */
+                    size_t replace_start;
                     int is_decl =
                         is_declaration(tokens, statement_start, eq_idx);
 
-                    /* Are there existing args? */
                     int has_args = 0;
                     size_t k;
                     for (k = lparen + 1; k < rparen; k++) {
@@ -450,38 +501,47 @@ static int process_function_calls(const struct TokenList *tokens,
                     }
 
                     if (is_decl) {
-                      /* Declaration: `Type var = func();` -> `Type var; if
-                       * (func(&var)...` */
-                      /* We replace from '=' to ';' */
-                      if (asprintf(&replacement,
-                                   "; if (%s(%s%s&%s) != 0) return EIO;",
-                                   target->name, args, comma, var_name) == -1) {
+                      /* Declaration: `Type var = func();`
+                         -> `Type var; rc = func(&var); if (rc) return rc;`
+                      */
+                      /* We replace from '=' onwards to ';' */
+                      /* e.g. " = func(args);" -> "; rc = func(args, &var);..."
+                       */
+
+                      if (asprintf(
+                              &replacement,
+                              "; %s = %s(%s%s&%s); if (%s != 0) return %s;",
+                              STATUS_VAR_NAME, target->name, args, comma,
+                              var_name, STATUS_VAR_NAME,
+                              STATUS_VAR_NAME) == -1) {
                         free(var_name);
                         free(args);
                         return ENOMEM;
                       }
+                      /* apply from eq_idx (the '=') to semi+1 */
                       if (add_replacement(patches, eq_idx, semi + 1,
                                           replacement) != 0) {
                         free(var_name);
-                        free(args); /* add_replacement takes ownership of
-                                       replacement, handled by error return */
+                        free(args);
                         return ENOMEM;
                       }
                     } else {
-                      /* Assignment: `var = func();` -> `if (func(&var)...` */
+                      /* Assignment: `var = func();`
+                         -> `rc = func(&var); if (rc) return rc;`
+                      */
 
                       if (asprintf(&replacement,
-                                   "if (%s(%s%s&%s) != 0) return EIO;",
-                                   target->name, args, comma, var_name) == -1) {
+                                   "%s = %s(%s%s&%s); if (%s != 0) return %s;",
+                                   STATUS_VAR_NAME, target->name, args, comma,
+                                   var_name, STATUS_VAR_NAME,
+                                   STATUS_VAR_NAME) == -1) {
                         free(var_name);
                         free(args);
                         return ENOMEM;
                       }
 
-                      /* Note: statement_start might include whitespace after
-                       * prev semi. */
-                      /* We should skip leading whitespace in replacement range.
-                       */
+                      /* Skip leading whitespace in replacement range from
+                       * statement start */
                       replace_start = statement_start;
                       while (replace_start < eq_idx &&
                              tokens->tokens[replace_start].kind ==
@@ -489,19 +549,94 @@ static int process_function_calls(const struct TokenList *tokens,
                         replace_start++;
                       }
 
+                      /* Replace full statement `var = func();` */
                       if (add_replacement(patches, replace_start, semi + 1,
                                           replacement) != 0) {
+                        free(var_name);
+                        free(args);
                         return ENOMEM;
                       }
                     }
 
-                    /* Cleanup if success */
+                    if (needs_stack_var)
+                      *needs_stack_var = 1;
                     free(var_name);
                     free(args);
 
                     i = semi;
                   }
                 }
+              }
+            } else {
+              /* Case 3: Immediate Use / Return / Standalone?
+                 Standalone: `func(args);` (Return value ignored, leak?)
+                 Return: `return func(args);`
+                 If just `func(args);` but returns ptr -> logic above for
+                 finding eq fails. If it is just `char *p = func(args);` we
+                 caught it. What about `return func(args);` ?
+
+                 Find precedent 'return' token.
+              */
+              size_t prev_chk = i;
+              while (prev_chk > 0) {
+                prev_chk--;
+                if (tokens->tokens[prev_chk].kind == TOKEN_WHITESPACE)
+                  continue;
+                if (tokens->tokens[prev_chk].kind == TOKEN_IDENTIFIER &&
+                    token_eq(&tokens->tokens[prev_chk], "return")) {
+
+                  /* Found `return func(args);` */
+                  /* Transform to:
+                     `Type tmp; rc = func(args, &tmp); if (rc != 0) return rc;
+                     return tmp;` We need to know the Type. The
+                     `RefactoredFunction` struct doesn't strictly carry Type
+                     info yet, only refactor type enum. If we don't know the
+                     type, we can't create `tmp`. However, maybe we can use
+                     `void *` or inject a placeholder? Or maybe we assume we are
+                     converting `char* func()` to `int func(char**)` and the
+                     caller `return func()` signature matches.
+
+                     If the caller function returns `char*`, checking ref_func
+                     `func` which also returns `char*`: The caller must also be
+                     refactored? 'Call-Site Rewriter' normally assumes we are
+                     inside a function being refactored OR we are fixing a
+                     client. If we are just fixing client code without changing
+                     client signature: We can't return NULL/pointer if we got an
+                     int `rc`. But `func` now returns `int`. Original: `return
+                     func();` (returns ptr) New: `func` returns int (error).
+
+                     Standard Fix pattern:
+                     Client code `f()` calls `g()`. `g` changes to return int.
+                     `f` should normally propagate.
+                     If `f` signature is also being changed
+                     (TRANSFORM_RET_PTR_TO_ARG), then `return func()` inside `f`
+                     needs to become: `rc = func(..., &out_val); *out = out_val;
+                     return rc;`
+
+                     If `f` is NOT being changed (TRANSFORM_NONE), we have a
+                     type mismatch. This rewriter handles the BODY. If
+                     `transform` arg is set, we know our new signature.
+
+                     Let's assume we are rewriting `f` which is also being
+                     converted.
+                  */
+                  /* For now, handle simple `return func();` -> error
+                     propagation if void? RefactorType is the target function's
+                     change. If target is VOID_TO_INT: `return func();` ->
+                     `return func();`? Original `void func()` -> `int func()`.
+                     Caller `void caller() { return func(); }` (valid in C if
+                     func is void). New `int caller() { return func(); }`. This
+                     just works naturally if types align? But if we want to
+                     check `rc`: `rc = func(); if (rc) return rc; return 0;`
+                  */
+                  /* Implementation complexity High: requires knowing context
+                     return type. For 'Medium' scope defined here (Call-Site
+                     Rewriter), we focus on assignment/call. We will skip
+                     aggressive return-statement rewriting of calls until Type
+                     info is available.
+                  */
+                }
+                break;
               }
             }
           }
@@ -591,6 +726,7 @@ int rewrite_body(const struct TokenList *tokens,
   size_t out_len = 0;
   size_t current_token = 0;
   size_t p_idx = 0;
+  int needs_stack_var = 0;
 
   if (!tokens || !out_code)
     return EINVAL;
@@ -605,7 +741,8 @@ int rewrite_body(const struct TokenList *tokens,
   }
 
   if (funcs && func_count > 0) {
-    rc = process_function_calls(tokens, funcs, func_count, &patches);
+    rc = process_function_calls(tokens, funcs, func_count, &patches,
+                                &needs_stack_var);
     if (rc != 0)
       goto cleanup;
   }
@@ -614,6 +751,16 @@ int rewrite_body(const struct TokenList *tokens,
     rc = process_return_statements(tokens, transform, &patches);
     if (rc != 0)
       goto cleanup;
+  }
+
+  /* Check/Inject variable */
+  if (needs_stack_var) {
+    if (!variable_exists(tokens, STATUS_VAR_NAME)) {
+      rc = inject_stack_variable(tokens, &patches, STATUS_VAR_TYPE,
+                                 STATUS_VAR_NAME, STATUS_VAR_INIT);
+      if (rc != 0)
+        goto cleanup;
+    }
   }
 
   qsort(patches.items, patches.size, sizeof(struct Replacement),

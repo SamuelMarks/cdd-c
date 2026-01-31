@@ -1,7 +1,7 @@
 /**
  * @file sync_code.h
  * @brief Logic for synchronizing C implementation files with header
- * declarations.
+ * declarations, and patching headers to match refactored implementations.
  * @author Samuel Marks
  */
 
@@ -25,6 +25,20 @@ extern "C" {
  * @return 0 on success, non-zero (errno/EXIT_FAILURE) on failure.
  */
 extern C_CDD_EXPORT int sync_code_main(int argc, char **argv);
+
+/**
+ * @brief Patch a header file to match refactored function signatures from the
+ * implementation.
+ *
+ * Reads the refactored source code string, extracts function signatures,
+ * and updates corresponding prototypes in the header file on disk.
+ *
+ * @param[in] header_path Path to the header file to patch.
+ * @param[in] refactored_source The full content of the refactored .c file.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int patch_header_from_source(const char *header_path,
+                                                 const char *refactored_source);
 
 #ifdef __cplusplus
 }

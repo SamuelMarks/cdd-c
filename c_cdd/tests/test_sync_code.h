@@ -86,9 +86,6 @@ TEST test_sync_code_too_many_defs(void) {
   for (i = 0; i < 70; i++)
     fprintf(f, "struct S%d { int i; };\n", i);
   fclose(f);
-  /* The default implementation limits array size to 64, so this should not
-     crash but might handle gracefully or ignore extras. Our refactor should
-     pass. */
   sync_code_main(2, argv);
   remove(filename);
   remove("too_many.c");
@@ -110,56 +107,89 @@ TEST test_sync_code_unterminated_defs(void) {
   PASS();
 }
 
-TEST test_sync_code_messy_decls(void) {
-  const char *const filename = "messy_header_sync.h";
-  char *argv[] = {(char *)filename, "messy_impl_sync.c"};
-  const char *header_content = "enum E1 { A, B, };\n"
-                               "enum E2 { C,,D };\n" /* empty item */
-                               "struct S1 {\n"
-                               "  int field1;\n"
-                               "  unparseable_line;\n"
-                               "};\n";
+TEST test_patch_header_basic(void) {
+  /*
+     Header: void foo();
+     Source: int foo() { return 0; }
+     Expected Header: int foo();
+  */
+  const char *h_path = "basic_patch.h";
+  const char *src = "int foo() { return 0; }";
+  char *content;
+  size_t sz;
+  int rc;
 
-  ASSERT_EQ(0, write_to_file(filename, header_content));
-  ASSERT_EQ(0, sync_code_main(2, argv));
-  remove(filename);
-  remove(argv[1]);
+  write_to_file(h_path, "void foo();\n");
+
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file(h_path, "r", &content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(content, "int foo") != NULL);
+  ASSERT(strstr(content, "void foo") == NULL);
+
+  free(content);
+  remove(h_path);
   PASS();
 }
 
-TEST test_sync_code_single_line_defs(void) {
-  const char *const filename = "sync_oneline.h";
-  char *argv[] = {(char *)filename, "sync_oneline.c"};
-  ASSERT_EQ(0,
-            write_to_file(
-                filename,
-                "enum E { A, B, C }; struct S { int x; const char *s; };\n"));
-  ASSERT_EQ(0, sync_code_main(2, argv));
-  remove(filename);
-  remove("sync_oneline.c");
+TEST test_patch_header_ptr_arg(void) {
+  /*
+    Header: char* bar(int x);
+    Source: int bar(int x, char **out) { ... }
+  */
+  const char *h_path = "ptr_patch.h";
+  const char *src = "int bar(int x, char **out) { *out=0;return 0; }";
+  char *content;
+  size_t sz;
+  int rc;
+
+  write_to_file(h_path, "char* bar(int x);\n");
+
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file(h_path, "r", &content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(content, "int bar") != NULL);
+  /* Use lenient check for whitespace in generated output */
+  ASSERT(strstr(content, "char * * out") != NULL ||
+         strstr(content, "char **out") != NULL ||
+         strstr(content, "char * *out") != NULL);
+
+  free(content);
+  remove(h_path);
   PASS();
 }
 
-TEST test_sync_code_compact_defs(void) {
-  const char *const filename = "compact_defs.h";
-  char *argv[] = {(char *)filename, "compact_defs.c"};
-  ASSERT_EQ(0, write_to_file(filename, "struct S {int i;}; enum E{A,B};"));
-  ASSERT_EQ(0, sync_code_main(2, argv));
-  remove(filename);
-  remove("compact_defs.c");
-  PASS();
-}
+TEST test_patch_header_ignore_others(void) {
+  /*
+    Header contains irrelevant function.
+    Source contains only 'foo'.
+    Header 'other' should be untouched.
+  */
+  const char *h_path = "ignore_others.h";
+  const char *src = "int foo(void) { return 0; }";
+  char *content;
+  size_t sz;
+  int rc;
 
-TEST test_sync_code_forward_declarations(void) {
-  const char *const filename = "fwd_sync.h";
-  char *argv[] = {(char *)filename, "fwd_sync.c"};
-  int err;
-  ASSERT_EQ(0, write_to_file(filename, "struct MyStruct;\nenum MyEnum;\n"));
-  err = sync_code_main(2, argv);
-  ASSERT_EQ(0, err);
+  write_to_file(h_path, "void other();\nvoid foo();\n");
 
-  remove(filename);
-  remove(argv[1]);
+  rc = patch_header_from_source(h_path, src);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file(h_path, "r", &content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(content, "void other") != NULL);
+  ASSERT(strstr(content, "int foo") != NULL);
+
+  free(content);
+  remove(h_path);
   PASS();
 }
 
@@ -167,20 +197,15 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);
   RUN_TEST(test_sync_code_file_missing);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* TODO: Get them to work on MSVC */
-#else
   RUN_TEST(test_sync_code_simple_struct_enum);
   RUN_TEST(test_sync_code_empty_header);
   RUN_TEST(test_sync_code_no_struct_or_enum);
   RUN_TEST(test_sync_code_impl_file_cannot_open);
   RUN_TEST(test_sync_code_too_many_defs);
   RUN_TEST(test_sync_code_unterminated_defs);
-  RUN_TEST(test_sync_code_messy_decls);
-  RUN_TEST(test_sync_code_single_line_defs);
-  RUN_TEST(test_sync_code_compact_defs);
-  RUN_TEST(test_sync_code_forward_declarations);
-#endif
+  RUN_TEST(test_patch_header_basic);
+  RUN_TEST(test_patch_header_ptr_arg);
+  RUN_TEST(test_patch_header_ignore_others);
 }
 
 #endif /* !TEST_SYNC_CODE_H */

@@ -1,7 +1,10 @@
 /**
  * @file refactor_orchestrator.h
- * @brief High-level orchestration for converting unsafe C code to strictly
- * checked safety-patterned C code.
+ * @brief High-level orchestration for automatic code refactoring.
+ *
+ * Manages the pipeline of parsing, analysis, dependency graph construction,
+ * error propagation, and code rewriting.
+ *
  * @author Samuel Marks
  */
 
@@ -20,10 +23,12 @@ extern "C" {
  * Workflow:
  * 1. Parse content into Tokens and CST (Concrete Syntax Tree).
  * 2. Analyze all memory allocations.
- * 3. Identify functions that return pointers/void and perform allocations.
- * 4. Refactor signatures (e.g., `char* f()` -> `int f(char **out)`).
- * 5. Refactor bodies (inject checks, rewrite returns).
- * 6. Refactor call-sites (propagate error handling).
+ * 3. Build a Call Dependency Graph of functions.
+ * 4. Identify function roots that require refactoring (e.g. unchecked allocs).
+ * 5. Propagate refactoring requirements up the dependency graph (Callee ->
+ * Caller).
+ * 6. Generate new signatures and bodies for affected functions.
+ * 7. Reassemble the source code.
  *
  * @param[in] source_code The null-terminated C source code string.
  * @param[out] out_code Pointer to char* where the allocated result string will
