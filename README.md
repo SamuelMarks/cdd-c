@@ -122,7 +122,7 @@ The goal is to generate a full, compilation-ready C client library (SDK) from an
 
 ## Refactoring Workflow
 
-The `fix` command uses a multi-pass approach to modernize legacy C code.
+The `fix` command uses a multi-pass approach to turn unsafe C code into defensive C code.
 
 ```mermaid
 %%{

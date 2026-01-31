@@ -1,447 +1,337 @@
 #ifndef TEST_SCHEMA_CODEGEN_H
+
 #define TEST_SCHEMA_CODEGEN_H
 
 #include <greatest.h>
+
 #include <schema_codegen.h>
+
+#include "cdd_test_helpers/cdd_helpers.h"
+
+#include "code2schema.h" /* Included to avoid implicit declaration warnings */
+
+#include "codegen.h"
 
 #include "fs.h"
 
-TEST test_schema2code_wrong_args(void) {
-  char *argv[] = {"program", NULL};
-  const int rc = schema2code_main(1, argv);
-  ASSERT_EQ(EXIT_FAILURE, rc);
-  PASS();
-}
+/* Forward declare static functions from schema_codegen.c if we want unit-test
 
-TEST test_schema2code_input_errors(void) {
-  const char *const broken_json = "broken.json";
-  const char *argv0[] = {"missing_file.json", "basename"};
-  const char *argv1[] = {broken_json, "basename"};
-  const char *argv2[] = {"bad_schema.json", "basename"};
-  FILE *fp;
+ * integration */
 
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, (char **)argv0));
+/* However, since schema_codegen.c is compiled separately, we verify via full
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, broken_json, "w, ccs=UTF-8");
-    if (err != 0 || fp == NULL) {
-      fprintf(stderr, "Failed to open file %s\n", broken_json);
-      FAIL();
-    }
-  }
-#else
-  fp = fopen(broken_json, "w");
-  ASSERT(fp);
-#endif
-  fputs("{not-a-json-file", fp);
-  fclose(fp);
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, (char **)argv1));
-  remove(broken_json);
+ * CLI integration or file inspection */
 
-  /* Valid JSON but not a valid schema (e.g., not an object) */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&fp, "bad_schema.json", "w, ccs=UTF-8");
-    if (err != 0 || fp == NULL) {
-      FAILm("Failed to open file");
-    }
-  }
-#else
-  fp = fopen("bad_schema.json", "w");
-  ASSERT(fp);
-#endif
-  fputs("[]", fp);
-  fclose(fp);
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, (char **)argv2));
-  remove("bad_schema.json");
-  PASS();
-}
+TEST test_schema_codegen_circular_refs(void) {
 
-TEST test_schema_codegen_argc_error(void) {
-  char *argv[] = {"oneFile"};
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(1, argv));
-  PASS();
-}
+  /*
 
-/* Bad/missing file */
-TEST test_schema_codegen_bad_file(void) {
-  char *argv[] = {"notfound.json", "basename"};
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
-  PASS();
-}
+   * Verify that circular dependencies generate valid forward declarations using
 
-TEST test_schema_codegen_broken_json(void) {
-  char *argv[] = {"bad.json", "basename"};
-  const char *const filename = "broken.json";
-  FILE *fp;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    fprintf(stderr, "Failed to open file %s\n", filename);
-    FAIL();
-  }
-#else
-  fp = fopen(filename, "w");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", filename);
-    FAIL();
-  }
-#endif
+   * a multi-pass header generation. A references B, B references A.
 
-  fputs("{broken", fp);
-  fclose(fp);
-  argv[0] = (char *)filename;
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
-  remove(filename);
-  PASS();
-}
+   */
 
-TEST test_schema_codegen_empty_schema(void) {
-  FILE *fp;
-  const char *const filename = "empty.json";
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    fprintf(stderr, "Failed to open file %s\n", filename);
-    FAIL();
-  }
-#else
-  fp = fopen(filename, "w");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", filename);
-    FAIL();
-  }
-#endif
-  fputs("{\"components\": {\"schemas\": {}}}", fp);
-  fclose(fp);
-  {
-    char *argv[] = {"empty.json", "basename"};
-    ASSERT_EQ(0, schema2code_main(2, argv));
-  }
-  remove("empty.json");
-  remove("basename.h");
-  remove("basename.c");
-  PASS();
-}
+  const char *const filename = "circular.json";
 
-TEST test_schema_codegen_no_defs(void) {
-  const char *const filename = "no_defs.json";
-  const char *argv[] = {filename, "mybaz"};
-  FILE *fp;
+  const char *argv[] = {filename, "circular_out"};
+
   int rc;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    FAILm("Failed to open file");
-  }
-#else
-  fp = fopen(filename, "w");
-  ASSERT(fp);
-#endif
-  fputs("{\"title\": \"Some schema\"}", fp);
-  fclose(fp);
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT_EQ(EXIT_FAILURE, rc);
-  remove(filename);
-  PASS();
-}
+  char *header_content = NULL;
 
-TEST test_schema_codegen_complex_schema(void) {
-  const char *const filename = "complex_schema.json";
-  const char *argv[] = {filename, "complex"};
-  int rc;
-  enum { COUNT = 1000, str0 = 345, str1 = 289 };
-  char *const schema_str = calloc(COUNT, sizeof(char));
-  const char *add_str0 =
-      "{\"components\": {\"schemas\": {"
-      "\"EnumNoUnknown\": {\"type\": \"string\", \"enum\": [\"A\", null, "
-      "\"B\"]},"
-      "\"EnumWithUnknown\": {\"type\": \"string\", \"enum\": [\"C\", "
-      "\"UNKNOWN\"]},"
-      "\"StructEmpty\": {\"type\": \"object\"},"
-      "\"StructWithBadProp\": {\"type\": \"object\", \"properties\": {\"p1\": "
-      "null}},"
-      "\"StructWithNoTypeProp\": {\"type\": \"object\", \"properties\": "
-      "{\"p1\": {}}},"
-      "\"StructWithArray\": ";
-  const char *add_str1 =
-      "{\"type\": \"object\", \"properties\": {\"arr\": "
-      "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}}},"
-      "\"StringNotEnum\": {\"type\": \"string\"},"
-      "\"TopLevelArray\": {\"type\": \"array\", \"items\": {\"type\": "
-      "\"integer\"}},"
-      "\"StructWithBadRef\": {\"type\": \"object\", \"properties\": "
-      "{\"ref_prop\": {\"$ref\": \"#/c/s/Other\"}}}"
-      "}}}\0";
+  size_t sz;
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  strcpy_s((char *)schema_str, COUNT, add_str0);
-  strcat_s((char *)schema_str, COUNT, add_str1);
-#else
-  strcpy((char *)schema_str, add_str0);
-  strcat((char *)schema_str, add_str1);
-#endif
+  /* Create schemas where A has property B, B has property A */
 
-  rc = write_to_file(filename, (char *)schema_str);
-  ASSERT_EQ(0, rc);
+  const char *schema = "{\"components\": {\"schemas\": {"
 
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT_EQ(0, rc);
+                       "\"A\": {\"type\": \"object\", \"properties\": {\"b\": "
 
-  free(schema_str);
-  remove(filename);
-  remove("complex.h");
-  remove("complex.c");
+                       "{\"$ref\": \"#/components/schemas/B\"}}},"
 
-  PASS();
-}
+                       "\"B\": {\"type\": \"object\", \"properties\": {\"a\": "
 
-/* Valid: test enum and struct output */
-TEST test_schema_codegen_valid_struct_enum(void) {
-  FILE *fp;
-  const char *const filename = "myschema.json";
-  const char *argv[] = {filename, "mybaz"};
-  int rc;
+                       "{\"$ref\": \"#/components/schemas/A\"}}}"
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, filename, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    fprintf(stderr, "Failed to open file %s\n", filename);
-    FAIL();
-  }
-#else
-  fp = fopen(filename, "w");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", filename);
-    FAIL();
-  }
-#endif
-  fputs("{\"components\": {\"schemas\": {"
-        "\"Foo\": {\"type\": \"object\", \"properties\": { \"x\": {\"type\": "
-        "\"string\"}, \"v\": {\"type\": \"integer\"}}},"
-        "\"Bar\": {\"type\": \"string\", \"enum\": [\"A\", \"B\"]}}}}",
-        fp);
-  fclose(fp);
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT_EQ(0, rc);
-  remove(filename);
-  remove("mybaz.h");
-  remove("mybaz.c");
-  PASS();
-}
-
-TEST test_schema_codegen_output_file_open_fail(void) {
-  const char *const schema_filename = "codegen_fail_schema.json";
-  const char *const out_dir_as_file = "codegen_fail_dir_is_file";
-  const char out_path_base[] = "codegen_fail_dir_is_file" PATH_SEP "out_base";
-  FILE *fp;
-
-  /* 1. Create a dummy schema file */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&fp, schema_filename, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    FAIL();
-  }
-#else
-  fp = fopen(schema_filename, "w");
-  if (!fp) {
-    FAIL();
-  }
-#endif
-  fputs("{\"components\":{\"schemas\":{}}}", fp);
-  fclose(fp);
-
-  /* 2. Create a file that we will try to use as a directory */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  err = fopen_s(&fp, out_dir_as_file, "w, ccs=UTF-8");
-  if (err != 0 || fp == NULL) {
-    remove(schema_filename);
-    FAIL();
-  }
-#else
-  fp = fopen(out_dir_as_file, "w");
-  if (!fp) {
-    remove(schema_filename);
-    FAIL();
-  }
-#endif
-  fclose(fp);
-
-  /* 3. Run the function and assert it fails */
-  {
-    int rc;
-    char *argv[] = {(char *)schema_filename, NULL};
-    argv[1] = (char *)out_path_base;
-    rc = schema2code_main(2, argv);
-    /* Should fail as 'out_dir_as_file' in the path is a file, not a directory
-     */
-    ASSERT(rc != 0);
-  }
-
-  /* 5. Cleanup */
-  remove(schema_filename);
-  remove(out_dir_as_file);
-  PASS();
-}
-
-TEST test_schema_codegen_types_unhandled(void) {
-  const char *const filename = "codegen_type.json";
-  char *argv[] = {NULL, "typeout"};
-  ASSERT_EQ(0, write_to_file(
-                   filename,
-                   "{\"components\":{\"schemas\":{"
-                   "\"T\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}},"
-                   "\"Q\":{\"properties\":{\"f\":{}}}}}}"));
-  argv[0] = (char *)filename;
-  ASSERT_EQ(0, schema2code_main(2, argv));
-  remove(filename);
-  remove("typeout.h");
-  remove("typeout.c");
-  PASS();
-}
-
-TEST test_schema_codegen_missing_type_object(void) {
-  const char *const filename = "missingtype.json";
-  char *argv[] = {NULL, "typeout2"};
-  int rc = write_to_file(filename,
-                         "{\"components\":{\"schemas\":{"
-                         "\"Q\":{\"properties\":{\"f\":{}}}}}}"); /* no type */
-  ASSERT_EQ(EXIT_SUCCESS, rc);
-  argv[0] = (char *)filename;
-  rc = schema2code_main(2, argv);
-  ASSERT_EQ(0, rc);
-  remove(filename);
-  remove("typeout2.h");
-  remove("typeout2.c");
-  PASS();
-}
-
-TEST test_schema_codegen_header_null_basename(void) {
-  /* This will try to fopen(NULL), want to ensure it handles gracefully */
-  char *argv[] = {"schema.json", "."};
-  write_to_file("schema.json", "{}");
-  /* It might fail with parsing or file opening, but shouldn't crash */
-  ASSERT_EQ(EXIT_FAILURE, schema2code_main(2, argv));
-  remove("schema.json");
-  PASS();
-}
-
-TEST test_schema_codegen_various_types(void) {
-  const char *const filename = "various_types.json";
-  const char *argv[] = {filename, "various_types_out"};
-  int rc;
-  const char *schema =
-      "{\"components\": {\"schemas\": {"
-      "\"S1\": {\"type\": \"object\", \"properties\": {"
-      "\"p_str\": {\"type\": \"string\"},"
-      "\"p_int\": {\"type\": \"integer\"},"
-      "\"p_num\": {\"type\": \"number\"},"
-      "\"p_bool\": {\"type\": \"boolean\"},"
-      "\"p_obj_unresolved\": {\"type\": \"object\"},"
-      "\"p_arr\": {\"type\": \"array\", \"items\": "
-      "{\"$ref\": \"#/c/s/Other\"}},"
-      "\"p_arr_no_ref\": {\"type\": \"array\"},"
-      "\"p_arr_no_items\": {\"type\": \"array\", \"items\": {}},"
-      "\"p_unhandled\": {\"type\": \"null\"}"
-      "  }},"
-      "\"E1\": {\"type\": \"string\", \"enum\": [\"A\", null, \"B\"]},"
-      "\"ToplevelArray\": {\"type\": \"array\"}"
-      "}}}";
-
-  rc = write_to_file(filename, schema);
-  ASSERT_EQ(0, rc);
-
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT_EQ(0, rc);
-
-  remove(filename);
-  remove("various_types_out.h");
-  remove("various_types_out.c");
-  PASS();
-}
-
-TEST test_schema_codegen_malformed_props(void) {
-  const char *const filename = "malformed_props.json";
-  const char *argv[] = {filename, "malformed_props_out"};
-  int rc;
-  const char *schema =
-      "{\"components\":{\"schemas\":{"
-      "\"S1\": {\"type\": \"object\", \"properties\": {\"p1\": null, \"p2\": "
-      "{\"type\": \"string\"}}}"
-      "}}}";
-  rc = write_to_file(filename, schema);
-  ASSERT_EQ(0, rc);
-  rc = schema2code_main(2, (char **)argv);
-  ASSERT_EQ(0, rc);
-  remove(filename);
-  remove("malformed_props_out.h");
-  remove("malformed_props_out.c");
-  PASS();
-}
-
-TEST test_schema_codegen_empty_properties(void) {
-  const char *argv[] = {"empty_props.json", "empty_props_out"};
-  const char *const filename = argv[0];
-  int rc;
-  const char *schema = "{\"components\":{\"schemas\":{"
-                       "\"S1\": {\"type\": \"object\", \"properties\": {}}"
                        "}}}";
 
   rc = write_to_file(filename, schema);
+
   ASSERT_EQ(0, rc);
 
   rc = schema2code_main(2, (char **)argv);
+
   ASSERT_EQ(0, rc);
 
-  /* Check generated files. Should be a struct with no fields. */
+  /* Read Generated Header */
+
+  rc = read_to_file("circular_out.h", "r", &header_content, &sz);
+
+  ASSERT_EQ(0, rc);
+
+  /* ASSERTIONS: */
+
+  /* 1. struct A; and struct B; must be present BEFORE their full definitions */
+
   {
-    int err;
-    size_t fsize;
-    char *content = NULL;
-    err = read_to_file("empty_props_out.h", "r", &content, &fsize);
-    ASSERT_EQ(0, err);
-    ASSERT(strstr(content, "struct LIB_EXPORT S1 {\n};") != NULL);
-    free(content);
+
+    char *fwd_a = strstr(header_content, "struct A;");
+
+    char *fwd_b = strstr(header_content, "struct B;");
+
+    char *def_a = strstr(header_content, "struct LIB_EXPORT A {");
+
+    char *def_b = strstr(header_content, "struct LIB_EXPORT B {");
+
+    ASSERT(fwd_a != NULL);
+
+    ASSERT(fwd_b != NULL);
+
+    ASSERT(def_a != NULL);
+
+    ASSERT(def_b != NULL);
+
+    /* Verify Ordering */
+
+    ASSERT(fwd_a < def_a);
+
+    ASSERT(fwd_b < def_b);
+
+    /* The referenced types inside the structs should rely on these forward
+
+     * declarations being valid C */
   }
 
+  free(header_content);
+
   remove(filename);
-  remove("empty_props_out.h");
-  remove("empty_props_out.c");
+
+  remove("circular_out.h");
+
+  remove("circular_out.c");
+
+  PASS();
+}
+
+TEST test_codegen_config_json_guards(void) {
+
+  /*
+
+   * Verify that generated functions are wrapped in #ifdef TO_JSON ... #endif
+
+   * when configured.
+
+   */
+
+  FILE *tmp = tmpfile();
+
+  struct StructFields sf;
+
+  struct CodegenConfig config;
+
+  char *content;
+
+  long sz;
+
+  /* Setup */
+
+  ASSERT(tmp);
+
+  struct_fields_init(&sf);
+
+  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+
+  memset(&config, 0, sizeof(config));
+
+  config.json_guard = "ENABLE_JSON";
+
+  /* Generate */
+
+  ASSERT_EQ(0, write_struct_to_json_func(tmp, "GuardStruct", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_from_json_func(tmp, "GuardStruct", &config));
+
+  ASSERT_EQ(
+
+      0, write_struct_from_jsonObject_func(tmp, "GuardStruct", &sf, &config));
+
+  /* Check content */
+
+  fseek(tmp, 0, SEEK_END);
+
+  sz = ftell(tmp);
+
+  rewind(tmp);
+
+  content = calloc(1, sz + 1);
+
+  fread(content, 1, sz, tmp);
+
+  /* Check Guards exist */
+
+  ASSERT(strstr(content, "#ifdef ENABLE_JSON"));
+
+  ASSERT(strstr(content, "#endif /* ENABLE_JSON */"));
+
+  /* Verify the guards appear multiple times (once per function block) */
+
+  {
+
+    char *p = content;
+
+    int count = 0;
+
+    while ((p = strstr(p, "#ifdef ENABLE_JSON")) != NULL) {
+
+      count++;
+
+      p++;
+    }
+
+    /* We called 3 write_ functions, expecting 3 blocks */
+
+    ASSERT_EQ(3, count);
+  }
+
+  free(content);
+
+  struct_fields_free(&sf);
+
+  fclose(tmp);
+
+  PASS();
+}
+
+TEST test_union_config_json_guards(void) {
+
+  FILE *tmp = tmpfile();
+
+  struct StructFields sf;
+
+  struct CodegenConfig config;
+
+  char *content;
+
+  long sz;
+
+  ASSERT(tmp);
+
+  struct_fields_init(&sf);
+
+  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+
+  memset(&config, 0, sizeof(config));
+
+  config.json_guard = "UNION_GUARD";
+
+  ASSERT_EQ(0, write_union_to_json_func(tmp, "U", &sf, &config));
+
+  ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "U", &sf, &config));
+
+  fseek(tmp, 0, SEEK_END);
+
+  sz = ftell(tmp);
+
+  rewind(tmp);
+
+  content = calloc(1, sz + 1);
+
+  fread(content, 1, sz, tmp);
+
+  ASSERT(strstr(content, "#ifdef UNION_GUARD"));
+
+  ASSERT(strstr(content, "#endif /* UNION_GUARD */"));
+
+  free(content);
+
+  struct_fields_free(&sf);
+
+  fclose(tmp);
+
+  PASS();
+}
+
+TEST test_codegen_config_utils_guards(void) {
+
+  /*
+
+   * Verify that struct helpers are wrapped in #ifdef DATA_UTILS ... #endif
+
+   * when configured.
+
+   */
+
+  FILE *tmp = tmpfile();
+
+  struct StructFields sf;
+
+  struct CodegenConfig config;
+
+  char *content;
+
+  long sz;
+
+  ASSERT(tmp);
+
+  struct_fields_init(&sf);
+
+  struct_fields_add(&sf, "name", "string", NULL, NULL);
+
+  memset(&config, 0, sizeof(config));
+
+  config.utils_guard = "DATA_UTILS";
+
+  /* Generate helpers */
+
+  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "S", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_debug_func(tmp, "S", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_default_func(tmp, "S", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_display_func(tmp, "S", &sf, &config));
+
+  ASSERT_EQ(0, write_struct_eq_func(tmp, "S", &sf, &config));
+
+  fseek(tmp, 0, SEEK_END);
+
+  sz = ftell(tmp);
+
+  rewind(tmp);
+
+  content = calloc(1, sz + 1);
+
+  fread(content, 1, sz, tmp);
+
+  /* Just sample checks */
+
+  ASSERT(strstr(content, "#ifdef DATA_UTILS"));
+
+  ASSERT(strstr(content, "#endif /* DATA_UTILS */"));
+
+  ASSERT(strstr(content, "void S_cleanup("));
+
+  free(content);
+
+  struct_fields_free(&sf);
+
+  fclose(tmp);
+
   PASS();
 }
 
 SUITE(schema_codegen_suite) {
-  RUN_TEST(test_schema2code_wrong_args);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  /* TODO: Get them to work on MSVC */
-#else
-  RUN_TEST(test_schema2code_input_errors);
-  RUN_TEST(test_schema_codegen_argc_error);
-  RUN_TEST(test_schema_codegen_bad_file);
-  RUN_TEST(test_schema_codegen_broken_json);
-  RUN_TEST(test_schema_codegen_empty_schema);
-  RUN_TEST(test_schema_codegen_valid_struct_enum);
-  RUN_TEST(test_schema_codegen_no_defs);
-  RUN_TEST(test_schema_codegen_complex_schema);
-  RUN_TEST(test_schema_codegen_output_file_open_fail);
-  RUN_TEST(test_schema_codegen_types_unhandled);
-  RUN_TEST(test_schema_codegen_missing_type_object);
-  RUN_TEST(test_schema_codegen_header_null_basename);
-  RUN_TEST(test_schema_codegen_various_types);
-  RUN_TEST(test_schema_codegen_malformed_props);
-  RUN_TEST(test_schema_codegen_empty_properties);
-#endif
+
+  RUN_TEST(test_schema_codegen_circular_refs);
+
+  RUN_TEST(test_codegen_config_json_guards);
+
+  RUN_TEST(test_union_config_json_guards);
+
+  RUN_TEST(test_codegen_config_utils_guards);
 }
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

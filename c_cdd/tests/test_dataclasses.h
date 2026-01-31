@@ -14,6 +14,134 @@
 
 #include "cdd_test_helpers/cdd_helpers.h"
 
+/*
+ * Mocks for strict recursive testing (Linked List).
+ * Ideally these would be generated, but for testing the generator logic we
+ * often verify against pre-generated code or mock logic that follows the
+ * generated pattern. Here we define a new struct Node to test recursive
+ * patterns specifically.
+ */
+
+struct Node {
+  int value;
+  struct Node *next;
+};
+
+/* Emulate Generated Code for Node to test the logic pattern */
+void Node_cleanup(struct Node *const obj) {
+  if (obj == NULL)
+    return;
+  if (obj->next) {
+    Node_cleanup(obj->next);
+    obj->next = NULL;
+  }
+  free(obj);
+}
+
+int Node_deepcopy(const struct Node *src, struct Node **dest) {
+  if (!dest)
+    return EINVAL;
+  if (!src) {
+    *dest = NULL;
+    return 0;
+  }
+
+  *dest = malloc(sizeof(**dest));
+  if (*dest == NULL)
+    return ENOMEM;
+  memset(*dest, 0, sizeof(**dest));
+
+  (*dest)->value = src->value;
+
+  if (src->next) {
+    int rc = Node_deepcopy(src->next, &(*dest)->next);
+    if (rc != 0) {
+      Node_cleanup(*dest);
+      *dest = NULL;
+      return rc;
+    }
+  } else {
+    (*dest)->next = NULL;
+  }
+  return 0;
+}
+
+int Node_eq(const struct Node *a, const struct Node *b) {
+  if (a == NULL || b == NULL)
+    return (a == b);
+  if (a->value != b->value)
+    return 0;
+  return Node_eq(a->next, b->next);
+}
+
+/* --- Tests --- */
+
+TEST test_recursive_cleanup(void) {
+  struct Node *head = malloc(sizeof(struct Node));
+  struct Node *next = malloc(sizeof(struct Node));
+  ASSERT(head && next);
+
+  head->value = 1;
+  head->next = next;
+  next->value = 2;
+  next->next = NULL;
+
+  /* Should recursively free 'next' without crashing */
+  Node_cleanup(head);
+  PASS();
+}
+
+TEST test_recursive_deepcopy(void) {
+  struct Node *head = malloc(sizeof(struct Node));
+  struct Node *next = malloc(sizeof(struct Node));
+  struct Node *copy = NULL;
+  int rc;
+
+  ASSERT(head && next);
+  head->value = 10;
+  head->next = next;
+  next->value = 20;
+  next->next = NULL;
+
+  rc = Node_deepcopy(head, &copy);
+  ASSERT_EQ(0, rc);
+  ASSERT(copy != NULL);
+  ASSERT(copy != head);
+  ASSERT_EQ(10, copy->value);
+  ASSERT(copy->next != NULL);
+  ASSERT(copy->next != next);
+  ASSERT_EQ(20, copy->next->value);
+
+  Node_cleanup(head);
+  Node_cleanup(copy);
+  PASS();
+}
+
+TEST test_recursive_eq(void) {
+  struct Node *n1 = malloc(sizeof(struct Node));
+  struct Node *n2 = malloc(sizeof(struct Node));
+  struct Node n1_next, n2_next;
+
+  n1->value = 1;
+  n1->next = &n1_next;
+  n2->value = 1;
+  n2->next = &n2_next;
+
+  n1_next.value = 2;
+  n1_next.next = NULL;
+  n2_next.value = 2;
+  n2_next.next = NULL;
+
+  ASSERT(Node_eq(n1, n2));
+
+  n2_next.value = 3;
+  ASSERT(!Node_eq(n1, n2));
+
+  free(n1);
+  free(n2);
+  PASS();
+}
+
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
@@ -634,6 +762,9 @@ TEST test_FooE_eq_nested_diff(void) {
 }
 
 SUITE(dataclasses_suite) {
+  RUN_TEST(test_recursive_cleanup);
+  RUN_TEST(test_recursive_deepcopy);
+  RUN_TEST(test_recursive_eq);
   RUN_TEST(test_FooE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_HazE_default_deepcopy_eq_cleanup);
   RUN_TEST(test_FooE_json_roundtrip);

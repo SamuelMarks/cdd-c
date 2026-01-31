@@ -115,8 +115,13 @@ static void print_help(const char *prog_name) {
          "      Generate CMake files.\n"
          "  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>\n"
          "      Generate test suite from schema.\n"
-         "  schema2code <schema.json> <basename>\n"
+         "  schema2code <schema.json> <basename> [options]\n"
          "      Generate C implementation from JSON Schema.\n"
+         "      Options:\n"
+         "        --guard-enum=<MACRO>   Wrap enum functions in #ifdef MACRO\n"
+         "        --guard-json=<MACRO>   Wrap JSON functions in #ifdef MACRO\n"
+         "        --guard-utils=<MACRO>  Wrap utility functions in #ifdef "
+         "MACRO\n"
          "  sync_code <header.h> <impl.c>\n"
          "      Sync implementation file with header declarations.\n"
          "\n"
@@ -203,8 +208,10 @@ int main(int argc, char **argv) {
     }
     rc = jsonschema2tests_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "schema2code") == 0) {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s schema2code <schema.json> <basename>\n",
+    /* Allow >= 4 arguments: executable, command, schema, basename, [opts] */
+    if (argc < 4) {
+      fprintf(stderr,
+              "Usage: %s schema2code <schema.json> <basename> [options]\n",
               argv[0]);
       return EXIT_FAILURE;
     }
