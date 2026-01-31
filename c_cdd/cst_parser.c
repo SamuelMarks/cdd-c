@@ -279,6 +279,10 @@ int parse_tokens(const struct TokenList *const tokens,
                   tokens->tokens[in_look].kind == TOKEN_LBRACE) {
                 size_t in_brace_count = 1;
                 size_t in_end = in_look + 1;
+                enum CstNodeKind1 nk;
+                size_t len;
+                const struct Token *end_t;
+
                 while (in_end < block_end_pos && in_brace_count > 0) {
                   if (tokens->tokens[in_end].kind == TOKEN_LBRACE)
                     in_brace_count++;
@@ -287,12 +291,11 @@ int parse_tokens(const struct TokenList *const tokens,
                   in_end++;
                 }
                 /* Add nested node */
-                enum CstNodeKind1 nk =
-                    inner_tok->kind == TOKEN_KEYWORD_STRUCT ? CST_NODE_STRUCT
-                    : inner_tok->kind == TOKEN_KEYWORD_ENUM ? CST_NODE_ENUM
-                                                            : CST_NODE_UNION;
-                const struct Token *end_t = &tokens->tokens[in_end - 1];
-                size_t len =
+                nk = inner_tok->kind == TOKEN_KEYWORD_STRUCT ? CST_NODE_STRUCT
+                     : inner_tok->kind == TOKEN_KEYWORD_ENUM ? CST_NODE_ENUM
+                                                             : CST_NODE_UNION;
+                end_t = &tokens->tokens[in_end - 1];
+                len =
                     (size_t)((end_t->start + end_t->length) - inner_tok->start);
 
                 rc = add_node(out, nk, inner_tok->start, len);

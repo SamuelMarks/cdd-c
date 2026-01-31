@@ -12,9 +12,9 @@
 /* Forward declare main from main.c?
    No, main is the entry point of the CLI exec.
    To test the logic inside main.c via unit tests, we usually expose
-   the sub-functions or invokek the binary.
+   the sub-functions or invoke the binary.
    Since we cannot easily invoke main() repeatedly due to global state or
-   exit(), we will assume the logic implemented in refactor_safe_alloc_main
+   exit(), we will assume the logic implemented in fix_code_main
    matches the integration of components we test here.
 
    However, we *can* simulate the pipeline that main.c uses.
@@ -50,7 +50,9 @@ TEST test_integration_full_pipeline(void) {
   ASSERT_EQ(1, allocs.size); /* Should find 'p' */
 
   /* 3. Rewrite */
-  rc = rewrite_body(tokens, &allocs, NULL, 0, &final_output);
+  /* Pass NULL/0 for funcs/count and transform, as we only test injection info
+   * here */
+  rc = rewrite_body(tokens, &allocs, NULL, 0, NULL, &final_output);
   ASSERT_EQ(0, rc);
   ASSERT(final_output != NULL);
 

@@ -33,6 +33,9 @@ TEST test_find_simple_unchecked_malloc(void) {
   ASSERT_EQ(1, sites.size);
   ASSERT_STR_EQ("p", sites.sites[0].var_name);
   ASSERT_EQ(0, sites.sites[0].is_checked);
+  /* Verify spec mapping */
+  ASSERT_STR_EQ("malloc", sites.sites[0].spec->name);
+  ASSERT_EQ(ALLOC_STYLE_RETURN_PTR, sites.sites[0].spec->style);
 
   allocation_site_list_free(&sites);
   free_token_list(tl);
@@ -63,17 +66,9 @@ TEST test_find_simple_checked_malloc(void) {
 }
 
 TEST test_find_malloc_in_if_condition(void) {
-  /* This case is tricky: `if ((p = malloc(10)) == NULL) ...`
-     Current logic looks for `var = malloc` then scans forward.
-     Inside the paren structure, the logic might miss complex assignments unless
-     handled. Current implementation searches backwards for '=', so it should
-     find `p`. Then `is_checked` scans forward. Since we are inside the
-     condition, scanning forward encounters `== NULL`. However, is_checked looks
-     for `if/while`. If `malloc` is inside the if, we are already past the token
-     `if`.
-
-     This test asserts current behavior (likely Unchecked unless improved).
-     Actually, detection relies on finding `p` inside comparison strictly.
+  /* `if ((p = malloc(10)) == NULL) ...`
+     Current logic scans for `malloc`. is_checked detects it is inside a
+     condition.
   */
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
@@ -84,11 +79,9 @@ TEST test_find_malloc_in_if_condition(void) {
 
   find_allocations(tl, &sites);
   ASSERT_GTE(sites.size, 1);
-  /* This specific pattern might register as unchecked with basic logic
-     because the `if` keyword is *before* the malloc token.
-     Ideally we want it checked, but let's just ensure we find the allocation
-     first. */
+
   ASSERT_STR_EQ("p", sites.sites[0].var_name);
+  ASSERT_EQ(1, sites.sites[0].is_checked); /* Should be checked now */
 
   allocation_site_list_free(&sites);
   free_token_list(tl);
@@ -139,6 +132,92 @@ TEST test_realloc_calloc_strdup(void) {
   PASS();
 }
 
+TEST test_arg_ptr_asprintf_unchecked(void) {
+  /* Test asprintf where pointer is passed as argument */
+  struct TokenList *tl = NULL;
+  struct AllocationSiteList sites = {0};
+  const char *code = "void f() { char *s; asprintf(&s, \"fmt\"); *s = 0; }";
+
+  if (tokenize(az_span_create_from_str((char *)code), &tl) != 0)
+    FAIL();
+
+  find_allocations(tl, &sites);
+
+  ASSERT_EQ(1, sites.size);
+  ASSERT_STR_EQ("s", sites.sites[0].var_name);
+  ASSERT_STR_EQ("asprintf", sites.sites[0].spec->name);
+  ASSERT_EQ(ALLOC_STYLE_ARG_PTR, sites.sites[0].spec->style);
+  ASSERT_EQ(0, sites.sites[0].is_checked); /* Unchecked */
+
+  allocation_site_list_free(&sites);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_arg_ptr_asprintf_checked(void) {
+  struct TokenList *tl = NULL;
+  struct AllocationSiteList sites = {0};
+  /* Check usage: if (!s) */
+  const char *code =
+      "void f() { char *s; asprintf(&s, \"fmt\"); if (!s) return; }";
+
+  if (tokenize(az_span_create_from_str((char *)code), &tl) != 0)
+    FAIL();
+
+  find_allocations(tl, &sites);
+
+  ASSERT_EQ(1, sites.size);
+  ASSERT_STR_EQ("s", sites.sites[0].var_name);
+  ASSERT_EQ(1, sites.sites[0].is_checked);
+
+  allocation_site_list_free(&sites);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_arg_ptr_asprintf_checked_in_condition(void) {
+  struct TokenList *tl = NULL;
+  struct AllocationSiteList sites = {0};
+  /* Check usage: if (asprintf(...) < 0) */
+  const char *code =
+      "void f() { char *s; if (asprintf(&s, \"fmt\") < 0) return; }";
+
+  if (tokenize(az_span_create_from_str((char *)code), &tl) != 0)
+    FAIL();
+
+  find_allocations(tl, &sites);
+
+  ASSERT_EQ(1, sites.size);
+  ASSERT_STR_EQ("s", sites.sites[0].var_name);
+  ASSERT_EQ(
+      1,
+      sites.sites[0].is_checked); /* Should be checked as it is in condition */
+
+  allocation_site_list_free(&sites);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_arg_ptr_getline(void) {
+  struct TokenList *tl = NULL;
+  struct AllocationSiteList sites = {0};
+  /* getline arg index 0 */
+  const char *code = "void f() { getline(&line, &n, f); }";
+
+  if (tokenize(az_span_create_from_str((char *)code), &tl) != 0)
+    FAIL();
+
+  find_allocations(tl, &sites);
+
+  ASSERT_EQ(1, sites.size);
+  ASSERT_STR_EQ("line", sites.sites[0].var_name);
+  ASSERT_STR_EQ("getline", sites.sites[0].spec->name);
+
+  allocation_site_list_free(&sites);
+  free_token_list(tl);
+  PASS();
+}
+
 TEST test_find_allocation_no_match(void) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
@@ -162,6 +241,10 @@ SUITE(analysis_suite) {
   RUN_TEST(test_find_malloc_in_if_condition);
   RUN_TEST(test_find_unchecked_usage_before_check);
   RUN_TEST(test_realloc_calloc_strdup);
+  RUN_TEST(test_arg_ptr_asprintf_unchecked);
+  RUN_TEST(test_arg_ptr_asprintf_checked);
+  RUN_TEST(test_arg_ptr_asprintf_checked_in_condition);
+  RUN_TEST(test_arg_ptr_getline);
   RUN_TEST(test_find_allocation_no_match);
 }
 
