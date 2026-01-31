@@ -132,6 +132,14 @@ struct FilenameAndPtr {
 };
 
 /**
+ * @brief Check if the given path is a directory.
+ *
+ * @param[in] path The path to check.
+ * @return 1 if directory, 0 if not or error.
+ */
+extern C_CDD_EXPORT int fs_is_directory(const char *path);
+
+/**
  * @brief Extract the base name (filename component) from a path.
  * Allocates a new string which the caller must free.
  *

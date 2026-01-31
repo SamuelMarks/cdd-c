@@ -238,6 +238,12 @@ static int is_declaration(const struct TokenList *tokens, size_t start_idx,
 
 /* --- Logic Implementations --- */
 
+/**
+ * @brief Rewrite realloc patterns to include safety check using a temporary
+ * variable. Converts: `p = realloc(p, n);` To:
+ * `{ void *_safe_tmp = realloc(p, n); if (!_safe_tmp) return ENOMEM; p =
+ * _safe_tmp; }`
+ */
 static int process_realloc_safety(const struct TokenList *tokens,
                                   const struct AllocationSite *site,
                                   struct PatchList *patches, size_t semi_idx) {
@@ -333,11 +339,13 @@ static int process_allocations(const struct TokenList *tokens,
     if (semi_idx >= tokens->size)
       continue;
 
+    /* Handle realloc specially if assignment target matches input pointer */
     if (strcmp(site->spec->name, "realloc") == 0) {
       size_t old_size = patches->size;
       int rc_realloc = process_realloc_safety(tokens, site, patches, semi_idx);
       if (rc_realloc != 0)
         return rc_realloc;
+      /* If realloc patch was added, skip standard Injection */
       if (patches->size > old_size)
         continue;
     }
@@ -424,11 +432,27 @@ static int process_return_statements(const struct TokenList *tokens,
             return ENOMEM;
           }
         } else {
-          if (asprintf(&replacement, "{ *%s = %s; return %s; }",
-                       transform->arg_name ? transform->arg_name : "out", expr,
-                       transform->success_code) == -1) {
-            free(expr);
-            return ENOMEM;
+          if (transform->return_type) {
+            /* Safer injection: Check allocation success logic */
+            if (asprintf(&replacement,
+                         "{ %s _val = %s; if (!_val) return %s; *%s = _val; "
+                         "return %s; }",
+                         transform->return_type, expr,
+                         transform->error_code ? transform->error_code
+                                               : DEFAULT_ERROR_CODE,
+                         transform->arg_name ? transform->arg_name : "out",
+                         transform->success_code) == -1) {
+              free(expr);
+              return ENOMEM;
+            }
+          } else {
+            /* Fallback (potentially legacy behavior if type unavailable) */
+            if (asprintf(&replacement, "{ *%s = %s; return %s; }",
+                         transform->arg_name ? transform->arg_name : "out",
+                         expr, transform->success_code) == -1) {
+              free(expr);
+              return ENOMEM;
+            }
           }
         }
         free(expr);

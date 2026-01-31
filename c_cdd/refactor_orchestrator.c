@@ -24,8 +24,10 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
+#define strcasecmp _stricmp
 #endif
 #else
+#include <strings.h>
 #include <sys/errno.h>
 #endif
 
@@ -502,6 +504,8 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
               trans.arg_name = "out";
               trans.success_code = "0";
               trans.error_code = "ENOMEM";
+              /* Pass the original return type for safe injection */
+              trans.return_type = node->original_return_type;
             } else {
               /* Keep main signature */
               new_sig = join_tokens_str(tokens, start_idx, node->body_start);
@@ -600,52 +604,137 @@ cleanup:
   return rc;
 }
 
-int fix_code_main(int argc, char **argv) {
-  const char *in_file = NULL;
-  const char *out_file = NULL;
+/* --- Directory Walking & Main Logic --- */
+
+/**
+ * @brief Context for directory walker.
+ */
+struct FixWalkContext {
+  int in_place;
+  const char *single_output_file;
+  int error_count;
+};
+
+/**
+ * @brief Check if filename ends with .c extension.
+ */
+static int is_c_source(const char *path) {
+  const char *dot = strrchr(path, '.');
+  if (!dot)
+    return 0;
+  return (strcasecmp(dot, ".c") == 0);
+}
+
+/**
+ * @brief Callback for directory/file walker.
+ */
+static int fix_file_callback(const char *path, void *user_data) {
+  struct FixWalkContext *ctx = (struct FixWalkContext *)user_data;
   char *content = NULL;
   size_t sz = 0;
   char *result = NULL;
   int rc;
+  const char *out_path = path;
 
-  if (argc != 2) {
-    fprintf(stderr, "Usage: fix_code <input.c> <output.c>\n");
-    return EXIT_FAILURE;
-  }
+  /* Filter .c only if directory walking, but walk_directory might call us for a
+   * single file passed by user which might not end in .c but user wants to fix
+   * it. However, standard policy is .c filtration. */
+  if (!is_c_source(path))
+    return 0;
 
-  in_file = argv[0];
-  out_file = argv[1];
-
-  if ((rc = read_to_file(in_file, "r", &content, &sz)) != 0) {
-    fprintf(stderr, "Failed to read input file %s\n", in_file);
-    return EXIT_FAILURE;
+  if (read_to_file(path, "r", &content, &sz) != 0) {
+    fprintf(stderr, "Failed to read %s\n", path);
+    ctx->error_count++;
+    return 0;
   }
 
   rc = orchestrate_fix(content, &result);
   free(content);
 
   if (rc != 0) {
-    fprintf(stderr, "Refactoring failed with code %d\n", rc);
-    return EXIT_FAILURE;
+    fprintf(stderr, "Refactoring failed for %s (code %d)\n", path, rc);
+    ctx->error_count++;
+    return 0;
+  }
+
+  /* Determine output path */
+  if (ctx->in_place) {
+    out_path = path;
+  } else if (ctx->single_output_file) {
+    out_path = ctx->single_output_file;
+  } else {
+    /* Should not happen per validation */
+    free(result);
+    return 0;
   }
 
   {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    errno_t err = fopen_s(&f, out_file, "w, ccs=UTF-8");
-    if (err != 0 || !f)
-      rc = EXIT_FAILURE;
+    errno_t err = fopen_s(&f, out_path, "w, ccs=UTF-8");
+    if (err != 0 || !f) {
+      ctx->error_count++;
+    }
 #else
-    f = fopen(out_file, "w");
-    if (!f)
-      rc = EXIT_FAILURE;
+    f = fopen(out_path, "w");
+    if (!f) {
+      ctx->error_count++;
+    }
 #endif
     if (f) {
       fputs(result, f);
       fclose(f);
+      printf("Fixed: %s\n", out_path);
+    } else {
+      fprintf(stderr, "Failed to write %s\n", out_path);
     }
   }
 
   free(result);
-  return rc == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  return 0;
+}
+
+int fix_code_main(int argc, char **argv) {
+  const char *in_path;
+  const char *arg2;
+  int is_dir;
+  int in_place = 0;
+  struct FixWalkContext ctx;
+
+  if (argc < 1 || argc > 2) {
+    fprintf(stderr,
+            "Usage: fix <path> [--in-place] OR fix <input.c> <output.c>\n");
+    return EXIT_FAILURE;
+  }
+
+  in_path = argv[0];
+  arg2 = (argc == 2) ? argv[1] : NULL;
+
+  if (arg2 && strcmp(arg2, "--in-place") == 0) {
+    in_place = 1;
+  }
+
+  is_dir = fs_is_directory(in_path);
+
+  if (is_dir && !in_place) {
+    fprintf(stderr, "Error: directory input requires --in-place\n");
+    return EXIT_FAILURE;
+  }
+
+  if (!is_dir && !in_place && !arg2) {
+    fprintf(stderr,
+            "Error: output file or --in-place required for file input\n");
+    return EXIT_FAILURE;
+  }
+
+  /* Setup context */
+  ctx.in_place = in_place;
+  ctx.error_count = 0;
+  ctx.single_output_file = (in_place) ? NULL : arg2;
+
+  if (walk_directory(in_path, fix_file_callback, &ctx) != 0) {
+    return EXIT_FAILURE;
+  }
+
+  return (ctx.error_count == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

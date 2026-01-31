@@ -114,6 +114,23 @@ static char *c_cdd_strdup(const char *s) {
 #endif
 }
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define c_stat_func _stat
+#define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
+#else
+#define c_stat_func stat
+#define IS_DIR(mode) S_ISDIR(mode)
+#endif
+
+int fs_is_directory(const char *path) {
+  c_stat st;
+  if (!path)
+    return 0;
+  if (c_stat_func(path, &st) != 0)
+    return 0;
+  return IS_DIR(st.st_mode);
+}
+
 int get_basename(const char *path, char **out) {
   const char *start_p, *p;
   size_t len;
