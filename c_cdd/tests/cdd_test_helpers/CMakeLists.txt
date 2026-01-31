@@ -25,13 +25,3 @@ set_target_properties(
         C
 )
 target_link_libraries("${LIBRARY_NAME}" PUBLIC "${PROJECT_NAME}")
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
-    find_package(parson REQUIRED)
-else ()
-    find_package(parson CONFIG REQUIRED)
-endif ()
-target_link_libraries(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        "parson::parson"
-)

@@ -1,6 +1,8 @@
 /**
  * @file project_audit.c
  * @brief Implementation of project auditing.
+ * Walks directories, filters for source files, runs static analysis, and
+ * generates JSON reports.
  * @author Samuel Marks
  */
 
@@ -44,7 +46,7 @@ static int is_c_source(const char *path) {
 
 /**
  * @brief Helper to detect functions returning allocations directly.
- * Look for "return malloc(...)" patterns.
+ * Look for "return malloc(...)" patterns which require signature refactoring.
  */
 static int count_returning_allocs(const struct TokenList *tokens) {
   size_t i;
@@ -80,6 +82,7 @@ static int count_returning_allocs(const struct TokenList *tokens) {
 
 /**
  * @brief Callback for directory walker.
+ * Parses file and updates stats.
  */
 static int audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
@@ -97,8 +100,8 @@ static int audit_file_callback(const char *path, void *user_data) {
   /* Read */
   rc = read_to_file(path, "r", &content, &sz);
   if (rc != 0) {
-    /* If read fails, maybe permissions, just skip with warning on stderr?
-       Or bubble error? Walking typically proceeds. */
+    /* If read fails, maybe permissions, just log to stderr and create no
+     * failure code */
     fprintf(stderr, "Warning: Failed to read %s\n", path);
     return 0;
   }
@@ -120,8 +123,9 @@ static int audit_file_callback(const char *path, void *user_data) {
       else
         stats->allocations_unchecked++;
     }
-    allocation_site_list_free(&sites);
   }
+
+  allocation_site_list_free(&sites);
 
   /* Custom analysis for return-alloc patterns */
   stats->functions_returning_alloc += count_returning_allocs(tokens);

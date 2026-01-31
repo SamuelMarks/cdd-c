@@ -2,7 +2,8 @@
  * @file rewriter_body.h
  * @brief Logic to inject error handling, rewrite function calls, and transform
  * returns in function bodies.
- * Supports Call-Site Rewriting for propagated transformations.
+ * Supports Call-Site Rewriting for propagated transformations and Safety
+ * Injection.
  * @author Samuel Marks
  */
 
@@ -18,8 +19,7 @@ extern "C" {
 #include <c_cdd_export.h>
 
 /**
- * @brief Enum describing how a function call has been refactored (for call-site
- * rewriting).
+ * @brief Enum describing how a function call has been refactored.
  */
 enum RefactorType {
   REF_VOID_TO_INT,   /**< void func() -> int func() */
@@ -30,14 +30,16 @@ enum RefactorType {
  * @brief Specification for a refactored function that needs its callsites
  * updated.
  */
-struct C_CDD_EXPORT RefactoredFunction {
-  const char *name;       /**< Name of the function */
-  enum RefactorType type; /**< How the signature was changed */
+struct RefactoredFunction {
+  const char *name;                 /**< Name of the function */
+  enum RefactorType type;           /**< How the signature was changed */
+  const char *original_return_type; /**< C type string (e.g. "char *"), used for
+                                       temps. NULL if void. */
 };
 
 /**
  * @brief Enum describing how the *current* function's signature is being
- * transformed (for return rewriting).
+ * transformed.
  */
 enum TransformType {
   TRANSFORM_NONE,          /**< No change to signature return type */
@@ -49,40 +51,22 @@ enum TransformType {
  * @brief Configuration for transforming the current function's return
  * statements.
  */
-struct C_CDD_EXPORT SignatureTransform {
-  enum TransformType
-      type; /**< The type of transformation applied to the function signature */
-  const char *arg_name; /**< Name of the output argument (e.g. "out"), used if
-                           RE_PTR_TO_ARG */
-  const char
-      *success_code;      /**< Integer string to return on success (e.g. "0") */
-  const char *error_code; /**< Integer string to return on failure (e.g.
-                             "ENOMEM"). Optional (can be NULL). */
+struct SignatureTransform {
+  enum TransformType type;
+  const char *arg_name;
+  const char *success_code;
+  const char *error_code;
 };
 
 /**
  * @brief Rewrite the body of a function (token stream) to inject checks, update
  * calls, and transform returns.
  *
- * Operations performed:
- * 1. Stack Variable Injection: Checks if `rc` (or configured name) is declared.
- *    If not, and needed, injects `int rc = 0;` at the top of the block (C89
- * compliant).
- * 2. Allocator Checks: At sites specified in `allocs`, inject checks.
- * 3. Call-site Updates: Identify calls to functions in `funcs` and rewrite them
- *    to propagate errors via the stack variable.
- *    - `var = func(args)` -> `rc = func(args, &var); if (rc != 0) return rc;`
- *    - `func(args)` -> `rc = func(args); if (rc != 0) return rc;`
- * 4. Return Transformation: Rewrite `return`-statements.
- *
- * @param[in] tokens The token stream of the function body (must start with
- * '{').
- * @param[in] allocs List of unchecked allocation sites (optional, can be NULL).
- * @param[in] funcs Array of function specs that have been refactored (optional,
- * can be NULL).
+ * @param[in] tokens The token stream of the function body.
+ * @param[in] allocs List of unchecked allocation sites.
+ * @param[in] funcs Array of function specs that have been refactored.
  * @param[in] func_count Number of functions in `funcs`.
- * @param[in] transform Spec defining how to rewrite return statements
- * (optional, can be NULL).
+ * @param[in] transform Spec defining how to rewrite return statements.
  * @param[out] out_code Pointer to char* where the allocated result string is
  * stored.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.

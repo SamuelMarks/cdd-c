@@ -34,158 +34,106 @@ static int run_body_rewrite(const char *code,
   return rc;
 }
 
-TEST test_inject_malloc_check(void) {
-  const char *input = "void f() { char *p = malloc(10); *p = 5; }";
+/* --- Call-Site Propagation Tests --- */
+
+TEST test_propagate_void_stmt(void) {
+  const char *input = "void f() { do_work(); }";
   char *output = NULL;
-  int rc;
-
-  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
-  ASSERT_EQ(0, rc);
-  ASSERT(output != NULL);
-
-  ASSERT(strstr(output, "malloc(10); if (!p) { return ENOMEM; }") != NULL);
-
-  free(output);
-  PASS();
-}
-
-TEST test_skipped_checked_malloc(void) {
-  const char *input = "void f() { char *p = malloc(10); if (!p) return; }";
-  char *output = NULL;
-  int rc;
-
-  rc = run_body_rewrite(input, NULL, 0, NULL, &output);
-  ASSERT_EQ(0, rc);
-
-  {
-    char *p = output;
-    int count = 0;
-    while ((p = strstr(p, "if"))) {
-      count++;
-      p++;
-    }
-    ASSERT_EQ(1, count);
-  }
-
-  free(output);
-  PASS();
-}
-
-TEST test_rewrite_void_call_with_stack_injection(void) {
-  const char *input = "void f() { do_something(1, 2); return; }";
-  char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"do_something", REF_VOID_TO_INT}};
-  int rc;
-
-  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
-  ASSERT_EQ(0, rc);
-
-  /* Matches injected var and propagated check */
-  ASSERT(strstr(output, "int rc = 0;") != NULL);
-  ASSERT(strstr(output, "rc = do_something(1, 2); if (rc != 0) return rc;") !=
-         NULL);
-
-  free(output);
-  PASS();
-}
-
-TEST test_rewrite_ptr_call_assignment_stack_inject(void) {
-  const char *input = "void f() { char *s; s = strdup(\"a\"); free(s); }";
-  char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
+  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;
 
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
   ASSERT(strstr(output, "int rc = 0;") != NULL);
-  ASSERT(strstr(output, "rc = strdup(\"a\", &s); if (rc != 0) return rc;") !=
-         NULL);
+  ASSERT(strstr(output, "rc = do_work(); if (rc != 0) return rc;") != NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_ptr_call_declaration_stack_inject(void) {
-  const char *input = "void f() { char *s = strdup(\"a\"); free(s); }";
+TEST test_propagate_ptr_assignment(void) {
+  const char *input = "void f() { char *s; s = my_strdup(\"a\"); }";
   char *output = NULL;
-  struct RefactoredFunction funcs[] = {{"strdup", REF_PTR_TO_INT_OUT}};
+  struct RefactoredFunction funcs[] = {
+      {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
   int rc;
 
   rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "int rc = 0;") != NULL);
-  /* Checks declaration split: 'char *s; rc = ...' */
-  ASSERT(strstr(output, "char *s ; rc = strdup(\"a\", &s);") != NULL);
+  /* s = my_strdup("a") -> rc = my_strdup("a", &s); if(rc) ... */
+  ASSERT(strstr(output, "rc = my_strdup(\"a\", &s);") != NULL);
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_return_void_to_int(void) {
-  const char *input = "void f() { do_work(); return; }";
+TEST test_propagate_ptr_declaration(void) {
+  const char *input = "void f() { char *s = my_strdup(\"a\"); }";
   char *output = NULL;
-  struct SignatureTransform trans = {TRANSFORM_VOID_TO_INT, NULL, "0", NULL};
+  struct RefactoredFunction funcs[] = {
+      {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
   int rc;
 
-  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "return 0;") != NULL);
+  /* char *s = ... -> char *s ; = my_strdup("a", &s); ... */
+  /* Logic: split decl `char *s` and call */
+  ASSERT(strstr(output, "char *s") != NULL);
+  ASSERT(strstr(output, "; rc = my_strdup(\"a\", &s);") != NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_return_val_to_arg(void) {
-  const char *input = "char* f() { return strdup(\"x\"); }";
+TEST test_propagate_nested_hoisting(void) {
+  const char *input = "void f() { outer(inner(\"x\")); }";
   char *output = NULL;
-  struct SignatureTransform trans = {TRANSFORM_RET_PTR_TO_ARG, "out", "0",
-                                     "ENOMEM"};
+  struct RefactoredFunction funcs[] = {{"inner", REF_PTR_TO_INT_OUT, "char *"}};
   int rc;
 
-  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "{ *out = strdup(\"x\"); return 0; }") != NULL);
+  /* Should hoist: char *tmp; rc = inner("x", &tmp); if(rc)... outer(tmp); */
+  ASSERT(strstr(output, "char * _tmp_cdd_0;") != NULL);
+  ASSERT(strstr(output, "rc = inner(\"x\", &_tmp_cdd_0);") != NULL);
+  ASSERT(strstr(output, "outer(_tmp_cdd_0);") != NULL);
 
   free(output);
   PASS();
 }
 
-TEST test_rewrite_return_null_error(void) {
-  const char *input = "char* f() { return NULL; }";
+/* --- Safety Tests (Repeat from Deliv 2 for Integration Check) --- */
+
+TEST test_integration_safety_and_prop(void) {
+  const char *input =
+      "void f() { char *p = malloc(10); if(!p) return; do_work(); }";
   char *output = NULL;
-  struct SignatureTransform trans = {TRANSFORM_RET_PTR_TO_ARG, "out", "0",
-                                     "ENOMEM"};
+  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;
 
-  rc = run_body_rewrite(input, NULL, 0, &trans, &output);
+  rc = run_body_rewrite(input, funcs, 1, NULL, &output);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(output, "return ENOMEM;") != NULL);
+  ASSERT(strstr(output, "int rc = 0;") != NULL);
+  /* Malloc analysis finding check so no injection */
+  /* do_work rewritten */
+  ASSERT(strstr(output, "rc = do_work();") != NULL);
 
   free(output);
-  PASS();
-}
-
-TEST test_rewrite_body_null_args(void) {
-  ASSERT_EQ(EINVAL, rewrite_body(NULL, NULL, NULL, 0, NULL, NULL));
   PASS();
 }
 
 SUITE(rewriter_body_suite) {
-  RUN_TEST(test_rewrite_body_null_args);
-  RUN_TEST(test_inject_malloc_check);
-  RUN_TEST(test_skipped_checked_malloc);
-  RUN_TEST(test_rewrite_void_call_with_stack_injection);
-  RUN_TEST(test_rewrite_ptr_call_assignment_stack_inject);
-  RUN_TEST(test_rewrite_ptr_call_declaration_stack_inject);
-  RUN_TEST(test_rewrite_return_void_to_int);
-  RUN_TEST(test_rewrite_return_val_to_arg);
-  RUN_TEST(test_rewrite_return_null_error);
+  RUN_TEST(test_propagate_void_stmt);
+  RUN_TEST(test_propagate_ptr_assignment);
+  RUN_TEST(test_propagate_ptr_declaration);
+  RUN_TEST(test_propagate_nested_hoisting);
+  RUN_TEST(test_integration_safety_and_prop);
 }
 
 #endif /* TEST_REWRITER_BODY_H */

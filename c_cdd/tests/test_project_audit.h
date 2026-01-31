@@ -21,12 +21,17 @@ TEST test_audit_stats_init(void) {
 }
 
 TEST test_audit_single_file(void) {
+  char *sys_tmp = NULL;
   char *root = NULL;
   char *f_unchecked = NULL;
   struct AuditStats stats;
   int rc;
 
-  tempdir(&root);
+  /* Create explicit subdir to avoid walking /tmp */
+  tempdir(&sys_tmp);
+  asprintf(&root, "%s%saudit_test_%d", sys_tmp, PATH_SEP, rand());
+  makedir(root);
+
   asprintf(&f_unchecked, "%s%sunchecked.c", root, PATH_SEP);
 
   /* Create file with 1 unchecked malloc and 1 checked malloc */
@@ -45,15 +50,20 @@ TEST test_audit_single_file(void) {
   rmdir(root);
   free(f_unchecked);
   free(root);
+  free(sys_tmp);
   PASS();
 }
 
 TEST test_audit_ignored_files(void) {
+  char *sys_tmp = NULL;
   char *root = NULL;
   char *f_h = NULL;
   struct AuditStats stats;
 
-  tempdir(&root);
+  tempdir(&sys_tmp);
+  asprintf(&root, "%s%saudit_test_ig_%d", sys_tmp, PATH_SEP, rand());
+  makedir(root);
+
   asprintf(&f_h, "%s%signored.h", root, PATH_SEP);
   /* Header file logic currently ignored by audit_project default filter */
   write_to_file(f_h, "void f() { char *p = malloc(1); }");
@@ -61,21 +71,27 @@ TEST test_audit_ignored_files(void) {
   audit_stats_init(&stats);
   audit_project(root, &stats);
 
+  /* Should ignore .h files */
   ASSERT_EQ(0, stats.files_scanned);
 
   remove(f_h);
   rmdir(root);
   free(f_h);
   free(root);
+  free(sys_tmp);
   PASS();
 }
 
 TEST test_audit_return_alloc(void) {
+  char *sys_tmp = NULL;
   char *root = NULL;
   char *f_ret = NULL;
   struct AuditStats stats;
 
-  tempdir(&root);
+  tempdir(&sys_tmp);
+  asprintf(&root, "%s%saudit_test_ret_%d", sys_tmp, PATH_SEP, rand());
+  makedir(root);
+
   asprintf(&f_ret, "%s%sret.c", root, PATH_SEP);
   /* Detect return malloc(...) */
   write_to_file(f_ret, "char* f() { return malloc(10); }");
@@ -90,6 +106,7 @@ TEST test_audit_return_alloc(void) {
   rmdir(root);
   free(f_ret);
   free(root);
+  free(sys_tmp);
   PASS();
 }
 

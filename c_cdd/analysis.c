@@ -75,7 +75,8 @@ void allocation_site_list_free(struct AllocationSiteList *const list) {
     return;
   if (list->sites) {
     for (i = 0; i < list->size; ++i) {
-      free(list->sites[i].var_name);
+      if (list->sites[i].var_name)
+        free(list->sites[i].var_name);
     }
     free(list->sites);
     list->sites = NULL;
@@ -180,74 +181,6 @@ static char *get_assigned_var(const struct TokenList *tokens,
   return NULL;
 }
 
-/* Get argument name from call */
-static char *get_argument_var(const struct TokenList *tokens,
-                              size_t function_idx, int arg_target_index) {
-  size_t i = function_idx + 1;
-  int current_arg = 0;
-  int paren_depth = 0;
-  int found_lparen = 0;
-
-  while (i < tokens->size) {
-    if (tokens->tokens[i].kind == TOKEN_WHITESPACE) {
-      i++;
-      continue;
-    }
-    if (tokens->tokens[i].kind == TOKEN_LPAREN) {
-      found_lparen = 1;
-      i++;
-      break;
-    }
-    break;
-  }
-
-  if (!found_lparen)
-    return NULL;
-
-  while (i < tokens->size && current_arg <= arg_target_index) {
-    if (tokens->tokens[i].kind == TOKEN_LPAREN) {
-      paren_depth++;
-    } else if (tokens->tokens[i].kind == TOKEN_RPAREN) {
-      if (paren_depth > 0)
-        paren_depth--;
-      else
-        return NULL;
-    } else if (tokens->tokens[i].kind == TOKEN_COMMA && paren_depth == 0) {
-      current_arg++;
-      if (current_arg > arg_target_index)
-        break;
-      i++;
-      continue;
-    }
-
-    if (current_arg == arg_target_index) {
-      size_t j = i;
-      while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
-        j++;
-
-      if (j < tokens->size && tokens->tokens[j].kind == TOKEN_OTHER &&
-          tokens->tokens[j].length == 1 && *tokens->tokens[j].start == '&') {
-        j++;
-        while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
-          j++;
-      }
-
-      if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        const struct Token *tok = &tokens->tokens[j];
-        char *name = (char *)malloc(tok->length + 1);
-        if (!name)
-          return NULL;
-        memcpy(name, tok->start, tok->length);
-        name[tok->length] = '\0';
-        return name;
-      }
-      return NULL;
-    }
-    i++;
-  }
-  return NULL;
-}
-
 /**
  * @brief Check if a variable is used (dereferenced) at current token position.
  */
@@ -279,6 +212,58 @@ static int is_dereference_use(const struct TokenList *tokens, size_t i,
       }
     }
   }
+  (void)var_name;
+  return 0;
+}
+
+/**
+ * @brief Scan a condition block tokens for appropriate comparison operators
+ * given the check style.
+ */
+static int scan_condition_for_check(const struct TokenList *tokens,
+                                    size_t start, size_t end,
+                                    const char *var_name,
+                                    enum CheckStyle style) {
+  size_t i;
+  int var_found = 0;
+
+  for (i = start; i < end; ++i) {
+    if (token_equals(&tokens->tokens[i], var_name)) {
+      var_found = 1;
+      break;
+    }
+  }
+
+  if (!var_found)
+    return 0;
+
+  if (style == CHECK_PTR_NULL) {
+    return 1;
+  }
+
+  if (style == CHECK_INT_NONZERO) {
+    return 1;
+  }
+
+  if (style == CHECK_INT_NEGATIVE) {
+    size_t j;
+    for (j = start; j < end; ++j) {
+      const struct Token *t = &tokens->tokens[j];
+      /* Check for '<' */
+      if (t->kind == TOKEN_OTHER && t->length == 1 && *t->start == '<')
+        return 1;
+      /* Check for '-1' literal */
+      if (t->kind == TOKEN_NUMBER_LITERAL) {
+        if (j > 0 && tokens->tokens[j - 1].length == 1 &&
+            *tokens->tokens[j - 1].start == '-') {
+          if (t->length == 1 && *t->start == '1')
+            return 1;
+        }
+      }
+    }
+    return 0;
+  }
+
   return 0;
 }
 
@@ -292,6 +277,16 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
     return 0;
 
   if (is_inside_condition(tokens, alloc_idx)) {
+    if (spec->check_style == CHECK_INT_NEGATIVE) {
+      /* Increased look-ahead/behind window to catch complex args: e.g.
+       * asprintf(a, b, c) */
+      size_t search_start = (alloc_idx > 32) ? alloc_idx - 32 : 0;
+      size_t search_end =
+          (alloc_idx + 32 < tokens->size) ? alloc_idx + 32 : tokens->size;
+      return scan_condition_for_check(tokens, search_start, search_end,
+                                      var_name ? var_name : spec->name,
+                                      spec->check_style);
+    }
     return 1;
   }
 
@@ -315,28 +310,27 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
         j++;
 
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_LPAREN) {
+        size_t cond_start = j + 1;
         int depth = 1;
         j++;
         while (j < tokens->size && depth > 0) {
-          if (tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-            if (token_equals(&tokens->tokens[j], var_name)) {
-              return 1;
-            }
-          } else if (tokens->tokens[j].kind == TOKEN_LPAREN) {
+          if (tokens->tokens[j].kind == TOKEN_LPAREN) {
             depth++;
           } else if (tokens->tokens[j].kind == TOKEN_RPAREN) {
             depth--;
           }
+          if (depth == 0)
+            break;
           j++;
+        }
+        if (scan_condition_for_check(tokens, cond_start, j, var_name,
+                                     spec->check_style)) {
+          return 1;
         }
       }
     } else if (tok->kind == TOKEN_IDENTIFIER) {
       if (token_equals(tok, var_name)) {
 
-        /*
-         * Check for dereference usage before checking for
-         * assignment/reassignment. *p = 5 is a usage, not a reset.
-         */
         if (spec->check_style == CHECK_PTR_NULL) {
           if (is_dereference_use(tokens, i, var_name)) {
             *used_before_check = 1;
@@ -344,7 +338,6 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
           }
         }
 
-        /* Check for Reassignment (p = ...) */
         {
           size_t next = i + 1;
           while (next < tokens->size &&
@@ -354,7 +347,7 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
           if (next < tokens->size && tokens->tokens[next].kind == TOKEN_OTHER &&
               tokens->tokens[next].length == 1 &&
               *tokens->tokens[next].start == '=') {
-            return 0; /* Variable reassigned without check */
+            return 0;
           }
         }
       }
@@ -414,7 +407,7 @@ int find_allocations(const struct TokenList *const tokens,
             break;
           }
 
-          if (spec->style == ALLOC_STYLE_RETURN_PTR) {
+          {
             size_t j = i;
             while (j > 0) {
               j--;
@@ -432,45 +425,42 @@ int find_allocations(const struct TokenList *const tokens,
                 break;
               }
             }
-          } else if (spec->style == ALLOC_STYLE_ARG_PTR ||
-                     spec->style == ALLOC_STYLE_STRUCT_PTR) {
-            if (spec->check_style == CHECK_INT_NEGATIVE ||
-                spec->check_style == CHECK_INT_NONZERO) {
-              size_t j = i;
-              while (j > 0) {
-                j--;
-                if (tokens->tokens[j].kind == TOKEN_WHITESPACE)
-                  continue;
-                if (tokens->tokens[j].kind == TOKEN_SEMICOLON ||
-                    tokens->tokens[j].kind == TOKEN_LBRACE ||
-                    tokens->tokens[j].kind == TOKEN_RBRACE)
-                  break;
-                if (tokens->tokens[j].kind == TOKEN_OTHER &&
-                    tokens->tokens[j].length == 1 &&
-                    *tokens->tokens[j].start == '=') {
-                  var_name = get_assigned_var(tokens, j);
-                  break;
-                }
-              }
-              /* Fallback: if no assignment variable found (e.g. inline check
-                 inside if), try to grab the argument pointer variable so we
-                 have a record that an allocation happened. */
-              if (!var_name) {
-                var_name = get_argument_var(tokens, i, spec->ptr_arg_index);
-              }
-            } else {
-              var_name = get_argument_var(tokens, i, spec->ptr_arg_index);
-            }
           }
 
-          if (var_name) {
-            int used_before = 0;
-            int checked = is_checked(tokens, i, var_name, spec, &used_before);
-            rc = allocation_site_list_add(out, i, var_name, checked,
-                                          used_before, 0, spec);
-            free(var_name);
-            if (rc != 0)
-              return rc;
+          if (spec->check_style == CHECK_INT_NEGATIVE ||
+              spec->check_style == CHECK_INT_NONZERO) {
+            if (var_name) {
+              int used_before = 0;
+              int checked = is_checked(tokens, i, var_name, spec, &used_before);
+              rc = allocation_site_list_add(out, i, var_name, checked,
+                                            used_before, 0, spec);
+              free(var_name);
+              if (rc != 0)
+                return rc;
+            } else {
+              int checked = 0;
+              int dummy = 0;
+              if (is_inside_condition(tokens, i)) {
+                checked = is_checked(tokens, i, spec->name, spec, &dummy);
+              }
+              rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
+              if (rc != 0)
+                return rc;
+            }
+          } else {
+            if (var_name) {
+              int used_before = 0;
+              int checked = is_checked(tokens, i, var_name, spec, &used_before);
+              rc = allocation_site_list_add(out, i, var_name, checked,
+                                            used_before, 0, spec);
+              free(var_name);
+              if (rc != 0)
+                return rc;
+            } else {
+              rc = allocation_site_list_add(out, i, NULL, 0, 0, 0, spec);
+              if (rc != 0)
+                return rc;
+            }
           }
           break;
         }

@@ -9,18 +9,9 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "fs.h"
 
-/* Forward declare main from main.c?
-   No, main is the entry point of the CLI exec.
-   To test the logic inside main.c via unit tests, we usually expose
-   the sub-functions or invoke the binary.
-   Since we cannot easily invoke main() repeatedly due to global state or
-   exit(), we will assume the logic implemented in fix_code_main
-   matches the integration of components we test here.
-
-   However, we *can* simulate the pipeline that main.c uses.
- */
-
+/* Integration of the full pipeline (Fix command simulation) */
 #include "analysis.h"
+#include "refactor_orchestrator.h"
 #include "rewriter_body.h"
 #include "tokenizer.h"
 
@@ -57,8 +48,8 @@ TEST test_integration_full_pipeline(void) {
   ASSERT(final_output != NULL);
 
   /* 4. Verify Content */
-  /* We expect the injection of the check */
   {
+    /* Malloc safety injection */
     const char *expected_snippet = "if (!p) { return ENOMEM; }";
     if (!strstr(final_output, expected_snippet)) {
       fprintf(stderr, "Output missing check:\n%s\n", final_output);
@@ -73,8 +64,8 @@ TEST test_integration_full_pipeline(void) {
   PASS();
 }
 
-TEST test_integration_file_io_wrapper(void) {
-  /* Simulates the fs/main.c interaction */
+TEST test_integration_fix_file_io(void) {
+  /* Simulates the fs/main.c interaction for the 'fix' command logic */
   const char *in_file = "integ_in.c";
   const char *out_file = "integ_out.c";
   const char *content = "void f() { int *x = malloc(4); }";
@@ -82,24 +73,27 @@ TEST test_integration_file_io_wrapper(void) {
   size_t sz;
   int rc;
 
-  /* Write input */
-  rc = write_to_file(in_file, content); /* cdd_helpers */
+  /* 1. Write Input */
+  rc = write_to_file(in_file, content);
   ASSERT_EQ(0, rc);
 
-  /* Read (simulating main.c step 1) */
-  rc = read_to_file(in_file, "r", &read_back, &sz);
+  /* 2. Call Orchestrator Main (Fix Command) */
+  {
+    char *argv[2];
+    argv[0] = (char *)in_file;
+    argv[1] = (char *)out_file;
+    rc = fix_code_main(2, argv);
+    ASSERT_EQ(0, rc);
+  }
+
+  /* 3. Verify Output */
+  rc = read_to_file(out_file, "r", &read_back, &sz);
   ASSERT_EQ(0, rc);
 
-  /* Validate */
-  ASSERT_STR_EQ(content, read_back);
+  ASSERT(strstr(read_back, "return ENOMEM") != NULL);
+
   free(read_back);
-
-  /* Remove */
   remove(in_file);
-  /* (Pretend logic ran) */
-  /* Write (simulating main.c step 5) */
-  rc = write_to_file(out_file, "Result");
-  ASSERT_EQ(0, rc);
   remove(out_file);
 
   PASS();
@@ -107,7 +101,7 @@ TEST test_integration_file_io_wrapper(void) {
 
 SUITE(integration_suite) {
   RUN_TEST(test_integration_full_pipeline);
-  RUN_TEST(test_integration_file_io_wrapper);
+  RUN_TEST(test_integration_fix_file_io);
 }
 
 #endif /* TEST_C_CDD_INTEGRATION_H */

@@ -1,6 +1,8 @@
 /**
  * @file rewriter_sig.c
  * @brief Implementation of function signature rewriting logic.
+ * Parses token streams to extract storage specifiers, return types, and
+ * arguments, then reconstructs them into the standard error-code pattern.
  * @author Samuel Marks
  */
 

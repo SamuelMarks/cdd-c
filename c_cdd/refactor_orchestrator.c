@@ -39,9 +39,11 @@ struct FuncNode {
   char *name;      /**< Function name */
 
   /* Signature properties */
-  int returns_void; /**< 1 if returns void */
-  int returns_ptr;  /**< 1 if returns pointer/complex type */
-  int is_main;      /**< 1 if function is 'main' */
+  int returns_void;           /**< 1 if returns void */
+  int returns_ptr;            /**< 1 if returns pointer/complex type */
+  char *original_return_type; /**< String rep of return type (needed for temp
+                                 vars) */
+  int is_main;                /**< 1 if function is 'main' */
 
   /* Analysis state */
   int contains_allocs;     /**< 1 if body contains allocations */
@@ -53,7 +55,9 @@ struct FuncNode {
   size_t body_start;  /**< Token index of '{' */
   size_t token_end;   /**< Token index of end of definition */
 
-  /* Dependencies (Adjacency List) */
+  /* Dependencies (Adjacency List: Reverse Call Graph) */
+  /* This list contains indices of functions that CALL this function (Callers)
+   */
   size_t *callers;      /**< Array of indices of functions calling this node */
   size_t num_callers;   /**< Count of callers */
   size_t alloc_callers; /**< Capacity of callers array */
@@ -75,7 +79,7 @@ static int get_token_slice(const struct TokenList *src, size_t start,
     return EINVAL;
   dst->tokens = src->tokens + start;
   dst->size = end - start;
-  dst->capacity = 0;
+  dst->capacity = 0; /* Borrowed reference, do not free tokens */
   return 0;
 }
 
@@ -120,16 +124,60 @@ static char *extract_func_name(const struct TokenList *tokens, size_t start,
   return NULL;
 }
 
+static char *join_tokens_str(const struct TokenList *tokens, size_t start,
+                             size_t end) {
+  size_t len = 0;
+  size_t i;
+  char *buf, *p;
+  if (start >= end)
+    return strdup("");
+  for (i = start; i < end; ++i)
+    len += tokens->tokens[i].length;
+  buf = malloc(len + 1);
+  if (!buf)
+    return NULL;
+  p = buf;
+  for (i = start; i < end; ++i) {
+    memcpy(p, tokens->tokens[i].start, tokens->tokens[i].length);
+    p += tokens->tokens[i].length;
+  }
+  *p = '\0';
+  return buf;
+}
+
 /* Analyze simple return traits */
 static void analyze_signature_tokens(const struct TokenList *tokens,
                                      size_t start, size_t body_start,
-                                     int *is_ptr, int *is_void) {
+                                     int *is_ptr, int *is_void,
+                                     char **type_str) {
   size_t i;
+  size_t lparen = find_token_in_range(tokens, start, body_start, TOKEN_LPAREN);
+  size_t name_end_idx = 0;
+
   *is_ptr = 0;
   *is_void = 0;
+  *type_str = NULL;
 
-  /* Iterate tokens before body */
-  for (i = start; i < body_start; ++i) {
+  if (lparen == body_start)
+    return;
+
+  /* Find name start to delimit type end */
+  i = lparen;
+  while (i > start) {
+    i--;
+    if (tokens->tokens[i].kind == TOKEN_WHITESPACE)
+      continue;
+    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+      name_end_idx = i;
+      break;
+    }
+  }
+
+  /* Capture return type string [start, name_end_idx) */
+  *type_str = join_tokens_str(tokens, start, name_end_idx);
+
+  /* Check properties */
+  for (i = start; i < name_end_idx; ++i) {
     const struct Token *tok = &tokens->tokens[i];
     if (tok->kind == TOKEN_OTHER && tok->length == 1 && *tok->start == '*') {
       *is_ptr = 1;
@@ -155,6 +203,7 @@ static int graph_add_node(struct DependencyGraph *g, size_t idx,
   g->nodes[idx].callers = NULL;
   g->nodes[idx].num_callers = 0;
   g->nodes[idx].alloc_callers = 0;
+  g->nodes[idx].original_return_type = NULL;
 
   g->nodes[idx].marked_for_refactor = 0;
   g->nodes[idx].contains_allocs = 0;
@@ -169,7 +218,7 @@ static int graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
   size_t i;
   for (i = 0; i < callee->num_callers; i++) {
     if (callee->callers[i] == caller_idx)
-      return 0;
+      return 0; /* Exists */
   }
 
   if (callee->num_callers >= callee->alloc_callers) {
@@ -191,6 +240,7 @@ static void graph_free_contents(struct DependencyGraph *g) {
   for (i = 0; i < g->count; i++) {
     free(g->nodes[i].name);
     free(g->nodes[i].callers);
+    free(g->nodes[i].original_return_type);
   }
   free(g->nodes);
   g->nodes = NULL;
@@ -205,7 +255,11 @@ static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
   if (node->marked_for_refactor)
     return;
 
+  /* Main stops propagation up, but gets marked itself for body update */
   node->marked_for_refactor = 1;
+
+  if (node->is_main)
+    return;
 
   for (i = 0; i < node->num_callers; i++) {
     size_t caller_idx = node->callers[i];
@@ -247,6 +301,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
   }
 
   /* Phase 3: Graph Construction */
+  /* Count functions first */
   for (i = 0; i < cst.size; ++i) {
     if (cst.nodes[i].kind == CST_NODE_FUNCTION)
       graph.count++;
@@ -260,11 +315,13 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     }
   }
 
+  /* Populate Nodes */
   {
     size_t f_idx = 0;
     size_t current_tok_idx = 0;
 
     for (i = 0; i < cst.size; i++) {
+      /* Identify range of current node in token list */
       const uint8_t *node_end_ptr = cst.nodes[i].start + cst.nodes[i].length;
       size_t start_idx = current_tok_idx;
       size_t end_idx = start_idx;
@@ -275,7 +332,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
           break;
         end_idx++;
       }
-      current_tok_idx = end_idx;
+      current_tok_idx = end_idx; /* Advance checker */
 
       if (cst.nodes[i].kind == CST_NODE_FUNCTION) {
         struct FuncNode *fn = &graph.nodes[f_idx];
@@ -296,8 +353,10 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
           goto cleanup;
 
         analyze_signature_tokens(tokens, start_idx, fn->body_start,
-                                 &fn->returns_ptr, &fn->returns_void);
+                                 &fn->returns_ptr, &fn->returns_void,
+                                 &fn->original_return_type);
 
+        /* Map Allocations to Function */
         {
           size_t k;
           for (k = 0; k < allocs.size; k++) {
@@ -312,20 +371,31 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
       }
     }
 
+    /* Populate Edges (Calls) */
     for (f_idx = 0; f_idx < graph.count; f_idx++) {
       struct FuncNode *caller = &graph.nodes[f_idx];
       size_t t;
+      /* Scan body for calls */
       for (t = caller->body_start; t < caller->token_end; t++) {
         if (tokens->tokens[t].kind == TOKEN_IDENTIFIER) {
-          size_t target_idx;
-          for (target_idx = 0; target_idx < graph.count; target_idx++) {
-            if (f_idx == target_idx)
-              continue;
-            if (token_eq_str(&tokens->tokens[t],
-                             graph.nodes[target_idx].name)) {
-              rc = graph_add_edge(&graph, f_idx, target_idx);
-              if (rc != 0)
-                goto cleanup;
+          /* Check if looks like call: ID ( */
+          size_t next = t + 1;
+          while (next < tokens->size &&
+                 tokens->tokens[next].kind == TOKEN_WHITESPACE)
+            next++;
+          if (next < tokens->size &&
+              tokens->tokens[next].kind == TOKEN_LPAREN) {
+            /* Check if ID maps to known function */
+            size_t target_idx;
+            for (target_idx = 0; target_idx < graph.count; target_idx++) {
+              if (f_idx == target_idx)
+                continue; /* Self recursion ignored for graph prop */
+              if (token_eq_str(&tokens->tokens[t],
+                               graph.nodes[target_idx].name)) {
+                rc = graph_add_edge(&graph, f_idx, target_idx);
+                if (rc != 0)
+                  goto cleanup;
+              }
             }
           }
         }
@@ -333,11 +403,14 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     }
   }
 
-  /* Phase 4 & 5: Seeding and Propagation */
+  /* Phase 4: Identify Seeds and Phase 5: Propagate */
   for (i = 0; i < graph.count; i++) {
     struct FuncNode *n = &graph.nodes[i];
     int seed = 0;
 
+    /* Policy: If contains allocations, we enforce integer return code safety
+       if it returns PTR/VOID. If already INT, we assume it's compliant or
+       check later. */
     if (n->contains_allocs) {
       if (n->returns_void || n->returns_ptr) {
         seed = 1;
@@ -349,6 +422,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     }
   }
 
+  /* Phase 6: Prepare RefactorContext */
   if (graph.count > 0) {
     for (i = 0; i < graph.count; i++) {
       if (graph.nodes[i].marked_for_refactor)
@@ -366,6 +440,8 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
         for (i = 0; i < graph.count; i++) {
           if (graph.nodes[i].marked_for_refactor) {
             ref_funcs[r].name = graph.nodes[i].name;
+            ref_funcs[r].original_return_type =
+                graph.nodes[i].original_return_type;
             if (graph.nodes[i].returns_ptr)
               ref_funcs[r].type = REF_PTR_TO_INT_OUT;
             else
@@ -377,7 +453,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     }
   }
 
-  /* Phase 6: Rewrite */
+  /* Phase 7: Rewrite Source */
   {
     size_t f_idx = 0;
     size_t current_tok_offset = 0;
@@ -388,6 +464,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
       goto cleanup;
     }
 
+    /* Iterate CST nodes to preserve file order and non-function content */
     for (i = 0; i < cst.size; ++i) {
       const uint8_t *node_end_ptr = cst.nodes[i].start + cst.nodes[i].length;
       size_t start_idx = current_tok_offset;
@@ -404,105 +481,75 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
         struct FuncNode *node = &graph.nodes[f_idx];
         char *segment = NULL;
 
-        if (node->marked_for_refactor && !node->is_main) {
+        if (node->marked_for_refactor) {
           struct TokenList sig_slice, body_slice;
           char *new_sig = NULL, *new_body = NULL;
-          struct SignatureTransform trans;
+          struct SignatureTransform trans = {0};
 
           if (get_token_slice(tokens, start_idx, node->body_start,
                               &sig_slice) == 0 &&
               get_token_slice(tokens, node->body_start, end_idx, &body_slice) ==
                   0) {
 
-            if (rewrite_signature(&sig_slice, &new_sig) == 0) {
+            /* Generate Sig */
+            if (!node->is_main) {
+              if (rewrite_signature(&sig_slice, &new_sig) != 0) {
+                /* Fallback if parse fail */
+                new_sig = join_tokens_str(tokens, start_idx, node->body_start);
+              }
               trans.type = node->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
                                              : TRANSFORM_VOID_TO_INT;
               trans.arg_name = "out";
               trans.success_code = "0";
               trans.error_code = "ENOMEM";
+            } else {
+              /* Keep main signature */
+              new_sig = join_tokens_str(tokens, start_idx, node->body_start);
+              trans.type = TRANSFORM_NONE;
+            }
 
-              {
-                struct AllocationSiteList local_allocs;
-                size_t k;
+            /* Generate Body */
+            {
+              /* Filter allocs for this range and relativize */
+              struct AllocationSiteList local_allocs;
+              size_t k;
 
-                allocation_site_list_init(&local_allocs); /* allocs a block */
-                for (k = 0; k < allocs.size; k++) {
-                  if (allocs.sites[k].token_index >= node->body_start &&
-                      allocs.sites[k].token_index < end_idx) {
-                    struct AllocationSite site = allocs.sites[k];
-                    site.token_index -= node->body_start; /* Relativize */
-                    if (local_allocs.size >= local_allocs.capacity) {
-                      size_t nc = local_allocs.capacity * 2;
-                      local_allocs.sites =
-                          realloc(local_allocs.sites,
-                                  nc * sizeof(struct AllocationSite));
-                      local_allocs.capacity = nc;
-                    }
-                    if (site.var_name)
-                      site.var_name = strdup(site.var_name);
-                    local_allocs.sites[local_allocs.size++] = site;
+              allocation_site_list_init(&local_allocs);
+              for (k = 0; k < allocs.size; k++) {
+                if (allocs.sites[k].token_index >= node->body_start &&
+                    allocs.sites[k].token_index < end_idx) {
+                  struct AllocationSite site = allocs.sites[k];
+                  site.token_index -= node->body_start; /* Relativize */
+                  /* Deep copy relevant strings */
+                  if (site.var_name)
+                    site.var_name = strdup(site.var_name);
+                  /* Note: spec is static const, no copy needed */
+
+                  /* Append to local list */
+                  /* NOTE: manual append logic reused from earlier or assume API
+                   * exists */
+                  /* We manually realloc here for simplicity of integration */
+                  if (local_allocs.size >= local_allocs.capacity) {
+                    size_t nc = local_allocs.capacity == 0
+                                    ? 4
+                                    : local_allocs.capacity * 2;
+                    local_allocs.sites = realloc(
+                        local_allocs.sites, nc * sizeof(struct AllocationSite));
+                    local_allocs.capacity = nc;
                   }
+                  local_allocs.sites[local_allocs.size++] = site;
                 }
-
-                if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
-                                 marked_count, &trans, &new_body) == 0) {
-                  asprintf(&segment, "%s %s", new_sig, new_body);
-                  free(new_sig);
-                  free(new_body);
-                }
-
-                allocation_site_list_free(&local_allocs);
               }
-            }
-          }
-        } else if (node->marked_for_refactor && node->is_main) {
-          struct TokenList body_slice;
-          char *new_body = NULL;
-          struct SignatureTransform trans = {TRANSFORM_NONE, NULL, NULL, NULL};
 
-          if (get_token_slice(tokens, node->body_start, end_idx, &body_slice) ==
-              0) {
-            struct AllocationSiteList local_allocs;
-            size_t k;
-            allocation_site_list_init(&local_allocs);
-            for (k = 0; k < allocs.size; k++) {
-              if (allocs.sites[k].token_index >= node->body_start &&
-                  allocs.sites[k].token_index < end_idx) {
-                struct AllocationSite site = allocs.sites[k];
-                site.token_index -= node->body_start;
-                if (site.var_name)
-                  site.var_name = strdup(site.var_name);
-                if (local_allocs.size >= local_allocs.capacity) {
-                  local_allocs.sites = realloc(
-                      local_allocs.sites, (local_allocs.capacity *= 2) *
-                                              sizeof(struct AllocationSite));
-                }
-                local_allocs.sites[local_allocs.size++] = site;
+              if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
+                               marked_count, &trans, &new_body) == 0) {
+                asprintf(&segment, "%s %s", new_sig, new_body);
+                free(new_sig);
+                free(new_body);
               }
-            }
 
-            if (rewrite_body(&body_slice, &local_allocs, ref_funcs,
-                             marked_count, &trans, &new_body) == 0) {
-              /* Reconstruct main sig (original tokens) + new body */
-              struct TokenList sig_slice;
-              char *sig_str;
-              size_t t;
-              size_t off = 0;
-
-              get_token_slice(tokens, start_idx, node->body_start, &sig_slice);
-              sig_str = malloc(1024); /* dangerous fixed size */
-              sig_str[0] = 0;
-              for (t = 0; t < sig_slice.size; t++) {
-                memcpy(sig_str + off, sig_slice.tokens[t].start,
-                       sig_slice.tokens[t].length);
-                off += sig_slice.tokens[t].length;
-              }
-              sig_str[off] = 0;
-              asprintf(&segment, "%s %s", sig_str, new_body);
-              free(sig_str);
-              free(new_body);
+              allocation_site_list_free(&local_allocs);
             }
-            allocation_site_list_free(&local_allocs);
           }
         }
 
@@ -513,28 +560,26 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
           output = joined;
           free(segment);
         } else {
-          size_t k;
-          for (k = start_idx; k < end_idx; ++k) {
-            size_t old_len = strlen(output);
-            size_t add_len = tokens->tokens[k].length;
-            output = realloc(output, old_len + add_len + 1);
-            memcpy(output + old_len, tokens->tokens[k].start, add_len);
-            output[old_len + add_len] = '\0';
-          }
+          /* Not refactored, copy original range */
+          char *orig = join_tokens_str(tokens, start_idx, end_idx);
+          char *joined;
+          asprintf(&joined, "%s%s", output, orig);
+          free(output);
+          output = joined;
+          free(orig);
         }
         f_idx++;
         continue;
       }
 
+      /* Non-Function Nodes */
       {
-        size_t k;
-        for (k = start_idx; k < end_idx; ++k) {
-          size_t old_len = strlen(output);
-          size_t add_len = tokens->tokens[k].length;
-          output = realloc(output, old_len + add_len + 1);
-          memcpy(output + old_len, tokens->tokens[k].start, add_len);
-          output[old_len + add_len] = '\0';
-        }
+        char *orig = join_tokens_str(tokens, start_idx, end_idx);
+        char *joined;
+        asprintf(&joined, "%s%s", output, orig);
+        free(output);
+        output = joined;
+        free(orig);
       }
     }
   }

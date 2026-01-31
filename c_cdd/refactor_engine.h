@@ -17,7 +17,7 @@ extern "C" {
 /**
  * @brief Context containing global refactoring state.
  */
-struct C_CDD_EXPORT RefactorContext {
+struct RefactorContext {
   struct RefactoredFunction *funcs; /**< Array of functions to propagate */
   size_t func_count;                /**< Number of functions */
 };
@@ -41,11 +41,13 @@ extern C_CDD_EXPORT void refactor_context_free(struct RefactorContext *ctx);
  * @param[in] ctx The context.
  * @param[in] name Function name.
  * @param[in] type Refactoring type (e.g. REF_VOID_TO_INT).
+ * @param[in] return_type The original return type string (e.g. "char *"),
+ * needed for temp var generation. Can be NULL if void.
  * @return 0 on success, ENOMEM on failure.
  */
 extern C_CDD_EXPORT int
 refactor_context_add_function(struct RefactorContext *ctx, const char *name,
-                              enum RefactorType type);
+                              enum RefactorType type, const char *return_type);
 
 /**
  * @brief Apply refactoring logic to a single source string.
