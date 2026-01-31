@@ -2,10 +2,15 @@
  * @file rewriter_sig.h
  * @brief Logic to transform C function signatures to use integer error codes.
  *
- * Converts signatures like:
+ * robustly parses function definitions/declarations token streams and
+ * rewrites them to follow the pattern: `int function_name(args, Type *out)`.
+ *
+ * Supports:
  * - `void func(...)` -> `int func(...)`
  * - `Type func(...)` -> `int func(..., Type *out)`
  * - `Type* func(...)` -> `int func(..., Type **out)`
+ * - Preservation of storage specifiers (`static`, `extern`).
+ * - preservation of `const`, `volatile`, and complex pointer types.
  *
  * @author Samuel Marks
  */
@@ -29,14 +34,14 @@ extern "C" {
  *
  * Rules:
  * 1. If return type is `void`, change to `int`.
- * 2. If return type is `int` (and not a pointer), keep as is.
+ * 2. If return type is `int` (and not a pointer), keep as is (assumed error
+ * code).
  * 3. Otherwise (e.g. `double`, `char*`, `struct S`), change return type to
- * `int` and append the original type as a pointer-to-pointer (or pointer)
- * argument named `out`.
+ * `int` and append the original type as a pointer argument named `out`.
  *
  * @param[in] tokens Valid token list containing the function header.
- * @param[out] out_code Pointer to char* where the allocated string will be
- * stored.
+ * @param[out] out_code Pointer to char* where the allocated result string will
+ * be stored.
  * @return 0 on success, ENOMEM/EINVAL/ENOTSUP on failure.
  */
 extern C_CDD_EXPORT int rewrite_signature(const struct TokenList *tokens,

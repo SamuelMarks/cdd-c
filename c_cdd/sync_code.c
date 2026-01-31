@@ -1,6 +1,6 @@
 /**
  * @file sync_code.c
- * @brief Implementation of code synchronization.
+ * @brief Implementation of code synchronization and header patching.
  * Refactored to ensure strict error checking and resource management.
  * @author Samuel Marks
  */
@@ -27,9 +27,12 @@
 
 #include "sync_code.h"
 
+#include "c_str_span.h"
 #include "code2schema.h" /* For struct/enum list parsing */
 #include "codegen.h"     /* For code generation functions */
+#include "cst_parser.h"  /* For parsing refactored source */
 #include "fs.h"          /* For utilities */
+#include "tokenizer.h"
 
 #define CHECK_RC(x)                                                            \
   do {                                                                         \
@@ -41,6 +44,8 @@
 #if defined(_win32)
 #define strtok_r strtok_s
 #endif
+
+/* --- Sync Header -> Impl Logic --- */
 
 static int read_line_sync(FILE *fp, char *buf, size_t bufsz) {
   if (!fgets(buf, (int)bufsz, fp))
@@ -430,5 +435,290 @@ cleanup_memory:
   for (i = 0; i < struct_count; i++)
     struct_fields_free(&structs[i]);
 
+  return rc;
+}
+
+/* --- Header Patcher Logic --- */
+
+/* Helper for finding match in Tokens */
+static int find_token_idx(const struct TokenList *tl, size_t start,
+                          enum TokenKind kind) {
+  size_t i;
+  for (i = start; i < tl->size; i++) {
+    if (tl->tokens[i].kind == kind)
+      return (int)i;
+  }
+  return -1;
+}
+
+/* Helper to compare token text */
+static int token_eq_str(const struct Token *tok, const char *s) {
+  size_t len = strlen(s);
+  return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
+}
+
+/* Extract function signature from a function definition node */
+/* Returns allocated string: "int func(int a, char *b)" */
+static char *extract_signature_string(const struct TokenList *tokens,
+                                      size_t start, size_t end) {
+  /* find left brace, signature is everything before it */
+  size_t i;
+  size_t sig_end = end;
+  char *sig = NULL;
+  int lbrace_idx = find_token_idx(tokens, start, TOKEN_LBRACE);
+
+  if (lbrace_idx >= 0 && (size_t)lbrace_idx < end) {
+    sig_end = (size_t)lbrace_idx;
+  }
+
+  /* Construct string */
+  {
+    size_t len = 0;
+    for (i = start; i < sig_end; i++)
+      len += tokens->tokens[i].length + 1;
+    sig = malloc(len + 2);
+    if (!sig)
+      return NULL;
+    sig[0] = 0;
+
+    for (i = start; i < sig_end; i++) {
+      size_t tok_len = tokens->tokens[i].length;
+      strncat(sig, (char *)tokens->tokens[i].start, tok_len);
+    }
+    strcat(sig, ";");
+  }
+  return sig;
+}
+
+int patch_header_from_source(const char *header_path,
+                             const char *refactored_source) {
+  struct TokenList *src_tokens = NULL;
+  struct CstNodeList src_cst = {0};
+  char *header_content = NULL;
+  size_t header_len = 0;
+  char *new_header = NULL;
+  int rc = 0;
+
+  /* 1. Parse refactored source */
+  if ((rc = tokenize(az_span_create_from_str((char *)refactored_source),
+                     &src_tokens)) != 0)
+    return rc;
+  if ((rc = parse_tokens(src_tokens, &src_cst)) != 0) {
+    free_token_list(src_tokens);
+    return rc;
+  }
+
+  /* 2. Read Header */
+  if ((rc = read_to_file(header_path, "r", &header_content, &header_len)) !=
+      0) {
+    free_token_list(src_tokens);
+    free_cst_node_list(&src_cst);
+    return rc;
+  }
+
+  {
+    struct TokenList *hdr_tokens = NULL;
+    size_t estimated_cap;
+    size_t current_len = 0;
+
+    if ((rc = tokenize(az_span_create_from_str(header_content), &hdr_tokens)) !=
+        0)
+      goto cleanup_hdr_tokens;
+
+    estimated_cap = header_len * 2;
+    new_header = malloc(estimated_cap);
+    if (!new_header) {
+      rc = ENOMEM;
+      goto cleanup_hdr_tokens;
+    }
+    new_header[0] = 0;
+
+    {
+      size_t h_idx = 0;
+      size_t start_stmt = 0;
+
+      while (h_idx < hdr_tokens->size) {
+        size_t semi = h_idx;
+        while (semi < hdr_tokens->size &&
+               hdr_tokens->tokens[semi].kind != TOKEN_SEMICOLON) {
+          semi++;
+        }
+
+        if (semi >= hdr_tokens->size) {
+          size_t k;
+          for (k = h_idx; k < hdr_tokens->size; k++) {
+            struct Token *t = &hdr_tokens->tokens[k];
+            size_t next_len = current_len + t->length + 1;
+            if (next_len >= estimated_cap) {
+              estimated_cap *= 2;
+              new_header = realloc(new_header, estimated_cap);
+            }
+            memcpy(new_header + current_len, t->start, t->length);
+            current_len += t->length;
+            new_header[current_len] = 0;
+          }
+          break;
+        }
+
+        {
+          int matched_src = -1;
+          size_t k;
+
+          for (k = start_stmt; k < semi; k++) {
+            if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER) {
+              size_t next = k + 1;
+              while (next < semi &&
+                     hdr_tokens->tokens[next].kind == TOKEN_WHITESPACE)
+                next++;
+              if (next < semi &&
+                  hdr_tokens->tokens[next].kind == TOKEN_LPAREN) {
+                size_t s;
+                for (s = 0; s < src_cst.size; s++) {
+                  if (src_cst.nodes[s].kind == CST_NODE_FUNCTION) {
+                    char *hdr_fname = malloc(hdr_tokens->tokens[k].length + 1);
+                    memcpy(hdr_fname, hdr_tokens->tokens[k].start,
+                           hdr_tokens->tokens[k].length);
+                    hdr_fname[hdr_tokens->tokens[k].length] = 0;
+
+                    /* Check source using simple token matching logic */
+                    {
+                      size_t st;
+                      int balance = 0;
+                      for (st = 0; st < src_tokens->size; st++) {
+                        if (src_tokens->tokens[st].kind == TOKEN_LPAREN)
+                          balance++;
+                        else if (src_tokens->tokens[st].kind == TOKEN_RPAREN)
+                          balance--;
+
+                        if (balance == 0 &&
+                            src_tokens->tokens[st].kind == TOKEN_IDENTIFIER) {
+                          if (token_eq_str(&src_tokens->tokens[st],
+                                           hdr_fname)) {
+                            size_t nx = st + 1;
+                            while (nx < src_tokens->size &&
+                                   src_tokens->tokens[nx].kind ==
+                                       TOKEN_WHITESPACE)
+                              nx++;
+                            if (nx < src_tokens->size &&
+                                src_tokens->tokens[nx].kind == TOKEN_LPAREN) {
+                              size_t scan_body = nx;
+                              while (scan_body < src_tokens->size &&
+                                     src_tokens->tokens[scan_body].kind !=
+                                         TOKEN_LBRACE &&
+                                     src_tokens->tokens[scan_body].kind !=
+                                         TOKEN_SEMICOLON)
+                                scan_body++;
+                              if (scan_body < src_tokens->size &&
+                                  src_tokens->tokens[scan_body].kind ==
+                                      TOKEN_LBRACE) {
+                                matched_src = (int)st;
+                                break;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    free(hdr_fname);
+
+                    if (matched_src != -1) {
+                      size_t sig_start = matched_src;
+                      size_t sig_end;
+                      char *new_proto;
+
+                      while (sig_start > 0 &&
+                             src_tokens->tokens[sig_start - 1].kind !=
+                                 TOKEN_RBRACE &&
+                             src_tokens->tokens[sig_start - 1].kind !=
+                                 TOKEN_SEMICOLON) {
+                        sig_start--;
+                      }
+                      while (sig_start < matched_src &&
+                             src_tokens->tokens[sig_start].kind ==
+                                 TOKEN_WHITESPACE)
+                        sig_start++;
+
+                      sig_end = matched_src;
+                      while (sig_end < src_tokens->size &&
+                             src_tokens->tokens[sig_end].kind != TOKEN_LBRACE)
+                        sig_end++;
+
+                      new_proto = extract_signature_string(src_tokens,
+                                                           sig_start, sig_end);
+                      if (new_proto) {
+                        size_t np_len = strlen(new_proto);
+                        while (current_len + np_len + 2 > estimated_cap) {
+                          estimated_cap *= 2;
+                          new_header = realloc(new_header, estimated_cap);
+                        }
+                        strcat(new_header, new_proto);
+                        strcat(new_header, "\n");
+                        current_len += np_len + 1;
+                        free(new_proto);
+
+                        start_stmt = semi + 1;
+                        h_idx = start_stmt;
+                        goto next_stmt;
+                      }
+                    }
+                  }
+                  if (matched_src != -1)
+                    break;
+                }
+              }
+            }
+            if (matched_src != -1)
+              break;
+          }
+
+          {
+            size_t tok_range_idx;
+            for (tok_range_idx = start_stmt; tok_range_idx <= semi;
+                 tok_range_idx++) {
+              struct Token *t = &hdr_tokens->tokens[tok_range_idx];
+              while (current_len + t->length + 1 > estimated_cap) {
+                estimated_cap *= 2;
+                new_header = realloc(new_header, estimated_cap);
+              }
+              memcpy(new_header + current_len, t->start, t->length);
+              current_len += t->length;
+              new_header[current_len] = 0;
+            }
+          }
+          start_stmt = semi + 1;
+          h_idx = start_stmt;
+        }
+
+      next_stmt:;
+      }
+    }
+
+  cleanup_hdr_tokens:
+    free_token_list(hdr_tokens);
+  }
+
+  if (rc == 0 && new_header) {
+    FILE *fp_out;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__)
+    errno_t err = fopen_s(&fp_out, header_path, "w, ccs=UTF-8");
+    if (err != 0 || !fp_out)
+      rc = EIO;
+#else
+    fp_out = fopen(header_path, "w");
+    if (!fp_out)
+      rc = EIO;
+#endif
+    if (fp_out) {
+      fputs(new_header, fp_out);
+      fclose(fp_out);
+    }
+  }
+
+  free(header_content);
+  free(new_header);
+  free_token_list(src_tokens);
+  free_cst_node_list(&src_cst);
   return rc;
 }
