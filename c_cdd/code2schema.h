@@ -62,11 +62,13 @@ extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
  * @param[in] name Name of the field.
  * @param[in] type Type of the field (e.g. "string", "integer").
  * @param[in] ref Reference type name if applicable, or NULL.
+ * @param[in] default_val Default value string (e.g. "5", "\"val\"") or NULL.
  * @return 0 on success, ENOMEM on failure.
  */
 extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
                                           const char *name, const char *type,
-                                          const char *ref);
+                                          const char *ref,
+                                          const char *default_val);
 
 /**
  * @brief Initialize an EnumMembers container.

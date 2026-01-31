@@ -36,8 +36,8 @@ TEST test_write_enum_functions(void) {
     FAILm("Failed to open file for writing");
 #endif
 
-  ASSERT_EQ(0, write_enum_to_str_func(tmp_fh, "MyEnum", &em));
-  ASSERT_EQ(0, write_enum_from_str_func(tmp_fh, "MyEnum", &em));
+  ASSERT_EQ(0, write_enum_to_str_func(tmp_fh, "MyEnum", &em, NULL));
+  ASSERT_EQ(0, write_enum_from_str_func(tmp_fh, "MyEnum", &em, NULL));
   fclose(tmp_fh);
   remove("tmp_enum_func.c");
 
@@ -48,8 +48,8 @@ TEST test_write_enum_functions(void) {
 TEST test_struct_fields_manage(void) {
   struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
-  ASSERT_EQ(0, struct_fields_add(&sf, "name", "string", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "num", "integer", NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "name", "string", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "num", "integer", NULL, NULL));
   struct_fields_free(&sf);
   PASS();
 }
@@ -83,13 +83,13 @@ TEST test_write_struct_functions(void) {
 
   struct_fields_init(&test_struct_fields);
 
-  ASSERT_EQ(
-      0, struct_fields_add(&test_struct_fields, "str_field", "string", NULL));
-  ASSERT_EQ(
-      0, struct_fields_add(&test_struct_fields, "int_field", "integer", NULL));
+  ASSERT_EQ(0, struct_fields_add(&test_struct_fields, "str_field", "string",
+                                 NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&test_struct_fields, "int_field", "integer",
+                                 NULL, NULL));
 
-  ASSERT_EQ(0,
-            write_struct_to_json_func(tmpf, "TestStruct", &test_struct_fields));
+  ASSERT_EQ(0, write_struct_to_json_func(tmpf, "TestStruct",
+                                         &test_struct_fields, NULL));
   fflush(tmpf);
   ASSERT_GT(ftell(tmpf), 0);
 
@@ -112,7 +112,7 @@ TEST test_struct_fields_overflow(void) {
 #else
     sprintf(name, "f%d", i);
 #endif
-    ASSERT_EQ(0, struct_fields_add(&sf, name, "string", NULL));
+    ASSERT_EQ(0, struct_fields_add(&sf, name, "string", NULL, NULL));
   }
   ASSERT_GT(sf.size, n * 2);
   struct_fields_free(&sf);
@@ -155,7 +155,9 @@ TEST test_trim_trailing(void) {
 }
 
 TEST test_code2schema_main_bad_args(void) {
+  /* code2schema expects 2 args: in out */
   char *argv[] = {"bad"};
+  /* Passing 1 args */
   ASSERT_EQ(EXIT_FAILURE, code2schema_main(1, argv));
   PASS();
 }
@@ -165,8 +167,9 @@ TEST test_code2schema_parsing_details(void) {
   const char *header_content = "enum Color {RED,GREEN=5,BLUE,};\n"
                                "struct Point {};\n"
                                "struct Line { struct Point p1; };\n";
-  ASSERT_EQ(0, write_to_file(argv[0], header_content));
-  ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
+  ASSERT_EQ(0, write_to_file(argv[0], header_content)); /* Write to in-file */
+  ASSERT_EQ(EXIT_SUCCESS,
+            code2schema_main(2, argv)); /* Call with 2 args (in, out) */
   remove(argv[0]);
   remove(argv[1]);
   PASS();
@@ -206,17 +209,17 @@ TEST test_codegen_enum_null_args(void) {
 
   /* Check that the functions don't crash on NULL/invalid arguments and return
    * EINVAL */
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(NULL, "E", &em_valid));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, NULL, &em_valid));
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", em_null));
+  ASSERT_EQ(EINVAL, write_enum_to_str_func(NULL, "E", &em_valid, NULL));
+  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, NULL, &em_valid, NULL));
+  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", em_null, NULL));
 
   /* em_null_members.members is NULL so this triggers validation check */
-  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", &em_null_members));
+  ASSERT_EQ(EINVAL, write_enum_to_str_func(tmp, "E", &em_null_members, NULL));
 
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(NULL, "E", &em_valid));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, NULL, &em_valid));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", em_null));
-  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", &em_null_members));
+  ASSERT_EQ(EINVAL, write_enum_from_str_func(NULL, "E", &em_valid, NULL));
+  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, NULL, &em_valid, NULL));
+  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", em_null, NULL));
+  ASSERT_EQ(EINVAL, write_enum_from_str_func(tmp, "E", &em_null_members, NULL));
 
   enum_members_free(&em_valid);
   fclose(tmp);
@@ -234,13 +237,13 @@ TEST test_codegen_enum_with_unknown(void) {
   ASSERT_EQ(0, enum_members_add(&em, "B"));
 
   /* This tests that the generator functions handle "UNKNOWN" correctly */
-  ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em));
+  ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, NULL));
   fseek(tmp, 0, SEEK_END);
   ASSERT_GT(ftell(tmp), 0L);
 
   rewind(tmp);
 
-  ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em));
+  ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, NULL));
   fseek(tmp, 0, SEEK_END);
   ASSERT_GT(ftell(tmp), 0L);
 
@@ -255,23 +258,24 @@ TEST test_codegen_all_field_types(void) {
 
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_string", "string", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_integer", "integer", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_boolean", "boolean", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_number", "number", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_enum", "enum", "MyEnum"));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_object", "object", "MyStruct"));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_unhandled", "unhandled_type", NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_string", "string", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_integer", "integer", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_boolean", "boolean", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_number", "number", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_enum", "enum", "MyEnum", NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_object", "object", "MyStruct", NULL));
+  ASSERT_EQ(
+      0, struct_fields_add(&sf, "f_unhandled", "unhandled_type", NULL, NULL));
 
   /* Call all generator functions with this comprehensive struct fields */
-  ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_to_json_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_eq_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_default_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_display_func(tmp, "TestStruct", &sf));
-  ASSERT_EQ(0, write_struct_debug_func(tmp, "TestStruct", &sf));
+  ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_to_json_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_eq_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_default_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_display_func(tmp, "TestStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_debug_func(tmp, "TestStruct", &sf, NULL));
 
   fseek(tmp, 0, SEEK_END);
   ASSERT_GT(ftell(tmp), 0L);
@@ -290,17 +294,18 @@ TEST test_codegen_empty_struct_and_enum(void) {
   ASSERT_EQ(0, enum_members_init(&em));
   ASSERT_EQ(0, struct_fields_init(&sf));
 
-  ASSERT_EQ(0, write_enum_to_str_func(tmp, "EmptyEnum", &em));
-  ASSERT_EQ(0, write_enum_from_str_func(tmp, "EmptyEnum", &em));
+  ASSERT_EQ(0, write_enum_to_str_func(tmp, "EmptyEnum", &em, NULL));
+  ASSERT_EQ(0, write_enum_from_str_func(tmp, "EmptyEnum", &em, NULL));
 
-  ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_to_json_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_eq_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_default_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_display_func(tmp, "EmptyStruct", &sf));
-  ASSERT_EQ(0, write_struct_debug_func(tmp, "EmptyStruct", &sf));
+  ASSERT_EQ(0,
+            write_struct_from_jsonObject_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_to_json_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_eq_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_cleanup_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_default_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_display_func(tmp, "EmptyStruct", &sf, NULL));
+  ASSERT_EQ(0, write_struct_debug_func(tmp, "EmptyStruct", &sf, NULL));
 
   fseek(tmp, 0, SEEK_END);
   ASSERT_GT(ftell(tmp), 0L);
@@ -318,42 +323,44 @@ TEST test_codegen_struct_null_args(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf_valid);
-  struct_fields_add(&sf_valid, "field", "string", NULL);
+  struct_fields_add(&sf_valid, "field", "string", NULL, NULL);
 
-  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL,
+            write_struct_from_jsonObject_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL,
+            write_struct_from_jsonObject_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_from_json_func(NULL, "S"));
-  ASSERT_EQ(EINVAL, write_struct_from_json_func(tmp, NULL));
+  ASSERT_EQ(EINVAL, write_struct_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(EINVAL, write_struct_from_json_func(tmp, NULL, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_to_json_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_eq_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_eq_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_eq_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_cleanup_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_default_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_display_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_display_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_display_func(tmp, "S", sf_null, NULL));
 
-  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "S", &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, NULL, &sf_valid));
-  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, "S", sf_null));
+  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "S", &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, NULL, &sf_valid, NULL));
+  ASSERT_EQ(EINVAL, write_struct_debug_func(tmp, "S", sf_null, NULL));
 
   struct_fields_free(&sf_valid);
   fclose(tmp);

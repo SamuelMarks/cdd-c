@@ -9,11 +9,12 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "fs.h"
 
-/* Integration of the full pipeline (Audit & Fix command simulation) */
+/* Integration of the full pipeline (Audit & Fix & Gen command simulation) */
 #include "analysis.h"
 #include "project_audit.h"
 #include "refactor_orchestrator.h"
 #include "rewriter_body.h"
+#include "schema_codegen.h"
 #include "tokenizer.h"
 
 /**
@@ -343,6 +344,60 @@ TEST test_end_to_end_project_lifecycle(void) {
   PASS();
 }
 
+TEST test_integration_schema2code_with_guards(void) {
+  /*
+   * Tests:
+   *  ./cli schema2code integ_guard.json integ_guard_out \
+   *    --guard-json=ENABLE_JSON --guard-utils=DATA_UTILS
+   */
+  const char *schema_file = "integ_guard.json";
+  const char *base_name = "integ_guard_out";
+  char *header_file = "integ_guard_out.h";
+  char *source_file = "integ_guard_out.c";
+  char *param1 = "--guard-json=ENABLE_JSON";
+  char *param2 = "--guard-utils=DATA_UTILS";
+  char *content;
+  size_t sz;
+  int rc;
+
+  /* 1. Setup */
+  write_to_file(schema_file,
+                "{\"components\":{\"schemas\":{\"S\":{\"type\":\"object\"}}}}");
+
+  /* 2. Run */
+  {
+    char *argv[4];
+    argv[0] = (char *)schema_file;
+    argv[1] = (char *)base_name;
+    argv[2] = param1;
+    argv[3] = param2;
+    rc = schema2code_main(4, argv);
+    ASSERT_EQ(0, rc);
+  }
+
+  /* 3. Verify Header */
+  rc = read_to_file(header_file, "r", &content, &sz);
+  ASSERT_EQ(0, rc);
+  ASSERT(strstr(content, "#ifdef ENABLE_JSON") != NULL);
+  ASSERT(strstr(content, "int S_to_json(") != NULL);
+  ASSERT(strstr(content, "#ifdef DATA_UTILS") != NULL);
+  ASSERT(strstr(content, "void S_cleanup(") != NULL);
+  free(content);
+
+  /* 4. Verify Source */
+  rc = read_to_file(source_file, "r", &content, &sz);
+  ASSERT_EQ(0, rc);
+  ASSERT(strstr(content, "#ifdef ENABLE_JSON") != NULL);
+  ASSERT(strstr(content, "#ifdef DATA_UTILS") != NULL);
+  free(content);
+
+  /* Cleanup */
+  remove(schema_file);
+  remove(header_file);
+  remove(source_file);
+  PASS();
+}
+
 SUITE(integration_suite) {
   RUN_TEST(test_integration_full_pipeline);
   RUN_TEST(test_integration_fix_file_io);
@@ -350,6 +405,7 @@ SUITE(integration_suite) {
   RUN_TEST(test_integration_fix_file_in_place);
   RUN_TEST(test_integration_fix_dir_error_no_flag);
   RUN_TEST(test_end_to_end_project_lifecycle);
+  RUN_TEST(test_integration_schema2code_with_guards);
 }
 
 #endif /* TEST_C_CDD_INTEGRATION_H */

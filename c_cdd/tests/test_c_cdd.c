@@ -14,6 +14,10 @@
 #include "test_analysis.h"
 #include "test_c_cdd_integration.h"
 #include "test_code2schema.h"
+#include "test_codegen_defaults.h"
+#include "test_codegen_eq.h"
+#include "test_codegen_root_arrays.h"
+#include "test_codegen_validation.h"
 #include "test_cst_parser.h"
 #include "test_dataclasses.h"
 #include "test_fs.h"
@@ -47,6 +51,10 @@ int main(int argc, char **argv) {
   /* Run all test suites */
   RUN_SUITE(analysis_suite);
   RUN_SUITE(code2schema_suite);
+  RUN_SUITE(codegen_defaults_suite);
+  RUN_SUITE(codegen_eq_suite);
+  RUN_SUITE(codegen_validation_suite);
+  RUN_SUITE(root_array_suite); /* New suite */
   RUN_SUITE(cst_parser_suite);
   RUN_SUITE(dataclasses_suite);
   RUN_SUITE(fs_suite);
