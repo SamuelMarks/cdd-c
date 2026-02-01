@@ -11,6 +11,9 @@
  * - Reassemble fragmented path tokens (e.g. < sys / stat . h >).
  * - Resolve relative and system paths against the search context.
  * - Evaluate preprocessor conditional expressions (#if, defined, etc.).
+ * - Support C23 introspection macros: `__has_include`, `__has_embed`,
+ * `__has_c_attribute`.
+ * - Parse `#embed` parameters (`limit`, `prefix`, `suffix`, `if_empty`).
  *
  * @author Samuel Marks
  */
@@ -28,15 +31,44 @@ extern "C" {
 #include "tokenizer.h"
 
 /**
+ * @brief Enumeration of supported directives scanned by path logic.
+ */
+enum PpDirectiveKind {
+  PP_DIR_INCLUDE, /**< #include ... */
+  PP_DIR_EMBED    /**< #embed ... */
+};
+
+/**
+ * @brief Container for C23 #embed parameters.
+ */
+struct EmbedParams {
+  long limit;     /**< The value of 'limit(...)', -1 if unspecified */
+  char *prefix;   /**< The raw text content of 'prefix(...)', or NULL */
+  char *suffix;   /**< The raw text content of 'suffix(...)', or NULL */
+  char *if_empty; /**< The raw text content of 'if_empty(...)', or NULL */
+};
+
+/**
+ * @brief Information passed to the visitor callback.
+ */
+struct IncludeInfo {
+  enum PpDirectiveKind kind; /**< Type of directive encountered */
+  const char *resolved_path; /**< The resolved absolute/relative path on disk */
+  const char *raw_path; /**< The raw path string as it appeared in source */
+  int is_system;        /**< 1 if angle brackets <>, 0 if quoted "" */
+  struct EmbedParams params; /**< Embed parameters (zeroed for #include) */
+};
+
+/**
  * @brief Type definition for the include visitor callback.
  *
  * Invoked for each resolved include found in a scanned file.
  *
- * @param[in] resolved_path Absolute or relative path to the included file.
+ * @param[in] info Details about the directive and resolved file.
  * @param[in] user_data Opaque pointer passed by caller.
  * @return 0 to continue scanning, non-zero to stop.
  */
-typedef int (*pp_visitor_cb)(const char *resolved_path, void *user_data);
+typedef int (*pp_visitor_cb)(const struct IncludeInfo *info, void *user_data);
 
 /**
  * @brief Represents a single definition found in source code.
@@ -62,6 +94,10 @@ struct PreprocessorContext {
   struct MacroDef *macros; /**< Dynamic array of discovered macros */
   size_t macro_count;      /**< Number of macros */
   size_t macro_capacity;   /**< Capacity of macro array */
+
+  /* Introspection context (current file path for relative lookups) */
+  const char *current_file_dir; /**< Directory of the file being processed, used
+                                   for relative include resolution. */
 };
 
 /**
@@ -118,7 +154,7 @@ extern C_CDD_EXPORT int pp_add_macro(struct PreprocessorContext *ctx,
  * @return 0 on success, error code on failure (IO, memory, or parsing).
  */
 extern C_CDD_EXPORT int pp_scan_includes(const char *filename,
-                                         const struct PreprocessorContext *ctx,
+                                         struct PreprocessorContext *ctx,
                                          pp_visitor_cb cb, void *user_data);
 
 /**
@@ -146,12 +182,13 @@ extern C_CDD_EXPORT int pp_scan_defines(struct PreprocessorContext *ctx,
  * - Bitwise: |, &, ^, ~, <<, >>
  * - Comparison: ==, !=, <, >, <=, >=
  * - 'defined' operator
+ * - Introspection: `__has_include`, `__has_embed`, `__has_c_attribute`
  * - Identifiers (resolves to 0 if not defined)
  *
  * @param[in] tokens The token list containing the expression.
  * @param[in] start_idx Index of the first token of the expression.
  * @param[in] end_idx Index of the first token AFTER the expression (exclusive).
- * @param[in] ctx Context for looking up 'defined' macros.
+ * @param[in] ctx Context for looking up identifiers and resolving paths.
  * @param[out] result Result of the evaluation (1 or 0 usually).
  * @return 0 on success, EINVAL on syntax error.
  */
@@ -159,6 +196,13 @@ extern C_CDD_EXPORT int
 pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
                    size_t end_idx, const struct PreprocessorContext *ctx,
                    long *result);
+
+/**
+ * @brief Release memory within EmbedParams structure.
+ *
+ * @param[in] params Pointer to struct to clean.
+ */
+extern C_CDD_EXPORT void pp_embed_params_free(struct EmbedParams *params);
 
 #ifdef __cplusplus
 }

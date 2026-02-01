@@ -44,8 +44,8 @@ TEST test_generated_copy_logic(void) {
   FILE *tmp;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "int_arr", "array", "integer", NULL);
-  struct_fields_add(&sf, "str_arr", "array", "string", NULL);
+  struct_fields_add(&sf, "int_arr", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "str_arr", "array", "string", NULL, NULL);
 
   tmp = tmpfile();
   ASSERT(tmp);

@@ -20,8 +20,8 @@
 
 static void setup_fields(struct StructFields *sf) {
   struct_fields_init(sf);
-  struct_fields_add(sf, "id", "integer", NULL, "0");
-  struct_fields_add(sf, "name", "string", NULL, "\"test\"");
+  struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
+  struct_fields_add(sf, "name", "string", NULL, "\"test\"", NULL);
 }
 
 TEST test_cleanup_generation(void) {
@@ -174,6 +174,25 @@ TEST test_null_args(void) {
   PASS();
 }
 
+TEST test_struct_fields_add_bitwidth(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+
+  /* Add bitfield */
+  ASSERT_EQ(0, struct_fields_add(&sf, "flag", "integer", NULL, NULL, "3"));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("flag", sf.fields[0].name);
+  ASSERT_STR_EQ("3", sf.fields[0].bit_width);
+
+  /* Add normal */
+  ASSERT_EQ(0, struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL));
+  ASSERT_EQ(2, sf.size);
+  ASSERT_STR_EQ("\0", sf.fields[1].bit_width);
+
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_struct_suite) {
   RUN_TEST(test_cleanup_generation);
   RUN_TEST(test_default_generation);
@@ -181,6 +200,7 @@ SUITE(codegen_struct_suite) {
   RUN_TEST(test_eq_generation);
   RUN_TEST(test_guards_injection);
   RUN_TEST(test_null_args);
+  RUN_TEST(test_struct_fields_add_bitwidth);
 }
 
 #endif /* TEST_CODEGEN_STRUCT_H */

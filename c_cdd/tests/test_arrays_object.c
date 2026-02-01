@@ -35,7 +35,7 @@ TEST test_generated_obj_array_logic(void) {
   FILE *tmp;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL);
+  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
   tmp = tmpfile();
   ASSERT(tmp);
@@ -125,7 +125,7 @@ TEST test_cleanup_generation(void) {
   FILE *tmp;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL);
+  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
   tmp = tmpfile();
   ASSERT(tmp);

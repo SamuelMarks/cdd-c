@@ -48,8 +48,8 @@ TEST test_write_enum_functions(void) {
 TEST test_struct_fields_manage(void) {
   struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
-  ASSERT_EQ(0, struct_fields_add(&sf, "name", "string", NULL, NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "num", "integer", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "name", "string", NULL, NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL));
   struct_fields_free(&sf);
   PASS();
 }
@@ -74,6 +74,31 @@ TEST test_parse_struct_member_line(void) {
   PASS();
 }
 
+TEST test_parse_struct_member_bitfield(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+
+  /* int x : 3; */
+  ASSERT_EQ(0, parse_struct_member_line("int x : 3;", &sf));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("x", sf.fields[0].name);
+  ASSERT_STR_EQ("3", sf.fields[0].bit_width);
+  ASSERT_STR_EQ("integer", sf.fields[0].type);
+
+  /* Whitespace variation: int y:5; */
+  ASSERT_EQ(0, parse_struct_member_line("int y:5;", &sf));
+  ASSERT_STR_EQ("y", sf.fields[1].name);
+  ASSERT_STR_EQ("5", sf.fields[1].bit_width);
+
+  /* Type variation: unsigned int z : 1; */
+  ASSERT_EQ(0, parse_struct_member_line("unsigned int z : 1;", &sf));
+  ASSERT_STR_EQ("z", sf.fields[2].name);
+  ASSERT_STR_EQ("1", sf.fields[2].bit_width);
+
+  struct_fields_free(&sf);
+  PASS();
+}
+
 static struct StructFields test_struct_fields;
 TEST test_write_struct_functions(void) {
   FILE *tmpf = tmpfile();
@@ -84,9 +109,9 @@ TEST test_write_struct_functions(void) {
   struct_fields_init(&test_struct_fields);
 
   ASSERT_EQ(0, struct_fields_add(&test_struct_fields, "str_field", "string",
-                                 NULL, NULL));
+                                 NULL, NULL, NULL));
   ASSERT_EQ(0, struct_fields_add(&test_struct_fields, "int_field", "integer",
-                                 NULL, NULL));
+                                 NULL, NULL, NULL));
 
   ASSERT_EQ(0, write_struct_to_json_func(tmpf, "TestStruct",
                                          &test_struct_fields, NULL));
@@ -112,7 +137,7 @@ TEST test_struct_fields_overflow(void) {
 #else
     sprintf(name, "f%d", i);
 #endif
-    ASSERT_EQ(0, struct_fields_add(&sf, name, "string", NULL, NULL));
+    ASSERT_EQ(0, struct_fields_add(&sf, name, "string", NULL, NULL, NULL));
   }
   ASSERT_GT(sf.size, n * 2);
   struct_fields_free(&sf);
@@ -258,14 +283,17 @@ TEST test_codegen_all_field_types(void) {
 
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_string", "string", NULL, NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_integer", "integer", NULL, NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_boolean", "boolean", NULL, NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_number", "number", NULL, NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_enum", "enum", "MyEnum", NULL));
-  ASSERT_EQ(0, struct_fields_add(&sf, "f_object", "object", "MyStruct", NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_string", "string", NULL, NULL, NULL));
+  ASSERT_EQ(0,
+            struct_fields_add(&sf, "f_integer", "integer", NULL, NULL, NULL));
+  ASSERT_EQ(0,
+            struct_fields_add(&sf, "f_boolean", "boolean", NULL, NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_number", "number", NULL, NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_enum", "enum", "MyEnum", NULL, NULL));
   ASSERT_EQ(
-      0, struct_fields_add(&sf, "f_unhandled", "unhandled_type", NULL, NULL));
+      0, struct_fields_add(&sf, "f_object", "object", "MyStruct", NULL, NULL));
+  ASSERT_EQ(0, struct_fields_add(&sf, "f_unhandled", "unhandled_type", NULL,
+                                 NULL, NULL));
 
   /* Call all generator functions with this comprehensive struct fields */
   ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "TestStruct", &sf, NULL));
@@ -323,7 +351,7 @@ TEST test_codegen_struct_null_args(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf_valid);
-  struct_fields_add(&sf_valid, "field", "string", NULL, NULL);
+  struct_fields_add(&sf_valid, "field", "string", NULL, NULL, NULL);
 
   ASSERT_EQ(EINVAL,
             write_struct_from_jsonObject_func(NULL, "S", &sf_valid, NULL));
@@ -372,6 +400,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_struct_fields_manage);
   RUN_TEST(test_str_starts_with);
   RUN_TEST(test_parse_struct_member_line);
+  RUN_TEST(test_parse_struct_member_bitfield);
   RUN_TEST(test_write_struct_functions);
   RUN_TEST(test_struct_fields_overflow);
   RUN_TEST(test_enum_members_overflow);

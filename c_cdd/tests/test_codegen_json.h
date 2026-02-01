@@ -22,8 +22,8 @@
 /* Common Setup */
 static void setup_fields(struct StructFields *sf) {
   struct_fields_init(sf);
-  struct_fields_add(sf, "id", "integer", NULL, "0");
-  struct_fields_add(sf, "data", "string", NULL, NULL);
+  struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
+  struct_fields_add(sf, "data", "string", NULL, NULL, NULL);
 }
 
 TEST test_json_to_plain(void) {
@@ -93,7 +93,7 @@ TEST test_json_recursive_obj(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "child", "object", "ChildType", NULL);
+  struct_fields_add(&sf, "child", "object", "ChildType", NULL, NULL);
 
   ASSERT_EQ(0, write_struct_to_json_func(tmp, "Parent", &sf, NULL));
 
@@ -122,7 +122,7 @@ TEST test_json_array_logic(void) {
   ASSERT(tmp);
   struct_fields_init(&sf);
   /* Array of strings */
-  struct_fields_add(&sf, "tags", "array", "string", NULL);
+  struct_fields_add(&sf, "tags", "array", "string", NULL, NULL);
 
   ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Post", &sf, NULL));
 

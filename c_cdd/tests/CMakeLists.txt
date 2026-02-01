@@ -33,14 +33,18 @@ set(Header_Files
         "test_analysis.h" 
         "test_c_cdd_integration.h" 
         "test_code2schema.h" 
-        "test_codegen_defaults.h"
-        "test_codegen_eq.h"
-        "test_codegen_validation.h"
-        "test_codegen_root_arrays.h"
+        "test_codegen_build.h" 
+        "test_codegen_defaults.h" 
+        "test_codegen_eq.h" 
+        "test_codegen_make.h" 
+        "test_codegen_validation.h" 
+        "test_codegen_root_arrays.h" 
+        "test_codegen_sdk_tests.h" 
         "test_cst_parser.h" 
         "test_dataclasses.h" 
         "test_fs.h" 
         "test_json_from_and_to.h" 
+        "test_openapi_client_gen.h" 
         "test_parsing.h" 
         "test_rewriter_body.h" 
         "test_rewriter_sig.h" 
@@ -49,15 +53,9 @@ set(Header_Files
         "test_simple_json.h" 
         "test_sync_code.h" 
         "test_tokenizer.h" 
+        "test_transport_factory.h" 
 ) 
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
-
-#add_library("${LIBRARY_NAME}" INTERFACE) 
-#target_sources("${LIBRARY_NAME}" INTERFACE "${Header_Files}") 
-# 
-#if(MSVC) 
-#    add_custom_target("${LIBRARY_NAME}.headers" SOURCES "${Header_Files}") 
-#endif() 
 
 add_library("${LIBRARY_NAME}" INTERFACE) 
 add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}") 
@@ -147,4 +145,21 @@ set_target_properties(
 ) 
 target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks") 
 
+add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}") 
+
+################### 
+# Integration Test # 
+################### 
+
+set(EXEC_NAME "test_integration_full_sdk") 
+set(Source_Files "${EXEC_NAME}.c") 
+add_executable("${EXEC_NAME}" "${Source_Files}") 
+
+target_include_directories( 
+        "${EXEC_NAME}" 
+        PRIVATE
+        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" 
+) 
+set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C) 
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}") 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")

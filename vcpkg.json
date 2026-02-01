@@ -7,6 +7,7 @@
   "dependencies": [
     "c-str-span",
     "c89stringutils",
+    "curl",
     "parson"
   ]
 }

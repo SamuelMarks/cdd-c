@@ -12,7 +12,8 @@
  * Updates:
  * - Support for `nullptr` keyword (mapped to `NULL`).
  * - Support for binary literals `0b...` (mapped to decimal).
- * - flexible array member support.
+ * - Flexible array member support.
+ * - Bit-field support via `bit_width`.
  *
  * @author Samuel Marks
  */
@@ -59,6 +60,8 @@ struct StructField {
   /* C Type Properties */
   int is_flexible_array; /**< 1 if field is a Flexible Array Member `type
                             name[]`, 0 otherwise */
+  char bit_width[16]; /**< Bit-field width literal (e.g. "3", "8"), or empty if
+                         not a bit-field */
 };
 
 /**
@@ -104,12 +107,14 @@ extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
  * @param[in] type Field type ("integer", "string", "object", etc.)
  * @param[in] ref Reference type (nullable).
  * @param[in] default_val Default value literal (nullable).
+ * @param[in] bit_width Bit-field width literal (nullable, e.g. "3").
  * @return 0 on success, ENOMEM on failure.
  */
 extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
                                           const char *name, const char *type,
                                           const char *ref,
-                                          const char *default_val);
+                                          const char *default_val,
+                                          const char *bit_width);
 
 /**
  * @brief Search for a field by name.
