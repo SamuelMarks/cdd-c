@@ -128,8 +128,10 @@ static int is_inside_condition(const struct TokenList *tokens, size_t idx) {
           prev--;
           if (tokens->tokens[prev].kind == TOKEN_WHITESPACE)
             continue;
-          if (token_matches_string(&tokens->tokens[prev], "if") ||
-              token_matches_string(&tokens->tokens[prev], "while")) {
+
+          /* Check for KEYWORDS if/while */
+          if (tokens->tokens[prev].kind == TOKEN_KEYWORD_IF ||
+              tokens->tokens[prev].kind == TOKEN_KEYWORD_WHILE) {
             return 1;
           }
           break;
@@ -149,9 +151,7 @@ static int is_dereference_use(const struct TokenList *tokens, size_t i) {
     size_t prev = i - 1;
     while (prev > 0 && tokens->tokens[prev].kind == TOKEN_WHITESPACE)
       prev--;
-    if (tokens->tokens[prev].kind == TOKEN_OTHER &&
-        tokens->tokens[prev].length == 1 &&
-        *tokens->tokens[prev].start == '*') {
+    if (tokens->tokens[prev].kind == TOKEN_STAR) {
       return 1;
     }
   }
@@ -161,8 +161,7 @@ static int is_dereference_use(const struct TokenList *tokens, size_t i) {
       next++;
     if (next < tokens->size) {
       const struct Token *t = &tokens->tokens[next];
-      if ((t->length == 2 && strncmp((char *)t->start, "->", 2) == 0) ||
-          (t->kind == TOKEN_OTHER && t->length == 1 && *t->start == '[')) {
+      if (t->kind == TOKEN_ARROW || t->kind == TOKEN_LBRACKET) {
         return 1;
       }
     }
@@ -239,8 +238,8 @@ int find_allocations(const struct TokenList *const tokens,
               prev--;
               if (tokens->tokens[prev].kind == TOKEN_WHITESPACE)
                 continue;
-              if (tokens->tokens[prev].kind == TOKEN_IDENTIFIER &&
-                  token_matches_string(&tokens->tokens[prev], "return")) {
+
+              if (tokens->tokens[prev].kind == TOKEN_KEYWORD_RETURN) {
                 is_return = 1;
               }
               break;
@@ -265,9 +264,7 @@ int find_allocations(const struct TokenList *const tokens,
                   tokens->tokens[prev].kind == TOKEN_RBRACE) {
                 break;
               }
-              if (tokens->tokens[prev].kind == TOKEN_OTHER &&
-                  tokens->tokens[prev].length == 1 &&
-                  *tokens->tokens[prev].start == '=') {
+              if (tokens->tokens[prev].kind == TOKEN_ASSIGN) {
                 var_name = get_assigned_var(tokens, prev);
                 break;
               }

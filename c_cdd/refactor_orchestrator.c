@@ -203,8 +203,10 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
   /* Check properties */
   for (i = start; i < name_end_idx; ++i) {
     const struct Token *tok = &tokens->tokens[i];
-    if (tok->kind == TOKEN_OTHER && tok->length == 1 && *tok->start == '*') {
+    if (tok->kind == TOKEN_STAR) {
       *is_ptr = 1;
+    } else if (tok->kind == TOKEN_KEYWORD_VOID) {
+      *is_void = 1;
     } else if (tok->kind == TOKEN_IDENTIFIER) {
       if (token_eq_str(tok, "void")) {
         *is_void = 1;

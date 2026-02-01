@@ -5,20 +5,19 @@
  * Robustly parses function definitions/declarations token streams and
  * rewrites them to follow the pattern: `int function_name(args, Type *out)`.
  *
- * Supports:
- * - `void func(...)` -> `int func(...)`
- * - `Type func(...)` -> `int func(..., Type *out)`
- * - `struct S func(...)` -> `int func(..., struct S *out)`
- * - `Type* func(...)` -> `int func(..., Type **out)`
- * - Preservation of storage specifiers (`static`, `extern`).
- * - Preservation of `const`, `volatile`, and complex pointer types (`char
- * ***`).
+ * Capabilities:
+ * - Robust handling of C23 Attributes `[[nodiscard]]`.
+ * - Deep parsing of declarators to support array arguments `int a[]` and
+ *   function pointer arguments `int (*cb)(void)`.
+ * - Preservation of storage specifiers and qualifiers.
+ * - Support for K&R style obsolescent function definitions:
+ *   `int foo(a) int a; { ... }`.
  *
  * @author Samuel Marks
  */
 
-#ifndef REWRITER_SIG_H
-#define REWRITER_SIG_H
+#ifndef C_CDD_REWRITER_SIG_H
+#define C_CDD_REWRITER_SIG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,16 +29,16 @@ extern "C" {
 /**
  * @brief Rewrite a function signature token stream into a C string.
  *
- * Scans the provided token list (expected to represent a single function
- * declaration/definition up to the closing parenthesis) and generates
- * a refactored C code string with an `int` return type.
+ * Analyzes the provided token list (representing a function header) to
+ * decompose it into Attributes, Storage Class, Return Type, Name, Arguments,
+ * and optional K&R Declarations.
  *
- * Rules:
- * 1. If return type is `void` (and not pointer), change to `int`.
- * 2. If return type is `int` (and not a pointer), keep as is (assumed error
- * code).
- * 3. Otherwise (e.g. `double`, `char*`, `struct S`), change return type to
- * `int` and append the original type as a pointer argument named `out`.
+ * Transformation Rules:
+ * 1. `void func(...)` -> `int func(...)`
+ * 2. `Type func(...)` -> `int func(..., Type *out)`
+ * 3. Preserves `[[...]]` attributes and storage specifiers like `static`.
+ * 4. Preserves K&R declaration lists, injecting `out` parameter declarations
+ *    if necessary (e.g., `int f(a, out) int a; Type *out;`).
  *
  * @param[in] tokens Valid token list containing the function header.
  * @param[out] out_code Pointer to char* where the allocated result string will
@@ -53,4 +52,4 @@ extern C_CDD_EXPORT int rewrite_signature(const struct TokenList *tokens,
 }
 #endif /* __cplusplus */
 
-#endif /* REWRITER_SIG_H */
+#endif /* C_CDD_REWRITER_SIG_H */

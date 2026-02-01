@@ -5,9 +5,12 @@
  * Implements scanning of types (using text heuristics) and functions (using
  * Token/CST analysis).
  *
+ * Updated to support C23 Enum fixed types and single-line definitions.
+ *
  * @author Samuel Marks
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,7 +90,6 @@ static int add_type_def(struct TypeDefList *const list,
   return 0;
 }
 
-/* Naive line-reader based parser for types */
 int c_inspector_scan_file_types(const char *const filename,
                                 struct TypeDefList *const out) {
   FILE *fp = NULL;
@@ -114,103 +116,155 @@ int c_inspector_scan_file_types(const char *const filename,
 
   while (fgets(line, sizeof(line), fp)) {
     char *p = line;
-    /* Trim Leading WS */
-    while (*p && (*p == ' ' || *p == '\t'))
-      p++;
-    if (!*p)
-      continue;
+    char *close_brace = NULL;
 
-    /* Trim Trailing Whitespace */
-    c_cdd_str_trim_trailing_whitespace(p);
+    /* Inner loop to handle multiple tokens/state changes on one line */
+    while (*p) {
+      /* Trim Leading WS */
+      while (*p && isspace((unsigned char)*p))
+        p++;
+      if (!*p)
+        break;
 
-    if (state == ST_NONE) {
-      if (c_cdd_str_starts_with(p, "enum ") ||
-          c_cdd_str_starts_with(p, "struct ")) {
-        char *brace = strchr(p, '{');
+      if (state == ST_NONE) {
+        if (c_cdd_str_starts_with(p, "enum ") ||
+            c_cdd_str_starts_with(p, "struct ")) {
+          char *brace = strchr(p, '{');
 
-        if (brace) {
-          int is_enum = c_cdd_str_starts_with(p, "enum ");
-          /* Extract "Name" from "enum Name {" or "struct Name {" */
-          const char *name_start = p + (is_enum ? 5 : 7);
+          if (brace) {
+            int is_enum = c_cdd_str_starts_with(p, "enum ");
+            /* Extract "Name" from "enum Name {" or "struct Name {" */
+            const char *name_start = p + (is_enum ? 5 : 7);
+            const char *name_end_ptr = brace;
 
-          if (brace > name_start) {
-            size_t n_len = (size_t)(brace - name_start);
-            /* Trim trailing spaces from name buffer range */
-            while (n_len > 0 && name_start[n_len - 1] == ' ')
-              n_len--;
+            /* Handle C23 enum fixed type: enum Name : type { */
+            if (is_enum) {
+              char *colon = NULL;
+              char *scan = (char *)name_start;
+              while (scan < brace) {
+                if (*scan == ':') {
+                  colon = scan;
+                  break;
+                }
+                scan++;
+              }
+              if (colon) {
+                name_end_ptr = colon;
+              }
+            }
 
-            if (n_len > 0 && n_len < sizeof(current_name)) {
-              memcpy(current_name, name_start, n_len);
-              current_name[n_len] = '\0';
-            } else
+            if (name_end_ptr > name_start) {
+              size_t n_len = (size_t)(name_end_ptr - name_start);
+
+              /* Trim leading whitespace from name */
+              while (n_len > 0 && isspace((unsigned char)*name_start)) {
+                name_start++;
+                n_len--;
+              }
+
+              /* Trim trailing spaces from name buffer range */
+              while (n_len > 0 && isspace((unsigned char)name_start[n_len - 1]))
+                n_len--;
+
+              if (n_len > 0 && n_len < sizeof(current_name)) {
+                memcpy(current_name, name_start, n_len);
+                current_name[n_len] = '\0';
+              } else
+                current_name[0] = 0;
+            } else {
               current_name[0] = 0;
-          } else {
-            current_name[0] = 0;
-          }
+            }
 
-          if (is_enum) {
-            curr_em = (struct EnumMembers *)calloc(1, sizeof(*curr_em));
-            if (!curr_em || enum_members_init(curr_em) != 0) {
-              rc = ENOMEM;
-              break;
+            if (is_enum) {
+              curr_em = (struct EnumMembers *)calloc(1, sizeof(*curr_em));
+              if (!curr_em || enum_members_init(curr_em) != 0) {
+                rc = ENOMEM;
+                break;
+              }
+              state = ST_ENUM;
+            } else {
+              curr_sf = (struct StructFields *)calloc(1, sizeof(*curr_sf));
+              if (!curr_sf || struct_fields_init(curr_sf) != 0) {
+                rc = ENOMEM;
+                break;
+              }
+              state = ST_STRUCT;
             }
-            state = ST_ENUM;
+
+            /* Advance p to inside the brace */
+            p = brace + 1;
+            continue;
           } else {
-            curr_sf = (struct StructFields *)calloc(1, sizeof(*curr_sf));
-            if (!curr_sf || struct_fields_init(curr_sf) != 0) {
-              rc = ENOMEM;
-              break;
-            }
-            state = ST_STRUCT;
+            /* No brace found, possibly forward decl or split line. Skip line.
+             */
+            break;
           }
         }
-      }
-    } else {
-      /* Inside a definition block */
-      if (strchr(p, '}')) {
-        /* Commit Definition */
-        if (current_name[0] != '\0') {
-          if (state == ST_ENUM) {
-            if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0)
-              rc = ENOMEM;
-            curr_em = NULL; /* Ownership transferred */
-          } else {
-            if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0)
-              rc = ENOMEM;
-            curr_sf = NULL;
-          }
-        } else {
-          /* Anonymous or malformed, discard */
-          if (curr_em) {
-            enum_members_free(curr_em);
-            free(curr_em);
-            curr_em = NULL;
-          }
-          if (curr_sf) {
-            struct_fields_free(curr_sf);
-            free(curr_sf);
-            curr_sf = NULL;
-          }
-        }
-        state = ST_NONE;
+        /* Skip unknown content in ST_NONE */
+        p++;
       } else {
-        /* Parse Member */
-        if (state == ST_ENUM && curr_em) {
-          /* "VAL," -> extract VAL */
-          char *comma = strchr(p, ',');
-          if (comma)
-            *comma = 0;
-          /* Remove assignment like "VAL = 5" */
-          {
-            char *eq = strchr(p, '=');
-            if (eq)
-              *eq = 0;
+        /* Inside a definition block */
+        close_brace = strchr(p, '}');
+
+        if (close_brace) {
+          *close_brace =
+              '\0'; /* Temporarily terminate to parse members up to } */
+        }
+
+        /* Parse Member string in p (up to terminator) */
+        /* For enums on one line: "A, B" */
+        if (state == ST_ENUM && curr_em && *p) {
+          char *copy = c_cdd_strdup(p);
+          if (copy) {
+            char *ctx = NULL;
+            char *tok = strtok_r(copy, ",", &ctx);
+            while (tok) {
+              char *eq = strchr(tok, '=');
+              if (eq)
+                *eq = 0;
+              c_cdd_str_trim_trailing_whitespace(tok);
+              while (*tok && isspace((unsigned char)*tok))
+                tok++;
+              if (*tok)
+                enum_members_add(curr_em, tok);
+              tok = strtok_r(NULL, ",", &ctx);
+            }
+            free(copy);
           }
-          c_cdd_str_trim_trailing_whitespace(p);
-          if (*p)
-            enum_members_add(curr_em, p);
         } else if (state == ST_STRUCT && curr_sf) {
-          parse_struct_member_line(p, curr_sf);
+          if (*p)
+            parse_struct_member_line(p, curr_sf);
+        }
+
+        if (close_brace) {
+          /* Definition Ended */
+          if (current_name[0] != '\0') {
+            if (state == ST_ENUM) {
+              if (add_type_def(out, KIND_ENUM, current_name, curr_em) != 0)
+                rc = ENOMEM;
+              curr_em = NULL;
+            } else {
+              if (add_type_def(out, KIND_STRUCT, current_name, curr_sf) != 0)
+                rc = ENOMEM;
+              curr_sf = NULL;
+            }
+          } else {
+            if (curr_em) {
+              enum_members_free(curr_em);
+              free(curr_em);
+              curr_em = NULL;
+            }
+            if (curr_sf) {
+              struct_fields_free(curr_sf);
+              free(curr_sf);
+              curr_sf = NULL;
+            }
+          }
+          state = ST_NONE;
+          p = close_brace + 1; /* Continue processing after } */
+        } else {
+          /* No closing brace, consumed rest of line as member */
+          break;
         }
       }
     }
@@ -309,12 +363,11 @@ int c_inspector_extract_signatures(const char *const source_code,
       size_t name_idx = 0;
       int found_name = 0;
 
-      /* Find function name: Token before LPAREN */
       {
         size_t k = start_idx;
         while (k < end_idx) {
           if (tl->tokens[k].kind == TOKEN_LBRACE) {
-            sig_end_idx = k; /* Start of body is end of sig */
+            sig_end_idx = k;
             break;
           }
           if (tl->tokens[k].kind == TOKEN_LPAREN && !found_name) {

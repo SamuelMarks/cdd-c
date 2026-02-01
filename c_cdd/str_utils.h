@@ -3,7 +3,9 @@
  * @brief Centralized string utilities and platform compatibility safeguards.
  *
  * Consolidates memory-safe string duplication, inspection, modifications,
- * and format specifier macros previously scattered across the codebase.
+ * and format specifier macros.
+ *
+ * Added `c_cdd_destringize` for _Pragma argument handling.
  *
  * @author Samuel Marks
  */
@@ -32,10 +34,6 @@ extern "C" {
 
 /**
  * @brief Format specifier for size_t/ssize_t.
- * Windows uses "z" (e.g., %zu) on modern versions, or "I" on older ones.
- * POSIX uses "z" or "l" depending on word size.
- * We normalize to "z" for Windows target and "l" for others in this specific
- * dialect.
  */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define NUM_LONG_FMT "z"
@@ -47,7 +45,6 @@ extern "C" {
 
 /**
  * @brief Duplicate a string.
- * Wrapper around `strdup` / `_strdup` to handle platform differences.
  *
  * @param[in] s The null-terminated string to duplicate.
  * @return A pointer to the new string, or NULL if allocation failed or input
@@ -69,7 +66,6 @@ extern C_CDD_EXPORT bool c_cdd_str_starts_with(const char *str,
 
 /**
  * @brief Check if two strings are equal (content-wise).
- * Safe to pass NULL; two NULLs are considered equal.
  *
  * @param[in] a First string.
  * @param[in] b Second string.
@@ -79,25 +75,19 @@ extern C_CDD_EXPORT bool c_cdd_str_equal(const char *a, const char *b);
 
 /**
  * @brief Find the substring after the last occurrence of a character.
- * Useful for extracting types from references (e.g., "#/definitions/MyType" ->
- * "MyType").
  *
  * @param[in] str The string to search.
  * @param[in] delimiter The delimiter character (e.g., '/').
- * @return Pointer to character immediately following the last delimiter,
- *         or `str` if delimiter not found. Returns empty string if `str` is
- * NULL.
+ * @return Pointer to character immediately following the last delimiter.
  */
 extern C_CDD_EXPORT const char *c_cdd_str_after_last(const char *str,
                                                      int delimiter);
 
 /**
- * @brief Check if a pointer reference (string) matches a specific type name.
- * Handles the logic of extracting the base type from a $ref path before
- * comparison.
+ * @brief Check if a pointer reference matches a specific type name.
  *
- * @param[in] ref The reference path (e.g., "#/components/schemas/Integer").
- * @param[in] type The simple type name to check against (e.g., "Integer").
+ * @param[in] ref The reference path.
+ * @param[in] type The simple type name.
  * @return true if the extracted name matches `type`.
  */
 extern C_CDD_EXPORT bool c_cdd_ref_is_type(const char *ref, const char *type);
@@ -105,12 +95,24 @@ extern C_CDD_EXPORT bool c_cdd_ref_is_type(const char *ref, const char *type);
 /* --- Modification Helpers --- */
 
 /**
- * @brief Remove trailing whitespace (spaces, tabs, newlines) from a string
- * in-place.
+ * @brief Remove trailing whitespace from a string in-place.
  *
  * @param[in,out] str The string to modify.
  */
 extern C_CDD_EXPORT void c_cdd_str_trim_trailing_whitespace(char *str);
+
+/**
+ * @brief Decode a string literal token for _Pragma usage.
+ *
+ * Performs "destringizing" (6.10.9) to convert a string literal token into
+ * the corresponding preprocessing tokens text.
+ * 1. Removes surrounding quotes.
+ * 2. Unescapes `\"` to `"` and `\\` to `\`.
+ *
+ * @param[in] quoted The string literal (with quotes).
+ * @return Allocated string containing the decoded content, or NULL on error.
+ */
+extern C_CDD_EXPORT char *c_cdd_destringize(const char *quoted);
 
 #ifdef __cplusplus
 }
