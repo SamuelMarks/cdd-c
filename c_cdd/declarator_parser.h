@@ -3,13 +3,12 @@
  * @brief "Right-Left" (Spiral) parser for C declarations.
  *
  * Implements logic to parse complex C declarators into a structured type chain.
- * Correctly handles operator precedence (arrays/functions binding tighter than
- * pointers) and grouping parentheses.
- *
- * Usage:
- * - `int *(*f)(int)` -> Identifier: "f", Type: Pointer -> Function -> Pointer
- * -> Base(int)
- * - `struct S a[10]` -> Identifier: "a", Type: Array(10) -> Base(struct S)
+ * Correctly handles:
+ * - Operator precedence (arrays/functions binding tighter than pointers).
+ * - Grouping parentheses.
+ * - Abstract Declarators (casts, sizeof).
+ * - Type Qualifiers (`const`, `volatile`, `restrict`, `_Atomic`).
+ * - C11/C23 Constructs (`_Atomic(T)`, `_Complex`).
  *
  * @author Samuel Marks
  */
@@ -23,13 +22,15 @@ extern "C" {
 
 #include "c_cdd_export.h"
 #include "tokenizer.h"
+#include <limits.h>
 #include <stddef.h>
 
 /**
  * @brief Classification of a type node in the chain.
  */
 enum DeclTypeKind {
-  DECL_BASE,  /**< The fundamental type (int, struct S, typeof(x)) */
+  DECL_BASE,  /**< The fundamental type/specifier (int, struct S, _Atomic(int))
+               */
   DECL_PTR,   /**< Pointer (*) */
   DECL_ARRAY, /**< Array ([]) */
   DECL_FUNC   /**< Function (()) */
@@ -39,8 +40,7 @@ enum DeclTypeKind {
  * @brief A node in the type chain description.
  *
  * The chain is ordered from outer-most wrapper to inner-most type.
- * e.g. `int *a[]` (Array of Pointers to Int) ->
- *      [ARRAY] -> [PTR] -> [BASE(int)]
+ * e.g. `int * const x` -> [PTR(const)] -> [BASE(int)]
  */
 struct DeclType {
   enum DeclTypeKind kind;
@@ -48,17 +48,16 @@ struct DeclType {
 
   union {
     struct {
-      char *name; /**< Full text of base type (e.g. "const unsigned int") */
+      char *name; /**< Full text of base type specifiers */
     } base;
     struct {
-      char *qualifiers; /**< Pointer qualifiers (e.g. "const", "restrict") */
+      char *qualifiers; /**< Pointer qualifiers, or NULL */
     } ptr;
     struct {
-      char *size_expr; /**< Dimension expression (e.g. "10", "MAX"), or NULL if
-                          empty "[]" */
+      char *size_expr; /**< Dimension expression, or NULL */
     } array;
     struct {
-      char *args_str; /**< Raw text of argument list (e.g. "int a, float b") */
+      char *args_str; /**< Raw text of argument list */
     } func;
   } data;
 };
@@ -67,7 +66,7 @@ struct DeclType {
  * @brief Result of parsing a full declaration.
  */
 struct DeclInfo {
-  char *identifier;      /**< Name of the variable/function declared */
+  char *identifier;      /**< Name of the variable/function declared. */
   struct DeclType *type; /**< Head of the type chain */
 };
 
@@ -79,19 +78,12 @@ extern C_CDD_EXPORT void decl_info_init(struct DeclInfo *info);
 
 /**
  * @brief Free resources in a DeclInfo structure.
- * Recursively frees the type chain.
  * @param[in] info The structure to free.
  */
 extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
 
 /**
  * @brief Parse a declaration token range.
- *
- * Deconstructs a C declaration using the Spiral Rule.
- * 1. Locates the identifier (pivot).
- * 2. Unwinds operators right (arrays/functions) and left (pointers) respecting
- * grouping.
- * 3. Captures remaining left-side tokens as the base specifier.
  *
  * @param[in] tokens The full token stream.
  * @param[in] start_idx Start index of the declaration statement.

@@ -4,7 +4,7 @@
  *
  * Implements a state-machine-like scanner to differentiate between integers
  * and floats, handles base prefixes, computes values for non-standard bases
- * (binary), and detects type suffixes.
+ * (binary), and detects type suffixes including C23 Decimal Floats.
  *
  * @author Samuel Marks
  */
@@ -17,24 +17,6 @@
 #include <string.h>
 
 #include "numeric_parser.h"
-
-/**
- * @brief Check if a character is a valid decimal digit.
- */
-static int is_dec_digit(char c) { return (c >= '0' && c <= '9'); }
-
-/**
- * @brief Check if a character is a valid hexadecimal digit.
- */
-static int is_hex_digit(char c) {
-  return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
-         (c >= 'A' && c <= 'F');
-}
-
-/**
- * @brief Check if a character is a valid binary digit.
- */
-static int is_bin_digit(char c) { return (c == '0' || c == '1'); }
 
 /**
  * @brief Parse integer type suffixes (u, l, ll).
@@ -61,9 +43,6 @@ static int parse_int_suffixes(const char *str, struct IntegerInfo *info) {
           /* Actually, if we see 'L' and we are already long, it implies LL if
              we handle standard order. But standard allows 'Lu', 'uL', 'LLu',
              'uLL'. We need to handle `ll` as a unit or statefully. */
-          /* Simplified approach: handled by single char lookahead logic below?
-             The loop processes one char. If 'l' found and is_long is true,
-             upgrade to LL. */
           info->is_long = 0;
           info->is_long_long = 1;
         } else {
@@ -122,7 +101,6 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
   int is_bin = 0;
   int is_oct = 0;
   int is_float = 0; /* Has decimal point or exponent */
-  size_t len;
   const char *p = str;
   const char *start_digits;
   char *end_ptr = NULL;
@@ -164,6 +142,7 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
   /* Scan content to distinguish Float vs Int */
   /* Hex float: 0x...p... */
   /* Int: 0x... */
+  /* Decimal: 1.23, 1e5 */
   while (*p &&
          (isalnum((unsigned char)*p) || *p == '.' || *p == '+' || *p == '-')) {
     if (*p == '.') {
@@ -193,7 +172,25 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
 
     /* Parse Suffixes */
     if (*end_ptr != '\0') {
-      if (*end_ptr == 'f' || *end_ptr == 'F') {
+      /* C23 Decimal Float Suffixes: df/DF, dd/DD, dl/DL */
+      if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
+          (end_ptr[1] == 'f' || end_ptr[1] == 'F')) {
+        out->data.floating.is_decimal = DFP_32;
+        if (end_ptr[2] != '\0')
+          return EINVAL;
+      } else if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
+                 (end_ptr[1] == 'd' || end_ptr[1] == 'D')) {
+        out->data.floating.is_decimal = DFP_64;
+        if (end_ptr[2] != '\0')
+          return EINVAL;
+      } else if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
+                 (end_ptr[1] == 'l' || end_ptr[1] == 'L')) {
+        out->data.floating.is_decimal = DFP_128;
+        if (end_ptr[2] != '\0')
+          return EINVAL;
+      }
+      /* Standard Binary Float Suffixes */
+      else if (*end_ptr == 'f' || *end_ptr == 'F') {
         out->data.floating.is_float = 1;
         if (end_ptr[1] != '\0')
           return EINVAL; /* Junk after suffix */
@@ -216,9 +213,6 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
       out->data.integer.base = 2;
     } else {
       /* Handle hex/oct/dec via strtoull */
-      /* Note: C89 has strtoul (unsigned long), C99 has strtoull.
-         Testing Env likely supports C99. If exact C89 needed, would use
-         strtoul. */
       int base = is_hex ? 16 : (is_oct ? 8 : 10);
       /* Use base 0 to let stdlib handle prefixes if we preserved them?
          We advanced 'start_digits' past 0x. */

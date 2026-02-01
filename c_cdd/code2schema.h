@@ -6,20 +6,31 @@
  */
 
 #ifndef CODE2SCHEMA_H
+
 #define CODE2SCHEMA_H
 
 #ifdef __cplusplus
+
 #include <cstdlib>
+
 #include <cstring>
+
 extern "C" {
+
 #else
+
 #include <stdlib.h>
+
 #include <string.h>
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+
 #include <stdbool.h>
+
 #else
+
 #include <c_cdd_stdbool.h>
+
 #endif /* __STDC_VERSION__ >= 199901L */
 
 #endif /* __cplusplus */
@@ -37,65 +48,8 @@ extern "C" {
  * @param[in] argv Argument vector.
  * @return 0 on success, EXIT_FAILURE on error.
  */
+
 extern C_CDD_EXPORT int code2schema_main(int argc, char **argv);
-
-/**
- * @brief Initialize a StructFields container.
- *
- * @param[out] sf Pointer to the container to initialize.
- * @return 0 on success, ENOMEM on failure.
- */
-extern C_CDD_EXPORT int struct_fields_init(struct StructFields *sf);
-
-/**
- * @brief Free memory associated with a StructFields container.
- *
- * @param[in] sf Pointer to the container.
- */
-extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
-
-/**
- * @brief Add a field to the StructFields container.
- * Resizes internal storage if necessary.
- *
- * @param[in,out] sf Pointer to the container.
- * @param[in] name Name of the field.
- * @param[in] type Type of the field (e.g. "string", "integer").
- * @param[in] ref Reference type name if applicable, or NULL.
- * @param[in] default_val Default value string (e.g. "5", "\"val\"") or NULL.
- * @return 0 on success, ENOMEM on failure.
- */
-extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
-                                          const char *name, const char *type,
-                                          const char *ref,
-                                          const char *default_val);
-
-/**
- * @brief Initialize an EnumMembers container.
- *
- * @param[out] em Pointer to the container to initialize.
- * @return 0 on success, ENOMEM on failure.
- */
-extern C_CDD_EXPORT int enum_members_init(struct EnumMembers *em);
-
-/**
- * @brief Free memory associated with an EnumMembers container.
- * Frees all member strings and the array itself.
- *
- * @param[in] em Pointer to the container.
- */
-extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *em);
-
-/**
- * @brief Add a member to the EnumMembers container.
- * Resizes internal storage if necessary.
- *
- * @param[in,out] em Pointer to the container.
- * @param[in] name Name of the enum member.
- * @return 0 on success, ENOMEM on failure.
- */
-extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
-                                         const char *name);
 
 /**
  * @brief Parse a line of C code declaring a struct member.
@@ -105,7 +59,9 @@ extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
  * @param[out] sf The container to add the field to.
  * @return 0 on success (including ignored lines), ENOMEM on allocation failure.
  */
+
 extern C_CDD_EXPORT int parse_struct_member_line(const char *line,
+
                                                  struct StructFields *sf);
 
 /**
@@ -116,8 +72,11 @@ extern C_CDD_EXPORT int parse_struct_member_line(const char *line,
  * @param[in] sf The fields of the struct.
  * @return 0 on success, ENOMEM on failure to allocate JSON nodes.
  */
+
 extern C_CDD_EXPORT int
+
 write_struct_to_json_schema(JSON_Object *schemas_obj, const char *struct_name,
+
                             const struct StructFields *sf);
 
 /**
@@ -127,6 +86,7 @@ write_struct_to_json_schema(JSON_Object *schemas_obj, const char *struct_name,
  * @param[in] prefix The prefix.
  * @return true if matches, false otherwise.
  */
+
 extern C_CDD_EXPORT bool str_starts_with(const char *str, const char *prefix);
 
 /**
@@ -134,6 +94,7 @@ extern C_CDD_EXPORT bool str_starts_with(const char *str, const char *prefix);
  *
  * @param[in,out] str The string to trim.
  */
+
 extern C_CDD_EXPORT void trim_trailing(char *str);
 
 /**
@@ -143,7 +104,9 @@ extern C_CDD_EXPORT void trim_trailing(char *str);
  * @param[out] em The container to populate.
  * @return 0 on success, non-zero on failure.
  */
+
 extern C_CDD_EXPORT int json_array_to_enum_members(const JSON_Array *enum_arr,
+
                                                    struct EnumMembers *em);
 
 /**
@@ -156,13 +119,18 @@ extern C_CDD_EXPORT int json_array_to_enum_members(const JSON_Array *enum_arr,
  * types.
  * @return 0 on success, non-zero on failure.
  */
+
 extern C_CDD_EXPORT int
+
 json_object_to_struct_fields(const JSON_Object *schema_obj,
+
                              struct StructFields *fields,
+
                              const JSON_Object *schemas_obj_root);
 
 #ifdef __cplusplus
 }
+
 #endif /* __cplusplus */
 
 #endif /* CODE2SCHEMA_H */

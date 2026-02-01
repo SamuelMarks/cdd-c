@@ -5,6 +5,7 @@
  * Updates include:
  * - Integration of `numeric_parser` to handle binary literals.
  * - String comparison to handle `nullptr`.
+ * - Bit-field width persistence in StructField.
  *
  * @author Samuel Marks
  */
@@ -59,7 +60,8 @@ void struct_fields_free(struct StructFields *const sf) {
 
 int struct_fields_add(struct StructFields *const sf, const char *const name,
                       const char *const type, const char *const ref,
-                      const char *const default_val) {
+                      const char *const default_val,
+                      const char *const bit_width) {
   struct StructField *f;
   if (!sf || !name || !type)
     return EINVAL;
@@ -92,6 +94,11 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
   if (default_val) {
     strncpy(f->default_val, default_val, sizeof(f->default_val) - 1);
     f->default_val[sizeof(f->default_val) - 1] = '\0';
+  }
+
+  if (bit_width) {
+    strncpy(f->bit_width, bit_width, sizeof(f->bit_width) - 1);
+    f->bit_width[sizeof(f->bit_width) - 1] = '\0';
   }
 
   sf->size++;

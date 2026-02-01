@@ -40,8 +40,8 @@ TEST test_default_primitive(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, "42");
-  struct_fields_add(&sf, "flag", "boolean", NULL, "1");
+  struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
+  struct_fields_add(&sf, "flag", "boolean", NULL, "1", NULL);
 
   code = generate_def_code("Prim", &sf);
   ASSERT(code != NULL);
@@ -61,7 +61,7 @@ TEST test_default_string(void) {
 
   struct_fields_init(&sf);
   /* JSON string defaults usually come quoted e.g. "\"foo\"" from parser */
-  struct_fields_add(&sf, "s", "string", NULL, "\"hello\"");
+  struct_fields_add(&sf, "s", "string", NULL, "\"hello\"", NULL);
 
   code = generate_def_code("StrS", &sf);
   ASSERT(code != NULL);
@@ -87,7 +87,7 @@ TEST test_default_enum(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "e", "enum", "Color", "\"RED\"");
+  struct_fields_add(&sf, "e", "enum", "Color", "\"RED\"", NULL);
 
   code = generate_def_code("EnumStruct", &sf);
   ASSERT(code != NULL);
@@ -108,7 +108,7 @@ TEST test_default_no_defaults(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
   code = generate_def_code("NoDef", &sf);
   ASSERT(code != NULL);
@@ -127,9 +127,9 @@ TEST test_default_nullptr(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "ptr_val", "integer", NULL,
-                    "nullptr"); /* treated as raw */
-  struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr");
+  struct_fields_add(&sf, "ptr_val", "integer", NULL, "nullptr",
+                    NULL); /* treated as raw */
+  struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr", NULL);
 
   code = generate_def_code("PtrStruct", &sf);
   ASSERT(code != NULL);
@@ -149,9 +149,9 @@ TEST test_default_binary_literal(void) {
 
   struct_fields_init(&sf);
   /* 0b101 -> 5 */
-  struct_fields_add(&sf, "bin_val", "integer", NULL, "0b101");
+  struct_fields_add(&sf, "bin_val", "integer", NULL, "0b101", NULL);
   /* 0B11 -> 3 */
-  struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11");
+  struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11", NULL);
 
   code = generate_def_code("BinStruct", &sf);
   ASSERT(code != NULL);

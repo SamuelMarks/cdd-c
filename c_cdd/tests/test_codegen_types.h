@@ -27,8 +27,8 @@ TEST test_write_union_to_json(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "id", "integer", NULL, NULL);
-  struct_fields_add(&sf, "name", "string", NULL, NULL);
+  struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
 
   /* Generate */
   ASSERT_EQ(0, write_union_to_json_func(tmp, "MyUnion", &sf, &config));
@@ -62,7 +62,7 @@ TEST test_write_union_from_json(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL);
+  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
 
   /* Generate */
   ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "NumU", &sf, NULL));
@@ -93,8 +93,8 @@ TEST test_write_union_cleanup_switch(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "str", "string", NULL, NULL);
-  struct_fields_add(&sf, "num", "integer", NULL, NULL);
+  struct_fields_add(&sf, "str", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL);
 
   ASSERT_EQ(0, write_union_cleanup_func(tmp, "U", &sf, NULL));
 
@@ -200,7 +200,7 @@ TEST test_union_guards(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
   cfg.json_guard = "JSON_G";
   cfg.utils_guard = NULL;

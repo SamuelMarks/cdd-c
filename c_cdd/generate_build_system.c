@@ -1,455 +1,164 @@
-#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
-#include <stdio.h>
-#else
-#include <c89stringutils_string_extras.h>
-#endif
+/**
+ * @file generate_build_system.c
+ * @brief Implementation of build system scaffolding.
+ *
+ * writes CMakeLists.txt files with logic to selectively link against
+ * system networking libraries based on the target platform.
+ *
+ * @author Samuel Marks
+ */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "generate_build_system.h"
-
 #include "fs.h"
+#include "generate_build_system.h"
+#include "str_utils.h"
 
-#include <sys/stat.h>
-
-static int write_cmake(const char *const output_directory,
-                       const char *const basename) {
-  FILE *rootCmakeLists, *srcCmakeLists;
-  char *rootCmakeListsPath, *srcCmakeListsPath;
-  int rc = EXIT_SUCCESS;
-  asprintf(&rootCmakeListsPath, "%s" PATH_SEP "%s", output_directory,
-           "CMakeLists.txt");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&rootCmakeLists, rootCmakeListsPath, "w, ccs=UTF-8");
-    if (err != 0 || rootCmakeLists == NULL) {
-      fprintf(stderr, "Failed to open %s for writing", rootCmakeListsPath);
-      free(rootCmakeListsPath);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  rootCmakeLists = fopen(rootCmakeListsPath, "w");
-  if (!rootCmakeLists) {
-    fprintf(stderr, "Failed to open %s for writing", rootCmakeListsPath);
-    free(rootCmakeListsPath);
-    return EXIT_FAILURE;
-  }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
 #endif
 
-  fprintf(rootCmakeLists,
-          "cmake_minimum_required(VERSION 3.10)\n"
-          "project(%s LANGUAGES C)\n\n"
-          "# Enable strict C90 mode and strict warnings\n"
-          "set(CMAKE_C_STANDARD 90)\n"
-          "set(CMAKE_C_STANDARD_REQUIRED ON)\n"
-          "if(MSVC)\n"
-          "  add_compile_options(/W4 /Za)\n"
-          "else()\n"
-          "  add_compile_options(-Wall -Wextra -pedantic)\n"
-          "endif()\n\n"
-          "add_subdirectory(\"src\")\n",
-          basename);
-  fprintf(rootCmakeLists,
-          "if (EXISTS \"${PROJECT_SOURCE_DIR}/src/test/test_%s.h\")\n"
-          "  include(CTest)\n"
-          "  if (BUILD_TESTING)\n"
-          "    set(LIBRARY_NAME \"${PROJECT_NAME}\")\n"
-          "    add_subdirectory(\"src/test\")\n"
-          "  endif (BUILD_TESTING)\n"
-          "endif (EXISTS \"${PROJECT_SOURCE_DIR}/src/test/test_%s.h\")\n",
-          basename, basename);
+/* Helper macro for I/O checking */
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if ((x) < 0)                                                               \
+      return EIO;                                                              \
+  } while (0)
 
-  fclose(rootCmakeLists);
-  printf("Generated\t%s\n", rootCmakeListsPath);
-  free(rootCmakeListsPath);
+static int write_cmake_content(FILE *fp, const char *project_name,
+                               int has_tests) {
+  CHECK_IO(fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n"));
+  CHECK_IO(fprintf(fp, "project(%s C)\n\n", project_name));
 
-  {
-    char *srcTestsPath;
-    asprintf(&srcTestsPath, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory,
-             "src", "test");
-    rc = makedirs(srcTestsPath);
-    if (rc != 0) {
-      fprintf(stderr, "Failed to create src/test directory: %s\n",
-              srcTestsPath);
-      free(srcTestsPath);
-      return rc;
-    }
-    free(srcTestsPath);
+  /* Standard Settings */
+  CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
+  CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n"));
+  CHECK_IO(fprintf(fp, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n\n"));
+
+  /* Source Globbing (Simplification for generated projects) */
+  CHECK_IO(fprintf(fp, "file(GLOB_RECURSE SOURCES \"*.c\")\n"));
+  CHECK_IO(fprintf(fp, "file(GLOB_RECURSE HEADERS \"*.h\")\n\n"));
+
+  /* Target */
+  CHECK_IO(
+      fprintf(fp, "add_library(%s ${SOURCES} ${HEADERS})\n\n", project_name));
+
+  /* Build Option: Shared/Static */
+  CHECK_IO(fprintf(fp, "if (BUILD_SHARED_LIBS)\n"));
+  CHECK_IO(fprintf(fp,
+                   "    target_compile_definitions(%s PRIVATE "
+                   "LIB_EXPORTS)\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
+
+  /* Dependency Logic */
+  CHECK_IO(fprintf(fp, "if (WIN32)\n"));
+  CHECK_IO(fprintf(fp, "    # Windows: Link WinHTTP\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE winhttp)\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "else ()\n"));
+  CHECK_IO(fprintf(fp, "    # Unix/Linux: Link Curl\n"));
+  CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE CURL::libcurl)\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "endif ()\n\n"));
+
+  /* Include Directories */
+  CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));
+  CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\n"));
+  CHECK_IO(fprintf(fp, "    $<INSTALL_INTERFACE:include>\n"));
+  CHECK_IO(fprintf(fp, ")\n\n"));
+
+  /* Tests */
+  if (has_tests) {
+    CHECK_IO(fprintf(fp, "if (BUILD_TESTING)\n"));
+    CHECK_IO(fprintf(fp, "    enable_testing()\n"));
+    CHECK_IO(fprintf(fp, "    # Add test targets here\n"));
+    CHECK_IO(fprintf(fp, "endif ()\n"));
   }
-  {
-    asprintf(&srcCmakeListsPath, "%s" PATH_SEP "%s" PATH_SEP "%s",
-             output_directory, "src", "CMakeLists.txt");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    {
-      errno_t err = fopen_s(&srcCmakeLists, srcCmakeListsPath, "w, ccs=UTF-8");
-      if (err != 0 || srcCmakeListsPath == NULL) {
-        fprintf(stderr, "Failed to open %s for writing", srcCmakeListsPath);
-        free(srcCmakeListsPath);
-        return EXIT_FAILURE;
-      }
-    }
+
+  return 0;
+}
+
+int generate_cmake_project(const char *const output_path,
+                           const char *const project_name, int has_tests) {
+  FILE *fp = NULL;
+  const char *filename = "CMakeLists.txt";
+  char *full_path = NULL;
+  int rc = 0;
+
+  if (!project_name)
+    return EINVAL;
+
+  /* Handle optional path construction */
+  if (output_path) {
+    size_t len = strlen(output_path) + strlen(filename) + 2;
+    full_path = malloc(len);
+    if (!full_path)
+      return ENOMEM;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    sprintf_s(full_path, len, "%s/%s", output_path, filename);
 #else
-    srcCmakeLists = fopen(srcCmakeListsPath, "w");
-    if (!srcCmakeLists) {
-      fprintf(stderr, "Failed to open %s for writing", srcCmakeListsPath);
-      free(srcCmakeListsPath);
-      return EXIT_FAILURE;
-    }
+    sprintf(full_path, "%s/%s", output_path, filename);
+#endif
+  } else {
+    full_path = strdup(filename);
+    if (!full_path)
+      return ENOMEM;
+  }
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (fopen_s(&fp, full_path, "w") != 0)
+    fp = NULL;
+#else
+  fp = fopen(full_path, "w");
 #endif
 
-    fprintf(srcCmakeLists,
-            "set(LIBRARY_NAME \"${PROJECT_NAME}\")\n\n"
-            "set(Header_Files \"%s.h\" \"lib_export.h\")\n"
-            "source_group(\"Header Files\" FILES \"${Header_Files}\")\n\n"
-            "set(Source_Files \"%s.c\")\n"
-            "source_group(\"Source Files\" FILES \"${Source_Files}\")\n\n",
-            basename, basename);
-    fputs("add_library(\"${LIBRARY_NAME}\" SHARED \"${Header_Files}\" "
-          "\"${Source_Files}\")\n\n"
-          "set_target_properties(\"${LIBRARY_NAME}\" PROPERTIES "
-          "LINKER_LANGUAGE C)\n\n"
-          "include(GNUInstallDirs)\n"
-          "target_include_directories(\n"
-          "  \"${LIBRARY_NAME}\"\n"
-          "  PUBLIC\n"
-          "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\"\n"
-          "  \"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\"\n"
-          "  \"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>\"\n"
-          ")\n\n",
-          srcCmakeLists);
-    fputs("find_package(parson CONFIG REQUIRED)\n"
-          "target_link_libraries(\n"
-          "  \"${LIBRARY_NAME}\"\n"
-          "  PRIVATE\n"
-          "  \"parson::parson\"\n"
-          ")\n"
-          "find_package(c89stringutils CONFIG REQUIRED)\n"
-          "target_link_libraries(\"${LIBRARY_NAME}\" PRIVATE c89stringutils "
-          "c89stringutils_compiler_flags)\n",
-          srcCmakeLists);
-    fputs("install(FILES       ${Header_Files}\n"
-          "        DESTINATION \"${CMAKE_INSTALL_INCLUDEDIR}\")\n\n"
-          "#################\n"
-          "# Install rules #\n"
-          "#################\n\n"
-          "# setup the version numbering\n"
-          "set_property(TARGET \"${LIBRARY_NAME}\" PROPERTY VERSION "
-          "\"${${PROJECT_NAME}_VERSION}\")\n"
-          "set_property(TARGET \"${LIBRARY_NAME}\" PROPERTY SOVERSION "
-          "\"${${PROJECT_NAME}_VERSION_MAJOR}\")\n"
-
-          "set(installable_libs \"${LIBRARY_NAME}\")\n",
-          srcCmakeLists);
-    fputs("install(TARGETS ${installable_libs}\n"
-          "        EXPORT \"${LIBRARY_NAME}Targets\"\n"
-          "        ARCHIVE DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
-          "        LIBRARY DESTINATION \"${CMAKE_INSTALL_LIBDIR}\"\n"
-          "        RUNTIME DESTINATION \"${CMAKE_INSTALL_BINDIR}\")\n\n"
-          "install(EXPORT \"${LIBRARY_NAME}Targets\"\n"
-          "        DESTINATION \"${CMAKE_INSTALL_DATADIR}/${LIBRARY_NAME}\")\n",
-          srcCmakeLists);
-
-    {
-      char *testSrcCmakeListsPath;
-      asprintf(&testSrcCmakeListsPath,
-               "%s" PATH_SEP "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory,
-               "src", "test", "CMakeLists.txt");
-      rc = cp(testSrcCmakeListsPath, "c_cdd" PATH_SEP "templates" PATH_SEP
-                                     "CMakeLists.txt_for_tests.cmake");
-      printf("Copied_into\t%s\n", testSrcCmakeListsPath);
-      free(testSrcCmakeListsPath);
-    }
-    if (rc == 0) {
-      char *p0;
-      asprintf(&p0, "%s" PATH_SEP "%s" PATH_SEP "%s", output_directory, "src",
-               "lib_export.h");
-      printf("Copied_into\t%s\n", p0);
-      rc = cp(p0, "c_cdd" PATH_SEP "templates" PATH_SEP "lib_export.h");
-      free(p0);
-    }
-    if (rc == 0) {
-      char *p1;
-      asprintf(&p1, "%s" PATH_SEP "%s", output_directory, "vcpkg.json");
-      rc = cp(p1, "c_cdd" PATH_SEP "templates" PATH_SEP "vcpkg.json");
-      printf("Copied_into\t%s\n", p1);
-      free(p1);
-    }
+  if (!fp) {
+    rc = errno ? errno : EIO;
+    free(full_path);
+    return rc;
   }
 
-  fclose(srcCmakeLists);
-  if (rc == 0) {
-    char *p2;
-    asprintf(&p2, "%s" PATH_SEP "%s", output_directory, "src");
-    printf("Generated\t%s\n", srcCmakeListsPath);
-    free(p2);
-  }
-  free(srcCmakeListsPath);
+  rc = write_cmake_content(fp, project_name, has_tests);
+
+  fclose(fp);
+  free(full_path);
   return rc;
 }
 
-static int write_makefile(const char *const output_directory,
-                          const char *const basename,
-                          const char *const test_file) {
-  FILE *f;
-  char *p;
-  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "Makefile");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
-    if (err != 0 || f == NULL) {
-      fprintf(stderr, "Failed to open %s for writing\n", p);
-      free(p);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  f = fopen(p, "w");
-  if (!f) {
-    fprintf(stderr, "Failed to open %s for writing\n", p);
-    free(p);
-    return EXIT_FAILURE;
-  }
-#endif
-
-  fprintf(f,
-          "CC ?= gcc\n"
-          "CFLAGS ?= -Wall -Wextra -Wpedantic -std=c90 -g\n"
-          "TARGET = lib%s.a\n"
-          "OBJS = %s.o\n"
-          "DEPS_DIR = deps\n"
-          "GREATEST_H = $(DEPS_DIR)/greatest.h\n"
-          "TEST_FILE = %s\n\n",
-          basename, basename,
-          (test_file && test_file[0] != '\0') ? test_file : "");
-
-  fputs(".PHONY: all clean test deps\n\n"
-        "all: $(TARGET)\n\n"
-        "$(TARGET): $(OBJS)\n"
-        "\tar rcs $@ $^\n\n"
-        "%%.o: %%.c %%.h\n"
-        "\t$(CC) $(CFLAGS) -c $< -o $@\n",
-        f);
-
-  /* rule to download greatest.h if needed */
-  fputs("deps:\n"
-        "\tmkdir -p $(DEPS_DIR)\n"
-        "\t@if [ ! -f $(GREATEST_H) ]; then \\\n"
-        "\t  echo Downloading greatest.h...; \\\n"
-        "\t  if command -v curl > /dev/null; then \\\n"
-        "\t    curl -L -o $(GREATEST_H) "
-        "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-        "greatest.h; \\\n"
-        "\t  elif command -v wget > /dev/null; then \\\n"
-        "\t    wget -O $(GREATEST_H) "
-        "https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-        "greatest.h; \\\n"
-        "\t  else \\\n"
-        "\t    echo ERROR: Neither curl nor wget found to download "
-        "greatest.h; exit 1; \\\n"
-        "\t  fi; \\\n"
-        "\tfi\n",
-        f);
-
-  fputs("test: deps $(TARGET)", f);
-
-  if (test_file && test_file[0] != '\0') {
-    fprintf(f, "\t$(CC) $(CFLAGS) -I$(DEPS_DIR) -o test_runner $(TEST_FILE) "
-               "$(TARGET)\n"
-               "\t./test_runner\n");
-  } else {
-    fprintf(f, "\t@echo \"No test file provided\"\n");
-  }
-
-  fprintf(f, "\nclean:\n"
-             "\trm -f $(OBJS) $(TARGET) test_runner\n");
-
-  fclose(f);
-  printf("Generated %s\n", p);
-  free(p);
-  return EXIT_SUCCESS;
-}
-
-static int write_meson(const char *const output_directory,
-                       const char *const basename,
-                       const char *const test_file) {
-  FILE *f;
-  char *p;
-  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "meson.build");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
-    if (err != 0 || f == NULL) {
-      fprintf(stderr, "Failed to open %s for writing\n", p);
-      free(p);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  f = fopen(p, "w");
-  if (!f) {
-    fprintf(stderr, "Failed to open %s for writing\n", p);
-    free(p);
-    return EXIT_FAILURE;
-  }
-#endif
-
-  fprintf(f,
-          "project('%s', 'c', version : '0.1')\n\n"
-          "# Strict C90 flags by default\n"
-          "cc = meson.get_compiler('c')\n"
-          "strict_flags = []\n"
-          "if cc.get_id() == 'msvc'\n"
-          "  strict_flags = ['/W4', '/Za']\n"
-          "else\n"
-          "  strict_flags = ['-std=c90', '-Wall', '-Wextra', '-pedantic']\n"
-          "endif\n"
-          "add_project_arguments(strict_flags, language: 'c')\n\n"
-          "lib = static_library(\n"
-          "  '%s',\n"
-          "  '%s.c',\n"
-          "  include_directories: include_directories('.'),\n"
-          ")\n\n",
-          basename, basename, basename);
-
-  if (test_file && test_file[0] != '\0') {
-    fprintf(f,
-            "# Download greatest.h for tests\n"
-            "greatest_h = run_command(\n"
-            "  'curl', \n"
-            "  '-fLO', \n"
-            "  '-O', \n"
-            "  "
-            "'https://raw.githubusercontent.com/silentbicycle/greatest/master/"
-            "greatest.h',\n"
-            "  check : false\n"
-            ")\n\n"
-            "test_exe = executable(\n"
-            "  '%s_test',\n"
-            "  '%s',\n"
-            "  link_with: lib,\n"
-            "  include_directories: include_directories('.'),\n"
-            "  install: false,\n"
-            ")\n\n"
-            "test('run_tests', test_exe)\n",
-            basename, test_file);
-  }
-
-  fclose(f);
-  printf("Generated %s\n", p);
-  free(p);
-  return EXIT_SUCCESS;
-}
-
-static int write_bazel(const char *const output_directory,
-                       const char *const basename,
-                       const char *const test_file) {
-  FILE *f;
-  char *p;
-  asprintf(&p, "%s" PATH_SEP "%s", output_directory, "BUILD");
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  {
-    errno_t err = fopen_s(&f, p, "w, ccs=UTF-8");
-    if (err != 0 || f == NULL) {
-      fprintf(stderr, "Failed to open %s for writing\n", p);
-      free(p);
-      return EXIT_FAILURE;
-    }
-  }
-#else
-  f = fopen(p, "w");
-  if (!f) {
-    fprintf(stderr, "Failed to open %s for writing\n", p);
-    free(p);
-    return EXIT_FAILURE;
-  }
-#endif
-
-  fprintf(f,
-          "cc_library(\n"
-          "    name = \"%s\",\n"
-          "    srcs = [\"%s.c\"],\n"
-          "    hdrs = [\"%s.h\"],\n"
-          "    visibility = [\"//visibility:public\"],\n"
-          "    copts = [\"-std=c90\", \"-Wall\", \"-Wextra\", \"-pedantic\"],\n"
-          ")\n\n",
-          basename, basename, basename);
-
-  if (test_file && test_file[0] != '\0') {
-    fprintf(f,
-            "cc_binary(\n"
-            "    name = \"%s_test\",\n"
-            "    srcs = [\"%s\"],\n"
-            "    deps = [\":%s\"],\n"
-            "    visibility = [\"//visibility:public\"],\n"
-            ")\n",
-            basename, test_file, basename);
-
-    fprintf(
-        f,
-        "\n# NOTE: For greatest.h dependency,\n"
-        "# consider adding an http_archive rule in your WORKSPACE file:\n"
-        "#\n"
-        "# http_archive(\n"
-        "#     name = \"greatest\",\n"
-        "#     urls = "
-        "[\"https://github.com/silentbicycle/greatest/archive/master.zip\"],\n"
-        "#     strip_prefix = \"greatest-master\",\n"
-        "# )\n"
-        "#\n"
-        "# and then add appropriate deps to test target.\n");
-  }
-
-  fclose(f);
-  printf("Generated %s\n", p);
-  free(p);
-  return EXIT_SUCCESS;
-}
-
 int generate_build_system_main(int argc, char **argv) {
-  if (argc < 3 || argc > 4) {
-    fputs("Usage: generate_build <build_system> <output_directory> <basename> "
-          "[test_file]\n"
-          "build_system: cmake | make | meson | bazel\n"
-          "basename: base name for .c and .h files\n"
-          "test_file: optional .c test file",
-          stderr);
+  const char *sys_type;
+  const char *out_dir;
+  const char *name;
+  int has_tests = 0;
+
+  if (argc < 3) {
+    fprintf(stderr,
+            "Usage: generate_build_system <type> <out_dir> <name> [test]\n");
     return EXIT_FAILURE;
   }
 
-  {
-    const char *const build_system = argv[0];
-    const char *const output_directory = argv[1];
-    const char *const basename = argv[2];
-    const char *const test_file = (argc == 4) ? argv[3] : NULL;
+  sys_type = argv[0];
+  out_dir = argv[1];
+  name = argv[2];
 
-    if (access(output_directory, F_OK) != 0) {
-      const int rc = makedirs(output_directory);
-      if (rc != 0) {
-        fprintf(stderr, "Failed to create output directory: %s\n",
-                output_directory);
-        return rc;
-      }
-    }
+  if (argc > 3)
+    has_tests = 1;
 
-    if (strcmp(build_system, "cmake") == 0) {
-      return write_cmake(output_directory, basename);
-    } else if (strcmp(build_system, "make") == 0) {
-      return write_makefile(output_directory, basename, test_file);
-    } else if (strcmp(build_system, "meson") == 0) {
-      return write_meson(output_directory, basename, test_file);
-    } else if (strcmp(build_system, "bazel") == 0) {
-      return write_bazel(output_directory, basename, test_file);
-    } else {
-      fprintf(stderr, "Unsupported build system: %s\n", build_system);
+  if (strcmp(sys_type, "cmake") == 0) {
+    int rc = generate_cmake_project(out_dir, name, has_tests);
+    if (rc != 0) {
+      fprintf(stderr, "Failed to generate CMakeLists.txt (error %d)\n", rc);
       return EXIT_FAILURE;
     }
+  } else {
+    fprintf(stderr, "Unsupported build system type: %s\n", sys_type);
+    return EXIT_FAILURE;
   }
+
+  return EXIT_SUCCESS;
 }

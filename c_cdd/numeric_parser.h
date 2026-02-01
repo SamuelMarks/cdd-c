@@ -3,8 +3,9 @@
  * @brief Logic for parsing C numeric literal strings into typed values.
  *
  * Provides a unified interface to convert token strings (e.g., "0xFF", "1.5f",
- * "0b101") into structured numeric definitions representing their semantic
- * value and type properties (unsigned, long, float vs double).
+ * "0b101", "3.14dd") into structured numeric definitions representing their
+ * semantic value and type properties (unsigned, long, float vs double, decimal
+ * float).
  *
  * Supports:
  * - Hexadecimal (0x prefix)
@@ -12,6 +13,7 @@
  * - Binary (0b prefix - GCC/Clang/C23 extension)
  * - Decimal
  * - Floating point (decimal and hexfloat)
+ * - Decimal Floating Point (DFP) via C23 suffixes (`df`, `dd`, `dl`).
  * - Integers with suffixes (u, l, ll, z)
  *
  * @author Samuel Marks
@@ -45,6 +47,16 @@ enum NumericKind {
 };
 
 /**
+ * @brief Represents the specific decimal floating point type width.
+ */
+enum DecimalFloatWidth {
+  DFP_NONE = 0, /**< Not a decimal float */
+  DFP_32,       /**< _Decimal32 (suffix df) */
+  DFP_64,       /**< _Decimal64 (suffix dd) */
+  DFP_128       /**< _Decimal128 (suffix dl) */
+};
+
+/**
  * @brief Parsed integer metadata and value.
  */
 struct IntegerInfo {
@@ -59,10 +71,10 @@ struct IntegerInfo {
  * @brief Parsed floating-point metadata and value.
  */
 struct FloatInfo {
-  double value;       /**< The floating point value (stored as double) */
-  int is_float;       /**< 1 if 'f' or 'F' suffix present (indicating single
-                         precision) */
-  int is_long_double; /**< 1 if 'l' or 'L' suffix present */
+  double value; /**< The floating point value (stored as double for storage) */
+  int is_float; /**< 1 if 'f' or 'F' suffix present (std binary float) */
+  int is_long_double;                /**< 1 if 'l' or 'L' suffix present */
+  enum DecimalFloatWidth is_decimal; /**< C23 Decimal Float specifier */
 };
 
 /**
@@ -82,7 +94,7 @@ struct NumericValue {
  * Analyzes the string for prefixes (0x, 0b), decimal points, exponents,
  * and suffixes to determine the type and value.
  *
- * @param[in] str The null-terminated literal string (e.g., "0x1A", "3.14f").
+ * @param[in] str The null-terminated literal string (e.g., "0x1A", "3.14dd").
  * @param[out] out Pointer to the result structure.
  * @return 0 on success, EINVAL if input is NULL or invalid format, ERANGE if
  * overflow.

@@ -43,8 +43,8 @@ TEST test_eq_primitive(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "ival", "integer", NULL, NULL);
-  struct_fields_add(&sf, "dval", "number", NULL, NULL);
+  struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "dval", "number", NULL, NULL, NULL);
 
   code = generate_eq_code("Prim", &sf);
   ASSERT(code != NULL);
@@ -71,7 +71,7 @@ TEST test_eq_string(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL);
+  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
 
   code = generate_eq_code("StrS", &sf);
   ASSERT(code != NULL);
@@ -92,7 +92,7 @@ TEST test_eq_recursive_object(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "child", "object", "Child", NULL);
+  struct_fields_add(&sf, "child", "object", "Child", NULL, NULL);
 
   code = generate_eq_code("Parent", &sf);
   ASSERT(code != NULL);
@@ -110,7 +110,7 @@ TEST test_eq_array_primitive(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "nums", "array", "integer", NULL);
+  struct_fields_add(&sf, "nums", "array", "integer", NULL, NULL);
 
   code = generate_eq_code("Arr", &sf);
   ASSERT(code != NULL);
@@ -132,7 +132,7 @@ TEST test_eq_array_string(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "strs", "array", "string", NULL);
+  struct_fields_add(&sf, "strs", "array", "string", NULL, NULL);
 
   code = generate_eq_code("ArrS", &sf);
   ASSERT(code != NULL);
@@ -152,7 +152,7 @@ TEST test_eq_array_object(void) {
   char *code;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "items", "array", "Item", NULL);
+  struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
   code = generate_eq_code("Box", &sf);
   ASSERT(code != NULL);

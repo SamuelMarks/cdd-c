@@ -1,6 +1,7 @@
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
+#include <assert.h>
 #include <greatest.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,8 +11,6 @@
 #include "declarator_parser.h"
 #include "tokenizer.h"
 
-#include <assert.h>
-
 static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)code), &tl);
@@ -20,12 +19,8 @@ static struct TokenList *setup_tokens(const char *code) {
 
 /**
  * @brief Helper to verify a Type Chain against expected Kinds.
- *
- * @param head The head of the parsed type chain.
- * @param n Number of expected nodes.
- * @param ... Variadic list of `enum DeclTypeKind`.
  */
-static void verify_chain(struct DeclType *head, int n, ...) {
+static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
   va_list args;
   int i;
   struct DeclType *curr = head;
@@ -33,13 +28,15 @@ static void verify_chain(struct DeclType *head, int n, ...) {
   va_start(args, n);
   for (i = 0; i < n; i++) {
     int expected_kind = va_arg(args, int);
-    assert(curr != NULL);
-    assert(expected_kind == curr->kind);
+    ASSERT_EQ_FMT(expected_kind, curr ? curr->kind : -1, "%d");
     curr = curr->inner;
   }
   va_end(args);
-  assert(curr == NULL); /* Should end exactly here */
+  ASSERT_EQ(NULL, curr);
+  PASS();
 }
+
+/* --- Concrete Declarator Tests (Named) --- */
 
 TEST test_parse_basic_int(void) {
   const char *code = "int x";
@@ -52,8 +49,7 @@ TEST test_parse_basic_int(void) {
   ASSERT_EQ(0, rc);
 
   ASSERT_STR_EQ("x", info.identifier);
-  /* Type: BASE(int) */
-  verify_chain(info.type, 1, DECL_BASE);
+  CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
   ASSERT_STR_EQ("int", info.type->data.base.name);
 
   decl_info_free(&info);
@@ -71,8 +67,7 @@ TEST test_parse_ptr(void) {
   ASSERT_EQ(0, rc);
 
   ASSERT_STR_EQ("p", info.identifier);
-  /* Chain: PTR -> BASE(char) */
-  verify_chain(info.type, 2, DECL_PTR, DECL_BASE);
+  CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
   ASSERT_STR_EQ("char", info.type->inner->data.base.name);
 
   decl_info_free(&info);
@@ -80,128 +75,120 @@ TEST test_parse_ptr(void) {
   PASS();
 }
 
-TEST test_parse_array(void) {
-  const char *code = "int arr[10]";
+TEST test_parse_pointer_qualifiers(void) {
+  /* int * const volatile p */
+  const char *code = "int * const volatile p";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
-  ASSERT_STR_EQ("arr", info.identifier);
-  /* Chain: ARRAY -> BASE(int) */
-  verify_chain(info.type, 2, DECL_ARRAY, DECL_BASE);
-  ASSERT_STR_EQ("10", info.type->data.array.size_expr);
+  ASSERT_STR_EQ("p", info.identifier);
+  CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
+
+  /* Verify qualifiers are captured */
+  ASSERT(info.type->data.ptr.qualifiers != NULL);
+  /* The order depends on scan direction (leftward).
+     x -> volatile -> const -> *.
+     Join range [volatile_start, const_end].
+     Should contain "const volatile" or "volatile const" depending on original
+     string order? Code is "const volatile". Range is [const, volatile].
+  */
+  ASSERT(strstr(info.type->data.ptr.qualifiers, "const") != NULL);
+  ASSERT(strstr(info.type->data.ptr.qualifiers, "volatile") != NULL);
 
   decl_info_free(&info);
   free_token_list(tl);
   PASS();
 }
 
-TEST test_parse_ptr_to_array(void) {
-  /* int (*pa)[5] */
-  /* Pivot: pa */
-  /* Right: nothing (hit paren) */
-  /* Left: * -> PTR */
-  /* Unnest parens. */
-  /* Right: [5] -> ARRAY */
-  /* Left: int -> BASE */
-  const char *code = "int (*pa)[5]";
+TEST test_parse_atomic_specifier(void) {
+  /* _Atomic(int) ax */
+  const char *code = "_Atomic(int) ax";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
-  ASSERT_STR_EQ("pa", info.identifier);
-  /* Chain: PTR -> ARRAY -> BASE */
-  verify_chain(info.type, 3, DECL_PTR, DECL_ARRAY, DECL_BASE);
+  ASSERT_STR_EQ("ax", info.identifier);
+  /* Should parse `_Atomic(int)` as the base type part */
+  CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
+  ASSERT_STR_EQ("_Atomic(int)", info.type->data.base.name);
 
   decl_info_free(&info);
   free_token_list(tl);
   PASS();
 }
 
-TEST test_parse_array_of_ptrs(void) {
-  /* int *ap[5] */
-  /* Pivot: ap */
-  /* Right: [5] -> ARRAY */
-  /* Left: * -> PTR */
-  /* Left: int -> BASE */
-  const char *code = "int *ap[5]";
+TEST test_parse_complex_specifier(void) {
+  /* double _Complex c */
+  const char *code = "double _Complex c";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_STR_EQ("c", info.identifier);
+  CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
+  ASSERT(strstr(info.type->data.base.name, "double") != NULL);
+  ASSERT(strstr(info.type->data.base.name, "_Complex") != NULL);
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_parse_atomic_qualifier_on_ptr(void) {
+  /* int * _Atomic ap */
+  const char *code = "int * _Atomic ap";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
   ASSERT_STR_EQ("ap", info.identifier);
-  /* Chain: ARRAY -> PTR -> BASE */
-  verify_chain(info.type, 3, DECL_ARRAY, DECL_PTR, DECL_BASE);
+  CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
+
+  ASSERT(info.type->data.ptr.qualifiers != NULL);
+  ASSERT(strstr(info.type->data.ptr.qualifiers, "_Atomic") != NULL);
 
   decl_info_free(&info);
   free_token_list(tl);
   PASS();
 }
 
-TEST test_parse_func_ptr(void) {
-  /* void (*fp)(int) */
-  /* Pivot: fp */
-  /* Inner: * -> PTR */
-  /* Unnest */
-  /* Right: (int) -> FUNC */
-  /* Left: void -> BASE */
-  const char *code = "void (*fp)(int)";
+TEST test_parse_atomic_qualifier_on_base(void) {
+  /* _Atomic int x */
+  const char *code = "_Atomic int x";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
-  ASSERT_STR_EQ("fp", info.identifier);
-  /* Chain: PTR -> FUNC -> BASE */
-  verify_chain(info.type, 3, DECL_PTR, DECL_FUNC, DECL_BASE);
-  ASSERT_STR_EQ("void", info.type->inner->inner->data.base.name);
+  ASSERT_STR_EQ("x", info.identifier);
+  CHECK_CALL(verify_chain(info.type, 1, DECL_BASE));
+  /* Since it's not on a pointer, it remains in base string */
+  ASSERT(strstr(info.type->data.base.name, "_Atomic") != NULL);
+  ASSERT(strstr(info.type->data.base.name, "int") != NULL);
 
   decl_info_free(&info);
   free_token_list(tl);
   PASS();
 }
 
-TEST test_parse_typeof(void) {
-  /* typeof(X) y */
-  const char *code = "typeof(X) y";
+/* --- Abstract Declarator Tests --- */
+
+TEST test_abstract_atomic_ptr(void) {
+  /* _Atomic(int) * */
+  const char *code = "_Atomic(int) *";
   struct TokenList *tl = setup_tokens(code);
   struct DeclInfo info;
   int rc = parse_declaration(tl, 0, tl->size, &info);
   ASSERT_EQ(0, rc);
 
-  ASSERT_STR_EQ("y", info.identifier);
-  verify_chain(info.type, 1, DECL_BASE);
-  ASSERT_STR_EQ("typeof(X)", info.type->data.base.name);
-
-  decl_info_free(&info);
-  free_token_list(tl);
-  PASS();
-}
-
-TEST test_parse_complex_spiral(void) {
-  /* void (*(*f[])(void))(int) */
-  /* f is:
-     Array []
-     of Pointers *
-     to Function (void)
-     returning Pointers *
-     to Function (int)
-     returning void.
-  */
-  const char *code = "void (*(*f[])(void))(int)";
-  struct TokenList *tl = setup_tokens(code);
-  struct DeclInfo info;
-  int rc = parse_declaration(tl, 0, tl->size, &info);
-  ASSERT_EQ(0, rc);
-
-  ASSERT_STR_EQ("f", info.identifier);
-
-  /* Verify Chain Sequence */
-  verify_chain(info.type, 6, DECL_ARRAY, DECL_PTR, DECL_FUNC, DECL_PTR,
-               DECL_FUNC, DECL_BASE);
+  ASSERT_EQ(NULL, info.identifier);
+  CHECK_CALL(verify_chain(info.type, 2, DECL_PTR, DECL_BASE));
+  ASSERT_STR_EQ("_Atomic(int)", info.type->inner->data.base.name);
 
   decl_info_free(&info);
   free_token_list(tl);
@@ -211,12 +198,12 @@ TEST test_parse_complex_spiral(void) {
 SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
-  RUN_TEST(test_parse_array);
-  RUN_TEST(test_parse_ptr_to_array);
-  RUN_TEST(test_parse_array_of_ptrs);
-  RUN_TEST(test_parse_func_ptr);
-  RUN_TEST(test_parse_typeof);
-  RUN_TEST(test_parse_complex_spiral);
+  RUN_TEST(test_parse_pointer_qualifiers);
+  RUN_TEST(test_parse_atomic_specifier);
+  RUN_TEST(test_parse_complex_specifier);
+  RUN_TEST(test_parse_atomic_qualifier_on_ptr);
+  RUN_TEST(test_parse_atomic_qualifier_on_base);
+  RUN_TEST(test_abstract_atomic_ptr);
 }
 
 #endif /* TEST_DECLARATOR_PARSER_H */

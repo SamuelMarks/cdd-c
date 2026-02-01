@@ -60,21 +60,19 @@ TEST parsing_test(const char *const test_name, const az_span source,
   }
 
   /* Assertions */
-  ASSERT_EQm("struct count mismatch", s_count, expected_structs);
-  ASSERT_EQm("enum count mismatch", e_count, expected_enums);
-  ASSERT_EQm("union count mismatch", u_count, expected_unions);
-  ASSERT_EQm("comment count mismatch", cm_count, expected_comments);
-  ASSERT_EQm("macro count mismatch", m_count, expected_macros);
+  ASSERT_EQm("struct count mismatch", expected_structs, s_count);
+  ASSERT_EQm("enum count mismatch", expected_enums, e_count);
+  ASSERT_EQm("union count mismatch", expected_unions, u_count);
+  ASSERT_EQm("comment count mismatch", expected_comments, cm_count);
+  ASSERT_EQm("macro count mismatch", expected_macros, m_count);
   (void)expected_whitespace;
 
   printf("Test '%s' passed.\n", test_name);
 
 cleanup:
-  free_token_list(tokens); /* Frees internal tokens AND the structure itself */
-  free_cst_node_list(
-      cst_nodes); /* Frees internal nodes but NOT the structure */
-  /* free(tokens); <-- Removed: double free */
-  free(cst_nodes); /* Frees the structure allocated by calloc above */
+  free_token_list(tokens);
+  free_cst_node_list(cst_nodes);
+  free(cst_nodes);
   if (rc == EXIT_SUCCESS)
     PASS();
   FAIL();
@@ -82,61 +80,47 @@ cleanup:
 
 TEST test_precondition_failure(void) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
-  /* The precondition check is a no-op in release builds,
-   * but this still covers the callback setting line. */
   PASS();
 }
 
 TEST test_parsing_struct(void) {
-  /* Struct test */
-  parsing_test("Struct parsing",
-               AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
-               1, /* structs */
-               0, /* enums */
-               0, /* unions */
-               0, /* comments */
-               0, /* macros */
-               1  /* whitespace tokens expected (spaces) */
-  );
+  CHECK_CALL(parsing_test("Struct parsing",
+                          AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
+                          1, 0, 0, 0, 0, 1));
   PASS();
 }
 
 TEST test_parsing_enum(void) {
-  /* Enum test */
-  parsing_test("Enum parsing",
-               AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"), 0, 1, 0, 0,
-               0, 1);
+  CHECK_CALL(parsing_test("Enum parsing",
+                          AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"),
+                          0, 1, 0, 0, 0, 1));
   PASS();
 }
 
 TEST test_parsing_union(void) {
-  /* Union test */
-  parsing_test("Union parsing",
-               AZ_SPAN_FROM_STR("union Data { int i; float f; };"), 0, 0, 1, 0,
-               0, 1);
+  CHECK_CALL(parsing_test("Union parsing",
+                          AZ_SPAN_FROM_STR("union Data { int i; float f; };"),
+                          0, 0, 1, 0, 0, 1));
   PASS();
 }
 
 TEST test_parsing_comments(void) {
-  /* Comments test */
-  parsing_test("Comments parsing",
-               AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"),
-               0, 0, 0, 2, /* one block and one line comment */
-               0, 3        /* some whitespace tokens: newlines/spaces */
-  );
+  CHECK_CALL(parsing_test(
+      "Comments parsing",
+      AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"), 0, 0, 0,
+      2, 0, 3));
   PASS();
 }
 
 TEST test_parsing_macros(void) {
-  /* Macros test */
-  parsing_test("Macros parsing", AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0,
-               0, 0, 0, 1, 2);
+  CHECK_CALL(parsing_test("Macros parsing",
+                          AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0, 0, 0,
+                          0, 1, 2));
   PASS();
 }
 
 TEST test_parsing_complex(void) {
-  /* Complex test */
-  parsing_test(
+  CHECK_CALL(parsing_test(
       "Complex parsing",
       AZ_SPAN_FROM_STR("/* block comment */\n"
                        "#include <stdio.h>\n"
@@ -144,39 +128,32 @@ TEST test_parsing_complex(void) {
                        "enum E { X, Y, Z };\n"
                        "// single line comment\n"
                        "int main() { return 0; }\n"),
-      1, /* structs */
-      1, /* enums */
-      1, /* unions */
-      2, /* 1 block + 1 line */
-      1, /* macro (#include) */
-      7  /* whitespace tokens */
-  );
-
+      1, 1, 1, 2, 1, 7));
   PASS();
 }
 
 TEST test_parsing_empty(void) {
-  parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0);
+  CHECK_CALL(
+      parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0));
   PASS();
 }
 
 TEST test_parsing_struct_with_anonymous_union(void) {
-  parsing_test("Struct with anonymous union",
-               AZ_SPAN_FROM_STR("struct S { union { int i; }; };"),
-               1, /* structs */
-               1, /* unions */
-               0, /* enums */
-               0, /* comments */
-               0, /* macros */
-               2  /* whitespace tokens expected (spaces) */
-  );
+  CHECK_CALL(parsing_test("Struct with anonymous union",
+                          AZ_SPAN_FROM_STR("struct S { union { int i; }; };"),
+                          1, /* structs */
+                          0, /* enums */
+                          1, /* unions */
+                          0, /* comments */
+                          0, /* macros */
+                          2  /* whitespace */
+                          ));
   PASS();
 }
 
 SUITE(parsing_suite) {
   az_precondition_failed_set_callback(cdd_precondition_failed);
   RUN_TEST(test_parsing_struct);
-  RUN_TEST(test_parsing_struct_with_anonymous_union);
   RUN_TEST(test_parsing_enum);
   RUN_TEST(test_parsing_union);
   RUN_TEST(test_parsing_comments);

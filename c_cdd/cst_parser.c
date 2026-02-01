@@ -6,6 +6,14 @@
  * Supports C23 attributes, Bit-fields, Static Assertions, C99 Compound
  * Literals, C23 Fixed Enum Types, and C11 _Generic selections.
  *
+ * Update: Verified Bit-field support. The `parse_recursive` loop handling
+ * `CST_NODE_OTHER` consumes tokens until `;`, `}`, or `{` (expression start).
+ * Since bit-fields use `:` (TOKEN_COLON), and colons are treated as regular
+ * punctuation within statements (unless they match `is_expression_brace`,
+ * which only triggers on `{` preceded by specific tokens), bit-field
+ * declarations like `int x : 3;` are correctly grouped into a single statement
+ * node.
+ *
  * @author Samuel Marks
  */
 
@@ -580,7 +588,7 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
       continue;
     }
 
-    /* Group CST_NODE_OTHER (Statements / Vars) */
+    /* Group CST_NODE_OTHER (Statements / Vars / Bitfields) */
     {
       size_t j = i + 1;
       while (j < end) {

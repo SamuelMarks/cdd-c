@@ -141,7 +141,7 @@ TEST test_codegen_config_json_guards(void) {
 
   struct_fields_init(&sf);
 
-  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
   memset(&config, 0, sizeof(config));
 
@@ -221,7 +221,7 @@ TEST test_union_config_json_guards(void) {
 
   struct_fields_init(&sf);
 
-  struct_fields_add(&sf, "x", "integer", NULL, NULL);
+  struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
   memset(&config, 0, sizeof(config));
 
@@ -279,7 +279,7 @@ TEST test_codegen_config_utils_guards(void) {
 
   struct_fields_init(&sf);
 
-  struct_fields_add(&sf, "name", "string", NULL, NULL);
+  struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
 
   memset(&config, 0, sizeof(config));
 

@@ -12,18 +12,24 @@
 #include "test_c_cdd_integration.h"
 #include "test_c_inspector_types.h"
 #include "test_code2schema.h"
+#include "test_codegen_build.h"
 #include "test_codegen_defaults.h"
 #include "test_codegen_eq.h"
+#include "test_codegen_make.h"
 #include "test_codegen_root_arrays.h"
+#include "test_codegen_sdk_tests.h"
 #include "test_codegen_validation.h"
 #include "test_cst_parser.h"
 #include "test_dataclasses.h"
-#include "test_declarator_parser.h" /* <--- Added */
+#include "test_declarator_parser.h"
 #include "test_flexible_array.h"
 #include "test_fs.h"
+#include "test_generate_build_system.h"
 #include "test_initializer_parser.h"
+#include "test_integration_server.h"
 #include "test_json_from_and_to.h"
 #include "test_numeric_parser.h"
+#include "test_openapi_client_gen.h"
 #include "test_parsing.h"
 #include "test_pragma.h"
 #include "test_preprocessor.h"
@@ -37,6 +43,7 @@
 #include "test_sync_code.h"
 #include "test_tokenizer.h"
 #include "test_tokenizer_trigraphs.h"
+#include "test_transport_factory.h"
 
 GREATEST_MAIN_DEFS();
 
@@ -47,19 +54,25 @@ int main(int argc, char **argv) {
   RUN_SUITE(analysis_suite);
   RUN_SUITE(code2schema_suite);
   RUN_SUITE(c_inspector_types_suite);
+  RUN_SUITE(codegen_build_suite);
   RUN_SUITE(codegen_defaults_suite);
   RUN_SUITE(codegen_eq_suite);
+  RUN_SUITE(codegen_make_suite);
   RUN_SUITE(codegen_validation_suite);
   RUN_SUITE(root_array_suite);
+  RUN_SUITE(codegen_sdk_tests_suite);
   RUN_SUITE(cst_parser_suite);
   RUN_SUITE(dataclasses_suite);
-  RUN_SUITE(declarator_parser_suite); /* <--- Added */
+  RUN_SUITE(declarator_parser_suite);
   RUN_SUITE(flexible_array_suite);
   RUN_SUITE(fs_suite);
+  RUN_SUITE(generate_build_system_suite);
   RUN_SUITE(initializer_parser_suite);
   RUN_SUITE(integration_suite);
+  RUN_SUITE(integration_server_suite);
   RUN_SUITE(json_from_and_to_suite);
   RUN_SUITE(numeric_parser_suite);
+  RUN_SUITE(openapi_client_gen_suite);
   RUN_SUITE(parsing_suite);
   RUN_SUITE(pragma_suite);
   RUN_SUITE(preprocessor_suite);
@@ -73,6 +86,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(sync_code_suite);
   RUN_SUITE(tokenizer_suite);
   RUN_SUITE(tokenizer_trigraphs_suite);
+  RUN_SUITE(transport_factory_suite);
 
   GREATEST_MAIN_END();
 }

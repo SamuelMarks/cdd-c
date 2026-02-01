@@ -40,7 +40,7 @@ TEST test_int_min_validation(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL);
+  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
@@ -63,7 +63,7 @@ TEST test_int_exclusive_min(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL);
+  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
@@ -87,7 +87,7 @@ TEST test_double_max_validation(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "number", NULL, NULL);
+  struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_max = 1;
@@ -110,7 +110,7 @@ TEST test_double_exclusive_max(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "number", NULL, NULL);
+  struct_fields_add(&sf, "val", "number", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_max = 1;
@@ -134,7 +134,7 @@ TEST test_min_and_max(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "age", "integer", NULL, NULL);
+  struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min = 1;
@@ -159,7 +159,7 @@ TEST test_string_len_validation(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "s", "string", NULL, NULL);
+  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   f->has_min_len = 1;
@@ -185,7 +185,7 @@ TEST test_string_simple_pattern_prefix(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL);
+  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   strcpy(f->pattern, "^prefix");
@@ -206,7 +206,7 @@ TEST test_string_simple_pattern_suffix(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL);
+  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   strcpy(f->pattern, "suffix$");
@@ -227,7 +227,7 @@ TEST test_string_simple_pattern_exact(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL);
+  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   strcpy(f->pattern, "^exact$");
@@ -248,7 +248,7 @@ TEST test_string_simple_pattern_contains(void) {
   struct StructField *f;
 
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "p", "string", NULL, NULL);
+  struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
   strcpy(f->pattern, "sub");

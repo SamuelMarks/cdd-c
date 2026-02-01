@@ -1,6 +1,10 @@
 /**
  * @file main.c
  * @brief Main entry point for the c_cdd CLI.
+ *
+ * Updated to include the `openapi2client` command for generating API client
+ * libraries.
+ *
  * @author Samuel Marks
  */
 
@@ -12,6 +16,8 @@
 #include "c_cddConfig.h"
 #include "code2schema.h"
 #include "generate_build_system.h"
+#include "openapi_client_gen.h"
+#include "openapi_loader.h"
 #include "project_audit.h"
 #include "refactor_orchestrator.h"
 #include "schema2tests.h"
@@ -78,33 +84,71 @@ static int handle_audit(int argc, char **argv) {
   return rc;
 }
 
+static int handle_openapi2client(int argc, char **argv) {
+  const char *spec_file;
+  const char *out_base;
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  JSON_Value *root_val;
+  int rc;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: openapi2client <spec.json> <out_basename>\n");
+    return EXIT_FAILURE;
+  }
+
+  spec_file = argv[0];
+  out_base = argv[1];
+
+  /* 1. Load Spec */
+  root_val = json_parse_file(spec_file);
+  if (!root_val) {
+    fprintf(stderr, "Failed to parse spec file: %s\n", spec_file);
+    return EXIT_FAILURE;
+  }
+
+  openapi_spec_init(&spec);
+  rc = openapi_load_from_json(root_val, &spec);
+  json_value_free(root_val);
+
+  if (rc != 0) {
+    return rc;
+  }
+
+  /* 2. Configure Generator */
+  memset(&config, 0, sizeof(config));
+  config.filename_base = out_base;
+  config.func_prefix = "api_"; /* Default prefix */
+
+  /* 3. Execute */
+  rc = openapi_client_generate(&spec, &config);
+
+  openapi_spec_free(&spec);
+  return rc;
+}
+
 static void print_help(const char *prog_name) {
   printf("Usage: %s <command> [args]\n\n", prog_name);
   puts("Commands:");
   puts("  audit <directory>");
-  puts("      Scan a directory for memory safety issues and output a JSON "
-       "report.");
+  puts("      Scan directory for memory safety issues.");
   puts("  code2schema <header.h> <schema.json>");
-  puts("      Convert C header structs/enums to JSON Schema.");
-  puts("  fix <path> [--in-place] OR fix <input.c> <output.c>");
-  puts("      Refactor C file(s) to inject error handling. Supports "
-       "directories.");
-  puts("  generate_build_system <build_system> <output_directory> <basename> "
-       "[test_file]");
-  puts("      Generate CMake files.");
-  puts("  jsonschema2tests <schema.json> <header_to_test.h> <output-test.h>");
-  puts("      Generate test suite from schema.");
-  puts("  schema2code <schema.json> <basename> [options]");
-  puts("      Generate C implementation from JSON Schema.");
-  puts("      Options:");
-  puts("        --guard-enum=<MACRO>   Wrap enum functions in #ifdef MACRO");
-  puts("        --guard-json=<MACRO>   Wrap JSON functions in #ifdef MACRO");
-  puts("        --guard-utils=<MACRO>  Wrap utility functions in #ifdef MACRO");
-  puts("  sync_code <header.h> <impl.c>");
-  puts("      Sync implementation file with header declarations.");
+  puts("      Convert C header to JSON Schema.");
+  puts("  fix <path> [--in-place]");
+  puts("      Refactor C file(s) for safety.");
+  puts("  generate_build_system <sys> <dir> <name> [test]");
+  puts("      Scaffold CMakeLists.txt.");
+  puts("  jsonschema2tests <schema> <hdr> <out>");
+  puts("      Generate tests from schema.");
+  puts("  openapi2client <spec.json> <out_base>");
+  puts("      Generate C API client from OpenAPI spec.");
+  puts("  schema2code <schema> <base> [opts]");
+  puts("      Generate C structs/enums from schema.");
+  puts("  sync_code <hdr> <impl>");
+  puts("      Sync implementation with header.");
   puts("\nOptions:");
-  puts("  --version   Print version information.");
-  puts("  --help      Print this help message.");
+  puts("  --version   Print version.");
+  puts("  --help      Print this help.");
 }
 
 static void print_version(void) {
@@ -147,10 +191,6 @@ int main(int argc, char **argv) {
     rc = fix_code_main(argc - 2, argv + 2);
 
   } else if (strcmp(cmd, "generate_build_system") == 0) {
-    if (argc < 5 || argc > 6) {
-      fprintf(stderr, "Usage: %s generate_build_system <args...>\n", argv[0]);
-      return EXIT_FAILURE;
-    }
     rc = generate_build_system_main(argc - 2, argv + 2);
 
   } else if (strcmp(cmd, "code2schema") == 0) {
@@ -185,6 +225,9 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     rc = sync_code_main(argc - 2, argv + 2);
+
+  } else if (strcmp(cmd, "openapi2client") == 0) {
+    rc = handle_openapi2client(argc - 2, argv + 2);
 
   } else {
     fprintf(stderr, "Unknown command: %s\n", cmd);
