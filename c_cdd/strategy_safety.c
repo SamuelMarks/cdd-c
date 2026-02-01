@@ -81,8 +81,7 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
     size_t i = call_idx;
     while (i > 0) {
       i--;
-      if (tokens->tokens[i].kind == TOKEN_OTHER &&
-          tokens->tokens[i].length == 1 && *tokens->tokens[i].start == '=') {
+      if (tokens->tokens[i].kind == TOKEN_ASSIGN) {
         assign_op_idx = i;
         break;
       }

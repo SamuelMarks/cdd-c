@@ -1,14 +1,22 @@
 /**
  * @file codegen_struct.c
  * @brief Implementation of struct lifecycle generation.
+ *
+ * Updates include:
+ * - Integration of `numeric_parser` to handle binary literals.
+ * - String comparison to handle `nullptr`.
+ *
  * @author Samuel Marks
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "codegen_struct.h"
+#include "numeric_parser.h"
+#include "str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
 #include "str_utils.h"
 
 /* Select correct strdup function name for generated code */
@@ -309,28 +317,60 @@ int write_struct_default_func(FILE *const fp, const char *const struct_name,
   CHECK_IO(fprintf(fp, "  if (!*out) return ENOMEM;\n"));
 
   for (i = 0; i < sf->size; ++i) {
-    if (sf->fields[i].default_val[0] != '\0') {
+    const char *def = sf->fields[i].default_val;
+    if (def[0] != '\0') {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
       const char *r = get_type_from_ref(sf->fields[i].ref);
 
       if (strcmp(t, "string") == 0) {
-        CHECK_IO(fprintf(fp, "  (*out)->%s = %s(%s);\n", n, kStrDupFunc,
-                         sf->fields[i].default_val));
-
-        CHECK_IO(fprintf(fp,
-                         "  if (!(*out)->%s) { %s_cleanup(*out); *out=NULL; "
-                         "return ENOMEM; }\n",
-                         n, struct_name));
+        if (strcmp(def, "nullptr") == 0) {
+          CHECK_IO(fprintf(fp, "  (*out)->%s = NULL;\n", n));
+        } else {
+          CHECK_IO(
+              fprintf(fp, "  (*out)->%s = %s(%s);\n", n, kStrDupFunc, def));
+          CHECK_IO(fprintf(fp,
+                           "  if (!(*out)->%s) { %s_cleanup(*out); *out=NULL; "
+                           "return ENOMEM; }\n",
+                           n, struct_name));
+        }
       } else if (strcmp(t, "enum") == 0) {
-        CHECK_IO(fprintf(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r,
-                         sf->fields[i].default_val, n));
+        CHECK_IO(
+            fprintf(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r, def, n));
         CHECK_IO(fprintf(
             fp, "  if (rc != 0) { %s_cleanup(*out); *out=NULL; return rc; }\n",
             struct_name));
       } else {
-        CHECK_IO(
-            fprintf(fp, "  (*out)->%s = %s;\n", n, sf->fields[i].default_val));
+        /* Primitives (integer/boolean/number) */
+        /* Check for C23 nullptr -> NULL pointer mapping */
+        if (strcmp(def, "nullptr") == 0) {
+          CHECK_IO(fprintf(fp, "  (*out)->%s = NULL;\n", n));
+        }
+        /* Check for C23 Binary Literal -> Decimal Conversion */
+        else if (strlen(def) > 2 && def[0] == '0' &&
+                 (def[1] == 'b' || def[1] == 'B')) {
+          struct NumericValue nv;
+          /* If using C89 target, we must emit decimal. */
+          /* Attempt to parse binary literal */
+          if (parse_numeric_literal(def, &nv) == 0 &&
+              nv.kind == NUMERIC_INTEGER) {
+            /* Emit as largest decimal constant suffix-aware?
+               Usually just cast logic is sufficient in C source. */
+            /* Using unsigned long long format */
+#if defined(_MSC_VER)
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %I64u;\n", n,
+                             nv.data.integer.value));
+#else
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %llu;\n", n,
+                             (unsigned long long)nv.data.integer.value));
+#endif
+          } else {
+            /* Fallback: print as is (if parse failed or invalid) */
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
+          }
+        } else {
+          CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
+        }
       }
     }
   }

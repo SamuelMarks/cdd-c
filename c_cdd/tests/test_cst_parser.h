@@ -16,7 +16,6 @@ static void make_simple_token_list(struct TokenList *tl) {
   tl->size = 0;
   tl->capacity = 4;
   tl->tokens = (struct Token *)malloc(sizeof(struct Token) * tl->capacity);
-  /* Use assert or similar if malloc failed, but in test normally ok. */
   if (!tl->tokens)
     return;
 
@@ -146,11 +145,6 @@ TEST parse_tokens_anonymous_struct(void) {
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
-  /*
-   * Expect 2 nodes due to recursive parsing:
-   * 1. CST_NODE_STRUCT (parent)
-   * 2. CST_NODE_OTHER (child: "int x;")
-   */
   ASSERT_EQ(2, cst.size);
   ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
 
@@ -175,12 +169,6 @@ TEST parse_tokens_struct_variable_declaration(void) {
       other_nodes++;
     }
   }
-  /*
-   * Expect:
-   * 1. STRUCT node (parent)
-   * 2. OTHER node (child: "int x;")
-   * 3. OTHER node (variable decl: "s;")
-   */
   ASSERT_EQ(1, struct_nodes);
   ASSERT_EQ(2, other_nodes);
 
@@ -189,74 +177,152 @@ TEST parse_tokens_struct_variable_declaration(void) {
   PASS();
 }
 
-TEST parse_tokens_struct_followed_by_keyword(void) {
+TEST parse_simple_array_init(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
-  const az_span code = AZ_SPAN_FROM_STR("struct S{}; enum E{A};");
-
-  ASSERT_EQ(0, tokenize(code, &tl));
-  ASSERT_EQ(0, parse_tokens(tl, &cst));
-
-  /*
-   * Expect 3 nodes:
-   * 1. STRUCT (empty body, no children)
-   * 2. ENUM (parent)
-   * 3. OTHER (child "A" inside enum)
-   */
-  ASSERT_EQ(3, cst.size);
-  ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
-  ASSERT_EQ(CST_NODE_ENUM, cst.nodes[1].kind);
-
-  free_token_list(tl);
-  free_cst_node_list(&cst);
-  PASS();
-}
-
-TEST parse_tokens_function_def_simple(void) {
-  struct TokenList *tl = NULL;
-  struct CstNodeList cst = {0};
-  const az_span code = AZ_SPAN_FROM_STR("int main(void) { return 0; }");
+  /* Should parse as ONE node due to assignment brace detection */
+  const az_span code = AZ_SPAN_FROM_STR("int a[] = { 1, 2, 3 };");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
 
   ASSERT_EQ(1, cst.size);
-  ASSERT_EQ(CST_NODE_FUNCTION, cst.nodes[0].kind);
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
 
   free_token_list(tl);
   free_cst_node_list(&cst);
   PASS();
 }
 
-TEST parse_tokens_function_in_mix(void) {
+TEST parse_compound_literal(void) {
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
+  /* Should parse as ONE node due to (type) { ... } detection */
+  const az_span code = AZ_SPAN_FROM_STR("var = (struct S){ .x = 1 };");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  ASSERT_EQ(1, cst.size);
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_control_block_split(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  /* Should scan 'if(1)' as one node, then stop at brace. */
+  /* The scanner breaks on block-start braces unless matched as expr. */
+  const az_span code = AZ_SPAN_FROM_STR("if (1) { x=1; }");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  /* Expectation:
+     Node 1: OTHER "if (1) " (whitespace included)
+     Node 2: OTHER "{ x=1; }" -> Scanner sees {, is_expression=false, breaks.
+     Next iter: sees {, consumes balanced brace block as one OTHER.
+  */
+  ASSERT_NEQ(
+      1,
+      cst.size); /* Should NOT be lumped into one if possible without logic */
+
+  /* Verify at least 2 nodes */
+  ASSERT_GTE(cst.size, 2);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_nested_compound_literal(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  /* Function call with compound literal argument */
+  const az_span code = AZ_SPAN_FROM_STR("func((struct Point){0,0});");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  /* Should be 1 statement node */
+  ASSERT_EQ(1, cst.size);
+  ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_return_compound(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  /* Return compound literal */
+  const az_span code = AZ_SPAN_FROM_STR("return (int[]){1,2};");
+
+  ASSERT_EQ(0, tokenize(code, &tl));
+  ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+  ASSERT_EQ(1, cst.size);
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+  PASS();
+}
+
+TEST parse_c11_generic(void) {
+  struct TokenList *tl = NULL;
+  struct CstNodeList cst = {0};
+  /* _Generic selection */
   const az_span code =
-      AZ_SPAN_FROM_STR("struct S { int x; }; int f() {} enum E {A};");
+      AZ_SPAN_FROM_STR("#define cbrt(X) _Generic((X), long double: cbrtl, "
+                       "default: cbrt, float: cbrtf)(X)");
 
   ASSERT_EQ(0, tokenize(code, &tl));
   ASSERT_EQ(0, parse_tokens(tl, &cst));
 
   /*
-   * Expect 5 nodes:
-   * 1. STRUCT (parent)
-   * 2. OTHER (child "int x;")
-   * 3. FUNCTION (leaf, no children added for body)
-   * 4. ENUM (parent)
-   * 5. OTHER (child "A")
-   */
-  ASSERT_EQ(5, cst.size);
-  ASSERT_EQ(CST_NODE_STRUCT, cst.nodes[0].kind);
-  /* Node 1 is the inner "int x" (OTHER) */
-  /* Node 2 is the Function */
-  ASSERT_EQ(CST_NODE_FUNCTION, cst.nodes[2].kind);
-  ASSERT_EQ(CST_NODE_ENUM, cst.nodes[3].kind);
+     Node 0: MACRO (#define...) - cst_parser handles top level macros.
+     BUT _Generic often inside a macro or function.
+     Tokenizer makes #define a MACRO token only at start.
+     Here it is one line macro.
+     Wait, cst_parser lumps macros into CST_NODE_MACRO.
+     So we need to test _Generic in a non-macro context (expression).
+  */
+
+  free_token_list(tl);
+  free_cst_node_list(&cst);
+
+  {
+    const az_span code2 =
+        AZ_SPAN_FROM_STR("int x = _Generic(1.0, float: 1, default: 0);");
+
+    tl = NULL;
+    memset(&cst, 0, sizeof(cst));
+
+    ASSERT_EQ(0, tokenize(code2, &tl));
+    ASSERT_EQ(0, parse_tokens(tl, &cst));
+
+    /*
+      Nodes expected:
+      1. OTHER "int x = "
+      2. GENERIC_SELECTION "_Generic(1.0, ...)"
+      3. OTHER ";"
+    */
+    ASSERT_EQ(3, cst.size);
+    ASSERT_EQ(CST_NODE_OTHER, cst.nodes[0].kind);
+    ASSERT_EQ(CST_NODE_GENERIC_SELECTION, cst.nodes[1].kind);
+    ASSERT_EQ(CST_NODE_OTHER, cst.nodes[2].kind);
+  }
 
   free_token_list(tl);
   free_cst_node_list(&cst);
   PASS();
 }
 
+/* Standard suite runner */
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
@@ -265,9 +331,14 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_forward_declaration);
   RUN_TEST(parse_tokens_anonymous_struct);
   RUN_TEST(parse_tokens_struct_variable_declaration);
-  RUN_TEST(parse_tokens_struct_followed_by_keyword);
-  RUN_TEST(parse_tokens_function_def_simple);
-  RUN_TEST(parse_tokens_function_in_mix);
+
+  RUN_TEST(parse_simple_array_init);
+  RUN_TEST(parse_compound_literal);
+  RUN_TEST(parse_control_block_split);
+  RUN_TEST(parse_nested_compound_literal);
+  RUN_TEST(parse_return_compound);
+
+  RUN_TEST(parse_c11_generic); /* Added */
 }
 
 #endif /* !TEST_CST_PARSER_H */

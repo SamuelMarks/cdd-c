@@ -166,9 +166,7 @@ int rewrite_body(const struct TokenList *const tokens,
                 break;
             }
 
-            if (prev < i && tokens->tokens[prev].kind == TOKEN_OTHER &&
-                tokens->tokens[prev].length == 1 &&
-                *tokens->tokens[prev].start == '=') {
+            if (prev < i && tokens->tokens[prev].kind == TOKEN_ASSIGN) {
               /* Case 1: Assignment */
               size_t eq_idx = prev;
               size_t lhs_start = prev;
@@ -303,8 +301,7 @@ int rewrite_body(const struct TokenList *const tokens,
   /* 4. Transform Returns */
   if (transform) {
     for (i = 0; i < tokens->size; ++i) {
-      if (tokens->tokens[i].kind == TOKEN_IDENTIFIER &&
-          token_matches_string(&tokens->tokens[i], "return")) {
+      if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {
 
         if (transform->type == TRANSFORM_VOID_TO_INT) {
           size_t next = i + 1;
@@ -378,8 +375,7 @@ int rewrite_body(const struct TokenList *const tokens,
         int has_ret = 0;
         while (prev_stmt > 0) {
           prev_stmt--;
-          if (tokens->tokens[prev_stmt].kind == TOKEN_IDENTIFIER &&
-              token_matches_string(&tokens->tokens[prev_stmt], "return")) {
+          if (tokens->tokens[prev_stmt].kind == TOKEN_KEYWORD_RETURN) {
             has_ret = 1;
             break;
           }

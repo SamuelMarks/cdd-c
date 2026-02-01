@@ -66,7 +66,13 @@ TEST test_default_string(void) {
   code = generate_def_code("StrS", &sf);
   ASSERT(code != NULL);
 
+  /* Platform-specific strdup selection is internal, check generic call or
+   * result logic */
+#if defined(_MSC_VER)
+  ASSERT(strstr(code, "(*out)->s = _strdup(\"hello\");"));
+#else
   ASSERT(strstr(code, "(*out)->s = strdup(\"hello\");"));
+#endif
   ASSERT(strstr(
       code,
       "if (!(*out)->s) { StrS_cleanup(*out); *out=NULL; return ENOMEM; }"));
@@ -116,11 +122,58 @@ TEST test_default_no_defaults(void) {
   PASS();
 }
 
+TEST test_default_nullptr(void) {
+  struct StructFields sf;
+  char *code;
+
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "ptr_val", "integer", NULL,
+                    "nullptr"); /* treated as raw */
+  struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr");
+
+  code = generate_def_code("PtrStruct", &sf);
+  ASSERT(code != NULL);
+
+  /* Should map nullptr literal to NULL */
+  ASSERT(strstr(code, "(*out)->ptr_val = NULL;"));
+  ASSERT(strstr(code, "(*out)->str_ptr = NULL;"));
+
+  free(code);
+  struct_fields_free(&sf);
+  PASS();
+}
+
+TEST test_default_binary_literal(void) {
+  struct StructFields sf;
+  char *code;
+
+  struct_fields_init(&sf);
+  /* 0b101 -> 5 */
+  struct_fields_add(&sf, "bin_val", "integer", NULL, "0b101");
+  /* 0B11 -> 3 */
+  struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11");
+
+  code = generate_def_code("BinStruct", &sf);
+  ASSERT(code != NULL);
+
+  /* Should emit decimal values for C89 compatibility */
+  /* Note: Assumes numeric_parser available and linked */
+  /* Verify conversion */
+  ASSERT(strstr(code, "(*out)->bin_val = 5;"));
+  ASSERT(strstr(code, "(*out)->bin_cap = 3;"));
+
+  free(code);
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_primitive);
   RUN_TEST(test_default_string);
   RUN_TEST(test_default_enum);
   RUN_TEST(test_default_no_defaults);
+  RUN_TEST(test_default_nullptr);
+  RUN_TEST(test_default_binary_literal);
 }
 
 #endif /* TEST_CODEGEN_DEFAULTS_H */

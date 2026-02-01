@@ -131,9 +131,7 @@ static int count_returning_allocs(const struct TokenList *tokens) {
   int count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
-    if (tokens->tokens[i].kind == TOKEN_IDENTIFIER &&
-        tokens->tokens[i].length == 6 &&
-        strncmp((const char *)tokens->tokens[i].start, "return", 6) == 0) {
+    if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {
 
       /* Check next non-ws token */
       size_t j = i + 1;

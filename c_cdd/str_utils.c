@@ -6,6 +6,7 @@
  */
 
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
@@ -74,4 +75,63 @@ void c_cdd_str_trim_trailing_whitespace(char *const str) {
       break;
     }
   }
+}
+
+char *c_cdd_destringize(const char *const quoted) {
+  size_t len, i, j;
+  char *out;
+  const char *inner;
+
+  if (!quoted)
+    return NULL;
+
+  len = strlen(quoted);
+  if (len < 2)
+    return NULL; /* Malformed literal */
+
+  /* Simple check for "..." structure */
+  /* Handles optional prefix L"..." */
+  if (quoted[0] == 'L' && (len > 2 && quoted[1] == '"')) {
+    inner = quoted + 2;
+    len -= 3; /* L, ", and trailing " */
+  } else if (quoted[0] == '"') {
+    inner = quoted + 1;
+    len -= 2; /* ", and trailing " */
+  } else {
+    return NULL; /* Not a standard double-quoted string literal */
+  }
+
+  /* Allocation bound: destringized length <= inner length */
+  out = (char *)malloc(len + 1);
+  if (!out)
+    return NULL;
+
+  for (i = 0, j = 0; i < len; i++) {
+    if (inner[i] == '\\') {
+      if (i + 1 < len) {
+        if (inner[i + 1] == '"') {
+          out[j++] = '"';
+          i++;
+        } else if (inner[i + 1] == '\\') {
+          out[j++] = '\\';
+          i++;
+        } else {
+          /* Copy other escapes literally as per spec phase logic? */
+          /* 6.10.9: "replacing each escape sequence \" by a double-quote, and
+           * replacing each escape sequence \\ by a single backslash" */
+          /* It does not mention other escapes. They should remain literally in
+           * the output token stream? */
+          /* Standard says: The result is a sequence of preprocessing tokens. */
+          /* Here we just perform the specified mapping. */
+          out[j++] = inner[i];
+        }
+      } else {
+        out[j++] = inner[i]; /* Trailing backslash? */
+      }
+    } else {
+      out[j++] = inner[i];
+    }
+  }
+  out[j] = '\0';
+  return out;
 }

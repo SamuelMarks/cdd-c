@@ -9,6 +9,11 @@
  * - `_default`: Initialization with default values.
  * - `_debug` / `_display`: Inspection utilities.
  *
+ * Updates:
+ * - Support for `nullptr` keyword (mapped to `NULL`).
+ * - Support for binary literals `0b...` (mapped to decimal).
+ * - flexible array member support.
+ *
  * @author Samuel Marks
  */
 
@@ -35,21 +40,25 @@ struct StructField {
                     "object") */
   char ref[64];  /**< Reference type name (for objects/enums) or item type (for
                     arrays) */
-  char default_val[64]; /**< Default value literal (e.g. "5", "\"foo\"") or
-                           empty */
+  char default_val[64]; /**< Default value literal (e.g. "5", "0b101",
+                           "nullptr") or empty */
 
   /* Validation Constraints */
-  int has_min;
-  double min_val;
-  int exclusive_min;
-  int has_max;
-  double max_val;
-  int exclusive_max;
-  int has_min_len;
-  size_t min_len;
-  int has_max_len;
-  size_t max_len;
-  char pattern[256]; /**< Regex pattern */
+  int has_min;       /**< 1 if minimum constraint exists */
+  double min_val;    /**< Minimum value */
+  int exclusive_min; /**< 1 if exclusive minimum */
+  int has_max;       /**< 1 if maximum constraint exists */
+  double max_val;    /**< Maximum value */
+  int exclusive_max; /**< 1 if exclusive maximum */
+  int has_min_len;   /**< 1 if minLength constraint exists */
+  size_t min_len;    /**< Minimum length for strings */
+  int has_max_len;   /**< 1 if maxLength constraint exists */
+  size_t max_len;    /**< Maximum length for strings */
+  char pattern[256]; /**< Regex pattern string */
+
+  /* C Type Properties */
+  int is_flexible_array; /**< 1 if field is a Flexible Array Member `type
+                            name[]`, 0 otherwise */
 };
 
 /**
@@ -74,6 +83,7 @@ struct CodegenStructConfig {
 
 /**
  * @brief Initialize a StructFields container.
+ *
  * @param[out] sf Pointer to container.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
@@ -81,6 +91,7 @@ extern C_CDD_EXPORT int struct_fields_init(struct StructFields *sf);
 
 /**
  * @brief Free memory within a StructFields container.
+ *
  * @param[in] sf Pointer to container.
  */
 extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
@@ -112,36 +123,104 @@ struct_fields_get(const struct StructFields *sf, const char *name);
 
 /* --- Generator Functions --- */
 
+/**
+ * @brief Generate the `_cleanup` function.
+ * Frees memory recursively.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_cleanup_func(FILE *fp, const char *struct_name,
                           const struct StructFields *sf,
                           const struct CodegenStructConfig *config);
 
+/**
+ * @brief Generate the `_deepcopy` function.
+ * Creates an independent copy of the struct.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_deepcopy_func(FILE *fp, const char *struct_name,
                            const struct StructFields *sf,
                            const struct CodegenStructConfig *config);
 
+/**
+ * @brief Generate the `_eq` function.
+ * Performs deep equality checking.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_eq_func(FILE *fp, const char *struct_name,
                      const struct StructFields *sf,
                      const struct CodegenStructConfig *config);
 
+/**
+ * @brief Generate the `_default` function.
+ * Allocates and initializes the struct with default values.
+ * Handles `nullptr` and `0b` binary literals by checking `numeric_parser`
+ * logic.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_default_func(FILE *fp, const char *struct_name,
                           const struct StructFields *sf,
                           const struct CodegenStructConfig *config);
 
+/**
+ * @brief Generate the `_debug` function.
+ * Prints struct contents for debugging.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_debug_func(FILE *fp, const char *struct_name,
                         const struct StructFields *sf,
                         const struct CodegenStructConfig *config);
 
+/**
+ * @brief Generate the `_display` function.
+ * Wrapper around JSON serialization for printing.
+ *
+ * @param[in] fp File pointer to write to.
+ * @param[in] struct_name Name of the struct.
+ * @param[in] sf Fields descriptor.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
 extern C_CDD_EXPORT int
 write_struct_display_func(FILE *fp, const char *struct_name,
                           const struct StructFields *sf,
                           const struct CodegenStructConfig *config);
 
+/**
+ * @brief Helper to extract type name from a reference path.
+ *
+ * @param[in] ref Reference string (e.g. "#/components/schemas/Type").
+ * @return The base type name ("Type") or the input string if no slash.
+ */
 extern C_CDD_EXPORT const char *get_type_from_ref(const char *ref);
 
 #ifdef __cplusplus

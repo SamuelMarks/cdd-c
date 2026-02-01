@@ -4,7 +4,14 @@
  *
  * Groups linear tokens into semantic blocks (Functions, Structs, Enums).
  * Enriched CST nodes now contain direct token indices to allow O(1)
- * lookups into the token stream, replacing legacy byte-pointer arithmetic.
+ * lookups into the token stream.
+ *
+ * Supports C99/C11/C23 constructs:
+ * - Compound Literals `(struct S){ ... }`
+ * - Designated Initializers `.x = 1`
+ * - Static Assertions inside blocks.
+ * - C23 Attributes.
+ * - C11 _Generic selections.
  *
  * @author Samuel Marks
  */
@@ -25,15 +32,18 @@ extern "C" {
  * @brief High-level classification of CST Nodes.
  */
 enum CstNodeKind {
-  CST_NODE_STRUCT,     /**< Struct definition block */
-  CST_NODE_ENUM,       /**< Enum definition block */
-  CST_NODE_UNION,      /**< Union definition block */
-  CST_NODE_FUNCTION,   /**< Function definition (signature + body) */
-  CST_NODE_COMMENT,    /**< Comment block (preserved for rewriting) */
-  CST_NODE_MACRO,      /**< Preprocessor macro */
-  CST_NODE_WHITESPACE, /**< Whitespace block */
-  CST_NODE_OTHER,      /**< Unclassified sentence (e.g. global var decl) */
-  CST_NODE_UNKNOWN     /**< Error sentinel */
+  CST_NODE_STRUCT,            /**< Struct definition block */
+  CST_NODE_ENUM,              /**< Enum definition block */
+  CST_NODE_UNION,             /**< Union definition block */
+  CST_NODE_FUNCTION,          /**< Function definition (signature + body) */
+  CST_NODE_ATTRIBUTE,         /**< C23 Attribute block [[ ... ]] */
+  CST_NODE_STATIC_ASSERT,     /**< Static assertion declaration */
+  CST_NODE_GENERIC_SELECTION, /**< C11 _Generic(expr, assoc-list) */
+  CST_NODE_COMMENT,           /**< Comment block (preserved for rewriting) */
+  CST_NODE_MACRO,             /**< Preprocessor macro */
+  CST_NODE_WHITESPACE,        /**< Whitespace block */
+  CST_NODE_OTHER,  /**< Unclassified sentence (e.g. variables, expressions) */
+  CST_NODE_UNKNOWN /**< Error sentinel */
 };
 
 /**
@@ -42,8 +52,9 @@ enum CstNodeKind {
  */
 struct CstNode {
   enum CstNodeKind kind; /**< Type of the node */
-  const uint8_t *start;  /**< Byte pointer to start in source */
-  size_t length;         /**< Length in bytes */
+  const uint8_t
+      *start;    /**< Byte pointer to start in source (for debugging/legacy) */
+  size_t length; /**< Length in bytes */
 
   /* --- Navigation Metadata --- */
   size_t start_token; /**< Index of first token in TokenList */
@@ -61,6 +72,11 @@ struct CstNodeList {
 
 /**
  * @brief Parse a token stream into CST nodes.
+ *
+ * Populates a CstNodeList by recursively identifying block structures.
+ * Handles compound literals by consuming braces that appear in expression
+ * contexts (e.g. assignments, returns) into the `CST_NODE_OTHER` node, rather
+ * than breaking them into new block nodes.
  *
  * @param[in] tokens The token stream.
  * @param[out] out Destination structure (managed by caller, internal array

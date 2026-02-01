@@ -73,6 +73,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   char type_final[64] = {0};
   char ref_final[64] = {0};
   int is_ptr = 0;
+  int is_fam = 0;
 
   if (!line || !sf)
     return EINVAL;
@@ -95,6 +96,15 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       n++;
     }
     strncpy(name, n, 63);
+
+    /* Check for Flexible Array Member Syntax: name[] */
+    {
+      size_t nlen = strlen(name);
+      if (nlen > 2 && name[nlen - 1] == ']' && name[nlen - 2] == '[') {
+        is_fam = 1;
+        name[nlen - 2] = '\0'; /* Strip [] */
+      }
+    }
   }
 
   {
@@ -121,7 +131,8 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     if (is_ptr || strstr(type_raw, "*"))
       strcpy(type_final, "string");
     else
-      strcpy(type_final, "string");
+      strcpy(type_final,
+             "string"); /* char[] is effectively string-like logic for now */
   } else if (str_starts_with(type_raw, "struct ")) {
     strcpy(type_final, "object");
     strncpy(ref_final, type_raw + 7, 63);
@@ -136,8 +147,14 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     strcpy(type_final, "string");
   }
 
-  return struct_fields_add(sf, name, type_final,
-                           ref_final[0] ? ref_final : NULL, NULL);
+  if (struct_fields_add(sf, name, type_final, ref_final[0] ? ref_final : NULL,
+                        NULL) == 0) {
+    if (is_fam) {
+      sf->fields[sf->size - 1].is_flexible_array = 1;
+    }
+    return 0;
+  }
+  return ENOMEM;
 }
 
 int json_array_to_enum_members(const JSON_Array *a, struct EnumMembers *e) {
