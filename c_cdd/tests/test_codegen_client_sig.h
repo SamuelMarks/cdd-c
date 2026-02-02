@@ -81,9 +81,32 @@ TEST test_sig_verify_apierror(void) {
   PASS();
 }
 
+TEST test_sig_grouped(void) {
+  struct OpenAPI_Operation op;
+  struct CodegenSigConfig cfg;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  op.operation_id = "getById";
+
+  memset(&cfg, 0, sizeof(cfg));
+  cfg.prefix = "api_";
+  cfg.group_name = "Pet";
+
+  code = gen_sig(&op, &cfg);
+  ASSERT(code);
+
+  /* Expect: Pet_api_getById */
+  ASSERT(strstr(code, "int Pet_api_getById(struct HttpClient *ctx"));
+
+  free(code);
+  PASS();
+}
+
 SUITE(client_sig_suite) {
   RUN_TEST(test_sig_simple_get);
   RUN_TEST(test_sig_verify_apierror);
+  RUN_TEST(test_sig_grouped);
 }
 
 #endif /* TEST_CODEGEN_CLIENT_SIG_H */

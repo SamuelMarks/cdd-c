@@ -3,8 +3,7 @@
  * @brief Implementation of OpenAPI extraction logic.
  *
  * Includes logic to parse `explode` and `style` for parameters,
- * and now loads full schema definitions to support serialization code
- * generation.
+ * `tags` for operation grouping, and full schema definitions.
  *
  * @author Samuel Marks
  */
@@ -52,6 +51,16 @@ static void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     free(ref->ref_name);
   if (ref->content_type)
     free(ref->content_type);
+  if (ref->multipart_fields) {
+    size_t i;
+    for (i = 0; i < ref->n_multipart_fields; ++i) {
+      if (ref->multipart_fields[i].name)
+        free(ref->multipart_fields[i].name);
+      if (ref->multipart_fields[i].type)
+        free(ref->multipart_fields[i].type);
+    }
+    free(ref->multipart_fields);
+  }
 }
 
 static void free_operation(struct OpenAPI_Operation *op) {
@@ -60,6 +69,14 @@ static void free_operation(struct OpenAPI_Operation *op) {
     return;
   if (op->operation_id)
     free(op->operation_id);
+
+  if (op->tags) {
+    for (i = 0; i < op->n_tags; ++i) {
+      if (op->tags[i])
+        free(op->tags[i]);
+    }
+    free(op->tags);
+  }
 
   free_schema_ref_content(&op->req_body);
 
@@ -198,6 +215,8 @@ static int parse_schema_ref(const JSON_Object *const schema,
   out->is_array = 0;
   out->ref_name = NULL;
   out->content_type = NULL;
+  out->multipart_fields = NULL;
+  out->n_multipart_fields = 0;
 
   if (ref) {
     out->ref_name = clean_ref(ref);
@@ -341,6 +360,7 @@ static int parse_operation(const char *const verb_str,
                            struct OpenAPI_Operation *const out_op) {
   const char *op_id;
   const JSON_Array *params;
+  const JSON_Array *tags;
   const JSON_Object *req_body, *responses;
 
   if (!verb_str || !op_obj || !out_op)
@@ -386,6 +406,25 @@ static int parse_operation(const char *const verb_str,
   responses = json_object_get_object(op_obj, "responses");
   if (parse_responses(responses, out_op) != 0)
     return ENOMEM;
+
+  /* 4. Tags */
+  tags = json_object_get_array(op_obj, "tags");
+  if (tags) {
+    size_t t_count = json_array_get_count(tags);
+    out_op->n_tags = t_count;
+    if (t_count > 0) {
+      size_t k;
+      out_op->tags = (char **)calloc(t_count, sizeof(char *));
+      if (!out_op->tags)
+        return ENOMEM;
+      for (k = 0; k < t_count; ++k) {
+        const char *t_val = json_array_get_string(tags, k);
+        out_op->tags[k] = c_cdd_strdup(t_val ? t_val : "");
+        if (!out_op->tags[k])
+          return ENOMEM;
+      }
+    }
+  }
 
   return 0;
 }

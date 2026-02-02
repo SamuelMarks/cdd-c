@@ -232,8 +232,24 @@ int c_inspector_scan_file_types(const char *const filename,
             free(copy);
           }
         } else if (state == ST_STRUCT && curr_sf) {
-          if (*p)
-            parse_struct_member_line(p, curr_sf);
+          if (*p) {
+            /* Support multiple fields on same line separated by semicolon */
+            char *copy = c_cdd_strdup(p);
+            if (copy) {
+              char *ctx = NULL;
+              char *tok = strtok_r(copy, ";", &ctx);
+              while (tok) {
+                /* Ensure not just whitespace */
+                char *chk = tok;
+                while (*chk && isspace((unsigned char)*chk))
+                  chk++;
+                if (*chk)
+                  parse_struct_member_line(tok, curr_sf);
+                tok = strtok_r(NULL, ";", &ctx);
+              }
+              free(copy);
+            }
+          }
         }
 
         if (close_brace) {

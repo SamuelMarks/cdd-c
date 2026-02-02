@@ -46,6 +46,13 @@ struct OpenApiClientConfig {
    * e.g., "PETSTORE_CLIENT_H". If NULL, derived from filename_base.
    */
   const char *header_guard;
+
+  /**
+   * @brief Global namespace prefix for function grouping.
+   * If provided, prepended to the Resource group (e.g. "Foo").
+   * Result: `Foo_Pet_api_get`.
+   */
+  const char *namespace_prefix;
 };
 
 /**
@@ -58,6 +65,7 @@ struct OpenApiClientConfig {
  * 3. Iterates through all Paths and Operations in the Spec.
  * 4. For each operation:
  *    - Generates a Doxygen-style docblock in the header.
+ *    - Resolves naming convention (Namespace + Tag + Prefix).
  *    - Generates a function prototype in the header.
  *    - Generates the function definition and body in the source.
  * 5. Writes the `_init`, `_cleanup`, and `ApiError` lifecycle functions.

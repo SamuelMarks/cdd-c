@@ -75,6 +75,75 @@ TEST test_gen_client_basic(void) {
   PASS();
 }
 
+TEST test_gen_client_grouped_tags_namespace(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_group_ns_test";
+  char *h_file = "gen_group_ns_test.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+  /* Tag string array setup */
+  static char *tags[] = {"pet"};
+
+  setup_minimal_spec(&spec, &op);
+
+  /* Inject tag manually */
+  op.tags = tags;
+  op.n_tags = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+  config.namespace_prefix = "Foo";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  /* Should be Foo_Pet_api_test_op */
+  /* Namespace "Foo", Tag "Pet" (capitalized), Prefix "api_" */
+  ASSERT(strstr(content, "int Foo_Pet_api_test_op(") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_group_ns_test.c");
+  PASS();
+}
+
+TEST test_gen_client_namespace_only(void) {
+  /* Case: Namespace present, but no tags on operation */
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_ns_only_test";
+  char *h_file = "gen_ns_only_test.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+  /* No tags */
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+  config.namespace_prefix = "Bar";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  /* Should be Bar_api_test_op */
+  ASSERT(strstr(content, "int Bar_api_test_op(") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_ns_only_test.c");
+  PASS();
+}
+
 TEST test_gen_client_error_nulls(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config = {0};
@@ -173,6 +242,8 @@ TEST test_gen_transport_selection(void) {
 
 SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_basic);
+  RUN_TEST(test_gen_client_grouped_tags_namespace);
+  RUN_TEST(test_gen_client_namespace_only);
   RUN_TEST(test_gen_client_error_nulls);
   RUN_TEST(test_gen_client_file_error);
   RUN_TEST(test_gen_client_defaults);

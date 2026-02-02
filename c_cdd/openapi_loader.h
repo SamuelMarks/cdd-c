@@ -9,6 +9,7 @@
  * - Request Bodies and content-types
  * - Component Schemas (parsed into StructFields for generation lookups)
  * - Security Schemes
+ * - Tags for resource grouping
  *
  * @author Samuel Marks
  */
@@ -30,28 +31,28 @@ extern "C" {
  * @brief HTTP Verbs supported by the generator.
  */
 enum OpenAPI_Verb {
-  OA_VERB_GET,    /**< GET */
-  OA_VERB_POST,   /**< POST */
-  OA_VERB_PUT,    /**< PUT */
-  OA_VERB_DELETE, /**< DELETE */
-  OA_VERB_PATCH,  /**< PATCH */
-  OA_VERB_HEAD,   /**< HEAD */
-  OA_VERB_UNKNOWN /**< Fallback */
+  OA_VERB_GET,    /**< GET method */
+  OA_VERB_POST,   /**< POST method */
+  OA_VERB_PUT,    /**< PUT method */
+  OA_VERB_DELETE, /**< DELETE method */
+  OA_VERB_PATCH,  /**< PATCH method */
+  OA_VERB_HEAD,   /**< HEAD method */
+  OA_VERB_UNKNOWN /**< Fallback/Unsupported method */
 };
 
 /**
  * @brief Location of a parameter in the HTTP request.
  */
 enum OpenAPI_ParamIn {
-  OA_PARAM_IN_PATH,   /**< /resource/{id} */
-  OA_PARAM_IN_QUERY,  /**< /resource?id=1 */
-  OA_PARAM_IN_HEADER, /**< X-Header: 1 */
+  OA_PARAM_IN_PATH,   /**< Path segment: /resource/{id} */
+  OA_PARAM_IN_QUERY,  /**< Query string: /resource?id=1 */
+  OA_PARAM_IN_HEADER, /**< Header: X-Header: 1 */
   OA_PARAM_IN_COOKIE, /**< Cookie: id=1 */
-  OA_PARAM_IN_UNKNOWN /**< Error state */
+  OA_PARAM_IN_UNKNOWN /**< Error state or unsupported location */
 };
 
 /**
- * @brief Serialization style for parameters (RFC 6570).
+ * @brief Serialization style for parameters (per RFC 6570 / OpenAPI Spec).
  */
 enum OpenAPI_Style {
   OA_STYLE_FORM,            /**< name=value (Default for Query) */
@@ -59,7 +60,7 @@ enum OpenAPI_Style {
   OA_STYLE_SPACE_DELIMITED, /**< name=val1%20val2 */
   OA_STYLE_PIPE_DELIMITED,  /**< name=val1|val2 */
   OA_STYLE_DEEP_OBJECT,     /**< nested object serialization */
-  OA_STYLE_UNKNOWN
+  OA_STYLE_UNKNOWN          /**< Unknown style */
 };
 
 /**
@@ -80,7 +81,7 @@ enum OpenAPI_SecurityIn {
   OA_SEC_IN_QUERY,  /**< in: query */
   OA_SEC_IN_HEADER, /**< in: header */
   OA_SEC_IN_COOKIE, /**< in: cookie */
-  OA_SEC_IN_UNKNOWN
+  OA_SEC_IN_UNKNOWN /**< unknown location */
 };
 
 /**
@@ -89,22 +90,23 @@ enum OpenAPI_SecurityIn {
 struct OpenAPI_MultipartField {
   char *name;    /**< Field name */
   char *type;    /**< Type ("string", "integer") or NULL for file */
-  int is_binary; /**< 1 if this is a file upload */
+  int is_binary; /**< 1 if this is a file upload, 0 otherwise */
 };
 
 /**
  * @brief Represents an extracted Schema (Body or Response).
  */
 struct OpenAPI_SchemaRef {
-  char *ref_name; /**< The cleaned type name (e.g. "Pet") or NULL */
-  int is_array;   /**< 1 if array */
+  char *ref_name; /**< The cleaned type name (e.g. "Pet") or NULL if
+                     inline/primitive */
+  int is_array;   /**< 1 if array, 0 otherwise */
 
   /* Multipart / Form-urlencoded Extension */
   char *content_type; /**< "application/json" or
                          "application/x-www-form-urlencoded" */
   struct OpenAPI_MultipartField
       *multipart_fields;     /**< Array of fields (if multipart) */
-  size_t n_multipart_fields; /**< Count */
+  size_t n_multipart_fields; /**< Count of multipart fields */
 };
 
 /**
@@ -113,7 +115,7 @@ struct OpenAPI_SchemaRef {
 struct OpenAPI_Parameter {
   char *name;              /**< Variable name */
   enum OpenAPI_ParamIn in; /**< Location */
-  int required;            /**< 1 if mandatory */
+  int required;            /**< 1 if mandatory, 0 optional */
   char *type;              /**< Basic type ("integer", "string", "array") */
 
   /* Array Support */
@@ -130,7 +132,7 @@ struct OpenAPI_Parameter {
  */
 struct OpenAPI_Response {
   char *code; /**< HTTP Status string ("200", "404", "default") */
-  struct OpenAPI_SchemaRef schema; /**< The body schema */
+  struct OpenAPI_SchemaRef schema; /**< The body schema definition */
 };
 
 /**
@@ -153,6 +155,9 @@ struct OpenAPI_Operation {
 
   struct OpenAPI_Parameter *parameters; /**< Array of parameters */
   size_t n_parameters;                  /**< Param count */
+
+  char **tags;   /**< Array of tags used for grouping (e.g. ["pet"]) */
+  size_t n_tags; /**< Number of tags */
 
   struct OpenAPI_SchemaRef req_body; /**< Request body definition */
 
@@ -193,13 +198,13 @@ struct OpenAPI_Spec {
 
 /**
  * @brief Initialize a Spec structure to zero.
- * @param[out] spec Pointer to spec.
+ * @param[out] spec Pointer to spec structure to initialize.
  */
 extern C_CDD_EXPORT void openapi_spec_init(struct OpenAPI_Spec *spec);
 
 /**
  * @brief Free a Spec structure and all nested allocations.
- * @param[in] spec Pointer to spec.
+ * @param[in] spec Pointer to spec structure to free.
  */
 extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
 
@@ -209,7 +214,7 @@ extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
  * @brief Parse "paths" and "components" from a JSON Value.
  *
  * Traverses the JSON to populate the Spec structure.
- * 1. Extracts Paths, Operations, Params, Bodies.
+ * 1. Extracts Paths, Operations, Params, Bodies, and Tags.
  * 2. Extracts Security Schemes from components.
  * 3. Extracts and flattening Schemas definitions.
  *

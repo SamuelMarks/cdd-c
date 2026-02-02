@@ -32,6 +32,7 @@ set(LIBRARY_NAME "test_c_cdd_lib")
 set(Header_Files
         "test_analysis.h" 
         "test_c_cdd_integration.h" 
+        "test_c_inspector_types.h" 
         "test_code2schema.h" 
         "test_codegen_build.h" 
         "test_codegen_defaults.h" 
@@ -42,6 +43,7 @@ set(Header_Files
         "test_codegen_sdk_tests.h" 
         "test_cst_parser.h" 
         "test_dataclasses.h" 
+        "test_declarator_parser.h" 
         "test_fs.h" 
         "test_json_from_and_to.h" 
         "test_openapi_client_gen.h" 
@@ -54,6 +56,14 @@ set(Header_Files
         "test_sync_code.h" 
         "test_tokenizer.h" 
         "test_transport_factory.h" 
+        # New Tests
+        "test_openapi_writer.h"
+        "test_doc_parser.h"
+        "test_c_mapping.h"
+        "test_c2openapi_op.h"
+        "test_aggregator.h"
+        "test_c2openapi_schema.h"
+        "test_integration_c2openapi.h"
 ) 
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
 
@@ -107,59 +117,25 @@ target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}") 
 
-################################# 
-# Additional tests and/or mocks # 
-################################# 
-
+# ... (Previous Mock targets remain unchanged) ...
 add_subdirectory("mocks") 
-
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks") 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN) 
-    find_package(parson REQUIRED) 
-else () 
-    find_package(parson CONFIG REQUIRED) 
-endif () 
-target_link_libraries("${LIBRARY_NAME}" INTERFACE "parson::parson") 
+# ...
+set(EXEC_NAME "test_simple_json")
+set(Header_Files "${EXEC_NAME}.h")
+source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
+set(Source_Files "${EXEC_NAME}.c")
+source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
+add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
+target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>")
+set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
+add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
-set(EXEC_NAME "test_simple_json") 
-
-set(Header_Files "${EXEC_NAME}.h") 
-source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}") 
-
-set(Source_Files "${EXEC_NAME}.c") 
-source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}") 
-
-add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}") 
-
-target_include_directories( 
-        "${EXEC_NAME}" 
-        PRIVATE
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" 
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>" 
-) 
-set_target_properties( 
-        "${EXEC_NAME}" 
-        PROPERTIES
-        LINKER_LANGUAGE
-        C
-) 
-target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks") 
-
-add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}") 
-
-################### 
-# Integration Test # 
-################### 
-
-set(EXEC_NAME "test_integration_full_sdk") 
-set(Source_Files "${EXEC_NAME}.c") 
-add_executable("${EXEC_NAME}" "${Source_Files}") 
-
-target_include_directories( 
-        "${EXEC_NAME}" 
-        PRIVATE
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" 
-) 
-set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C) 
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}") 
+set(EXEC_NAME "test_integration_full_sdk")
+set(Source_Files "${EXEC_NAME}.c")
+add_executable("${EXEC_NAME}" "${Source_Files}")
+target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>")
+set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")

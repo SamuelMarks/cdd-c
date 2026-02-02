@@ -3,7 +3,9 @@
  * @brief Implementation of the OpenAPI Client Generator.
  *
  * Generates client code including the standard `ApiError` struct and its
- * implementation for RFC 7807 support.
+ * implementation for RFC 7807 support. Uses tags from the specification
+ * combined with optional global namespaces to generate distinct API function
+ * groups (`Namespace_Resource_prefix_operation`).
  *
  * @author Samuel Marks
  */
@@ -66,6 +68,35 @@ static char *derive_model_header(const char *base) {
     return NULL;
   sprintf(m, "%s_models.h", base);
   return m;
+}
+
+/**
+ * @brief Sanitize a tag string to be a valid C identifier part.
+ * Converts non-alphanumeric characters to underscores.
+ * Capitalizes the first letter for style matching (e.g. "pet" -> "Pet").
+ *
+ * @param tag The tag string from the spec.
+ * @return Allocated string with sanitized name, or NULL on error.
+ */
+static char *sanitize_tag(const char *tag) {
+  char *s;
+  size_t i;
+  if (!tag)
+    return NULL;
+  s = strdup(tag);
+  if (!s)
+    return NULL;
+
+  if (s[0] && islower((unsigned char)s[0])) {
+    s[0] = (char)toupper((unsigned char)s[0]);
+  }
+
+  for (i = 0; s[i]; ++i) {
+    if (!isalnum((unsigned char)s[i])) {
+      s[i] = '_';
+    }
+  }
+  return s;
 }
 
 /**
@@ -164,7 +195,8 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
                       "  free(err);\n"
                       "}\n\n"));
 
-  /* Helper to parse ApiError (Internal) */
+  /* Helper to parse ApiError (Internal).
+     Split large string literal to avoid C90 warnings. */
   CHECK_IO(fprintf(
       c, "static int ApiError_from_json(const char *json, struct ApiError "
          "**out) {\n"
@@ -174,8 +206,9 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
          "  *out = calloc(1, sizeof(struct ApiError));\n"
          "  if(!*out) return 12; /* ENOMEM */\n"
          "  (*out)->raw_body = strdup(json);\n"
-         "  root = json_parse_string(json);\n"
-         "  if(!root) return 0; /* Not JSON, return strict success but object "
+         "  root = json_parse_string(json);\n"));
+  CHECK_IO(fprintf(
+      c, "  if(!root) return 0; /* Not JSON, return strict success but object "
          "only has raw_body */\n"
          "  obj = json_value_get_object(root);\n"
          "  if(obj) {\n"
@@ -184,8 +217,9 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
          "    if(json_object_has_value(obj, \"title\")) (*out)->title = "
          "strdup(json_object_get_string(obj, \"title\"));\n"
          "    if(json_object_has_value(obj, \"detail\")) (*out)->detail = "
-         "strdup(json_object_get_string(obj, \"detail\"));\n"
-         "    if(json_object_has_value(obj, \"instance\")) (*out)->instance = "
+         "strdup(json_object_get_string(obj, \"detail\"));\n"));
+  CHECK_IO(fprintf(
+      c, "    if(json_object_has_value(obj, \"instance\")) (*out)->instance = "
          "strdup(json_object_get_string(obj, \"instance\"));\n"
          "    if(json_object_has_value(obj, \"status\")) (*out)->status = "
          "(int)json_object_get_number(obj, \"status\");\n"
@@ -342,29 +376,97 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
       struct CodegenSigConfig sig_cfg;
+      char *sanitized_group = NULL;
+      char *full_group = NULL;
 
       memset(&sig_cfg, 0, sizeof(sig_cfg));
       sig_cfg.prefix = prefix;
 
+      /* Determine Group Name from Tags and Namespace */
+      if (op->n_tags > 0 && op->tags[0]) {
+        sanitized_group = sanitize_tag(op->tags[0]);
+        if (!sanitized_group) {
+          rc = ENOMEM;
+          goto cleanup;
+        }
+      }
+
+      if (config->namespace_prefix && sanitized_group) {
+        /* Name: Namespace_Tag */
+        full_group = malloc(strlen(config->namespace_prefix) +
+                            strlen(sanitized_group) + 2);
+        if (!full_group) {
+          if (sanitized_group)
+            free(sanitized_group);
+          rc = ENOMEM;
+          goto cleanup;
+        }
+        sprintf(full_group, "%s_%s", config->namespace_prefix, sanitized_group);
+      } else if (config->namespace_prefix) {
+        /* Name: Namespace */
+        full_group = strdup(config->namespace_prefix);
+        if (!full_group) {
+          rc = ENOMEM;
+          goto cleanup;
+        }
+      } else if (sanitized_group) {
+        /* Name: Tag */
+        full_group = strdup(sanitized_group);
+        if (!full_group) {
+          free(sanitized_group);
+          rc = ENOMEM;
+          goto cleanup;
+        }
+      }
+
+      if (full_group) {
+        sig_cfg.group_name = full_group;
+      }
+
       /* 1. Header: DocBlock + Prototype */
-      if ((rc = write_docblock(hfile, op)) != 0)
+      if ((rc = write_docblock(hfile, op)) != 0) {
+        if (sanitized_group)
+          free(sanitized_group);
+        if (full_group)
+          free(full_group);
         goto cleanup;
+      }
 
       sig_cfg.include_semicolon = 1;
-      if ((rc = codegen_client_write_signature(hfile, op, &sig_cfg)) != 0)
+      if ((rc = codegen_client_write_signature(hfile, op, &sig_cfg)) != 0) {
+        if (sanitized_group)
+          free(sanitized_group);
+        if (full_group)
+          free(full_group);
         goto cleanup;
+      }
       CHECK_IO(fprintf(hfile, "\n"));
 
       /* 2. Source: Implementation */
       sig_cfg.include_semicolon = 0;
-      if ((rc = codegen_client_write_signature(cfile, op, &sig_cfg)) != 0)
+      if ((rc = codegen_client_write_signature(cfile, op, &sig_cfg)) != 0) {
+        if (sanitized_group)
+          free(sanitized_group);
+        if (full_group)
+          free(full_group);
         goto cleanup;
+      }
 
       /* Body generation (Passing spec for security lookup) */
-      if ((rc = codegen_client_write_body(cfile, op, spec, path->route)) != 0)
+      if ((rc = codegen_client_write_body(cfile, op, spec, path->route)) != 0) {
+        if (sanitized_group)
+          free(sanitized_group);
+        if (full_group)
+          free(full_group);
         goto cleanup;
+      }
 
       CHECK_IO(fprintf(cfile, "\n"));
+
+      if (sanitized_group)
+        free(sanitized_group);
+      if (full_group)
+        free(full_group);
     }
   }
 
