@@ -1,9 +1,11 @@
 cdd-c
 =====
 
+[![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Linux, Windows, macOS](https://github.com/SamuelMarks/cdd-c/actions/workflows/linux-Windows-macOS.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions/workflows/linux-Windows-macOS.yml)
+[`#rewriteInC`](https://rewriteInC.io)
+![coverage](reports/test_coverage.svg)
 [![C89](https://img.shields.io/badge/C-89-blue)](https://en.wikipedia.org/wiki/C89_(C_version))
-[![License](https://img.shields.io/badge/License-Apache_2.0-red)](LICENSE-APACHE)
-[![Build](https://img.shields.io/badge/Build-CMake-green)](CMakeLists.txt)
 
 **cdd-c** is a comprehensive C frontend toolchain designed for interoperability, code generation, and static safety analysis. It acts as a bridge between C code and modern API specifications, focusing on:
 1.  **Reverse Engineering**: Generating OpenAPI v3 specifications from annotated C source code.
