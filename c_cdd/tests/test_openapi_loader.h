@@ -93,10 +93,32 @@ TEST test_load_form_content_type(void) {
   PASS();
 }
 
+TEST test_load_operation_tags(void) {
+  const char *json = "{\"paths\":{\"/tagged\":{\"get\":{"
+                     "\"tags\":[\"pet\", \"store\"],"
+                     "\"operationId\":\"getTagged\""
+                     "}}}}";
+
+  struct OpenAPI_Spec spec;
+  int rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+
+  {
+    struct OpenAPI_Operation *op = &spec.paths[0].operations[0];
+    ASSERT_EQ(2, op->n_tags);
+    ASSERT_STR_EQ("pet", op->tags[0]);
+    ASSERT_STR_EQ("store", op->tags[1]);
+  }
+
+  openapi_spec_free(&spec);
+  PASS();
+}
+
 SUITE(openapi_loader_suite) {
   RUN_TEST(test_load_parameter_array);
   RUN_TEST(test_load_schema_parsing);
   RUN_TEST(test_load_form_content_type);
+  RUN_TEST(test_load_operation_tags);
 }
 
 #endif /* TEST_OPENAPI_LOADER_H */

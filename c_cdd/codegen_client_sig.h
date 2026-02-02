@@ -3,6 +3,7 @@
  * @brief Logic for generating C Client Function Prototypes.
  *
  * Supports standard types and arrays (pointer + len).
+ * Includes support for resource-oriented grouping prefixes.
  */
 
 #ifndef C_CDD_CODEGEN_CLIENT_SIG_H
@@ -24,8 +25,10 @@ struct CodegenSigConfig {
   const char *prefix; /**< Prefix for function name (e.g. "api_") */
   const char
       *ctx_type; /**< Type of the context arg (default "struct HttpClient *") */
-  int include_semicolon; /**< 1 to append ";\n", 0 for definition start " {\n"
-                          */
+  int include_semicolon;  /**< 1 to append ";\n", 0 for definition start " {\n"
+                           */
+  const char *group_name; /**< Optional resource grouping name (e.g. "Pet"),
+                             results in "Pet_prefix_OpId" */
 };
 
 /**

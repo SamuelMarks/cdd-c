@@ -45,6 +45,15 @@
 #include "test_tokenizer_trigraphs.h"
 #include "test_transport_factory.h"
 
+/* New Suites */
+#include "test_aggregator.h"
+#include "test_c2openapi_op.h"
+#include "test_c2openapi_schema.h"
+#include "test_c_mapping.h"
+#include "test_doc_parser.h"
+#include "test_integration_c2openapi.h"
+#include "test_openapi_writer.h"
+
 GREATEST_MAIN_DEFS();
 
 int main(int argc, char **argv) {
@@ -87,6 +96,15 @@ int main(int argc, char **argv) {
   RUN_SUITE(tokenizer_suite);
   RUN_SUITE(tokenizer_trigraphs_suite);
   RUN_SUITE(transport_factory_suite);
+
+  /* New Runners */
+  RUN_SUITE(openapi_writer_suite);
+  RUN_SUITE(doc_parser_suite);
+  RUN_SUITE(c_mapping_suite);
+  RUN_SUITE(c2openapi_op_suite);
+  RUN_SUITE(aggregator_suite);
+  RUN_SUITE(c2openapi_schema_suite);
+  RUN_SUITE(integration_c2openapi_suite);
 
   GREATEST_MAIN_END();
 }

@@ -173,6 +173,15 @@ extern C_CDD_EXPORT int read_to_file(const char *path, const char *mode,
                                      char **out_data, size_t *out_size);
 
 /**
+ * @brief Write string content to a file.
+ *
+ * @param[in] path Path to the file to write.
+ * @param[in] content The null-terminated string to write.
+ * @return 0 on success, or error code on failure.
+ */
+extern C_CDD_EXPORT int fs_write_to_file(const char *path, const char *content);
+
+/**
  * @brief Read entire content from an open file stream.
  * Allocates the buffer which the caller must free. Does not close the stream.
  *

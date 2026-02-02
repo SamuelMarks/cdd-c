@@ -261,6 +261,31 @@ enum FopenError fopen_error_from(int fopen_error) {
   }
 }
 
+int fs_write_to_file(const char *const path, const char *const content) {
+  FILE *f;
+  int rc = 0;
+
+  if (!path || !content)
+    return EINVAL;
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&f, path, "w") != 0)
+    f = NULL;
+#else
+  f = fopen(path, "w");
+#endif
+
+  if (!f)
+    return errno ? errno : EIO;
+
+  if (fputs(content, f) < 0)
+    rc = EIO;
+
+  fclose(f);
+  return rc;
+}
+
 int read_to_file(const char *path, const char *mode, char **out_data,
                  size_t *out_size) {
   FILE *f = NULL;

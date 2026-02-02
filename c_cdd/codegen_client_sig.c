@@ -2,8 +2,8 @@
  * @file codegen_client_sig.c
  * @brief Implementation of Client Signature Generation.
  *
- * Updated to append standard `struct ApiError **api_error` argument
- * to all operations for global error handling.
+ * Updated to support Grouped naming convention (Resource_Prefix_OpId).
+ * Appends standard `struct ApiError **api_error` argument to all operations.
  */
 
 #include <errno.h>
@@ -68,12 +68,19 @@ int codegen_client_write_signature(
   const char *prefix = (config && config->prefix) ? config->prefix : "";
   const char *func_name = op->operation_id ? op->operation_id : "unnamed_op";
   const struct OpenAPI_SchemaRef *success_schema;
+  const char *group =
+      (config && config->group_name) ? config->group_name : NULL;
   size_t i;
 
   if (!fp || !op)
     return EINVAL;
 
-  CHECK_IO(fprintf(fp, "int %s%s(%sctx", prefix, func_name, ctx_type));
+  /* Construct function name: [Group_][Prefix][OpName] */
+  CHECK_IO(fprintf(fp, "int "));
+  if (group && *group) {
+    CHECK_IO(fprintf(fp, "%s_", group));
+  }
+  CHECK_IO(fprintf(fp, "%s%s(%sctx", prefix, func_name, ctx_type));
 
   /* 1. Parameters */
   for (i = 0; i < op->n_parameters; ++i) {
