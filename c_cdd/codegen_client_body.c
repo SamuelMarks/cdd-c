@@ -45,6 +45,12 @@ static const char *verb_to_enum_str(enum OpenAPI_Verb v) {
     return "HTTP_HEAD";
   case OA_VERB_PATCH:
     return "HTTP_PATCH";
+  case OA_VERB_OPTIONS:
+    return "HTTP_OPTIONS";
+  case OA_VERB_TRACE:
+    return "HTTP_TRACE";
+  case OA_VERB_QUERY:
+    return "HTTP_QUERY";
   default:
     return "HTTP_GET";
   }
@@ -146,7 +152,8 @@ int codegen_client_write_body(FILE *const fp,
     return EINVAL;
 
   for (i = 0; i < op->n_parameters; ++i) {
-    if (op->parameters[i].in == OA_PARAM_IN_QUERY)
+    if (op->parameters[i].in == OA_PARAM_IN_QUERY ||
+        op->parameters[i].in == OA_PARAM_IN_QUERYSTRING)
       query_exists = 1;
   }
 

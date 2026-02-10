@@ -51,7 +51,7 @@ TEST test_sync_signature_update(void) {
   rc = api_sync_file(src_file, &spec, NULL);
   ASSERT_EQ(0, rc);
   read_to_file(src_file, "r", &content, &sz);
-  ASSERT(strstr(content, "int get_pet(struct HttpClient *ctx, int id)"));
+  ASSERT(strstr(content, "int get_pet(struct HttpClient *ctx, int id, struct ApiError **api_error)"));
   free(content);
   openapi_spec_free(&spec);
   remove(src_file);

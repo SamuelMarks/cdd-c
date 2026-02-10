@@ -75,6 +75,160 @@ TEST test_gen_client_basic(void) {
   PASS();
 }
 
+TEST test_gen_client_op_params_only(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Parameter op_param;
+  const char *base = "gen_op_params";
+  char *h_file = "gen_op_params.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&op_param, 0, sizeof(op_param));
+  op_param.name = "limit";
+  op_param.in = OA_PARAM_IN_QUERY;
+  op_param.type = "integer";
+  op.parameters = &op_param;
+  op.n_parameters = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, int limit") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_op_params.c");
+  PASS();
+}
+
+TEST test_gen_client_querystring_param(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Parameter op_param;
+  const char *base = "gen_querystring_param";
+  char *h_file = "gen_querystring_param.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&op_param, 0, sizeof(op_param));
+  op_param.name = "qs";
+  op_param.in = OA_PARAM_IN_QUERYSTRING;
+  op_param.type = "string";
+  op.parameters = &op_param;
+  op.n_parameters = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  ASSERT(strstr(content, "Parameter (Querystring)") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_querystring_param.c");
+  PASS();
+}
+
+TEST test_gen_client_path_level_params(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Parameter path_param;
+  const char *base = "gen_path_params";
+  char *h_file = "gen_path_params.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&path_param, 0, sizeof(path_param));
+  path_param.name = "x_trace";
+  path_param.in = OA_PARAM_IN_HEADER;
+  path_param.type = "string";
+
+  spec.paths[0].parameters = &path_param;
+  spec.paths[0].n_parameters = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, const char *x_trace") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_path_params.c");
+  PASS();
+}
+
+TEST test_gen_client_path_param_override(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Parameter path_param;
+  struct OpenAPI_Parameter op_param;
+  const char *base = "gen_path_override";
+  char *h_file = "gen_path_override.h";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&path_param, 0, sizeof(path_param));
+  path_param.name = "id";
+  path_param.in = OA_PARAM_IN_PATH;
+  path_param.type = "integer";
+
+  memset(&op_param, 0, sizeof(op_param));
+  op_param.name = "id";
+  op_param.in = OA_PARAM_IN_PATH;
+  op_param.type = "string";
+
+  spec.paths[0].parameters = &path_param;
+  spec.paths[0].n_parameters = 1;
+  op.parameters = &op_param;
+  op.n_parameters = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  ASSERT(strstr(content, "const char *id") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove("gen_path_override.c");
+  PASS();
+}
+
 TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -242,6 +396,10 @@ TEST test_gen_transport_selection(void) {
 
 SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_basic);
+  RUN_TEST(test_gen_client_op_params_only);
+  RUN_TEST(test_gen_client_querystring_param);
+  RUN_TEST(test_gen_client_path_level_params);
+  RUN_TEST(test_gen_client_path_param_override);
   RUN_TEST(test_gen_client_grouped_tags_namespace);
   RUN_TEST(test_gen_client_namespace_only);
   RUN_TEST(test_gen_client_error_nulls);

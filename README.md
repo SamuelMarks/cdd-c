@@ -8,7 +8,7 @@ cdd-c
 [![C89](https://img.shields.io/badge/C-89-blue)](https://en.wikipedia.org/wiki/C89_(C_version))
 
 **cdd-c** is a comprehensive C frontend toolchain designed for interoperability, code generation, and static safety analysis. It acts as a bridge between C code and modern API specifications, focusing on:
-1.  **Reverse Engineering**: Generating OpenAPI v3 specifications from annotated C source code.
+1.  **Reverse Engineering**: Generating OpenAPI v3.2 specifications from annotated C source code.
 2.  **SDK Generation**: Generating type-safe C client libraries from OpenAPI specs strings.
 3.  **Refactoring**: Auditing and patching C code for memory safety (unchecked allocations).
 
@@ -75,13 +75,13 @@ int api_get_pet(int petId, struct Pet **out) {
 }
 ```
 
-### 2. The Generated Specification (OpenAPI v3)
+### 2. The Generated Specification (OpenAPI v3.2)
 
 Running `c_cdd_cli c2openapi . openapi.json` produces:
 
 ```json
 {
-  "openapi": "3.0.0",
+  "openapi": "3.2.0",
   "paths": {
     "/pets/{petId}": {
       "get": {

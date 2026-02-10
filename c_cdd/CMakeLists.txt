@@ -44,6 +44,7 @@ set(Header_Files
         "openapi_writer.h"
         "preprocessor.h"
         "project_audit.h"
+        "refactor_api_sync.h"
         "refactor_engine.h"
         "refactor_orchestrator.h"
         "rewriter_body.h"
@@ -54,6 +55,7 @@ set(Header_Files
         "sync_code.h"
         "text_patcher.h"
         "tokenizer.h"
+        "url_utils.h"
 )
 source_group("Header Files" FILES "${Header_Files}")
 
@@ -92,6 +94,7 @@ set(Source_Files
         "openapi_writer.c"
         "preprocessor.c"
         "project_audit.c"
+        "refactor_api_sync.c"
         "refactor_engine.c"
         "refactor_orchestrator.c"
         "rewriter_body.c"
@@ -102,6 +105,7 @@ set(Source_Files
         "sync_code.c"
         "text_patcher.c"
         "tokenizer.c"
+        "url_utils.c"
         "str_utils.c"
         "transport_factory.c"
 )
@@ -132,21 +136,32 @@ target_include_directories(
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-# Dependencies
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
-    find_package(CURL REQUIRED)
-    find_package(OpenSSL REQUIRED)
+if (WIN32)
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
 else ()
-    find_package(CURL CONFIG REQUIRED)
-    find_package(OpenSSL CONFIG REQUIRED)
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)
 endif ()
 
-target_link_libraries("${LIBRARY_NAME}" PRIVATE CURL::libcurl)
+# Dependencies
+if (C_CDD_USE_LIBCURL)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+        find_package(CURL REQUIRED)
+        find_package(OpenSSL REQUIRED)
+    else ()
+        find_package(CURL CONFIG REQUIRED)
+        find_package(OpenSSL CONFIG REQUIRED)
+    endif ()
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE CURL::libcurl)
+endif ()
 
 if (WIN32)
     # WinCrypt is part of system libs usually
     # crypto_wincrypt might need linking against Crypt32.lib
     # http_winhttp needs Winhttp.lib
+    # you can use crypto backend from windows with curl I think, TODO
+    if (C_CDD_USE_LIBCURL)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    endif (C_CDD_USE_LIBCURL)
 else ()
     target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 endif ()

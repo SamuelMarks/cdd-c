@@ -180,7 +180,10 @@ TEST test_runtime_execution_with_mock_server(void) {
   int rc;
 
   server = mock_server_init();
-  mock_server_start(server);
+  if (mock_server_start(server) != 0) {
+    mock_server_destroy(server);
+    SKIPm("Mock server start failed (sockets unavailable?)");
+  }
   port = mock_server_get_port(server);
 
   http_client_init(&client);

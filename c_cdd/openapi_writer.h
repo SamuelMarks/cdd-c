@@ -1,6 +1,6 @@
 /**
  * @file openapi_writer.h
- * @brief Writer module for OpenAPI v3.0 definitions.
+ * @brief Writer module for OpenAPI v3.2 definitions.
  *
  * Provides functionality to serialize an in-memory `OpenAPI_Spec` structure
  * into a JSON string. This acts as the inverse of `openapi_loader`.

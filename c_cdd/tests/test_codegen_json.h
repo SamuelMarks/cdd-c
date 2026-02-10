@@ -20,7 +20,7 @@
 #include "codegen_struct.h" /* For struct_fields_init etc */
 
 /* Common Setup */
-static void setup_fields(struct StructFields *sf) {
+static void setup_json_fields(struct StructFields *sf) {
   struct_fields_init(sf);
   struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
   struct_fields_add(sf, "data", "string", NULL, NULL, NULL);
@@ -33,7 +33,7 @@ TEST test_json_to_plain(void) {
   char *content;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_json_fields(&sf);
 
   ASSERT_EQ(0, write_struct_to_json_func(tmp, "Data", &sf, NULL));
 
@@ -63,7 +63,7 @@ TEST test_json_from_plain(void) {
   char *content;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_json_fields(&sf);
 
   ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Data", &sf, NULL));
 
@@ -151,7 +151,7 @@ TEST test_json_guards(void) {
   long sz;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_json_fields(&sf);
   config.guard_macro = "JSON_ENABLED";
 
   ASSERT_EQ(0, write_struct_from_json_func(tmp, "Data", &config));

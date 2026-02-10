@@ -317,7 +317,7 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
                               struct PatchList *patches) {
   size_t i, k;
   /*
-     Heuristic: Look for /* Header Parameter: name * / comment.
+     Heuristic: Look for "Header Parameter: name" comment.
      If found, identify the logic following it and replace.
   */
 

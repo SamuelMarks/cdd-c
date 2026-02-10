@@ -107,6 +107,16 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       out_op->verb = OA_VERB_PUT;
     else if (strcasecmp(doc->verb, "DELETE") == 0)
       out_op->verb = OA_VERB_DELETE;
+    else if (strcasecmp(doc->verb, "PATCH") == 0)
+      out_op->verb = OA_VERB_PATCH;
+    else if (strcasecmp(doc->verb, "HEAD") == 0)
+      out_op->verb = OA_VERB_HEAD;
+    else if (strcasecmp(doc->verb, "OPTIONS") == 0)
+      out_op->verb = OA_VERB_OPTIONS;
+    else if (strcasecmp(doc->verb, "TRACE") == 0)
+      out_op->verb = OA_VERB_TRACE;
+    else if (strcasecmp(doc->verb, "QUERY") == 0)
+      out_op->verb = OA_VERB_QUERY;
     else
       out_op->verb = OA_VERB_GET; /* Default */
   } else {
@@ -133,6 +143,11 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   out_op->operation_id = c_cdd_strdup(ctx->func_name);
   if (!out_op->operation_id)
     return ENOMEM;
+  if (doc && doc->summary) {
+    out_op->summary = c_cdd_strdup(doc->summary);
+    if (!out_op->summary)
+      return ENOMEM;
+  }
 
   /* 1. Argument Iteration */
   for (i = 0; i < sig->n_args; ++i) {
@@ -143,6 +158,7 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     int is_path = 0;
     int is_body = 0;
     int is_out_ptr = 0;
+    int is_querystring = 0;
 
     memset(&curr_param, 0, sizeof(curr_param));
     c_mapping_init(&type_map);
@@ -153,6 +169,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     if (dp && dp->in_loc) {
       if (strcmp(dp->in_loc, "path") == 0)
         is_path = 1;
+      else if (strcmp(dp->in_loc, "querystring") == 0)
+        is_querystring = 1;
       /* "body" isn't a parameter location in OpenAPI 3, but a concept.
          If user says @param [in:body], we treat as Body. */
       else if (strcmp(dp->in_loc, "body") == 0)
@@ -211,12 +229,19 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       r = &out_op->responses[r_idx];
       memset(r, 0, sizeof(*r));
       r->code = c_cdd_strdup("200"); /* Default success */
+      r->description = c_cdd_strdup("Success");
+      if (!r->description) {
+        c_mapping_free(&type_map);
+        return ENOMEM;
+      }
 
       /* Map Schema */
       r->schema.is_array = (type_map.kind == OA_TYPE_ARRAY);
-      r->schema.ref_name =
-          c_cdd_strdup(type_map.ref_name ? type_map.ref_name
-                                         : type_map.oa_type); /* Reuse logic */
+      if (type_map.ref_name) {
+        r->schema.ref_name = c_cdd_strdup(type_map.ref_name);
+      } else if (type_map.oa_type) {
+        r->schema.inline_type = c_cdd_strdup(type_map.oa_type);
+      }
 
       c_mapping_free(&type_map);
       continue; /* Done with this arg */
@@ -227,17 +252,13 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       out_op->req_body.content_type = c_cdd_strdup("application/json");
       out_op->req_body.is_array = (type_map.kind == OA_TYPE_ARRAY);
       /* Use ref_name if object, or type if primitive */
-      out_op->req_body.ref_name =
-          c_cdd_strdup(type_map.ref_name ? type_map.ref_name
-                                         : type_map.oa_type); /* Fallback? */
-      /* Note: c_mapping might return NULL ref_name for primitives.
-         If primitive body, e.g. `char *body`, ref_name="string" logic matches
-         loader/writer needs. */
-      /* If map returns primitive type in `oa_type` and NULL ref_name, copy
-       * oa_type to ref_name for loader compatibility */
-      if (!out_op->req_body.ref_name && type_map.oa_type) {
-        out_op->req_body.ref_name = c_cdd_strdup(type_map.oa_type);
+      if (type_map.ref_name) {
+        out_op->req_body.ref_name = c_cdd_strdup(type_map.ref_name);
+      } else if (type_map.oa_type) {
+        out_op->req_body.inline_type = c_cdd_strdup(type_map.oa_type);
       }
+      out_op->req_body_required = 1;
+      out_op->req_body_required_set = 1;
 
       c_mapping_free(&type_map);
       continue;
@@ -249,15 +270,28 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     curr_param.required = is_path; /* Path params always required */
     if (dp && dp->required)
       curr_param.required = 1;
+    if (dp && dp->description) {
+      curr_param.description = c_cdd_strdup(dp->description);
+      if (!curr_param.description) {
+        c_mapping_free(&type_map);
+        return ENOMEM;
+      }
+    }
 
     curr_param.in = is_path ? OA_PARAM_IN_PATH : OA_PARAM_IN_QUERY;
     if (dp && dp->in_loc && strcmp(dp->in_loc, "header") == 0)
       curr_param.in = OA_PARAM_IN_HEADER;
     else if (dp && dp->in_loc && strcmp(dp->in_loc, "cookie") == 0)
       curr_param.in = OA_PARAM_IN_COOKIE;
+    else if (is_querystring)
+      curr_param.in = OA_PARAM_IN_QUERYSTRING;
 
     /* Map Types */
-    if (type_map.kind == OA_TYPE_ARRAY) {
+    if (is_querystring) {
+      curr_param.type = c_cdd_strdup("string");
+      curr_param.content_type =
+          c_cdd_strdup("application/x-www-form-urlencoded");
+    } else if (type_map.kind == OA_TYPE_ARRAY) {
       curr_param.is_array = 1;
       /* Logic for items_type: c_mapper stores item type in oa_type/ref_name
        * when kind=ARRAY */
@@ -312,6 +346,11 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         r = &out_op->responses[out_op->n_responses++];
         memset(r, 0, sizeof(*r));
         r->code = c_cdd_strdup(doc->returns[i].code);
+        if (doc->returns[i].description) {
+          r->description = c_cdd_strdup(doc->returns[i].description);
+          if (!r->description)
+            return ENOMEM;
+        }
         /* Schema for error is usually generic Error struct, logic outside scope
          * here, leaves NULL */
       }

@@ -31,6 +31,7 @@ enum HttpMethod {
   HTTP_HEAD,
   HTTP_OPTIONS,
   HTTP_TRACE,
+  HTTP_QUERY,
   HTTP_CONNECT
 };
 

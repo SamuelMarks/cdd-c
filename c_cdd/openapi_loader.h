@@ -1,14 +1,16 @@
 /**
  * @file openapi_loader.h
- * @brief Parser for OpenAPI v3.0 definitions.
+ * @brief Parser for OpenAPI v3.2 definitions.
  *
  * Provides functionalities to load an OpenAPI JSON specification into memory
  * structures. Supports:
  * - Paths and Operations
- * - Parameters (serialization styles, explode)
+ * - Parameters (serialization styles, explode, allowEmptyValue, content)
  * - Request Bodies and content-types
+ * - Response descriptions
  * - Component Schemas (parsed into StructFields for generation lookups)
  * - Security Schemes
+ * - Root-level Servers
  * - Tags for resource grouping
  *
  * @author Samuel Marks
@@ -37,6 +39,9 @@ enum OpenAPI_Verb {
   OA_VERB_DELETE, /**< DELETE method */
   OA_VERB_PATCH,  /**< PATCH method */
   OA_VERB_HEAD,   /**< HEAD method */
+  OA_VERB_OPTIONS, /**< OPTIONS method */
+  OA_VERB_TRACE,   /**< TRACE method */
+  OA_VERB_QUERY,   /**< QUERY method (OAS 3.2) */
   OA_VERB_UNKNOWN /**< Fallback/Unsupported method */
 };
 
@@ -46,6 +51,7 @@ enum OpenAPI_Verb {
 enum OpenAPI_ParamIn {
   OA_PARAM_IN_PATH,   /**< Path segment: /resource/{id} */
   OA_PARAM_IN_QUERY,  /**< Query string: /resource?id=1 */
+  OA_PARAM_IN_QUERYSTRING, /**< Query string as a single value (OAS 3.2) */
   OA_PARAM_IN_HEADER, /**< Header: X-Header: 1 */
   OA_PARAM_IN_COOKIE, /**< Cookie: id=1 */
   OA_PARAM_IN_UNKNOWN /**< Error state or unsupported location */
@@ -57,9 +63,12 @@ enum OpenAPI_ParamIn {
 enum OpenAPI_Style {
   OA_STYLE_FORM,            /**< name=value (Default for Query) */
   OA_STYLE_SIMPLE,          /**< value (Default for Path/Header) */
+  OA_STYLE_MATRIX,          /**< ;name=value (Path-style) */
+  OA_STYLE_LABEL,           /**< .value (Label-style) */
   OA_STYLE_SPACE_DELIMITED, /**< name=val1%20val2 */
   OA_STYLE_PIPE_DELIMITED,  /**< name=val1|val2 */
   OA_STYLE_DEEP_OBJECT,     /**< nested object serialization */
+  OA_STYLE_COOKIE,          /**< cookie-style serialization */
   OA_STYLE_UNKNOWN          /**< Unknown style */
 };
 
@@ -85,6 +94,27 @@ enum OpenAPI_SecurityIn {
 };
 
 /**
+ * @brief Represents a single security requirement entry.
+ *
+ * A Security Requirement Object maps a scheme name to a list of scopes.
+ */
+struct OpenAPI_SecurityRequirement {
+  char *scheme;       /**< Security scheme name (or URI) */
+  char **scopes;      /**< Array of scope strings */
+  size_t n_scopes;    /**< Number of scopes */
+};
+
+/**
+ * @brief Represents one Security Requirement Object (AND across schemes).
+ *
+ * OpenAPI `security` is an array of these objects, where the array is OR.
+ */
+struct OpenAPI_SecurityRequirementSet {
+  struct OpenAPI_SecurityRequirement *requirements; /**< Array of requirements */
+  size_t n_requirements;                            /**< Count */
+};
+
+/**
  * @brief Represents a field in a multipart request.
  */
 struct OpenAPI_MultipartField {
@@ -97,8 +127,9 @@ struct OpenAPI_MultipartField {
  * @brief Represents an extracted Schema (Body or Response).
  */
 struct OpenAPI_SchemaRef {
-  char *ref_name; /**< The cleaned type name (e.g. "Pet") or NULL if
-                     inline/primitive */
+  char *ref_name; /**< The cleaned component name (e.g. "Pet") or NULL if
+                     inline */
+  char *inline_type; /**< Inline primitive type (e.g. "string"), if present */
   int is_array;   /**< 1 if array, 0 otherwise */
 
   /* Multipart / Form-urlencoded Extension */
@@ -117,6 +148,10 @@ struct OpenAPI_Parameter {
   enum OpenAPI_ParamIn in; /**< Location */
   int required;            /**< 1 if mandatory, 0 optional */
   char *type;              /**< Basic type ("integer", "string", "array") */
+  char *description;       /**< Optional description */
+  int deprecated;          /**< 1 if deprecated */
+  int deprecated_set;      /**< 1 if deprecated was explicitly set */
+  char *content_type;      /**< Media type when parameter uses content */
 
   /* Array Support */
   int is_array;     /**< 1 if this parameter is an array */
@@ -125,6 +160,10 @@ struct OpenAPI_Parameter {
   /* Serialization settings */
   enum OpenAPI_Style style; /**< Serialization style */
   int explode;              /**< 1 if explode=true */
+  int allow_reserved;       /**< 1 if allowReserved=true */
+  int allow_reserved_set;   /**< 1 if allowReserved was explicitly set */
+  int allow_empty_value;    /**< 1 if allowEmptyValue=true */
+  int allow_empty_value_set; /**< 1 if allowEmptyValue explicitly set */
 };
 
 /**
@@ -132,6 +171,8 @@ struct OpenAPI_Parameter {
  */
 struct OpenAPI_Response {
   char *code; /**< HTTP Status string ("200", "404", "default") */
+  char *description; /**< Human-readable description */
+  char *content_type;        /**< Response media type (e.g. "application/json") */
   struct OpenAPI_SchemaRef schema; /**< The body schema definition */
 };
 
@@ -142,8 +183,31 @@ struct OpenAPI_SecurityScheme {
   char *name;                     /**< Scheme identifier (key in dictionary) */
   enum OpenAPI_SecurityType type; /**< Type of security */
   char *scheme;                   /**< HTTP scheme (e.g. "bearer", "basic") */
+  char *bearer_format;            /**< Optional bearerFormat */
   char *key_name;                 /**< Parameter name (for apiKey) */
   enum OpenAPI_SecurityIn in;     /**< Location (for apiKey) */
+  char *open_id_connect_url;      /**< openIdConnectUrl, if provided */
+  char *oauth2_metadata_url;      /**< oauth2MetadataUrl, if provided */
+};
+
+/**
+ * @brief External documentation reference.
+ */
+struct OpenAPI_ExternalDocs {
+  char *description; /**< Optional description */
+  char *url;         /**< REQUIRED URL */
+};
+
+/**
+ * @brief Tag metadata (Top-level Tag Object).
+ */
+struct OpenAPI_Tag {
+  char *name;                     /**< Tag name */
+  char *summary;                  /**< Optional summary */
+  char *description;              /**< Optional description */
+  char *parent;                   /**< Optional parent tag name */
+  char *kind;                     /**< Optional kind value */
+  struct OpenAPI_ExternalDocs external_docs; /**< Optional external docs */
 };
 
 /**
@@ -152,6 +216,13 @@ struct OpenAPI_SecurityScheme {
 struct OpenAPI_Operation {
   enum OpenAPI_Verb verb; /**< HTTP Method */
   char *operation_id;     /**< The unique ID used for C function naming */
+  char *summary;          /**< Short summary of operation */
+  char *description;      /**< Long description of operation */
+  int deprecated;         /**< 1 if deprecated=true */
+
+  struct OpenAPI_SecurityRequirementSet *security; /**< Op-level security */
+  size_t n_security;                                /**< Security count */
+  int security_set;                                 /**< 1 if field present */
 
   struct OpenAPI_Parameter *parameters; /**< Array of parameters */
   size_t n_parameters;                  /**< Param count */
@@ -160,6 +231,13 @@ struct OpenAPI_Operation {
   size_t n_tags; /**< Number of tags */
 
   struct OpenAPI_SchemaRef req_body; /**< Request body definition */
+  int req_body_required;            /**< 1 if requestBody.required = true */
+  int req_body_required_set;        /**< 1 if required was explicitly set */
+  char *req_body_description;       /**< Optional request body description */
+  struct OpenAPI_ExternalDocs external_docs; /**< Optional external docs */
+
+  struct OpenAPI_Server *servers; /**< Operation-level servers */
+  size_t n_servers;               /**< Operation-level server count */
 
   /* Response Handling */
   struct OpenAPI_Response *responses; /**< Listing of all defined responses */
@@ -171,17 +249,95 @@ struct OpenAPI_Operation {
  */
 struct OpenAPI_Path {
   char *route; /* The route string (e.g. "/pets/{petId}") */
+  char *ref;   /**< Optional $ref to a Path Item Object */
+  char *summary; /**< Optional path summary */
+  char *description; /**< Optional path description */
+  struct OpenAPI_Parameter *parameters; /**< Path-level parameters */
+  size_t n_parameters;                  /**< Path-level parameter count */
+  struct OpenAPI_Server *servers; /**< Path-level servers */
+  size_t n_servers;               /**< Path-level server count */
 
   struct OpenAPI_Operation *operations; /**< Array of operations on this path */
   size_t n_operations;                  /**< Operation count */
 };
 
 /**
+ * @brief Represents a Server Variable definition.
+ */
+struct OpenAPI_ServerVariable {
+  char *name;              /**< Variable name */
+  char **enum_values;      /**< Allowed values (optional) */
+  size_t n_enum_values;    /**< Count of enum values */
+  char *default_value;     /**< Default value */
+  char *description;       /**< Optional description */
+};
+
+/**
+ * @brief Represents a Server object.
+ */
+struct OpenAPI_Server {
+  char *url;         /**< Server URL */
+  char *description; /**< Optional description */
+  char *name;        /**< Optional name */
+  struct OpenAPI_ServerVariable *variables; /**< Server variable definitions */
+  size_t n_variables;                       /**< Count of variables */
+};
+
+/**
+ * @brief Contact information for the API.
+ */
+struct OpenAPI_Contact {
+  char *name;  /**< Contact name */
+  char *url;   /**< Contact URL */
+  char *email; /**< Contact email */
+};
+
+/**
+ * @brief License information for the API.
+ */
+struct OpenAPI_License {
+  char *name;       /**< License name */
+  char *identifier; /**< SPDX identifier */
+  char *url;        /**< License URL */
+};
+
+/**
+ * @brief Info metadata for the API.
+ */
+struct OpenAPI_Info {
+  char *title;            /**< API title */
+  char *summary;          /**< API summary */
+  char *description;      /**< API description */
+  char *terms_of_service; /**< Terms of service URL */
+  char *version;          /**< API version */
+  struct OpenAPI_Contact contact; /**< Contact metadata */
+  struct OpenAPI_License license; /**< License metadata */
+};
+
+/**
  * @brief Root container for the parsed specification.
  */
 struct OpenAPI_Spec {
+  char *openapi_version; /**< OpenAPI version string */
+  char *self_uri; /**< Optional $self URI */
+  char *json_schema_dialect; /**< Optional jsonSchemaDialect */
+  struct OpenAPI_Info info; /**< Info metadata */
+  struct OpenAPI_ExternalDocs external_docs; /**< Optional external docs */
+  struct OpenAPI_Tag *tags; /**< Top-level tag metadata */
+  size_t n_tags;            /**< Tag count */
+
+  struct OpenAPI_SecurityRequirementSet *security; /**< Root security */
+  size_t n_security;                                /**< Root security count */
+  int security_set;                                 /**< 1 if field present */
+
+  struct OpenAPI_Server *servers; /**< Array of servers */
+  size_t n_servers;               /**< Server count */
+
   struct OpenAPI_Path *paths; /**< Array of paths */
   size_t n_paths;             /**< Path count */
+
+  struct OpenAPI_Path *webhooks; /**< Array of webhooks (Path Item Objects) */
+  size_t n_webhooks;             /**< Webhook count */
 
   struct OpenAPI_SecurityScheme
       *security_schemes;     /**< Defined security components */

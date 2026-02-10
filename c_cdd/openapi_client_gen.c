@@ -99,6 +99,69 @@ static char *sanitize_tag(const char *tag) {
   return s;
 }
 
+static int param_keys_match(const struct OpenAPI_Parameter *a,
+                            const struct OpenAPI_Parameter *b) {
+  if (!a || !b || !a->name || !b->name)
+    return 0;
+  return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
+}
+
+static int build_effective_parameters(const struct OpenAPI_Path *path,
+                                      const struct OpenAPI_Operation *op,
+                                      struct OpenAPI_Parameter **out_params,
+                                      size_t *out_count) {
+  size_t cap = 0;
+  size_t count = 0;
+  struct OpenAPI_Parameter *params = NULL;
+
+  if (!out_params || !out_count)
+    return EINVAL;
+
+  *out_params = NULL;
+  *out_count = 0;
+
+  if (path)
+    cap += path->n_parameters;
+  if (op)
+    cap += op->n_parameters;
+
+  if (cap == 0)
+    return 0;
+
+  params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
+  if (!params)
+    return ENOMEM;
+
+  if (path && path->parameters) {
+    size_t i;
+    for (i = 0; i < path->n_parameters; ++i) {
+      params[count++] = path->parameters[i];
+    }
+  }
+
+  if (op && op->parameters) {
+    size_t i;
+    for (i = 0; i < op->n_parameters; ++i) {
+      size_t k;
+      int replaced = 0;
+      for (k = 0; k < count; ++k) {
+        if (param_keys_match(&params[k], &op->parameters[i])) {
+          params[k] = op->parameters[i];
+          replaced = 1;
+          break;
+        }
+      }
+      if (!replaced) {
+        params[count++] = op->parameters[i];
+      }
+    }
+  }
+
+  *out_params = params;
+  *out_count = count;
+  return 0;
+}
+
 /**
  * @brief Write standard includes to the header file.
  * Defines `struct ApiError` for standardized error handling.
@@ -281,19 +344,47 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
 static int write_docblock(FILE *fp, const struct OpenAPI_Operation *op) {
   size_t i;
   CHECK_IO(fprintf(fp, "/**\n"));
-  if (op->operation_id) {
+  if (op->summary) {
+    CHECK_IO(fprintf(fp, " * @brief %s\n", op->summary));
+  } else if (op->operation_id) {
     CHECK_IO(fprintf(fp, " * @brief %s\n", op->operation_id));
   } else {
     CHECK_IO(fprintf(fp, " * @brief (Unnamed Operation)\n"));
+  }
+  if (op->description) {
+    CHECK_IO(fprintf(fp, " * @details %s\n", op->description));
+  }
+  if (op->deprecated) {
+    CHECK_IO(fprintf(fp, " * @deprecated\n"));
   }
 
   CHECK_IO(fprintf(fp, " * @param[in] ctx Client context.\n"));
 
   for (i = 0; i < op->n_parameters; ++i) {
     if (op->parameters[i].name) {
+      const char *loc = "Unknown";
+      switch (op->parameters[i].in) {
+      case OA_PARAM_IN_QUERY:
+        loc = "Query";
+        break;
+      case OA_PARAM_IN_QUERYSTRING:
+        loc = "Querystring";
+        break;
+      case OA_PARAM_IN_PATH:
+        loc = "Path";
+        break;
+      case OA_PARAM_IN_HEADER:
+        loc = "Header";
+        break;
+      case OA_PARAM_IN_COOKIE:
+        loc = "Cookie";
+        break;
+      default:
+        break;
+      }
       CHECK_IO(fprintf(
           fp, " * @param[in] %s Parameter (%s).\n", op->parameters[i].name,
-          op->parameters[i].in == OA_PARAM_IN_QUERY ? "Query" : "Path"));
+          loc));
     }
   }
   CHECK_IO(fprintf(fp, " * @param[out] api_error Optional pointer to receive "
@@ -375,17 +466,32 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
     struct OpenAPI_Path *path = &spec->paths[i];
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
+      struct OpenAPI_Operation effective_op;
+      struct OpenAPI_Parameter *effective_params = NULL;
+      size_t effective_count = 0;
       struct CodegenSigConfig sig_cfg;
       char *sanitized_group = NULL;
       char *full_group = NULL;
+      int merge_rc;
 
       memset(&sig_cfg, 0, sizeof(sig_cfg));
       sig_cfg.prefix = prefix;
 
+      merge_rc = build_effective_parameters(path, op, &effective_params,
+                                            &effective_count);
+      if (merge_rc != 0) {
+        rc = merge_rc;
+        goto cleanup;
+      }
+      effective_op = *op;
+      effective_op.parameters = effective_params;
+      effective_op.n_parameters = effective_count;
+
       /* Determine Group Name from Tags and Namespace */
-      if (op->n_tags > 0 && op->tags[0]) {
-        sanitized_group = sanitize_tag(op->tags[0]);
+      if (effective_op.n_tags > 0 && effective_op.tags[0]) {
+        sanitized_group = sanitize_tag(effective_op.tags[0]);
         if (!sanitized_group) {
+          free(effective_params);
           rc = ENOMEM;
           goto cleanup;
         }
@@ -398,6 +504,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
         if (!full_group) {
           if (sanitized_group)
             free(sanitized_group);
+          free(effective_params);
           rc = ENOMEM;
           goto cleanup;
         }
@@ -406,6 +513,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
         /* Name: Namespace */
         full_group = strdup(config->namespace_prefix);
         if (!full_group) {
+          free(effective_params);
           rc = ENOMEM;
           goto cleanup;
         }
@@ -414,6 +522,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
         full_group = strdup(sanitized_group);
         if (!full_group) {
           free(sanitized_group);
+          free(effective_params);
           rc = ENOMEM;
           goto cleanup;
         }
@@ -424,40 +533,45 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
       }
 
       /* 1. Header: DocBlock + Prototype */
-      if ((rc = write_docblock(hfile, op)) != 0) {
+      if ((rc = write_docblock(hfile, &effective_op)) != 0) {
         if (sanitized_group)
           free(sanitized_group);
         if (full_group)
           free(full_group);
+        free(effective_params);
         goto cleanup;
       }
 
       sig_cfg.include_semicolon = 1;
-      if ((rc = codegen_client_write_signature(hfile, op, &sig_cfg)) != 0) {
+      if ((rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg)) != 0) {
         if (sanitized_group)
           free(sanitized_group);
         if (full_group)
           free(full_group);
+        free(effective_params);
         goto cleanup;
       }
       CHECK_IO(fprintf(hfile, "\n"));
 
       /* 2. Source: Implementation */
       sig_cfg.include_semicolon = 0;
-      if ((rc = codegen_client_write_signature(cfile, op, &sig_cfg)) != 0) {
+      if ((rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg)) != 0) {
         if (sanitized_group)
           free(sanitized_group);
         if (full_group)
           free(full_group);
+        free(effective_params);
         goto cleanup;
       }
 
       /* Body generation (Passing spec for security lookup) */
-      if ((rc = codegen_client_write_body(cfile, op, spec, path->route)) != 0) {
+      if ((rc = codegen_client_write_body(cfile, &effective_op, spec,
+                                          path->route)) != 0) {
         if (sanitized_group)
           free(sanitized_group);
         if (full_group)
           free(full_group);
+        free(effective_params);
         goto cleanup;
       }
 
@@ -467,6 +581,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
         free(sanitized_group);
       if (full_group)
         free(full_group);
+      free(effective_params);
     }
   }
 

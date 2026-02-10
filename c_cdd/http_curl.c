@@ -206,11 +206,14 @@ int http_curl_send(struct HttpTransportContext *const ctx,
   struct HttpResponse *new_res = NULL;
   int rc = 0;
   size_t i;
-  void *payload = req->body;
-  size_t payload_len = req->body_len;
+  void *payload = NULL;
+  size_t payload_len = 0;
 
   if (!ctx || !ctx->curl || !req || !res)
     return EINVAL;
+
+  payload = req->body;
+  payload_len = req->body_len;
 
   /* Flatten parts if necessary */
   if (req->parts.count > 0 && !payload) {
@@ -265,6 +268,13 @@ int http_curl_send(struct HttpTransportContext *const ctx,
     break;
   case HTTP_PATCH:
     curl_easy_setopt(ctx->curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+    if (payload && payload_len > 0) {
+      curl_easy_setopt(ctx->curl, CURLOPT_POSTFIELDS, payload);
+      curl_easy_setopt(ctx->curl, CURLOPT_POSTFIELDSIZE, (long)payload_len);
+    }
+    break;
+  case HTTP_QUERY:
+    curl_easy_setopt(ctx->curl, CURLOPT_CUSTOMREQUEST, "QUERY");
     if (payload && payload_len > 0) {
       curl_easy_setopt(ctx->curl, CURLOPT_POSTFIELDS, payload);
       curl_easy_setopt(ctx->curl, CURLOPT_POSTFIELDSIZE, (long)payload_len);
