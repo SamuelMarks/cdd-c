@@ -20,7 +20,7 @@ variable name).
 
 ### 2. C to OpenAPI (c2openapi)
 
-Generates an OpenAPI v3.0 JSON specification by analyzing C source code, function signatures, and Doxygen-style
+Generates an OpenAPI v3.2 JSON specification by analyzing C source code, function signatures, and Doxygen-style
 comments.
 
 ```bash
@@ -38,6 +38,20 @@ To expose a C function to the OpenAPI generator, add documentation comments:
  */
 int api_get_user(int id, struct User **out);
 ```
+
+**Notes:**
+- Generated specs default to OpenAPI `3.2.0`.
+- The loader/writer round-trips `$self`, `jsonSchemaDialect`, root `externalDocs`, and top-level `tags` metadata.
+- Supported operation fields include `summary`, `description`, `deprecated`, `externalDocs`, and the HTTP `QUERY` method in addition to the standard verbs.
+- The loader/writer round-trips `info` metadata (title/summary/description/terms/contact/license), root `servers`, `components.securitySchemes` (apiKey/http/openIdConnect + oauth2 metadata URL), root/operation `security` requirements, request body `description`/`required`, and response `description`/content media type.
+- Parameter metadata `description`, `deprecated`, `allowReserved`, and `allowEmptyValue` are preserved in both directions; `@param` descriptions flow into generated OpenAPI.
+- Parameter styles cover `form`, `simple`, `matrix`, `label`, `spaceDelimited`, `pipeDelimited`, `deepObject`, and `cookie`. Content-based parameters are parsed/emitted for any location.
+- Inline primitive or array response/request schemas (e.g. `type: string`, `type: array` + `items`) are parsed and emitted without forcing `$ref`.
+- Path Item `summary`/`description` and path-level `parameters` are preserved, and path-level parameters are merged into generated SDK signatures and request builders.
+- Path Item `$ref` and path-/operation-level `servers` arrays are parsed and emitted to preserve overrides.
+- `in: querystring` parameters are supported and treated as pre-serialized query strings; when present they take precedence over per-parameter query serialization.
+- Server Variables (`servers[].variables`) are parsed and emitted, including `default`, `enum`, and `description`.
+- Top-level `webhooks` are parsed and emitted using the same Path Item structure as `paths`.
 
 ### 3. C Header to JSON Schema (code2schema)
 

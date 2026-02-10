@@ -39,52 +39,57 @@ To ensure portability, generated clients interact with an **Abstract Network Int
 ```mermaid
 %%{init: {'theme': 'base', 'fontFamily': 'Google Sans Normal'}}%%
 classDiagram
-    class HttpClient {
-        +char* base_url
-        +HttpConfig config
-        +send(ctx, req, res)
-    }
+  class HttpClient {
+    +char* base_url
+    +HttpConfig config
+    +send(ctx, req, res)
+  }
 
-    class HttpRequest {
-        +char* url
-        +HttpMethod method
-        +HttpHeaders headers
-        +void* body
-    }
+  class HttpRequest {
+    +char* url
+    +HttpMethod method
+    +HttpHeaders headers
+    +void* body
+  }
 
-    class HttpResponse {
-        +int status_code
-        +void* body
-        +size_t body_len
-    }
+  class HttpResponse {
+    +int status_code
+    +void* body
+    +size_t body_len
+  }
 
-    class TransportFactory {
-        <<Interface>>
-    }
+  class TransportFactory {
+    <<Interface>>
+  }
 
-    class LibCurlBackend {
-        +http_curl_send()
-        +http_curl_context_init()
-    }
+  class LibCurlBackend {
+    +http_curl_send()
+    +http_curl_context_init()
+  }
 
-    class WinHttpBackend {
-        +http_winhttp_send()
-        +http_winhttp_context_init()
-    }
+  class WinHttpBackend {
+    +http_winhttp_send()
+    +http_winhttp_context_init()
+  }
 
-    HttpClient ..> HttpRequest: Creates
-    HttpClient ..> HttpResponse: Receives
-    HttpClient --> TransportFactory: Uses logic
-    TransportFactory <|-- LibCurlBackend: #ifdef UNIX
-    TransportFactory <|-- WinHttpBackend: #ifdef WIN32
-%% Styling
-classDef abstract font-family: 'Google Sans Medium', fill:#4285f4, color:#ffffff, stroke:none;
-classDef impl font-family: 'Roboto Mono Normal', fill:#f9ab00, color:#20344b, stroke:none;
-classDef struct font-family: 'Google Sans Normal', fill:#ffffff, color:#20344b, stroke:#4285f4;
+  HttpClient ..> HttpRequest: Creates
+  HttpClient ..> HttpResponse: Receives
+  HttpClient --> TransportFactory: Uses logic
+  TransportFactory <|-- LibCurlBackend: #ifdef UNIX
+  TransportFactory <|-- WinHttpBackend: #ifdef WIN32
 
-class TransportFactory abstract;
-class LibCurlBackend, WinHttpBackend impl;
-class HttpClient, HttpRequest, HttpResponse struct;
+%% Styling Fixes:
+%% 1. Properties MUST be separated by commas.
+%% 2. No spaces allowed after commas or inside values.
+%% 3. Removed specific fonts from classDef to avoid quote parsing bugs.
+%% 4. Replaced 'stroke:none' with 'stroke-width:0px' (safer for all parsers).
+classDef styleAbstract fill:#4285f4,color:#ffffff,stroke-width:0px
+classDef styleImpl fill:#f9ab00,color:#20344b,stroke-width:0px
+classDef styleStruct fill:#ffffff,color:#20344b,stroke:#4285f4
+
+class TransportFactory styleAbstract
+class LibCurlBackend, WinHttpBackend styleImpl
+class HttpClient, HttpRequest, HttpResponse styleStruct
 ```
 
 ## Security & Mapping

@@ -231,9 +231,46 @@ int codegen_url_write_query_params(FILE *const fp,
                                    const struct OpenAPI_Operation *op) {
   size_t i;
   int has_query = 0;
+  const struct OpenAPI_Parameter *querystring_param = NULL;
 
   if (!fp || !op)
     return EINVAL;
+
+  for (i = 0; i < op->n_parameters; ++i) {
+    if (op->parameters[i].in == OA_PARAM_IN_QUERYSTRING) {
+      querystring_param = &op->parameters[i];
+      break;
+    }
+  }
+
+  if (querystring_param) {
+    const char *qs_name =
+        querystring_param->name ? querystring_param->name : "querystring";
+    CHECK_IO(fprintf(fp, "  rc = url_query_init(&qp);\n"));
+    CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  /* Querystring Parameter: %s */\n", qs_name));
+    CHECK_IO(fprintf(fp,
+                     "  if (%s && %s[0] != '\\0') {\n",
+                     qs_name, qs_name));
+    CHECK_IO(fprintf(fp,
+                     "    if (%s[0] == '?') {\n",
+                     qs_name));
+    CHECK_IO(fprintf(fp,
+                     "      query_str = strdup(%s);\n",
+                     qs_name));
+    CHECK_IO(fprintf(fp, "      if (!query_str) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    } else {\n"));
+    CHECK_IO(fprintf(fp,
+                     "      if (asprintf(&query_str, \"?%%s\", %s) == -1) "
+                     "{ rc = ENOMEM; goto cleanup; }\n",
+                     qs_name));
+    CHECK_IO(fprintf(fp, "    }\n"));
+    CHECK_IO(fprintf(fp, "  } else {\n"));
+    CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+    CHECK_IO(fprintf(fp, "    if (!query_str) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  }\n\n"));
+    return 0;
+  }
 
   for (i = 0; i < op->n_parameters; ++i) {
     if (op->parameters[i].in == OA_PARAM_IN_QUERY) {

@@ -59,8 +59,9 @@ TEST test_sig_simple_get(void) {
   ASSERT(code);
 
   /* Verify standard signature including ApiError */
-  ASSERT(strstr(code, "int get_pet(struct HttpClient *ctx, int id, struct Pet "
-                      "*req_body, struct ApiError **api_error) {"));
+  ASSERT(strstr(code,
+                "int get_pet(struct HttpClient *ctx, int id, struct Pet **out, "
+                "struct ApiError **api_error) {"));
 
   free(code);
   PASS();

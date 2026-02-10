@@ -20,8 +20,11 @@
 #include "openapi_loader.h"
 
 /* Helper to capture output */
-static char *gen_sec_code(const struct OpenAPI_Spec *spec) {
+static char *gen_sec_code(const struct OpenAPI_Spec *spec,
+                          const struct OpenAPI_Operation *op_in) {
   FILE *tmp = tmpfile();
+  struct OpenAPI_Operation op_local;
+  const struct OpenAPI_Operation *op = op_in;
   long sz;
   char *content;
 
@@ -29,7 +32,11 @@ static char *gen_sec_code(const struct OpenAPI_Spec *spec) {
     return NULL;
 
   /* Op is unused currently but required by signature */
-  if (codegen_security_write_apply(tmp, NULL, spec) != 0) {
+  if (!op) {
+    memset(&op_local, 0, sizeof(op_local));
+    op = &op_local;
+  }
+  if (codegen_security_write_apply(tmp, op, spec) != 0) {
     fclose(tmp);
     return NULL;
   }
@@ -61,7 +68,7 @@ TEST test_sec_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec);
+  code = gen_sec_code(&spec, NULL);
   ASSERT(code);
 
   /* Check context check */
@@ -92,7 +99,7 @@ TEST test_sec_api_key_header(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec);
+  code = gen_sec_code(&spec, NULL);
   ASSERT(code);
 
   /* Check context check using scheme identifier name */
@@ -126,7 +133,7 @@ TEST test_sec_multiple_schemes(void) {
   spec.security_schemes = schemes;
   spec.n_security_schemes = 2;
 
-  code = gen_sec_code(&spec);
+  code = gen_sec_code(&spec, NULL);
   ASSERT(code);
 
   ASSERT(strstr(code, "bearer_token"));
@@ -141,10 +148,51 @@ TEST test_sec_null_safety(void) {
   PASS();
 }
 
+TEST test_sec_security_requirements_filter(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme schemes[2];
+  struct OpenAPI_SecurityRequirementSet set;
+  struct OpenAPI_SecurityRequirement req;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(schemes, 0, sizeof(schemes));
+  memset(&set, 0, sizeof(set));
+  memset(&req, 0, sizeof(req));
+
+  schemes[0].name = "bearerAuth";
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = "bearer";
+
+  schemes[1].name = "ApiKeyAuth";
+  schemes[1].type = OA_SEC_APIKEY;
+  schemes[1].in = OA_SEC_IN_HEADER;
+  schemes[1].key_name = "X-API-KEY";
+
+  spec.security_schemes = schemes;
+  spec.n_security_schemes = 2;
+
+  req.scheme = "ApiKeyAuth";
+  set.requirements = &req;
+  set.n_requirements = 1;
+  spec.security = &set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+  ASSERT(strstr(code, "api_key_ApiKeyAuth"));
+  ASSERT(!strstr(code, "bearer_token"));
+
+  free(code);
+  PASS();
+}
+
 SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_bearer_token);
   RUN_TEST(test_sec_api_key_header);
   RUN_TEST(test_sec_multiple_schemes);
+  RUN_TEST(test_sec_security_requirements_filter);
   RUN_TEST(test_sec_null_safety);
 }
 

@@ -142,12 +142,38 @@ TEST test_query_gen_array_explode_string(void) {
   PASS();
 }
 
+TEST test_query_gen_querystring(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "string";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter") != NULL);
+  ASSERT(strstr(code, "asprintf(&query_str") != NULL);
+
+  free(code);
+  PASS();
+}
+
 SUITE(codegen_url_suite) {
   /* Re-run original tests */
   /* (Omitted for brevity in this file update but would be here) */
   RUN_TEST(test_query_gen_scalar);
   RUN_TEST(test_query_gen_array_explode_int);
   RUN_TEST(test_query_gen_array_explode_string);
+  RUN_TEST(test_query_gen_querystring);
 }
 
 #endif /* TEST_CODEGEN_URL_H */

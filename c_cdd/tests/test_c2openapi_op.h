@@ -34,12 +34,18 @@ static void reset_op(struct OpenAPI_Operation *op) {
   /* Reimplementing basics for test safety */
   if (op->operation_id)
     free(op->operation_id);
+  if (op->summary)
+    free(op->summary);
+  if (op->description)
+    free(op->description);
   if (op->parameters) {
     size_t i;
     for (i = 0; i < op->n_parameters; i++) {
       free(op->parameters[i].name);
       /* op->parameters[i].in is an enum, nothing to free */
       free(op->parameters[i].type);
+      if (op->parameters[i].content_type)
+        free(op->parameters[i].content_type);
       if (op->parameters[i].items_type)
         free(op->parameters[i].items_type);
     }
@@ -55,14 +61,24 @@ static void reset_op(struct OpenAPI_Operation *op) {
   }
   if (op->req_body.ref_name)
     free(op->req_body.ref_name);
+  if (op->req_body.inline_type)
+    free(op->req_body.inline_type);
   if (op->req_body.content_type)
     free(op->req_body.content_type);
+  if (op->req_body_description)
+    free(op->req_body_description);
   if (op->responses) {
     size_t i;
     for (i = 0; i < op->n_responses; i++) {
       free(op->responses[i].code);
+      if (op->responses[i].description)
+        free(op->responses[i].description);
+      if (op->responses[i].content_type)
+        free(op->responses[i].content_type);
       if (op->responses[i].schema.ref_name)
         free(op->responses[i].schema.ref_name);
+      if (op->responses[i].schema.inline_type)
+        free(op->responses[i].schema.inline_type);
     }
     free(op->responses);
   }
@@ -94,6 +110,7 @@ TEST test_build_simple_get(void) {
   memset(&doc, 0, sizeof(doc));
   doc.route = "/user/{id}";
   doc.verb = "GET";
+  doc.summary = "Get a user";
 
   /* Setup Context */
   memset(&ctx, 0, sizeof(ctx));
@@ -107,6 +124,7 @@ TEST test_build_simple_get(void) {
   /* Verify Basic */
   ASSERT_EQ(OA_VERB_GET, op.verb);
   ASSERT_STR_EQ("api_user_get", op.operation_id);
+  ASSERT_STR_EQ("Get a user", op.summary);
 
   /* Verify Parameter */
   ASSERT_EQ(1, op.n_parameters);
@@ -152,6 +170,8 @@ TEST test_build_post_with_body(void) {
   ASSERT_EQ(0, op.n_parameters); /* Should NOT be a parameter */
   ASSERT_STR_EQ("Pet", op.req_body.ref_name);
   ASSERT_STR_EQ("application/json", op.req_body.content_type);
+  ASSERT_EQ(1, op.req_body_required_set);
+  ASSERT_EQ(1, op.req_body_required);
 
   reset_op(&op);
   PASS();
@@ -201,6 +221,48 @@ TEST test_build_params_explicit(void) {
   PASS();
 }
 
+TEST test_build_params_querystring(void) {
+  /*
+   * Case: int search(const char *qs);
+   * Doc: @param qs [in:querystring]
+   */
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct DocParam dparams[1];
+  struct OpenAPI_Operation op = {0};
+
+  sig.name = "search";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "qs";
+  args[0].type = "const char *";
+
+  memset(&doc, 0, sizeof(doc));
+  doc.params = dparams;
+  doc.n_params = 1;
+  dparams[0].name = "qs";
+  dparams[0].in_loc = "querystring";
+  dparams[0].description = "Serialized query string";
+
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  c2openapi_build_operation(&ctx, &op);
+
+  ASSERT_EQ(1, op.n_parameters);
+  ASSERT_STR_EQ("qs", op.parameters[0].name);
+  ASSERT_EQ(OA_PARAM_IN_QUERYSTRING, op.parameters[0].in);
+  ASSERT_STR_EQ("string", op.parameters[0].type);
+  ASSERT_STR_EQ("application/x-www-form-urlencoded",
+                op.parameters[0].content_type);
+
+  reset_op(&op);
+  PASS();
+}
+
 TEST test_build_response_output_arg(void) {
   /*
    * Case: int get_obj(struct Obj **out);
@@ -230,6 +292,7 @@ TEST test_build_response_output_arg(void) {
   ASSERT_EQ(1, op.n_responses);
   ASSERT_STR_EQ("200", op.responses[0].code);
   ASSERT_STR_EQ("Obj", op.responses[0].schema.ref_name);
+  ASSERT_STR_EQ("Success", op.responses[0].description);
 
   reset_op(&op);
   PASS();
@@ -239,6 +302,7 @@ SUITE(c2openapi_op_suite) {
   RUN_TEST(test_build_simple_get);
   RUN_TEST(test_build_post_with_body);
   RUN_TEST(test_build_params_explicit);
+  RUN_TEST(test_build_params_querystring);
   RUN_TEST(test_build_response_output_arg);
 }
 

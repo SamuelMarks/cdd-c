@@ -83,7 +83,7 @@ TEST test_c2openapi_full_flow(void) {
     obj = json_value_get_object(root);
 
     /* Check Info */
-    ASSERT_STR_EQ("3.0.0", json_object_get_string(obj, "openapi"));
+    ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
 
     /* Check Components (Struct User) */
     {

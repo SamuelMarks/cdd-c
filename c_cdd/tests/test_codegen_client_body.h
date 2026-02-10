@@ -71,6 +71,117 @@ TEST test_body_basic_get(void) {
   PASS();
 }
 
-SUITE(client_body_suite) { RUN_TEST(test_body_basic_get); }
+TEST test_body_options_verb(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  openapi_spec_init(&spec);
+
+  op.verb = OA_VERB_OPTIONS;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  code = gen_body(&op, &spec, "/");
+  ASSERT(code);
+  ASSERT(strstr(code, "req.method = HTTP_OPTIONS;") != NULL);
+
+  free(code);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_body_trace_verb(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  openapi_spec_init(&spec);
+
+  op.verb = OA_VERB_TRACE;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  code = gen_body(&op, &spec, "/");
+  ASSERT(code);
+  ASSERT(strstr(code, "req.method = HTTP_TRACE;") != NULL);
+
+  free(code);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_body_query_verb(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  openapi_spec_init(&spec);
+
+  op.verb = OA_VERB_QUERY;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  code = gen_body(&op, &spec, "/");
+  ASSERT(code);
+  ASSERT(strstr(code, "req.method = HTTP_QUERY;") != NULL);
+
+  free(code);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_body_querystring_param(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
+  struct OpenAPI_Spec spec;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  memset(&param, 0, sizeof(param));
+  openapi_spec_init(&spec);
+
+  op.verb = OA_VERB_GET;
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "string";
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_body(&op, &spec, "/search");
+  ASSERT(code);
+  ASSERT(strstr(code, "Querystring Parameter") != NULL);
+  ASSERT(strstr(code, "asprintf(&query_str") != NULL);
+
+  free(code);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+SUITE(client_body_suite) {
+  RUN_TEST(test_body_basic_get);
+  RUN_TEST(test_body_options_verb);
+  RUN_TEST(test_body_trace_verb);
+  RUN_TEST(test_body_query_verb);
+  RUN_TEST(test_body_querystring_param);
+}
 
 #endif /* TEST_CODEGEN_CLIENT_BODY_H */

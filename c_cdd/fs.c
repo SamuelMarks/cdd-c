@@ -534,9 +534,20 @@ int makedir(const char *path) {
 int tempdir(char **out_path) {
   char pathname[L_tmpnam + 1];
   char *ptr;
+  const char *env;
 
   if (!out_path)
     return EINVAL;
+
+  env = getenv("TMPDIR");
+  if (!env || *env == '\0')
+    env = getenv("TMP");
+  if (!env || *env == '\0')
+    env = getenv("TEMP");
+  if (env && *env != '\0') {
+    *out_path = c_cdd_strdup(env);
+    return *out_path ? 0 : ENOMEM;
+  }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__

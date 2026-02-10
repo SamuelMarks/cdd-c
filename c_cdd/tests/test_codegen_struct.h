@@ -18,7 +18,7 @@
 
 #include "codegen_struct.h"
 
-static void setup_fields(struct StructFields *sf) {
+static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_init(sf);
   struct_fields_add(sf, "id", "integer", NULL, "0", NULL);
   struct_fields_add(sf, "name", "string", NULL, "\"test\"", NULL);
@@ -31,7 +31,7 @@ TEST test_cleanup_generation(void) {
   char *content;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_struct_fields(&sf);
 
   ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, NULL));
 
@@ -60,7 +60,7 @@ TEST test_default_generation(void) {
   long sz;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_struct_fields(&sf);
 
   ASSERT_EQ(0, write_struct_default_func(tmp, "User", &sf, NULL));
 
@@ -70,7 +70,7 @@ TEST test_default_generation(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "*out = calloc(1, sizeof(struct User));"));
+  ASSERT(strstr(content, "*out = calloc(1, sizeof(**out));"));
   /* Check literals injected */
   ASSERT(strstr(content, "(*out)->id = 0;"));
   /* Check string duplication */
@@ -89,7 +89,7 @@ TEST test_deepcopy_generation(void) {
   long sz;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_struct_fields(&sf);
 
   ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "User", &sf, NULL));
 
@@ -116,7 +116,7 @@ TEST test_eq_generation(void) {
   long sz;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_struct_fields(&sf);
 
   ASSERT_EQ(0, write_struct_eq_func(tmp, "User", &sf, NULL));
 
@@ -144,7 +144,7 @@ TEST test_guards_injection(void) {
   long sz;
 
   ASSERT(tmp);
-  setup_fields(&sf);
+  setup_struct_fields(&sf);
   cfg.guard_macro = "MY_GUARD";
 
   ASSERT_EQ(0, write_struct_cleanup_func(tmp, "User", &sf, &cfg));

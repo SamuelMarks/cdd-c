@@ -16,7 +16,7 @@
 #include "tokenizer.h"
 
 /* Helper to setup a token list from a string */
-static struct TokenList *setup_tokens(const char *code) {
+static struct TokenList *setup_patch_tokens(const char *code) {
   struct TokenList *tl = NULL;
   int rc = tokenize(az_span_create_from_str((char *)code), &tl);
   if (rc != 0)
@@ -45,7 +45,7 @@ TEST test_patch_basic_replacement(void) {
   /* Tokens: [int] [ ] [x] [ ] [=] [ ] [5] [;] */
   /* Indices: 0     1   2   3   4   5   6   7 */
   const char *code = "int x = 5;";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -76,7 +76,7 @@ TEST test_patch_insertion(void) {
   /* Tokens: [void] [ ] [f] [(] [)] [{] [}] */
   /* Indices: 0     1   2   3   4   5   6 */
   const char *code = "void f(){}";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -107,7 +107,7 @@ TEST test_patch_deletion(void) {
   /* Input: int x; */
   /* Tokens: [int] [ ] [x] [;] */
   const char *code = "int x;";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -132,7 +132,7 @@ TEST test_patch_deletion(void) {
 TEST test_patch_multiple_disjoint(void) {
   /* Input: A B C */
   const char *code = "A B C";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -159,7 +159,7 @@ TEST test_patch_multiple_disjoint(void) {
 TEST test_patch_overlap_behavior(void) {
   /* Input: A */
   const char *code = "A";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -196,7 +196,7 @@ TEST test_patch_overlap_behavior(void) {
 
 TEST test_patch_append_end(void) {
   const char *code = "End";
-  struct TokenList *tl = setup_tokens(code);
+  struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
   char *result = NULL;
   int rc;

@@ -25,6 +25,9 @@ extern "C" {
  * @brief Generate code to apply authentication headers/params.
  *
  * Scans `spec->components.securitySchemes`.
+ * Honors root or operation-level `security` requirements when present,
+ * otherwise falls back to applying all schemes (legacy behavior).
+ *
  * Generates C logic checking `ctx->security` fields and injecting:
  * - `Authorization: Bearer ...` (HTTP Bearer)
  * - `X-Api-Key: ...` (API Key in Header)

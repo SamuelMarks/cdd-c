@@ -99,6 +99,8 @@ static const wchar_t *method_to_wide(enum HttpMethod method) {
     return L"OPTIONS";
   case HTTP_TRACE:
     return L"TRACE";
+  case HTTP_QUERY:
+    return L"QUERY";
   case HTTP_CONNECT:
     return L"CONNECT";
   default:
