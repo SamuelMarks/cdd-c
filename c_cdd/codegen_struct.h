@@ -30,6 +30,7 @@ extern "C" {
 
 #include "c_cdd_export.h"
 #include "c_cdd_stdbool.h"
+#include "codegen_enum.h"
 
 /**
  * @brief Represents a single field within a struct.
@@ -41,21 +42,37 @@ struct StructField {
                     "object") */
   char ref[64];  /**< Reference type name (for objects/enums) or item type (for
                     arrays) */
-  char default_val[64]; /**< Default value literal (e.g. "5", "0b101",
-                           "nullptr") or empty */
+  char default_val[64];    /**< Default value literal (e.g. "5", "0b101",
+                              "nullptr") or empty */
+  char *schema_extra_json; /**< Serialized JSON for extra schema keywords */
+  char *items_extra_json;  /**< Serialized JSON for array items keywords */
 
   /* Validation Constraints */
-  int has_min;       /**< 1 if minimum constraint exists */
-  double min_val;    /**< Minimum value */
-  int exclusive_min; /**< 1 if exclusive minimum */
-  int has_max;       /**< 1 if maximum constraint exists */
-  double max_val;    /**< Maximum value */
-  int exclusive_max; /**< 1 if exclusive maximum */
-  int has_min_len;   /**< 1 if minLength constraint exists */
-  size_t min_len;    /**< Minimum length for strings */
-  int has_max_len;   /**< 1 if maxLength constraint exists */
-  size_t max_len;    /**< Maximum length for strings */
-  char pattern[256]; /**< Regex pattern string */
+  int has_min;           /**< 1 if minimum constraint exists */
+  double min_val;        /**< Minimum value */
+  int exclusive_min;     /**< 1 if exclusive minimum */
+  int has_max;           /**< 1 if maximum constraint exists */
+  double max_val;        /**< Maximum value */
+  int exclusive_max;     /**< 1 if exclusive maximum */
+  int has_min_len;       /**< 1 if minLength constraint exists */
+  size_t min_len;        /**< Minimum length for strings */
+  int has_max_len;       /**< 1 if maxLength constraint exists */
+  size_t max_len;        /**< Maximum length for strings */
+  char pattern[256];     /**< Regex pattern string */
+  char format[32];       /**< Optional JSON Schema format (e.g. "uuid") */
+  char description[256]; /**< Optional field description */
+  int deprecated;        /**< 1 if deprecated=true */
+  int deprecated_set;    /**< 1 if deprecated explicitly set */
+  int read_only;         /**< 1 if readOnly=true */
+  int read_only_set;     /**< 1 if readOnly explicitly set */
+  int write_only;        /**< 1 if writeOnly=true */
+  int write_only_set;    /**< 1 if writeOnly explicitly set */
+  int has_min_items;     /**< 1 if minItems constraint exists */
+  size_t min_items;      /**< Minimum items for arrays */
+  int has_max_items;     /**< 1 if maxItems constraint exists */
+  size_t max_items;      /**< Maximum items for arrays */
+  int unique_items;      /**< 1 if uniqueItems constraint exists */
+  int required;          /**< 1 if required in schema, 0 optional */
 
   /* C Type Properties */
   int is_flexible_array; /**< 1 if field is a Flexible Array Member `type
@@ -68,9 +85,12 @@ struct StructField {
  * @brief Container for fields of a struct.
  */
 struct StructFields {
-  size_t capacity;            /**< allocated capacity */
-  size_t size;                /**< number of fields */
-  struct StructField *fields; /**< dynamic array of fields */
+  size_t capacity;                 /**< allocated capacity */
+  size_t size;                     /**< number of fields */
+  struct StructField *fields;      /**< dynamic array of fields */
+  int is_enum;                     /**< 1 if schema is an enum */
+  struct EnumMembers enum_members; /**< Enum values when is_enum=1 */
+  char *schema_extra_json; /**< Serialized JSON for extra schema keywords */
 };
 
 /**

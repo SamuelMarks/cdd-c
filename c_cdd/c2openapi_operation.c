@@ -83,6 +83,30 @@ static int is_struct_pointer(const char *type, int *is_double_ptr) {
   return 1;
 }
 
+static enum OpenAPI_Style doc_style_to_openapi(enum DocParamStyle style) {
+  switch (style) {
+  case DOC_PARAM_STYLE_FORM:
+    return OA_STYLE_FORM;
+  case DOC_PARAM_STYLE_SIMPLE:
+    return OA_STYLE_SIMPLE;
+  case DOC_PARAM_STYLE_MATRIX:
+    return OA_STYLE_MATRIX;
+  case DOC_PARAM_STYLE_LABEL:
+    return OA_STYLE_LABEL;
+  case DOC_PARAM_STYLE_SPACE_DELIMITED:
+    return OA_STYLE_SPACE_DELIMITED;
+  case DOC_PARAM_STYLE_PIPE_DELIMITED:
+    return OA_STYLE_PIPE_DELIMITED;
+  case DOC_PARAM_STYLE_DEEP_OBJECT:
+    return OA_STYLE_DEEP_OBJECT;
+  case DOC_PARAM_STYLE_COOKIE:
+    return OA_STYLE_COOKIE;
+  case DOC_PARAM_STYLE_UNSET:
+  default:
+    return OA_STYLE_UNKNOWN;
+  }
+}
+
 /* --- Core Logic --- */
 
 int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
@@ -140,13 +164,112 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       out_op->verb = OA_VERB_GET;
   }
 
-  out_op->operation_id = c_cdd_strdup(ctx->func_name);
+  if (doc && doc->operation_id) {
+    out_op->operation_id = c_cdd_strdup(doc->operation_id);
+  } else {
+    out_op->operation_id = c_cdd_strdup(ctx->func_name);
+  }
   if (!out_op->operation_id)
     return ENOMEM;
   if (doc && doc->summary) {
     out_op->summary = c_cdd_strdup(doc->summary);
     if (!out_op->summary)
       return ENOMEM;
+  }
+  if (doc && doc->description) {
+    out_op->description = c_cdd_strdup(doc->description);
+    if (!out_op->description)
+      return ENOMEM;
+  }
+  if (doc && doc->deprecated_set) {
+    out_op->deprecated = doc->deprecated ? 1 : 0;
+  }
+  if (doc && doc->external_docs_url) {
+    out_op->external_docs.url = c_cdd_strdup(doc->external_docs_url);
+    if (!out_op->external_docs.url)
+      return ENOMEM;
+    if (doc->external_docs_description) {
+      out_op->external_docs.description =
+          c_cdd_strdup(doc->external_docs_description);
+      if (!out_op->external_docs.description)
+        return ENOMEM;
+    }
+  }
+  if (doc && doc->n_tags > 0) {
+    size_t t;
+    out_op->tags = (char **)calloc(doc->n_tags, sizeof(char *));
+    if (!out_op->tags)
+      return ENOMEM;
+    out_op->n_tags = doc->n_tags;
+    for (t = 0; t < doc->n_tags; ++t) {
+      out_op->tags[t] = c_cdd_strdup(doc->tags[t] ? doc->tags[t] : "");
+      if (!out_op->tags[t])
+        return ENOMEM;
+    }
+  }
+
+  if (doc && doc->n_security > 0) {
+    size_t s;
+    out_op->security = (struct OpenAPI_SecurityRequirementSet *)calloc(
+        doc->n_security, sizeof(struct OpenAPI_SecurityRequirementSet));
+    if (!out_op->security)
+      return ENOMEM;
+    out_op->n_security = doc->n_security;
+    out_op->security_set = 1;
+    for (s = 0; s < doc->n_security; ++s) {
+      struct OpenAPI_SecurityRequirementSet *set = &out_op->security[s];
+      const struct DocSecurityRequirement *src = &doc->security[s];
+      set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
+          1, sizeof(struct OpenAPI_SecurityRequirement));
+      if (!set->requirements)
+        return ENOMEM;
+      set->n_requirements = 1;
+      set->requirements[0].scheme =
+          c_cdd_strdup(src->scheme ? src->scheme : "");
+      if (!set->requirements[0].scheme)
+        return ENOMEM;
+      if (src->n_scopes > 0) {
+        size_t k;
+        set->requirements[0].scopes =
+            (char **)calloc(src->n_scopes, sizeof(char *));
+        if (!set->requirements[0].scopes)
+          return ENOMEM;
+        set->requirements[0].n_scopes = src->n_scopes;
+        for (k = 0; k < src->n_scopes; ++k) {
+          set->requirements[0].scopes[k] =
+              c_cdd_strdup(src->scopes[k] ? src->scopes[k] : "");
+          if (!set->requirements[0].scopes[k])
+            return ENOMEM;
+        }
+      }
+    }
+  }
+
+  if (doc && doc->n_servers > 0) {
+    size_t s;
+    out_op->servers = (struct OpenAPI_Server *)calloc(
+        doc->n_servers, sizeof(struct OpenAPI_Server));
+    if (!out_op->servers)
+      return ENOMEM;
+    out_op->n_servers = doc->n_servers;
+    for (s = 0; s < doc->n_servers; ++s) {
+      const struct DocServer *src = &doc->servers[s];
+      if (src->url) {
+        out_op->servers[s].url = c_cdd_strdup(src->url);
+        if (!out_op->servers[s].url)
+          return ENOMEM;
+      }
+      if (src->name) {
+        out_op->servers[s].name = c_cdd_strdup(src->name);
+        if (!out_op->servers[s].name)
+          return ENOMEM;
+      }
+      if (src->description) {
+        out_op->servers[s].description = c_cdd_strdup(src->description);
+        if (!out_op->servers[s].description)
+          return ENOMEM;
+      }
+    }
   }
 
   /* 1. Argument Iteration */
@@ -313,10 +436,70 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
             c_cdd_strdup("string"); /* Fallback for complex types in params */
     }
 
+    if (dp) {
+      if (dp->content_type) {
+        if (curr_param.content_type)
+          free(curr_param.content_type);
+        curr_param.content_type = c_cdd_strdup(dp->content_type);
+        if (!curr_param.content_type) {
+          c_mapping_free(&type_map);
+          return ENOMEM;
+        }
+      }
+      if (!curr_param.content_type) {
+        if (dp->style_set) {
+          enum OpenAPI_Style style = doc_style_to_openapi(dp->style);
+          if (style != OA_STYLE_UNKNOWN)
+            curr_param.style = style;
+        }
+        if (dp->explode_set) {
+          curr_param.explode_set = 1;
+          curr_param.explode = dp->explode ? 1 : 0;
+        }
+        if (dp->allow_reserved_set) {
+          curr_param.allow_reserved_set = 1;
+          curr_param.allow_reserved = dp->allow_reserved ? 1 : 0;
+        }
+        if (dp->allow_empty_value_set) {
+          curr_param.allow_empty_value_set = 1;
+          curr_param.allow_empty_value = dp->allow_empty_value ? 1 : 0;
+        }
+      }
+    }
+    if (!curr_param.content_type && (!dp || !dp->style_set)) {
+      if (curr_param.in == OA_PARAM_IN_QUERY ||
+          curr_param.in == OA_PARAM_IN_COOKIE)
+        curr_param.style = OA_STYLE_FORM;
+      else if (curr_param.in == OA_PARAM_IN_PATH ||
+               curr_param.in == OA_PARAM_IN_HEADER)
+        curr_param.style = OA_STYLE_SIMPLE;
+    }
+
     rc = add_param_to_op(out_op, &curr_param);
     c_mapping_free(&type_map);
     if (rc != 0)
       return rc;
+  }
+
+  if (doc) {
+    if (doc->request_body_description) {
+      out_op->req_body_description =
+          c_cdd_strdup(doc->request_body_description);
+      if (!out_op->req_body_description)
+        return ENOMEM;
+    }
+    if (doc->request_body_required_set) {
+      out_op->req_body_required_set = 1;
+      out_op->req_body_required = doc->request_body_required ? 1 : 0;
+    }
+    if (doc->request_body_content_type) {
+      if (out_op->req_body.content_type)
+        free(out_op->req_body.content_type);
+      out_op->req_body.content_type =
+          c_cdd_strdup(doc->request_body_content_type);
+      if (!out_op->req_body.content_type)
+        return ENOMEM;
+    }
   }
 
   /* 2. Responses (Doc overrides) */
@@ -331,6 +514,14 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       for (k = 0; k < out_op->n_responses; ++k) {
         if (strcmp(out_op->responses[k].code, doc->returns[i].code) == 0) {
           exists = 1;
+          if (doc->returns[i].content_type) {
+            if (out_op->responses[k].content_type)
+              free(out_op->responses[k].content_type);
+            out_op->responses[k].content_type =
+                c_cdd_strdup(doc->returns[i].content_type);
+            if (!out_op->responses[k].content_type)
+              return ENOMEM;
+          }
           break;
         }
       }
@@ -351,6 +542,11 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
           if (!r->description)
             return ENOMEM;
         }
+        if (doc->returns[i].content_type) {
+          r->content_type = c_cdd_strdup(doc->returns[i].content_type);
+          if (!r->content_type)
+            return ENOMEM;
+        }
         /* Schema for error is usually generic Error struct, logic outside scope
          * here, leaves NULL */
       }
@@ -361,7 +557,7 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   /* Heuristic: use first part of function name? e.g. api_pet_get -> "pet" */
   {
     /* Extract resource name if pattern matches prefix_Resource_... */
-    if (ctx->func_name) {
+    if (ctx->func_name && out_op->n_tags == 0) {
       char *dup_name = c_cdd_strdup(ctx->func_name);
       char *token;
       char *ctx_ptr = NULL;

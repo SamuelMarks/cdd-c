@@ -30,7 +30,10 @@ extern "C" {
  *
  * Generates C logic checking `ctx->security` fields and injecting:
  * - `Authorization: Bearer ...` (HTTP Bearer)
+ * - `Authorization: Basic ...` (HTTP Basic; token is base64 of "user:pass")
  * - `X-Api-Key: ...` (API Key in Header)
+ * - Query params for `apiKey` in query
+ * - Cookie params for `apiKey` in cookie
  *
  * @param[in] fp Output file stream.
  * @param[in] op The operation context (unused currently, for future scopes).
@@ -40,6 +43,20 @@ extern "C" {
 extern C_CDD_EXPORT int
 codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
                              const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Determine whether the active security schemes require query params.
+ */
+extern C_CDD_EXPORT int
+codegen_security_requires_query(const struct OpenAPI_Operation *op,
+                                const struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Determine whether the active security schemes require cookie params.
+ */
+extern C_CDD_EXPORT int
+codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
+                                 const struct OpenAPI_Spec *spec);
 
 #ifdef __cplusplus
 }

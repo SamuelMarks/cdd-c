@@ -74,6 +74,23 @@ TEST test_c_cdd_str_equal_nulls(void) {
   PASS();
 }
 
+/* --- str_iequal tests --- */
+
+TEST test_c_cdd_str_iequal(void) {
+  ASSERT(c_cdd_str_iequal("Foo", "foo"));
+  ASSERT(c_cdd_str_iequal("Content-Type", "content-type"));
+  ASSERT(!c_cdd_str_iequal("Foo", "bar"));
+  ASSERT(!c_cdd_str_iequal("Foo", "fo"));
+  PASS();
+}
+
+TEST test_c_cdd_str_iequal_nulls(void) {
+  ASSERT(c_cdd_str_iequal(NULL, NULL));
+  ASSERT(!c_cdd_str_iequal("foo", NULL));
+  ASSERT(!c_cdd_str_iequal(NULL, "foo"));
+  PASS();
+}
+
 /* --- str_after_last tests --- */
 
 TEST test_c_cdd_str_after_last(void) {
@@ -154,6 +171,8 @@ SUITE(str_utils_suite) {
 
   RUN_TEST(test_c_cdd_str_equal);
   RUN_TEST(test_c_cdd_str_equal_nulls);
+  RUN_TEST(test_c_cdd_str_iequal);
+  RUN_TEST(test_c_cdd_str_iequal_nulls);
 
   RUN_TEST(test_c_cdd_str_after_last);
   RUN_TEST(test_c_cdd_str_after_last_null);

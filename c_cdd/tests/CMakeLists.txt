@@ -66,6 +66,8 @@ set(Header_Files
         "test_refactor_api_sync.h"
         "test_schema2tests.h" 
         "test_schema_codegen.h" 
+        "test_schema_constraints.h"
+        "test_schema_enum_required.h"
         "test_simple_json.h" 
         "test_str_utils.h"
         "test_sync_code.h" 

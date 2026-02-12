@@ -27,6 +27,34 @@ static int schema_exists(const struct OpenAPI_Spec *spec, const char *name) {
   return 0;
 }
 
+static int enum_exists(const struct OpenAPI_Spec *spec, const char *name) {
+  size_t i;
+  for (i = 0; i < spec->n_defined_schemas; ++i) {
+    if (spec->defined_schema_names[i] &&
+        strcmp(spec->defined_schema_names[i], name) == 0 &&
+        spec->defined_schemas[i].is_enum) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int copy_enum_members(const struct EnumMembers *src,
+                             struct EnumMembers *dst) {
+  size_t i;
+  if (!src || !dst)
+    return EINVAL;
+  if (enum_members_init(dst) != 0)
+    return ENOMEM;
+  for (i = 0; i < src->size; ++i) {
+    if (src->members[i]) {
+      if (enum_members_add(dst, src->members[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  return 0;
+}
+
 /**
  * @brief Deep copy a StructFields object.
  *
@@ -38,6 +66,11 @@ static int copy_struct_fields(const struct StructFields *src,
   size_t i;
   if (struct_fields_init(dst) != 0)
     return ENOMEM;
+  if (src->schema_extra_json) {
+    dst->schema_extra_json = c_cdd_strdup(src->schema_extra_json);
+    if (!dst->schema_extra_json)
+      return ENOMEM;
+  }
 
   for (i = 0; i < src->size; ++i) {
     const struct StructField *f = &src->fields[i];
@@ -52,11 +85,22 @@ static int copy_struct_fields(const struct StructFields *src,
      * basics) */
     /* StructFields_add zeros the struct then sets basics. We copy extra props.
      */
-    dst->fields[dst->size - 1] = *f; /* Shallow copy of primitives/arrays */
-    /* Fixup internal strings ownership? No, `add` allocates destination
-       strings. The `*f` assignment overwrites those pointers with `src`
-       pointers! Wait. `struct StructField` contains fixed-size char arrays
-       (char name[64]). So *f copy IS a deep copy. Safe. */
+    {
+      struct StructField *dst_field = &dst->fields[dst->size - 1];
+      *dst_field = *f; /* Copy fixed-size fields/constraints */
+      dst_field->schema_extra_json = NULL;
+      dst_field->items_extra_json = NULL;
+      if (f->schema_extra_json) {
+        dst_field->schema_extra_json = c_cdd_strdup(f->schema_extra_json);
+        if (!dst_field->schema_extra_json)
+          return ENOMEM;
+      }
+      if (f->items_extra_json) {
+        dst_field->items_extra_json = c_cdd_strdup(f->items_extra_json);
+        if (!dst_field->items_extra_json)
+          return ENOMEM;
+      }
+    }
   }
   return 0;
 }
@@ -109,13 +153,39 @@ int c2openapi_register_types(struct OpenAPI_Spec *const spec,
         spec->n_defined_schemas++;
       }
     } else if (def->kind == KIND_ENUM) {
-      /* Enum support in StructFields/OpenAPI_Spec is limited currently.
-         Ideally, we map Enum to a Schema with "type": "string", "enum": ["A",
-         "B"]. But `StructFields` is designed for object properties. We skip
-         enums here unless we enhance `OpenAPI_Spec` to hold raw Enum
-         definitions detected from C. Task Scope: "finds all structs". We stick
-         to structs.
-      */
+      if (!enum_exists(spec, def->name)) {
+        size_t new_idx = spec->n_defined_schemas;
+        size_t new_cap = new_idx + 1;
+        char **new_names;
+        struct StructFields *new_schemas;
+
+        new_names = (char **)realloc(spec->defined_schema_names,
+                                     new_cap * sizeof(char *));
+        if (!new_names)
+          return ENOMEM;
+        spec->defined_schema_names = new_names;
+
+        new_schemas = (struct StructFields *)realloc(
+            spec->defined_schemas, new_cap * sizeof(struct StructFields));
+        if (!new_schemas)
+          return ENOMEM;
+        spec->defined_schemas = new_schemas;
+
+        spec->defined_schema_names[new_idx] = c_cdd_strdup(def->name);
+        if (!spec->defined_schema_names[new_idx])
+          return ENOMEM;
+
+        if (struct_fields_init(&spec->defined_schemas[new_idx]) != 0)
+          return ENOMEM;
+        spec->defined_schemas[new_idx].is_enum = 1;
+        if (def->details.enum_members) {
+          if (copy_enum_members(def->details.enum_members,
+                                &spec->defined_schemas[new_idx].enum_members) !=
+              0)
+            return ENOMEM;
+        }
+        spec->n_defined_schemas++;
+      }
     }
   }
 

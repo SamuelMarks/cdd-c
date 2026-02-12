@@ -75,6 +75,59 @@ TEST test_gen_client_basic(void) {
   PASS();
 }
 
+TEST test_gen_client_additional_operation(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Path path;
+  const char *base = "gen_additional_op";
+  char *h_file = "gen_additional_op.h";
+  char *c_file = "gen_additional_op.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  openapi_spec_init(&spec);
+  memset(&op, 0, sizeof(op));
+  memset(&resp, 0, sizeof(resp));
+  memset(&path, 0, sizeof(path));
+
+  op.operation_id = "custom_connect";
+  op.verb = OA_VERB_UNKNOWN;
+  op.is_additional = 1;
+  op.method = "CONNECT";
+  resp.code = "200";
+  op.responses = &resp;
+  op.n_responses = 1;
+
+  path.route = "/custom";
+  path.additional_operations = &op;
+  path.n_additional_operations = 1;
+
+  spec.paths = &path;
+  spec.n_paths = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(h_file, "r", &content, &sz);
+  ASSERT(strstr(content, "int api_custom_connect(") != NULL);
+  free(content);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "req.method = HTTP_CONNECT;") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
 TEST test_gen_client_op_params_only(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -103,7 +156,8 @@ TEST test_gen_client_op_params_only(void) {
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
-  ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, int limit") != NULL);
+  ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, int limit") !=
+         NULL);
   free(content);
 
   remove(h_file);
@@ -176,7 +230,10 @@ TEST test_gen_client_path_level_params(void) {
   ASSERT_EQ(0, rc);
 
   read_to_file(h_file, "r", &content, &sz);
-  ASSERT(strstr(content, "int api_test_op(struct HttpClient *ctx, const char *x_trace") != NULL);
+  ASSERT(
+      strstr(content,
+             "int api_test_op(struct HttpClient *ctx, const char *x_trace") !=
+      NULL);
   free(content);
 
   remove(h_file);
@@ -396,6 +453,7 @@ TEST test_gen_transport_selection(void) {
 
 SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_basic);
+  RUN_TEST(test_gen_client_additional_operation);
   RUN_TEST(test_gen_client_op_params_only);
   RUN_TEST(test_gen_client_querystring_param);
   RUN_TEST(test_gen_client_path_level_params);

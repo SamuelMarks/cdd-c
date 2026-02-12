@@ -56,9 +56,25 @@ TEST test_multipart_flatten(void) {
   PASS();
 }
 
+TEST test_auth_basic_header(void) {
+  struct HttpRequest req;
+  int rc;
+
+  http_request_init(&req);
+  rc = http_request_set_auth_basic(&req, "dXNlcjpwYXNz");
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, req.headers.count);
+  ASSERT_STR_EQ("Authorization", req.headers.headers[0].key);
+  ASSERT_STR_EQ("Basic dXNlcjpwYXNz", req.headers.headers[0].value);
+
+  http_request_free(&req);
+  PASS();
+}
+
 SUITE(http_types_suite) {
   RUN_TEST(test_multipart_lifecycle);
   RUN_TEST(test_multipart_flatten);
+  RUN_TEST(test_auth_basic_header);
 }
 
 #endif

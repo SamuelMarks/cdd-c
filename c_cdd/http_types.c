@@ -416,6 +416,32 @@ int http_request_set_auth_bearer(struct HttpRequest *const req,
   return rc;
 }
 
+int http_request_set_auth_basic(struct HttpRequest *const req,
+                                const char *const token) {
+  char *val = NULL;
+  int rc;
+  size_t len;
+
+  if (!req || !token)
+    return EINVAL;
+
+  len = strlen(token) + 7;
+  val = (char *)malloc(len);
+  if (!val)
+    return ENOMEM;
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(val, len, "Basic %s", token);
+#else
+  sprintf(val, "Basic %s", token);
+#endif
+
+  rc = http_headers_add(&req->headers, "Authorization", val);
+  free(val);
+
+  return rc;
+}
+
 int http_response_init(struct HttpResponse *const res) {
   if (!res)
     return EINVAL;

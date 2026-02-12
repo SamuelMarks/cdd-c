@@ -26,8 +26,8 @@
 #include "test_codegen_types.h"
 #include "test_codegen_url.h"
 #include "test_codegen_validation.h"
-#include "test_cst_parser.h"
 #include "test_crypto.h"
+#include "test_cst_parser.h"
 #include "test_dataclasses.h"
 #include "test_declarator_parser.h"
 #include "test_flexible_array.h"
@@ -54,6 +54,8 @@
 #include "test_rewriter_sig.h"
 #include "test_schema2tests.h"
 #include "test_schema_codegen.h"
+#include "test_schema_constraints.h"
+#include "test_schema_enum_required.h"
 #include "test_simple_json.h"
 #include "test_str_utils.h"
 #include "test_sync_code.h"
@@ -124,6 +126,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(rewriter_sig_suite);
   RUN_SUITE(schema2tests_suite);
   RUN_SUITE(schema_codegen_suite);
+  RUN_SUITE(schema_constraints_suite);
+  RUN_SUITE(schema_enum_required_suite);
   RUN_SUITE(simple_mocks_suite);
   RUN_SUITE(str_utils_suite);
   RUN_SUITE(sync_code_suite);

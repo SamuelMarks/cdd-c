@@ -155,6 +155,17 @@ extern C_CDD_EXPORT int http_request_init(struct HttpRequest *req);
 extern C_CDD_EXPORT void http_request_free(struct HttpRequest *req);
 extern C_CDD_EXPORT int http_request_set_auth_bearer(struct HttpRequest *req,
                                                      const char *token);
+/**
+ * @brief Set HTTP Basic Authorization header with a pre-encoded token.
+ *
+ * The token must be the base64-encoded "username:password" string.
+ *
+ * @param[in,out] req The request to modify.
+ * @param[in] token Base64-encoded "username:password".
+ * @return 0 on success, error code otherwise.
+ */
+extern C_CDD_EXPORT int http_request_set_auth_basic(struct HttpRequest *req,
+                                                    const char *token);
 
 extern C_CDD_EXPORT int http_response_init(struct HttpResponse *res);
 extern C_CDD_EXPORT void http_response_free(struct HttpResponse *res);

@@ -53,12 +53,18 @@ static void reset_op(struct OpenAPI_Operation *op) {
   }
   if (op->tags) {
     if (op->n_tags > 0) {
-      /* In tests we usually allocate tags[0] */
-      if (op->tags[0])
-        free(op->tags[0]);
+      size_t i;
+      for (i = 0; i < op->n_tags; ++i) {
+        if (op->tags[i])
+          free(op->tags[i]);
+      }
     }
     free(op->tags);
   }
+  if (op->external_docs.url)
+    free(op->external_docs.url);
+  if (op->external_docs.description)
+    free(op->external_docs.description);
   if (op->req_body.ref_name)
     free(op->req_body.ref_name);
   if (op->req_body.inline_type)
@@ -81,6 +87,36 @@ static void reset_op(struct OpenAPI_Operation *op) {
         free(op->responses[i].schema.inline_type);
     }
     free(op->responses);
+  }
+  if (op->security) {
+    size_t i;
+    for (i = 0; i < op->n_security; ++i) {
+      struct OpenAPI_SecurityRequirementSet *set = &op->security[i];
+      if (set->requirements) {
+        size_t r;
+        for (r = 0; r < set->n_requirements; ++r) {
+          size_t s;
+          free(set->requirements[r].scheme);
+          if (set->requirements[r].scopes) {
+            for (s = 0; s < set->requirements[r].n_scopes; ++s) {
+              free(set->requirements[r].scopes[s]);
+            }
+            free(set->requirements[r].scopes);
+          }
+        }
+        free(set->requirements);
+      }
+    }
+    free(op->security);
+  }
+  if (op->servers) {
+    size_t i;
+    for (i = 0; i < op->n_servers; ++i) {
+      free(op->servers[i].url);
+      free(op->servers[i].name);
+      free(op->servers[i].description);
+    }
+    free(op->servers);
   }
   memset(op, 0, sizeof(*op));
 }
@@ -132,6 +168,113 @@ TEST test_build_simple_get(void) {
   ASSERT_EQ(OA_PARAM_IN_PATH, op.parameters[0].in);
   ASSERT(op.parameters[0].required);
   ASSERT_STR_EQ("integer", op.parameters[0].type);
+
+  reset_op(&op);
+  PASS();
+}
+
+TEST test_build_operation_id_override(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "api_user_get";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "id";
+  args[0].type = "int";
+
+  memset(&doc, 0, sizeof(doc));
+  doc.route = "/user/{id}";
+  doc.verb = "GET";
+  doc.operation_id = "getUserById";
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+  ASSERT_STR_EQ("getUserById", op.operation_id);
+
+  reset_op(&op);
+  PASS();
+}
+
+TEST test_build_param_content_type(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct DocParam params[1];
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "api_user_search";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "payload";
+  args[0].type = "const char *";
+
+  memset(&doc, 0, sizeof(doc));
+  memset(params, 0, sizeof(params));
+  doc.route = "/user/search";
+  doc.verb = "GET";
+  doc.params = params;
+  doc.n_params = 1;
+  doc.params[0].name = "payload";
+  doc.params[0].in_loc = "query";
+  doc.params[0].content_type = "application/json";
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, op.n_parameters);
+  ASSERT_STR_EQ("application/json", op.parameters[0].content_type);
+
+  reset_op(&op);
+  PASS();
+}
+
+TEST test_build_return_content_type(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct DocMetadata doc;
+  struct DocResponse returns[1];
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "api_status";
+  sig.n_args = 0;
+  sig.args = NULL;
+
+  memset(&doc, 0, sizeof(doc));
+  memset(returns, 0, sizeof(returns));
+  doc.route = "/status";
+  doc.verb = "GET";
+  doc.returns = returns;
+  doc.n_returns = 1;
+  doc.returns[0].code = "200";
+  doc.returns[0].description = "OK";
+  doc.returns[0].content_type = "text/plain";
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, op.n_responses);
+  ASSERT_STR_EQ("text/plain", op.responses[0].content_type);
 
   reset_op(&op);
   PASS();
@@ -221,6 +364,146 @@ TEST test_build_params_explicit(void) {
   PASS();
 }
 
+TEST test_build_param_style_flags(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct DocParam dparams[1];
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "search";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "tags";
+  args[0].type = "char **";
+
+  memset(&doc, 0, sizeof(doc));
+  memset(dparams, 0, sizeof(dparams));
+  doc.params = dparams;
+  doc.n_params = 1;
+  dparams[0].name = "tags";
+  dparams[0].in_loc = "query";
+  dparams[0].style = DOC_PARAM_STYLE_SPACE_DELIMITED;
+  dparams[0].style_set = 1;
+  dparams[0].explode = 0;
+  dparams[0].explode_set = 1;
+  dparams[0].allow_reserved = 1;
+  dparams[0].allow_reserved_set = 1;
+  dparams[0].allow_empty_value = 1;
+  dparams[0].allow_empty_value_set = 1;
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_EQ(1, op.n_parameters);
+  ASSERT_EQ(OA_STYLE_SPACE_DELIMITED, op.parameters[0].style);
+  ASSERT_EQ(1, op.parameters[0].explode_set);
+  ASSERT_EQ(0, op.parameters[0].explode);
+  ASSERT_EQ(1, op.parameters[0].allow_reserved_set);
+  ASSERT_EQ(1, op.parameters[0].allow_reserved);
+  ASSERT_EQ(1, op.parameters[0].allow_empty_value_set);
+  ASSERT_EQ(1, op.parameters[0].allow_empty_value);
+
+  reset_op(&op);
+  PASS();
+}
+
+TEST test_build_param_default_styles(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[2];
+  struct DocMetadata doc;
+  struct DocParam dparams[1];
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "get_item";
+  sig.n_args = 2;
+  sig.args = args;
+  args[0].name = "id";
+  args[0].type = "int";
+  args[1].name = "token";
+  args[1].type = "char *";
+
+  memset(&doc, 0, sizeof(doc));
+  doc.route = "/items/{id}";
+  doc.params = dparams;
+  doc.n_params = 1;
+  memset(dparams, 0, sizeof(dparams));
+  dparams[0].name = "token";
+  dparams[0].in_loc = "header";
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(2, op.n_parameters);
+  ASSERT_EQ(OA_PARAM_IN_PATH, op.parameters[0].in);
+  ASSERT_EQ(OA_STYLE_SIMPLE, op.parameters[0].style);
+  ASSERT_EQ(OA_PARAM_IN_HEADER, op.parameters[1].in);
+  ASSERT_EQ(OA_STYLE_SIMPLE, op.parameters[1].style);
+
+  reset_op(&op);
+  PASS();
+}
+
+TEST test_build_with_tags_description_and_deprecated(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "api_user_list";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "limit";
+  args[0].type = "int";
+
+  memset(&doc, 0, sizeof(doc));
+  doc.summary = "List users";
+  doc.description = "Longer description text";
+  doc.deprecated_set = 1;
+  doc.deprecated = 1;
+  doc.external_docs_url = "https://example.com/docs";
+  doc.external_docs_description = "External docs";
+  {
+    static char *tags[] = {"users", "admin"};
+    doc.tags = tags;
+    doc.n_tags = 2;
+  }
+
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_STR_EQ("List users", op.summary);
+  ASSERT_STR_EQ("Longer description text", op.description);
+  ASSERT_EQ(1, op.deprecated);
+  ASSERT_EQ(2, op.n_tags);
+  ASSERT_STR_EQ("users", op.tags[0]);
+  ASSERT_STR_EQ("admin", op.tags[1]);
+  ASSERT_STR_EQ("https://example.com/docs", op.external_docs.url);
+  ASSERT_STR_EQ("External docs", op.external_docs.description);
+
+  reset_op(&op);
+  PASS();
+}
+
 TEST test_build_params_querystring(void) {
   /*
    * Case: int search(const char *qs);
@@ -298,12 +581,89 @@ TEST test_build_response_output_arg(void) {
   PASS();
 }
 
+TEST test_build_op_security_servers_request_body(void) {
+  struct OpBuilderContext ctx;
+  struct C2OpenAPI_ParsedSig sig;
+  struct C2OpenAPI_ParsedArg args[1];
+  struct DocMetadata doc;
+  struct DocSecurityRequirement sec[2];
+  char *scopes1[] = {"write:pets", "read:pets"};
+  struct DocServer servers[1];
+  struct OpenAPI_Operation op = {0};
+  int rc;
+
+  sig.name = "api_upload";
+  sig.n_args = 1;
+  sig.args = args;
+  args[0].name = "payload";
+  args[0].type = "const struct Payload *";
+
+  memset(&doc, 0, sizeof(doc));
+  doc.verb = "POST";
+  doc.route = "/upload";
+  doc.request_body_description = "Upload payload";
+  doc.request_body_required_set = 1;
+  doc.request_body_required = 0;
+  doc.request_body_content_type = "application/xml";
+
+  memset(sec, 0, sizeof(sec));
+  sec[0].scheme = "api_key";
+  sec[1].scheme = "petstore_auth";
+  sec[1].scopes = scopes1;
+  sec[1].n_scopes = 2;
+  doc.security = sec;
+  doc.n_security = 2;
+
+  memset(servers, 0, sizeof(servers));
+  servers[0].url = "https://api.example.com";
+  servers[0].name = "prod";
+  servers[0].description = "Production API";
+  doc.servers = servers;
+  doc.n_servers = 1;
+
+  memset(&ctx, 0, sizeof(ctx));
+  ctx.sig = &sig;
+  ctx.doc = &doc;
+  ctx.func_name = sig.name;
+
+  rc = c2openapi_build_operation(&ctx, &op);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_STR_EQ("Upload payload", op.req_body_description);
+  ASSERT_EQ(1, op.req_body_required_set);
+  ASSERT_EQ(0, op.req_body_required);
+  ASSERT_STR_EQ("application/xml", op.req_body.content_type);
+
+  ASSERT_EQ(1, op.security_set);
+  ASSERT_EQ(2, op.n_security);
+  ASSERT_STR_EQ("api_key", op.security[0].requirements[0].scheme);
+  ASSERT_EQ(0, op.security[0].requirements[0].n_scopes);
+  ASSERT_STR_EQ("petstore_auth", op.security[1].requirements[0].scheme);
+  ASSERT_EQ(2, op.security[1].requirements[0].n_scopes);
+  ASSERT_STR_EQ("write:pets", op.security[1].requirements[0].scopes[0]);
+  ASSERT_STR_EQ("read:pets", op.security[1].requirements[0].scopes[1]);
+
+  ASSERT_EQ(1, op.n_servers);
+  ASSERT_STR_EQ("https://api.example.com", op.servers[0].url);
+  ASSERT_STR_EQ("prod", op.servers[0].name);
+  ASSERT_STR_EQ("Production API", op.servers[0].description);
+
+  reset_op(&op);
+  PASS();
+}
+
 SUITE(c2openapi_op_suite) {
   RUN_TEST(test_build_simple_get);
+  RUN_TEST(test_build_operation_id_override);
+  RUN_TEST(test_build_param_content_type);
+  RUN_TEST(test_build_return_content_type);
   RUN_TEST(test_build_post_with_body);
   RUN_TEST(test_build_params_explicit);
+  RUN_TEST(test_build_param_default_styles);
+  RUN_TEST(test_build_with_tags_description_and_deprecated);
   RUN_TEST(test_build_params_querystring);
   RUN_TEST(test_build_response_output_arg);
+  RUN_TEST(test_build_op_security_servers_request_body);
 }
 
 #endif /* TEST_C2OPENAPI_OP_H */
