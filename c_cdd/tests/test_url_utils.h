@@ -60,6 +60,43 @@ TEST test_url_encode_unreserved(void) {
   PASS();
 }
 
+TEST test_url_encode_allow_reserved(void) {
+  const char *input = ":/?#[]@!$&'()*+,;= %2F";
+  const char *expected = ":/?#[]@!$&'()*+,;=%20%2F";
+  char *res = url_encode_allow_reserved(input);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ(expected, res);
+  free(res);
+  PASS();
+}
+
+TEST test_url_encode_form_spaces(void) {
+  char *res = url_encode_form("hello world");
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("hello+world", res);
+  free(res);
+  PASS();
+}
+
+TEST test_url_encode_form_reserved(void) {
+  const char *input = "&=+";
+  char *res = url_encode_form(input);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("%26%3D%2B", res);
+  free(res);
+  PASS();
+}
+
+TEST test_url_encode_form_allow_reserved(void) {
+  const char *input = ":/?#[]@!$&'()*+,;= %2F";
+  const char *expected = ":/?#[]@!$%26'()*%2B,;%3D+%2F";
+  char *res = url_encode_form_allow_reserved(input);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ(expected, res);
+  free(res);
+  PASS();
+}
+
 TEST test_url_encode_null(void) {
   ASSERT(url_encode(NULL) == NULL);
   PASS();
@@ -136,6 +173,73 @@ TEST test_query_build_multiple(void) {
   PASS();
 }
 
+TEST test_query_build_form_single(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+
+  url_query_init(&qp);
+  url_query_add(&qp, "q", "hello world");
+
+  ASSERT_EQ(0, url_query_build_form(&qp, &res));
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("q=hello+world", res);
+
+  free(res);
+  url_query_free(&qp);
+  PASS();
+}
+
+TEST test_query_build_form_multiple(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+
+  url_query_init(&qp);
+  url_query_add(&qp, "a", "1");
+  url_query_add(&qp, "b", "2+2");
+
+  ASSERT_EQ(0, url_query_build_form(&qp, &res));
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("a=1&b=2%2B2", res);
+
+  free(res);
+  url_query_free(&qp);
+  PASS();
+}
+
+TEST test_query_build_form_preserves_encoded_value(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+
+  url_query_init(&qp);
+  url_query_add_encoded(&qp, "color", "blue,black");
+
+  ASSERT_EQ(0, url_query_build_form(&qp, &res));
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("color=blue,black", res);
+
+  free(res);
+  url_query_free(&qp);
+  PASS();
+}
+
+TEST test_query_build_preserves_encoded_value(void) {
+  struct UrlQueryParams qp;
+  char *res = NULL;
+
+  url_query_init(&qp);
+  url_query_add_encoded(&qp, "color", "blue,black");
+  url_query_add(&qp, "q", "hello world");
+
+  ASSERT_EQ(0, url_query_build(&qp, &res));
+  ASSERT(res != NULL);
+  /* Comma should remain, while space in other param is encoded */
+  ASSERT_STR_EQ("?color=blue,black&q=hello%20world", res);
+
+  free(res);
+  url_query_free(&qp);
+  PASS();
+}
+
 TEST test_query_build_encoding_keys(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -177,12 +281,20 @@ SUITE(url_utils_suite) {
   RUN_TEST(test_url_encode_spaces);
   RUN_TEST(test_url_encode_reserved);
   RUN_TEST(test_url_encode_unreserved);
+  RUN_TEST(test_url_encode_allow_reserved);
+  RUN_TEST(test_url_encode_form_spaces);
+  RUN_TEST(test_url_encode_form_reserved);
+  RUN_TEST(test_url_encode_form_allow_reserved);
   RUN_TEST(test_url_encode_null);
 
   RUN_TEST(test_query_lifecycle);
   RUN_TEST(test_query_build_empty);
   RUN_TEST(test_query_build_single);
   RUN_TEST(test_query_build_multiple);
+  RUN_TEST(test_query_build_form_single);
+  RUN_TEST(test_query_build_form_multiple);
+  RUN_TEST(test_query_build_form_preserves_encoded_value);
+  RUN_TEST(test_query_build_preserves_encoded_value);
   RUN_TEST(test_query_build_encoding_keys);
   RUN_TEST(test_query_null_safety);
 }

@@ -24,8 +24,9 @@ extern "C" {
  * @brief Represents a single key-value query parameter.
  */
 struct UrlQueryParam {
-  char *key;   /**< The parameter key (unencoded) */
-  char *value; /**< The parameter value (unencoded) */
+  char *key;            /**< The parameter key (unencoded) */
+  char *value;          /**< The parameter value (raw or pre-encoded) */
+  int value_is_encoded; /**< 1 if value is already percent-encoded */
 };
 
 /**
@@ -35,6 +36,32 @@ struct UrlQueryParams {
   struct UrlQueryParam *params; /**< Dynamic array of parameters */
   size_t count;                 /**< Number of items used */
   size_t capacity;              /**< Current allocated capacity */
+};
+
+/**
+ * @brief Supported value types for object-style query parameters.
+ */
+enum OpenAPI_KVType {
+  OA_KV_STRING = 0, /**< String value */
+  OA_KV_INTEGER,    /**< Integer value */
+  OA_KV_NUMBER,     /**< Floating-point value */
+  OA_KV_BOOLEAN     /**< Boolean value (0/1) */
+};
+
+/**
+ * @brief Strongly typed key/value pair for object-style query parameters.
+ *
+ * Used when serializing `style=form` (object) and `style=deepObject`.
+ */
+struct OpenAPI_KV {
+  const char *key;          /**< Parameter key */
+  enum OpenAPI_KVType type; /**< Value type */
+  union {
+    const char *s; /**< String value */
+    int i;         /**< Integer value */
+    double n;      /**< Number value */
+    int b;         /**< Boolean value (0/1) */
+  } value;
 };
 
 /**
@@ -49,6 +76,45 @@ struct UrlQueryParams {
  * error/allocation failure.
  */
 extern C_CDD_EXPORT char *url_encode(const char *str);
+
+/**
+ * @brief Percent-encode a string while allowing reserved characters.
+ *
+ * Encodes all characters except RFC 3986 unreserved and reserved sets.
+ * Preserves existing percent-encoded triples ("%HH") verbatim.
+ * Spaces are encoded as "%20".
+ *
+ * @param[in] str The null-terminated string to encode.
+ * @return A newly allocated string containing the encoded result, or NULL on
+ * error/allocation failure.
+ */
+extern C_CDD_EXPORT char *url_encode_allow_reserved(const char *str);
+
+/**
+ * @brief Percent-encode a string for application/x-www-form-urlencoded.
+ *
+ * Encodes all characters except: ALPHA, DIGIT, "-", ".", "_", "*".
+ * Spaces are encoded as "+".
+ *
+ * @param[in] str The null-terminated string to encode.
+ * @return A newly allocated string containing the encoded result, or NULL on
+ * error/allocation failure.
+ */
+extern C_CDD_EXPORT char *url_encode_form(const char *str);
+
+/**
+ * @brief Percent-encode a string for application/x-www-form-urlencoded while
+ * allowing reserved characters (except delimiters).
+ *
+ * Preserves RFC3986 reserved characters except for '&', '=' and '+', which are
+ * always encoded to avoid breaking form key/value delimiters. Spaces are
+ * encoded as "+" and existing percent-encoded triples are preserved.
+ *
+ * @param[in] str The null-terminated string to encode.
+ * @return A newly allocated string containing the encoded result, or NULL on
+ * error/allocation failure.
+ */
+extern C_CDD_EXPORT char *url_encode_form_allow_reserved(const char *str);
 
 /**
  * @brief Initialize a query parameters container.
@@ -78,6 +144,22 @@ extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
                                       const char *key, const char *value);
 
 /**
+ * @brief Add a key-value pair where the value is already percent-encoded.
+ *
+ * The value will be copied as-is and will not be encoded again during
+ * url_query_build(). Use this for OpenAPI styles that require reserved
+ * delimiters (e.g. comma for form-style explode=false).
+ *
+ * @param[in] qp The container.
+ * @param[in] key The parameter key (will be copied and encoded on build).
+ * @param[in] value The parameter value (already encoded, will be copied).
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
+ */
+extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
+                                              const char *key,
+                                              const char *value);
+
+/**
  * @brief Build the final query string starting with '?'.
  *
  * Iterates through parameters, URL-encodes keys and values, and joins them
@@ -91,6 +173,19 @@ extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
  */
 extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
                                         char **out_str);
+
+/**
+ * @brief Build a application/x-www-form-urlencoded body string.
+ *
+ * Uses form encoding (space -> "+") and does not prefix with '?'.
+ *
+ * @param[in] qp The container describing the parameters.
+ * @param[out] out_str Pointer to a char* where the result will be allocated.
+ *                     If count is 0, allocates an empty string "".
+ * @return 0 on success, ENOMEM on allocation failure.
+ */
+extern C_CDD_EXPORT int url_query_build_form(const struct UrlQueryParams *qp,
+                                             char **out_str);
 
 #ifdef __cplusplus
 }

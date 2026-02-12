@@ -12,6 +12,10 @@ cdd-c
 2.  **SDK Generation**: Generating type-safe C client libraries from OpenAPI specs strings.
 3.  **Refactoring**: Auditing and patching C code for memory safety (unchecked allocations).
 
+OpenAPI 3.2 I/O support includes parameter styles (form/simple/matrix/label/spaceDelimited/pipeDelimited/deepObject/cookie), `allowEmptyValue`, content-based parameters (including parameter/header Media Type Objects with encoding/examples/schema), parameter/header schema `$ref` (including array items, plus non-component/external refs), inline primitive/array request/response schemas, inline schema `enum` (any JSON type)/`default` and `type` arrays (union types, including `null`), boolean schemas (`schema: true|false`), inline schema `const` (including array items `const`/`default`), deprecated `example`, plus JSON Schema `examples` arrays (including `items.examples`), inline schema numeric/string/array constraints (`minimum`/`maximum`/`exclusiveMinimum`/`exclusiveMaximum`, `minLength`/`maxLength`/`pattern`, `minItems`/`maxItems`/`uniqueItems`) including array item constraints, inline schema annotations (`description`, `deprecated`, `readOnly`, `writeOnly`) and `$ref` summary/description overrides, inline schema `format` and `contentMediaType`/`contentEncoding`, inline schema extra keyword passthrough for non-component schemas (including `x-` extensions, `$schema`/`$id`, `oneOf`/`anyOf`/`allOf`, `discriminator`, `xml`, `contentSchema`, and other custom keys), spec extension passthrough on non-schema objects (info/contact/license, tags, servers, paths, operations, parameters, headers, responses, request bodies, callbacks, links, security schemes, externalDocs, and security requirement objects), multi-content request/response maps, Media Type `encoding`, `prefixEncoding`, and `itemEncoding` for form/multipart, response headers, response links, callback objects, requestBody component `$ref` resolution, `components.requestBodies`, `components.mediaTypes`, `components.pathItems`, `components.links`, `components.callbacks`, `components.examples`, `additionalOperations`, content `$ref` to Media Type Objects, Media Type/Parameter/Header/Response/Request examples, component schema `allOf` (object) merging, `anyOf`/`oneOf` (first object) fallback, schema annotations (`description`, `format`, `deprecated`, `readOnly`, `writeOnly`), array constraints (`minItems`, `maxItems`, `uniqueItems`), JSON Schema keyword passthrough (`additionalProperties`, `patternProperties`, `$defs`, `not`, `if`/`then`/`else`, and other custom keys), raw component schemas for non-object/boolean/array definitions, components enum schemas (string) and required property lists, and security schemes including `mutualTLS`, OAuth2 flows, and `deprecated`. SDK generation supports array query serialization for `form` (default `explode=true` and explicit `explode=false` CSV), `spaceDelimited`, and `pipeDelimited` styles, `allowReserved` query encoding, object query serialization for `form` (explode true/false) and `deepObject` using `struct OpenAPI_KV`, object path serialization for `simple`/`label`/`matrix` (explode true/false) using `struct OpenAPI_KV`, object header serialization for `simple` (explode true/false), numeric parameters (`number`) for path/query/header/cookie (including arrays), cookie parameters (including `explode=false` arrays), simple header arrays, form-urlencoded and multipart/form-data request bodies (primitive fields + arrays), inline primitive/array JSON request and response bodies, matrix/label path serialization, apiKey security injection (header/query/cookie) and HTTP basic auth injection, additionalOperations for custom HTTP methods mapped to supported verbs (including `CONNECT`), and response selection for `default` and `xXX` status ranges.
+
+OpenAPI compliance guards include path template validation (all `{param}` segments must have matching `in: path` parameters, and those parameters must be `required: true`), `paths` keys starting with `/`, component key regex validation (`^[a-zA-Z0-9._-]+$`), required parameter `name`/`in` fields with duplicate (`name` + `in`) detection, querystring parameters limited to a single occurrence and forbidden alongside `in: query` parameters, Header Objects restricted to `style: simple`, Media Type / Encoding Objects forbidding `encoding` alongside `prefixEncoding` or `itemEncoding`, unique tag names and `operationId` values, and media type selection that prefers the most specific content key (e.g. `text/plain` over `text/*`) while recognizing JSON types even when media type parameters are present.
+
 ## Workflow
 
 ```mermaid
@@ -74,6 +78,21 @@ int api_get_pet(int petId, struct Pet **out) {
   return 0;
 }
 ```
+
+You can also provide richer metadata:
+
+- `@description <text>`
+- `@operationId <id>`
+- `@tag <name>` / `@tags <name1, name2>`
+- `@deprecated [true|false]`
+- `@externalDocs <url> [description]`
+- `@security <scheme> [scope1, scope2]`
+- `@server <url> [name=<name>] [description=<text>]`
+- `@requestBody [required|required:true|required:false] [contentType:<media/type>] <description>`
+- `@return <status> [contentType:<media/type>] <description>`
+- `@param` flags: `[in:<path|query|header|cookie|querystring>] [required]`
+  `[style:<form|simple|matrix|label|spaceDelimited|pipeDelimited|deepObject|cookie>]`
+  `[explode:true|false] [allowReserved:true|false] [allowEmptyValue:true|false] [contentType:<media/type>]`
 
 ### 2. The Generated Specification (OpenAPI v3.2)
 

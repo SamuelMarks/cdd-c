@@ -48,13 +48,37 @@ int struct_fields_init(struct StructFields *const sf) {
       (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
   if (!sf->fields)
     return ENOMEM;
+  sf->is_enum = 0;
+  sf->enum_members.members = NULL;
+  sf->enum_members.size = 0;
+  sf->enum_members.capacity = 0;
+  sf->schema_extra_json = NULL;
   return 0;
 }
 
 void struct_fields_free(struct StructFields *const sf) {
   if (sf && sf->fields) {
+    size_t i;
+    for (i = 0; i < sf->size; ++i) {
+      if (sf->fields[i].schema_extra_json) {
+        free(sf->fields[i].schema_extra_json);
+        sf->fields[i].schema_extra_json = NULL;
+      }
+      if (sf->fields[i].items_extra_json) {
+        free(sf->fields[i].items_extra_json);
+        sf->fields[i].items_extra_json = NULL;
+      }
+    }
     free(sf->fields);
     sf->fields = NULL;
+  }
+  if (sf) {
+    if (sf->schema_extra_json) {
+      free(sf->schema_extra_json);
+      sf->schema_extra_json = NULL;
+    }
+    enum_members_free(&sf->enum_members);
+    sf->is_enum = 0;
   }
 }
 

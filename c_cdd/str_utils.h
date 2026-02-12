@@ -74,6 +74,16 @@ extern C_CDD_EXPORT bool c_cdd_str_starts_with(const char *str,
 extern C_CDD_EXPORT bool c_cdd_str_equal(const char *a, const char *b);
 
 /**
+ * @brief Check if two strings are equal ignoring ASCII case.
+ *
+ * @param[in] a First string.
+ * @param[in] b Second string.
+ * @return true if strings match case-insensitively or both are NULL, false
+ * otherwise.
+ */
+extern C_CDD_EXPORT bool c_cdd_str_iequal(const char *a, const char *b);
+
+/**
  * @brief Find the substring after the last occurrence of a character.
  *
  * @param[in] str The string to search.

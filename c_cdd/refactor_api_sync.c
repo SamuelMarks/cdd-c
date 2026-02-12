@@ -85,7 +85,7 @@ static char *generate_expected_query(const struct OpenAPI_Operation *op) {
   if (!tmp)
     return NULL;
 
-  if (codegen_url_write_query_params(tmp, op) != 0) {
+  if (codegen_url_write_query_params(tmp, op, 0) != 0) {
     fclose(tmp);
     return NULL;
   }

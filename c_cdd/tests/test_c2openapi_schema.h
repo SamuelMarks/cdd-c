@@ -136,11 +136,46 @@ TEST test_register_null_safety(void) {
   PASS();
 }
 
+TEST test_register_enum_schema(void) {
+  struct OpenAPI_Spec spec;
+  struct TypeDefList types;
+  char *header_file = "test_reg_enum.h";
+  int rc;
+
+  openapi_spec_init(&spec);
+  type_def_list_init(&types);
+
+  write_to_file(header_file, "enum Color { RED, GREEN, BLUE };");
+
+  rc = c_inspector_scan_file_types(header_file, &types);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, types.size);
+
+  rc = c2openapi_register_types(&spec, &types);
+  ASSERT_EQ(0, rc);
+
+  {
+    const struct StructFields *sf = openapi_spec_find_schema(&spec, "Color");
+    ASSERT(sf != NULL);
+    ASSERT_EQ(1, sf->is_enum);
+    ASSERT_EQ(3, sf->enum_members.size);
+    ASSERT_STR_EQ("RED", sf->enum_members.members[0]);
+    ASSERT_STR_EQ("GREEN", sf->enum_members.members[1]);
+    ASSERT_STR_EQ("BLUE", sf->enum_members.members[2]);
+  }
+
+  openapi_spec_free(&spec);
+  type_def_list_free(&types);
+  remove(header_file);
+  PASS();
+}
+
 SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_register_single_struct);
   RUN_TEST(test_register_deduplication);
   RUN_TEST(test_register_multiple_structs);
   RUN_TEST(test_register_null_safety);
+  RUN_TEST(test_register_enum_schema);
 }
 
 #endif /* TEST_C2OPENAPI_SCHEMA_H */

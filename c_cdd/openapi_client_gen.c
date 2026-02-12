@@ -174,6 +174,7 @@ static int write_header_preamble(FILE *fp, const char *guard,
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
   CHECK_IO(fprintf(fp, "#include \"http_types.h\"\n"));
+  CHECK_IO(fprintf(fp, "#include \"url_utils.h\"\n"));
   if (model_decl) {
     CHECK_IO(fprintf(fp, "#include \"%s\"\n", model_decl));
   }
@@ -382,9 +383,8 @@ static int write_docblock(FILE *fp, const struct OpenAPI_Operation *op) {
       default:
         break;
       }
-      CHECK_IO(fprintf(
-          fp, " * @param[in] %s Parameter (%s).\n", op->parameters[i].name,
-          loc));
+      CHECK_IO(fprintf(fp, " * @param[in] %s Parameter (%s).\n",
+                       op->parameters[i].name, loc));
     }
   }
   CHECK_IO(fprintf(fp, " * @param[out] api_error Optional pointer to receive "
@@ -393,6 +393,118 @@ static int write_docblock(FILE *fp, const struct OpenAPI_Operation *op) {
   CHECK_IO(fprintf(fp, " * @return 0 on success, or error code.\n"));
   CHECK_IO(fprintf(fp, " */\n"));
   return 0;
+}
+
+static int emit_operation(FILE *hfile, FILE *cfile,
+                          const struct OpenAPI_Path *path,
+                          const struct OpenAPI_Operation *op,
+                          const struct OpenAPI_Spec *spec,
+                          const struct OpenApiClientConfig *config,
+                          const char *prefix) {
+  struct OpenAPI_Operation effective_op;
+  struct OpenAPI_Parameter *effective_params = NULL;
+  size_t effective_count = 0;
+  struct CodegenSigConfig sig_cfg;
+  char *sanitized_group = NULL;
+  char *full_group = NULL;
+  int merge_rc;
+  int rc = 0;
+
+#define CHECK_IO_CLEANUP(x)                                                    \
+  do {                                                                         \
+    if ((x) < 0) {                                                             \
+      rc = EIO;                                                                \
+      goto cleanup;                                                            \
+    }                                                                          \
+  } while (0)
+
+  if (!hfile || !cfile || !path || !op || !config || !prefix)
+    return EINVAL;
+
+  memset(&sig_cfg, 0, sizeof(sig_cfg));
+  sig_cfg.prefix = prefix;
+
+  merge_rc =
+      build_effective_parameters(path, op, &effective_params, &effective_count);
+  if (merge_rc != 0)
+    return merge_rc;
+
+  effective_op = *op;
+  effective_op.parameters = effective_params;
+  effective_op.n_parameters = effective_count;
+
+  /* Determine Group Name from Tags and Namespace */
+  if (effective_op.n_tags > 0 && effective_op.tags[0]) {
+    sanitized_group = sanitize_tag(effective_op.tags[0]);
+    if (!sanitized_group) {
+      rc = ENOMEM;
+      goto cleanup;
+    }
+  }
+
+  if (config->namespace_prefix && sanitized_group) {
+    /* Name: Namespace_Tag */
+    full_group =
+        malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
+    if (!full_group) {
+      rc = ENOMEM;
+      goto cleanup;
+    }
+    sprintf(full_group, "%s_%s", config->namespace_prefix, sanitized_group);
+  } else if (config->namespace_prefix) {
+    /* Name: Namespace */
+    full_group = strdup(config->namespace_prefix);
+    if (!full_group) {
+      rc = ENOMEM;
+      goto cleanup;
+    }
+  } else if (sanitized_group) {
+    /* Name: Tag */
+    full_group = strdup(sanitized_group);
+    if (!full_group) {
+      rc = ENOMEM;
+      goto cleanup;
+    }
+  }
+
+  if (full_group) {
+    sig_cfg.group_name = full_group;
+  }
+
+  /* 1. Header: DocBlock + Prototype */
+  if ((rc = write_docblock(hfile, &effective_op)) != 0)
+    goto cleanup;
+
+  sig_cfg.include_semicolon = 1;
+  if ((rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg)) !=
+      0)
+    goto cleanup;
+  CHECK_IO_CLEANUP(fprintf(hfile, "\n"));
+
+  /* 2. Source: Implementation */
+  sig_cfg.include_semicolon = 0;
+  if ((rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg)) !=
+      0)
+    goto cleanup;
+
+  /* Body generation (Passing spec for security lookup) */
+  if ((rc = codegen_client_write_body(cfile, &effective_op, spec,
+                                      path->route)) != 0)
+    goto cleanup;
+
+  CHECK_IO_CLEANUP(fprintf(cfile, "\n"));
+
+cleanup:
+  if (sanitized_group)
+    free(sanitized_group);
+  if (full_group)
+    free(full_group);
+  if (effective_params)
+    free(effective_params);
+
+#undef CHECK_IO_CLEANUP
+
+  return rc;
 }
 
 int openapi_client_generate(const struct OpenAPI_Spec *const spec,
@@ -466,122 +578,15 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
     struct OpenAPI_Path *path = &spec->paths[i];
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
-      struct OpenAPI_Operation effective_op;
-      struct OpenAPI_Parameter *effective_params = NULL;
-      size_t effective_count = 0;
-      struct CodegenSigConfig sig_cfg;
-      char *sanitized_group = NULL;
-      char *full_group = NULL;
-      int merge_rc;
-
-      memset(&sig_cfg, 0, sizeof(sig_cfg));
-      sig_cfg.prefix = prefix;
-
-      merge_rc = build_effective_parameters(path, op, &effective_params,
-                                            &effective_count);
-      if (merge_rc != 0) {
-        rc = merge_rc;
+      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+      if (rc != 0)
         goto cleanup;
-      }
-      effective_op = *op;
-      effective_op.parameters = effective_params;
-      effective_op.n_parameters = effective_count;
-
-      /* Determine Group Name from Tags and Namespace */
-      if (effective_op.n_tags > 0 && effective_op.tags[0]) {
-        sanitized_group = sanitize_tag(effective_op.tags[0]);
-        if (!sanitized_group) {
-          free(effective_params);
-          rc = ENOMEM;
-          goto cleanup;
-        }
-      }
-
-      if (config->namespace_prefix && sanitized_group) {
-        /* Name: Namespace_Tag */
-        full_group = malloc(strlen(config->namespace_prefix) +
-                            strlen(sanitized_group) + 2);
-        if (!full_group) {
-          if (sanitized_group)
-            free(sanitized_group);
-          free(effective_params);
-          rc = ENOMEM;
-          goto cleanup;
-        }
-        sprintf(full_group, "%s_%s", config->namespace_prefix, sanitized_group);
-      } else if (config->namespace_prefix) {
-        /* Name: Namespace */
-        full_group = strdup(config->namespace_prefix);
-        if (!full_group) {
-          free(effective_params);
-          rc = ENOMEM;
-          goto cleanup;
-        }
-      } else if (sanitized_group) {
-        /* Name: Tag */
-        full_group = strdup(sanitized_group);
-        if (!full_group) {
-          free(sanitized_group);
-          free(effective_params);
-          rc = ENOMEM;
-          goto cleanup;
-        }
-      }
-
-      if (full_group) {
-        sig_cfg.group_name = full_group;
-      }
-
-      /* 1. Header: DocBlock + Prototype */
-      if ((rc = write_docblock(hfile, &effective_op)) != 0) {
-        if (sanitized_group)
-          free(sanitized_group);
-        if (full_group)
-          free(full_group);
-        free(effective_params);
+    }
+    for (j = 0; j < path->n_additional_operations; ++j) {
+      struct OpenAPI_Operation *op = &path->additional_operations[j];
+      rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
+      if (rc != 0)
         goto cleanup;
-      }
-
-      sig_cfg.include_semicolon = 1;
-      if ((rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg)) != 0) {
-        if (sanitized_group)
-          free(sanitized_group);
-        if (full_group)
-          free(full_group);
-        free(effective_params);
-        goto cleanup;
-      }
-      CHECK_IO(fprintf(hfile, "\n"));
-
-      /* 2. Source: Implementation */
-      sig_cfg.include_semicolon = 0;
-      if ((rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg)) != 0) {
-        if (sanitized_group)
-          free(sanitized_group);
-        if (full_group)
-          free(full_group);
-        free(effective_params);
-        goto cleanup;
-      }
-
-      /* Body generation (Passing spec for security lookup) */
-      if ((rc = codegen_client_write_body(cfile, &effective_op, spec,
-                                          path->route)) != 0) {
-        if (sanitized_group)
-          free(sanitized_group);
-        if (full_group)
-          free(full_group);
-        free(effective_params);
-        goto cleanup;
-      }
-
-      CHECK_IO(fprintf(cfile, "\n"));
-
-      if (sanitized_group)
-        free(sanitized_group);
-      if (full_group)
-        free(full_group);
-      free(effective_params);
     }
   }
 

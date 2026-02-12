@@ -4,7 +4,7 @@
  *
  * Orchestrates the generation of the full implementation of an API client
  * function. Supports parameter serialization (Query, Header, Path), Body
- * serialization (JSON), and Security injection.
+ * serialization (JSON, multipart, form-urlencoded), and Security injection.
  *
  * @author Samuel Marks
  */
@@ -35,8 +35,8 @@ extern "C" {
  * 6.  **Path Construction**: Call `codegen_url` to build the base path.
  * 7.  **URL Assembly**: Concatenate Path + Query String.
  * 8.  **Body Serialization**:
- *     - Detect content type (JSON vs Multipart).
- *     - Call `_to_json` or build multipart payload.
+ *     - Detect content type (JSON vs Multipart vs Form).
+ *     - Call `_to_json`, build multipart payload, or form-encode.
  * 9.  **Execution**: Call `ctx->send`.
  * 10. **Response Handling**: Switch statement on status code for Success/Error
  * deserialization.

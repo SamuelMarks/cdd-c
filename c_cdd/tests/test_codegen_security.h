@@ -83,6 +83,32 @@ TEST test_sec_bearer_token(void) {
   PASS();
 }
 
+TEST test_sec_basic_token(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+
+  sch.name = "basicAuth";
+  sch.type = OA_SEC_HTTP;
+  sch.scheme = "basic";
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "if (ctx->security.basic_token) {"));
+  ASSERT(strstr(
+      code, "http_request_set_auth_basic(&req, ctx->security.basic_token)"));
+
+  free(code);
+  PASS();
+}
+
 TEST test_sec_api_key_header(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
@@ -107,6 +133,59 @@ TEST test_sec_api_key_header(void) {
   /* Check injection */
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\", "
                       "ctx->security.api_key_ApiKeyAuth)"));
+
+  free(code);
+  PASS();
+}
+
+TEST test_sec_api_key_query(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+
+  sch.name = "QueryKey";
+  sch.type = OA_SEC_APIKEY;
+  sch.in = OA_SEC_IN_QUERY;
+  sch.key_name = "api_key";
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "if (!qp_initialized)") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, \"api_key\", "
+                      "ctx->security.api_key_QueryKey)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_sec_api_key_cookie(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+
+  sch.name = "CookieKey";
+  sch.type = OA_SEC_APIKEY;
+  sch.in = OA_SEC_IN_COOKIE;
+  sch.key_name = "session_id";
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "cookie_str") != NULL);
+  ASSERT(strstr(code, "session_id") != NULL);
 
   free(code);
   PASS();
@@ -190,7 +269,10 @@ TEST test_sec_security_requirements_filter(void) {
 
 SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_bearer_token);
+  RUN_TEST(test_sec_basic_token);
   RUN_TEST(test_sec_api_key_header);
+  RUN_TEST(test_sec_api_key_query);
+  RUN_TEST(test_sec_api_key_cookie);
   RUN_TEST(test_sec_multiple_schemes);
   RUN_TEST(test_sec_security_requirements_filter);
   RUN_TEST(test_sec_null_safety);

@@ -48,15 +48,15 @@ struct ApiSyncConfig {
  * params do, attempts partial insertion.
  * 3. **Header Sync**: Scans for markers like `Header Parameter: name` and
  *    updates the associated logic statements.
- * 4. **URL Sync**: Updates the `asprintf` call to use correct path variables. 
- * 
- * @param[in] filename Path to the C source file to update. 
- * @param[in] spec The parsed OpenAPI specification. 
- * @param[in] config Configuration options. 
- * @return 0 on success, error code on failure. 
- */ 
-extern C_CDD_EXPORT int api_sync_file(const char *filename, 
-                                      const struct OpenAPI_Spec *spec, 
+ * 4. **URL Sync**: Updates the `asprintf` call to use correct path variables.
+ *
+ * @param[in] filename Path to the C source file to update.
+ * @param[in] spec The parsed OpenAPI specification.
+ * @param[in] config Configuration options.
+ * @return 0 on success, error code on failure.
+ */
+extern C_CDD_EXPORT int api_sync_file(const char *filename,
+                                      const struct OpenAPI_Spec *spec,
                                       const struct ApiSyncConfig *config);
 
 #ifdef __cplusplus

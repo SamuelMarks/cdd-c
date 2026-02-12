@@ -45,6 +45,20 @@ bool c_cdd_str_equal(const char *const a, const char *const b) {
   return strcmp(a, b) == 0;
 }
 
+bool c_cdd_str_iequal(const char *const a, const char *const b) {
+  if (a == b)
+    return true; /* Handles both NULL case */
+  if (a == NULL || b == NULL)
+    return false; /* One is NULL, other is not */
+  while (*a && *b) {
+    if (tolower((unsigned char)*a) != tolower((unsigned char)*b))
+      return false;
+    ++a;
+    ++b;
+  }
+  return *a == '\0' && *b == '\0';
+}
+
 const char *c_cdd_str_after_last(const char *const str, const int delimiter) {
   const char *last_occurrence;
   if (str == NULL)
