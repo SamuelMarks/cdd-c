@@ -46,6 +46,19 @@ extern C_CDD_EXPORT int
 openapi_aggregator_add_operation(struct OpenAPI_Spec *spec, const char *route,
                                  struct OpenAPI_Operation *op);
 
+/**
+ * @brief Add a webhook operation to the OpenAPI Spec, organizing by Path.
+ *
+ * Mirrors openapi_aggregator_add_operation but targets spec->webhooks.
+ *
+ * @param[in,out] spec The main specification object.
+ * @param[in] route The webhook route string (e.g. "/events").
+ * @param[in] op The operation to add.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
+ */
+extern C_CDD_EXPORT int openapi_aggregator_add_webhook_operation(
+    struct OpenAPI_Spec *spec, const char *route, struct OpenAPI_Operation *op);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

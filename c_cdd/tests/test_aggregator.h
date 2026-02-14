@@ -94,6 +94,51 @@ TEST test_aggregator_distinct_paths(void) {
   PASS();
 }
 
+TEST test_aggregator_add_additional_operation(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+
+  openapi_spec_init(&spec);
+  dummy_op(&op, "copyUser");
+  op.is_additional = 1;
+  op.method = strdup("COPY");
+  op.verb = OA_VERB_UNKNOWN;
+
+  ASSERT_EQ(0, openapi_aggregator_add_operation(&spec, "/users/{id}", &op));
+
+  ASSERT_EQ(1, spec.n_paths);
+  ASSERT_STR_EQ("/users/{id}", spec.paths[0].route);
+  ASSERT_EQ(0, spec.paths[0].n_operations);
+  ASSERT_EQ(1, spec.paths[0].n_additional_operations);
+  ASSERT_STR_EQ("copyUser",
+                spec.paths[0].additional_operations[0].operation_id);
+  ASSERT_STR_EQ("COPY", spec.paths[0].additional_operations[0].method);
+
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_aggregator_add_webhook(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+
+  openapi_spec_init(&spec);
+  dummy_op(&op, "webhookOp");
+  op.verb = OA_VERB_POST;
+
+  ASSERT_EQ(0, openapi_aggregator_add_webhook_operation(&spec, "/events", &op));
+
+  ASSERT_EQ(0, spec.n_paths);
+  ASSERT_EQ(1, spec.n_webhooks);
+  ASSERT_STR_EQ("/events", spec.webhooks[0].route);
+  ASSERT_EQ(1, spec.webhooks[0].n_operations);
+  ASSERT_STR_EQ("webhookOp", spec.webhooks[0].operations[0].operation_id);
+  ASSERT_EQ(NULL, op.operation_id);
+
+  openapi_spec_free(&spec);
+  PASS();
+}
+
 TEST test_aggregator_bad_args(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -115,6 +160,8 @@ SUITE(aggregator_suite) {
   RUN_TEST(test_aggregator_add_new);
   RUN_TEST(test_aggregator_merge_paths);
   RUN_TEST(test_aggregator_distinct_paths);
+  RUN_TEST(test_aggregator_add_additional_operation);
+  RUN_TEST(test_aggregator_add_webhook);
   RUN_TEST(test_aggregator_bad_args);
 }
 

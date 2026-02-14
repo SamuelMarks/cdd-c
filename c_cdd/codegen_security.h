@@ -29,7 +29,7 @@ extern "C" {
  * otherwise falls back to applying all schemes (legacy behavior).
  *
  * Generates C logic checking `ctx->security` fields and injecting:
- * - `Authorization: Bearer ...` (HTTP Bearer)
+ * - `Authorization: Bearer ...` (HTTP Bearer, OAuth2, OpenID Connect)
  * - `Authorization: Basic ...` (HTTP Basic; token is base64 of "user:pass")
  * - `X-Api-Key: ...` (API Key in Header)
  * - Query params for `apiKey` in query

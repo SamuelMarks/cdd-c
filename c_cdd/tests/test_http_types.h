@@ -56,6 +56,25 @@ TEST test_multipart_flatten(void) {
   PASS();
 }
 
+TEST test_multipart_part_headers(void) {
+  struct HttpRequest req;
+  char *content;
+
+  http_request_init(&req);
+  http_request_add_part(&req, "f1", NULL, NULL, "v1", 2);
+  ASSERT_EQ(0, http_request_add_part_header_last(&req, "X-Trace", "abc"));
+  ASSERT_EQ(0, http_request_add_part_header_last(&req, "X-Count", "2"));
+
+  ASSERT_EQ(0, http_request_flatten_parts(&req));
+  content = (char *)req.body;
+  ASSERT(content != NULL);
+  ASSERT(strstr(content, "X-Trace: abc"));
+  ASSERT(strstr(content, "X-Count: 2"));
+
+  http_request_free(&req);
+  PASS();
+}
+
 TEST test_auth_basic_header(void) {
   struct HttpRequest req;
   int rc;
@@ -74,6 +93,7 @@ TEST test_auth_basic_header(void) {
 SUITE(http_types_suite) {
   RUN_TEST(test_multipart_lifecycle);
   RUN_TEST(test_multipart_flatten);
+  RUN_TEST(test_multipart_part_headers);
   RUN_TEST(test_auth_basic_header);
 }
 

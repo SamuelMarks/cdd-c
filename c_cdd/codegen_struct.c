@@ -33,6 +33,19 @@ static const char *kStrDupFunc = "strdup";
       return EIO;                                                              \
   } while (0)
 
+static void free_string_array(char **arr, size_t n) {
+  size_t i;
+  if (!arr)
+    return;
+  for (i = 0; i < n; ++i) {
+    if (arr[i]) {
+      free(arr[i]);
+      arr[i] = NULL;
+    }
+  }
+  free(arr);
+}
+
 const char *get_type_from_ref(const char *const ref) {
   if (ref == NULL)
     return "";
@@ -53,6 +66,11 @@ int struct_fields_init(struct StructFields *const sf) {
   sf->enum_members.size = 0;
   sf->enum_members.capacity = 0;
   sf->schema_extra_json = NULL;
+  sf->is_union = 0;
+  sf->union_is_anyof = 0;
+  sf->union_discriminator = NULL;
+  sf->union_variants = NULL;
+  sf->n_union_variants = 0;
   return 0;
 }
 
@@ -68,6 +86,17 @@ void struct_fields_free(struct StructFields *const sf) {
         free(sf->fields[i].items_extra_json);
         sf->fields[i].items_extra_json = NULL;
       }
+      if (sf->fields[i].type_union) {
+        free_string_array(sf->fields[i].type_union, sf->fields[i].n_type_union);
+        sf->fields[i].type_union = NULL;
+        sf->fields[i].n_type_union = 0;
+      }
+      if (sf->fields[i].items_type_union) {
+        free_string_array(sf->fields[i].items_type_union,
+                          sf->fields[i].n_items_type_union);
+        sf->fields[i].items_type_union = NULL;
+        sf->fields[i].n_items_type_union = 0;
+      }
     }
     free(sf->fields);
     sf->fields = NULL;
@@ -77,8 +106,37 @@ void struct_fields_free(struct StructFields *const sf) {
       free(sf->schema_extra_json);
       sf->schema_extra_json = NULL;
     }
+    if (sf->union_discriminator) {
+      free(sf->union_discriminator);
+      sf->union_discriminator = NULL;
+    }
+    if (sf->union_variants) {
+      size_t i;
+      for (i = 0; i < sf->n_union_variants; ++i) {
+        struct UnionVariantMeta *meta = &sf->union_variants[i];
+        if (meta->required_props) {
+          free_string_array(meta->required_props, meta->n_required_props);
+          meta->required_props = NULL;
+          meta->n_required_props = 0;
+        }
+        if (meta->property_names) {
+          free_string_array(meta->property_names, meta->n_property_names);
+          meta->property_names = NULL;
+          meta->n_property_names = 0;
+        }
+        if (meta->disc_value) {
+          free(meta->disc_value);
+          meta->disc_value = NULL;
+        }
+      }
+      free(sf->union_variants);
+      sf->union_variants = NULL;
+      sf->n_union_variants = 0;
+    }
     enum_members_free(&sf->enum_members);
     sf->is_enum = 0;
+    sf->is_union = 0;
+    sf->union_is_anyof = 0;
   }
 }
 

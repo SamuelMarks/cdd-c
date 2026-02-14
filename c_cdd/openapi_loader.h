@@ -22,6 +22,7 @@
  * - Media Type Encoding by name and position: `encoding`, `prefixEncoding`,
  *   and `itemEncoding` (OAS 3.2)
  * - Parameter/Header content Media Type Objects (encoding/examples/schema)
+ * - x- extensions on Paths, Webhooks, and Components objects
  *
  * @author Samuel Marks
  */
@@ -42,6 +43,7 @@ extern "C" {
 struct OpenAPI_Path;
 struct OpenAPI_Server;
 struct OpenAPI_Header;
+struct OpenAPI_DocRegistry;
 
 /**
  * @brief HTTP Verbs supported by the generator.
@@ -266,22 +268,71 @@ struct OpenAPI_MultipartField {
 };
 
 /**
+ * @brief Discriminator mapping entry (payload value -> schema ref/name).
+ */
+struct OpenAPI_DiscriminatorMap {
+  char *value;  /**< Discriminator payload value */
+  char *schema; /**< Schema name or URI reference */
+};
+
+/**
+ * @brief Discriminator Object metadata.
+ */
+struct OpenAPI_Discriminator {
+  char *property_name;                      /**< propertyName */
+  struct OpenAPI_DiscriminatorMap *mapping; /**< mapping entries */
+  size_t n_mapping;                         /**< mapping count */
+  char *default_mapping;                    /**< defaultMapping */
+  char *extensions_json; /**< Serialized JSON for x- extensions */
+};
+
+/**
+ * @brief XML node type.
+ */
+enum OpenAPI_XmlNodeType {
+  OA_XML_NODE_UNSET = 0,
+  OA_XML_NODE_ELEMENT,
+  OA_XML_NODE_ATTRIBUTE,
+  OA_XML_NODE_TEXT,
+  OA_XML_NODE_CDATA,
+  OA_XML_NODE_NONE
+};
+
+/**
+ * @brief XML Object metadata.
+ */
+struct OpenAPI_Xml {
+  enum OpenAPI_XmlNodeType node_type; /**< nodeType */
+  int node_type_set;                  /**< 1 if nodeType present */
+  char *name;                         /**< name */
+  char *namespace_uri;                /**< namespace */
+  char *prefix;                       /**< prefix */
+  int attribute;                      /**< attribute (deprecated) */
+  int attribute_set;                  /**< 1 if attribute present */
+  int wrapped;                        /**< wrapped (deprecated) */
+  int wrapped_set;                    /**< 1 if wrapped present */
+  char *extensions_json;              /**< Serialized JSON for x- extensions */
+};
+
+/**
  * @brief Represents an extracted Schema (Body or Response).
  */
 struct OpenAPI_SchemaRef {
   int schema_is_boolean;    /**< 1 if schema is boolean (true/false) */
   int schema_boolean_value; /**< Boolean schema value when schema_is_boolean */
-  char *ref_name;    /**< Component schema name when $ref targets components */
-  char *ref;         /**< Raw $ref value for non-component references */
-  char *inline_type; /**< Inline primitive type (e.g. "string"), if present */
-  char **type_union; /**< Full type array when schema uses type:[...] */
+  char *ref_name;     /**< Component schema name when $ref targets components */
+  char *ref;          /**< Raw $ref/$dynamicRef value for non-component refs */
+  int ref_is_dynamic; /**< 1 if ref uses $dynamicRef */
+  char *inline_type;  /**< Inline primitive type (e.g. "string"), if present */
+  char **type_union;  /**< Full type array when schema uses type:[...] */
   size_t n_type_union;     /**< Count of type array entries */
   char *format;            /**< Optional schema format for inline primitives */
   int is_array;            /**< 1 if array, 0 otherwise */
   char **items_type_union; /**< Items type array when items uses type:[...] */
   size_t n_items_type_union; /**< Count of items type entries */
   char *items_format;        /**< Optional format for array items */
-  char *items_ref;           /**< Raw $ref for array items when non-component */
+  char *items_ref;           /**< Raw $ref/$dynamicRef for array items */
+  int items_ref_is_dynamic;  /**< 1 if items_ref uses $dynamicRef */
 
   /* Multipart / Form-urlencoded Extension */
   char *content_type;             /**< "application/json" or
@@ -311,6 +362,12 @@ struct OpenAPI_SchemaRef {
   struct OpenAPI_Any *enum_values;  /**< Enum values (any JSON type) */
   size_t n_enum_values;             /**< Enum value count */
   char *schema_extra_json; /**< Serialized JSON for extra schema keywords */
+  struct OpenAPI_ExternalDocs external_docs;  /**< Schema externalDocs */
+  int external_docs_set;                      /**< 1 if externalDocs present */
+  struct OpenAPI_Discriminator discriminator; /**< Schema discriminator */
+  int discriminator_set;                      /**< 1 if discriminator present */
+  struct OpenAPI_Xml xml;                     /**< Schema xml metadata */
+  int xml_set;                                /**< 1 if xml present */
   struct OpenAPI_Any *items_enum_values; /**< Enum values for array items */
   size_t n_items_enum_values;            /**< Items enum count */
   int has_min;             /**< 1 if minimum or exclusiveMinimum present */
@@ -592,11 +649,12 @@ struct OpenAPI_Operation {
 
   struct OpenAPI_SchemaRef req_body; /**< Request body definition */
   struct OpenAPI_MediaType
-      *req_body_media_types;     /**< RequestBody content map */
-  size_t n_req_body_media_types; /**< RequestBody content count */
-  int req_body_required;         /**< 1 if requestBody.required = true */
-  int req_body_required_set;     /**< 1 if required was explicitly set */
-  char *req_body_description;    /**< Optional request body description */
+      *req_body_media_types;      /**< RequestBody content map */
+  size_t n_req_body_media_types;  /**< RequestBody content count */
+  int req_body_required;          /**< 1 if requestBody.required = true */
+  int req_body_required_set;      /**< 1 if required was explicitly set */
+  char *req_body_description;     /**< Optional request body description */
+  char *req_body_extensions_json; /**< Serialized JSON for requestBody x- */
   char *req_body_ref; /**< Optional $ref to components.requestBodies */
   struct OpenAPI_ExternalDocs external_docs; /**< Optional external docs */
 
@@ -606,6 +664,7 @@ struct OpenAPI_Operation {
   /* Response Handling */
   struct OpenAPI_Response *responses; /**< Listing of all defined responses */
   size_t n_responses;                 /**< Count of responses */
+  char *responses_extensions_json;    /**< x- extensions on Responses Object */
 
   struct OpenAPI_Callback *callbacks; /**< Callback definitions */
   size_t n_callbacks;                 /**< Callback count */
@@ -691,14 +750,39 @@ struct OpenAPI_Info {
 };
 
 /**
+ * @brief Registry entry for resolving multi-document OpenAPI $ref targets.
+ */
+struct OpenAPI_DocRegistryEntry {
+  char *base_uri;            /**< Canonical document base URI (no fragment) */
+  struct OpenAPI_Spec *spec; /**< Parsed document */
+};
+
+/**
+ * @brief Registry for multi-document OpenAPI resolution.
+ */
+struct OpenAPI_DocRegistry {
+  struct OpenAPI_DocRegistryEntry *entries; /**< Registered documents */
+  size_t count;                             /**< Entry count */
+  size_t capacity;                          /**< Allocated capacity */
+};
+
+/**
  * @brief Root container for the parsed specification.
  */
 struct OpenAPI_Spec {
-  char *openapi_version;     /**< OpenAPI version string */
-  char *self_uri;            /**< Optional $self URI */
-  char *json_schema_dialect; /**< Optional jsonSchemaDialect */
-  char *extensions_json;     /**< Serialized JSON for x- extensions */
-  struct OpenAPI_Info info;  /**< Info metadata */
+  char *openapi_version;  /**< OpenAPI version string */
+  int is_schema_document; /**< 1 if root is a JSON Schema document */
+  char *schema_root_json; /**< Serialized root schema (schema docs) */
+  char *self_uri;         /**< Optional $self URI */
+  char *retrieval_uri;    /**< Optional retrieval URI (context) */
+  char *document_uri;     /**< Resolved base URI (no fragment) */
+  struct OpenAPI_DocRegistry *doc_registry; /**< Optional registry */
+  char *json_schema_dialect;                /**< Optional jsonSchemaDialect */
+  char *extensions_json;            /**< Serialized JSON for x- extensions */
+  char *paths_extensions_json;      /**< x- extensions on Paths Object */
+  char *webhooks_extensions_json;   /**< x- extensions on Webhooks Object */
+  char *components_extensions_json; /**< x- extensions on Components Object */
+  struct OpenAPI_Info info;         /**< Info metadata */
   struct OpenAPI_ExternalDocs external_docs; /**< Optional external docs */
   struct OpenAPI_Tag *tags;                  /**< Top-level tag metadata */
   size_t n_tags;                             /**< Tag count */
@@ -770,9 +854,12 @@ struct OpenAPI_Spec {
 
   /* Global Schema Data (for looking up struct definitions during body gen) */
   struct StructFields
-      *defined_schemas;        /**< Array of parsed schemas structure */
-  char **defined_schema_names; /**< Array of schema names matching indices */
-  size_t n_defined_schemas;    /**< Count of defined schemas */
+      *defined_schemas;          /**< Array of parsed schemas structure */
+  char **defined_schema_names;   /**< Array of schema names matching indices */
+  char **defined_schema_ids;     /**< Optional $id values for defined schemas */
+  char **defined_schema_anchors; /**< Optional $anchor values */
+  char **defined_schema_dynamic_anchors; /**< Optional $dynamicAnchor values */
+  size_t n_defined_schemas;              /**< Count of defined schemas */
 };
 
 /* --- Lifecycle --- */
@@ -792,19 +879,75 @@ extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
 /* --- Loader --- */
 
 /**
- * @brief Parse "paths" and "components" from a JSON Value.
+ * @brief Initialize a document registry.
+ * @param[out] registry Pointer to registry to initialize.
+ */
+extern C_CDD_EXPORT void
+openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);
+
+/**
+ * @brief Free a document registry and its URI entries.
  *
- * Traverses the JSON to populate the Spec structure.
+ * Does NOT free the OpenAPI_Spec instances referenced by the registry.
+ *
+ * @param[in] registry Pointer to registry to free.
+ */
+extern C_CDD_EXPORT void
+openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry);
+
+/**
+ * @brief Register a parsed document with the registry.
+ *
+ * Uses the document's resolved base URI for matching $ref targets.
+ *
+ * @param[in,out] registry Registry to add to.
+ * @param[in] spec Parsed OpenAPI specification.
+ * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
+ */
+extern C_CDD_EXPORT int
+openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
+                         struct OpenAPI_Spec *spec);
+
+/**
+ * @brief Parse an OpenAPI or Schema document from a JSON Value.
+ *
+ * Traverses the JSON to populate the Spec structure. For OpenAPI documents:
  * 1. Extracts Paths, Operations, Params, Bodies, and Tags.
  * 2. Extracts Security Schemes from components.
  * 3. Extracts and flattening Schemas definitions.
  *
- * @param[in] root The root JSON Value of the OpenAPI file.
+ * For Schema documents (JSON Schema at the root), the loader sets
+ * `is_schema_document` and stores the serialized root schema in
+ * `schema_root_json`.
+ *
+ * @param[in] root The root JSON Value of the OpenAPI or Schema document.
  * @param[out] out Destination structure to populate.
  * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
 extern C_CDD_EXPORT int openapi_load_from_json(const JSON_Value *root,
                                                struct OpenAPI_Spec *out);
+
+/**
+ * @brief Parse a JSON Value with document context for multi-doc resolution.
+ *
+ * Resolves relative $self and $ref bases using the provided retrieval URI,
+ * and optionally consults a registry for external component references.
+ *
+ * For Schema documents, $id (when present) is used as the base URI for
+ * registry resolution.
+ *
+ * If a registry is provided, this function registers the parsed document on
+ * success.
+ *
+ * @param[in] root The root JSON Value of the OpenAPI file.
+ * @param[in] retrieval_uri Retrieval/base URI for this document (optional).
+ * @param[out] out The spec structure to populate (must be initialized).
+ * @param[in,out] registry Optional registry for multi-doc resolution.
+ * @return 0 on success, EINVAL on invalid input, ENOMEM on allocation failure.
+ */
+extern C_CDD_EXPORT int openapi_load_from_json_with_context(
+    const JSON_Value *root, const char *retrieval_uri, struct OpenAPI_Spec *out,
+    struct OpenAPI_DocRegistry *registry);
 
 /**
  * @brief Look up a schema definition by name in the loaded spec.
@@ -815,6 +958,19 @@ extern C_CDD_EXPORT int openapi_load_from_json(const JSON_Value *root,
  */
 extern C_CDD_EXPORT const struct StructFields *
 openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name);
+
+/**
+ * @brief Find a schema definition by following a SchemaRef.
+ *
+ * Uses the document registry when present to resolve external component refs.
+ *
+ * @param[in] spec The current specification.
+ * @param[in] ref The schema reference.
+ * @return Pointer to StructFields if found, NULL otherwise.
+ */
+extern C_CDD_EXPORT const struct StructFields *
+openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
+                                 const struct OpenAPI_SchemaRef *ref);
 
 #ifdef __cplusplus
 }

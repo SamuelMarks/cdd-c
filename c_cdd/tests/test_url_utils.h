@@ -222,6 +222,57 @@ TEST test_query_build_form_preserves_encoded_value(void) {
   PASS();
 }
 
+TEST test_openapi_kv_join_form_comma(void) {
+  struct OpenAPI_KV kvs[2];
+  char *res;
+
+  kvs[0].key = "R";
+  kvs[0].type = OA_KV_INTEGER;
+  kvs[0].value.i = 100;
+  kvs[1].key = "G";
+  kvs[1].type = OA_KV_INTEGER;
+  kvs[1].value.i = 200;
+
+  res = openapi_kv_join_form(kvs, 2, ",", 0);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("R,100,G,200", res);
+  free(res);
+  PASS();
+}
+
+TEST test_openapi_kv_join_form_space(void) {
+  struct OpenAPI_KV kvs[2];
+  char *res;
+
+  kvs[0].key = "alpha";
+  kvs[0].type = OA_KV_STRING;
+  kvs[0].value.s = "a b";
+  kvs[1].key = "beta";
+  kvs[1].type = OA_KV_STRING;
+  kvs[1].value.s = "c";
+
+  res = openapi_kv_join_form(kvs, 2, "%20", 0);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("alpha%20a+b%20beta%20c", res);
+  free(res);
+  PASS();
+}
+
+TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
+  struct OpenAPI_KV kvs[1];
+  char *res;
+
+  kvs[0].key = "path";
+  kvs[0].type = OA_KV_STRING;
+  kvs[0].value.s = "a/b";
+
+  res = openapi_kv_join_form(kvs, 1, "%7C", 1);
+  ASSERT(res != NULL);
+  ASSERT_STR_EQ("path%7Ca/b", res);
+  free(res);
+  PASS();
+}
+
 TEST test_query_build_preserves_encoded_value(void) {
   struct UrlQueryParams qp;
   char *res = NULL;
@@ -294,6 +345,9 @@ SUITE(url_utils_suite) {
   RUN_TEST(test_query_build_form_single);
   RUN_TEST(test_query_build_form_multiple);
   RUN_TEST(test_query_build_form_preserves_encoded_value);
+  RUN_TEST(test_openapi_kv_join_form_comma);
+  RUN_TEST(test_openapi_kv_join_form_space);
+  RUN_TEST(test_openapi_kv_join_form_pipe_allow_reserved);
   RUN_TEST(test_query_build_preserves_encoded_value);
   RUN_TEST(test_query_build_encoding_keys);
   RUN_TEST(test_query_null_safety);

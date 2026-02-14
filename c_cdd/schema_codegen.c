@@ -64,39 +64,162 @@ static int print_header_guard_end(FILE *const hfile,
   return 0;
 }
 
+static int print_enum_declaration(FILE *const hfile,
+                                  const char *const enum_name,
+                                  const struct StructFields *const sf,
+                                  const struct CodegenConfig *const config) {
+  size_t i;
+  if (!hfile || !enum_name || !sf)
+    return EINVAL;
+
+  CHECK_IO(fprintf(hfile, "enum LIB_EXPORT %s {\n", enum_name));
+  CHECK_IO(fprintf(hfile, "  %s_UNKNOWN = 0,\n", enum_name));
+  for (i = 0; i < sf->enum_members.size; ++i) {
+    const char *member = sf->enum_members.members[i];
+    if (!member || strcmp(member, "UNKNOWN") == 0)
+      continue;
+    CHECK_IO(fprintf(hfile, "  %s_%s,\n", enum_name, member));
+  }
+  CHECK_IO(fputs("};\n\n", hfile));
+
+  if (config && config->enum_guard)
+    CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->enum_guard));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_str(const char *, enum %s "
+                   "*);\n",
+                   enum_name, enum_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_to_str(enum %s, char **);\n",
+                   enum_name, enum_name));
+  if (config && config->enum_guard)
+    CHECK_IO(fprintf(hfile, "#endif\n"));
+
+  return 0;
+}
+
+static int print_union_declaration(FILE *const hfile,
+                                   const char *const union_name,
+                                   const struct StructFields *const sf,
+                                   const struct CodegenConfig *const config) {
+  size_t i;
+  if (!hfile || !union_name || !sf)
+    return EINVAL;
+
+  CHECK_IO(fprintf(hfile, "enum %s_tag {\n", union_name));
+  CHECK_IO(fprintf(hfile, "  %s_UNKNOWN = 0,\n", union_name));
+  for (i = 0; i < sf->size; ++i) {
+    CHECK_IO(fprintf(hfile, "  %s_%s,\n", union_name, sf->fields[i].name));
+  }
+  CHECK_IO(fputs("};\n\n", hfile));
+
+  CHECK_IO(fprintf(hfile, "struct LIB_EXPORT %s {\n", union_name));
+  CHECK_IO(fprintf(hfile, "  enum %s_tag tag;\n", union_name));
+  CHECK_IO(fputs("  union {\n", hfile));
+  for (i = 0; i < sf->size; ++i) {
+    const struct StructField *field = &sf->fields[i];
+    const char *n = field->name;
+    const char *t = field->type;
+    const char *r = field->ref;
+
+    if (strcmp(t, "string") == 0) {
+      CHECK_IO(fprintf(hfile, "    const char *%s;\n", n));
+    } else if (strcmp(t, "integer") == 0) {
+      CHECK_IO(fprintf(hfile, "    int %s;\n", n));
+    } else if (strcmp(t, "number") == 0) {
+      CHECK_IO(fprintf(hfile, "    double %s;\n", n));
+    } else if (strcmp(t, "boolean") == 0) {
+      CHECK_IO(fprintf(hfile, "    int %s;\n", n));
+    } else if (strcmp(t, "enum") == 0) {
+      CHECK_IO(fprintf(hfile, "    enum %s %s;\n", get_type_from_ref(r), n));
+    } else if (strcmp(t, "object") == 0) {
+      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n", get_type_from_ref(r), n));
+    } else if (strcmp(t, "array") == 0) {
+      CHECK_IO(fprintf(hfile, "    struct {\n"));
+      CHECK_IO(fprintf(hfile, "      size_t n_%s;\n", n));
+      if (strcmp(r, "string") == 0) {
+        CHECK_IO(fprintf(hfile, "      char **%s;\n", n));
+      } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+        CHECK_IO(fprintf(hfile, "      int *%s;\n", n));
+      } else if (strcmp(r, "number") == 0) {
+        CHECK_IO(fprintf(hfile, "      double *%s;\n", n));
+      } else {
+        CHECK_IO(
+            fprintf(hfile, "      struct %s **%s;\n", get_type_from_ref(r), n));
+      }
+      CHECK_IO(fprintf(hfile, "    } %s;\n", n));
+    } else {
+      CHECK_IO(fprintf(hfile, "    int %s;\n", n));
+    }
+  }
+  CHECK_IO(fputs("  } data;\n};\n\n", hfile));
+
+  if (config && config->json_guard)
+    CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->json_guard));
+  CHECK_IO(fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_from_json(const char *, struct %s **);\n",
+      union_name, union_name));
+  CHECK_IO(fprintf(
+      hfile, "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
+      union_name, union_name));
+  if (config && config->json_guard)
+    CHECK_IO(fprintf(hfile, "#endif\n"));
+
+  if (config && config->utils_guard)
+    CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->utils_guard));
+  CHECK_IO(fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
+                   union_name, union_name));
+  if (config && config->utils_guard)
+    CHECK_IO(fprintf(hfile, "#endif\n"));
+
+  return 0;
+}
+
 static int print_struct_declaration(FILE *const hfile,
                                     const char *const struct_name,
-                                    const JSON_Object *const schema_obj,
+                                    const struct StructFields *const sf,
                                     const struct CodegenConfig *const config) {
-  const JSON_Object *const props =
-      json_object_get_object(schema_obj, "properties");
-  const size_t nprops = props ? json_object_get_count(props) : 0;
   size_t i;
 
   CHECK_IO(fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name));
-  for (i = 0; i < nprops; i++) {
-    const char *prop_name = json_object_get_name(props, i);
-    const JSON_Object *p_obj = json_object_get_object(props, prop_name);
-    const char *type = json_object_get_string(p_obj, "type");
-    const char *ref = json_object_get_string(p_obj, "$ref");
+  for (i = 0; i < sf->size; i++) {
+    const struct StructField *field = &sf->fields[i];
+    const char *n = field->name;
+    const char *t = field->type;
+    const char *r = field->ref;
 
-    if (ref) {
-      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
-                       c_cdd_str_after_last(ref, '/'), prop_name));
-    } else if (type && strcmp(type, "string") == 0) {
-      CHECK_IO(fprintf(hfile, "  const char *%s;\n", prop_name));
-    } else if (type && strcmp(type, "integer") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", prop_name));
-    } else if (type && strcmp(type, "boolean") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", prop_name));
+    if (strcmp(t, "string") == 0) {
+      CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
+    } else if (strcmp(t, "integer") == 0) {
+      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+    } else if (strcmp(t, "number") == 0) {
+      CHECK_IO(fprintf(hfile, "  double %s;\n", n));
+    } else if (strcmp(t, "boolean") == 0) {
+      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+    } else if (strcmp(t, "enum") == 0) {
+      CHECK_IO(fprintf(hfile, "  enum %s %s;\n", get_type_from_ref(r), n));
+    } else if (strcmp(t, "object") == 0) {
+      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", get_type_from_ref(r), n));
+    } else if (strcmp(t, "array") == 0) {
+      CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
+      if (strcmp(r, "string") == 0) {
+        CHECK_IO(fprintf(hfile, "  char **%s;\n", n));
+      } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+        CHECK_IO(fprintf(hfile, "  int *%s;\n", n));
+      } else if (strcmp(r, "number") == 0) {
+        CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
+      } else {
+        CHECK_IO(
+            fprintf(hfile, "  struct %s **%s;\n", get_type_from_ref(r), n));
+      }
     } else {
-      CHECK_IO(fprintf(hfile, "  /* Unhandled type for %s */\n", prop_name));
+      CHECK_IO(fprintf(hfile, "  void *%s;\n", n));
     }
   }
   CHECK_IO(fputs("};\n\n", hfile));
 
   /* Prototypes */
-  if (config->json_guard)
+  if (config && config->json_guard)
     CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->json_guard));
   CHECK_IO(fprintf(
       hfile,
@@ -105,14 +228,14 @@ static int print_struct_declaration(FILE *const hfile,
   CHECK_IO(fprintf(
       hfile, "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
       struct_name, struct_name));
-  if (config->json_guard)
+  if (config && config->json_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 
-  if (config->utils_guard)
+  if (config && config->utils_guard)
     CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->utils_guard));
   CHECK_IO(fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
                    struct_name, struct_name));
-  if (config->utils_guard)
+  if (config && config->utils_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 
   return 0;
@@ -122,7 +245,7 @@ static int generate_header(const char *basename, JSON_Object *schemas_obj,
                            const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
-  size_t i, n = json_object_get_count(schemas_obj);
+  size_t i;
 
   sprintf(fname, "%s.h", basename);
   fp = fopen(fname, "w");
@@ -135,26 +258,69 @@ static int generate_header(const char *basename, JSON_Object *schemas_obj,
                    "__cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < json_object_get_count(schemas_obj); i++) {
     const char *name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
-    if (strcmp(json_object_get_string(s, "type"), "object") == 0) {
+    struct StructFields sf;
+    int is_object_schema = 0;
+    const char *type = json_object_get_string(s, "type");
+    const JSON_Object *props = json_object_get_object(s, "properties");
+
+    if (struct_fields_init(&sf) != 0) {
+      fclose(fp);
+      return ENOMEM;
+    }
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
+        0) {
+      struct_fields_free(&sf);
+      fclose(fp);
+      return ENOMEM;
+    }
+
+    is_object_schema =
+        (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+
+    if (sf.is_union || is_object_schema) {
       CHECK_RC(write_forward_decl(fp, name));
     }
+    struct_fields_free(&sf);
   }
   fprintf(fp, "\n");
 
   /* Pass 2: Definitions */
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < json_object_get_count(schemas_obj); i++) {
     const char *name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
+    struct StructFields sf;
+    int is_object_schema = 0;
     const char *type = json_object_get_string(s, "type");
+    const JSON_Object *props = json_object_get_object(s, "properties");
 
-    if (strcmp(type, "object") == 0) {
-      CHECK_RC(print_struct_declaration(fp, name, s, config));
+    if (struct_fields_init(&sf) != 0) {
+      fclose(fp);
+      return ENOMEM;
     }
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
+        0) {
+      struct_fields_free(&sf);
+      fclose(fp);
+      return ENOMEM;
+    }
+
+    is_object_schema =
+        (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+
+    if (sf.is_enum) {
+      CHECK_RC(print_enum_declaration(fp, name, &sf, config));
+    } else if (sf.is_union) {
+      CHECK_RC(print_union_declaration(fp, name, &sf, config));
+    } else if (is_object_schema) {
+      CHECK_RC(print_struct_declaration(fp, name, &sf, config));
+    }
+
+    struct_fields_free(&sf);
   }
 
   CHECK_IO(fprintf(fp, "#ifdef __cplusplus\n}\n#endif\n"));
@@ -167,16 +333,24 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
                            const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
-  size_t i, n = json_object_get_count(schemas_obj);
+  size_t i;
   struct CodegenJsonConfig json_cfg;
   struct CodegenStructConfig struct_cfg;
+  struct CodegenTypesConfig types_cfg;
+  struct CodegenEnumConfig enum_cfg;
 
   if (config) {
     json_cfg.guard_macro = config->json_guard;
     struct_cfg.guard_macro = config->utils_guard;
+    types_cfg.json_guard = config->json_guard;
+    types_cfg.utils_guard = config->utils_guard;
+    enum_cfg.guard_macro = config->enum_guard;
   } else {
     json_cfg.guard_macro = NULL;
     struct_cfg.guard_macro = NULL;
+    types_cfg.json_guard = NULL;
+    types_cfg.utils_guard = NULL;
+    enum_cfg.guard_macro = NULL;
   }
 
   sprintf(fname, "%s.c", basename);
@@ -190,31 +364,45 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
       "<c89stringutils_string_extras.h>\n#include \"%s.h\"\n\n",
       basename));
 
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < json_object_get_count(schemas_obj); i++) {
     const char *name = json_object_get_name(schemas_obj, i);
     const JSON_Object *s =
         json_value_get_object(json_object_get_value_at(schemas_obj, i));
     const char *type = json_object_get_string(s, "type");
+    const JSON_Object *props = json_object_get_object(s, "properties");
+    struct StructFields sf;
+    int is_object_schema = 0;
 
-    if (strcmp(type, "object") == 0) {
-      struct StructFields sf;
-      if (struct_fields_init(&sf) != 0) {
-        fclose(fp);
-        return ENOMEM;
-      }
-      if (json_object_to_struct_fields(s, &sf, schemas_obj) != 0) {
-        struct_fields_free(&sf);
-        fclose(fp);
-        return ENOMEM; /* Parse error */
-      }
+    if (struct_fields_init(&sf) != 0) {
+      fclose(fp);
+      return ENOMEM;
+    }
+    if (json_object_to_struct_fields_ex_codegen(s, &sf, schemas_obj, name) !=
+        0) {
+      struct_fields_free(&sf);
+      fclose(fp);
+      return ENOMEM; /* Parse error */
+    }
 
+    is_object_schema =
+        (type && strcmp(type, "object") == 0) || props != NULL || sf.size > 0;
+
+    if (sf.is_enum) {
+      CHECK_RC(write_enum_to_str_func(fp, name, &sf.enum_members, &enum_cfg));
+      CHECK_RC(write_enum_from_str_func(fp, name, &sf.enum_members, &enum_cfg));
+    } else if (sf.is_union) {
+      CHECK_RC(write_union_from_jsonObject_func(fp, name, &sf, &types_cfg));
+      CHECK_RC(write_union_from_json_func(fp, name, &sf, &types_cfg));
+      CHECK_RC(write_union_to_json_func(fp, name, &sf, &types_cfg));
+      CHECK_RC(write_union_cleanup_func(fp, name, &sf, &types_cfg));
+    } else if (is_object_schema) {
       CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
       CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
-
-      struct_fields_free(&sf);
     }
+
+    struct_fields_free(&sf);
   }
   fclose(fp);
   return 0;

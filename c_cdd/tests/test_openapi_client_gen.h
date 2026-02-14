@@ -75,6 +75,212 @@ TEST test_gen_client_basic(void) {
   PASS();
 }
 
+TEST test_gen_client_operation_server_override(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Server op_server;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_client_op_server";
+  char *h_file = "gen_client_op_server.h";
+  char *c_file = "gen_client_op_server.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&op_server, 0, sizeof(op_server));
+  op_server.url = "https://op.example.com/api";
+  op.servers = &op_server;
+  op.n_servers = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "\"https://op.example.com/api\"") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
+TEST test_gen_client_text_plain_request_body(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_client_text_plain_req";
+  char *h_file = "gen_client_text_plain_req.h";
+  char *c_file = "gen_client_text_plain_req.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+  op.verb = OA_VERB_POST;
+  op.req_body.content_type = "text/plain";
+  op.req_body.inline_type = "string";
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "\"Content-Type\", \"text/plain\"") != NULL);
+  ASSERT(strstr(content, "req.body_len = strlen(req_body)") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
+TEST test_gen_client_octet_stream_request_body(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_client_octet_req";
+  char *h_file = "gen_client_octet_req.h";
+  char *c_file = "gen_client_octet_req.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+  op.verb = OA_VERB_POST;
+  op.req_body.content_type = "application/octet-stream";
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "\"Content-Type\", \"application/octet-stream\"") !=
+         NULL);
+  ASSERT(strstr(content, "req.body_len = body_len") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
+TEST test_gen_client_octet_stream_response_body(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_client_octet_resp";
+  char *h_file = "gen_client_octet_resp.h";
+  char *c_file = "gen_client_octet_resp.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+  op.responses[0].content_type = "application/octet-stream";
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "unsigned char *tmp =") != NULL);
+  ASSERT(strstr(content, "memcpy(tmp, res->body, res->body_len)") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
+TEST test_gen_client_default_base_url_from_server(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  struct OpenAPI_Server server;
+  struct OpenAPI_ServerVariable var;
+  const char *base = "gen_client_default_url";
+  char *h_file = "gen_client_default_url.h";
+  char *c_file = "gen_client_default_url.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&server, 0, sizeof(server));
+  memset(&var, 0, sizeof(var));
+  server.url = "https://{env}.example.com/v1";
+  var.name = "env";
+  var.default_value = "api";
+  server.variables = &var;
+  server.n_variables = 1;
+  spec.servers = &server;
+  spec.n_servers = 1;
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content,
+                "const char *default_url = \"https://api.example.com/v1\";") !=
+         NULL);
+  ASSERT(strstr(content, "if (!base_url || base_url[0] == '\\0')") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
+TEST test_gen_client_default_base_url_no_servers(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenApiClientConfig config;
+  const char *base = "gen_client_default_url_none";
+  char *h_file = "gen_client_default_url_none.h";
+  char *c_file = "gen_client_default_url_none.c";
+  char *content = NULL;
+  size_t sz;
+  int rc;
+
+  setup_minimal_spec(&spec, &op);
+
+  memset(&config, 0, sizeof(config));
+  config.filename_base = base;
+  config.func_prefix = "api_";
+
+  rc = openapi_client_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+  read_to_file(c_file, "r", &content, &sz);
+  ASSERT(strstr(content, "const char *default_url = \"/\";") != NULL);
+  ASSERT(strstr(content, "if (!base_url || base_url[0] == '\\0')") != NULL);
+  free(content);
+
+  remove(h_file);
+  remove(c_file);
+  PASS();
+}
+
 TEST test_gen_client_additional_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
@@ -453,6 +659,12 @@ TEST test_gen_transport_selection(void) {
 
 SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_basic);
+  RUN_TEST(test_gen_client_operation_server_override);
+  RUN_TEST(test_gen_client_text_plain_request_body);
+  RUN_TEST(test_gen_client_octet_stream_request_body);
+  RUN_TEST(test_gen_client_octet_stream_response_body);
+  RUN_TEST(test_gen_client_default_base_url_from_server);
+  RUN_TEST(test_gen_client_default_base_url_no_servers);
   RUN_TEST(test_gen_client_additional_operation);
   RUN_TEST(test_gen_client_op_params_only);
   RUN_TEST(test_gen_client_querystring_param);

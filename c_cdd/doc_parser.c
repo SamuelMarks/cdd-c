@@ -112,6 +112,20 @@ static int add_tag(struct DocMetadata *out, const char *tag) {
   return 0;
 }
 
+static int add_tag_meta(struct DocMetadata *out, struct DocTagMeta *meta) {
+  struct DocTagMeta *new_meta;
+  if (!out || !meta || !meta->name || !*meta->name)
+    return 0;
+  new_meta = (struct DocTagMeta *)realloc(
+      out->tag_meta, (out->n_tag_meta + 1) * sizeof(struct DocTagMeta));
+  if (!new_meta)
+    return ENOMEM;
+  out->tag_meta = new_meta;
+  out->tag_meta[out->n_tag_meta] = *meta;
+  out->n_tag_meta++;
+  return 0;
+}
+
 static char *trim_segment(char *s) {
   char *start;
   char *end;
@@ -178,6 +192,72 @@ static int parse_bool_text(const char *s, int *out) {
   return 0;
 }
 
+static int parse_tag_meta_line(const char *line, const char *end,
+                               struct DocMetadata *out) {
+  const char *cur = line;
+  struct DocTagMeta meta;
+
+  if (!out)
+    return EINVAL;
+
+  memset(&meta, 0, sizeof(meta));
+
+  meta.name = extract_word(cur, end, &cur);
+  if (!meta.name)
+    return 0;
+
+  cur = skip_ws(cur);
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = cur;
+    while (close_bracket < end && *close_bracket != ']')
+      close_bracket++;
+    if (close_bracket < end) {
+      const char *inner_start = cur + 1;
+      size_t inner_len = (size_t)(close_bracket - inner_start);
+      char *attr = (char *)malloc(inner_len + 1);
+      if (attr) {
+        memcpy(attr, inner_start, inner_len);
+        attr[inner_len] = '\0';
+
+        if (strncmp(attr, "summary:", 8) == 0) {
+          char *val = trim_segment(attr + 8);
+          if (val && *val)
+            meta.summary = c_cdd_strdup(val);
+        } else if (strncmp(attr, "description:", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val)
+            meta.description = c_cdd_strdup(val);
+        } else if (strncmp(attr, "parent:", 7) == 0) {
+          char *val = trim_segment(attr + 7);
+          if (val && *val)
+            meta.parent = c_cdd_strdup(val);
+        } else if (strncmp(attr, "kind:", 5) == 0) {
+          char *val = trim_segment(attr + 5);
+          if (val && *val)
+            meta.kind = c_cdd_strdup(val);
+        } else if (strncmp(attr, "externalDocs:", 13) == 0 ||
+                   strncmp(attr, "externalDocs=", 13) == 0) {
+          char *val = trim_segment(attr + 13);
+          if (val && *val)
+            meta.external_docs_url = c_cdd_strdup(val);
+        } else if (strncmp(attr, "externalDocsDescription:", 24) == 0 ||
+                   strncmp(attr, "externalDocsDescription=", 24) == 0) {
+          char *val = trim_segment(attr + 24);
+          if (val && *val)
+            meta.external_docs_description = c_cdd_strdup(val);
+        }
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  return add_tag_meta(out, &meta);
+}
+
 static int parse_style_text(const char *s, enum DocParamStyle *out) {
   if (!s || !out)
     return 0;
@@ -240,6 +320,21 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
   }
 }
 
+static int parse_optional_example_attr(const char *attr, char **out_example) {
+  char *val;
+  if (!attr || !out_example)
+    return 0;
+  if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
+    return 0;
+  val = trim_segment(attr + 8);
+  if (!val || !*val)
+    return 1;
+  if (*out_example)
+    free(*out_example);
+  *out_example = c_cdd_strdup(val);
+  return *out_example ? 1 : ENOMEM;
+}
+
 static int parse_deprecated_line(const char *line, const char *end,
                                  struct DocMetadata *out) {
   char *rest;
@@ -287,6 +382,406 @@ static int parse_external_docs_line(const char *line, const char *end,
   return 0;
 }
 
+static int parse_contact_line(const char *line, const char *end,
+                              struct DocMetadata *out) {
+  char *rest;
+  char *name = NULL;
+  char *url = NULL;
+  char *email = NULL;
+  char *cursor;
+  char *open;
+
+  if (!out)
+    return EINVAL;
+
+  rest = extract_rest(line, end);
+  if (!rest)
+    return 0;
+
+  cursor = rest;
+  while ((open = strchr(cursor, '[')) != NULL) {
+    char *close = strchr(open, ']');
+    char *attr;
+    if (!close)
+      break;
+    *close = '\0';
+    attr = trim_segment(open + 1);
+    if (attr && *attr) {
+      if (strncmp(attr, "name:", 5) == 0 || strncmp(attr, "name=", 5) == 0) {
+        char *val = trim_segment(attr + 5);
+        if (val && *val) {
+          if (name)
+            free(name);
+          name = c_cdd_strdup(val);
+        }
+      } else if (strncmp(attr, "url:", 4) == 0 ||
+                 strncmp(attr, "url=", 4) == 0) {
+        char *val = trim_segment(attr + 4);
+        if (val && *val) {
+          if (url)
+            free(url);
+          url = c_cdd_strdup(val);
+        }
+      } else if (strncmp(attr, "email:", 6) == 0 ||
+                 strncmp(attr, "email=", 6) == 0) {
+        char *val = trim_segment(attr + 6);
+        if (val && *val) {
+          if (email)
+            free(email);
+          email = c_cdd_strdup(val);
+        }
+      }
+    }
+    memset(open, ' ', (size_t)(close - open + 1));
+    cursor = close + 1;
+  }
+
+  if (!name) {
+    char *trimmed = trim_segment(rest);
+    if (trimmed && *trimmed)
+      name = c_cdd_strdup(trimmed);
+  }
+
+  free(rest);
+
+  if (name) {
+    if (out->contact_name)
+      free(out->contact_name);
+    out->contact_name = name;
+  }
+  if (url) {
+    if (out->contact_url)
+      free(out->contact_url);
+    out->contact_url = url;
+  }
+  if (email) {
+    if (out->contact_email)
+      free(out->contact_email);
+    out->contact_email = email;
+  }
+
+  return 0;
+}
+
+static int parse_license_line(const char *line, const char *end,
+                              struct DocMetadata *out) {
+  char *rest;
+  char *name = NULL;
+  char *url = NULL;
+  char *identifier = NULL;
+  char *cursor;
+  char *open;
+
+  if (!out)
+    return EINVAL;
+
+  rest = extract_rest(line, end);
+  if (!rest)
+    return 0;
+
+  cursor = rest;
+  while ((open = strchr(cursor, '[')) != NULL) {
+    char *close = strchr(open, ']');
+    char *attr;
+    if (!close)
+      break;
+    *close = '\0';
+    attr = trim_segment(open + 1);
+    if (attr && *attr) {
+      if (strncmp(attr, "name:", 5) == 0 || strncmp(attr, "name=", 5) == 0) {
+        char *val = trim_segment(attr + 5);
+        if (val && *val) {
+          if (name)
+            free(name);
+          name = c_cdd_strdup(val);
+        }
+      } else if (strncmp(attr, "identifier:", 11) == 0 ||
+                 strncmp(attr, "identifier=", 11) == 0) {
+        char *val = trim_segment(attr + 11);
+        if (val && *val) {
+          if (identifier)
+            free(identifier);
+          identifier = c_cdd_strdup(val);
+        }
+      } else if (strncmp(attr, "url:", 4) == 0 ||
+                 strncmp(attr, "url=", 4) == 0) {
+        char *val = trim_segment(attr + 4);
+        if (val && *val) {
+          if (url)
+            free(url);
+          url = c_cdd_strdup(val);
+        }
+      }
+    }
+    memset(open, ' ', (size_t)(close - open + 1));
+    cursor = close + 1;
+  }
+
+  if (!name) {
+    char *trimmed = trim_segment(rest);
+    if (trimmed && *trimmed)
+      name = c_cdd_strdup(trimmed);
+  }
+
+  free(rest);
+
+  if (!name) {
+    if (url)
+      free(url);
+    if (identifier)
+      free(identifier);
+    return EINVAL;
+  }
+
+  if (url && identifier) {
+    free(name);
+    free(url);
+    free(identifier);
+    return EINVAL;
+  }
+
+  if (out->license_name)
+    free(out->license_name);
+  out->license_name = name;
+  if (url) {
+    if (out->license_url)
+      free(out->license_url);
+    out->license_url = url;
+  }
+  if (identifier) {
+    if (out->license_identifier)
+      free(out->license_identifier);
+    out->license_identifier = identifier;
+  }
+
+  return 0;
+}
+
+static int parse_response_header_line(const char *line, const char *end,
+                                      struct DocMetadata *out) {
+  struct DocResponseHeader *new_headers;
+  struct DocResponseHeader *h;
+  const char *cur = line;
+
+  if (!out)
+    return EINVAL;
+
+  new_headers = (struct DocResponseHeader *)realloc(
+      out->response_headers,
+      (out->n_response_headers + 1) * sizeof(struct DocResponseHeader));
+  if (!new_headers)
+    return ENOMEM;
+  out->response_headers = new_headers;
+  h = &out->response_headers[out->n_response_headers];
+  memset(h, 0, sizeof(*h));
+
+  h->code = extract_word(cur, end, &cur);
+  if (!h->code)
+    return 0;
+
+  h->name = extract_word(cur, end, &cur);
+  if (!h->name) {
+    free(h->code);
+    h->code = NULL;
+    return 0;
+  }
+
+  cur = skip_ws(cur);
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = cur;
+    while (close_bracket < end && *close_bracket != ']')
+      close_bracket++;
+
+    if (close_bracket < end) {
+      const char *inner_start = cur + 1;
+      size_t inner_len = (size_t)(close_bracket - inner_start);
+      char *attr = (char *)malloc(inner_len + 1);
+      if (attr) {
+        memcpy(attr, inner_start, inner_len);
+        attr[inner_len] = '\0';
+
+        if (strncmp(attr, "type:", 5) == 0) {
+          if (h->type)
+            free(h->type);
+          h->type = c_cdd_strdup(attr + 5);
+        } else if (strncmp(attr, "format:", 7) == 0 ||
+                   strncmp(attr, "format=", 7) == 0) {
+          char *val = trim_segment(attr + 7);
+          if (val && *val) {
+            if (h->format)
+              free(h->format);
+            h->format = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "contentType:", 12) == 0 ||
+                   strncmp(attr, "contentType=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (h->content_type)
+              free(h->content_type);
+            h->content_type = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "content:", 8) == 0 ||
+                   strncmp(attr, "content=", 8) == 0) {
+          char *val = trim_segment(attr + 8);
+          if (val && *val) {
+            if (h->content_type)
+              free(h->content_type);
+            h->content_type = c_cdd_strdup(val);
+          }
+        } else if (parse_optional_example_attr(attr, &h->example) == ENOMEM) {
+          free(attr);
+          return ENOMEM;
+        } else {
+          parse_optional_bool_attr(attr, "required", &h->required_set,
+                                   &h->required);
+        }
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  h->description = extract_rest(cur, end);
+  out->n_response_headers++;
+  return 0;
+}
+
+static int parse_link_line(const char *line, const char *end,
+                           struct DocMetadata *out) {
+  struct DocLink *new_links;
+  struct DocLink *link;
+  const char *cur = line;
+
+  if (!out)
+    return EINVAL;
+
+  new_links =
+      (struct DocLink *)realloc(out->links, (out->n_links + 1) * sizeof(*link));
+  if (!new_links)
+    return ENOMEM;
+  out->links = new_links;
+  link = &out->links[out->n_links];
+  memset(link, 0, sizeof(*link));
+
+  link->code = extract_word(cur, end, &cur);
+  if (!link->code)
+    return 0;
+
+  link->name = extract_word(cur, end, &cur);
+  if (!link->name) {
+    free(link->code);
+    link->code = NULL;
+    return 0;
+  }
+
+  cur = skip_ws(cur);
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = cur;
+    while (close_bracket < end && *close_bracket != ']')
+      close_bracket++;
+
+    if (close_bracket < end) {
+      const char *inner_start = cur + 1;
+      size_t inner_len = (size_t)(close_bracket - inner_start);
+      char *attr = (char *)malloc(inner_len + 1);
+      if (attr) {
+        memcpy(attr, inner_start, inner_len);
+        attr[inner_len] = '\0';
+
+        if (strncmp(attr, "operationId:", 12) == 0 ||
+            strncmp(attr, "operationId=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (link->operation_id)
+              free(link->operation_id);
+            link->operation_id = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "operationRef:", 13) == 0 ||
+                   strncmp(attr, "operationRef=", 13) == 0) {
+          char *val = trim_segment(attr + 13);
+          if (val && *val) {
+            if (link->operation_ref)
+              free(link->operation_ref);
+            link->operation_ref = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "parameters:", 11) == 0 ||
+                   strncmp(attr, "parameters=", 11) == 0) {
+          char *val = trim_segment(attr + 11);
+          if (val && *val) {
+            if (link->parameters_json)
+              free(link->parameters_json);
+            link->parameters_json = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "requestBody:", 12) == 0 ||
+                   strncmp(attr, "requestBody=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (link->request_body_json)
+              free(link->request_body_json);
+            link->request_body_json = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "summary:", 8) == 0 ||
+                   strncmp(attr, "summary=", 8) == 0) {
+          char *val = trim_segment(attr + 8);
+          if (val && *val) {
+            if (link->summary)
+              free(link->summary);
+            link->summary = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "serverUrl:", 10) == 0 ||
+                   strncmp(attr, "serverUrl=", 10) == 0) {
+          char *val = trim_segment(attr + 10);
+          if (val && *val) {
+            if (link->server_url)
+              free(link->server_url);
+            link->server_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "serverName:", 11) == 0 ||
+                   strncmp(attr, "serverName=", 11) == 0) {
+          char *val = trim_segment(attr + 11);
+          if (val && *val) {
+            if (link->server_name)
+              free(link->server_name);
+            link->server_name = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "serverDescription:", 18) == 0 ||
+                   strncmp(attr, "serverDescription=", 18) == 0) {
+          char *val = trim_segment(attr + 18);
+          if (val && *val) {
+            if (link->server_description)
+              free(link->server_description);
+            link->server_description = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "description:", 12) == 0 ||
+                   strncmp(attr, "description=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (link->description)
+              free(link->description);
+            link->description = c_cdd_strdup(val);
+          }
+        }
+
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  if (!link->description) {
+    link->description = extract_rest(cur, end);
+  }
+
+  out->n_links++;
+  return 0;
+}
+
 /* --- Core Logic --- */
 
 int doc_metadata_init(struct DocMetadata *const meta) {
@@ -311,6 +806,28 @@ void doc_metadata_free(struct DocMetadata *const meta) {
     free(meta->summary);
   if (meta->description)
     free(meta->description);
+  if (meta->info_title)
+    free(meta->info_title);
+  if (meta->info_version)
+    free(meta->info_version);
+  if (meta->info_summary)
+    free(meta->info_summary);
+  if (meta->info_description)
+    free(meta->info_description);
+  if (meta->terms_of_service)
+    free(meta->terms_of_service);
+  if (meta->contact_name)
+    free(meta->contact_name);
+  if (meta->contact_url)
+    free(meta->contact_url);
+  if (meta->contact_email)
+    free(meta->contact_email);
+  if (meta->license_name)
+    free(meta->license_name);
+  if (meta->license_identifier)
+    free(meta->license_identifier);
+  if (meta->license_url)
+    free(meta->license_url);
   if (meta->external_docs_url)
     free(meta->external_docs_url);
   if (meta->external_docs_description)
@@ -327,8 +844,12 @@ void doc_metadata_free(struct DocMetadata *const meta) {
       free(meta->params[i].name);
       free(meta->params[i].in_loc);
       free(meta->params[i].description);
+      if (meta->params[i].format)
+        free(meta->params[i].format);
       if (meta->params[i].content_type)
         free(meta->params[i].content_type);
+      if (meta->params[i].example)
+        free(meta->params[i].example);
     }
     free(meta->params);
   }
@@ -336,11 +857,58 @@ void doc_metadata_free(struct DocMetadata *const meta) {
   if (meta->returns) {
     for (i = 0; i < meta->n_returns; ++i) {
       free(meta->returns[i].code);
+      if (meta->returns[i].summary)
+        free(meta->returns[i].summary);
       free(meta->returns[i].description);
       if (meta->returns[i].content_type)
         free(meta->returns[i].content_type);
+      if (meta->returns[i].example)
+        free(meta->returns[i].example);
     }
     free(meta->returns);
+  }
+
+  if (meta->response_headers) {
+    for (i = 0; i < meta->n_response_headers; ++i) {
+      free(meta->response_headers[i].code);
+      free(meta->response_headers[i].name);
+      free(meta->response_headers[i].type);
+      if (meta->response_headers[i].format)
+        free(meta->response_headers[i].format);
+      if (meta->response_headers[i].content_type)
+        free(meta->response_headers[i].content_type);
+      free(meta->response_headers[i].description);
+      if (meta->response_headers[i].example)
+        free(meta->response_headers[i].example);
+    }
+    free(meta->response_headers);
+  }
+
+  if (meta->links) {
+    for (i = 0; i < meta->n_links; ++i) {
+      struct DocLink *link = &meta->links[i];
+      free(link->code);
+      free(link->name);
+      if (link->operation_id)
+        free(link->operation_id);
+      if (link->operation_ref)
+        free(link->operation_ref);
+      if (link->summary)
+        free(link->summary);
+      if (link->description)
+        free(link->description);
+      if (link->parameters_json)
+        free(link->parameters_json);
+      if (link->request_body_json)
+        free(link->request_body_json);
+      if (link->server_url)
+        free(link->server_url);
+      if (link->server_name)
+        free(link->server_name);
+      if (link->server_description)
+        free(link->server_description);
+    }
+    free(meta->links);
   }
 
   if (meta->security) {
@@ -356,13 +924,98 @@ void doc_metadata_free(struct DocMetadata *const meta) {
     free(meta->security);
   }
 
+  if (meta->security_schemes) {
+    for (i = 0; i < meta->n_security_schemes; ++i) {
+      size_t f;
+      struct DocSecurityScheme *sch = &meta->security_schemes[i];
+      free(sch->name);
+      if (sch->description)
+        free(sch->description);
+      if (sch->scheme)
+        free(sch->scheme);
+      if (sch->bearer_format)
+        free(sch->bearer_format);
+      if (sch->param_name)
+        free(sch->param_name);
+      if (sch->open_id_connect_url)
+        free(sch->open_id_connect_url);
+      if (sch->oauth2_metadata_url)
+        free(sch->oauth2_metadata_url);
+      if (sch->flows) {
+        for (f = 0; f < sch->n_flows; ++f) {
+          size_t s;
+          struct DocOAuthFlow *flow = &sch->flows[f];
+          if (flow->authorization_url)
+            free(flow->authorization_url);
+          if (flow->token_url)
+            free(flow->token_url);
+          if (flow->refresh_url)
+            free(flow->refresh_url);
+          if (flow->device_authorization_url)
+            free(flow->device_authorization_url);
+          if (flow->scopes) {
+            for (s = 0; s < flow->n_scopes; ++s) {
+              free(flow->scopes[s].name);
+              if (flow->scopes[s].description)
+                free(flow->scopes[s].description);
+            }
+            free(flow->scopes);
+          }
+        }
+        free(sch->flows);
+      }
+    }
+    free(meta->security_schemes);
+  }
+
   if (meta->servers) {
     for (i = 0; i < meta->n_servers; ++i) {
+      size_t v;
       free(meta->servers[i].url);
       free(meta->servers[i].name);
       free(meta->servers[i].description);
+      if (meta->servers[i].variables) {
+        for (v = 0; v < meta->servers[i].n_variables; ++v) {
+          size_t e;
+          struct DocServerVar *var = &meta->servers[i].variables[v];
+          free(var->name);
+          free(var->default_value);
+          if (var->description)
+            free(var->description);
+          if (var->enum_values) {
+            for (e = 0; e < var->n_enum_values; ++e) {
+              free(var->enum_values[e]);
+            }
+            free(var->enum_values);
+          }
+        }
+        free(meta->servers[i].variables);
+      }
     }
     free(meta->servers);
+  }
+
+  if (meta->request_bodies) {
+    for (i = 0; i < meta->n_request_bodies; ++i) {
+      free(meta->request_bodies[i].content_type);
+      free(meta->request_bodies[i].description);
+      if (meta->request_bodies[i].example)
+        free(meta->request_bodies[i].example);
+    }
+    free(meta->request_bodies);
+  }
+
+  if (meta->tag_meta) {
+    for (i = 0; i < meta->n_tag_meta; ++i) {
+      free(meta->tag_meta[i].name);
+      free(meta->tag_meta[i].summary);
+      free(meta->tag_meta[i].description);
+      free(meta->tag_meta[i].parent);
+      free(meta->tag_meta[i].kind);
+      free(meta->tag_meta[i].external_docs_url);
+      free(meta->tag_meta[i].external_docs_description);
+    }
+    free(meta->tag_meta);
   }
 
   if (meta->request_body_description)
@@ -419,6 +1072,14 @@ static int parse_param_line(const char *line, const char *end,
           if (p->content_type)
             free(p->content_type);
           p->content_type = c_cdd_strdup(attr + 12);
+        } else if (strncmp(attr, "format:", 7) == 0 ||
+                   strncmp(attr, "format=", 7) == 0) {
+          char *val = trim_segment(attr + 7);
+          if (val && *val) {
+            if (p->format)
+              free(p->format);
+            p->format = c_cdd_strdup(val);
+          }
         } else if (strncmp(attr, "style:", 6) == 0) {
           enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
           if (parse_style_text(attr + 6, &style)) {
@@ -433,6 +1094,12 @@ static int parse_param_line(const char *line, const char *end,
           parse_optional_bool_attr(attr, "allowEmptyValue",
                                    &p->allow_empty_value_set,
                                    &p->allow_empty_value);
+          parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
+                                   &p->deprecated);
+          if (parse_optional_example_attr(attr, &p->example) == ENOMEM) {
+            free(attr);
+            return ENOMEM;
+          }
         }
         free(attr);
       }
@@ -485,10 +1152,25 @@ static int parse_return_line(const char *line, const char *end,
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
-        if (strncmp(attr, "contentType:", 12) == 0) {
-          if (r->content_type)
-            free(r->content_type);
-          r->content_type = c_cdd_strdup(attr + 12);
+        if (strncmp(attr, "contentType:", 12) == 0 ||
+            strncmp(attr, "contentType=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (r->content_type)
+              free(r->content_type);
+            r->content_type = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "summary:", 8) == 0 ||
+                   strncmp(attr, "summary=", 8) == 0) {
+          char *val = trim_segment(attr + 8);
+          if (val && *val) {
+            if (r->summary)
+              free(r->summary);
+            r->summary = c_cdd_strdup(val);
+          }
+        } else if (parse_optional_example_attr(attr, &r->example) == ENOMEM) {
+          free(attr);
+          return ENOMEM;
         }
         free(attr);
       }
@@ -615,6 +1297,266 @@ static int parse_security_line(const char *line, const char *end,
   return 0;
 }
 
+static enum DocSecurityType parse_security_type_text(const char *text) {
+  if (!text)
+    return DOC_SEC_UNSET;
+  if (strcmp(text, "apiKey") == 0)
+    return DOC_SEC_APIKEY;
+  if (strcmp(text, "http") == 0)
+    return DOC_SEC_HTTP;
+  if (strcmp(text, "mutualTLS") == 0)
+    return DOC_SEC_MUTUALTLS;
+  if (strcmp(text, "oauth2") == 0)
+    return DOC_SEC_OAUTH2;
+  if (strcmp(text, "openIdConnect") == 0)
+    return DOC_SEC_OPENID;
+  return DOC_SEC_UNSET;
+}
+
+static enum DocSecurityIn parse_security_in_text(const char *text) {
+  if (!text)
+    return DOC_SEC_IN_UNSET;
+  if (strcmp(text, "query") == 0)
+    return DOC_SEC_IN_QUERY;
+  if (strcmp(text, "header") == 0)
+    return DOC_SEC_IN_HEADER;
+  if (strcmp(text, "cookie") == 0)
+    return DOC_SEC_IN_COOKIE;
+  return DOC_SEC_IN_UNSET;
+}
+
+static enum DocOAuthFlowType parse_oauth_flow_type_text(const char *text) {
+  if (!text)
+    return DOC_OAUTH_FLOW_UNSET;
+  if (strcmp(text, "implicit") == 0)
+    return DOC_OAUTH_FLOW_IMPLICIT;
+  if (strcmp(text, "password") == 0)
+    return DOC_OAUTH_FLOW_PASSWORD;
+  if (strcmp(text, "clientCredentials") == 0)
+    return DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
+  if (strcmp(text, "authorizationCode") == 0)
+    return DOC_OAUTH_FLOW_AUTHORIZATION_CODE;
+  if (strcmp(text, "deviceAuthorization") == 0)
+    return DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION;
+  return DOC_OAUTH_FLOW_UNSET;
+}
+
+static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
+                              size_t *out_count) {
+  char **names = NULL;
+  size_t n = 0;
+  size_t i;
+  struct DocOAuthScope *scopes;
+  int rc;
+
+  if (!out || !out_count)
+    return EINVAL;
+  *out = NULL;
+  *out_count = 0;
+
+  rc = split_scopes(input, &names, &n);
+  if (rc != 0)
+    return rc;
+  if (n == 0)
+    return 0;
+
+  scopes = (struct DocOAuthScope *)calloc(n, sizeof(struct DocOAuthScope));
+  if (!scopes) {
+    for (i = 0; i < n; ++i)
+      free(names[i]);
+    free(names);
+    return ENOMEM;
+  }
+
+  for (i = 0; i < n; ++i) {
+    scopes[i].name = names[i];
+    scopes[i].description = NULL;
+    names[i] = NULL;
+  }
+  free(names);
+  *out = scopes;
+  *out_count = n;
+  return 0;
+}
+
+static int parse_security_scheme_line(const char *line, const char *end,
+                                      struct DocMetadata *out) {
+  struct DocSecurityScheme *new_schemes;
+  struct DocSecurityScheme *scheme;
+  const char *cur = line;
+  struct DocOAuthFlow *current_flow = NULL;
+
+  if (!out)
+    return EINVAL;
+
+  new_schemes = (struct DocSecurityScheme *)realloc(
+      out->security_schemes,
+      (out->n_security_schemes + 1) * sizeof(struct DocSecurityScheme));
+  if (!new_schemes)
+    return ENOMEM;
+  out->security_schemes = new_schemes;
+  scheme = &out->security_schemes[out->n_security_schemes];
+  memset(scheme, 0, sizeof(*scheme));
+  scheme->type = DOC_SEC_UNSET;
+  scheme->in = DOC_SEC_IN_UNSET;
+
+  scheme->name = extract_word(cur, end, &cur);
+  if (!scheme->name)
+    return 0;
+
+  cur = skip_ws(cur);
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = cur;
+    while (close_bracket < end && *close_bracket != ']')
+      close_bracket++;
+
+    if (close_bracket < end) {
+      const char *inner_start = cur + 1;
+      size_t inner_len = (size_t)(close_bracket - inner_start);
+      char *attr = (char *)malloc(inner_len + 1);
+      if (attr) {
+        memcpy(attr, inner_start, inner_len);
+        attr[inner_len] = '\0';
+
+        if (strncmp(attr, "type:", 5) == 0 || strncmp(attr, "type=", 5) == 0) {
+          char *val = trim_segment(attr + 5);
+          scheme->type = parse_security_type_text(val);
+        } else if (strncmp(attr, "description:", 12) == 0 ||
+                   strncmp(attr, "description=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (scheme->description)
+              free(scheme->description);
+            scheme->description = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "scheme:", 7) == 0 ||
+                   strncmp(attr, "scheme=", 7) == 0) {
+          char *val = trim_segment(attr + 7);
+          if (val && *val) {
+            if (scheme->scheme)
+              free(scheme->scheme);
+            scheme->scheme = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "bearerFormat:", 13) == 0 ||
+                   strncmp(attr, "bearerFormat=", 13) == 0) {
+          char *val = trim_segment(attr + 13);
+          if (val && *val) {
+            if (scheme->bearer_format)
+              free(scheme->bearer_format);
+            scheme->bearer_format = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "paramName:", 10) == 0 ||
+                   strncmp(attr, "paramName=", 10) == 0) {
+          char *val = trim_segment(attr + 10);
+          if (val && *val) {
+            if (scheme->param_name)
+              free(scheme->param_name);
+            scheme->param_name = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "in:", 3) == 0 ||
+                   strncmp(attr, "in=", 3) == 0) {
+          char *val = trim_segment(attr + 3);
+          scheme->in = parse_security_in_text(val);
+        } else if (strncmp(attr, "openIdConnectUrl:", 17) == 0 ||
+                   strncmp(attr, "openIdConnectUrl=", 17) == 0) {
+          char *val = trim_segment(attr + 17);
+          if (val && *val) {
+            if (scheme->open_id_connect_url)
+              free(scheme->open_id_connect_url);
+            scheme->open_id_connect_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "oauth2MetadataUrl:", 18) == 0 ||
+                   strncmp(attr, "oauth2MetadataUrl=", 18) == 0) {
+          char *val = trim_segment(attr + 18);
+          if (val && *val) {
+            if (scheme->oauth2_metadata_url)
+              free(scheme->oauth2_metadata_url);
+            scheme->oauth2_metadata_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "flow:", 5) == 0 ||
+                   strncmp(attr, "flow=", 5) == 0) {
+          char *val = trim_segment(attr + 5);
+          enum DocOAuthFlowType flow_type = parse_oauth_flow_type_text(val);
+          if (flow_type != DOC_OAUTH_FLOW_UNSET) {
+            struct DocOAuthFlow *new_flows = (struct DocOAuthFlow *)realloc(
+                scheme->flows,
+                (scheme->n_flows + 1) * sizeof(struct DocOAuthFlow));
+            if (new_flows) {
+              scheme->flows = new_flows;
+              current_flow = &scheme->flows[scheme->n_flows];
+              memset(current_flow, 0, sizeof(*current_flow));
+              current_flow->type = flow_type;
+              scheme->n_flows++;
+              if (scheme->type == DOC_SEC_UNSET)
+                scheme->type = DOC_SEC_OAUTH2;
+            }
+          }
+        } else if (strncmp(attr, "authorizationUrl:", 17) == 0 ||
+                   strncmp(attr, "authorizationUrl=", 17) == 0) {
+          char *val = trim_segment(attr + 17);
+          if (current_flow && val && *val) {
+            if (current_flow->authorization_url)
+              free(current_flow->authorization_url);
+            current_flow->authorization_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "tokenUrl:", 9) == 0 ||
+                   strncmp(attr, "tokenUrl=", 9) == 0) {
+          char *val = trim_segment(attr + 9);
+          if (current_flow && val && *val) {
+            if (current_flow->token_url)
+              free(current_flow->token_url);
+            current_flow->token_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "refreshUrl:", 11) == 0 ||
+                   strncmp(attr, "refreshUrl=", 11) == 0) {
+          char *val = trim_segment(attr + 11);
+          if (current_flow && val && *val) {
+            if (current_flow->refresh_url)
+              free(current_flow->refresh_url);
+            current_flow->refresh_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "deviceAuthorizationUrl:", 23) == 0 ||
+                   strncmp(attr, "deviceAuthorizationUrl=", 23) == 0) {
+          char *val = trim_segment(attr + 23);
+          if (current_flow && val && *val) {
+            if (current_flow->device_authorization_url)
+              free(current_flow->device_authorization_url);
+            current_flow->device_authorization_url = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "scopes:", 7) == 0 ||
+                   strncmp(attr, "scopes=", 7) == 0) {
+          char *val = trim_segment(attr + 7);
+          if (current_flow && val) {
+            struct DocOAuthScope *scopes = NULL;
+            size_t n_scopes = 0;
+            if (parse_oauth_scopes(val, &scopes, &n_scopes) == 0) {
+              size_t i;
+              for (i = 0; i < current_flow->n_scopes; ++i) {
+                free(current_flow->scopes[i].name);
+                free(current_flow->scopes[i].description);
+              }
+              free(current_flow->scopes);
+              current_flow->scopes = scopes;
+              current_flow->n_scopes = n_scopes;
+            }
+          }
+        } else {
+          parse_optional_bool_attr(attr, "deprecated", &scheme->deprecated_set,
+                                   &scheme->deprecated);
+        }
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  out->n_security_schemes++;
+  return 0;
+}
+
 static char *find_key_token(char *s, const char *key, size_t *key_len) {
   char *p;
   size_t klen;
@@ -714,9 +1656,159 @@ static int parse_server_line(const char *line, const char *end,
   return 0;
 }
 
+static int split_scopes(const char *input, char ***out_scopes,
+                        size_t *out_count);
+
+static int split_enum_values(const char *input, char ***out_vals,
+                             size_t *out_count) {
+  char *buf;
+  size_t i;
+  int rc;
+
+  if (!out_vals || !out_count)
+    return EINVAL;
+  *out_vals = NULL;
+  *out_count = 0;
+  if (!input || !*input)
+    return 0;
+
+  buf = c_cdd_strdup(input);
+  if (!buf)
+    return ENOMEM;
+  for (i = 0; buf[i]; ++i) {
+    if (buf[i] == '|')
+      buf[i] = ',';
+  }
+  rc = split_scopes(buf, out_vals, out_count);
+  free(buf);
+  return rc;
+}
+
+static int parse_server_var_line(const char *line, const char *end,
+                                 struct DocMetadata *out) {
+  const char *cur = line;
+  char *name = NULL;
+  char *description = NULL;
+  char *default_value = NULL;
+  char *enum_raw = NULL;
+
+  if (!out || out->n_servers == 0)
+    return EINVAL;
+
+  name = extract_word(cur, end, &cur);
+  if (!name)
+    return 0;
+
+  cur = skip_ws(cur);
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = cur;
+    while (close_bracket < end && *close_bracket != ']')
+      close_bracket++;
+
+    if (close_bracket < end) {
+      const char *inner_start = cur + 1;
+      size_t inner_len = (size_t)(close_bracket - inner_start);
+      char *attr = (char *)malloc(inner_len + 1);
+      if (attr) {
+        memcpy(attr, inner_start, inner_len);
+        attr[inner_len] = '\0';
+
+        if (strncmp(attr, "default:", 8) == 0 ||
+            strncmp(attr, "default=", 8) == 0) {
+          char *val = trim_segment(attr + 8);
+          if (val && *val) {
+            if (default_value)
+              free(default_value);
+            default_value = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "enum:", 5) == 0 ||
+                   strncmp(attr, "enum=", 5) == 0) {
+          char *val = trim_segment(attr + 5);
+          if (val && *val) {
+            if (enum_raw)
+              free(enum_raw);
+            enum_raw = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "description:", 12) == 0 ||
+                   strncmp(attr, "description=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            if (description)
+              free(description);
+            description = c_cdd_strdup(val);
+          }
+        }
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  if (!description) {
+    char *rest = extract_rest(cur, end);
+    if (rest && *rest) {
+      description = rest;
+    } else if (rest) {
+      free(rest);
+    }
+  }
+
+  if (!default_value) {
+    free(name);
+    if (description)
+      free(description);
+    if (enum_raw)
+      free(enum_raw);
+    return EINVAL;
+  }
+
+  {
+    struct DocServer *srv = &out->servers[out->n_servers - 1];
+    struct DocServerVar *new_vars = (struct DocServerVar *)realloc(
+        srv->variables, (srv->n_variables + 1) * sizeof(struct DocServerVar));
+    struct DocServerVar *var;
+    if (!new_vars) {
+      free(name);
+      free(default_value);
+      if (description)
+        free(description);
+      if (enum_raw)
+        free(enum_raw);
+      return ENOMEM;
+    }
+    srv->variables = new_vars;
+    var = &srv->variables[srv->n_variables];
+    memset(var, 0, sizeof(*var));
+    var->name = name;
+    var->default_value = default_value;
+    var->description = description;
+    if (enum_raw) {
+      if (split_enum_values(enum_raw, &var->enum_values, &var->n_enum_values) !=
+          0) {
+        free(enum_raw);
+        return ENOMEM;
+      }
+      free(enum_raw);
+    }
+    srv->n_variables++;
+  }
+
+  return 0;
+}
+
 static int parse_request_body_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
   const char *cur = line;
+  struct DocRequestBody *new_arr;
+  struct DocRequestBody *entry;
+  char *content_type = NULL;
+  char *description = NULL;
+  char *example = NULL;
+  int required_set = 0;
+  int required_val = 0;
 
   if (!out)
     return EINVAL;
@@ -735,25 +1827,31 @@ static int parse_request_body_line(const char *line, const char *end,
         memcpy(attr, inner_start, inner_len);
         attr[inner_len] = '\0';
 
-        parse_optional_bool_attr(attr, "required",
-                                 &out->request_body_required_set,
-                                 &out->request_body_required);
+        parse_optional_bool_attr(attr, "required", &required_set,
+                                 &required_val);
         if (strncmp(attr, "contentType:", 12) == 0 ||
             strncmp(attr, "contentType=", 12) == 0) {
           char *val = trim_segment(attr + 12);
           if (val && *val) {
-            if (out->request_body_content_type)
-              free(out->request_body_content_type);
-            out->request_body_content_type = c_cdd_strdup(val);
+            if (content_type)
+              free(content_type);
+            content_type = c_cdd_strdup(val);
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
           char *val = trim_segment(attr + 8);
           if (val && *val) {
-            if (out->request_body_content_type)
-              free(out->request_body_content_type);
-            out->request_body_content_type = c_cdd_strdup(val);
+            if (content_type)
+              free(content_type);
+            content_type = c_cdd_strdup(val);
           }
+        } else if (parse_optional_example_attr(attr, &example) == ENOMEM) {
+          free(attr);
+          if (content_type)
+            free(content_type);
+          if (example)
+            free(example);
+          return ENOMEM;
         }
 
         free(attr);
@@ -765,9 +1863,47 @@ static int parse_request_body_line(const char *line, const char *end,
     }
   }
 
-  if (out->request_body_description)
-    free(out->request_body_description);
-  out->request_body_description = extract_rest(cur, end);
+  description = extract_rest(cur, end);
+
+  new_arr = (struct DocRequestBody *)realloc(out->request_bodies,
+                                             (out->n_request_bodies + 1) *
+                                                 sizeof(struct DocRequestBody));
+  if (!new_arr) {
+    if (content_type)
+      free(content_type);
+    if (description)
+      free(description);
+    if (example)
+      free(example);
+    return ENOMEM;
+  }
+  out->request_bodies = new_arr;
+  entry = &out->request_bodies[out->n_request_bodies];
+  memset(entry, 0, sizeof(*entry));
+  entry->content_type = content_type;
+  entry->description = description;
+  entry->example = example;
+  out->n_request_bodies++;
+
+  if (required_set) {
+    out->request_body_required_set = 1;
+    out->request_body_required = required_val ? 1 : 0;
+  }
+
+  if (entry->content_type) {
+    if (out->request_body_content_type)
+      free(out->request_body_content_type);
+    out->request_body_content_type = c_cdd_strdup(entry->content_type);
+    if (!out->request_body_content_type)
+      return ENOMEM;
+  }
+  if (entry->description) {
+    if (out->request_body_description)
+      free(out->request_body_description);
+    out->request_body_description = c_cdd_strdup(entry->description);
+    if (!out->request_body_description)
+      return ENOMEM;
+  }
   return 0;
 }
 
@@ -879,10 +2015,21 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
         /* Dispatch */
         if (strcmp(cmd, "route") == 0) {
           rc = parse_route_line(cmd_end, line_end, out);
+          if (rc == 0)
+            out->is_webhook = 0;
+        } else if (strcmp(cmd, "webhook") == 0) {
+          rc = parse_route_line(cmd_end, line_end, out);
+          if (rc == 0)
+            out->is_webhook = 1;
         } else if (strcmp(cmd, "param") == 0) {
           rc = parse_param_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "return") == 0 || strcmp(cmd, "returns") == 0) {
           rc = parse_return_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "responseHeader") == 0 ||
+                   strcmp(cmd, "responseheader") == 0) {
+          rc = parse_response_header_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "link") == 0) {
+          rc = parse_link_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "summary") == 0 || strcmp(cmd, "brief") == 0) {
           if (out->summary)
             free(out->summary);
@@ -899,6 +2046,8 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
           out->description = extract_rest(cmd_end, line_end);
         } else if (strcmp(cmd, "tag") == 0 || strcmp(cmd, "tags") == 0) {
           rc = parse_tags_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "tagMeta") == 0 || strcmp(cmd, "tagmeta") == 0) {
+          rc = parse_tag_meta_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "deprecated") == 0) {
           rc = parse_deprecated_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "externalDocs") == 0 ||
@@ -906,11 +2055,46 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
           rc = parse_external_docs_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "security") == 0) {
           rc = parse_security_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "securityScheme") == 0 ||
+                   strcmp(cmd, "securityscheme") == 0) {
+          rc = parse_security_scheme_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "server") == 0) {
           rc = parse_server_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "serverVar") == 0 ||
+                   strcmp(cmd, "servervar") == 0) {
+          rc = parse_server_var_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "requestBody") == 0 ||
                    strcmp(cmd, "requestbody") == 0) {
           rc = parse_request_body_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "infoTitle") == 0 ||
+                   strcmp(cmd, "infotitle") == 0) {
+          if (out->info_title)
+            free(out->info_title);
+          out->info_title = extract_rest(cmd_end, line_end);
+        } else if (strcmp(cmd, "infoVersion") == 0 ||
+                   strcmp(cmd, "infoversion") == 0) {
+          if (out->info_version)
+            free(out->info_version);
+          out->info_version = extract_rest(cmd_end, line_end);
+        } else if (strcmp(cmd, "infoSummary") == 0 ||
+                   strcmp(cmd, "infosummary") == 0) {
+          if (out->info_summary)
+            free(out->info_summary);
+          out->info_summary = extract_rest(cmd_end, line_end);
+        } else if (strcmp(cmd, "infoDescription") == 0 ||
+                   strcmp(cmd, "infodescription") == 0) {
+          if (out->info_description)
+            free(out->info_description);
+          out->info_description = extract_rest(cmd_end, line_end);
+        } else if (strcmp(cmd, "termsOfService") == 0 ||
+                   strcmp(cmd, "termsofservice") == 0) {
+          if (out->terms_of_service)
+            free(out->terms_of_service);
+          out->terms_of_service = extract_rest(cmd_end, line_end);
+        } else if (strcmp(cmd, "contact") == 0) {
+          rc = parse_contact_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "license") == 0) {
+          rc = parse_license_line(cmd_end, line_end, out);
         }
 
         free(cmd);

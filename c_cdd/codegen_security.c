@@ -18,9 +18,86 @@
 #include "codegen_security.h"
 #include "str_utils.h"
 
+static int uri_has_scheme_prefix(const char *uri, size_t len) {
+  size_t i;
+  if (!uri || len == 0)
+    return 0;
+  for (i = 0; i < len; ++i) {
+    char c = uri[i];
+    if (c == ':')
+      return 1;
+    if (c == '/' || c == '?' || c == '#')
+      break;
+  }
+  return 0;
+}
+
+static int ref_base_matches_self_uri(const char *self_uri, const char *ref,
+                                     size_t base_len) {
+  const char *self_hash;
+  const char *self_base;
+  size_t self_len;
+
+  if (!self_uri || !*self_uri || !ref || base_len == 0)
+    return 0;
+
+  self_hash = strchr(self_uri, '#');
+  self_base = self_uri;
+  self_len = self_hash ? (size_t)(self_hash - self_uri) : strlen(self_uri);
+
+  if (base_len == self_len && strncmp(ref, self_base, base_len) == 0)
+    return 1;
+
+  if (!uri_has_scheme_prefix(self_base, self_len)) {
+    while (self_len >= 2 && self_base[0] == '.' && self_base[1] == '/') {
+      self_base += 2;
+      self_len -= 2;
+    }
+    if (self_len == 0)
+      return 0;
+    if (base_len >= self_len &&
+        strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
+      if (self_base[0] == '/')
+        return 1;
+      if (base_len == self_len)
+        return 1;
+      if (ref[base_len - self_len - 1] == '/')
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
+static int scheme_ref_matches_name(const char *req_scheme,
+                                   const char *scheme_name,
+                                   const struct OpenAPI_Spec *spec) {
+  const char *prefix = "#/components/securitySchemes/";
+  size_t prefix_len = strlen(prefix);
+  const char *hash;
+
+  if (!req_scheme || !scheme_name)
+    return 0;
+  if (strcmp(req_scheme, scheme_name) == 0)
+    return 1;
+  if (strncmp(req_scheme, prefix, prefix_len) == 0) {
+    return strcmp(req_scheme + prefix_len, scheme_name) == 0;
+  }
+  hash = strchr(req_scheme, '#');
+  if (!hash || strncmp(hash, prefix, prefix_len) != 0)
+    return 0;
+  if (!spec || !spec->self_uri)
+    return 0;
+  if (!ref_base_matches_self_uri(spec->self_uri, req_scheme,
+                                 (size_t)(hash - req_scheme)))
+    return 0;
+  return strcmp(hash + prefix_len, scheme_name) == 0;
+}
+
 static int
 scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
-                        size_t n_sets, const char *scheme_name) {
+                        size_t n_sets, const char *scheme_name,
+                        const struct OpenAPI_Spec *spec) {
   size_t i, j;
   if (!sets || !scheme_name)
     return 0;
@@ -28,7 +105,7 @@ scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
     const struct OpenAPI_SecurityRequirementSet *set = &sets[i];
     for (j = 0; j < set->n_requirements; ++j) {
       const struct OpenAPI_SecurityRequirement *req = &set->requirements[j];
-      if (req->scheme && strcmp(req->scheme, scheme_name) == 0)
+      if (scheme_ref_matches_name(req->scheme, scheme_name, spec))
         return 1;
     }
   }
@@ -71,12 +148,13 @@ resolve_active_security(const struct OpenAPI_Operation *op,
 
 static int scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
                             const struct OpenAPI_SecurityRequirementSet *sets,
-                            size_t n_sets, int security_set) {
+                            size_t n_sets, int security_set,
+                            const struct OpenAPI_Spec *spec) {
   if (!sch)
     return 0;
   if (!security_set)
     return 1;
-  return scheme_in_security_sets(sets, n_sets, sch->name);
+  return scheme_in_security_sets(sets, n_sets, sch->name, spec);
 }
 
 int codegen_security_requires_query(const struct OpenAPI_Operation *op,
@@ -98,7 +176,7 @@ int codegen_security_requires_query(const struct OpenAPI_Operation *op,
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_QUERY)
       continue;
-    if (scheme_is_active(sch, active_sets, n_active_sets, security_set))
+    if (scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
       return 1;
   }
   return 0;
@@ -123,7 +201,7 @@ int codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
     if (sch->type != OA_SEC_APIKEY || sch->in != OA_SEC_IN_COOKIE)
       continue;
-    if (scheme_is_active(sch, active_sets, n_active_sets, security_set))
+    if (scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
       return 1;
   }
   return 0;
@@ -155,7 +233,7 @@ int codegen_security_write_apply(FILE *const fp,
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
     const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
-    if (!scheme_is_active(sch, active_sets, n_active_sets, security_set))
+    if (!scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
       continue;
 
     /* Scheme: API Key (Header) */
@@ -171,9 +249,10 @@ int codegen_security_write_apply(FILE *const fp,
         has_security = 1;
       }
     }
-    /* Scheme: HTTP Bearer */
-    else if (sch->type == OA_SEC_HTTP && sch->scheme &&
-             strcmp(sch->scheme, "bearer") == 0) {
+    /* Scheme: HTTP Bearer, OAuth2, or OpenID Connect (Bearer token) */
+    else if ((sch->type == OA_SEC_HTTP && sch->scheme &&
+              strcmp(sch->scheme, "bearer") == 0) ||
+             sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
       /* "if (ctx->security.bearer_token) ..." */
       /* Usually generic, or scoped by scheme name if multiple exist */
       fprintf(fp, "  if (ctx->security.bearer_token) {\n");

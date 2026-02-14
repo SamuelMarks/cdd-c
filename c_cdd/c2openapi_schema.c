@@ -16,6 +16,46 @@
 
 /* --- Helpers --- */
 
+static void free_string_array(char **arr, size_t n) {
+  size_t i;
+  if (!arr)
+    return;
+  for (i = 0; i < n; ++i) {
+    if (arr[i]) {
+      free(arr[i]);
+      arr[i] = NULL;
+    }
+  }
+  free(arr);
+}
+
+static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+                             size_t src_count) {
+  size_t i;
+  char **out;
+  if (!dst || !dst_count)
+    return EINVAL;
+  *dst = NULL;
+  *dst_count = 0;
+  if (!src || src_count == 0)
+    return 0;
+  out = (char **)calloc(src_count, sizeof(char *));
+  if (!out)
+    return ENOMEM;
+  for (i = 0; i < src_count; ++i) {
+    if (src[i]) {
+      out[i] = c_cdd_strdup(src[i]);
+      if (!out[i]) {
+        free_string_array(out, src_count);
+        return ENOMEM;
+      }
+    }
+  }
+  *dst = out;
+  *dst_count = src_count;
+  return 0;
+}
+
 static int schema_exists(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   for (i = 0; i < spec->n_defined_schemas; ++i) {
@@ -90,6 +130,10 @@ static int copy_struct_fields(const struct StructFields *src,
       *dst_field = *f; /* Copy fixed-size fields/constraints */
       dst_field->schema_extra_json = NULL;
       dst_field->items_extra_json = NULL;
+      dst_field->type_union = NULL;
+      dst_field->n_type_union = 0;
+      dst_field->items_type_union = NULL;
+      dst_field->n_items_type_union = 0;
       if (f->schema_extra_json) {
         dst_field->schema_extra_json = c_cdd_strdup(f->schema_extra_json);
         if (!dst_field->schema_extra_json)
@@ -98,6 +142,17 @@ static int copy_struct_fields(const struct StructFields *src,
       if (f->items_extra_json) {
         dst_field->items_extra_json = c_cdd_strdup(f->items_extra_json);
         if (!dst_field->items_extra_json)
+          return ENOMEM;
+      }
+      if (f->type_union && f->n_type_union > 0) {
+        if (copy_string_array(&dst_field->type_union, &dst_field->n_type_union,
+                              f->type_union, f->n_type_union) != 0)
+          return ENOMEM;
+      }
+      if (f->items_type_union && f->n_items_type_union > 0) {
+        if (copy_string_array(&dst_field->items_type_union,
+                              &dst_field->n_items_type_union,
+                              f->items_type_union, f->n_items_type_union) != 0)
           return ENOMEM;
       }
     }

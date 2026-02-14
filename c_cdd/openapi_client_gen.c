@@ -32,6 +32,198 @@
 #define strdup _strdup
 #endif
 
+static const struct OpenAPI_ServerVariable *
+find_server_variable(const struct OpenAPI_Server *srv, const char *name) {
+  size_t i;
+  if (!srv || !name || !srv->variables)
+    return NULL;
+  for (i = 0; i < srv->n_variables; ++i) {
+    const struct OpenAPI_ServerVariable *var = &srv->variables[i];
+    if (var->name && strcmp(var->name, name) == 0)
+      return var;
+  }
+  return NULL;
+}
+
+static char *render_server_url_default(const struct OpenAPI_Server *srv) {
+  const char *url;
+  size_t out_len = 0;
+  size_t i = 0;
+  char *out;
+
+  if (!srv || !srv->url)
+    return NULL;
+  url = srv->url;
+
+  while (url[i]) {
+    if (url[i] == '{') {
+      const char *end = strchr(url + i + 1, '}');
+      size_t name_len;
+      char *name;
+      const struct OpenAPI_ServerVariable *var;
+      if (!end)
+        return NULL;
+      name_len = (size_t)(end - (url + i + 1));
+      if (name_len == 0)
+        return NULL;
+      name = (char *)malloc(name_len + 1);
+      if (!name)
+        return NULL;
+      memcpy(name, url + i + 1, name_len);
+      name[name_len] = '\0';
+      var = find_server_variable(srv, name);
+      free(name);
+      if (!var || !var->default_value)
+        return NULL;
+      out_len += strlen(var->default_value);
+      i = (size_t)(end - url) + 1;
+      continue;
+    }
+    out_len++;
+    i++;
+  }
+
+  out = (char *)malloc(out_len + 1);
+  if (!out)
+    return NULL;
+
+  i = 0;
+  {
+    size_t out_pos = 0;
+    while (url[i]) {
+      if (url[i] == '{') {
+        const char *end = strchr(url + i + 1, '}');
+        size_t name_len;
+        char *name;
+        const struct OpenAPI_ServerVariable *var;
+        if (!end) {
+          free(out);
+          return NULL;
+        }
+        name_len = (size_t)(end - (url + i + 1));
+        if (name_len == 0) {
+          free(out);
+          return NULL;
+        }
+        name = (char *)malloc(name_len + 1);
+        if (!name) {
+          free(out);
+          return NULL;
+        }
+        memcpy(name, url + i + 1, name_len);
+        name[name_len] = '\0';
+        var = find_server_variable(srv, name);
+        free(name);
+        if (!var || !var->default_value) {
+          free(out);
+          return NULL;
+        }
+        memcpy(out + out_pos, var->default_value, strlen(var->default_value));
+        out_pos += strlen(var->default_value);
+        i = (size_t)(end - url) + 1;
+        continue;
+      }
+      out[out_pos++] = url[i++];
+    }
+    out[out_pos] = '\0';
+  }
+
+  return out;
+}
+
+static char *escape_c_string_literal(const char *s) {
+  size_t i;
+  size_t out_len = 0;
+  char *out;
+  size_t pos = 0;
+
+  if (!s)
+    return NULL;
+  for (i = 0; s[i]; ++i) {
+    switch (s[i]) {
+    case '\\':
+    case '\"':
+      out_len += 2;
+      break;
+    case '\n':
+    case '\r':
+    case '\t':
+      out_len += 2;
+      break;
+    default:
+      out_len += 1;
+      break;
+    }
+  }
+  out = (char *)malloc(out_len + 1);
+  if (!out)
+    return NULL;
+  for (i = 0; s[i]; ++i) {
+    switch (s[i]) {
+    case '\\':
+      out[pos++] = '\\';
+      out[pos++] = '\\';
+      break;
+    case '\"':
+      out[pos++] = '\\';
+      out[pos++] = '\"';
+      break;
+    case '\n':
+      out[pos++] = '\\';
+      out[pos++] = 'n';
+      break;
+    case '\r':
+      out[pos++] = '\\';
+      out[pos++] = 'r';
+      break;
+    case '\t':
+      out[pos++] = '\\';
+      out[pos++] = 't';
+      break;
+    default:
+      out[pos++] = s[i];
+      break;
+    }
+  }
+  out[pos] = '\0';
+  return out;
+}
+
+static const struct OpenAPI_Server *
+select_operation_server(const struct OpenAPI_Path *path,
+                        const struct OpenAPI_Operation *op) {
+  if (op && op->servers && op->n_servers > 0)
+    return &op->servers[0];
+  if (path && path->servers && path->n_servers > 0)
+    return &path->servers[0];
+  return NULL;
+}
+
+static char *build_base_url_literal(const char *url) {
+  char *escaped = NULL;
+  char *literal = NULL;
+  size_t len;
+
+  if (!url)
+    return NULL;
+  escaped = escape_c_string_literal(url);
+  if (!escaped)
+    return NULL;
+  len = strlen(escaped) + 3;
+  literal = (char *)malloc(len);
+  if (!literal) {
+    free(escaped);
+    return NULL;
+  }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(literal, len, "\"%s\"", escaped);
+#else
+  sprintf(literal, "\"%s\"", escaped);
+#endif
+  free(escaped);
+  return literal;
+}
+
 /**
  * @brief Generate a sanitized uppercase Include Guard macro.
  */
@@ -231,11 +423,26 @@ static int write_source_preamble(FILE *fp, const char *header_name) {
  * @brief Write the _init and _cleanup factory functions with macro selection.
  * Also writes ApiError implementation.
  */
-static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
+static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
+                                 const struct OpenAPI_Spec *spec) {
+  char *default_url = NULL;
+  char *default_url_escaped = NULL;
+  const char *default_url_literal = NULL;
+
+  if (spec && spec->servers && spec->n_servers > 0 && spec->servers[0].url) {
+    default_url = render_server_url_default(&spec->servers[0]);
+    if (default_url)
+      default_url_escaped = escape_c_string_literal(default_url);
+    if (default_url_escaped)
+      default_url_literal = default_url_escaped;
+  } else {
+    default_url_literal = "/";
+  }
   /* Header */
   CHECK_IO(fprintf(h, "/**\n * @brief Initialize the API Client.\n"
                       " * @param[out] client The client struct to initialize.\n"
-                      " * @param[in] base_url The API base URL.\n"
+                      " * @param[in] base_url The API base URL (or NULL to use"
+                      " the default server URL).\n"
                       " * @return 0 on success.\n */\n"));
   CHECK_IO(fprintf(h,
                    "int %sinit(struct HttpClient *client, const char "
@@ -300,6 +507,13 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
   CHECK_IO(fprintf(c, "  if (!client) return 22; /* EINVAL */\n"));
   CHECK_IO(fprintf(c, "  rc = http_client_init(client);\n"));
   CHECK_IO(fprintf(c, "  if (rc != 0) return rc;\n"));
+  if (default_url_literal) {
+    CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
+                     default_url_literal));
+    CHECK_IO(fprintf(c, "  if (!base_url || base_url[0] == '\\0') {\n"));
+    CHECK_IO(fprintf(c, "    base_url = default_url;\n"));
+    CHECK_IO(fprintf(c, "  }\n"));
+  }
   CHECK_IO(fprintf(c, "  if (base_url) {\n"));
   CHECK_IO(
       fprintf(c, "    client->base_url = malloc(strlen(base_url) + 1);\n"));
@@ -336,6 +550,10 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix) {
 
   CHECK_IO(fprintf(c, "  http_client_free(client);\n}\n\n"));
 
+  if (default_url)
+    free(default_url);
+  if (default_url_escaped)
+    free(default_url_escaped);
   return 0;
 }
 
@@ -407,6 +625,9 @@ static int emit_operation(FILE *hfile, FILE *cfile,
   struct CodegenSigConfig sig_cfg;
   char *sanitized_group = NULL;
   char *full_group = NULL;
+  char *override_url = NULL;
+  char *base_url_expr = NULL;
+  const struct OpenAPI_Server *server_override = NULL;
   int merge_rc;
   int rc = 0;
 
@@ -471,6 +692,18 @@ static int emit_operation(FILE *hfile, FILE *cfile,
     sig_cfg.group_name = full_group;
   }
 
+  server_override = select_operation_server(path, op);
+  if (server_override && server_override->url) {
+    override_url = render_server_url_default(server_override);
+    if (override_url) {
+      base_url_expr = build_base_url_literal(override_url);
+      if (!base_url_expr) {
+        rc = ENOMEM;
+        goto cleanup;
+      }
+    }
+  }
+
   /* 1. Header: DocBlock + Prototype */
   if ((rc = write_docblock(hfile, &effective_op)) != 0)
     goto cleanup;
@@ -488,8 +721,8 @@ static int emit_operation(FILE *hfile, FILE *cfile,
     goto cleanup;
 
   /* Body generation (Passing spec for security lookup) */
-  if ((rc = codegen_client_write_body(cfile, &effective_op, spec,
-                                      path->route)) != 0)
+  if ((rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
+                                      base_url_expr)) != 0)
     goto cleanup;
 
   CHECK_IO_CLEANUP(fprintf(cfile, "\n"));
@@ -501,6 +734,10 @@ cleanup:
     free(full_group);
   if (effective_params)
     free(effective_params);
+  if (override_url)
+    free(override_url);
+  if (base_url_expr)
+    free(base_url_expr);
 
 #undef CHECK_IO_CLEANUP
 
@@ -570,7 +807,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
     goto cleanup;
 
   /* --- Write Lifecycle --- */
-  if ((rc = write_lifecycle_funcs(hfile, cfile, prefix)) != 0)
+  if ((rc = write_lifecycle_funcs(hfile, cfile, prefix, spec)) != 0)
     goto cleanup;
 
   /* --- Iterate Operations --- */

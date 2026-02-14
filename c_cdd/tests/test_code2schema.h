@@ -99,6 +99,32 @@ TEST test_parse_struct_member_bitfield(void) {
   PASS();
 }
 
+TEST test_parse_struct_member_format_mapping(void) {
+  struct StructFields sf;
+  struct StructField *field;
+  struct StructField *arr_field;
+
+  struct_fields_init(&sf);
+
+  ASSERT_EQ(0, parse_struct_member_line("long id;", &sf));
+  ASSERT_EQ(1, sf.size);
+  field = &sf.fields[0];
+  ASSERT_STR_EQ("id", field->name);
+  ASSERT_STR_EQ("integer", field->type);
+  ASSERT_STR_EQ("int64", field->format);
+
+  ASSERT_EQ(0, parse_struct_member_line("long ids[];", &sf));
+  ASSERT_EQ(2, sf.size);
+  arr_field = &sf.fields[1];
+  ASSERT_STR_EQ("ids", arr_field->name);
+  ASSERT_STR_EQ("array", arr_field->type);
+  ASSERT(arr_field->items_extra_json != NULL);
+  ASSERT(strstr(arr_field->items_extra_json, "\"format\":\"int64\"") != NULL);
+
+  struct_fields_free(&sf);
+  PASS();
+}
+
 static struct StructFields test_struct_fields;
 TEST test_write_struct_functions(void) {
   FILE *tmpf = tmpfile();
@@ -401,6 +427,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_str_starts_with);
   RUN_TEST(test_parse_struct_member_line);
   RUN_TEST(test_parse_struct_member_bitfield);
+  RUN_TEST(test_parse_struct_member_format_mapping);
   RUN_TEST(test_write_struct_functions);
   RUN_TEST(test_struct_fields_overflow);
   RUN_TEST(test_enum_members_overflow);
