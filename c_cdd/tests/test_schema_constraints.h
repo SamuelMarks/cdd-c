@@ -520,6 +520,102 @@ TEST test_schema_allof_keyword_merge(void) {
   PASS();
 }
 
+TEST test_schema_type_union_roundtrip(void) {
+  const char *schema =
+      "{"
+      "\"type\":\"object\","
+      "\"properties\":{"
+      "\"name\":{\"type\":[\"string\",\"null\"]},"
+      "\"age\":{\"type\":[\"integer\",\"null\"]},"
+      "\"tags\":{\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]}}"
+      "}"
+      "}";
+
+  JSON_Value *val = json_parse_string(schema);
+  ASSERT(val != NULL);
+  JSON_Object *obj = json_value_get_object(val);
+  ASSERT(obj != NULL);
+
+  struct StructFields sf;
+  ASSERT_EQ(0, struct_fields_init(&sf));
+  ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
+
+  {
+    struct StructField *name = struct_fields_get(&sf, "name");
+    ASSERT(name != NULL);
+    ASSERT_EQ(2, (int)name->n_type_union);
+    ASSERT_STR_EQ("string", name->type_union[0]);
+    ASSERT_STR_EQ("null", name->type_union[1]);
+    ASSERT_STR_EQ("string", name->type);
+  }
+
+  {
+    struct StructField *age = struct_fields_get(&sf, "age");
+    ASSERT(age != NULL);
+    ASSERT_EQ(2, (int)age->n_type_union);
+    ASSERT_STR_EQ("integer", age->type_union[0]);
+    ASSERT_STR_EQ("null", age->type_union[1]);
+    ASSERT_STR_EQ("integer", age->type);
+  }
+
+  {
+    struct StructField *tags = struct_fields_get(&sf, "tags");
+    ASSERT(tags != NULL);
+    ASSERT_EQ(2, (int)tags->n_items_type_union);
+    ASSERT_STR_EQ("string", tags->items_type_union[0]);
+    ASSERT_STR_EQ("null", tags->items_type_union[1]);
+  }
+
+  {
+    JSON_Value *schemas_val = json_value_init_object();
+    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Union", &sf));
+
+    JSON_Object *union_obj = json_object_get_object(schemas_obj, "Union");
+    ASSERT(union_obj != NULL);
+    JSON_Object *props = json_object_get_object(union_obj, "properties");
+    ASSERT(props != NULL);
+
+    {
+      JSON_Object *name_prop = json_object_get_object(props, "name");
+      ASSERT(name_prop != NULL);
+      JSON_Array *type_arr = json_object_get_array(name_prop, "type");
+      ASSERT(type_arr != NULL);
+      ASSERT_EQ(2, (int)json_array_get_count(type_arr));
+      ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
+      ASSERT_STR_EQ("null", json_array_get_string(type_arr, 1));
+    }
+
+    {
+      JSON_Object *age_prop = json_object_get_object(props, "age");
+      ASSERT(age_prop != NULL);
+      JSON_Array *type_arr = json_object_get_array(age_prop, "type");
+      ASSERT(type_arr != NULL);
+      ASSERT_EQ(2, (int)json_array_get_count(type_arr));
+      ASSERT_STR_EQ("integer", json_array_get_string(type_arr, 0));
+      ASSERT_STR_EQ("null", json_array_get_string(type_arr, 1));
+    }
+
+    {
+      JSON_Object *tags_prop = json_object_get_object(props, "tags");
+      ASSERT(tags_prop != NULL);
+      JSON_Object *items = json_object_get_object(tags_prop, "items");
+      ASSERT(items != NULL);
+      JSON_Array *type_arr = json_object_get_array(items, "type");
+      ASSERT(type_arr != NULL);
+      ASSERT_EQ(2, (int)json_array_get_count(type_arr));
+      ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
+      ASSERT_STR_EQ("null", json_array_get_string(type_arr, 1));
+    }
+
+    json_value_free(schemas_val);
+  }
+
+  struct_fields_free(&sf);
+  json_value_free(val);
+  PASS();
+}
+
 SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_constraints_roundtrip);
   RUN_TEST(test_schema_annotations_roundtrip);
@@ -528,6 +624,7 @@ SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_oneof_first_object);
   RUN_TEST(test_schema_keyword_passthrough);
   RUN_TEST(test_schema_allof_keyword_merge);
+  RUN_TEST(test_schema_type_union_roundtrip);
 }
 
 #endif /* TEST_SCHEMA_CONSTRAINTS_H */

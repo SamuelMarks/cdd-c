@@ -65,6 +65,27 @@ struct OpenAPI_KV {
 };
 
 /**
+ * @brief Join object-style key/value pairs into a form-encoded value string.
+ *
+ * Produces a single string suitable for use as the value of a form-style
+ * parameter when explode=false (or space/pipe-delimited object styles).
+ * Keys and values are percent-encoded using form rules; the delimiter is
+ * inserted as-is between tokens.
+ *
+ * @param[in] kvs The key/value array.
+ * @param[in] n Number of entries in kvs.
+ * @param[in] delim Delimiter string to insert between tokens (e.g., ",",
+ *                  "%20", "%7C").
+ * @param[in] allow_reserved If non-zero, preserve reserved characters in
+ *                           values (except form delimiters).
+ * @return Newly allocated string containing the joined value, or NULL on
+ * allocation failure.
+ */
+extern C_CDD_EXPORT char *openapi_kv_join_form(const struct OpenAPI_KV *kvs,
+                                               size_t n, const char *delim,
+                                               int allow_reserved);
+
+/**
  * @brief Percent-encode a string for use in a URL.
  *
  * Conforms to RFC 3986. Encodes all characters except:

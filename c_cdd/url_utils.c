@@ -7,6 +7,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -540,4 +541,118 @@ int url_query_build_form(const struct UrlQueryParams *const qp,
   *ptr = '\0';
   *out_str = buf;
   return 0;
+}
+
+static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
+  size_t slen;
+  size_t need;
+  char *tmp;
+
+  if (!buf || !len || !cap || !s)
+    return EINVAL;
+
+  slen = strlen(s);
+  need = *len + slen + 1;
+  if (need > *cap) {
+    size_t new_cap = (*cap == 0) ? 64 : *cap * 2;
+    while (new_cap < need)
+      new_cap *= 2;
+    tmp = (char *)realloc(*buf, new_cap);
+    if (!tmp)
+      return ENOMEM;
+    *buf = tmp;
+    *cap = new_cap;
+  }
+  memcpy(*buf + *len, s, slen);
+  *len += slen;
+  (*buf)[*len] = '\0';
+  return 0;
+}
+
+static const char *kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
+                                      size_t buf_len) {
+  if (!kv)
+    return NULL;
+  switch (kv->type) {
+  case OA_KV_STRING:
+    return kv->value.s ? kv->value.s : NULL;
+  case OA_KV_INTEGER:
+    if (!buf || buf_len == 0)
+      return NULL;
+    sprintf_s_chk(buf, buf_len, "%d", kv->value.i);
+    return buf;
+  case OA_KV_NUMBER:
+    if (!buf || buf_len == 0)
+      return NULL;
+    sprintf_s_chk(buf, buf_len, "%g", kv->value.n);
+    return buf;
+  case OA_KV_BOOLEAN:
+    return kv->value.b ? "true" : "false";
+  default:
+    return NULL;
+  }
+}
+
+char *openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
+                           const char *delim, int allow_reserved) {
+  size_t i;
+  char *buf = NULL;
+  size_t len = 0;
+  size_t cap = 0;
+  char num_buf[64];
+  char *enc_key = NULL;
+  char *enc_val = NULL;
+  char *(*enc_fn)(const char *) =
+      allow_reserved ? url_encode_form_allow_reserved : url_encode_form;
+
+  if (!delim)
+    delim = ",";
+
+  if (!kvs || n == 0) {
+    buf = (char *)calloc(1, 1);
+    return buf;
+  }
+
+  for (i = 0; i < n; ++i) {
+    const char *raw_val;
+    if (!kvs[i].key)
+      continue;
+    raw_val = kv_value_to_string(&kvs[i], num_buf, sizeof(num_buf));
+    if (!raw_val)
+      continue;
+    enc_key = enc_fn(kvs[i].key);
+    if (!enc_key)
+      goto oom;
+    enc_val = enc_fn(raw_val);
+    if (!enc_val)
+      goto oom;
+    if (len > 0) {
+      if (append_str(&buf, &len, &cap, delim) != 0)
+        goto oom;
+    }
+    if (append_str(&buf, &len, &cap, enc_key) != 0)
+      goto oom;
+    if (append_str(&buf, &len, &cap, delim) != 0)
+      goto oom;
+    if (append_str(&buf, &len, &cap, enc_val) != 0)
+      goto oom;
+    free(enc_key);
+    free(enc_val);
+    enc_key = NULL;
+    enc_val = NULL;
+  }
+
+  if (!buf) {
+    buf = (char *)calloc(1, 1);
+  }
+  return buf;
+
+oom:
+  if (enc_key)
+    free(enc_key);
+  if (enc_val)
+    free(enc_val);
+  if (buf)
+    free(buf);
+  return NULL;
 }

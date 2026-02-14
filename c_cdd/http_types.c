@@ -101,6 +101,7 @@ void http_parts_free(struct HttpParts *const parts) {
         free(parts->parts[i].filename);
       if (parts->parts[i].content_type)
         free(parts->parts[i].content_type);
+      http_headers_free(&parts->parts[i].headers);
       /* data ownership is typically external references for efficiency,
          but for safety in this generator we assume data pointers are managed
          by the source (e.g. read_to_file or literal).
@@ -134,15 +135,20 @@ int http_request_add_part(struct HttpRequest *const req, const char *const name,
 
   /* Zero new slot */
   memset(&p->parts[p->count], 0, sizeof(struct HttpPart));
+  if (http_headers_init(&p->parts[p->count].headers) != 0)
+    return EINVAL;
 
   p->parts[p->count].name = c_cdd_strdup(name);
-  if (!p->parts[p->count].name)
+  if (!p->parts[p->count].name) {
+    http_headers_free(&p->parts[p->count].headers);
     return ENOMEM;
+  }
 
   if (filename) {
     p->parts[p->count].filename = c_cdd_strdup(filename);
     if (!p->parts[p->count].filename) {
       free(p->parts[p->count].name);
+      http_headers_free(&p->parts[p->count].headers);
       return ENOMEM;
     }
   }
@@ -153,6 +159,7 @@ int http_request_add_part(struct HttpRequest *const req, const char *const name,
       if (p->parts[p->count].filename)
         free(p->parts[p->count].filename);
       free(p->parts[p->count].name);
+      http_headers_free(&p->parts[p->count].headers);
       return ENOMEM;
     }
   }
@@ -163,6 +170,18 @@ int http_request_add_part(struct HttpRequest *const req, const char *const name,
 
   p->count++;
   return 0;
+}
+
+int http_request_add_part_header_last(struct HttpRequest *const req,
+                                      const char *const key,
+                                      const char *const value) {
+  struct HttpPart *part;
+  if (!req || !key || !value)
+    return EINVAL;
+  if (req->parts.count == 0)
+    return EINVAL;
+  part = &req->parts.parts[req->parts.count - 1];
+  return http_headers_add(&part->headers, key, value);
 }
 
 int http_request_flatten_parts(struct HttpRequest *const req) {
@@ -192,6 +211,7 @@ int http_request_flatten_parts(struct HttpRequest *const req) {
   /* 2. Calculate Size */
   for (i = 0; i < req->parts.count; ++i) {
     struct HttpPart *part = &req->parts.parts[i];
+    size_t h;
 
     estimated_size += strlen(boundary) + 6; /* --bound\r\n */
     /* Content-Disposition: form-data; name="..." */
@@ -211,6 +231,13 @@ int http_request_flatten_parts(struct HttpRequest *const req) {
           14 + 24 + 2; /* Content-Type: application/octet-stream\r\n */
     }
 
+    for (h = 0; h < part->headers.count; ++h) {
+      const struct HttpHeader *hdr = &part->headers.headers[h];
+      if (!hdr->key || !hdr->value)
+        continue;
+      estimated_size += strlen(hdr->key) + 2 + strlen(hdr->value) + 2;
+    }
+
     estimated_size += 2; /* \r\n (end of headers) */
     estimated_size += part->data_len;
     estimated_size += 2; /* \r\n (end of part) */
@@ -224,6 +251,7 @@ int http_request_flatten_parts(struct HttpRequest *const req) {
 
   for (i = 0; i < req->parts.count; ++i) {
     struct HttpPart *part = &req->parts.parts[i];
+    size_t h;
     int written;
 
     /* Boundary start */
@@ -257,6 +285,15 @@ int http_request_flatten_parts(struct HttpRequest *const req) {
     } else if (part->filename) {
       written = sprintf_s_wrapper(buffer, pos, estimated_size,
                                   "Content-Type: application/octet-stream\r\n");
+      pos += written;
+    }
+
+    for (h = 0; h < part->headers.count; ++h) {
+      const struct HttpHeader *hdr = &part->headers.headers[h];
+      if (!hdr->key || !hdr->value)
+        continue;
+      written = sprintf_s_wrapper(buffer, pos, estimated_size, "%s: %s\r\n",
+                                  hdr->key, hdr->value);
       pos += written;
     }
 

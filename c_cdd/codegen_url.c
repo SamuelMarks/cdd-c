@@ -50,6 +50,441 @@ static int param_is_object_kv(const struct OpenAPI_Parameter *p) {
   return !is_primitive_type(p->type);
 }
 
+static size_t media_type_base_len(const char *media_type) {
+  size_t i = 0;
+  if (!media_type)
+    return 0;
+  while (media_type[i] && media_type[i] != ';')
+    ++i;
+  return i;
+}
+
+static int media_type_ieq(const char *media_type, const char *expected) {
+  size_t i;
+  size_t len;
+  size_t exp_len;
+  if (!media_type || !expected)
+    return 0;
+  len = media_type_base_len(media_type);
+  exp_len = strlen(expected);
+  if (len != exp_len)
+    return 0;
+  for (i = 0; i < len; ++i) {
+    char a = media_type[i];
+    char b = expected[i];
+    if (a >= 'A' && a <= 'Z')
+      a = (char)(a - 'A' + 'a');
+    if (b >= 'A' && b <= 'Z')
+      b = (char)(b - 'A' + 'a');
+    if (a != b)
+      return 0;
+  }
+  return 1;
+}
+
+static int media_type_is_json(const char *media_type) {
+  size_t len;
+  if (!media_type)
+    return 0;
+  if (media_type_ieq(media_type, "application/json"))
+    return 1;
+  len = media_type_base_len(media_type);
+  if (len < 5)
+    return 0;
+  {
+    const char *suffix = "+json";
+    size_t start = len - 5;
+    size_t i;
+    for (i = 0; i < 5; ++i) {
+      char a = media_type[start + i];
+      char b = suffix[i];
+      if (a >= 'A' && a <= 'Z')
+        a = (char)(a - 'A' + 'a');
+      if (b >= 'A' && b <= 'Z')
+        b = (char)(b - 'A' + 'a');
+      if (a != b)
+        return 0;
+    }
+  }
+  return 1;
+}
+
+static int media_type_is_form(const char *media_type) {
+  return media_type_ieq(media_type, "application/x-www-form-urlencoded");
+}
+
+static int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
+  if (!p)
+    return 0;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return 0;
+  if (!media_type_is_form(p->content_type))
+    return 0;
+  if (p->schema.ref_name)
+    return 1;
+  if (p->schema.inline_type && strcmp(p->schema.inline_type, "object") == 0)
+    return 1;
+  if (p->type && strcmp(p->type, "object") == 0)
+    return 1;
+  return 0;
+}
+
+static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
+  if (!p)
+    return 0;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return 0;
+  if (!media_type_is_json(p->content_type))
+    return 0;
+  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
+    return 0;
+  return p->schema.ref_name != NULL;
+}
+
+static const char *
+querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p) {
+  const char *type = NULL;
+  if (!p)
+    return NULL;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return NULL;
+  if (!media_type_is_json(p->content_type))
+    return NULL;
+  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
+    return NULL;
+  if (p->schema.inline_type)
+    type = p->schema.inline_type;
+  else if (p->type)
+    type = p->type;
+  if (!type)
+    return NULL;
+  if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
+    return type;
+  return NULL;
+}
+
+static const char *
+querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p) {
+  const char *item_type = NULL;
+  if (!p)
+    return NULL;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return NULL;
+  if (!media_type_is_json(p->content_type))
+    return NULL;
+  if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
+        p->is_array))
+    return NULL;
+  if (p->schema.inline_type)
+    item_type = p->schema.inline_type;
+  else if (p->items_type)
+    item_type = p->items_type;
+  if (!item_type)
+    return NULL;
+  if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
+    return item_type;
+  return NULL;
+}
+
+static const char *
+querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p) {
+  const char *item_type = NULL;
+  if (!p)
+    return NULL;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return NULL;
+  if (!media_type_is_json(p->content_type))
+    return NULL;
+  if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
+        p->is_array))
+    return NULL;
+  if (p->schema.inline_type)
+    item_type = p->schema.inline_type;
+  else if (p->items_type)
+    item_type = p->items_type;
+  if (!item_type)
+    return NULL;
+  if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
+    return NULL;
+  if (strcmp(item_type, "object") == 0)
+    return NULL;
+  return item_type;
+}
+
+static const char *
+querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p) {
+  const char *type = NULL;
+  if (!p)
+    return NULL;
+  if (p->in != OA_PARAM_IN_QUERYSTRING)
+    return NULL;
+  if (!p->content_type)
+    return NULL;
+  if (media_type_is_json(p->content_type))
+    return NULL;
+  if (media_type_is_form(p->content_type))
+    return NULL;
+  if (p->schema.inline_type)
+    type = p->schema.inline_type;
+  else if (p->type)
+    type = p->type;
+  if (!type)
+    return "string";
+  if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
+    return type;
+  return "string";
+}
+
+static int write_query_json_param(FILE *const fp,
+                                  const struct OpenAPI_Parameter *const p) {
+  const char *name;
+  const char *type;
+
+  if (!fp || !p)
+    return EINVAL;
+  if (!p->content_type || !media_type_is_json(p->content_type))
+    return EINVAL;
+
+  name = p->name ? p->name : "param";
+  type = p->type ? p->type : p->schema.inline_type;
+
+  CHECK_IO(fprintf(fp, "  /* Query Parameter (json): %s */\n", name));
+
+  if (p->is_array) {
+    const char *item_type =
+        p->items_type ? p->items_type : p->schema.inline_type;
+    if (!item_type) {
+      CHECK_IO(
+          fprintf(fp, "  /* Unsupported JSON query array for %s */\n", name));
+      return 0;
+    }
+    if (is_primitive_type(item_type)) {
+      CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
+      CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    JSON_Array *q_arr = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    q_val = json_value_init_array();\n"));
+      CHECK_IO(fprintf(fp, "    if (!q_val) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    q_arr = json_value_get_array(q_val);\n"));
+      CHECK_IO(fprintf(fp, "    if (!q_arr) { rc = EINVAL; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
+      if (strcmp(item_type, "string") == 0) {
+        CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", name));
+        CHECK_IO(fprintf(
+            fp,
+            "        if (json_array_append_null(q_arr) != JSONSuccess) { rc = "
+            "ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(fp, "      } else {\n"));
+        CHECK_IO(fprintf(fp,
+                         "        if (json_array_append_string(q_arr, %s[i]) "
+                         "!= JSONSuccess) "
+                         "{ rc = ENOMEM; goto cleanup; }\n",
+                         name));
+        CHECK_IO(fprintf(fp, "      }\n"));
+      } else if (strcmp(item_type, "integer") == 0) {
+        CHECK_IO(fprintf(
+            fp,
+            "      if (json_array_append_number(q_arr, (double)%s[i]) != "
+            "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+            name));
+      } else if (strcmp(item_type, "number") == 0) {
+        CHECK_IO(fprintf(fp,
+                         "      if (json_array_append_number(q_arr, %s[i]) != "
+                         "JSONSuccess) { "
+                         "rc = ENOMEM; goto cleanup; }\n",
+                         name));
+      } else if (strcmp(item_type, "boolean") == 0) {
+        CHECK_IO(fprintf(
+            fp,
+            "      if (json_array_append_boolean(q_arr, %s[i] ? 1 : 0) != "
+            "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+            name));
+      }
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
+      CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+      CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+      CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
+      CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "  }\n"));
+      return 0;
+    }
+    if (strcmp(item_type, "object") == 0) {
+      CHECK_IO(fprintf(fp, "  /* Unsupported JSON query array item for %s */\n",
+                       name));
+      return 0;
+    }
+    CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
+    CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    JSON_Array *q_arr = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    size_t i;\n"));
+    CHECK_IO(fprintf(fp, "    q_val = json_value_init_array();\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_val) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_arr = json_value_get_array(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_arr) { rc = EINVAL; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
+    CHECK_IO(fprintf(fp, "      char *item_json = NULL;\n"));
+    CHECK_IO(fprintf(fp, "      JSON_Value *item_val = NULL;\n"));
+    CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", name));
+    CHECK_IO(fprintf(
+        fp, "        if (json_array_append_null(q_arr) != JSONSuccess) { rc = "
+            "ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "        continue;\n"));
+    CHECK_IO(fprintf(fp, "      }\n"));
+    CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
+                     item_type, name));
+    CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "      item_val = json_parse_string(item_json);\n"));
+    CHECK_IO(fprintf(fp, "      free(item_json);\n"));
+    CHECK_IO(
+        fprintf(fp, "      if (!item_val) { rc = EINVAL; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp,
+        "      if (json_array_append_value(q_arr, item_val) != JSONSuccess) { "
+        "json_value_free(item_val); rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    }\n"));
+    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
+    CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  }\n"));
+    return 0;
+  }
+
+  if (p->schema.ref_name) {
+    CHECK_IO(fprintf(fp, "  if (%s) {\n", name));
+    CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &q_json);\n",
+                     p->schema.ref_name, name));
+    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    free(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
+    CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  }\n"));
+    return 0;
+  }
+
+  if (type && strcmp(type, "object") == 0) {
+    CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
+    CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    JSON_Object *q_obj = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    size_t i;\n"));
+    CHECK_IO(fprintf(fp, "    q_val = json_value_init_object();\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_val) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_obj = json_value_get_object(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_obj) { rc = EINVAL; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", name));
+    CHECK_IO(
+        fprintf(fp, "      const struct OpenAPI_KV *kv = &%s[i];\n", name));
+    CHECK_IO(fprintf(fp, "      const char *kv_key = kv->key;\n"));
+    CHECK_IO(fprintf(fp, "      if (!kv_key) continue;\n"));
+    CHECK_IO(fprintf(fp, "      switch (kv->type) {\n"));
+    CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"
+                         "        if (kv->value.s) {\n"
+                         "          json_object_set_string(q_obj, kv_key, "
+                         "kv->value.s);\n"
+                         "        } else {\n"
+                         "          json_object_set_null(q_obj, kv_key);\n"
+                         "        }\n"
+                         "        break;\n"));
+    CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
+                         "        json_object_set_number(q_obj, kv_key, "
+                         "(double)kv->value.i);\n"
+                         "        break;\n"));
+    CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
+                         "        json_object_set_number(q_obj, kv_key, "
+                         "kv->value.n);\n"
+                         "        break;\n"));
+    CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
+                         "        json_object_set_boolean(q_obj, kv_key, "
+                         "kv->value.b ? 1 : 0);\n"
+                         "        break;\n"));
+    CHECK_IO(fprintf(fp, "      default:\n"
+                         "        json_object_set_null(q_obj, kv_key);\n"
+                         "        break;\n"));
+    CHECK_IO(fprintf(fp, "      }\n"));
+    CHECK_IO(fprintf(fp, "    }\n"));
+    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
+    CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  }\n"));
+    return 0;
+  }
+
+  if (type && is_primitive_type(type)) {
+    if (strcmp(type, "string") == 0) {
+      CHECK_IO(fprintf(fp, "  if (%s) {\n", name));
+    } else {
+      CHECK_IO(fprintf(fp, "  {\n"));
+    }
+    CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_json = NULL;\n"));
+    CHECK_IO(fprintf(fp, "    char *q_enc = NULL;\n"));
+    if (strcmp(type, "string") == 0) {
+      CHECK_IO(fprintf(fp, "    q_val = json_value_init_string(%s);\n", name));
+    } else if (strcmp(type, "integer") == 0) {
+      CHECK_IO(fprintf(fp, "    q_val = json_value_init_number((double)%s);\n",
+                       name));
+    } else if (strcmp(type, "number") == 0) {
+      CHECK_IO(fprintf(fp, "    q_val = json_value_init_number(%s);\n", name));
+    } else if (strcmp(type, "boolean") == 0) {
+      CHECK_IO(fprintf(fp, "    q_val = json_value_init_boolean(%s ? 1 : 0);\n",
+                       name));
+    }
+    CHECK_IO(fprintf(fp, "    if (!q_val) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
+    CHECK_IO(fprintf(
+        fp, "    rc = url_query_add_encoded(&qp, \"%s\", q_enc);\n", name));
+    CHECK_IO(fprintf(fp, "    free(q_enc);\n"));
+    CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+    CHECK_IO(fprintf(fp, "  }\n"));
+    return 0;
+  }
+
+  CHECK_IO(
+      fprintf(fp, "  /* Unsupported JSON query parameter for %s */\n", name));
+  return 0;
+}
+
 static int write_query_object_param(FILE *const fp,
                                     const struct OpenAPI_Parameter *const p) {
   const char *name;
@@ -242,6 +677,144 @@ static int write_query_object_param(FILE *const fp,
     }
     CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "    }\n  }\n"));
+    return 0;
+  }
+
+  if (style == OA_STYLE_SPACE_DELIMITED || style == OA_STYLE_PIPE_DELIMITED) {
+    const char delim = (style == OA_STYLE_SPACE_DELIMITED) ? ' ' : '|';
+    const char *delim_enc = (style == OA_STYLE_SPACE_DELIMITED) ? "%20" : "%7C";
+
+    if (allow_reserved) {
+      CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    char *joined = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    size_t joined_len = 0;\n"));
+      CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", name));
+      CHECK_IO(
+          fprintf(fp, "      const struct OpenAPI_KV *kv = &%s[i];\n", name));
+      CHECK_IO(fprintf(fp, "      const char *kv_key = kv->key;\n"));
+      CHECK_IO(fprintf(fp, "      const char *kv_raw = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+      CHECK_IO(fprintf(fp, "      char *key_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      char *val_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      switch (kv->type) {\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
+      CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
+                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
+                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp,
+                       "      case OA_KV_BOOLEAN:\n"
+                       "        kv_raw = kv->value.b ? \"true\" : \"false\";\n"
+                       "        break;\n"));
+      CHECK_IO(fprintf(
+          fp, "      default:\n        kv_raw = NULL;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      }\n"));
+      CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
+      CHECK_IO(
+          fprintf(fp, "      key_enc = url_encode_allow_reserved(kv_key);\n"));
+      CHECK_IO(
+          fprintf(fp, "      val_enc = url_encode_allow_reserved(kv_raw);\n"));
+      CHECK_IO(fprintf(fp, "      if (!key_enc || !val_enc) { free(key_enc); "
+                           "free(val_enc); rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t key_len = strlen(key_enc);\n"
+          "        size_t val_len = strlen(val_enc);\n"
+          "        size_t extra = key_len + val_len + %zu + "
+          "(joined_len ? %zu : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
+          "1);\n"
+          "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; "
+          "goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (joined_len) {\n"
+          "          memcpy(joined + joined_len, \"%s\", %zu);\n"
+          "          joined_len += %zu;\n"
+          "        }\n"
+          "        memcpy(joined + joined_len, key_enc, key_len);\n"
+          "        joined_len += key_len;\n"
+          "        memcpy(joined + joined_len, \"%s\", %zu);\n"
+          "        joined_len += %zu;\n"
+          "        memcpy(joined + joined_len, val_enc, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          strlen(delim_enc), strlen(delim_enc), delim_enc, strlen(delim_enc),
+          strlen(delim_enc), delim_enc, strlen(delim_enc), strlen(delim_enc)));
+      CHECK_IO(fprintf(fp, "      free(key_enc);\n      free(val_enc);\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "    if (joined) {\n"));
+      CHECK_IO(fprintf(
+          fp, "      rc = url_query_add_encoded(&qp, \"%s\", joined);\n",
+          name));
+      CHECK_IO(fprintf(fp, "      free(joined);\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "  }\n"));
+    } else {
+      CHECK_IO(fprintf(fp, "  {\n    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    char *joined = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    size_t joined_len = 0;\n"));
+      CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", name));
+      CHECK_IO(
+          fprintf(fp, "      const struct OpenAPI_KV *kv = &%s[i];\n", name));
+      CHECK_IO(fprintf(fp, "      const char *kv_key = kv->key;\n"));
+      CHECK_IO(fprintf(fp, "      const char *kv_raw = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+      CHECK_IO(fprintf(fp, "      switch (kv->type) {\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
+      CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
+                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
+                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp,
+                       "      case OA_KV_BOOLEAN:\n"
+                       "        kv_raw = kv->value.b ? \"true\" : \"false\";\n"
+                       "        break;\n"));
+      CHECK_IO(fprintf(
+          fp, "      default:\n        kv_raw = NULL;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      }\n"));
+      CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
+      CHECK_IO(fprintf(
+          fp,
+          "      {\n"
+          "        size_t key_len = strlen(kv_key);\n"
+          "        size_t val_len = strlen(kv_raw);\n"
+          "        size_t extra = key_len + val_len + 1 + "
+          "(joined_len ? 1 : 0);\n"
+          "        char *tmp = (char *)realloc(joined, joined_len + extra + "
+          "1);\n"
+          "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
+          "        joined = tmp;\n"
+          "        if (joined_len) joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, kv_key, key_len);\n"
+          "        joined_len += key_len;\n"
+          "        joined[joined_len++] = '%c';\n"
+          "        memcpy(joined + joined_len, kv_raw, val_len);\n"
+          "        joined_len += val_len;\n"
+          "        joined[joined_len] = '\\0';\n"
+          "      }\n",
+          delim, delim));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "    if (joined) {\n"));
+      CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, \"%s\", joined);\n",
+                       name));
+      CHECK_IO(fprintf(fp, "      free(joined);\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "  }\n"));
+    }
     return 0;
   }
 
@@ -595,6 +1168,77 @@ static int write_joined_query_array(FILE *const fp,
   return 0;
 }
 
+static int write_joined_query_array_encoded_delim(
+    FILE *const fp, const struct OpenAPI_Parameter *const p,
+    const char *const delim_enc, const char *const encode_fn) {
+  const char *name;
+  const char *item_type;
+  size_t delim_len;
+
+  if (!fp || !p || !delim_enc || !encode_fn)
+    return EINVAL;
+
+  name = p->name ? p->name : "param";
+  item_type = p->items_type ? p->items_type : "string";
+  delim_len = strlen(delim_enc);
+
+  CHECK_IO(fprintf(fp, "  {\n"));
+  CHECK_IO(fprintf(fp, "    size_t i;\n"));
+  CHECK_IO(fprintf(fp, "    char *joined = NULL;\n"));
+  CHECK_IO(fprintf(fp, "    size_t joined_len = 0;\n"));
+  CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", name));
+
+  if (strcmp(item_type, "integer") == 0) {
+    CHECK_IO(fprintf(fp, "      const char *raw;\n"));
+    CHECK_IO(fprintf(fp, "      char num_buf[32];\n"));
+    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%d\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
+  } else if (strcmp(item_type, "number") == 0) {
+    CHECK_IO(fprintf(fp, "      const char *raw;\n"));
+    CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+    CHECK_IO(fprintf(fp, "      sprintf(num_buf, \"%%g\", %s[i]);\n", name));
+    CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
+  } else if (strcmp(item_type, "boolean") == 0) {
+    CHECK_IO(fprintf(fp, "      const char *raw;\n"));
+    CHECK_IO(fprintf(fp, "      raw = %s[i] ? \"true\" : \"false\";\n", name));
+  } else {
+    CHECK_IO(fprintf(fp, "      const char *raw;\n"));
+    CHECK_IO(fprintf(fp, "      raw = %s[i];\n", name));
+  }
+
+  CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
+  CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
+  CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
+  CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "      {\n"
+      "        size_t extra = val_len + (i > 0 ? %zu : 0);\n"
+      "        char *tmp = (char *)realloc(joined, joined_len + extra + 1);\n"
+      "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
+      "        joined = tmp;\n"
+      "        if (i > 0) {\n"
+      "          memcpy(joined + joined_len, \"%s\", %zu);\n"
+      "          joined_len += %zu;\n"
+      "        }\n"
+      "        memcpy(joined + joined_len, enc, val_len);\n"
+      "        joined_len += val_len;\n"
+      "        joined[joined_len] = '\\0';\n"
+      "      }\n",
+      delim_len, delim_enc, delim_len, delim_len));
+  CHECK_IO(fprintf(fp, "      free(enc);\n"));
+
+  CHECK_IO(fprintf(fp, "    }\n"));
+  CHECK_IO(fprintf(fp, "    if (joined) {\n"));
+  CHECK_IO(fprintf(
+      fp, "      rc = url_query_add_encoded(&qp, \"%s\", joined);\n", name));
+  CHECK_IO(fprintf(fp, "      free(joined);\n"));
+  CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+  CHECK_IO(fprintf(fp, "    }\n"));
+  CHECK_IO(fprintf(fp, "  }\n"));
+  return 0;
+}
+
 static const struct OpenAPI_Parameter *
 find_param(const char *name, const struct OpenAPI_Parameter *params,
            size_t n_params) {
@@ -874,6 +1518,339 @@ int codegen_url_write_query_params(FILE *const fp,
   if (querystring_param) {
     const char *qs_name =
         querystring_param->name ? querystring_param->name : "querystring";
+    const char *qs_json_item =
+        querystring_param_json_array_item_type(querystring_param);
+    const char *qs_json_obj =
+        querystring_param_json_array_item_ref(querystring_param);
+    const char *qs_json_prim =
+        querystring_param_json_primitive_type(querystring_param);
+    if (querystring_param_is_form_object(querystring_param)) {
+      CHECK_IO(fprintf(fp, "  /* Querystring Parameter (form object): %s */\n",
+                       qs_name));
+      CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", qs_name, qs_name));
+      CHECK_IO(fprintf(fp, "    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_form_body = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    rc = url_query_init(&qp);\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", qs_name));
+      CHECK_IO(fprintf(fp, "      const struct OpenAPI_KV *kv = &%s[i];\n",
+                       qs_name));
+      CHECK_IO(fprintf(fp, "      const char *kv_key = kv->key;\n"));
+      CHECK_IO(fprintf(fp, "      const char *kv_raw = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      char num_buf[64];\n"));
+      CHECK_IO(fprintf(fp, "      switch (kv->type) {\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_STRING:\n"));
+      CHECK_IO(fprintf(fp, "        kv_raw = kv->value.s;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_INTEGER:\n"
+                           "        sprintf(num_buf, \"%%d\", kv->value.i);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp, "      case OA_KV_NUMBER:\n"
+                           "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
+                           "        kv_raw = num_buf;\n"
+                           "        break;\n"));
+      CHECK_IO(fprintf(fp,
+                       "      case OA_KV_BOOLEAN:\n"
+                       "        kv_raw = kv->value.b ? \"true\" : \"false\";\n"
+                       "        break;\n"));
+      CHECK_IO(fprintf(
+          fp, "      default:\n        kv_raw = NULL;\n        break;\n"));
+      CHECK_IO(fprintf(fp, "      }\n"));
+      CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
+      CHECK_IO(fprintf(fp, "      rc = url_query_add(&qp, kv_key, kv_raw);\n"));
+      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "    rc = url_query_build_form(&qp, "
+                           "&qs_form_body);\n"));
+      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    if (qs_form_body && qs_form_body[0] != "
+                           "'\\0') {\n"));
+      CHECK_IO(fprintf(fp, "      if (asprintf(&query_str, \"?%%s\", "
+                           "qs_form_body) == -1) { rc = ENOMEM; goto cleanup; "
+                           "}\n"));
+      CHECK_IO(fprintf(fp, "    } else {\n"));
+      CHECK_IO(fprintf(fp, "      query_str = strdup(\"\");\n"));
+      CHECK_IO(fprintf(fp, "      if (!query_str) { rc = ENOMEM; goto cleanup; "
+                           "}\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_form_body);\n"));
+      CHECK_IO(fprintf(fp, "  } else {\n"));
+      CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "  }\n\n"));
+      return 0;
+    }
+    if (qs_json_obj) {
+      CHECK_IO(fprintf(
+          fp, "  /* Querystring Parameter (json array objects): %s */\n",
+          qs_name));
+      CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", qs_name, qs_name));
+      CHECK_IO(fprintf(fp, "    JSON_Value *qs_val = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    JSON_Array *qs_arr = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    qs_val = json_value_init_array();\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_val) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    qs_arr = json_value_get_array(qs_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_arr) { rc = EINVAL; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", qs_name));
+      CHECK_IO(fprintf(fp, "      char *item_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      JSON_Value *item_val = NULL;\n"));
+      CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", qs_name));
+      CHECK_IO(fprintf(fp, "        if (json_array_append_null(qs_arr) != "
+                           "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "        continue;\n"));
+      CHECK_IO(fprintf(fp, "      }\n"));
+      CHECK_IO(fprintf(fp, "      rc = %s_to_json(%s[i], &item_json);\n",
+                       qs_json_obj, qs_name));
+      CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "      item_val = json_parse_string(item_json);\n"));
+      CHECK_IO(fprintf(fp, "      free(item_json);\n"));
+      CHECK_IO(
+          fprintf(fp, "      if (!item_val) { rc = EINVAL; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp,
+                       "      if (json_array_append_value(qs_arr, item_val) "
+                       "!= JSONSuccess) { json_value_free(item_val); rc = "
+                       "ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(
+          fprintf(fp, "    qs_json = json_serialize_to_string(qs_val);\n"));
+      CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp,
+                       "    if (asprintf(&query_str, \"?%%s\", qs_enc) == -1) "
+                       "{ rc = ENOMEM; free(qs_enc); goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+      CHECK_IO(fprintf(fp, "  } else {\n"));
+      CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "  }\n\n"));
+      return 0;
+    }
+    if (qs_json_item) {
+      CHECK_IO(fprintf(fp, "  /* Querystring Parameter (json array): %s */\n",
+                       qs_name));
+      CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", qs_name, qs_name));
+      CHECK_IO(fprintf(fp, "    JSON_Value *qs_val = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    JSON_Array *qs_arr = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    size_t i;\n"));
+      CHECK_IO(fprintf(fp, "    qs_val = json_value_init_array();\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_val) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    qs_arr = json_value_get_array(qs_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_arr) { rc = EINVAL; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    for (i = 0; i < %s_len; ++i) {\n", qs_name));
+      if (strcmp(qs_json_item, "string") == 0) {
+        CHECK_IO(fprintf(fp, "      if (!%s[i]) {\n", qs_name));
+        CHECK_IO(fprintf(fp, "        if (json_array_append_null(qs_arr) != "
+                             "JSONSuccess) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(fp, "      } else {\n"));
+        CHECK_IO(fprintf(fp,
+                         "        if (json_array_append_string(qs_arr, %s[i]) "
+                         "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                         qs_name));
+        CHECK_IO(fprintf(fp, "      }\n"));
+      } else if (strcmp(qs_json_item, "integer") == 0) {
+        CHECK_IO(
+            fprintf(fp,
+                    "      if (json_array_append_number(qs_arr, (double)%s[i]) "
+                    "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                    qs_name));
+      } else if (strcmp(qs_json_item, "number") == 0) {
+        CHECK_IO(fprintf(fp,
+                         "      if (json_array_append_number(qs_arr, %s[i]) "
+                         "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+                         qs_name));
+      } else if (strcmp(qs_json_item, "boolean") == 0) {
+        CHECK_IO(fprintf(
+            fp,
+            "      if (json_array_append_boolean(qs_arr, %s[i] ? 1 : 0) "
+            "!= JSONSuccess) { rc = ENOMEM; goto cleanup; }\n",
+            qs_name));
+      } else {
+        CHECK_IO(fprintf(fp, "      rc = EINVAL; goto cleanup;\n"));
+      }
+      CHECK_IO(fprintf(fp, "    }\n"));
+      CHECK_IO(
+          fprintf(fp, "    qs_json = json_serialize_to_string(qs_val);\n"));
+      CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp,
+                       "    if (asprintf(&query_str, \"?%%s\", qs_enc) == -1) "
+                       "{ rc = ENOMEM; free(qs_enc); goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+      CHECK_IO(fprintf(fp, "  } else {\n"));
+      CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "  }\n\n"));
+      return 0;
+    }
+    if (qs_json_prim) {
+      CHECK_IO(fprintf(
+          fp, "  /* Querystring Parameter (json primitive): %s */\n", qs_name));
+      if (strcmp(qs_json_prim, "string") == 0) {
+        CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
+      } else {
+        CHECK_IO(fprintf(fp, "  {\n"));
+      }
+      CHECK_IO(fprintf(fp, "    JSON_Value *qs_val = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+      if (strcmp(qs_json_prim, "string") == 0) {
+        CHECK_IO(
+            fprintf(fp, "    qs_val = json_value_init_string(%s);\n", qs_name));
+      } else if (strcmp(qs_json_prim, "integer") == 0) {
+        CHECK_IO(fprintf(
+            fp, "    qs_val = json_value_init_number((double)%s);\n", qs_name));
+      } else if (strcmp(qs_json_prim, "number") == 0) {
+        CHECK_IO(
+            fprintf(fp, "    qs_val = json_value_init_number(%s);\n", qs_name));
+      } else if (strcmp(qs_json_prim, "boolean") == 0) {
+        CHECK_IO(fprintf(fp,
+                         "    qs_val = json_value_init_boolean(%s ? 1 : 0);\n",
+                         qs_name));
+      } else {
+        CHECK_IO(fprintf(fp, "    rc = EINVAL; goto cleanup;\n"));
+      }
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_val) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(
+          fprintf(fp, "    qs_json = json_serialize_to_string(qs_val);\n"));
+      CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp,
+                       "    if (asprintf(&query_str, \"?%%s\", qs_enc) == -1) "
+                       "{ rc = ENOMEM; free(qs_enc); goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+      if (strcmp(qs_json_prim, "string") == 0) {
+        CHECK_IO(fprintf(fp, "  } else {\n"));
+        CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+        CHECK_IO(fprintf(
+            fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+        CHECK_IO(fprintf(fp, "  }\n\n"));
+      } else {
+        CHECK_IO(fprintf(fp, "  }\n\n"));
+      }
+      return 0;
+    }
+    if (querystring_param_is_json_ref(querystring_param)) {
+      CHECK_IO(
+          fprintf(fp, "  /* Querystring Parameter (json): %s */\n", qs_name));
+      CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
+      CHECK_IO(fprintf(fp, "    char *qs_json = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+      CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &qs_json);\n",
+                       querystring_param->schema.ref_name, qs_name));
+      CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
+      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_json);\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp,
+                       "    if (asprintf(&query_str, \"?%%s\", qs_enc) == -1) "
+                       "{ rc = ENOMEM; free(qs_enc); goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+      CHECK_IO(fprintf(fp, "  } else {\n"));
+      CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+      CHECK_IO(
+          fprintf(fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+      CHECK_IO(fprintf(fp, "  }\n\n"));
+      return 0;
+    }
+    {
+      const char *qs_raw =
+          querystring_param_raw_primitive_type(querystring_param);
+      if (qs_raw) {
+        CHECK_IO(
+            fprintf(fp, "  /* Querystring Parameter (raw): %s */\n", qs_name));
+        if (strcmp(qs_raw, "string") == 0) {
+          CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
+          CHECK_IO(
+              fprintf(fp, "    char *qs_enc = url_encode(%s);\n", qs_name));
+          CHECK_IO(
+              fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (asprintf(&query_str, \"?%%s\", qs_enc) "
+                           "== -1) { rc = ENOMEM; free(qs_enc); goto cleanup; "
+                           "}\n"));
+          CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+          CHECK_IO(fprintf(fp, "  } else {\n"));
+          CHECK_IO(fprintf(fp, "    query_str = strdup(\"\");\n"));
+          CHECK_IO(fprintf(
+              fp, "    if (!query_str) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp, "  }\n\n"));
+        } else if (strcmp(qs_raw, "integer") == 0) {
+          CHECK_IO(fprintf(fp, "  {\n    char num_buf[32];\n"));
+          CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+          CHECK_IO(
+              fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", qs_name));
+          CHECK_IO(fprintf(fp, "    qs_enc = url_encode(num_buf);\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (asprintf(&query_str, \"?%%s\", qs_enc) "
+                           "== -1) { rc = ENOMEM; free(qs_enc); goto cleanup; "
+                           "}\n"));
+          CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+          CHECK_IO(fprintf(fp, "  }\n\n"));
+        } else if (strcmp(qs_raw, "number") == 0) {
+          CHECK_IO(fprintf(fp, "  {\n    char num_buf[64];\n"));
+          CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
+          CHECK_IO(
+              fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", qs_name));
+          CHECK_IO(fprintf(fp, "    qs_enc = url_encode(num_buf);\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (asprintf(&query_str, \"?%%s\", qs_enc) "
+                           "== -1) { rc = ENOMEM; free(qs_enc); goto cleanup; "
+                           "}\n"));
+          CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+          CHECK_IO(fprintf(fp, "  }\n\n"));
+        } else if (strcmp(qs_raw, "boolean") == 0) {
+          CHECK_IO(fprintf(fp, "  {\n"));
+          CHECK_IO(fprintf(
+              fp, "    const char *raw_val = %s ? \"true\" : \"false\";\n",
+              qs_name));
+          CHECK_IO(fprintf(fp, "    char *qs_enc = url_encode(raw_val);\n"));
+          CHECK_IO(
+              fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
+          CHECK_IO(fprintf(fp,
+                           "    if (asprintf(&query_str, \"?%%s\", qs_enc) "
+                           "== -1) { rc = ENOMEM; free(qs_enc); goto cleanup; "
+                           "}\n"));
+          CHECK_IO(fprintf(fp, "    free(qs_enc);\n"));
+          CHECK_IO(fprintf(fp, "  }\n\n"));
+        } else {
+          CHECK_IO(fprintf(fp, "  rc = EINVAL; goto cleanup;\n"));
+        }
+        return 0;
+      }
+    }
     CHECK_IO(fprintf(fp, "  rc = url_query_init(&qp);\n"));
     CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
     CHECK_IO(fprintf(fp, "  /* Querystring Parameter: %s */\n", qs_name));
@@ -919,6 +1896,13 @@ int codegen_url_write_query_params(FILE *const fp,
       }
 
       CHECK_IO(fprintf(fp, "  /* Query Parameter: %s */\n", p->name));
+
+      if (p->content_type && media_type_is_json(p->content_type)) {
+        int rc2 = write_query_json_param(fp, p);
+        if (rc2 != 0)
+          return rc2;
+        continue;
+      }
 
       if (param_is_object_kv(p)) {
         int rc2 = write_query_object_param(fp, p);
@@ -986,14 +1970,24 @@ int codegen_url_write_query_params(FILE *const fp,
           }
         } else if (style == OA_STYLE_SPACE_DELIMITED) {
           /* === spaceDelimited (explode n/a) === */
-          {
+          if (p->allow_reserved_set && p->allow_reserved) {
+            int rc2 = write_joined_query_array_encoded_delim(
+                fp, p, "%20", "url_encode_allow_reserved");
+            if (rc2 != 0)
+              return rc2;
+          } else {
             int rc2 = write_joined_query_array(fp, p, ' ', NULL, 0);
             if (rc2 != 0)
               return rc2;
           }
         } else if (style == OA_STYLE_PIPE_DELIMITED) {
           /* === pipeDelimited (explode n/a) === */
-          {
+          if (p->allow_reserved_set && p->allow_reserved) {
+            int rc2 = write_joined_query_array_encoded_delim(
+                fp, p, "%7C", "url_encode_allow_reserved");
+            if (rc2 != 0)
+              return rc2;
+          } else {
             int rc2 = write_joined_query_array(fp, p, '|', NULL, 0);
             if (rc2 != 0)
               return rc2;

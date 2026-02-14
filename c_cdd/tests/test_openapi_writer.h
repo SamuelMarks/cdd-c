@@ -20,6 +20,7 @@
 
 #include "openapi_loader.h"
 #include "openapi_writer.h"
+#include "str_utils.h"
 
 /* --- Helpers --- */
 
@@ -126,6 +127,26 @@ TEST test_writer_basic_operation(void) {
   }
 
   free(json);
+  PASS();
+}
+
+TEST test_writer_schema_document(void) {
+  struct OpenAPI_Spec spec;
+  char *json = NULL;
+  int rc;
+
+  openapi_spec_init(&spec);
+  spec.is_schema_document = 1;
+  spec.schema_root_json = c_cdd_strdup("{\"type\":\"string\"}");
+  ASSERT(spec.schema_root_json != NULL);
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+  ASSERT(json != NULL);
+  ASSERT_STR_EQ("{\"type\":\"string\"}", json);
+
+  free(json);
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -472,7 +493,6 @@ TEST test_writer_info_metadata(void) {
   spec.info.contact.email = "support@example.com";
   spec.info.license.name = "Apache 2.0";
   spec.info.license.identifier = "Apache-2.0";
-  spec.info.license.url = "https://www.apache.org/licenses/LICENSE-2.0.html";
 
   rc = openapi_write_spec_to_json(&spec, &json);
   ASSERT_EQ(0, rc);
@@ -498,13 +518,47 @@ TEST test_writer_info_metadata(void) {
                   json_object_get_string(contact, "email"));
     ASSERT_STR_EQ("Apache 2.0", json_object_get_string(license, "name"));
     ASSERT_STR_EQ("Apache-2.0", json_object_get_string(license, "identifier"));
-    ASSERT_STR_EQ("https://www.apache.org/licenses/LICENSE-2.0.html",
-                  json_object_get_string(license, "url"));
+    ASSERT(json_object_get_string(license, "url") == NULL);
 
     json_value_free(root);
   }
 
   free(json);
+  PASS();
+}
+
+TEST test_writer_info_license_identifier_and_url_rejected(void) {
+  struct OpenAPI_Spec spec = {0};
+  char *json = NULL;
+  int rc;
+
+  spec.info.title = "Example API";
+  spec.info.version = "1.0";
+  spec.info.license.name = "Apache 2.0";
+  spec.info.license.identifier = "Apache-2.0";
+  spec.info.license.url = "https://www.apache.org/licenses/LICENSE-2.0.html";
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(EINVAL, rc);
+  ASSERT(json == NULL);
+  PASS();
+}
+
+TEST test_writer_server_url_query_rejected(void) {
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Server server = {0};
+  char *json = NULL;
+  int rc;
+
+  spec.info.title = "Example API";
+  spec.info.version = "1.0";
+  server.url = "https://example.com/api?x=1";
+  spec.servers = &server;
+  spec.n_servers = 1;
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(EINVAL, rc);
+  ASSERT(json == NULL);
   PASS();
 }
 
@@ -740,6 +794,80 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   PASS();
 }
 
+TEST test_writer_schema_external_docs_discriminator_xml(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_DiscriminatorMap map;
+  char *json = NULL;
+  int rc;
+
+  setup_test_spec(&spec, &path, &op, NULL, &resp);
+
+  resp.schema.ref_name = NULL;
+  resp.schema.inline_type = "string";
+  resp.schema.external_docs_set = 1;
+  resp.schema.external_docs.url = "https://example.com/schema-doc";
+  resp.schema.external_docs.description = "Schema external docs";
+  resp.schema.discriminator_set = 1;
+  resp.schema.discriminator.property_name = "kind";
+  resp.schema.discriminator.default_mapping = "#/components/schemas/Base";
+  map.value = "cat";
+  map.schema = "#/components/schemas/Cat";
+  resp.schema.discriminator.mapping = &map;
+  resp.schema.discriminator.n_mapping = 1;
+  resp.schema.xml_set = 1;
+  resp.schema.xml.node_type_set = 1;
+  resp.schema.xml.node_type = OA_XML_NODE_ATTRIBUTE;
+  resp.schema.xml.name = "id";
+  resp.schema.xml.namespace_uri = "https://example.com/ns";
+  resp.schema.xml.prefix = "p";
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+  ASSERT(json != NULL);
+
+  {
+    JSON_Value *root = json_parse_string(json);
+    JSON_Object *paths =
+        json_object_get_object(json_value_get_object(root), "paths");
+    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    JSON_Object *op_obj = json_object_get_object(p_item, "get");
+    JSON_Object *responses = json_object_get_object(op_obj, "responses");
+    JSON_Object *r200 = json_object_get_object(responses, "200");
+    JSON_Object *content = json_object_get_object(r200, "content");
+    JSON_Object *media = json_object_get_object(content, "application/json");
+    JSON_Object *schema = json_object_get_object(media, "schema");
+    JSON_Object *ext = json_object_get_object(schema, "externalDocs");
+    JSON_Object *disc = json_object_get_object(schema, "discriminator");
+    JSON_Object *mapping = json_object_get_object(disc, "mapping");
+    JSON_Object *xml = json_object_get_object(schema, "xml");
+
+    ASSERT(ext != NULL);
+    ASSERT_STR_EQ("https://example.com/schema-doc",
+                  json_object_get_string(ext, "url"));
+    ASSERT_STR_EQ("Schema external docs",
+                  json_object_get_string(ext, "description"));
+    ASSERT(disc != NULL);
+    ASSERT_STR_EQ("kind", json_object_get_string(disc, "propertyName"));
+    ASSERT_STR_EQ("#/components/schemas/Base",
+                  json_object_get_string(disc, "defaultMapping"));
+    ASSERT_STR_EQ("#/components/schemas/Cat",
+                  json_object_get_string(mapping, "cat"));
+    ASSERT(xml != NULL);
+    ASSERT_STR_EQ("attribute", json_object_get_string(xml, "nodeType"));
+    ASSERT_STR_EQ("id", json_object_get_string(xml, "name"));
+    ASSERT_STR_EQ("https://example.com/ns",
+                  json_object_get_string(xml, "namespace"));
+    ASSERT_STR_EQ("p", json_object_get_string(xml, "prefix"));
+    json_value_free(root);
+  }
+
+  free(json);
+  PASS();
+}
+
 TEST test_writer_inline_schema_const_examples_annotations(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
@@ -802,6 +930,110 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   PASS();
 }
 
+TEST test_writer_preserves_composed_component_schema(void) {
+  const char *json =
+      "{"
+      "\"openapi\":\"3.2.0\","
+      "\"info\":{\"title\":\"Spec\",\"version\":\"1\"},"
+      "\"components\":{"
+      "\"schemas\":{"
+      "\"Pet\":{"
+      "\"oneOf\":["
+      "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}},"
+      "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}}}"
+      "]"
+      "}"
+      "}"
+      "}"
+      "}";
+
+  struct OpenAPI_Spec spec;
+  char *out_json = NULL;
+  int rc;
+
+  rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+
+  rc = openapi_write_spec_to_json(&spec, &out_json);
+  ASSERT_EQ(0, rc);
+  ASSERT(out_json != NULL);
+
+  {
+    JSON_Value *root = json_parse_string(out_json);
+    JSON_Object *root_obj = json_value_get_object(root);
+    JSON_Object *comps = json_object_get_object(root_obj, "components");
+    JSON_Object *schemas = json_object_get_object(comps, "schemas");
+    JSON_Object *pet = json_object_get_object(schemas, "Pet");
+    JSON_Array *one_of = json_object_get_array(pet, "oneOf");
+    ASSERT(one_of != NULL);
+    ASSERT_EQ(2, json_array_get_count(one_of));
+    json_value_free(root);
+  }
+
+  free(out_json);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
+TEST test_writer_preserves_inline_composed_schema(void) {
+  const char *json =
+      "{"
+      "\"openapi\":\"3.2.0\","
+      "\"info\":{\"title\":\"Spec\",\"version\":\"1\"},"
+      "\"paths\":{"
+      "\"/pets\":{"
+      "\"get\":{"
+      "\"operationId\":\"GetPets\","
+      "\"responses\":{"
+      "\"200\":{"
+      "\"description\":\"ok\","
+      "\"content\":{"
+      "\"application/json\":{"
+      "\"schema\":{"
+      "\"oneOf\":["
+      "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}},"
+      "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}}}"
+      "]"
+      "}"
+      "}"
+      "}"
+      "}"
+      "}"
+      "}"
+      "}"
+      "}";
+
+  struct OpenAPI_Spec spec;
+  char *out_json = NULL;
+  int rc;
+
+  rc = load_spec_str(json, &spec);
+  ASSERT_EQ(0, rc);
+
+  rc = openapi_write_spec_to_json(&spec, &out_json);
+  ASSERT_EQ(0, rc);
+  ASSERT(out_json != NULL);
+
+  {
+    JSON_Value *root = json_parse_string(out_json);
+    JSON_Object *root_obj = json_value_get_object(root);
+    JSON_Object *comps = json_object_get_object(root_obj, "components");
+    JSON_Object *schemas = json_object_get_object(comps, "schemas");
+    JSON_Object *inline_schema =
+        json_object_get_object(schemas, "Inline_GetPets_Response_200");
+    JSON_Array *one_of =
+        inline_schema ? json_object_get_array(inline_schema, "oneOf") : NULL;
+    ASSERT(inline_schema != NULL);
+    ASSERT(one_of != NULL);
+    ASSERT_EQ(2, json_array_get_count(one_of));
+    json_value_free(root);
+  }
+
+  free(out_json);
+  openapi_spec_free(&spec);
+  PASS();
+}
+
 TEST test_writer_schema_ref_summary_description(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
@@ -843,7 +1075,7 @@ TEST test_writer_schema_ref_summary_description(void) {
   PASS();
 }
 
-TEST test_writer_info_license_fallback(void) {
+TEST test_writer_info_license_missing_name_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   char *json = NULL;
   int rc;
@@ -853,18 +1085,8 @@ TEST test_writer_info_license_fallback(void) {
   spec.info.license.identifier = "Apache-2.0";
 
   rc = openapi_write_spec_to_json(&spec, &json);
-  ASSERT_EQ(0, rc);
-
-  {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *license =
-        json_object_get_object(json_object_get_object(root, "info"), "license");
-    ASSERT_STR_EQ("Unknown", json_object_get_string(license, "name"));
-    ASSERT_STR_EQ("Apache-2.0", json_object_get_string(license, "identifier"));
-    json_value_free(root);
-  }
-
-  free(json);
+  ASSERT_EQ(EINVAL, rc);
+  ASSERT(json == NULL);
   PASS();
 }
 
@@ -2105,6 +2327,44 @@ TEST test_writer_schema_ref_external(void) {
   PASS();
 }
 
+TEST test_writer_schema_dynamic_ref_external(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  char *json = NULL;
+  int rc;
+
+  setup_test_spec(&spec, &path, &op, NULL, &resp);
+  resp.schema.ref_name = NULL;
+  resp.schema.ref = "https://example.com/schemas/Pet";
+  resp.schema.ref_is_dynamic = 1;
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+
+  {
+    JSON_Value *root = json_parse_string(json);
+    JSON_Object *paths =
+        json_object_get_object(json_value_get_object(root), "paths");
+    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    JSON_Object *get = json_object_get_object(p_item, "get");
+    JSON_Object *responses = json_object_get_object(get, "responses");
+    JSON_Object *resp_obj = json_object_get_object(responses, "200");
+    JSON_Object *content = json_object_get_object(resp_obj, "content");
+    JSON_Object *media = json_object_get_object(content, "application/json");
+    JSON_Object *schema = json_object_get_object(media, "schema");
+
+    ASSERT_STR_EQ("https://example.com/schemas/Pet",
+                  json_object_get_string(schema, "$dynamicRef"));
+
+    json_value_free(root);
+  }
+
+  free(json);
+  PASS();
+}
+
 TEST test_writer_schema_items_ref_external(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
@@ -2137,6 +2397,47 @@ TEST test_writer_schema_items_ref_external(void) {
     ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("https://example.com/schemas/Pet",
                   json_object_get_string(items, "$ref"));
+
+    json_value_free(root);
+  }
+
+  free(json);
+  PASS();
+}
+
+TEST test_writer_schema_items_dynamic_ref_external(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  char *json = NULL;
+  int rc;
+
+  setup_test_spec(&spec, &path, &op, NULL, &resp);
+  resp.schema.ref_name = NULL;
+  resp.schema.is_array = 1;
+  resp.schema.items_ref = "https://example.com/schemas/Pet";
+  resp.schema.items_ref_is_dynamic = 1;
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+
+  {
+    JSON_Value *root = json_parse_string(json);
+    JSON_Object *paths =
+        json_object_get_object(json_value_get_object(root), "paths");
+    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    JSON_Object *get = json_object_get_object(p_item, "get");
+    JSON_Object *responses = json_object_get_object(get, "responses");
+    JSON_Object *resp_obj = json_object_get_object(responses, "200");
+    JSON_Object *content = json_object_get_object(resp_obj, "content");
+    JSON_Object *media = json_object_get_object(content, "application/json");
+    JSON_Object *schema = json_object_get_object(media, "schema");
+    JSON_Object *items = json_object_get_object(schema, "items");
+
+    ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
+    ASSERT_STR_EQ("https://example.com/schemas/Pet",
+                  json_object_get_string(items, "$dynamicRef"));
 
     json_value_free(root);
   }
@@ -3391,6 +3692,12 @@ TEST test_writer_extensions_non_schema(void) {
 
   path.extensions_json = "{\"x-path\":6}";
   op.extensions_json = "{\"x-op\":7}";
+  op.responses_extensions_json = "{\"x-responses\":1}";
+  op.req_body.inline_type = "string";
+  op.req_body.content_type = "application/json";
+  op.req_body_required_set = 1;
+  op.req_body_required = 1;
+  op.req_body_extensions_json = "{\"x-rb-op\":true}";
   param.extensions_json = "{\"x-param\":\"param\"}";
   resp.extensions_json = "{\"x-resp\":true}";
 
@@ -3472,6 +3779,7 @@ TEST test_writer_extensions_non_schema(void) {
     JSON_Object *paths = json_object_get_object(root_obj, "paths");
     JSON_Object *path_obj = json_object_get_object(paths, "/test/route");
     JSON_Object *op_obj = json_object_get_object(path_obj, "get");
+    JSON_Object *rb_op_obj = json_object_get_object(op_obj, "requestBody");
     JSON_Array *params_arr = json_object_get_array(op_obj, "parameters");
     JSON_Object *param_obj = json_array_get_object(params_arr, 0);
     JSON_Object *responses = json_object_get_object(op_obj, "responses");
@@ -3496,8 +3804,11 @@ TEST test_writer_extensions_non_schema(void) {
     ASSERT_STR_EQ("tag", json_object_get_string(tag_obj, "x-tag"));
     ASSERT_EQ(6, (int)json_object_get_number(path_obj, "x-path"));
     ASSERT_EQ(7, (int)json_object_get_number(op_obj, "x-op"));
+    ASSERT(rb_op_obj != NULL);
+    ASSERT_EQ(1, json_object_get_boolean(rb_op_obj, "x-rb-op"));
     ASSERT_STR_EQ("param", json_object_get_string(param_obj, "x-param"));
     ASSERT_EQ(1, json_object_get_boolean(resp_obj, "x-resp"));
+    ASSERT_EQ(1, (int)json_object_get_number(responses, "x-responses"));
     ASSERT_STR_EQ("cb", json_object_get_string(cb_obj, "x-cb"));
     ASSERT_EQ(1, (int)json_object_get_number(scheme_obj, "x-sec"));
     ASSERT_EQ(1, (int)json_object_get_number(flow_obj, "x-flow"));
@@ -3511,9 +3822,56 @@ TEST test_writer_extensions_non_schema(void) {
   PASS();
 }
 
+TEST test_writer_paths_webhooks_components_extensions(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Response resp;
+  char *json = NULL;
+  int rc;
+
+  setup_test_spec(&spec, &path, &op, NULL, &resp);
+  spec.info.title = "Spec";
+  spec.info.version = "1";
+  resp.description = "ok";
+
+  spec.paths_extensions_json = "{\"x-paths\":true}";
+  spec.webhooks_extensions_json = "{\"x-hooks\":1}";
+  spec.components_extensions_json = "{\"x-comps\":{\"meta\":\"yes\"}}";
+  spec.webhooks = NULL;
+  spec.n_webhooks = 0;
+
+  rc = openapi_write_spec_to_json(&spec, &json);
+  ASSERT_EQ(0, rc);
+  ASSERT(json != NULL);
+
+  {
+    JSON_Value *root = json_parse_string(json);
+    JSON_Object *root_obj = json_value_get_object(root);
+    JSON_Object *paths_obj = json_object_get_object(root_obj, "paths");
+    JSON_Object *hooks_obj = json_object_get_object(root_obj, "webhooks");
+    JSON_Object *comps_obj = json_object_get_object(root_obj, "components");
+    JSON_Object *path_item = json_object_get_object(paths_obj, "/test/route");
+
+    ASSERT_EQ(1, json_object_get_boolean(paths_obj, "x-paths"));
+    ASSERT(path_item != NULL);
+
+    ASSERT_EQ(1, (int)json_object_get_number(hooks_obj, "x-hooks"));
+    ASSERT_STR_EQ("yes",
+                  json_object_get_string(
+                      json_object_get_object(comps_obj, "x-comps"), "meta"));
+
+    json_value_free(root);
+  }
+
+  free(json);
+  PASS();
+}
+
 SUITE(openapi_writer_suite) {
   RUN_TEST(test_writer_empty_spec);
   RUN_TEST(test_writer_basic_operation);
+  RUN_TEST(test_writer_schema_document);
   RUN_TEST(test_writer_root_metadata_and_tags);
   RUN_TEST(test_writer_path_ref_and_servers);
   RUN_TEST(test_writer_webhooks);
@@ -3522,15 +3880,20 @@ SUITE(openapi_writer_suite) {
   RUN_TEST(test_writer_allow_empty_value);
   RUN_TEST(test_writer_request_body_metadata_and_response_description);
   RUN_TEST(test_writer_info_metadata);
+  RUN_TEST(test_writer_info_license_identifier_and_url_rejected);
+  RUN_TEST(test_writer_server_url_query_rejected);
   RUN_TEST(test_writer_operation_metadata);
   RUN_TEST(test_writer_response_content_type);
   RUN_TEST(test_writer_inline_response_schema_primitive);
   RUN_TEST(test_writer_inline_response_schema_array);
   RUN_TEST(test_writer_inline_schema_format_and_content);
   RUN_TEST(test_writer_inline_schema_array_item_format_and_content);
+  RUN_TEST(test_writer_schema_external_docs_discriminator_xml);
   RUN_TEST(test_writer_inline_schema_const_examples_annotations);
+  RUN_TEST(test_writer_preserves_composed_component_schema);
+  RUN_TEST(test_writer_preserves_inline_composed_schema);
   RUN_TEST(test_writer_schema_ref_summary_description);
-  RUN_TEST(test_writer_info_license_fallback);
+  RUN_TEST(test_writer_info_license_missing_name_rejected);
   RUN_TEST(test_writer_options_trace_verbs);
   RUN_TEST(test_writer_query_and_external_docs);
   RUN_TEST(test_writer_parameter_styles);
@@ -3555,7 +3918,9 @@ SUITE(openapi_writer_suite) {
   RUN_TEST(test_writer_components_schemas);
   RUN_TEST(test_writer_components_schemas_raw);
   RUN_TEST(test_writer_schema_ref_external);
+  RUN_TEST(test_writer_schema_dynamic_ref_external);
   RUN_TEST(test_writer_schema_items_ref_external);
+  RUN_TEST(test_writer_schema_items_dynamic_ref_external);
   RUN_TEST(test_writer_additional_operations);
   RUN_TEST(test_writer_component_media_types_and_content_ref);
   RUN_TEST(test_writer_response_multiple_content);
@@ -3577,6 +3942,7 @@ SUITE(openapi_writer_suite) {
   RUN_TEST(test_writer_inline_schema_items_const_default_and_extras);
   RUN_TEST(test_writer_input_validation);
   RUN_TEST(test_writer_extensions_non_schema);
+  RUN_TEST(test_writer_paths_webhooks_components_extensions);
 }
 
 #endif /* TEST_OPENAPI_WRITER_H */

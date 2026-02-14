@@ -21,14 +21,16 @@ extern "C" {
 /**
  * @brief Main entry point for the `c2openapi` command.
  *
- * Usage: `c2openapi <source_directory> <output_openapi.json>`
+ * Usage: `c2openapi [--base <openapi.json>] [--self <uri>] [--dialect <uri>]
+ * <source_directory> <output_openapi.json>`
  *
  * Workflow:
- * 1. Initializes an empty OpenAPI Spec.
+ * 1. Initializes an empty OpenAPI Spec (or loads a base spec if provided).
  * 2. Recursively walks the `<source_directory>`.
  * 3. Identifies `.c` and `.h` files.
  * 4. Extracts structs/enums -> Components Registry.
- * 5. Extracts functions with `@route` annotations -> Paths & Operations.
+ * 5. Extracts functions with `@route` and `@webhook` annotations -> Paths,
+ *    Webhooks & Operations.
  * 6. Serializes the result to JSON and writes to `<output_openapi.json>`.
  *
  * @param[in] argc Argument count.

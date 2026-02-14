@@ -20,11 +20,17 @@
 /* --- Helper Function Prototypes --- */
 
 static enum OpenAPI_Verb parse_verb(const char *v);
+static int is_fixed_operation_method(const char *method);
 static enum OpenAPI_ParamIn parse_param_in(const char *in);
 static enum OpenAPI_Style parse_param_style(const char *s);
+static int param_type_is_primitive(const char *type);
+static int param_type_is_object_like(const struct OpenAPI_Parameter *p);
+static int validate_parameter_style(const struct OpenAPI_Parameter *p,
+                                    int has_content);
 static enum OpenAPI_SecurityType parse_security_type(const char *type);
 static enum OpenAPI_SecurityIn parse_security_in(const char *in);
 static enum OpenAPI_OAuthFlowType parse_oauth_flow_type(const char *flow);
+static enum OpenAPI_XmlNodeType parse_xml_node_type(const char *node_type);
 static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out);
 static void free_any_value(struct OpenAPI_Any *val);
 static int parse_any_field(const JSON_Object *obj, const char *key,
@@ -35,6 +41,9 @@ static int collect_schema_extras(const JSON_Object *obj,
                                  const char *const *skip_keys,
                                  size_t skip_count, char **out_json);
 static int collect_extensions(const JSON_Object *obj, char **out_json);
+static int url_has_query_or_fragment(const char *url);
+static int openapi_version_supported(const char *version);
+static int example_fields_valid(const struct OpenAPI_Example *ex);
 static int component_key_is_valid(const char *name);
 static int validate_component_key_map(const JSON_Object *obj);
 static const char *parse_schema_type(const JSON_Object *schema,
@@ -66,6 +75,7 @@ static int parse_string_enum_array(const JSON_Array *arr, char ***out,
 static void free_string_array(char **arr, size_t n);
 static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
                              size_t src_count);
+static int media_type_is_json(const char *name);
 static int parse_example_object(const JSON_Object *ex_obj, const char *name,
                                 struct OpenAPI_Example *out,
                                 const struct OpenAPI_Spec *spec,
@@ -92,11 +102,13 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                            const struct OpenAPI_SchemaRef *src);
 static void free_example(struct OpenAPI_Example *ex);
 static void free_header(struct OpenAPI_Header *hdr);
-static char *clean_ref(const char *full_ref);
 static char *json_pointer_unescape(const char *in);
 static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
 static int parse_external_docs(const JSON_Object *obj,
                                struct OpenAPI_ExternalDocs *out);
+static int parse_discriminator_object(const JSON_Object *obj,
+                                      struct OpenAPI_Discriminator *out);
+static int parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out);
 static int parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
 static int parse_server_object(const JSON_Object *srv_obj,
                                struct OpenAPI_Server *out_srv);
@@ -107,7 +119,17 @@ static int parse_security_field(const JSON_Object *obj, const char *key,
                                 struct OpenAPI_SecurityRequirementSet **out,
                                 size_t *out_count, int *out_set);
 static int parse_schema_ref(const JSON_Object *schema,
-                            struct OpenAPI_SchemaRef *out);
+                            struct OpenAPI_SchemaRef *out,
+                            const struct OpenAPI_Spec *spec);
+static int copy_security_requirement_sets(
+    struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
+    const struct OpenAPI_SecurityRequirementSet *src, size_t src_count);
+static int copy_callback_fields(struct OpenAPI_Callback *dst,
+                                const struct OpenAPI_Callback *src);
+static int copy_operation_fields(struct OpenAPI_Operation *dst,
+                                 const struct OpenAPI_Operation *src);
+static int copy_path_fields(struct OpenAPI_Path *dst,
+                            const struct OpenAPI_Path *src);
 static int
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                           const struct OpenAPI_SchemaRef *schema_ref);
@@ -163,11 +185,12 @@ static int parse_parameters_array(const JSON_Array *arr,
 static int parse_request_body_object(const JSON_Object *rb_obj,
                                      struct OpenAPI_RequestBody *out_rb,
                                      const struct OpenAPI_Spec *spec,
-                                     int resolve_refs);
+                                     int resolve_refs, const char *op_id);
 static int parse_response_object(const JSON_Object *resp_obj,
                                  struct OpenAPI_Response *out_resp,
                                  const struct OpenAPI_Spec *spec,
-                                 int resolve_refs);
+                                 int resolve_refs, const char *op_id,
+                                 const char *resp_code);
 static int parse_links_object(const JSON_Object *links,
                               struct OpenAPI_Link **out_links,
                               size_t *out_count,
@@ -175,14 +198,17 @@ static int parse_links_object(const JSON_Object *links,
                               int resolve_refs);
 static int parse_responses(const JSON_Object *responses,
                            struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec);
+                           const struct OpenAPI_Spec *spec, const char *op_id);
 static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
                            struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec, int is_additional);
+                           const struct OpenAPI_Spec *spec, int is_additional,
+                           const char *route_hint);
 static int parse_callback_object(const JSON_Object *cb_obj,
                                  struct OpenAPI_Callback *out_cb,
                                  const struct OpenAPI_Spec *spec,
                                  int resolve_refs);
+static const struct OpenAPI_Path *
+find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref);
 static int parse_callbacks_object(const JSON_Object *callbacks,
                                   struct OpenAPI_Callback **out_callbacks,
                                   size_t *out_count,
@@ -218,8 +244,24 @@ static int parse_paths_object(const JSON_Object *paths_obj,
                               struct OpenAPI_Path **out_paths,
                               size_t *out_count,
                               const struct OpenAPI_Spec *spec,
-                              int require_leading_slash);
+                              int require_leading_slash, int resolve_refs);
 static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
+static int
+collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
+                                          size_t n_paths, char ***ids,
+                                          size_t *count, size_t *cap);
+static int collect_callback_operation_ids_from_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
+    size_t *count, size_t *cap);
+static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
+                                            const char *name);
+static int validate_querystring_usage_in_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks);
+static int
+validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
+                                              size_t n_paths);
+static int validate_querystring_usage_in_component_callbacks(
+    const struct OpenAPI_Spec *spec);
 static int parse_additional_operations(const JSON_Object *path_obj,
                                        struct OpenAPI_Path *path,
                                        const struct OpenAPI_Spec *spec);
@@ -231,10 +273,19 @@ static void free_servers_array(struct OpenAPI_Server *servers,
 void openapi_spec_init(struct OpenAPI_Spec *const spec) {
   if (spec) {
     spec->openapi_version = NULL;
+    spec->is_schema_document = 0;
+    spec->schema_root_json = NULL;
     spec->self_uri = NULL;
+    spec->retrieval_uri = NULL;
+    spec->document_uri = NULL;
+    spec->doc_registry = NULL;
     spec->json_schema_dialect = NULL;
+    spec->extensions_json = NULL;
     memset(&spec->info, 0, sizeof(spec->info));
     memset(&spec->external_docs, 0, sizeof(spec->external_docs));
+    spec->paths_extensions_json = NULL;
+    spec->webhooks_extensions_json = NULL;
+    spec->components_extensions_json = NULL;
     spec->tags = NULL;
     spec->n_tags = 0;
     spec->security = NULL;
@@ -278,6 +329,9 @@ void openapi_spec_init(struct OpenAPI_Spec *const spec) {
     spec->n_raw_schemas = 0;
     spec->defined_schemas = NULL;
     spec->defined_schema_names = NULL;
+    spec->defined_schema_ids = NULL;
+    spec->defined_schema_anchors = NULL;
+    spec->defined_schema_dynamic_anchors = NULL;
     spec->n_defined_schemas = 0;
   }
 }
@@ -335,6 +389,36 @@ static void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
   }
   if (ref->schema_extra_json)
     free(ref->schema_extra_json);
+  if (ref->external_docs.description)
+    free(ref->external_docs.description);
+  if (ref->external_docs.url)
+    free(ref->external_docs.url);
+  if (ref->external_docs.extensions_json)
+    free(ref->external_docs.extensions_json);
+  if (ref->discriminator.property_name)
+    free(ref->discriminator.property_name);
+  if (ref->discriminator.default_mapping)
+    free(ref->discriminator.default_mapping);
+  if (ref->discriminator.extensions_json)
+    free(ref->discriminator.extensions_json);
+  if (ref->discriminator.mapping) {
+    size_t i;
+    for (i = 0; i < ref->discriminator.n_mapping; ++i) {
+      if (ref->discriminator.mapping[i].value)
+        free(ref->discriminator.mapping[i].value);
+      if (ref->discriminator.mapping[i].schema)
+        free(ref->discriminator.mapping[i].schema);
+    }
+    free(ref->discriminator.mapping);
+  }
+  if (ref->xml.name)
+    free(ref->xml.name);
+  if (ref->xml.namespace_uri)
+    free(ref->xml.namespace_uri);
+  if (ref->xml.prefix)
+    free(ref->xml.prefix);
+  if (ref->xml.extensions_json)
+    free(ref->xml.extensions_json);
   if (ref->items_enum_values) {
     size_t i;
     for (i = 0; i < ref->n_items_enum_values; ++i)
@@ -829,6 +913,8 @@ static void free_operation(struct OpenAPI_Operation *op) {
     free(op->description);
   if (op->extensions_json)
     free(op->extensions_json);
+  if (op->responses_extensions_json)
+    free(op->responses_extensions_json);
 
   if (op->tags) {
     for (i = 0; i < op->n_tags; ++i) {
@@ -849,6 +935,8 @@ static void free_operation(struct OpenAPI_Operation *op) {
   }
   if (op->req_body_description)
     free(op->req_body_description);
+  if (op->req_body_extensions_json)
+    free(op->req_body_extensions_json);
   if (op->req_body_ref)
     free(op->req_body_ref);
   if (op->external_docs.description)
@@ -907,9 +995,21 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
     free(spec->openapi_version);
     spec->openapi_version = NULL;
   }
+  if (spec->schema_root_json) {
+    free(spec->schema_root_json);
+    spec->schema_root_json = NULL;
+  }
   if (spec->self_uri) {
     free(spec->self_uri);
     spec->self_uri = NULL;
+  }
+  if (spec->retrieval_uri) {
+    free(spec->retrieval_uri);
+    spec->retrieval_uri = NULL;
+  }
+  if (spec->document_uri) {
+    free(spec->document_uri);
+    spec->document_uri = NULL;
   }
   if (spec->json_schema_dialect) {
     free(spec->json_schema_dialect);
@@ -918,6 +1018,18 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
   if (spec->extensions_json) {
     free(spec->extensions_json);
     spec->extensions_json = NULL;
+  }
+  if (spec->paths_extensions_json) {
+    free(spec->paths_extensions_json);
+    spec->paths_extensions_json = NULL;
+  }
+  if (spec->webhooks_extensions_json) {
+    free(spec->webhooks_extensions_json);
+    spec->webhooks_extensions_json = NULL;
+  }
+  if (spec->components_extensions_json) {
+    free(spec->components_extensions_json);
+    spec->components_extensions_json = NULL;
   }
   if (spec->info.title)
     free(spec->info.title);
@@ -1188,11 +1300,23 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
     for (i = 0; i < spec->n_defined_schemas; ++i) {
       struct_fields_free(&spec->defined_schemas[i]);
       free(spec->defined_schema_names[i]);
+      if (spec->defined_schema_ids)
+        free(spec->defined_schema_ids[i]);
+      if (spec->defined_schema_anchors)
+        free(spec->defined_schema_anchors[i]);
+      if (spec->defined_schema_dynamic_anchors)
+        free(spec->defined_schema_dynamic_anchors[i]);
     }
     free(spec->defined_schemas);
     free(spec->defined_schema_names);
+    free(spec->defined_schema_ids);
+    free(spec->defined_schema_anchors);
+    free(spec->defined_schema_dynamic_anchors);
     spec->defined_schemas = NULL;
     spec->defined_schema_names = NULL;
+    spec->defined_schema_ids = NULL;
+    spec->defined_schema_anchors = NULL;
+    spec->defined_schema_dynamic_anchors = NULL;
   }
 
   spec->n_paths = 0;
@@ -1237,6 +1361,18 @@ static enum OpenAPI_Verb parse_verb(const char *const v) {
   return OA_VERB_UNKNOWN;
 }
 
+static int is_fixed_operation_method(const char *const method) {
+  if (!method)
+    return 0;
+  return c_cdd_str_iequal(method, "get") || c_cdd_str_iequal(method, "post") ||
+         c_cdd_str_iequal(method, "put") ||
+         c_cdd_str_iequal(method, "delete") ||
+         c_cdd_str_iequal(method, "patch") ||
+         c_cdd_str_iequal(method, "head") ||
+         c_cdd_str_iequal(method, "options") ||
+         c_cdd_str_iequal(method, "trace") || c_cdd_str_iequal(method, "query");
+}
+
 static enum OpenAPI_ParamIn parse_param_in(const char *const in) {
   if (strcmp(in, "path") == 0)
     return OA_PARAM_IN_PATH;
@@ -1271,6 +1407,67 @@ static enum OpenAPI_Style parse_param_style(const char *const s) {
   if (strcmp(s, "cookie") == 0)
     return OA_STYLE_COOKIE;
   return OA_STYLE_UNKNOWN;
+}
+
+static int param_type_is_primitive(const char *const type) {
+  if (!type)
+    return 0;
+  return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
+         strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
+}
+
+static int param_type_is_object_like(const struct OpenAPI_Parameter *const p) {
+  if (!p || !p->type)
+    return 0;
+  if (strcmp(p->type, "array") == 0)
+    return 0;
+  return !param_type_is_primitive(p->type);
+}
+
+static int validate_parameter_style(const struct OpenAPI_Parameter *const p,
+                                    const int has_content) {
+  enum OpenAPI_Style style;
+  if (!p)
+    return 0;
+  if (has_content)
+    return 0;
+  if (p->in == OA_PARAM_IN_QUERYSTRING)
+    return 0;
+
+  style = p->style;
+  switch (p->in) {
+  case OA_PARAM_IN_QUERY:
+    if (style != OA_STYLE_FORM && style != OA_STYLE_SPACE_DELIMITED &&
+        style != OA_STYLE_PIPE_DELIMITED && style != OA_STYLE_DEEP_OBJECT)
+      return EINVAL;
+    break;
+  case OA_PARAM_IN_PATH:
+    if (style != OA_STYLE_SIMPLE && style != OA_STYLE_MATRIX &&
+        style != OA_STYLE_LABEL)
+      return EINVAL;
+    break;
+  case OA_PARAM_IN_HEADER:
+    if (style != OA_STYLE_SIMPLE)
+      return EINVAL;
+    break;
+  case OA_PARAM_IN_COOKIE:
+    if (style != OA_STYLE_FORM && style != OA_STYLE_COOKIE)
+      return EINVAL;
+    break;
+  default:
+    break;
+  }
+
+  if (style == OA_STYLE_DEEP_OBJECT) {
+    if (p->is_array || !param_type_is_object_like(p))
+      return EINVAL;
+  }
+  if (style == OA_STYLE_SPACE_DELIMITED || style == OA_STYLE_PIPE_DELIMITED) {
+    if (!p->is_array && !param_type_is_object_like(p))
+      return EINVAL;
+  }
+
+  return 0;
 }
 
 static int component_key_is_valid(const char *const name) {
@@ -1355,6 +1552,23 @@ parse_oauth_flow_type(const char *const flow) {
   if (strcmp(flow, "deviceAuthorization") == 0)
     return OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
   return OA_OAUTH_FLOW_UNKNOWN;
+}
+
+static enum OpenAPI_XmlNodeType
+parse_xml_node_type(const char *const node_type) {
+  if (!node_type)
+    return OA_XML_NODE_UNSET;
+  if (strcmp(node_type, "element") == 0)
+    return OA_XML_NODE_ELEMENT;
+  if (strcmp(node_type, "attribute") == 0)
+    return OA_XML_NODE_ATTRIBUTE;
+  if (strcmp(node_type, "text") == 0)
+    return OA_XML_NODE_TEXT;
+  if (strcmp(node_type, "cdata") == 0)
+    return OA_XML_NODE_CDATA;
+  if (strcmp(node_type, "none") == 0)
+    return OA_XML_NODE_NONE;
+  return OA_XML_NODE_UNSET;
 }
 
 static int parse_any_value(const JSON_Value *const val,
@@ -1593,6 +1807,40 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
   return *out_json ? 0 : ENOMEM;
+}
+
+static int url_has_query_or_fragment(const char *url) {
+  if (!url)
+    return 0;
+  return (strchr(url, '?') != NULL || strchr(url, '#') != NULL);
+}
+
+static int openapi_version_supported(const char *version) {
+  if (!version || !*version)
+    return 0;
+  return (version[0] == '3' && version[1] == '.');
+}
+
+static int example_fields_valid(const struct OpenAPI_Example *ex) {
+  if (!ex)
+    return 1;
+  if (ex->data_value_set && ex->value_set)
+    return 0;
+  if (ex->serialized_value && ex->external_value)
+    return 0;
+  if (ex->value_set && (ex->serialized_value || ex->external_value))
+    return 0;
+  return 1;
+}
+
+static int object_has_example_and_examples(const JSON_Object *obj) {
+  if (!obj)
+    return 0;
+  if (json_object_has_value(obj, "example") &&
+      json_object_has_value(obj, "examples")) {
+    return 1;
+  }
+  return 0;
 }
 
 static const char *parse_schema_type(const JSON_Object *const schema,
@@ -1899,20 +2147,34 @@ static void free_example(struct OpenAPI_Example *ex) {
 static const struct OpenAPI_Example *
 find_component_example(const struct OpenAPI_Spec *spec, const char *ref) {
   size_t i;
-  char *name;
-  if (!spec || !ref)
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name_enc =
+      ref_name_from_prefix(target, resolved.ref, "#/components/examples/");
+  char *name_dec;
+  if (!target || !name_enc) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  name = clean_ref(ref);
-  if (!name)
+  }
+  name_dec = json_pointer_unescape(name_enc);
+  if (!name_dec) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_examples; ++i) {
-    if (spec->component_example_names && spec->component_example_names[i] &&
-        strcmp(spec->component_example_names[i], name) == 0) {
-      free(name);
-      return &spec->component_examples[i];
+  }
+  for (i = 0; i < target->n_component_examples; ++i) {
+    if (target->component_example_names && target->component_example_names[i] &&
+        strcmp(target->component_example_names[i], name_dec) == 0) {
+      free(name_dec);
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_examples[i];
     }
   }
-  free(name);
+  free(name_dec);
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
@@ -1986,6 +2248,9 @@ static int parse_example_object(const JSON_Object *const ex_obj,
       return ENOMEM;
   }
 
+  if (!out->ref && !example_fields_valid(out))
+    return EINVAL;
+
   return 0;
 }
 
@@ -2039,6 +2304,8 @@ static int parse_media_examples(const JSON_Object *const media_obj,
 
   if (!media_obj)
     return 0;
+  if (object_has_example_and_examples(media_obj))
+    return EINVAL;
 
   examples_obj = json_object_get_object(media_obj, "examples");
   if (examples_obj) {
@@ -2090,7 +2357,7 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
     return 0;
   count = json_object_get_count(flows_obj);
   if (count == 0)
-    return 0;
+    return EINVAL;
   out->flows = (struct OpenAPI_OAuthFlow *)calloc(
       count, sizeof(struct OpenAPI_OAuthFlow));
   if (!out->flows)
@@ -2103,6 +2370,8 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
     struct OpenAPI_OAuthFlow *flow = &out->flows[i];
     if (name)
       flow->type = parse_oauth_flow_type(name);
+    if (flow->type == OA_OAUTH_FLOW_UNKNOWN)
+      return EINVAL;
     if (flow_obj) {
       const char *authorization_url =
           json_object_get_string(flow_obj, "authorizationUrl");
@@ -2110,8 +2379,34 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
       const char *refresh_url = json_object_get_string(flow_obj, "refreshUrl");
       const char *device_authorization_url =
           json_object_get_string(flow_obj, "deviceAuthorizationUrl");
+      const int scopes_present = json_object_has_value(flow_obj, "scopes");
       const JSON_Object *scopes_obj =
           json_object_get_object(flow_obj, "scopes");
+
+      if (!scopes_present || !scopes_obj)
+        return EINVAL;
+      switch (flow->type) {
+      case OA_OAUTH_FLOW_IMPLICIT:
+        if (!authorization_url)
+          return EINVAL;
+        break;
+      case OA_OAUTH_FLOW_PASSWORD:
+      case OA_OAUTH_FLOW_CLIENT_CREDENTIALS:
+        if (!token_url)
+          return EINVAL;
+        break;
+      case OA_OAUTH_FLOW_AUTHORIZATION_CODE:
+        if (!authorization_url || !token_url)
+          return EINVAL;
+        break;
+      case OA_OAUTH_FLOW_DEVICE_AUTHORIZATION:
+        if (!device_authorization_url || !token_url)
+          return EINVAL;
+        break;
+      case OA_OAUTH_FLOW_UNKNOWN:
+      default:
+        return EINVAL;
+      }
 
       if (authorization_url) {
         flow->authorization_url = c_cdd_strdup(authorization_url);
@@ -2170,124 +2465,820 @@ static char *json_pointer_unescape(const char *in) {
   return out;
 }
 
-static const char *ref_name_from_prefix(const char *ref, const char *prefix) {
+static int uri_has_scheme_prefix(const char *uri, size_t len) {
+  size_t i;
+  if (!uri || len == 0)
+    return 0;
+  for (i = 0; i < len; ++i) {
+    char c = uri[i];
+    if (c == ':')
+      return 1;
+    if (c == '/' || c == '?' || c == '#')
+      break;
+  }
+  return 0;
+}
+
+static size_t uri_base_len(const char *uri) {
+  if (!uri)
+    return 0;
+  return strcspn(uri, "#");
+}
+
+static size_t uri_scheme_len(const char *uri, size_t len) {
+  size_t i;
+  if (!uri || len == 0)
+    return 0;
+  for (i = 0; i < len; ++i) {
+    if (uri[i] == ':')
+      return i;
+    if (uri[i] == '/' || uri[i] == '?' || uri[i] == '#')
+      break;
+  }
+  return 0;
+}
+
+static char *dup_substr(const char *src, size_t len) {
+  char *out;
+  if (!src)
+    return NULL;
+  out = (char *)malloc(len + 1);
+  if (!out)
+    return NULL;
+  memcpy(out, src, len);
+  out[len] = '\0';
+  return out;
+}
+
+static char *normalize_path(const char *path) {
+  size_t i = 0;
+  int absolute = 0;
+  int trailing = 0;
+  char **segments = NULL;
+  size_t count = 0;
+  size_t cap = 0;
+  char *out = NULL;
+  size_t out_len = 0;
+
+  if (!path)
+    return NULL;
+  if (path[0] == '/')
+    absolute = 1;
+  if (path[0] && path[strlen(path) - 1] == '/')
+    trailing = 1;
+
+  while (path[i]) {
+    size_t start = i;
+    size_t seg_len;
+    while (path[i] && path[i] != '/')
+      ++i;
+    seg_len = i - start;
+    if (seg_len == 0) {
+      if (path[i] == '/')
+        ++i;
+      continue;
+    }
+    if (seg_len == 1 && path[start] == '.') {
+      if (path[i] == '/')
+        ++i;
+      continue;
+    }
+    if (seg_len == 2 && path[start] == '.' && path[start + 1] == '.') {
+      if (count > 0 && strcmp(segments[count - 1], "..") != 0) {
+        free(segments[count - 1]);
+        count--;
+      } else if (!absolute) {
+        if (count == cap) {
+          size_t new_cap = cap ? cap * 2 : 4;
+          char **tmp = (char **)realloc(segments, new_cap * sizeof(*segments));
+          if (!tmp)
+            goto cleanup;
+          segments = tmp;
+          cap = new_cap;
+        }
+        segments[count++] = c_cdd_strdup("..");
+      }
+      if (path[i] == '/')
+        ++i;
+      continue;
+    }
+    if (count == cap) {
+      size_t new_cap = cap ? cap * 2 : 4;
+      char **tmp = (char **)realloc(segments, new_cap * sizeof(*segments));
+      if (!tmp)
+        goto cleanup;
+      segments = tmp;
+      cap = new_cap;
+    }
+    segments[count] = dup_substr(path + start, seg_len);
+    if (!segments[count])
+      goto cleanup;
+    count++;
+    if (path[i] == '/')
+      ++i;
+  }
+
+  if (count == 0) {
+    if (absolute) {
+      out = c_cdd_strdup("/");
+      if (!out)
+        goto cleanup;
+      return out;
+    }
+    out = c_cdd_strdup("");
+    if (!out)
+      goto cleanup;
+    return out;
+  }
+
+  out_len = absolute ? 1 : 0;
+  for (i = 0; i < count; ++i) {
+    out_len += strlen(segments[i]);
+    if (i + 1 < count)
+      out_len += 1;
+  }
+  if (trailing && out_len > 0 && (!absolute || out_len > 1))
+    out_len += 1;
+
+  out = (char *)malloc(out_len + 1);
+  if (!out)
+    goto cleanup;
+  {
+    size_t pos = 0;
+    if (absolute)
+      out[pos++] = '/';
+    for (i = 0; i < count; ++i) {
+      size_t seg_len = strlen(segments[i]);
+      memcpy(out + pos, segments[i], seg_len);
+      pos += seg_len;
+      if (i + 1 < count)
+        out[pos++] = '/';
+    }
+    if (trailing && pos > 0 && out[pos - 1] != '/')
+      out[pos++] = '/';
+    out[pos] = '\0';
+  }
+
+cleanup:
+  if (segments) {
+    for (i = 0; i < count; ++i)
+      free(segments[i]);
+    free(segments);
+  }
+  return out;
+}
+
+static char *resolve_uri_reference(const char *base_uri, const char *ref) {
+  size_t ref_len;
+  size_t base_len;
+  size_t prefix_len = 0;
+  size_t path_offset = 0;
+  size_t path_len = 0;
+  const char *base_path = NULL;
+  const char *base_dir = NULL;
+  size_t base_dir_len = 0;
+  char *combined = NULL;
+  char *normalized = NULL;
+  char *out = NULL;
+
+  if (!ref)
+    return NULL;
+  ref_len = strlen(ref);
+  if (ref_len == 0)
+    return c_cdd_strdup("");
+  if (uri_has_scheme_prefix(ref, ref_len))
+    return c_cdd_strdup(ref);
+  if (!base_uri || !*base_uri)
+    return c_cdd_strdup(ref);
+
+  if (ref_len >= 2 && ref[0] == '/' && ref[1] == '/') {
+    size_t scheme_len = uri_scheme_len(base_uri, uri_base_len(base_uri));
+    if (scheme_len > 0) {
+      size_t out_len = scheme_len + 1 + ref_len;
+      out = (char *)malloc(out_len + 1);
+      if (!out)
+        return NULL;
+      memcpy(out, base_uri, scheme_len + 1);
+      memcpy(out + scheme_len + 1, ref, ref_len);
+      out[out_len] = '\0';
+      return out;
+    }
+    return c_cdd_strdup(ref);
+  }
+
+  base_len = uri_base_len(base_uri);
+  if (uri_has_scheme_prefix(base_uri, base_len)) {
+    size_t scheme_len = uri_scheme_len(base_uri, base_len);
+    if (scheme_len > 0 && scheme_len + 2 < base_len &&
+        base_uri[scheme_len + 1] == '/' && base_uri[scheme_len + 2] == '/') {
+      size_t auth_start = scheme_len + 3;
+      size_t i = auth_start;
+      while (i < base_len && base_uri[i] != '/')
+        ++i;
+      prefix_len = i;
+      path_offset = i;
+    }
+  }
+
+  path_len = (base_len > path_offset) ? (base_len - path_offset) : 0;
+  base_path = base_uri + path_offset;
+
+  if (ref[0] == '/') {
+    normalized = normalize_path(ref);
+  } else {
+    if (path_len == 0) {
+      if (prefix_len > 0) {
+        base_dir = "/";
+        base_dir_len = 1;
+      }
+    } else {
+      size_t i = path_len;
+      while (i > 0 && base_path[i - 1] != '/')
+        --i;
+      base_dir = base_path;
+      base_dir_len = i;
+      if (base_dir_len == 0 && prefix_len > 0) {
+        base_dir = "/";
+        base_dir_len = 1;
+      }
+    }
+
+    combined = (char *)malloc(base_dir_len + ref_len + 1);
+    if (!combined)
+      return NULL;
+    if (base_dir_len > 0)
+      memcpy(combined, base_dir, base_dir_len);
+    memcpy(combined + base_dir_len, ref, ref_len);
+    combined[base_dir_len + ref_len] = '\0';
+    normalized = normalize_path(combined);
+  }
+
+  free(combined);
+  if (!normalized)
+    return NULL;
+
+  {
+    size_t norm_len = strlen(normalized);
+    size_t out_len = prefix_len + norm_len;
+    out = (char *)malloc(out_len + 1);
+    if (!out) {
+      free(normalized);
+      return NULL;
+    }
+    if (prefix_len > 0)
+      memcpy(out, base_uri, prefix_len);
+    memcpy(out + prefix_len, normalized, norm_len);
+    out[out_len] = '\0';
+  }
+  free(normalized);
+  return out;
+}
+
+static char *compute_document_uri(const char *self_uri,
+                                  const char *retrieval_uri) {
+  char *resolved = NULL;
+  char *out = NULL;
+
+  if (self_uri && *self_uri) {
+    if (retrieval_uri && *retrieval_uri) {
+      resolved = resolve_uri_reference(retrieval_uri, self_uri);
+    } else {
+      resolved = c_cdd_strdup(self_uri);
+    }
+  } else if (retrieval_uri && *retrieval_uri) {
+    resolved = c_cdd_strdup(retrieval_uri);
+  }
+
+  if (!resolved)
+    return NULL;
+
+  {
+    size_t len = uri_base_len(resolved);
+    out = dup_substr(resolved, len);
+  }
+  free(resolved);
+  return out;
+}
+
+static int root_has_openapi_fields(const JSON_Object *root_obj) {
+  if (!root_obj)
+    return 0;
+  return json_object_has_value(root_obj, "info") ||
+         json_object_has_value(root_obj, "paths") ||
+         json_object_has_value(root_obj, "components") ||
+         json_object_has_value(root_obj, "servers") ||
+         json_object_has_value(root_obj, "webhooks") ||
+         json_object_has_value(root_obj, "tags") ||
+         json_object_has_value(root_obj, "security") ||
+         json_object_has_value(root_obj, "externalDocs") ||
+         json_object_has_value(root_obj, "$self") ||
+         json_object_has_value(root_obj, "jsonSchemaDialect");
+}
+
+static int root_is_schema_document(const JSON_Value *root,
+                                   const JSON_Object *root_obj) {
+  JSON_Value_Type type;
+  if (!root)
+    return 0;
+  type = json_value_get_type(root);
+  if (type == JSONBoolean)
+    return 1;
+  if (type != JSONObject || !root_obj)
+    return 0;
+  if (json_object_has_value(root_obj, "openapi") ||
+      json_object_has_value(root_obj, "swagger"))
+    return 0;
+  if (root_has_openapi_fields(root_obj))
+    return 0;
+  return 1;
+}
+
+static int store_schema_root_json(struct OpenAPI_Spec *spec,
+                                  const JSON_Value *root) {
+  char *raw_json;
+  if (!spec || !root)
+    return EINVAL;
+  if (spec->schema_root_json)
+    return 0;
+  raw_json = json_serialize_to_string(root);
+  if (!raw_json)
+    return ENOMEM;
+  spec->schema_root_json = c_cdd_strdup(raw_json);
+  json_free_serialized_string(raw_json);
+  if (!spec->schema_root_json)
+    return ENOMEM;
+  return 0;
+}
+
+struct ResolvedRefTarget {
+  const struct OpenAPI_Spec *spec;
+  const char *ref;
+  char *resolved_ref;
+};
+
+static struct ResolvedRefTarget
+resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref) {
+  struct ResolvedRefTarget out;
+  const char *hash;
+  size_t base_len;
+  char *base_part = NULL;
+  char *resolved_base = NULL;
+
+  out.spec = spec;
+  out.ref = ref;
+  out.resolved_ref = NULL;
+
+  if (!spec || !ref)
+    return out;
+
+  hash = strchr(ref, '#');
+  if (!hash || hash == ref)
+    return out;
+
+  base_len = (size_t)(hash - ref);
+  base_part = dup_substr(ref, base_len);
+  if (!base_part)
+    return out;
+
+  if (spec->document_uri && *spec->document_uri) {
+    resolved_base = resolve_uri_reference(spec->document_uri, base_part);
+    if (resolved_base) {
+      free(base_part);
+    } else {
+      resolved_base = base_part;
+    }
+  } else {
+    resolved_base = base_part;
+  }
+
+  if (spec->doc_registry && resolved_base) {
+    size_t i;
+    for (i = 0; i < spec->doc_registry->count; ++i) {
+      const struct OpenAPI_DocRegistryEntry *entry =
+          &spec->doc_registry->entries[i];
+      if (entry->base_uri && strcmp(entry->base_uri, resolved_base) == 0) {
+        out.spec = entry->spec;
+        break;
+      }
+    }
+  }
+
+  if (resolved_base) {
+    size_t resolved_len = strlen(resolved_base);
+    if (resolved_len != base_len ||
+        strncmp(ref, resolved_base, base_len) != 0) {
+      size_t hash_len = strlen(hash);
+      out.resolved_ref = (char *)malloc(resolved_len + hash_len + 1);
+      if (out.resolved_ref) {
+        memcpy(out.resolved_ref, resolved_base, resolved_len);
+        memcpy(out.resolved_ref + resolved_len, hash, hash_len);
+        out.resolved_ref[resolved_len + hash_len] = '\0';
+        out.ref = out.resolved_ref;
+      }
+    }
+    free(resolved_base);
+  }
+
+  return out;
+}
+
+void openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
+  if (!registry)
+    return;
+  registry->entries = NULL;
+  registry->count = 0;
+  registry->capacity = 0;
+}
+
+void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
+  size_t i;
+  if (!registry)
+    return;
+  if (registry->entries) {
+    for (i = 0; i < registry->count; ++i) {
+      free(registry->entries[i].base_uri);
+    }
+    free(registry->entries);
+  }
+  registry->entries = NULL;
+  registry->count = 0;
+  registry->capacity = 0;
+}
+
+int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
+                             struct OpenAPI_Spec *spec) {
+  size_t i;
+  const char *base_src;
+  char *base = NULL;
+  struct OpenAPI_DocRegistryEntry *tmp;
+
+  if (!registry || !spec)
+    return EINVAL;
+  spec->doc_registry = registry;
+  base_src = spec->document_uri ? spec->document_uri : spec->self_uri;
+  if (!base_src || !*base_src)
+    return EINVAL;
+
+  {
+    size_t len = uri_base_len(base_src);
+    if (len == 0)
+      return EINVAL;
+    base = dup_substr(base_src, len);
+  }
+  if (!base)
+    return ENOMEM;
+
+  for (i = 0; i < registry->count; ++i) {
+    if (registry->entries[i].base_uri &&
+        strcmp(registry->entries[i].base_uri, base) == 0) {
+      free(base);
+      return EINVAL;
+    }
+  }
+
+  if (registry->count == registry->capacity) {
+    size_t new_cap = registry->capacity ? registry->capacity * 2 : 4;
+    tmp = (struct OpenAPI_DocRegistryEntry *)realloc(
+        registry->entries, new_cap * sizeof(*registry->entries));
+    if (!tmp) {
+      free(base);
+      return ENOMEM;
+    }
+    registry->entries = tmp;
+    registry->capacity = new_cap;
+  }
+
+  registry->entries[registry->count].base_uri = base;
+  registry->entries[registry->count].spec = spec;
+  registry->count++;
+  return 0;
+}
+
+static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
+                                 const char *ref, const char *hash) {
+  size_t base_len;
+  const char *self_uri;
+  const char *self_hash;
+  const char *self_base;
+  size_t self_len;
+
+  if (!ref || !hash)
+    return 0;
+  if (hash == ref)
+    return 1; /* fragment-only ref */
+  if (!spec)
+    return 0;
+
+  if (spec->document_uri && *spec->document_uri) {
+    const char *base_uri = spec->document_uri;
+    size_t uri_len = uri_base_len(base_uri);
+    base_len = (size_t)(hash - ref);
+    if (uri_len == base_len && strncmp(ref, base_uri, base_len) == 0)
+      return 1;
+    if (!uri_has_scheme_prefix(base_uri, uri_len)) {
+      const char *rel = base_uri;
+      size_t rel_len = uri_len;
+      while (rel_len >= 2 && rel[0] == '.' && rel[1] == '/') {
+        rel += 2;
+        rel_len -= 2;
+      }
+      if (rel_len == 0)
+        return 0;
+      if (base_len >= rel_len &&
+          strncmp(ref + (base_len - rel_len), rel, rel_len) == 0) {
+        if (rel[0] == '/')
+          return 1;
+        if (base_len == rel_len)
+          return 1;
+        if (ref[base_len - rel_len - 1] == '/')
+          return 1;
+      }
+    }
+    return 0;
+  }
+
+  if (!spec->self_uri || !*spec->self_uri)
+    return 0;
+
+  base_len = (size_t)(hash - ref);
+  self_uri = spec->self_uri;
+  self_hash = strchr(self_uri, '#');
+  self_base = self_uri;
+  self_len = self_hash ? (size_t)(self_hash - self_uri) : strlen(self_uri);
+
+  /* Exact base match (absolute $self). */
+  if (base_len == self_len && strncmp(ref, self_base, base_len) == 0)
+    return 1;
+
+  /* Relative $self: allow refs whose base URI ends with the self path. */
+  if (!uri_has_scheme_prefix(self_base, self_len)) {
+    while (self_len >= 2 && self_base[0] == '.' && self_base[1] == '/') {
+      self_base += 2;
+      self_len -= 2;
+    }
+    if (self_len == 0)
+      return 0;
+    if (base_len >= self_len &&
+        strncmp(ref + (base_len - self_len), self_base, self_len) == 0) {
+      if (self_base[0] == '/')
+        return 1;
+      if (base_len == self_len)
+        return 1;
+      if (ref[base_len - self_len - 1] == '/')
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
+static const char *ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                        const char *ref, const char *prefix) {
   size_t prefix_len;
+  const char *name;
+  const char *hash;
   if (!ref || !prefix)
     return NULL;
   prefix_len = strlen(prefix);
-  if (strncmp(ref, prefix, prefix_len) != 0)
+  if (strncmp(ref, prefix, prefix_len) == 0) {
+    name = ref + prefix_len;
+    if (!name || !*name)
+      return NULL;
+    if (strchr(name, '/') != NULL)
+      return NULL;
+    return name;
+  }
+  hash = strchr(ref, '#');
+  if (!hash)
     return NULL;
-  return ref + prefix_len;
+  if (!ref_base_matches_self(spec, ref, hash))
+    return NULL;
+  if (strncmp(hash, prefix, prefix_len) != 0)
+    return NULL;
+  name = hash + prefix_len;
+  if (!name || !*name)
+    return NULL;
+  if (strchr(name, '/') != NULL)
+    return NULL;
+  return name;
 }
 
 static const struct OpenAPI_Parameter *
 find_component_parameter(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/parameters/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/parameters/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_parameters; ++i) {
-    if (spec->component_parameter_names[i] &&
-        strcmp(spec->component_parameter_names[i], name) == 0) {
-      return &spec->component_parameters[i];
+  }
+  for (i = 0; i < target->n_component_parameters; ++i) {
+    if (target->component_parameter_names[i] &&
+        strcmp(target->component_parameter_names[i], name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_parameters[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_Response *
 find_component_response(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/responses/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/responses/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_responses; ++i) {
-    if (spec->component_response_names[i] &&
-        strcmp(spec->component_response_names[i], name) == 0) {
-      return &spec->component_responses[i];
+  }
+  for (i = 0; i < target->n_component_responses; ++i) {
+    if (target->component_response_names[i] &&
+        strcmp(target->component_response_names[i], name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_responses[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_Header *
 find_component_header(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/headers/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/headers/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_headers; ++i) {
-    if (spec->component_header_names[i] &&
-        strcmp(spec->component_header_names[i], name) == 0) {
-      return &spec->component_headers[i];
+  }
+  for (i = 0; i < target->n_component_headers; ++i) {
+    if (target->component_header_names[i] &&
+        strcmp(target->component_header_names[i], name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_headers[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_RequestBody *
 find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/requestBodies/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/requestBodies/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_request_bodies; ++i) {
-    if (spec->component_request_body_names[i] &&
-        strcmp(spec->component_request_body_names[i], name) == 0) {
-      return &spec->component_request_bodies[i];
+  }
+  for (i = 0; i < target->n_component_request_bodies; ++i) {
+    if (target->component_request_body_names[i] &&
+        strcmp(target->component_request_body_names[i], name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_request_bodies[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_MediaType *
 find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name_enc = ref_name_from_prefix(ref, "#/components/mediaTypes/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name_enc =
+      ref_name_from_prefix(target, resolved.ref, "#/components/mediaTypes/");
   char *name_dec;
   size_t i;
-  if (!spec || !name_enc)
+  if (!target || !name_enc) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
+  }
   name_dec = json_pointer_unescape(name_enc);
-  if (!name_dec)
+  if (!name_dec) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_media_types; ++i) {
-    if (spec->component_media_type_names[i] &&
-        strcmp(spec->component_media_type_names[i], name_dec) == 0) {
+  }
+  for (i = 0; i < target->n_component_media_types; ++i) {
+    if (target->component_media_type_names[i] &&
+        strcmp(target->component_media_type_names[i], name_dec) == 0) {
       free(name_dec);
-      return &spec->component_media_types[i];
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_media_types[i];
     }
   }
   free(name_dec);
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_Link *
 find_component_link(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/links/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/links/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_links; ++i) {
-    if (spec->component_links[i].name &&
-        strcmp(spec->component_links[i].name, name) == 0) {
-      return &spec->component_links[i];
+  }
+  for (i = 0; i < target->n_component_links; ++i) {
+    if (target->component_links[i].name &&
+        strcmp(target->component_links[i].name, name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_links[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
 static const struct OpenAPI_Callback *
 find_component_callback(const struct OpenAPI_Spec *spec, const char *ref) {
-  const char *name = ref_name_from_prefix(ref, "#/components/callbacks/");
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name =
+      ref_name_from_prefix(target, resolved.ref, "#/components/callbacks/");
   size_t i;
-  if (!spec || !name)
+  if (!target || !name) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return NULL;
-  for (i = 0; i < spec->n_component_callbacks; ++i) {
-    if (spec->component_callbacks[i].name &&
-        strcmp(spec->component_callbacks[i].name, name) == 0) {
-      return &spec->component_callbacks[i];
+  }
+  for (i = 0; i < target->n_component_callbacks; ++i) {
+    if (target->component_callbacks[i].name &&
+        strcmp(target->component_callbacks[i].name, name) == 0) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_callbacks[i];
     }
   }
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
+  return NULL;
+}
+
+static const struct OpenAPI_Path *
+find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref) {
+  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  const struct OpenAPI_Spec *target = resolved.spec;
+  const char *name_enc =
+      ref_name_from_prefix(target, resolved.ref, "#/components/pathItems/");
+  char *name_dec;
+  size_t i;
+  if (!target || !name_enc) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
+    return NULL;
+  }
+  name_dec = json_pointer_unescape(name_enc);
+  if (!name_dec) {
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
+    return NULL;
+  }
+  for (i = 0; i < target->n_component_path_items; ++i) {
+    if (target->component_path_item_names &&
+        target->component_path_item_names[i] &&
+        strcmp(target->component_path_item_names[i], name_dec) == 0) {
+      free(name_dec);
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+      return &target->component_path_items[i];
+    }
+  }
+  free(name_dec);
+  if (resolved.resolved_ref)
+    free(resolved.resolved_ref);
   return NULL;
 }
 
@@ -2299,6 +3290,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->schema_is_boolean = src->schema_is_boolean;
   dst->schema_boolean_value = src->schema_boolean_value;
   dst->is_array = src->is_array;
+  dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->ref_name) {
     dst->ref_name = c_cdd_strdup(src->ref_name);
     if (!dst->ref_name)
@@ -2329,11 +3321,6 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     if (!dst->content_type)
       return ENOMEM;
   }
-  if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
-    if (!dst->extensions_json)
-      return ENOMEM;
-  }
   if (src->content_media_type) {
     dst->content_media_type = c_cdd_strdup(src->content_media_type);
     if (!dst->content_media_type)
@@ -2359,6 +3346,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     if (!dst->items_ref)
       return ENOMEM;
   }
+  dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->items_content_media_type) {
     dst->items_content_media_type = c_cdd_strdup(src->items_content_media_type);
     if (!dst->items_content_media_type)
@@ -2379,26 +3367,6 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   if (src->description) {
     dst->description = c_cdd_strdup(src->description);
     if (!dst->description)
-      return ENOMEM;
-  }
-  if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
-    if (!dst->extensions_json)
-      return ENOMEM;
-  }
-  if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
-    if (!dst->extensions_json)
-      return ENOMEM;
-  }
-  if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
-    if (!dst->extensions_json)
-      return ENOMEM;
-  }
-  if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
-    if (!dst->extensions_json)
       return ENOMEM;
   }
   if (src->deprecated_set) {
@@ -2455,6 +3423,91 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     if (!dst->schema_extra_json)
       return ENOMEM;
   }
+  if (src->external_docs.description) {
+    dst->external_docs.description =
+        c_cdd_strdup(src->external_docs.description);
+    if (!dst->external_docs.description)
+      return ENOMEM;
+  }
+  if (src->external_docs.url) {
+    dst->external_docs.url = c_cdd_strdup(src->external_docs.url);
+    if (!dst->external_docs.url)
+      return ENOMEM;
+  }
+  if (src->external_docs.extensions_json) {
+    dst->external_docs.extensions_json =
+        c_cdd_strdup(src->external_docs.extensions_json);
+    if (!dst->external_docs.extensions_json)
+      return ENOMEM;
+  }
+  dst->external_docs_set = src->external_docs_set;
+  if (src->discriminator.property_name) {
+    dst->discriminator.property_name =
+        c_cdd_strdup(src->discriminator.property_name);
+    if (!dst->discriminator.property_name)
+      return ENOMEM;
+  }
+  if (src->discriminator.default_mapping) {
+    dst->discriminator.default_mapping =
+        c_cdd_strdup(src->discriminator.default_mapping);
+    if (!dst->discriminator.default_mapping)
+      return ENOMEM;
+  }
+  if (src->discriminator.extensions_json) {
+    dst->discriminator.extensions_json =
+        c_cdd_strdup(src->discriminator.extensions_json);
+    if (!dst->discriminator.extensions_json)
+      return ENOMEM;
+  }
+  if (src->discriminator.mapping && src->discriminator.n_mapping > 0) {
+    dst->discriminator.mapping = (struct OpenAPI_DiscriminatorMap *)calloc(
+        src->discriminator.n_mapping, sizeof(struct OpenAPI_DiscriminatorMap));
+    if (!dst->discriminator.mapping)
+      return ENOMEM;
+    dst->discriminator.n_mapping = src->discriminator.n_mapping;
+    for (i = 0; i < src->discriminator.n_mapping; ++i) {
+      if (src->discriminator.mapping[i].value) {
+        dst->discriminator.mapping[i].value =
+            c_cdd_strdup(src->discriminator.mapping[i].value);
+        if (!dst->discriminator.mapping[i].value)
+          return ENOMEM;
+      }
+      if (src->discriminator.mapping[i].schema) {
+        dst->discriminator.mapping[i].schema =
+            c_cdd_strdup(src->discriminator.mapping[i].schema);
+        if (!dst->discriminator.mapping[i].schema)
+          return ENOMEM;
+      }
+    }
+  }
+  dst->discriminator_set = src->discriminator_set;
+  dst->xml.node_type = src->xml.node_type;
+  dst->xml.node_type_set = src->xml.node_type_set;
+  if (src->xml.name) {
+    dst->xml.name = c_cdd_strdup(src->xml.name);
+    if (!dst->xml.name)
+      return ENOMEM;
+  }
+  if (src->xml.namespace_uri) {
+    dst->xml.namespace_uri = c_cdd_strdup(src->xml.namespace_uri);
+    if (!dst->xml.namespace_uri)
+      return ENOMEM;
+  }
+  if (src->xml.prefix) {
+    dst->xml.prefix = c_cdd_strdup(src->xml.prefix);
+    if (!dst->xml.prefix)
+      return ENOMEM;
+  }
+  if (src->xml.extensions_json) {
+    dst->xml.extensions_json = c_cdd_strdup(src->xml.extensions_json);
+    if (!dst->xml.extensions_json)
+      return ENOMEM;
+  }
+  dst->xml.attribute = src->xml.attribute;
+  dst->xml.attribute_set = src->xml.attribute_set;
+  dst->xml.wrapped = src->xml.wrapped;
+  dst->xml.wrapped_set = src->xml.wrapped_set;
+  dst->xml_set = src->xml_set;
   if (src->items_enum_values && src->n_items_enum_values > 0) {
     dst->items_enum_values = (struct OpenAPI_Any *)calloc(
         src->n_items_enum_values, sizeof(struct OpenAPI_Any));
@@ -2567,6 +3620,22 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   return 0;
 }
 
+static int copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
+                                     const struct OpenAPI_SchemaRef *item) {
+  if (!dst || !item)
+    return 0;
+  if (copy_schema_ref(dst, item) != 0)
+    return ENOMEM;
+  dst->is_array = 1;
+  if (dst->schema_is_boolean) {
+    dst->items_schema_is_boolean = 1;
+    dst->items_schema_boolean_value = dst->schema_boolean_value;
+    dst->schema_is_boolean = 0;
+    dst->schema_boolean_value = 0;
+  }
+  return 0;
+}
+
 static int copy_any_value(struct OpenAPI_Any *dst,
                           const struct OpenAPI_Any *src) {
   if (!dst || !src)
@@ -2609,6 +3678,12 @@ static int copy_server_object(struct OpenAPI_Server *dst,
   if (src->extensions_json) {
     dst->extensions_json = c_cdd_strdup(src->extensions_json);
     if (!dst->extensions_json)
+      return ENOMEM;
+  }
+  if (src->responses_extensions_json) {
+    dst->responses_extensions_json =
+        c_cdd_strdup(src->responses_extensions_json);
+    if (!dst->responses_extensions_json)
       return ENOMEM;
   }
   if (src->n_variables > 0 && src->variables) {
@@ -2664,6 +3739,11 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
   size_t i;
   if (!dst || !src)
     return 0;
+  if (!dst->code && src->code) {
+    dst->code = c_cdd_strdup(src->code);
+    if (!dst->code)
+      return ENOMEM;
+  }
   if (src->summary) {
     dst->summary = c_cdd_strdup(src->summary);
     if (!dst->summary)
@@ -3137,6 +4217,327 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
   return copy_schema_ref(&dst->schema, &src->schema);
 }
 
+static int copy_security_requirement_sets(
+    struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
+    const struct OpenAPI_SecurityRequirementSet *src, size_t src_count) {
+  size_t i, j, k;
+  if (!dst || !dst_count)
+    return 0;
+  *dst = NULL;
+  *dst_count = 0;
+  if (!src || src_count == 0)
+    return 0;
+  *dst = (struct OpenAPI_SecurityRequirementSet *)calloc(
+      src_count, sizeof(struct OpenAPI_SecurityRequirementSet));
+  if (!*dst)
+    return ENOMEM;
+  *dst_count = src_count;
+  for (i = 0; i < src_count; ++i) {
+    struct OpenAPI_SecurityRequirementSet *dst_set = &(*dst)[i];
+    const struct OpenAPI_SecurityRequirementSet *src_set = &src[i];
+    if (src_set->extensions_json) {
+      dst_set->extensions_json = c_cdd_strdup(src_set->extensions_json);
+      if (!dst_set->extensions_json)
+        return ENOMEM;
+    }
+    if (src_set->n_requirements > 0 && src_set->requirements) {
+      dst_set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
+          src_set->n_requirements, sizeof(struct OpenAPI_SecurityRequirement));
+      if (!dst_set->requirements)
+        return ENOMEM;
+      dst_set->n_requirements = src_set->n_requirements;
+      for (j = 0; j < src_set->n_requirements; ++j) {
+        struct OpenAPI_SecurityRequirement *dst_req = &dst_set->requirements[j];
+        const struct OpenAPI_SecurityRequirement *src_req =
+            &src_set->requirements[j];
+        if (src_req->scheme) {
+          dst_req->scheme = c_cdd_strdup(src_req->scheme);
+          if (!dst_req->scheme)
+            return ENOMEM;
+        }
+        if (src_req->n_scopes > 0 && src_req->scopes) {
+          dst_req->scopes = (char **)calloc(src_req->n_scopes, sizeof(char *));
+          if (!dst_req->scopes)
+            return ENOMEM;
+          dst_req->n_scopes = src_req->n_scopes;
+          for (k = 0; k < src_req->n_scopes; ++k) {
+            if (src_req->scopes[k]) {
+              dst_req->scopes[k] = c_cdd_strdup(src_req->scopes[k]);
+              if (!dst_req->scopes[k])
+                return ENOMEM;
+            }
+          }
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+static int copy_callback_fields(struct OpenAPI_Callback *dst,
+                                const struct OpenAPI_Callback *src) {
+  size_t i;
+  if (!dst || !src)
+    return 0;
+  if (!dst->name && src->name) {
+    dst->name = c_cdd_strdup(src->name);
+    if (!dst->name)
+      return ENOMEM;
+  }
+  if (!dst->ref && src->ref) {
+    dst->ref = c_cdd_strdup(src->ref);
+    if (!dst->ref)
+      return ENOMEM;
+  }
+  if (!dst->summary && src->summary) {
+    dst->summary = c_cdd_strdup(src->summary);
+    if (!dst->summary)
+      return ENOMEM;
+  }
+  if (!dst->description && src->description) {
+    dst->description = c_cdd_strdup(src->description);
+    if (!dst->description)
+      return ENOMEM;
+  }
+  if (!dst->extensions_json && src->extensions_json) {
+    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    if (!dst->extensions_json)
+      return ENOMEM;
+  }
+  if (src->n_paths > 0 && src->paths && !dst->paths) {
+    dst->paths = (struct OpenAPI_Path *)calloc(src->n_paths,
+                                               sizeof(struct OpenAPI_Path));
+    if (!dst->paths)
+      return ENOMEM;
+    dst->n_paths = src->n_paths;
+    for (i = 0; i < src->n_paths; ++i) {
+      if (copy_path_fields(&dst->paths[i], &src->paths[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  return 0;
+}
+
+static int copy_operation_fields(struct OpenAPI_Operation *dst,
+                                 const struct OpenAPI_Operation *src) {
+  size_t i;
+  if (!dst || !src)
+    return 0;
+  dst->verb = src->verb;
+  dst->is_additional = src->is_additional;
+  dst->deprecated = src->deprecated;
+  dst->security_set = src->security_set;
+  if (src->method) {
+    dst->method = c_cdd_strdup(src->method);
+    if (!dst->method)
+      return ENOMEM;
+  }
+  if (src->operation_id) {
+    dst->operation_id = c_cdd_strdup(src->operation_id);
+    if (!dst->operation_id)
+      return ENOMEM;
+  }
+  if (src->summary) {
+    dst->summary = c_cdd_strdup(src->summary);
+    if (!dst->summary)
+      return ENOMEM;
+  }
+  if (src->description) {
+    dst->description = c_cdd_strdup(src->description);
+    if (!dst->description)
+      return ENOMEM;
+  }
+  if (src->extensions_json) {
+    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    if (!dst->extensions_json)
+      return ENOMEM;
+  }
+  if (src->n_security > 0 && src->security) {
+    if (copy_security_requirement_sets(&dst->security, &dst->n_security,
+                                       src->security, src->n_security) != 0)
+      return ENOMEM;
+  }
+  if (src->n_parameters > 0 && src->parameters) {
+    dst->parameters = (struct OpenAPI_Parameter *)calloc(
+        src->n_parameters, sizeof(struct OpenAPI_Parameter));
+    if (!dst->parameters)
+      return ENOMEM;
+    dst->n_parameters = src->n_parameters;
+    for (i = 0; i < src->n_parameters; ++i) {
+      if (copy_parameter_fields(&dst->parameters[i], &src->parameters[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_tags > 0 && src->tags) {
+    dst->tags = (char **)calloc(src->n_tags, sizeof(char *));
+    if (!dst->tags)
+      return ENOMEM;
+    dst->n_tags = src->n_tags;
+    for (i = 0; i < src->n_tags; ++i) {
+      if (src->tags[i]) {
+        dst->tags[i] = c_cdd_strdup(src->tags[i]);
+        if (!dst->tags[i])
+          return ENOMEM;
+      }
+    }
+  }
+  if (copy_schema_ref(&dst->req_body, &src->req_body) != 0)
+    return ENOMEM;
+  if (src->n_req_body_media_types > 0 && src->req_body_media_types) {
+    if (copy_media_type_array(
+            &dst->req_body_media_types, &dst->n_req_body_media_types,
+            src->req_body_media_types, src->n_req_body_media_types) != 0)
+      return ENOMEM;
+  }
+  dst->req_body_required = src->req_body_required;
+  dst->req_body_required_set = src->req_body_required_set;
+  if (src->req_body_description) {
+    dst->req_body_description = c_cdd_strdup(src->req_body_description);
+    if (!dst->req_body_description)
+      return ENOMEM;
+  }
+  if (src->req_body_extensions_json) {
+    dst->req_body_extensions_json = c_cdd_strdup(src->req_body_extensions_json);
+    if (!dst->req_body_extensions_json)
+      return ENOMEM;
+  }
+  if (src->req_body_ref) {
+    dst->req_body_ref = c_cdd_strdup(src->req_body_ref);
+    if (!dst->req_body_ref)
+      return ENOMEM;
+  }
+  if (src->external_docs.description) {
+    dst->external_docs.description =
+        c_cdd_strdup(src->external_docs.description);
+    if (!dst->external_docs.description)
+      return ENOMEM;
+  }
+  if (src->external_docs.url) {
+    dst->external_docs.url = c_cdd_strdup(src->external_docs.url);
+    if (!dst->external_docs.url)
+      return ENOMEM;
+  }
+  if (src->external_docs.extensions_json) {
+    dst->external_docs.extensions_json =
+        c_cdd_strdup(src->external_docs.extensions_json);
+    if (!dst->external_docs.extensions_json)
+      return ENOMEM;
+  }
+  if (src->n_servers > 0 && src->servers) {
+    dst->servers = (struct OpenAPI_Server *)calloc(
+        src->n_servers, sizeof(struct OpenAPI_Server));
+    if (!dst->servers)
+      return ENOMEM;
+    dst->n_servers = src->n_servers;
+    for (i = 0; i < src->n_servers; ++i) {
+      if (copy_server_object(&dst->servers[i], &src->servers[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_responses > 0 && src->responses) {
+    dst->responses = (struct OpenAPI_Response *)calloc(
+        src->n_responses, sizeof(struct OpenAPI_Response));
+    if (!dst->responses)
+      return ENOMEM;
+    dst->n_responses = src->n_responses;
+    for (i = 0; i < src->n_responses; ++i) {
+      if (copy_response_fields(&dst->responses[i], &src->responses[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_callbacks > 0 && src->callbacks) {
+    dst->callbacks = (struct OpenAPI_Callback *)calloc(
+        src->n_callbacks, sizeof(struct OpenAPI_Callback));
+    if (!dst->callbacks)
+      return ENOMEM;
+    dst->n_callbacks = src->n_callbacks;
+    for (i = 0; i < src->n_callbacks; ++i) {
+      if (copy_callback_fields(&dst->callbacks[i], &src->callbacks[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  return 0;
+}
+
+static int copy_path_fields(struct OpenAPI_Path *dst,
+                            const struct OpenAPI_Path *src) {
+  size_t i;
+  if (!dst || !src)
+    return 0;
+  if (!dst->route && src->route) {
+    dst->route = c_cdd_strdup(src->route);
+    if (!dst->route)
+      return ENOMEM;
+  }
+  if (!dst->ref && src->ref) {
+    dst->ref = c_cdd_strdup(src->ref);
+    if (!dst->ref)
+      return ENOMEM;
+  }
+  if (!dst->summary && src->summary) {
+    dst->summary = c_cdd_strdup(src->summary);
+    if (!dst->summary)
+      return ENOMEM;
+  }
+  if (!dst->description && src->description) {
+    dst->description = c_cdd_strdup(src->description);
+    if (!dst->description)
+      return ENOMEM;
+  }
+  if (!dst->extensions_json && src->extensions_json) {
+    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    if (!dst->extensions_json)
+      return ENOMEM;
+  }
+  if (src->n_parameters > 0 && src->parameters && !dst->parameters) {
+    dst->parameters = (struct OpenAPI_Parameter *)calloc(
+        src->n_parameters, sizeof(struct OpenAPI_Parameter));
+    if (!dst->parameters)
+      return ENOMEM;
+    dst->n_parameters = src->n_parameters;
+    for (i = 0; i < src->n_parameters; ++i) {
+      if (copy_parameter_fields(&dst->parameters[i], &src->parameters[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_servers > 0 && src->servers && !dst->servers) {
+    dst->servers = (struct OpenAPI_Server *)calloc(
+        src->n_servers, sizeof(struct OpenAPI_Server));
+    if (!dst->servers)
+      return ENOMEM;
+    dst->n_servers = src->n_servers;
+    for (i = 0; i < src->n_servers; ++i) {
+      if (copy_server_object(&dst->servers[i], &src->servers[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_operations > 0 && src->operations && !dst->operations) {
+    dst->operations = (struct OpenAPI_Operation *)calloc(
+        src->n_operations, sizeof(struct OpenAPI_Operation));
+    if (!dst->operations)
+      return ENOMEM;
+    dst->n_operations = src->n_operations;
+    for (i = 0; i < src->n_operations; ++i) {
+      if (copy_operation_fields(&dst->operations[i], &src->operations[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  if (src->n_additional_operations > 0 && src->additional_operations &&
+      !dst->additional_operations) {
+    dst->additional_operations = (struct OpenAPI_Operation *)calloc(
+        src->n_additional_operations, sizeof(struct OpenAPI_Operation));
+    if (!dst->additional_operations)
+      return ENOMEM;
+    dst->n_additional_operations = src->n_additional_operations;
+    for (i = 0; i < src->n_additional_operations; ++i) {
+      if (copy_operation_fields(&dst->additional_operations[i],
+                                &src->additional_operations[i]) != 0)
+        return ENOMEM;
+    }
+  }
+  return 0;
+}
+
 static int parse_info(const JSON_Object *const root_obj,
                       struct OpenAPI_Spec *const out) {
   const JSON_Object *info_obj;
@@ -3211,21 +4612,26 @@ static int parse_info(const JSON_Object *const root_obj,
 
   license_obj = json_object_get_object(info_obj, "license");
   if (license_obj) {
-    val = json_object_get_string(license_obj, "name");
-    if (val) {
-      out->info.license.name = c_cdd_strdup(val);
-      if (!out->info.license.name)
-        return ENOMEM;
-    }
-    val = json_object_get_string(license_obj, "identifier");
-    if (val) {
-      out->info.license.identifier = c_cdd_strdup(val);
+    const char *lic_name = json_object_get_string(license_obj, "name");
+    const char *lic_identifier =
+        json_object_get_string(license_obj, "identifier");
+    const char *lic_url = json_object_get_string(license_obj, "url");
+
+    if (!lic_name || !*lic_name)
+      return EINVAL;
+    if (lic_identifier && lic_url)
+      return EINVAL;
+
+    out->info.license.name = c_cdd_strdup(lic_name);
+    if (!out->info.license.name)
+      return ENOMEM;
+    if (lic_identifier) {
+      out->info.license.identifier = c_cdd_strdup(lic_identifier);
       if (!out->info.license.identifier)
         return ENOMEM;
     }
-    val = json_object_get_string(license_obj, "url");
-    if (val) {
-      out->info.license.url = c_cdd_strdup(val);
+    if (lic_url) {
+      out->info.license.url = c_cdd_strdup(lic_url);
       if (!out->info.license.url)
         return ENOMEM;
     }
@@ -3252,11 +4658,131 @@ static int parse_external_docs(const JSON_Object *const obj,
       return ENOMEM;
   }
   url = json_object_get_string(obj, "url");
-  if (url) {
-    out->url = c_cdd_strdup(url);
-    if (!out->url)
+  if (!url || !*url)
+    return EINVAL;
+  out->url = c_cdd_strdup(url);
+  if (!out->url)
+    return ENOMEM;
+  if (collect_extensions(obj, &out->extensions_json) != 0)
+    return ENOMEM;
+
+  return 0;
+}
+
+static int parse_discriminator_object(const JSON_Object *const obj,
+                                      struct OpenAPI_Discriminator *const out) {
+  const char *prop;
+  const char *default_mapping;
+  const JSON_Object *mapping_obj;
+  size_t i, count, used;
+
+  if (!obj || !out)
+    return 0;
+
+  prop = json_object_get_string(obj, "propertyName");
+  if (prop) {
+    out->property_name = c_cdd_strdup(prop);
+    if (!out->property_name)
       return ENOMEM;
   }
+
+  default_mapping = json_object_get_string(obj, "defaultMapping");
+  if (default_mapping) {
+    out->default_mapping = c_cdd_strdup(default_mapping);
+    if (!out->default_mapping)
+      return ENOMEM;
+  }
+
+  mapping_obj = json_object_get_object(obj, "mapping");
+  if (mapping_obj) {
+    count = json_object_get_count(mapping_obj);
+    used = 0;
+    for (i = 0; i < count; ++i) {
+      const char *name = json_object_get_name(mapping_obj, i);
+      if (!name || strncmp(name, "x-", 2) == 0)
+        continue;
+      used++;
+    }
+    if (used > 0) {
+      out->mapping = (struct OpenAPI_DiscriminatorMap *)calloc(
+          used, sizeof(struct OpenAPI_DiscriminatorMap));
+      if (!out->mapping)
+        return ENOMEM;
+      out->n_mapping = used;
+      used = 0;
+      for (i = 0; i < count; ++i) {
+        const char *name = json_object_get_name(mapping_obj, i);
+        const char *val;
+        if (!name || strncmp(name, "x-", 2) == 0)
+          continue;
+        val = json_object_get_string(mapping_obj, name);
+        if (!val)
+          continue;
+        out->mapping[used].value = c_cdd_strdup(name);
+        if (!out->mapping[used].value)
+          return ENOMEM;
+        out->mapping[used].schema = c_cdd_strdup(val);
+        if (!out->mapping[used].schema)
+          return ENOMEM;
+        used++;
+      }
+      out->n_mapping = used;
+    }
+  }
+
+  if (collect_extensions(obj, &out->extensions_json) != 0)
+    return ENOMEM;
+
+  return 0;
+}
+
+static int parse_xml_object(const JSON_Object *const obj,
+                            struct OpenAPI_Xml *const out) {
+  const char *node_type;
+  const char *name;
+  const char *ns;
+  const char *prefix;
+
+  if (!obj || !out)
+    return 0;
+
+  node_type = json_object_get_string(obj, "nodeType");
+  if (node_type) {
+    out->node_type = parse_xml_node_type(node_type);
+    out->node_type_set = 1;
+  }
+
+  name = json_object_get_string(obj, "name");
+  if (name) {
+    out->name = c_cdd_strdup(name);
+    if (!out->name)
+      return ENOMEM;
+  }
+
+  ns = json_object_get_string(obj, "namespace");
+  if (ns) {
+    out->namespace_uri = c_cdd_strdup(ns);
+    if (!out->namespace_uri)
+      return ENOMEM;
+  }
+
+  prefix = json_object_get_string(obj, "prefix");
+  if (prefix) {
+    out->prefix = c_cdd_strdup(prefix);
+    if (!out->prefix)
+      return ENOMEM;
+  }
+
+  if (json_object_has_value(obj, "attribute")) {
+    out->attribute_set = 1;
+    out->attribute = json_object_get_boolean(obj, "attribute") == 1;
+  }
+
+  if (json_object_has_value(obj, "wrapped")) {
+    out->wrapped_set = 1;
+    out->wrapped = json_object_get_boolean(obj, "wrapped") == 1;
+  }
+
   if (collect_extensions(obj, &out->extensions_json) != 0)
     return ENOMEM;
 
@@ -3293,16 +4819,18 @@ static int parse_tags(const JSON_Object *const root_obj,
     const char *kind = json_object_get_string(tag_obj, "kind");
     const JSON_Object *ext = json_object_get_object(tag_obj, "externalDocs");
 
-    if (name) {
+    if (!name || !*name)
+      return EINVAL;
+    {
       size_t k;
       for (k = 0; k < i; ++k) {
         if (out->tags[k].name && strcmp(out->tags[k].name, name) == 0)
           return EINVAL;
       }
-      out->tags[i].name = c_cdd_strdup(name);
-      if (!out->tags[i].name)
-        return ENOMEM;
     }
+    out->tags[i].name = c_cdd_strdup(name);
+    if (!out->tags[i].name)
+      return ENOMEM;
     if (summary) {
       out->tags[i].summary = c_cdd_strdup(summary);
       if (!out->tags[i].summary)
@@ -3324,14 +4852,172 @@ static int parse_tags(const JSON_Object *const root_obj,
         return ENOMEM;
     }
     if (ext) {
-      if (parse_external_docs(ext, &out->tags[i].external_docs) != 0)
-        return ENOMEM;
+      int rc = parse_external_docs(ext, &out->tags[i].external_docs);
+      if (rc != 0)
+        return rc;
     }
     if (collect_extensions(tag_obj, &out->tags[i].extensions_json) != 0)
       return ENOMEM;
   }
 
   return 0;
+}
+
+static int tag_index_by_name(const struct OpenAPI_Spec *spec,
+                             const char *name) {
+  size_t i;
+  if (!spec || !name)
+    return -1;
+  for (i = 0; i < spec->n_tags; ++i) {
+    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
+      return (int)i;
+  }
+  return -1;
+}
+
+static int detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx,
+                            int *state) {
+  int parent_idx;
+  const char *parent;
+  if (!spec || !state || idx >= spec->n_tags)
+    return 0;
+  if (state[idx] == 1)
+    return 1;
+  if (state[idx] == 2)
+    return 0;
+  state[idx] = 1;
+  parent = spec->tags[idx].parent;
+  if (parent && *parent) {
+    parent_idx = tag_index_by_name(spec, parent);
+    if (parent_idx >= 0) {
+      if (detect_tag_cycle(spec, (size_t)parent_idx, state))
+        return 1;
+    }
+  }
+  state[idx] = 2;
+  return 0;
+}
+
+static int validate_tag_parents(const struct OpenAPI_Spec *spec) {
+  size_t i;
+  int *state;
+  if (!spec || !spec->tags || spec->n_tags == 0)
+    return 0;
+
+  for (i = 0; i < spec->n_tags; ++i) {
+    const char *parent = spec->tags[i].parent;
+    if (parent && *parent) {
+      if (tag_index_by_name(spec, parent) < 0)
+        return EINVAL;
+    }
+  }
+
+  state = (int *)calloc(spec->n_tags, sizeof(int));
+  if (!state)
+    return ENOMEM;
+  for (i = 0; i < spec->n_tags; ++i) {
+    if (detect_tag_cycle(spec, i, state)) {
+      free(state);
+      return EINVAL;
+    }
+  }
+  free(state);
+  return 0;
+}
+
+static int server_variable_defined(const struct OpenAPI_Server *srv,
+                                   const char *name) {
+  size_t i;
+  if (!srv || !name || !srv->variables)
+    return 0;
+  for (i = 0; i < srv->n_variables; ++i) {
+    if (srv->variables[i].name && strcmp(srv->variables[i].name, name) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static int server_variable_seen(char **seen, size_t seen_count,
+                                const char *name) {
+  size_t i;
+  if (!seen || !name)
+    return 0;
+  for (i = 0; i < seen_count; ++i) {
+    if (seen[i] && strcmp(seen[i], name) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static int validate_server_url_variables(const struct OpenAPI_Server *srv) {
+  const char *url;
+  size_t i;
+  char **seen = NULL;
+  size_t seen_count = 0;
+  size_t seen_cap = 0;
+
+  if (!srv || !srv->url)
+    return 0;
+
+  url = srv->url;
+  for (i = 0; url[i]; ++i) {
+    if (url[i] == '{') {
+      const char *end = strchr(url + i + 1, '}');
+      size_t len;
+      char *name;
+      char **tmp;
+      if (!end)
+        goto invalid;
+      len = (size_t)(end - (url + i + 1));
+      if (len == 0)
+        goto invalid;
+      name = (char *)malloc(len + 1);
+      if (!name)
+        goto oom;
+      memcpy(name, url + i + 1, len);
+      name[len] = '\0';
+      if (!server_variable_defined(srv, name)) {
+        free(name);
+        goto invalid;
+      }
+      if (server_variable_seen(seen, seen_count, name)) {
+        free(name);
+        goto invalid;
+      }
+      if (seen_count == seen_cap) {
+        size_t new_cap = seen_cap ? seen_cap * 2 : 4;
+        tmp = (char **)realloc(seen, new_cap * sizeof(char *));
+        if (!tmp) {
+          free(name);
+          goto oom;
+        }
+        seen = tmp;
+        seen_cap = new_cap;
+      }
+      seen[seen_count++] = name;
+      i = (size_t)(end - url);
+      continue;
+    }
+    if (url[i] == '}')
+      goto invalid;
+  }
+
+  for (i = 0; i < seen_count; ++i)
+    free(seen[i]);
+  free(seen);
+  return 0;
+
+invalid:
+  for (i = 0; i < seen_count; ++i)
+    free(seen[i]);
+  free(seen);
+  return EINVAL;
+
+oom:
+  for (i = 0; i < seen_count; ++i)
+    free(seen[i]);
+  free(seen);
+  return ENOMEM;
 }
 
 static int parse_server_object(const JSON_Object *const srv_obj,
@@ -3349,7 +5035,12 @@ static int parse_server_object(const JSON_Object *const srv_obj,
   name = json_object_get_string(srv_obj, "name");
   vars = json_object_get_object(srv_obj, "variables");
 
-  out_srv->url = c_cdd_strdup(url ? url : "/");
+  if (!url || !*url)
+    return EINVAL;
+  if (url && url_has_query_or_fragment(url))
+    return EINVAL;
+
+  out_srv->url = c_cdd_strdup(url);
   if (!out_srv->url)
     return ENOMEM;
 
@@ -3389,6 +5080,8 @@ static int parse_server_object(const JSON_Object *const srv_obj,
           const char *def_val = json_object_get_string(v_obj, "default");
           const char *v_desc = json_object_get_string(v_obj, "description");
           const JSON_Array *enum_arr = json_object_get_array(v_obj, "enum");
+          if (!def_val || !*def_val)
+            return EINVAL;
           if (def_val) {
             curr->default_value = c_cdd_strdup(def_val);
             if (!curr->default_value)
@@ -3402,6 +5095,9 @@ static int parse_server_object(const JSON_Object *const srv_obj,
           if (enum_arr) {
             size_t ecount = json_array_get_count(enum_arr);
             size_t e;
+            int found_default = 0;
+            if (ecount == 0)
+              return EINVAL;
             if (ecount > 0) {
               curr->enum_values = (char **)calloc(ecount, sizeof(char *));
               if (!curr->enum_values)
@@ -3413,8 +5109,12 @@ static int parse_server_object(const JSON_Object *const srv_obj,
                   curr->enum_values[e] = c_cdd_strdup(e_val);
                   if (!curr->enum_values[e])
                     return ENOMEM;
+                  if (strcmp(e_val, def_val) == 0)
+                    found_default = 1;
                 }
               }
+              if (!found_default)
+                return EINVAL;
             }
           }
           if (collect_extensions(v_obj, &curr->extensions_json) != 0)
@@ -3422,6 +5122,12 @@ static int parse_server_object(const JSON_Object *const srv_obj,
         }
       }
     }
+  }
+
+  {
+    int rc = validate_server_url_variables(out_srv);
+    if (rc != 0)
+      return rc;
   }
 
   return 0;
@@ -3459,6 +5165,22 @@ static int parse_servers_array(const JSON_Object *const parent,
     if (srv_obj) {
       if (parse_server_object(srv_obj, &(*out_servers)[i]) != 0)
         return ENOMEM;
+    }
+  }
+
+  {
+    size_t j;
+    for (i = 0; i < count; ++i) {
+      const char *name_i = (*out_servers)[i].name;
+      if (!name_i || !*name_i)
+        continue;
+      for (j = i + 1; j < count; ++j) {
+        const char *name_j = (*out_servers)[j].name;
+        if (!name_j || !*name_j)
+          continue;
+        if (strcmp(name_i, name_j) == 0)
+          return EINVAL;
+      }
     }
   }
 
@@ -3604,17 +5326,6 @@ static int parse_security_field(const JSON_Object *const obj,
   return parse_security_requirements(arr, out, out_count);
 }
 
-static char *clean_ref(const char *full_ref) {
-  const char *slash;
-  if (!full_ref)
-    return NULL;
-  slash = strrchr(full_ref, '/');
-  if (slash) {
-    return c_cdd_strdup(slash + 1);
-  }
-  return c_cdd_strdup(full_ref);
-}
-
 static int schema_is_string_enum_only(const JSON_Object *schema_obj) {
   const JSON_Array *enum_arr;
   size_t i, count;
@@ -3664,12 +5375,26 @@ static int schema_is_struct_compatible(const JSON_Value *schema_val,
   return 0;
 }
 
+static int schema_has_composition(const JSON_Object *schema_obj) {
+  if (!schema_obj)
+    return 0;
+  return json_object_get_array(schema_obj, "allOf") ||
+         json_object_get_array(schema_obj, "anyOf") ||
+         json_object_get_array(schema_obj, "oneOf");
+}
+
 static const char *const k_schema_skip_keys[] = {"$ref",
+                                                 "$dynamicRef",
+                                                 "$anchor",
+                                                 "$dynamicAnchor",
                                                  "type",
                                                  "items",
                                                  "format",
                                                  "contentMediaType",
                                                  "contentEncoding",
+                                                 "externalDocs",
+                                                 "discriminator",
+                                                 "xml",
                                                  "enum",
                                                  "const",
                                                  "default",
@@ -3692,6 +5417,9 @@ static const char *const k_schema_skip_keys[] = {"$ref",
                                                  "writeOnly"};
 
 static const char *const k_items_skip_keys[] = {"$ref",
+                                                "$dynamicRef",
+                                                "$anchor",
+                                                "$dynamicAnchor",
                                                 "type",
                                                 "format",
                                                 "contentMediaType",
@@ -3718,8 +5446,12 @@ static const char *const k_items_skip_keys[] = {"$ref",
                                                 "writeOnly"};
 
 static int parse_schema_ref(const JSON_Object *const schema,
-                            struct OpenAPI_SchemaRef *const out) {
+                            struct OpenAPI_SchemaRef *const out,
+                            const struct OpenAPI_Spec *const spec) {
   const char *ref = json_object_get_string(schema, "$ref");
+  const char *dynamic_ref = json_object_get_string(schema, "$dynamicRef");
+  const char *ref_val = ref ? ref : dynamic_ref;
+  const int ref_is_dynamic = (!ref && dynamic_ref);
   const char *summary = json_object_get_string(schema, "summary");
   const char *desc = json_object_get_string(schema, "description");
   const char *format = json_object_get_string(schema, "format");
@@ -3749,12 +5481,14 @@ static int parse_schema_ref(const JSON_Object *const schema,
   out->is_array = 0;
   out->ref_name = NULL;
   out->ref = NULL;
+  out->ref_is_dynamic = 0;
   out->inline_type = NULL;
   out->type_union = NULL;
   out->n_type_union = 0;
   out->format = NULL;
   out->items_format = NULL;
   out->items_ref = NULL;
+  out->items_ref_is_dynamic = 0;
   out->items_type_union = NULL;
   out->n_items_type_union = 0;
   out->content_type = NULL;
@@ -3783,6 +5517,12 @@ static int parse_schema_ref(const JSON_Object *const schema,
   out->enum_values = NULL;
   out->n_enum_values = 0;
   out->schema_extra_json = NULL;
+  memset(&out->external_docs, 0, sizeof(out->external_docs));
+  out->external_docs_set = 0;
+  memset(&out->discriminator, 0, sizeof(out->discriminator));
+  out->discriminator_set = 0;
+  memset(&out->xml, 0, sizeof(out->xml));
+  out->xml_set = 0;
   out->items_enum_values = NULL;
   out->n_items_enum_values = 0;
   out->has_min = 0;
@@ -3884,7 +5624,7 @@ static int parse_schema_ref(const JSON_Object *const schema,
       return ENOMEM;
   }
 
-  if (ref && summary) {
+  if (ref_val && summary) {
     out->summary = c_cdd_strdup(summary);
     if (!out->summary)
       return ENOMEM;
@@ -3893,6 +5633,38 @@ static int parse_schema_ref(const JSON_Object *const schema,
     out->description = c_cdd_strdup(desc);
     if (!out->description)
       return ENOMEM;
+  }
+
+  {
+    const JSON_Object *ext_docs =
+        json_object_get_object(schema, "externalDocs");
+    if (ext_docs) {
+      out->external_docs_set = 1;
+      {
+        int rc = parse_external_docs(ext_docs, &out->external_docs);
+        if (rc != 0)
+          return rc;
+      }
+    }
+  }
+
+  {
+    const JSON_Object *disc_obj =
+        json_object_get_object(schema, "discriminator");
+    if (disc_obj) {
+      out->discriminator_set = 1;
+      if (parse_discriminator_object(disc_obj, &out->discriminator) != 0)
+        return ENOMEM;
+    }
+  }
+
+  {
+    const JSON_Object *xml_obj = json_object_get_object(schema, "xml");
+    if (xml_obj) {
+      out->xml_set = 1;
+      if (parse_xml_object(xml_obj, &out->xml) != 0)
+        return ENOMEM;
+    }
   }
 
   deprecated_present = json_object_has_value(schema, "deprecated");
@@ -3924,18 +5696,30 @@ static int parse_schema_ref(const JSON_Object *const schema,
       return ENOMEM;
   }
 
-  if (ref) {
-    const char *name_enc = ref_name_from_prefix(ref, "#/components/schemas/");
+  if (ref_val) {
+    struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref_val);
+    const struct OpenAPI_Spec *target = resolved.spec;
+    const char *name_enc =
+        ref_name_from_prefix(target, resolved.ref, "#/components/schemas/");
     char *name_dec = NULL;
-    out->ref = c_cdd_strdup(ref);
-    if (!out->ref)
+    out->ref = c_cdd_strdup(ref_val);
+    if (!out->ref) {
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
       return ENOMEM;
+    }
+    out->ref_is_dynamic = ref_is_dynamic ? 1 : 0;
     if (name_enc) {
       name_dec = json_pointer_unescape(name_enc);
-      if (!name_dec)
+      if (!name_dec) {
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
         return ENOMEM;
+      }
       out->ref_name = name_dec;
     }
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
     return 0;
   }
 
@@ -3951,6 +5735,10 @@ static int parse_schema_ref(const JSON_Object *const schema,
     }
     if (items) {
       const char *item_ref = json_object_get_string(items, "$ref");
+      const char *item_dynamic_ref =
+          json_object_get_string(items, "$dynamicRef");
+      const char *item_ref_val = item_ref ? item_ref : item_dynamic_ref;
+      const int item_ref_is_dynamic = (!item_ref && item_dynamic_ref);
       const char *item_format = json_object_get_string(items, "format");
       const char *item_type = NULL;
       const JSON_Array *item_types_arr = NULL;
@@ -4022,19 +5810,31 @@ static int parse_schema_ref(const JSON_Object *const schema,
                                     sizeof(k_items_skip_keys[0]),
                                 &out->items_extra_json) != 0)
         return ENOMEM;
-      if (item_ref) {
+      if (item_ref_val) {
+        struct ResolvedRefTarget resolved =
+            resolve_ref_target(spec, item_ref_val);
+        const struct OpenAPI_Spec *target = resolved.spec;
         const char *name_enc =
-            ref_name_from_prefix(item_ref, "#/components/schemas/");
+            ref_name_from_prefix(target, resolved.ref, "#/components/schemas/");
         char *name_dec = NULL;
-        out->items_ref = c_cdd_strdup(item_ref);
-        if (!out->items_ref)
+        out->items_ref = c_cdd_strdup(item_ref_val);
+        if (!out->items_ref) {
+          if (resolved.resolved_ref)
+            free(resolved.resolved_ref);
           return ENOMEM;
+        }
+        out->items_ref_is_dynamic = item_ref_is_dynamic ? 1 : 0;
         if (name_enc) {
           name_dec = json_pointer_unescape(name_enc);
-          if (!name_dec)
+          if (!name_dec) {
+            if (resolved.resolved_ref)
+              free(resolved.resolved_ref);
             return ENOMEM;
+          }
           out->ref_name = name_dec;
         }
+        if (resolved.resolved_ref)
+          free(resolved.resolved_ref);
         return 0;
       }
       if (item_type) {
@@ -4147,6 +5947,356 @@ apply_schema_ref_to_header(struct OpenAPI_Header *const out_hdr,
   return 0;
 }
 
+static int schema_name_in_use(const struct OpenAPI_Spec *spec,
+                              const char *name) {
+  size_t i;
+  if (!spec || !name)
+    return 0;
+  for (i = 0; i < spec->n_defined_schemas; ++i) {
+    if (spec->defined_schema_names && spec->defined_schema_names[i] &&
+        strcmp(spec->defined_schema_names[i], name) == 0)
+      return 1;
+  }
+  for (i = 0; i < spec->n_raw_schemas; ++i) {
+    if (spec->raw_schema_names && spec->raw_schema_names[i] &&
+        strcmp(spec->raw_schema_names[i], name) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static char *sanitize_component_name(const char *name) {
+  size_t i, len;
+  char *out;
+  if (!name || !*name)
+    return c_cdd_strdup("InlineSchema");
+  len = strlen(name);
+  out = (char *)calloc(len + 1, sizeof(char));
+  if (!out)
+    return NULL;
+  for (i = 0; i < len; ++i) {
+    const char c = name[i];
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-') {
+      out[i] = c;
+    } else {
+      out[i] = '_';
+    }
+  }
+  if (!out[0]) {
+    free(out);
+    return c_cdd_strdup("InlineSchema");
+  }
+  return out;
+}
+
+static char *make_unique_schema_name(const struct OpenAPI_Spec *spec,
+                                     const char *base) {
+  size_t attempt = 0;
+  if (!base)
+    return NULL;
+  if (!schema_name_in_use(spec, base))
+    return c_cdd_strdup(base);
+  for (attempt = 1; attempt < 10000; ++attempt) {
+    char buf[256];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    sprintf_s(buf, sizeof(buf), "%s_%lu", base, (unsigned long)attempt);
+#else
+    sprintf(buf, "%s_%lu", base, (unsigned long)attempt);
+#endif
+    if (!schema_name_in_use(spec, buf))
+      return c_cdd_strdup(buf);
+  }
+  return NULL;
+}
+
+static int schema_type_array_includes(const JSON_Array *arr, const char *type) {
+  size_t i, count;
+  if (!arr || !type)
+    return 0;
+  count = json_array_get_count(arr);
+  for (i = 0; i < count; ++i) {
+    const char *val = json_array_get_string(arr, i);
+    if (val && strcmp(val, type) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static int schema_object_is_object_like(const JSON_Object *schema_obj) {
+  const char *type;
+  const JSON_Array *type_arr;
+  if (!schema_obj)
+    return 0;
+  type = json_object_get_string(schema_obj, "type");
+  if (type && strcmp(type, "object") == 0)
+    return 1;
+  type_arr = json_object_get_array(schema_obj, "type");
+  if (schema_type_array_includes(type_arr, "object"))
+    return 1;
+  if (json_object_get_object(schema_obj, "properties"))
+    return 1;
+  if (json_object_get_array(schema_obj, "allOf") ||
+      json_object_get_array(schema_obj, "anyOf") ||
+      json_object_get_array(schema_obj, "oneOf"))
+    return 1;
+  return 0;
+}
+
+static int append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
+                                 struct StructFields *schema_fields) {
+  size_t i;
+  size_t new_count;
+  char **new_names = NULL;
+  char **new_ids = NULL;
+  char **new_anchors = NULL;
+  char **new_dyn_anchors = NULL;
+  struct StructFields *new_schemas = NULL;
+
+  if (!spec || !schema_name || !schema_fields)
+    return EINVAL;
+
+  new_count = spec->n_defined_schemas + 1;
+  new_names = (char **)calloc(new_count, sizeof(char *));
+  new_ids = (char **)calloc(new_count, sizeof(char *));
+  new_anchors = (char **)calloc(new_count, sizeof(char *));
+  new_dyn_anchors = (char **)calloc(new_count, sizeof(char *));
+  new_schemas =
+      (struct StructFields *)calloc(new_count, sizeof(struct StructFields));
+  if (!new_names || !new_ids || !new_anchors || !new_dyn_anchors ||
+      !new_schemas) {
+    free(new_names);
+    free(new_ids);
+    free(new_anchors);
+    free(new_dyn_anchors);
+    free(new_schemas);
+    return ENOMEM;
+  }
+
+  for (i = 0; i < spec->n_defined_schemas; ++i) {
+    new_names[i] =
+        spec->defined_schema_names ? spec->defined_schema_names[i] : NULL;
+    new_ids[i] = spec->defined_schema_ids ? spec->defined_schema_ids[i] : NULL;
+    new_anchors[i] =
+        spec->defined_schema_anchors ? spec->defined_schema_anchors[i] : NULL;
+    new_dyn_anchors[i] = spec->defined_schema_dynamic_anchors
+                             ? spec->defined_schema_dynamic_anchors[i]
+                             : NULL;
+    new_schemas[i] =
+        spec->defined_schemas ? spec->defined_schemas[i] : new_schemas[i];
+  }
+
+  new_names[new_count - 1] = schema_name;
+  new_ids[new_count - 1] = NULL;
+  new_anchors[new_count - 1] = NULL;
+  new_dyn_anchors[new_count - 1] = NULL;
+  new_schemas[new_count - 1] = *schema_fields;
+
+  free(spec->defined_schema_names);
+  free(spec->defined_schema_ids);
+  free(spec->defined_schema_anchors);
+  free(spec->defined_schema_dynamic_anchors);
+  free(spec->defined_schemas);
+  spec->defined_schema_names = new_names;
+  spec->defined_schema_ids = new_ids;
+  spec->defined_schema_anchors = new_anchors;
+  spec->defined_schema_dynamic_anchors = new_dyn_anchors;
+  spec->defined_schemas = new_schemas;
+  spec->n_defined_schemas = new_count;
+  return 0;
+}
+
+static int raw_schema_name_exists(const struct OpenAPI_Spec *spec,
+                                  const char *name) {
+  size_t i;
+  if (!spec || !name)
+    return 0;
+  for (i = 0; i < spec->n_raw_schemas; ++i) {
+    if (spec->raw_schema_names && spec->raw_schema_names[i] &&
+        strcmp(spec->raw_schema_names[i], name) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
+                             const JSON_Value *schema_val) {
+  size_t i;
+  size_t new_count;
+  char **new_names = NULL;
+  char **new_json = NULL;
+  char *dup_name = NULL;
+  char *dup_json = NULL;
+  char *raw_json = NULL;
+
+  if (!spec || !name || !schema_val)
+    return EINVAL;
+  if (raw_schema_name_exists(spec, name))
+    return 0;
+
+  raw_json = json_serialize_to_string(schema_val);
+  if (!raw_json)
+    return ENOMEM;
+  dup_json = c_cdd_strdup(raw_json);
+  json_free_serialized_string(raw_json);
+  if (!dup_json)
+    return ENOMEM;
+
+  dup_name = c_cdd_strdup(name);
+  if (!dup_name) {
+    free(dup_json);
+    return ENOMEM;
+  }
+
+  new_count = spec->n_raw_schemas + 1;
+  new_names = (char **)calloc(new_count, sizeof(char *));
+  new_json = (char **)calloc(new_count, sizeof(char *));
+  if (!new_names || !new_json) {
+    free(new_names);
+    free(new_json);
+    free(dup_name);
+    free(dup_json);
+    return ENOMEM;
+  }
+
+  for (i = 0; i < spec->n_raw_schemas; ++i) {
+    new_names[i] = spec->raw_schema_names ? spec->raw_schema_names[i] : NULL;
+    new_json[i] = spec->raw_schema_json ? spec->raw_schema_json[i] : NULL;
+  }
+  new_names[new_count - 1] = dup_name;
+  new_json[new_count - 1] = dup_json;
+
+  free(spec->raw_schema_names);
+  free(spec->raw_schema_json);
+  spec->raw_schema_names = new_names;
+  spec->raw_schema_json = new_json;
+  spec->n_raw_schemas = new_count;
+  return 0;
+}
+
+static int register_inline_schema(struct OpenAPI_Spec *spec,
+                                  const char *base_name,
+                                  const JSON_Object *schema_obj,
+                                  const JSON_Value *schema_val,
+                                  char **out_name) {
+  struct StructFields tmp;
+  char *sanitized = NULL;
+  char *unique = NULL;
+  int rc;
+
+  if (!spec || !schema_obj || !out_name)
+    return EINVAL;
+
+  if (struct_fields_init(&tmp) != 0)
+    return ENOMEM;
+
+  rc = json_object_to_struct_fields_ex(schema_obj, &tmp, NULL, base_name);
+  if (rc != 0) {
+    struct_fields_free(&tmp);
+    return rc;
+  }
+
+  sanitized = sanitize_component_name(base_name);
+  if (!sanitized) {
+    struct_fields_free(&tmp);
+    return ENOMEM;
+  }
+
+  unique = make_unique_schema_name(spec, sanitized);
+  free(sanitized);
+  if (!unique) {
+    struct_fields_free(&tmp);
+    return ENOMEM;
+  }
+
+  rc = append_defined_schema(spec, unique, &tmp);
+  if (rc != 0) {
+    struct_fields_free(&tmp);
+    free(unique);
+    return rc;
+  }
+
+  if (schema_has_composition(schema_obj) && schema_val) {
+    int raw_rc = append_raw_schema(spec, unique, schema_val);
+    if (raw_rc != 0) {
+      struct_fields_free(&tmp);
+      return raw_rc;
+    }
+  }
+
+  *out_name = unique;
+  return 0;
+}
+
+static int assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
+                                  const char *name) {
+  char *dup;
+  if (!schema_ref || !name)
+    return EINVAL;
+  dup = c_cdd_strdup(name);
+  if (!dup)
+    return ENOMEM;
+  if (schema_ref->ref_name)
+    free(schema_ref->ref_name);
+  schema_ref->ref_name = dup;
+  return 0;
+}
+
+static char *build_inline_request_name(const char *op_id, int is_item) {
+  const char *op = (op_id && *op_id) ? op_id : "unnamed";
+  const char *suffix = is_item ? "Request_Item" : "Request";
+  size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
+  char *out = (char *)malloc(len);
+  if (!out)
+    return NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(out, len, "Inline_%s_%s", op, suffix);
+#else
+  sprintf(out, "Inline_%s_%s", op, suffix);
+#endif
+  return out;
+}
+
+static char *build_inline_response_name(const char *op_id, const char *code,
+                                        int is_item) {
+  const char *op = (op_id && *op_id) ? op_id : "unnamed";
+  const char *resp = (code && *code) ? code : "default";
+  const char *suffix = is_item ? "Item" : "";
+  size_t len = strlen("Inline_") + strlen(op) + strlen("_Response_") +
+               strlen(resp) + (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
+  char *out = (char *)malloc(len);
+  if (!out)
+    return NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (suffix[0]) {
+    sprintf_s(out, len, "Inline_%s_Response_%s_%s", op, resp, suffix);
+  } else {
+    sprintf_s(out, len, "Inline_%s_Response_%s", op, resp);
+  }
+#else
+  if (suffix[0]) {
+    sprintf(out, "Inline_%s_Response_%s_%s", op, resp, suffix);
+  } else {
+    sprintf(out, "Inline_%s_Response_%s", op, resp);
+  }
+#endif
+  return out;
+}
+
+static char *build_inline_param_name(const char *param_name) {
+  const char *p = (param_name && *param_name) ? param_name : "param";
+  size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
+  char *out = (char *)malloc(len);
+  if (!out)
+    return NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(out, len, "Inline_Querystring_%s", p);
+#else
+  sprintf(out, "Inline_Querystring_%s", p);
+#endif
+  return out;
+}
+
 static int parse_servers(const JSON_Object *const root_obj,
                          struct OpenAPI_Spec *const out) {
   return parse_servers_array(root_obj, "servers", &out->servers,
@@ -4195,6 +6345,8 @@ static int parse_security_schemes(const JSON_Object *const components,
     {
       const char *type = json_object_get_string(sec_obj, "type");
       out->security_schemes[i].type = parse_security_type(type);
+      if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
+        return EINVAL;
     }
 
     {
@@ -4218,6 +6370,9 @@ static int parse_security_schemes(const JSON_Object *const components,
       const char *in = json_object_get_string(sec_obj, "in");
       const char *key_name = json_object_get_string(sec_obj, "name");
       out->security_schemes[i].in = parse_security_in(in);
+      if (!key_name || !*key_name ||
+          out->security_schemes[i].in == OA_SEC_IN_UNKNOWN)
+        return EINVAL;
       if (key_name) {
         out->security_schemes[i].key_name = c_cdd_strdup(key_name);
         if (!out->security_schemes[i].key_name)
@@ -4227,6 +6382,8 @@ static int parse_security_schemes(const JSON_Object *const components,
       const char *scheme = json_object_get_string(sec_obj, "scheme");
       const char *bearer_format =
           json_object_get_string(sec_obj, "bearerFormat");
+      if (!scheme || !*scheme)
+        return EINVAL;
       if (scheme) {
         out->security_schemes[i].scheme = c_cdd_strdup(scheme);
         if (!out->security_schemes[i].scheme)
@@ -4239,6 +6396,8 @@ static int parse_security_schemes(const JSON_Object *const components,
       }
     } else if (out->security_schemes[i].type == OA_SEC_OPENID) {
       const char *oid_url = json_object_get_string(sec_obj, "openIdConnectUrl");
+      if (!oid_url || !*oid_url)
+        return EINVAL;
       if (oid_url) {
         out->security_schemes[i].open_id_connect_url = c_cdd_strdup(oid_url);
         if (!out->security_schemes[i].open_id_connect_url)
@@ -4253,9 +6412,12 @@ static int parse_security_schemes(const JSON_Object *const components,
         if (!out->security_schemes[i].oauth2_metadata_url)
           return ENOMEM;
       }
-      if (flows_obj) {
-        if (parse_oauth_flows(flows_obj, &out->security_schemes[i]) != 0)
-          return ENOMEM;
+      if (!flows_obj)
+        return EINVAL;
+      {
+        int flow_rc = parse_oauth_flows(flows_obj, &out->security_schemes[i]);
+        if (flow_rc != 0)
+          return flow_rc;
       }
     }
   }
@@ -4433,7 +6595,7 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
         json_value_get_boolean(effective_schema_val);
     out_hdr->schema_set = 1;
   } else if (effective_schema) {
-    if (parse_schema_ref(effective_schema, &parsed_schema) != 0)
+    if (parse_schema_ref(effective_schema, &parsed_schema, spec) != 0)
       return ENOMEM;
     parsed_schema_set = 1;
     if (apply_schema_ref_to_header(out_hdr, &parsed_schema) != 0) {
@@ -4455,6 +6617,9 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
       return ENOMEM;
     }
   }
+
+  if (object_has_example_and_examples(hdr_obj))
+    return EINVAL;
 
   if (parse_examples_object(json_object_get_object(hdr_obj, "examples"),
                             &out_hdr->examples, &out_hdr->n_examples, spec,
@@ -4592,6 +6757,8 @@ static int parse_link_object(const JSON_Object *const link_obj,
     if (!out_link->operation_id)
       return ENOMEM;
   }
+  if ((op_ref && op_id) || (!op_ref && !op_id))
+    return EINVAL;
   if (collect_extensions(link_obj, &out_link->extensions_json) != 0)
     return ENOMEM;
 
@@ -5018,6 +7185,8 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     if (out_param->in == OA_PARAM_IN_QUERYSTRING && !has_content)
       return EINVAL;
   }
+  if (allow_empty_present && out_param->in != OA_PARAM_IN_QUERY)
+    return EINVAL;
 
   if (content) {
     if (out_param->in == OA_PARAM_IN_QUERYSTRING) {
@@ -5101,7 +7270,7 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
         json_value_get_boolean(effective_schema_val);
     out_param->schema_set = 1;
   } else if (effective_schema) {
-    if (parse_schema_ref(effective_schema, &parsed_schema) != 0)
+    if (parse_schema_ref(effective_schema, &parsed_schema, spec) != 0)
       return ENOMEM;
     parsed_schema_set = 1;
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
@@ -5117,6 +7286,29 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     out_param->schema_set = 1;
   }
 
+  if (spec && out_param->in == OA_PARAM_IN_QUERYSTRING &&
+      out_param->content_type && media_type_is_json(out_param->content_type) &&
+      effective_schema && schema_object_is_object_like(effective_schema) &&
+      !out_param->schema.ref_name) {
+    char *base = build_inline_param_name(out_param->name);
+    char *registered = NULL;
+    if (base) {
+      if (register_inline_schema(spec, base, effective_schema,
+                                 effective_schema_val, &registered) == 0 &&
+          registered) {
+        if (out_param->schema.inline_type) {
+          free(out_param->schema.inline_type);
+          out_param->schema.inline_type = NULL;
+        }
+        if (assign_schema_ref_name(&out_param->schema, registered) != 0) {
+          free(base);
+          return ENOMEM;
+        }
+      }
+      free(base);
+    }
+  }
+
   if (!out_param->type) {
     out_param->type = c_cdd_strdup(type ? type : "string");
     if (!out_param->type) {
@@ -5128,6 +7320,8 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
 
   if (style_str) {
     out_param->style = parse_param_style(style_str);
+    if (out_param->style == OA_STYLE_UNKNOWN)
+      return EINVAL;
   } else {
     if (out_param->in == OA_PARAM_IN_QUERY)
       out_param->style = OA_STYLE_FORM;
@@ -5148,6 +7342,15 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     else
       out_param->explode = 0;
   }
+
+  {
+    int rc = validate_parameter_style(out_param, content != NULL);
+    if (rc != 0)
+      return rc;
+  }
+
+  if (object_has_example_and_examples(p_obj))
+    return EINVAL;
 
   if (parse_examples_object(json_object_get_object(p_obj, "examples"),
                             &out_param->examples, &out_param->n_examples, spec,
@@ -5226,7 +7429,7 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
       out->schema.schema_boolean_value = json_value_get_boolean(schema_val);
       out->schema_set = 1;
     } else if (schema_obj) {
-      if (parse_schema_ref(schema_obj, &out->schema) != 0)
+      if (parse_schema_ref(schema_obj, &out->schema, spec) != 0)
         return ENOMEM;
       out->schema_set = 1;
     }
@@ -5242,7 +7445,7 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
           json_value_get_boolean(item_schema_val);
       out->item_schema_set = 1;
     } else if (item_schema_obj) {
-      if (parse_schema_ref(item_schema_obj, &out->item_schema) != 0)
+      if (parse_schema_ref(item_schema_obj, &out->item_schema, spec) != 0)
         return ENOMEM;
       out->item_schema_set = 1;
     }
@@ -5397,6 +7600,52 @@ select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n) {
   return best;
 }
 
+static int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
+                                           size_t n) {
+  size_t i;
+  int best_idx = -1;
+  int best_spec = -1;
+  int best_rank = -1;
+
+  for (i = 0; i < n; ++i) {
+    int spec = media_type_specificity(mts[i].name);
+    int rank = media_type_preference_rank(mts[i].name);
+    if (spec > best_spec) {
+      best_spec = spec;
+      best_rank = rank;
+      best_idx = (int)i;
+      continue;
+    }
+    if (spec == best_spec && rank > best_rank) {
+      best_rank = rank;
+      best_idx = (int)i;
+    }
+  }
+  return best_idx;
+}
+
+static const JSON_Object *find_media_object_by_name(const JSON_Object *content,
+                                                    const char *media_name) {
+  size_t i, count;
+  if (!content || !media_name)
+    return NULL;
+  {
+    const JSON_Object *exact = json_object_get_object(content, media_name);
+    if (exact)
+      return exact;
+  }
+  count = json_object_get_count(content);
+  for (i = 0; i < count; ++i) {
+    const char *name = json_object_get_name(content, i);
+    if (!name)
+      continue;
+    if (media_type_base_equal(name, media_name)) {
+      return json_object_get_object(content, name);
+    }
+  }
+  return NULL;
+}
+
 static int parse_content_object(const JSON_Object *const content,
                                 struct OpenAPI_MediaType **out,
                                 size_t *out_count,
@@ -5520,13 +7769,15 @@ static int parse_parameters_array(const JSON_Array *const arr,
 static int parse_request_body_object(const JSON_Object *const rb_obj,
                                      struct OpenAPI_RequestBody *const out_rb,
                                      const struct OpenAPI_Spec *const spec,
-                                     const int resolve_refs) {
+                                     const int resolve_refs,
+                                     const char *const op_id) {
   const char *ref;
   const char *desc;
   int required_present;
   int required_val;
   const JSON_Object *content;
-  const struct OpenAPI_MediaType *primary = NULL;
+  struct OpenAPI_MediaType *primary = NULL;
+  int primary_idx = -1;
 
   if (!rb_obj || !out_rb)
     return 0;
@@ -5568,14 +7819,94 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
   }
 
   content = json_object_get_object(rb_obj, "content");
+  if (!content || json_object_get_count(content) == 0)
+    return EINVAL;
   if (content) {
     if (parse_content_object(content, &out_rb->content_media_types,
                              &out_rb->n_content_media_types, spec,
                              resolve_refs) != 0)
       return ENOMEM;
-    primary = select_primary_media_type(out_rb->content_media_types,
-                                        out_rb->n_content_media_types);
+    primary_idx = select_primary_media_type_index(
+        out_rb->content_media_types, out_rb->n_content_media_types);
+    if (primary_idx >= 0) {
+      primary = &out_rb->content_media_types[primary_idx];
+    }
     if (primary) {
+      if (spec && op_id) {
+        const JSON_Object *media_obj =
+            find_media_object_by_name(content, primary->name);
+        if (media_obj) {
+          const JSON_Value *schema_val =
+              json_object_get_value(media_obj, "schema");
+          const JSON_Value *item_schema_val =
+              json_object_get_value(media_obj, "itemSchema");
+          const JSON_Object *schema_obj =
+              schema_val ? json_value_get_object(schema_val) : NULL;
+          const JSON_Object *item_schema_obj =
+              item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+          if (primary->schema_set && schema_obj) {
+            if (primary->schema.is_array) {
+              const JSON_Value *items_val =
+                  json_object_get_value(schema_obj, "items");
+              const JSON_Object *items_obj =
+                  items_val ? json_value_get_object(items_val) : NULL;
+              if (items_obj && schema_object_is_object_like(items_obj)) {
+                char *base = build_inline_request_name(op_id, 1);
+                char *registered = NULL;
+                if (base) {
+                  if (register_inline_schema(spec, base, items_obj, items_val,
+                                             &registered) == 0 &&
+                      registered) {
+                    if (primary->schema.inline_type) {
+                      free(primary->schema.inline_type);
+                      primary->schema.inline_type = NULL;
+                    }
+                    if (assign_schema_ref_name(&primary->schema, registered) !=
+                        0)
+                      return ENOMEM;
+                  }
+                  free(base);
+                }
+              }
+            } else if (schema_object_is_object_like(schema_obj)) {
+              char *base = build_inline_request_name(op_id, 0);
+              char *registered = NULL;
+              if (base) {
+                if (register_inline_schema(spec, base, schema_obj, schema_val,
+                                           &registered) == 0 &&
+                    registered) {
+                  if (primary->schema.inline_type) {
+                    free(primary->schema.inline_type);
+                    primary->schema.inline_type = NULL;
+                  }
+                  if (assign_schema_ref_name(&primary->schema, registered) != 0)
+                    return ENOMEM;
+                }
+                free(base);
+              }
+            }
+          }
+          if (primary->item_schema_set && item_schema_obj &&
+              schema_object_is_object_like(item_schema_obj)) {
+            char *base = build_inline_request_name(op_id, 1);
+            char *registered = NULL;
+            if (base) {
+              if (register_inline_schema(spec, base, item_schema_obj,
+                                         item_schema_val, &registered) == 0 &&
+                  registered) {
+                if (primary->item_schema.inline_type) {
+                  free(primary->item_schema.inline_type);
+                  primary->item_schema.inline_type = NULL;
+                }
+                if (assign_schema_ref_name(&primary->item_schema, registered) !=
+                    0)
+                  return ENOMEM;
+              }
+              free(base);
+            }
+          }
+        }
+      }
       if (primary->ref) {
         out_rb->content_ref = c_cdd_strdup(primary->ref);
         if (!out_rb->content_ref)
@@ -5585,7 +7916,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
         if (copy_schema_ref(&out_rb->schema, &primary->schema) != 0)
           return ENOMEM;
       } else if (primary->item_schema_set) {
-        if (copy_schema_ref(&out_rb->schema, &primary->item_schema) != 0)
+        if (copy_item_schema_as_array(&out_rb->schema, &primary->item_schema) !=
+            0)
           return ENOMEM;
       }
       if (primary->examples && primary->n_examples > 0) {
@@ -5678,7 +8010,9 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
 static int parse_response_object(const JSON_Object *const resp_obj,
                                  struct OpenAPI_Response *const out_resp,
                                  const struct OpenAPI_Spec *const spec,
-                                 const int resolve_refs) {
+                                 const int resolve_refs,
+                                 const char *const op_id,
+                                 const char *const resp_code) {
   const char *ref;
   const char *summary;
   const char *desc;
@@ -5710,6 +8044,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
   }
 
   desc = json_object_get_string(resp_obj, "description");
+  if (!ref && (!desc || !*desc))
+    return EINVAL;
   if (desc) {
     out_resp->description = c_cdd_strdup(desc);
     if (!out_resp->description)
@@ -5741,14 +8077,93 @@ static int parse_response_object(const JSON_Object *const resp_obj,
 
   content = json_object_get_object(resp_obj, "content");
   if (content) {
-    const struct OpenAPI_MediaType *primary = NULL;
+    struct OpenAPI_MediaType *primary = NULL;
+    int primary_idx = -1;
     if (parse_content_object(content, &out_resp->content_media_types,
                              &out_resp->n_content_media_types, spec,
                              resolve_refs) != 0)
       return ENOMEM;
-    primary = select_primary_media_type(out_resp->content_media_types,
-                                        out_resp->n_content_media_types);
+    primary_idx = select_primary_media_type_index(
+        out_resp->content_media_types, out_resp->n_content_media_types);
+    if (primary_idx >= 0) {
+      primary = &out_resp->content_media_types[primary_idx];
+    }
     if (primary) {
+      if (spec && op_id && resp_code) {
+        const JSON_Object *media_obj =
+            find_media_object_by_name(content, primary->name);
+        if (media_obj) {
+          const JSON_Value *schema_val =
+              json_object_get_value(media_obj, "schema");
+          const JSON_Value *item_schema_val =
+              json_object_get_value(media_obj, "itemSchema");
+          const JSON_Object *schema_obj =
+              schema_val ? json_value_get_object(schema_val) : NULL;
+          const JSON_Object *item_schema_obj =
+              item_schema_val ? json_value_get_object(item_schema_val) : NULL;
+          if (primary->schema_set && schema_obj) {
+            if (primary->schema.is_array) {
+              const JSON_Value *items_val =
+                  json_object_get_value(schema_obj, "items");
+              const JSON_Object *items_obj =
+                  items_val ? json_value_get_object(items_val) : NULL;
+              if (items_obj && schema_object_is_object_like(items_obj)) {
+                char *base = build_inline_response_name(op_id, resp_code, 1);
+                char *registered = NULL;
+                if (base) {
+                  if (register_inline_schema(spec, base, items_obj, items_val,
+                                             &registered) == 0 &&
+                      registered) {
+                    if (primary->schema.inline_type) {
+                      free(primary->schema.inline_type);
+                      primary->schema.inline_type = NULL;
+                    }
+                    if (assign_schema_ref_name(&primary->schema, registered) !=
+                        0)
+                      return ENOMEM;
+                  }
+                  free(base);
+                }
+              }
+            } else if (schema_object_is_object_like(schema_obj)) {
+              char *base = build_inline_response_name(op_id, resp_code, 0);
+              char *registered = NULL;
+              if (base) {
+                if (register_inline_schema(spec, base, schema_obj, schema_val,
+                                           &registered) == 0 &&
+                    registered) {
+                  if (primary->schema.inline_type) {
+                    free(primary->schema.inline_type);
+                    primary->schema.inline_type = NULL;
+                  }
+                  if (assign_schema_ref_name(&primary->schema, registered) != 0)
+                    return ENOMEM;
+                }
+                free(base);
+              }
+            }
+          }
+          if (primary->item_schema_set && item_schema_obj &&
+              schema_object_is_object_like(item_schema_obj)) {
+            char *base = build_inline_response_name(op_id, resp_code, 1);
+            char *registered = NULL;
+            if (base) {
+              if (register_inline_schema(spec, base, item_schema_obj,
+                                         item_schema_val, &registered) == 0 &&
+                  registered) {
+                if (primary->item_schema.inline_type) {
+                  free(primary->item_schema.inline_type);
+                  primary->item_schema.inline_type = NULL;
+                }
+                if (assign_schema_ref_name(&primary->item_schema, registered) !=
+                    0)
+                  return ENOMEM;
+              }
+              free(base);
+            }
+          }
+        }
+      }
       if (primary->name) {
         out_resp->content_type = c_cdd_strdup(primary->name);
         if (!out_resp->content_type)
@@ -5763,7 +8178,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
         if (copy_schema_ref(&out_resp->schema, &primary->schema) != 0)
           return ENOMEM;
       } else if (primary->item_schema_set) {
-        if (copy_schema_ref(&out_resp->schema, &primary->item_schema) != 0)
+        if (copy_item_schema_as_array(&out_resp->schema,
+                                      &primary->item_schema) != 0)
           return ENOMEM;
       }
       if (primary->examples && primary->n_examples > 0) {
@@ -5791,35 +8207,70 @@ static int parse_response_object(const JSON_Object *const resp_obj,
   return 0;
 }
 
+static int is_valid_response_code_key(const char *code) {
+  size_t i;
+  if (!code || !*code)
+    return 0;
+  if (strcmp(code, "default") == 0)
+    return 1;
+  if (strlen(code) != 3)
+    return 0;
+  if (code[1] == 'X' && code[2] == 'X')
+    return (code[0] >= '1' && code[0] <= '5');
+  for (i = 0; i < 3; ++i) {
+    if (!isdigit((unsigned char)code[i]))
+      return 0;
+  }
+  return 1;
+}
+
 static int parse_responses(const JSON_Object *responses,
                            struct OpenAPI_Operation *out_op,
-                           const struct OpenAPI_Spec *spec) {
-  size_t i, count;
+                           const struct OpenAPI_Spec *spec, const char *op_id) {
+  size_t i, count, valid = 0, resp_idx = 0;
   if (!responses || !out_op)
     return 0;
 
   count = json_object_get_count(responses);
   if (count == 0)
-    return 0;
+    return EINVAL;
+
+  if (collect_extensions(responses, &out_op->responses_extensions_json) != 0)
+    return ENOMEM;
+
+  for (i = 0; i < count; ++i) {
+    const char *code = json_object_get_name(responses, i);
+    if (code && strncmp(code, "x-", 2) != 0)
+      valid++;
+  }
+  if (valid == 0)
+    return EINVAL;
 
   out_op->responses =
-      (struct OpenAPI_Response *)calloc(count, sizeof(struct OpenAPI_Response));
+      (struct OpenAPI_Response *)calloc(valid, sizeof(struct OpenAPI_Response));
   if (!out_op->responses)
     return ENOMEM;
-  out_op->n_responses = count;
+  out_op->n_responses = valid;
 
   for (i = 0; i < count; ++i) {
     const char *code = json_object_get_name(responses, i);
     const JSON_Value *val = json_object_get_value_at(responses, i);
     const JSON_Object *resp_obj = json_value_get_object(val);
-    struct OpenAPI_Response *curr = &out_op->responses[i];
+    struct OpenAPI_Response *curr;
 
+    if (code && strncmp(code, "x-", 2) == 0)
+      continue;
+    if (!is_valid_response_code_key(code))
+      return EINVAL;
+    if (resp_idx >= valid)
+      return EINVAL;
+    curr = &out_op->responses[resp_idx++];
     curr->code = c_cdd_strdup(code);
     if (!curr->code)
       return ENOMEM;
 
     if (resp_obj) {
-      if (parse_response_object(resp_obj, curr, spec, 1) != 0)
+      if (parse_response_object(resp_obj, curr, spec, 1, op_id, code) != 0)
         return ENOMEM;
     }
   }
@@ -5845,18 +8296,22 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Callback *comp = find_component_callback(spec, ref);
       if (comp) {
-        /* Callback refs are preserved; inline paths are not resolved here. */
-        (void)comp;
+        if (copy_callback_fields(out_cb, comp) != 0)
+          return ENOMEM;
       }
     }
     summary = json_object_get_string(cb_obj, "summary");
     if (summary) {
+      if (out_cb->summary)
+        free(out_cb->summary);
       out_cb->summary = c_cdd_strdup(summary);
       if (!out_cb->summary)
         return ENOMEM;
     }
     desc = json_object_get_string(cb_obj, "description");
     if (desc) {
+      if (out_cb->description)
+        free(out_cb->description);
       out_cb->description = c_cdd_strdup(desc);
       if (!out_cb->description)
         return ENOMEM;
@@ -5867,7 +8322,8 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
   if (collect_extensions(cb_obj, &out_cb->extensions_json) != 0)
     return ENOMEM;
 
-  return parse_paths_object(cb_obj, &out_cb->paths, &out_cb->n_paths, spec, 0);
+  return parse_paths_object(cb_obj, &out_cb->paths, &out_cb->n_paths, spec, 0,
+                            resolve_refs);
 }
 
 static int parse_callbacks_object(const JSON_Object *const callbacks,
@@ -5918,7 +8374,8 @@ static int parse_operation(const char *const verb_str,
                            const JSON_Object *const op_obj,
                            struct OpenAPI_Operation *const out_op,
                            const struct OpenAPI_Spec *const spec,
-                           const int is_additional) {
+                           const int is_additional,
+                           const char *const route_hint) {
   const char *op_id;
   const JSON_Array *params;
   const JSON_Array *tags;
@@ -5931,6 +8388,7 @@ static int parse_operation(const char *const verb_str,
 
   if (!verb_str || !op_obj || !out_op)
     return EINVAL;
+  (void)route_hint;
 
   out_op->verb = parse_verb(verb_str);
   out_op->is_additional = is_additional;
@@ -5958,8 +8416,9 @@ static int parse_operation(const char *const verb_str,
   }
   ext_docs = json_object_get_object(op_obj, "externalDocs");
   if (ext_docs) {
-    if (parse_external_docs(ext_docs, &out_op->external_docs) != 0)
-      return ENOMEM;
+    int rc = parse_external_docs(ext_docs, &out_op->external_docs);
+    if (rc != 0)
+      return rc;
   }
   deprecated_present = json_object_has_value(op_obj, "deprecated");
   deprecated_val = json_object_get_boolean(op_obj, "deprecated");
@@ -5985,7 +8444,8 @@ static int parse_operation(const char *const verb_str,
   if (req_body) {
     struct OpenAPI_RequestBody rb;
     memset(&rb, 0, sizeof(rb));
-    if (parse_request_body_object(req_body, &rb, spec, 1) != 0)
+    if (parse_request_body_object(req_body, &rb, spec, 1,
+                                  out_op->operation_id) != 0)
       return ENOMEM;
     if (rb.ref) {
       out_op->req_body_ref = c_cdd_strdup(rb.ref);
@@ -6005,6 +8465,13 @@ static int parse_operation(const char *const verb_str,
       out_op->req_body_required_set = 1;
       out_op->req_body_required = rb.required;
     }
+    if (rb.extensions_json) {
+      out_op->req_body_extensions_json = c_cdd_strdup(rb.extensions_json);
+      if (!out_op->req_body_extensions_json) {
+        free_request_body(&rb);
+        return ENOMEM;
+      }
+    }
     if (copy_schema_ref(&out_op->req_body, &rb.schema) != 0) {
       free_request_body(&rb);
       return ENOMEM;
@@ -6022,8 +8489,13 @@ static int parse_operation(const char *const verb_str,
 
   /* 3. Responses */
   responses = json_object_get_object(op_obj, "responses");
-  if (parse_responses(responses, out_op, spec) != 0)
-    return ENOMEM;
+  if (!responses)
+    return EINVAL;
+  {
+    int rc = parse_responses(responses, out_op, spec, out_op->operation_id);
+    if (rc != 0)
+      return rc;
+  }
 
   /* 4. Callbacks */
   {
@@ -6098,7 +8570,7 @@ static int parse_component_parameters(const JSON_Object *const components,
         return ENOMEM;
     }
     if (p_obj) {
-      if (parse_parameter_object(p_obj, &out->component_parameters[i], NULL,
+      if (parse_parameter_object(p_obj, &out->component_parameters[i], out,
                                  0) != 0)
         return ENOMEM;
     }
@@ -6145,8 +8617,8 @@ static int parse_component_responses(const JSON_Object *const components,
         return ENOMEM;
     }
     if (r_obj) {
-      if (parse_response_object(r_obj, &out->component_responses[i], NULL, 0) !=
-          0)
+      if (parse_response_object(r_obj, &out->component_responses[i], out, 0,
+                                NULL, NULL) != 0)
         return ENOMEM;
     }
   }
@@ -6192,7 +8664,7 @@ static int parse_component_headers(const JSON_Object *const components,
         return ENOMEM;
     }
     if (h_obj) {
-      if (parse_header_object(h_obj, &out->component_headers[i], NULL, 0) != 0)
+      if (parse_header_object(h_obj, &out->component_headers[i], out, 0) != 0)
         return ENOMEM;
     }
   }
@@ -6239,7 +8711,7 @@ static int parse_component_request_bodies(const JSON_Object *const components,
     }
     if (rb_obj) {
       if (parse_request_body_object(rb_obj, &out->component_request_bodies[i],
-                                    NULL, 0) != 0)
+                                    out, 0, NULL) != 0)
         return ENOMEM;
     }
   }
@@ -6454,7 +8926,7 @@ static int parse_component_path_items(const JSON_Object *const components,
     return EINVAL;
 
   rc = parse_paths_object(path_items, &out->component_path_items,
-                          &out->n_component_path_items, out, 0);
+                          &out->n_component_path_items, out, 0, 0);
   if (rc != 0)
     return rc;
 
@@ -6536,9 +9008,11 @@ static int parse_components(const JSON_Object *components,
     for (i = 0; i < count; ++i) {
       const JSON_Value *schema_val = json_object_get_value_at(schemas, i);
       const JSON_Object *schema_obj = json_value_get_object(schema_val);
-      if (schema_is_struct_compatible(schema_val, schema_obj))
+      const int is_struct = schema_is_struct_compatible(schema_val, schema_obj);
+      const int needs_raw = (!is_struct) || schema_has_composition(schema_obj);
+      if (is_struct)
         struct_count++;
-      else
+      if (needs_raw)
         raw_count++;
     }
 
@@ -6546,7 +9020,14 @@ static int parse_components(const JSON_Object *components,
       out->defined_schemas = (struct StructFields *)calloc(
           struct_count, sizeof(struct StructFields));
       out->defined_schema_names = (char **)calloc(struct_count, sizeof(char *));
-      if (!out->defined_schemas || !out->defined_schema_names)
+      out->defined_schema_ids = (char **)calloc(struct_count, sizeof(char *));
+      out->defined_schema_anchors =
+          (char **)calloc(struct_count, sizeof(char *));
+      out->defined_schema_dynamic_anchors =
+          (char **)calloc(struct_count, sizeof(char *));
+      if (!out->defined_schemas || !out->defined_schema_names ||
+          !out->defined_schema_ids || !out->defined_schema_anchors ||
+          !out->defined_schema_dynamic_anchors)
         return ENOMEM;
       out->n_defined_schemas = struct_count;
     }
@@ -6572,16 +9053,46 @@ static int parse_components(const JSON_Object *components,
         return EINVAL;
 
       if (schema_is_struct_compatible(schema_val, schema_obj)) {
+        const char *schema_id = NULL;
+        const char *schema_anchor = NULL;
+        const char *schema_dynamic_anchor = NULL;
         out->defined_schema_names[struct_idx] = c_cdd_strdup(name);
         if (!out->defined_schema_names[struct_idx])
           return ENOMEM;
+        if (schema_obj)
+          schema_id = json_object_get_string(schema_obj, "$id");
+        if (schema_id) {
+          out->defined_schema_ids[struct_idx] = c_cdd_strdup(schema_id);
+          if (!out->defined_schema_ids[struct_idx])
+            return ENOMEM;
+        }
+        if (schema_obj) {
+          schema_anchor = json_object_get_string(schema_obj, "$anchor");
+          schema_dynamic_anchor =
+              json_object_get_string(schema_obj, "$dynamicAnchor");
+        }
+        if (schema_anchor) {
+          out->defined_schema_anchors[struct_idx] = c_cdd_strdup(schema_anchor);
+          if (!out->defined_schema_anchors[struct_idx])
+            return ENOMEM;
+        }
+        if (schema_dynamic_anchor) {
+          out->defined_schema_dynamic_anchors[struct_idx] =
+              c_cdd_strdup(schema_dynamic_anchor);
+          if (!out->defined_schema_dynamic_anchors[struct_idx])
+            return ENOMEM;
+        }
         struct_fields_init(&out->defined_schemas[struct_idx]);
-        if (json_object_to_struct_fields(
-                schema_obj, &out->defined_schemas[struct_idx], schemas) != 0) {
+        if (json_object_to_struct_fields_ex(schema_obj,
+                                            &out->defined_schemas[struct_idx],
+                                            schemas, name) != 0) {
           return ENOMEM;
         }
         struct_idx++;
-      } else {
+      }
+
+      if (!schema_is_struct_compatible(schema_val, schema_obj) ||
+          schema_has_composition(schema_obj)) {
         char *raw_json = NULL;
         char *dup_json = NULL;
         out->raw_schema_names[raw_idx] = c_cdd_strdup(name);
@@ -6631,7 +9142,9 @@ static int parse_additional_operations(const JSON_Object *const path_obj,
     const JSON_Object *op_obj =
         json_value_get_object(json_object_get_value_at(add_ops, i));
     struct OpenAPI_Operation *curr = &path->additional_operations[i];
-    if (parse_operation(method, op_obj, curr, spec, 1) != 0)
+    if (is_fixed_operation_method(method))
+      return EINVAL;
+    if (parse_operation(method, op_obj, curr, spec, 1, path->route) != 0)
       return ENOMEM;
   }
 
@@ -6642,13 +9155,22 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
                               struct OpenAPI_Path **out_paths,
                               size_t *out_count,
                               const struct OpenAPI_Spec *const spec,
-                              int require_leading_slash) {
+                              int require_leading_slash, int resolve_refs) {
   size_t i, n_paths;
+  size_t raw_count;
+  size_t out_idx;
 
   if (!paths_obj || !out_paths || !out_count)
     return 0;
 
-  n_paths = json_object_get_count(paths_obj);
+  raw_count = json_object_get_count(paths_obj);
+  n_paths = 0;
+  for (i = 0; i < raw_count; ++i) {
+    const char *name = json_object_get_name(paths_obj, i);
+    if (name && strncmp(name, "x-", 2) == 0)
+      continue;
+    n_paths++;
+  }
   if (n_paths == 0) {
     *out_paths = NULL;
     *out_count = 0;
@@ -6661,13 +9183,20 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
     return ENOMEM;
   *out_count = n_paths;
 
-  for (i = 0; i < n_paths; ++i) {
+  out_idx = 0;
+  for (i = 0; i < raw_count; ++i) {
     const char *route = json_object_get_name(paths_obj, i);
     const JSON_Value *p_val = json_object_get_value_at(paths_obj, i);
     const JSON_Object *p_obj = json_value_get_object(p_val);
-    struct OpenAPI_Path *curr_path = &(*out_paths)[i];
+    struct OpenAPI_Path *curr_path;
     size_t n_ops_in_obj = p_obj ? json_object_get_count(p_obj) : 0;
     size_t k, valid_ops = 0;
+
+    if (route && strncmp(route, "x-", 2) == 0)
+      continue;
+    if (out_idx >= n_paths)
+      break;
+    curr_path = &(*out_paths)[out_idx++];
 
     if (require_leading_slash && (!route || route[0] != '/'))
       return EINVAL;
@@ -6689,6 +9218,30 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
         curr_path->ref = c_cdd_strdup(path_ref);
         if (!curr_path->ref)
           return ENOMEM;
+        if (resolve_refs && spec) {
+          const struct OpenAPI_Path *comp =
+              find_component_path_item(spec, path_ref);
+          if (comp) {
+            if (copy_path_fields(curr_path, comp) != 0)
+              return ENOMEM;
+          }
+        }
+        if (path_summary) {
+          if (curr_path->summary)
+            free(curr_path->summary);
+          curr_path->summary = c_cdd_strdup(path_summary);
+          if (!curr_path->summary)
+            return ENOMEM;
+        }
+        if (path_description) {
+          if (curr_path->description)
+            free(curr_path->description);
+          curr_path->description = c_cdd_strdup(path_description);
+          if (!curr_path->description)
+            return ENOMEM;
+        }
+        /* Path Item refs do not process sibling fields */
+        continue;
       }
       if (path_summary) {
         curr_path->summary = c_cdd_strdup(path_summary);
@@ -6700,10 +9253,8 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
         if (!curr_path->description)
           return ENOMEM;
       }
-      if (!path_ref) {
-        if (collect_extensions(p_obj, &curr_path->extensions_json) != 0)
-          return ENOMEM;
-      }
+      if (collect_extensions(p_obj, &curr_path->extensions_json) != 0)
+        return ENOMEM;
       {
         int rc = parse_parameters_array(path_params, &curr_path->parameters,
                                         &curr_path->n_parameters, spec);
@@ -6741,7 +9292,7 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
             continue;
           }
           if (parse_operation(verb, op_obj, &curr_path->operations[valid_ops],
-                              spec, 0) == 0) {
+                              spec, 0, curr_path->route) == 0) {
             if (curr_path->operations[valid_ops].verb != OA_VERB_UNKNOWN) {
               valid_ops++;
             }
@@ -6919,6 +9470,8 @@ static int validate_path_templates(const struct OpenAPI_Path *paths,
 
     if (!path->route)
       continue;
+    if (path->route[0] != '/')
+      continue;
     if (path->ref)
       continue;
 
@@ -6964,6 +9517,87 @@ static int validate_path_templates(const struct OpenAPI_Path *paths,
   return 0;
 }
 
+static char *normalize_path_template_route(const char *route) {
+  size_t i = 0;
+  size_t len = 0;
+  char *out;
+  size_t pos = 0;
+  if (!route)
+    return NULL;
+  while (route[i]) {
+    if (route[i] == '{') {
+      size_t j = i + 1;
+      while (route[j] && route[j] != '}')
+        ++j;
+      if (!route[j])
+        return NULL;
+      len += 2;
+      i = j + 1;
+    } else {
+      ++len;
+      ++i;
+    }
+  }
+  out = (char *)calloc(len + 1, sizeof(char));
+  if (!out)
+    return NULL;
+  i = 0;
+  while (route[i]) {
+    if (route[i] == '{') {
+      size_t j = i + 1;
+      while (route[j] && route[j] != '}')
+        ++j;
+      if (!route[j]) {
+        free(out);
+        return NULL;
+      }
+      out[pos++] = '{';
+      out[pos++] = '}';
+      i = j + 1;
+    } else {
+      out[pos++] = route[i++];
+    }
+  }
+  out[pos] = '\0';
+  return out;
+}
+
+static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
+                                             size_t n_paths) {
+  size_t i;
+  if (!paths)
+    return 0;
+  for (i = 0; i < n_paths; ++i) {
+    const char *route_i = paths[i].route;
+    char *norm_i;
+    size_t j;
+    if (!route_i || route_i[0] != '/' || !strchr(route_i, '{'))
+      continue;
+    norm_i = normalize_path_template_route(route_i);
+    if (!norm_i)
+      return EINVAL;
+    for (j = i + 1; j < n_paths; ++j) {
+      const char *route_j = paths[j].route;
+      char *norm_j;
+      if (!route_j || route_j[0] != '/' || !strchr(route_j, '{'))
+        continue;
+      norm_j = normalize_path_template_route(route_j);
+      if (!norm_j) {
+        free(norm_i);
+        return EINVAL;
+      }
+      if (strcmp(norm_i, norm_j) == 0 && strcmp(route_i, route_j) != 0) {
+        free(norm_j);
+        free(norm_i);
+        return EINVAL;
+      }
+      free(norm_j);
+    }
+    free(norm_i);
+  }
+  return 0;
+}
+
 static void scan_querystring_usage(const struct OpenAPI_Parameter *params,
                                    size_t n_params, size_t *qs_count,
                                    int *has_query) {
@@ -6988,6 +9622,9 @@ static int validate_querystring_usage(const struct OpenAPI_Path *paths,
     size_t path_qs = 0;
     int path_has_query = 0;
     size_t op_idx;
+
+    if (!path->route)
+      continue;
 
     scan_querystring_usage(path->parameters, path->n_parameters, &path_qs,
                            &path_has_query);
@@ -7026,6 +9663,72 @@ static int validate_querystring_usage(const struct OpenAPI_Path *paths,
         return EINVAL;
       if (total_qs > 0 && has_query)
         return EINVAL;
+    }
+  }
+  return 0;
+}
+
+static int validate_querystring_usage_in_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks) {
+  size_t i;
+  if (!callbacks)
+    return 0;
+  for (i = 0; i < n_callbacks; ++i) {
+    const struct OpenAPI_Callback *cb = &callbacks[i];
+    if (cb->paths && cb->n_paths > 0) {
+      int rc = validate_querystring_usage(cb->paths, cb->n_paths);
+      if (rc != 0)
+        return rc;
+    }
+  }
+  return 0;
+}
+
+static int
+validate_querystring_usage_in_operations(const struct OpenAPI_Operation *ops,
+                                         size_t n_ops) {
+  size_t i;
+  if (!ops)
+    return 0;
+  for (i = 0; i < n_ops; ++i) {
+    int rc = validate_querystring_usage_in_callbacks(ops[i].callbacks,
+                                                     ops[i].n_callbacks);
+    if (rc != 0)
+      return rc;
+  }
+  return 0;
+}
+
+static int
+validate_querystring_usage_in_paths_callbacks(const struct OpenAPI_Path *paths,
+                                              size_t n_paths) {
+  size_t i;
+  if (!paths)
+    return 0;
+  for (i = 0; i < n_paths; ++i) {
+    int rc = validate_querystring_usage_in_operations(paths[i].operations,
+                                                      paths[i].n_operations);
+    if (rc != 0)
+      return rc;
+    rc = validate_querystring_usage_in_operations(
+        paths[i].additional_operations, paths[i].n_additional_operations);
+    if (rc != 0)
+      return rc;
+  }
+  return 0;
+}
+
+static int validate_querystring_usage_in_component_callbacks(
+    const struct OpenAPI_Spec *spec) {
+  size_t i;
+  if (!spec || !spec->component_callbacks)
+    return 0;
+  for (i = 0; i < spec->n_component_callbacks; ++i) {
+    const struct OpenAPI_Callback *cb = &spec->component_callbacks[i];
+    if (cb->paths && cb->n_paths > 0) {
+      int rc = validate_querystring_usage(cb->paths, cb->n_paths);
+      if (rc != 0)
+        return rc;
     }
   }
   return 0;
@@ -7081,6 +9784,177 @@ static int collect_operation_ids(const struct OpenAPI_Path *paths,
   return 0;
 }
 
+static int path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
+                                           const char *ref, const char *name) {
+  const char *name_enc;
+  char *name_dec;
+  int match = 0;
+  if (!ref || !name)
+    return 0;
+  name_enc = ref_name_from_prefix(spec, ref, "#/components/pathItems/");
+  if (!name_enc)
+    return 0;
+  name_dec = json_pointer_unescape(name_enc);
+  if (!name_dec)
+    return 0;
+  match = (strcmp(name_dec, name) == 0);
+  free(name_dec);
+  return match;
+}
+
+static int component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
+                                             const char *name) {
+  size_t i;
+  if (!spec || !name)
+    return 0;
+  for (i = 0; i < spec->n_paths; ++i) {
+    if (spec->paths[i].ref &&
+        path_item_ref_matches_component(spec, spec->paths[i].ref, name))
+      return 1;
+  }
+  for (i = 0; i < spec->n_webhooks; ++i) {
+    if (spec->webhooks[i].ref &&
+        path_item_ref_matches_component(spec, spec->webhooks[i].ref, name))
+      return 1;
+  }
+  return 0;
+}
+
+static int callback_ref_matches_component(const struct OpenAPI_Spec *spec,
+                                          const char *ref, const char *name) {
+  const char *name_enc;
+  char *name_dec;
+  int match = 0;
+  if (!ref || !name)
+    return 0;
+  name_enc = ref_name_from_prefix(spec, ref, "#/components/callbacks/");
+  if (!name_enc)
+    return 0;
+  name_dec = json_pointer_unescape(name_enc);
+  if (!name_dec)
+    return 0;
+  match = (strcmp(name_dec, name) == 0);
+  free(name_dec);
+  return match;
+}
+
+static int component_callback_is_referenced_in_ops(
+    const struct OpenAPI_Operation *ops, size_t n_ops,
+    const struct OpenAPI_Spec *spec, const char *name) {
+  size_t i, j;
+  if (!ops || !spec || !name)
+    return 0;
+  for (i = 0; i < n_ops; ++i) {
+    const struct OpenAPI_Operation *op = &ops[i];
+    for (j = 0; j < op->n_callbacks; ++j) {
+      const struct OpenAPI_Callback *cb = &op->callbacks[j];
+      if (cb->ref && callback_ref_matches_component(spec, cb->ref, name))
+        return 1;
+    }
+  }
+  return 0;
+}
+
+static int component_callback_is_referenced(const struct OpenAPI_Spec *spec,
+                                            const char *name) {
+  size_t i;
+  if (!spec || !name)
+    return 0;
+  for (i = 0; i < spec->n_paths; ++i) {
+    if (component_callback_is_referenced_in_ops(spec->paths[i].operations,
+                                                spec->paths[i].n_operations,
+                                                spec, name) ||
+        component_callback_is_referenced_in_ops(
+            spec->paths[i].additional_operations,
+            spec->paths[i].n_additional_operations, spec, name)) {
+      return 1;
+    }
+  }
+  for (i = 0; i < spec->n_webhooks; ++i) {
+    if (component_callback_is_referenced_in_ops(spec->webhooks[i].operations,
+                                                spec->webhooks[i].n_operations,
+                                                spec, name) ||
+        component_callback_is_referenced_in_ops(
+            spec->webhooks[i].additional_operations,
+            spec->webhooks[i].n_additional_operations, spec, name)) {
+      return 1;
+    }
+  }
+  if (spec->component_path_items && spec->n_component_path_items > 0) {
+    for (i = 0; i < spec->n_component_path_items; ++i) {
+      const char *item_name = NULL;
+      if (spec->component_path_item_names)
+        item_name = spec->component_path_item_names[i];
+      if (item_name && component_path_item_is_referenced(spec, item_name))
+        continue;
+      if (component_callback_is_referenced_in_ops(
+              spec->component_path_items[i].operations,
+              spec->component_path_items[i].n_operations, spec, name) ||
+          component_callback_is_referenced_in_ops(
+              spec->component_path_items[i].additional_operations,
+              spec->component_path_items[i].n_additional_operations, spec,
+              name)) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+static int collect_callback_operation_ids_from_callbacks(
+    const struct OpenAPI_Callback *callbacks, size_t n_callbacks, char ***ids,
+    size_t *count, size_t *cap) {
+  size_t i;
+  if (!callbacks)
+    return 0;
+  for (i = 0; i < n_callbacks; ++i) {
+    const struct OpenAPI_Callback *cb = &callbacks[i];
+    if (cb->paths && cb->n_paths > 0) {
+      int rc = collect_operation_ids(cb->paths, cb->n_paths, ids, count, cap);
+      if (rc != 0)
+        return rc;
+    }
+  }
+  return 0;
+}
+
+static int collect_callback_operation_ids_from_operations(
+    const struct OpenAPI_Operation *ops, size_t n_ops, char ***ids,
+    size_t *count, size_t *cap) {
+  size_t i;
+  if (!ops)
+    return 0;
+  for (i = 0; i < n_ops; ++i) {
+    const struct OpenAPI_Operation *op = &ops[i];
+    int rc = collect_callback_operation_ids_from_callbacks(
+        op->callbacks, op->n_callbacks, ids, count, cap);
+    if (rc != 0)
+      return rc;
+  }
+  return 0;
+}
+
+static int
+collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
+                                          size_t n_paths, char ***ids,
+                                          size_t *count, size_t *cap) {
+  size_t i;
+  if (!paths)
+    return 0;
+  for (i = 0; i < n_paths; ++i) {
+    int rc = collect_callback_operation_ids_from_operations(
+        paths[i].operations, paths[i].n_operations, ids, count, cap);
+    if (rc != 0)
+      return rc;
+    rc = collect_callback_operation_ids_from_operations(
+        paths[i].additional_operations, paths[i].n_additional_operations, ids,
+        count, cap);
+    if (rc != 0)
+      return rc;
+  }
+  return 0;
+}
+
 static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   char **ids = NULL;
   size_t count = 0;
@@ -7100,10 +9974,47 @@ static int validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   if (rc != 0)
     goto cleanup;
 
-  rc = collect_operation_ids(spec->component_path_items,
-                             spec->n_component_path_items, &ids, &count, &cap);
+  rc = collect_callback_operation_ids_from_paths(spec->paths, spec->n_paths,
+                                                 &ids, &count, &cap);
   if (rc != 0)
     goto cleanup;
+
+  rc = collect_callback_operation_ids_from_paths(
+      spec->webhooks, spec->n_webhooks, &ids, &count, &cap);
+  if (rc != 0)
+    goto cleanup;
+
+  if (spec->component_path_items && spec->n_component_path_items > 0) {
+    for (i = 0; i < spec->n_component_path_items; ++i) {
+      const char *name = NULL;
+      if (spec->component_path_item_names)
+        name = spec->component_path_item_names[i];
+      if (name && component_path_item_is_referenced(spec, name))
+        continue;
+      rc = collect_operation_ids(&spec->component_path_items[i], 1, &ids,
+                                 &count, &cap);
+      if (rc != 0)
+        goto cleanup;
+      rc = collect_callback_operation_ids_from_paths(
+          &spec->component_path_items[i], 1, &ids, &count, &cap);
+      if (rc != 0)
+        goto cleanup;
+    }
+  }
+
+  if (spec->component_callbacks && spec->n_component_callbacks > 0) {
+    for (i = 0; i < spec->n_component_callbacks; ++i) {
+      const struct OpenAPI_Callback *cb = &spec->component_callbacks[i];
+      const char *name = cb->name;
+      if (name && component_callback_is_referenced(spec, name))
+        continue;
+      if (cb->paths && cb->n_paths > 0) {
+        rc = collect_operation_ids(cb->paths, cb->n_paths, &ids, &count, &cap);
+        if (rc != 0)
+          goto cleanup;
+      }
+    }
+  }
 
 cleanup:
   for (i = 0; i < count; ++i) {
@@ -7113,8 +10024,9 @@ cleanup:
   return rc;
 }
 
-int openapi_load_from_json(const JSON_Value *const root,
-                           struct OpenAPI_Spec *const out) {
+static int openapi_load_from_json_internal(
+    const JSON_Value *const root, struct OpenAPI_Spec *const out,
+    const char *retrieval_uri, struct OpenAPI_DocRegistry *registry) {
   const JSON_Object *root_obj;
   const JSON_Object *paths_obj;
   const JSON_Object *webhooks_obj;
@@ -7125,12 +10037,53 @@ int openapi_load_from_json(const JSON_Value *const root,
     return EINVAL;
 
   root_obj = json_value_get_object(root);
-  if (!root_obj)
+  if (!root_obj && json_value_get_type(root) != JSONBoolean)
     return EINVAL;
 
+  out->doc_registry = registry;
+  if (retrieval_uri && *retrieval_uri) {
+    out->retrieval_uri = c_cdd_strdup(retrieval_uri);
+    if (!out->retrieval_uri)
+      return ENOMEM;
+  }
+
   {
-    const char *version = json_object_get_string(root_obj, "openapi");
+    const char *version =
+        root_obj ? json_object_get_string(root_obj, "openapi") : NULL;
+    const char *swagger_version =
+        root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
+    if (!version && !swagger_version) {
+      if (!root_is_schema_document(root, root_obj))
+        return EINVAL;
+      out->is_schema_document = 1;
+      {
+        const char *schema_id =
+            root_obj ? json_object_get_string(root_obj, "$id") : NULL;
+        if ((schema_id && *schema_id) ||
+            (out->retrieval_uri && *out->retrieval_uri)) {
+          out->document_uri =
+              compute_document_uri(schema_id, out->retrieval_uri);
+          if (!out->document_uri)
+            return ENOMEM;
+        }
+      }
+      rc = store_schema_root_json(out, root);
+      if (rc != 0) {
+        openapi_spec_free(out);
+        return rc;
+      }
+      if (registry) {
+        rc = openapi_doc_registry_add(registry, out);
+        if (rc != 0) {
+          openapi_spec_free(out);
+          return rc;
+        }
+      }
+      return 0;
+    }
     if (version) {
+      if (!openapi_version_supported(version))
+        return EINVAL;
       out->openapi_version = c_cdd_strdup(version);
       if (!out->openapi_version)
         return ENOMEM;
@@ -7144,6 +10097,11 @@ int openapi_load_from_json(const JSON_Value *const root,
         return ENOMEM;
     }
   }
+  if (out->self_uri || out->retrieval_uri) {
+    out->document_uri = compute_document_uri(out->self_uri, out->retrieval_uri);
+    if (!out->document_uri)
+      return ENOMEM;
+  }
   {
     const char *dialect = json_object_get_string(root_obj, "jsonSchemaDialect");
     if (dialect) {
@@ -7155,50 +10113,82 @@ int openapi_load_from_json(const JSON_Value *const root,
   if (collect_extensions(root_obj, &out->extensions_json) != 0)
     return ENOMEM;
 
-  if (parse_info(root_obj, out) != 0) {
+  rc = parse_info(root_obj, out);
+  if (rc != 0) {
     openapi_spec_free(out);
-    return ENOMEM;
+    return rc;
+  }
+  if (!out->info.title || !*out->info.title || !out->info.version ||
+      !*out->info.version) {
+    openapi_spec_free(out);
+    return EINVAL;
   }
   {
     const JSON_Object *ext_docs =
         json_object_get_object(root_obj, "externalDocs");
     if (ext_docs) {
-      if (parse_external_docs(ext_docs, &out->external_docs) != 0) {
+      int rc_ext = parse_external_docs(ext_docs, &out->external_docs);
+      if (rc_ext != 0) {
         openapi_spec_free(out);
-        return ENOMEM;
+        return rc_ext;
       }
     }
   }
-  if (parse_tags(root_obj, out) != 0) {
+  rc = parse_tags(root_obj, out);
+  if (rc != 0) {
     openapi_spec_free(out);
-    return ENOMEM;
+    return rc;
+  }
+  rc = validate_tag_parents(out);
+  if (rc != 0) {
+    openapi_spec_free(out);
+    return rc;
   }
 
-  if (parse_security_field(root_obj, "security", &out->security,
-                           &out->n_security, &out->security_set) != 0) {
+  rc = parse_security_field(root_obj, "security", &out->security,
+                            &out->n_security, &out->security_set);
+  if (rc != 0) {
     openapi_spec_free(out);
-    return ENOMEM;
+    return rc;
   }
 
-  if (parse_servers(root_obj, out) != 0) {
+  rc = parse_servers(root_obj, out);
+  if (rc != 0) {
     openapi_spec_free(out);
-    return ENOMEM;
+    return rc;
   }
 
   paths_obj = json_object_get_object(root_obj, "paths");
   webhooks_obj = json_object_get_object(root_obj, "webhooks");
   comps_obj = json_object_get_object(root_obj, "components");
+  if (paths_obj) {
+    if (collect_extensions(paths_obj, &out->paths_extensions_json) != 0)
+      return ENOMEM;
+  }
+  if (webhooks_obj) {
+    if (collect_extensions(webhooks_obj, &out->webhooks_extensions_json) != 0)
+      return ENOMEM;
+  }
+  if (comps_obj) {
+    if (collect_extensions(comps_obj, &out->components_extensions_json) != 0)
+      return ENOMEM;
+  }
+  if (!paths_obj && !webhooks_obj && !comps_obj) {
+    openapi_spec_free(out);
+    return EINVAL;
+  }
 
   /* Load Schemas First */
   if (comps_obj) {
-    if (parse_components(comps_obj, out) != 0) {
+    rc = parse_components(comps_obj, out);
+    if (rc != 0) {
       openapi_spec_free(out);
-      return ENOMEM;
+      return rc;
     }
   }
 
   if (paths_obj) {
-    rc = parse_paths_object(paths_obj, &out->paths, &out->n_paths, out, 1);
+    rc = parse_paths_object(paths_obj, &out->paths, &out->n_paths, out, 1, 1);
     if (rc != 0) {
       openapi_spec_free(out);
       return rc;
@@ -7208,7 +10198,18 @@ int openapi_load_from_json(const JSON_Value *const root,
       openapi_spec_free(out);
       return rc;
     }
+    rc = validate_path_template_collisions(out->paths, out->n_paths);
+    if (rc != 0) {
+      openapi_spec_free(out);
+      return rc;
+    }
     rc = validate_querystring_usage(out->paths, out->n_paths);
+    if (rc != 0) {
+      openapi_spec_free(out);
+      return rc;
+    }
+    rc =
+        validate_querystring_usage_in_paths_callbacks(out->paths, out->n_paths);
     if (rc != 0) {
       openapi_spec_free(out);
       return rc;
@@ -7217,12 +10218,18 @@ int openapi_load_from_json(const JSON_Value *const root,
 
   if (webhooks_obj) {
     rc = parse_paths_object(webhooks_obj, &out->webhooks, &out->n_webhooks, out,
-                            0);
+                            0, 1);
     if (rc != 0) {
       openapi_spec_free(out);
       return rc;
     }
     rc = validate_querystring_usage(out->webhooks, out->n_webhooks);
+    if (rc != 0) {
+      openapi_spec_free(out);
+      return rc;
+    }
+    rc = validate_querystring_usage_in_paths_callbacks(out->webhooks,
+                                                       out->n_webhooks);
     if (rc != 0) {
       openapi_spec_free(out);
       return rc;
@@ -7236,6 +10243,18 @@ int openapi_load_from_json(const JSON_Value *const root,
       openapi_spec_free(out);
       return rc;
     }
+    rc = validate_querystring_usage_in_paths_callbacks(
+        out->component_path_items, out->n_component_path_items);
+    if (rc != 0) {
+      openapi_spec_free(out);
+      return rc;
+    }
+  }
+
+  rc = validate_querystring_usage_in_component_callbacks(out);
+  if (rc != 0) {
+    openapi_spec_free(out);
+    return rc;
   }
 
   rc = validate_unique_operation_ids(out);
@@ -7244,7 +10263,27 @@ int openapi_load_from_json(const JSON_Value *const root,
     return rc;
   }
 
+  if (registry) {
+    rc = openapi_doc_registry_add(registry, out);
+    if (rc != 0) {
+      openapi_spec_free(out);
+      return rc;
+    }
+  }
+
   return 0;
+}
+
+int openapi_load_from_json(const JSON_Value *const root,
+                           struct OpenAPI_Spec *const out) {
+  return openapi_load_from_json_internal(root, out, NULL, NULL);
+}
+
+int openapi_load_from_json_with_context(const JSON_Value *const root,
+                                        const char *retrieval_uri,
+                                        struct OpenAPI_Spec *const out,
+                                        struct OpenAPI_DocRegistry *registry) {
+  return openapi_load_from_json_internal(root, out, retrieval_uri, registry);
 }
 
 const struct StructFields *
@@ -7258,5 +10297,114 @@ openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name) {
       return &spec->defined_schemas[i];
     }
   }
+  return NULL;
+}
+
+static const struct StructFields *
+openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
+                               const char *ref) {
+  size_t i;
+  const char *hash;
+  size_t base_len;
+
+  if (!spec || !ref || !spec->defined_schema_ids)
+    return NULL;
+
+  hash = strchr(ref, '#');
+  if (hash && hash[1] != '\0') {
+    /* Fragmented refs may target subschemas; do not map to root structs. */
+    return NULL;
+  }
+  base_len = hash ? (size_t)(hash - ref) : strlen(ref);
+  if (base_len == 0)
+    return NULL;
+
+  for (i = 0; i < spec->n_defined_schemas; ++i) {
+    const char *id = spec->defined_schema_ids[i];
+    if (!id)
+      continue;
+    if (strlen(id) == base_len && strncmp(id, ref, base_len) == 0) {
+      return &spec->defined_schemas[i];
+    }
+  }
+
+  return NULL;
+}
+
+static const struct StructFields *
+openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
+                                   const char *ref, int dynamic_anchor) {
+  size_t i;
+  const char *hash;
+  const char *anchor;
+  char **anchors;
+
+  if (!spec || !ref)
+    return NULL;
+
+  hash = strchr(ref, '#');
+  if (!hash || hash[1] == '\0')
+    return NULL;
+  anchor = hash + 1;
+  if (anchor[0] == '/')
+    return NULL; /* JSON Pointer fragment, not an anchor */
+
+  anchors = dynamic_anchor ? spec->defined_schema_dynamic_anchors
+                           : spec->defined_schema_anchors;
+  if (!anchors)
+    return NULL;
+
+  for (i = 0; i < spec->n_defined_schemas; ++i) {
+    const char *cand = anchors[i];
+    if (!cand)
+      continue;
+    if (strcmp(cand, anchor) == 0)
+      return &spec->defined_schemas[i];
+  }
+
+  return NULL;
+}
+
+const struct StructFields *
+openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
+                                 const struct OpenAPI_SchemaRef *ref) {
+  struct ResolvedRefTarget resolved;
+  const struct OpenAPI_Spec *target;
+
+  if (!spec || !ref)
+    return NULL;
+
+  if (ref->ref_name) {
+    if (ref->ref) {
+      resolved = resolve_ref_target(spec, ref->ref);
+      target = resolved.spec ? resolved.spec : spec;
+      if (resolved.resolved_ref)
+        free(resolved.resolved_ref);
+    } else {
+      target = spec;
+    }
+    return openapi_spec_find_schema(target, ref->ref_name);
+  }
+
+  if (ref->ref) {
+    const struct StructFields *found = NULL;
+    resolved = resolve_ref_target(spec, ref->ref);
+    target = resolved.spec ? resolved.spec : spec;
+    if (ref->ref_is_dynamic) {
+      found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1);
+      if (!found)
+        found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0);
+    } else {
+      found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0);
+      if (!found)
+        found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1);
+    }
+    if (!found)
+      found = openapi_spec_find_schema_by_id(target, resolved.ref);
+    if (resolved.resolved_ref)
+      free(resolved.resolved_ref);
+    return found;
+  }
+
   return NULL;
 }

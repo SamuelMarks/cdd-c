@@ -83,6 +83,56 @@ TEST test_sec_bearer_token(void) {
   PASS();
 }
 
+TEST test_sec_oauth2_bearer_token(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+
+  sch.name = "oauth2";
+  sch.type = OA_SEC_OAUTH2;
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
+  ASSERT(strstr(
+      code, "http_request_set_auth_bearer(&req, ctx->security.bearer_token)"));
+
+  free(code);
+  PASS();
+}
+
+TEST test_sec_openid_bearer_token(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+
+  sch.name = "openid";
+  sch.type = OA_SEC_OPENID;
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
+  ASSERT(strstr(
+      code, "http_request_set_auth_bearer(&req, ctx->security.bearer_token)"));
+
+  free(code);
+  PASS();
+}
+
 TEST test_sec_basic_token(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
@@ -133,6 +183,48 @@ TEST test_sec_api_key_header(void) {
   /* Check injection */
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\", "
                       "ctx->security.api_key_ApiKeyAuth)"));
+
+  free(code);
+  PASS();
+}
+
+TEST test_sec_uri_requirement_matches_component(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme sch;
+  struct OpenAPI_SecurityRequirement req;
+  struct OpenAPI_SecurityRequirementSet set;
+  char *code;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&sch, 0, sizeof(sch));
+  memset(&req, 0, sizeof(req));
+  memset(&set, 0, sizeof(set));
+
+  spec.self_uri = "/api/openapi";
+
+  sch.name = "ApiKeyAuth";
+  sch.type = OA_SEC_APIKEY;
+  sch.in = OA_SEC_IN_HEADER;
+  sch.key_name = "X-API-KEY";
+
+  req.scheme =
+      "https://example.com/api/openapi#/components/securitySchemes/ApiKeyAuth";
+  req.scopes = NULL;
+  req.n_scopes = 0;
+
+  set.requirements = &req;
+  set.n_requirements = 1;
+
+  spec.security_schemes = &sch;
+  spec.n_security_schemes = 1;
+  spec.security = &set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+
+  code = gen_sec_code(&spec, NULL);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\"") != NULL);
 
   free(code);
   PASS();
@@ -269,8 +361,11 @@ TEST test_sec_security_requirements_filter(void) {
 
 SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_bearer_token);
+  RUN_TEST(test_sec_oauth2_bearer_token);
+  RUN_TEST(test_sec_openid_bearer_token);
   RUN_TEST(test_sec_basic_token);
   RUN_TEST(test_sec_api_key_header);
+  RUN_TEST(test_sec_uri_requirement_matches_component);
   RUN_TEST(test_sec_api_key_query);
   RUN_TEST(test_sec_api_key_cookie);
   RUN_TEST(test_sec_multiple_schemes);

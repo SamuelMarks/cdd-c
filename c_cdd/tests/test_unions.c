@@ -53,7 +53,7 @@ TEST test_write_union_to_json(void) {
   PASS();
 }
 
-TEST test_write_union_from_json(void) {
+TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
   char *content;
@@ -61,10 +61,10 @@ TEST test_write_union_from_json(void) {
 
   ASSERT(tmp);
   struct_fields_init(&sf);
-  struct_fields_add(&sf, "val", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "pet", "object", "Pet", NULL, NULL);
 
   /* Generate */
-  ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "NumU", &sf, NULL));
+  ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "ObjU", &sf, NULL));
 
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
@@ -74,11 +74,11 @@ TEST test_write_union_from_json(void) {
   content[sz] = 0;
 
   /* Check malloc */
-  ASSERT(strstr(content, "malloc(sizeof(struct NumU))"));
-  /* Check discriminator check */
-  ASSERT(strstr(content, "if (json_object_has_value(jsonObject, \"val\"))"));
-  ASSERT(strstr(content, "ret->tag = NumU_val;"));
-  ASSERT(strstr(content, "ret->data.val = (int)json_object_get_number"));
+  ASSERT(strstr(content, "malloc(sizeof(struct ObjU))"));
+  ASSERT(strstr(content, "match_count"));
+  ASSERT(strstr(content, "json_object_get_count"));
+  ASSERT(strstr(content, "ret->tag = ObjU_pet;"));
+  ASSERT(strstr(content, "Pet_from_jsonObject"));
 
   free(content);
   struct_fields_free(&sf);
@@ -86,6 +86,37 @@ TEST test_write_union_from_json(void) {
   PASS();
 }
 
+TEST test_write_union_from_json(void) {
+  struct StructFields sf;
+  FILE *tmp = tmpfile();
+  char *content;
+  long sz;
+
+  ASSERT(tmp);
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+
+  ASSERT_EQ(0, write_union_from_json_func(tmp, "MixU", &sf, NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = malloc(sz + 1);
+  fread(content, 1, sz, tmp);
+  content[sz] = 0;
+
+  ASSERT(strstr(content, "json_parse_string"));
+  ASSERT(strstr(content, "case JSONString"));
+  ASSERT(strstr(content, "ret->tag = MixU_s;"));
+  ASSERT(strstr(content, "case JSONNumber"));
+  ASSERT(strstr(content, "ret->tag = MixU_i;"));
+
+  free(content);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
 TEST test_write_union_cleanup(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -121,6 +152,7 @@ TEST test_write_union_cleanup(void) {
 
 SUITE(unions_suite) {
   RUN_TEST(test_write_union_to_json);
+  RUN_TEST(test_write_union_from_json_object);
   RUN_TEST(test_write_union_from_json);
   RUN_TEST(test_write_union_cleanup);
 }

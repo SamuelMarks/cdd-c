@@ -25,7 +25,10 @@ static const char *verb_to_str(enum OpenAPI_Verb v);
 static const char *param_in_to_str(enum OpenAPI_ParamIn in);
 static const char *style_to_str(enum OpenAPI_Style s);
 static const char *oauth_flow_type_to_str(enum OpenAPI_OAuthFlowType t);
+static const char *xml_node_type_to_str(enum OpenAPI_XmlNodeType t);
 static int is_schema_primitive(const char *type);
+static int license_fields_invalid(const struct OpenAPI_License *lic);
+static int server_url_has_query_or_fragment(const char *url);
 static JSON_Value *clone_json_value(const JSON_Value *val);
 static int merge_schema_extras_object(JSON_Object *target,
                                       const char *extras_json);
@@ -57,6 +60,11 @@ static void write_items_schema_fields(JSON_Object *item_obj,
                                       const struct OpenAPI_SchemaRef *ref);
 static void write_external_docs(JSON_Object *parent, const char *key,
                                 const struct OpenAPI_ExternalDocs *docs);
+static void write_discriminator_object(JSON_Object *parent,
+                                       const struct OpenAPI_Discriminator *disc,
+                                       int disc_set);
+static void write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
+                             int xml_set);
 static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec);
 static void write_server_object(JSON_Object *srv_obj,
                                 const struct OpenAPI_Server *srv);
@@ -213,6 +221,23 @@ static const char *style_to_str(enum OpenAPI_Style s) {
   }
 }
 
+static const char *xml_node_type_to_str(enum OpenAPI_XmlNodeType t) {
+  switch (t) {
+  case OA_XML_NODE_ELEMENT:
+    return "element";
+  case OA_XML_NODE_ATTRIBUTE:
+    return "attribute";
+  case OA_XML_NODE_TEXT:
+    return "text";
+  case OA_XML_NODE_CDATA:
+    return "cdata";
+  case OA_XML_NODE_NONE:
+    return "none";
+  default:
+    return NULL;
+  }
+}
+
 static int header_name_is_content_type(const char *const name) {
   if (!name)
     return 0;
@@ -250,6 +275,26 @@ static int is_schema_primitive(const char *type) {
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "boolean") == 0 || strcmp(type, "number") == 0 ||
          strcmp(type, "object") == 0 || strcmp(type, "null") == 0;
+}
+
+static int license_fields_invalid(const struct OpenAPI_License *lic) {
+  int has_any;
+  if (!lic)
+    return 0;
+  has_any = lic->name || lic->identifier || lic->url || lic->extensions_json;
+  if (!has_any)
+    return 0;
+  if (!lic->name || lic->name[0] == '\0')
+    return 1;
+  if (lic->identifier && lic->url)
+    return 1;
+  return 0;
+}
+
+static int server_url_has_query_or_fragment(const char *url) {
+  if (!url)
+    return 0;
+  return strchr(url, '?') != NULL || strchr(url, '#') != NULL;
 }
 
 static JSON_Value *clone_json_value(const JSON_Value *val) {
@@ -329,6 +374,7 @@ static int schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
          ref->items_has_max_items || ref->items_unique_items ||
          ref->items_example_set || ref->n_items_examples > 0 ||
          ref->items_schema_is_boolean || ref->schema_extra_json ||
+         ref->external_docs_set || ref->discriminator_set || ref->xml_set ||
          ref->items_extra_json || ref->items_const_value_set ||
          ref->items_default_value_set;
 }
@@ -576,6 +622,80 @@ static void write_external_docs(JSON_Object *parent, const char *key,
   json_object_set_value(parent, key, ext_val);
 }
 
+static void write_discriminator_object(JSON_Object *parent,
+                                       const struct OpenAPI_Discriminator *disc,
+                                       int disc_set) {
+  JSON_Value *disc_val;
+  JSON_Object *disc_obj;
+  JSON_Value *mapping_val;
+  JSON_Object *mapping_obj;
+  size_t i;
+
+  if (!parent || !disc || !disc_set)
+    return;
+  if (!disc->property_name && disc->n_mapping == 0 && !disc->default_mapping)
+    return;
+
+  disc_val = json_value_init_object();
+  if (!disc_val)
+    return;
+  disc_obj = json_value_get_object(disc_val);
+
+  if (disc->property_name)
+    json_object_set_string(disc_obj, "propertyName", disc->property_name);
+  if (disc->default_mapping)
+    json_object_set_string(disc_obj, "defaultMapping", disc->default_mapping);
+
+  if (disc->mapping && disc->n_mapping > 0) {
+    mapping_val = json_value_init_object();
+    mapping_obj = json_value_get_object(mapping_val);
+    for (i = 0; i < disc->n_mapping; ++i) {
+      const struct OpenAPI_DiscriminatorMap *m = &disc->mapping[i];
+      if (m->value && m->schema)
+        json_object_set_string(mapping_obj, m->value, m->schema);
+    }
+    json_object_set_value(disc_obj, "mapping", mapping_val);
+  }
+
+  if (disc->extensions_json)
+    merge_schema_extras_object(disc_obj, disc->extensions_json);
+
+  json_object_set_value(parent, "discriminator", disc_val);
+}
+
+static void write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
+                             int xml_set) {
+  JSON_Value *xml_val;
+  JSON_Object *xml_obj;
+  const char *node_type;
+
+  if (!parent || !xml || !xml_set)
+    return;
+
+  xml_val = json_value_init_object();
+  if (!xml_val)
+    return;
+  xml_obj = json_value_get_object(xml_val);
+
+  node_type = xml_node_type_to_str(xml->node_type);
+  if (xml->node_type_set && node_type)
+    json_object_set_string(xml_obj, "nodeType", node_type);
+  if (xml->name)
+    json_object_set_string(xml_obj, "name", xml->name);
+  if (xml->namespace_uri)
+    json_object_set_string(xml_obj, "namespace", xml->namespace_uri);
+  if (xml->prefix)
+    json_object_set_string(xml_obj, "prefix", xml->prefix);
+  if (xml->attribute_set)
+    json_object_set_boolean(xml_obj, "attribute", xml->attribute ? 1 : 0);
+  if (xml->wrapped_set)
+    json_object_set_boolean(xml_obj, "wrapped", xml->wrapped ? 1 : 0);
+  if (xml->extensions_json)
+    merge_schema_extras_object(xml_obj, xml->extensions_json);
+
+  json_object_set_value(parent, "xml", xml_val);
+}
+
 static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
   JSON_Value *info_val = json_value_init_object();
   JSON_Object *info_obj = json_value_get_object(info_val);
@@ -616,14 +736,11 @@ static void write_info(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
   }
 
   if (spec->info.license.name || spec->info.license.identifier ||
-      spec->info.license.url) {
+      spec->info.license.url || spec->info.license.extensions_json) {
     license_val = json_value_init_object();
     license_obj = json_value_get_object(license_val);
-    if (spec->info.license.name) {
+    if (spec->info.license.name)
       json_object_set_string(license_obj, "name", spec->info.license.name);
-    } else {
-      json_object_set_string(license_obj, "name", "Unknown");
-    }
     if (spec->info.license.identifier)
       json_object_set_string(license_obj, "identifier",
                              spec->info.license.identifier);
@@ -821,6 +938,10 @@ static void write_items_schema_fields(JSON_Object *item_obj,
     merge_schema_extras_object(item_obj, ref->items_extra_json);
 }
 
+static const char *schema_ref_keyword(int is_dynamic) {
+  return is_dynamic ? "$dynamicRef" : "$ref";
+}
+
 /**
  * @brief Write a Schema Reference object (or inline Type).
  *
@@ -868,7 +989,9 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
     } else if (ref->items_ref) {
       JSON_Value *item_val = json_value_init_object();
       JSON_Object *item_obj = json_value_get_object(item_val);
-      json_object_set_string(item_obj, "$ref", ref->items_ref);
+      json_object_set_string(item_obj,
+                             schema_ref_keyword(ref->items_ref_is_dynamic),
+                             ref->items_ref);
       write_items_schema_fields(item_obj, ref);
       json_object_set_value(sch_obj, "items", item_val);
     } else if (ref->ref_name) {
@@ -900,7 +1023,8 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
     write_schema_type_union(sch_obj, ref->inline_type, ref->nullable,
                             ref->type_union, ref->n_type_union);
   } else if (ref->ref) {
-    json_object_set_string(sch_obj, "$ref", ref->ref);
+    json_object_set_string(sch_obj, schema_ref_keyword(ref->ref_is_dynamic),
+                           ref->ref);
   } else if (ref->ref_name) {
     if (is_schema_primitive(ref->ref_name)) {
       write_schema_type_union(sch_obj, ref->ref_name, ref->nullable,
@@ -935,6 +1059,11 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
     json_object_set_string(sch_obj, "summary", ref->summary);
   if (ref->description)
     json_object_set_string(sch_obj, "description", ref->description);
+  if (ref->external_docs_set)
+    write_external_docs(sch_obj, "externalDocs", &ref->external_docs);
+  write_discriminator_object(sch_obj, &ref->discriminator,
+                             ref->discriminator_set);
+  write_xml_object(sch_obj, &ref->xml, ref->xml_set);
   if (ref->deprecated_set)
     json_object_set_boolean(sch_obj, "deprecated", ref->deprecated ? 1 : 0);
   if (ref->read_only_set)
@@ -1049,7 +1178,7 @@ static void write_parameter_object(JSON_Object *p_obj,
     json_object_set_string(p_obj, "description", p->description);
   if (p->deprecated_set)
     json_object_set_boolean(p_obj, "deprecated", p->deprecated ? 1 : 0);
-  if (p->allow_empty_value_set)
+  if (p->allow_empty_value_set && p->in == OA_PARAM_IN_QUERY)
     json_object_set_boolean(p_obj, "allowEmptyValue",
                             p->allow_empty_value ? 1 : 0);
   if (p->example_location == OA_EXAMPLE_LOC_OBJECT) {
@@ -1701,6 +1830,8 @@ static int write_request_body(JSON_Object *op_obj,
     json_object_set_string(rb_obj, "$ref", op->req_body_ref);
     if (op->req_body_description)
       json_object_set_string(rb_obj, "description", op->req_body_description);
+    if (op->req_body_extensions_json)
+      merge_schema_extras_object(rb_obj, op->req_body_extensions_json);
     json_object_set_value(op_obj, "requestBody", rb_val);
     return 0;
   }
@@ -1724,6 +1855,7 @@ static int write_request_body(JSON_Object *op_obj,
     rb.schema = op->req_body;
     rb.content_media_types = op->req_body_media_types;
     rb.n_content_media_types = op->n_req_body_media_types;
+    rb.extensions_json = op->req_body_extensions_json;
     if (write_request_body_object(rb_obj, &rb) != 0) {
       json_value_free(rb_val);
       return ENOMEM;
@@ -1815,6 +1947,8 @@ static int write_responses(JSON_Object *op_obj,
 
     json_object_set_value(resps_obj, r->code ? r->code : "default", r_val);
   }
+  if (op->responses_extensions_json)
+    merge_schema_extras_object(resps_obj, op->responses_extensions_json);
 
   json_object_set_value(op_obj, "responses", resps_val);
   return 0;
@@ -2006,6 +2140,10 @@ static int write_paths(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
   size_t i;
   int rc = 0;
 
+  if (spec && spec->paths_extensions_json) {
+    merge_schema_extras_object(paths_obj, spec->paths_extensions_json);
+  }
+
   for (i = 0; i < spec->n_paths; ++i) {
     const struct OpenAPI_Path *p = &spec->paths[i];
     const char *route = p->route ? p->route : "/";
@@ -2058,6 +2196,10 @@ static int write_server_array(JSON_Object *parent, const char *key,
 
   for (i = 0; i < n_servers; ++i) {
     const struct OpenAPI_Server *srv = &servers[i];
+    if (server_url_has_query_or_fragment(srv->url)) {
+      json_value_free(arr_val);
+      return EINVAL;
+    }
     JSON_Value *srv_val = json_value_init_object();
     JSON_Object *srv_obj = json_value_get_object(srv_val);
     write_server_object(srv_obj, srv);
@@ -2116,13 +2258,20 @@ static int write_webhooks(JSON_Object *root_obj,
   size_t i;
   int rc = 0;
 
-  if (!spec || spec->n_webhooks == 0 || !spec->webhooks)
+  if (!spec)
+    return 0;
+  if ((spec->n_webhooks == 0 || !spec->webhooks) &&
+      !spec->webhooks_extensions_json)
     return 0;
 
   hooks_val = json_value_init_object();
   if (!hooks_val)
     return ENOMEM;
   hooks_obj = json_value_get_object(hooks_val);
+
+  if (spec->webhooks_extensions_json) {
+    merge_schema_extras_object(hooks_obj, spec->webhooks_extensions_json);
+  }
 
   for (i = 0; i < spec->n_webhooks; ++i) {
     const struct OpenAPI_Path *p = &spec->webhooks[i];
@@ -2649,7 +2798,7 @@ static int write_components(JSON_Object *root_obj,
       spec->n_component_request_bodies == 0 &&
       spec->n_component_media_types == 0 && spec->n_component_examples == 0 &&
       spec->n_component_links == 0 && spec->n_component_callbacks == 0 &&
-      spec->n_component_path_items == 0) {
+      spec->n_component_path_items == 0 && !spec->components_extensions_json) {
     return 0;
   }
 
@@ -2657,6 +2806,9 @@ static int write_components(JSON_Object *root_obj,
   if (!comps_val)
     return ENOMEM;
   comps_obj = json_value_get_object(comps_val);
+
+  if (spec->components_extensions_json)
+    merge_schema_extras_object(comps_obj, spec->components_extensions_json);
 
   /* Schemas */
   if (spec->n_defined_schemas > 0 || spec->n_raw_schemas > 0) {
@@ -2777,6 +2929,14 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *const spec,
   if (!spec || !json_out) {
     return EINVAL;
   }
+  if (spec->is_schema_document) {
+    if (!spec->schema_root_json)
+      return EINVAL;
+    *json_out = c_cdd_strdup(spec->schema_root_json);
+    return *json_out ? 0 : ENOMEM;
+  }
+  if (license_fields_invalid(&spec->info.license))
+    return EINVAL;
 
   root_val = json_value_init_object();
   if (!root_val)
@@ -2827,7 +2987,7 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *const spec,
     return rc;
   }
 
-  if (spec->n_paths > 0) {
+  if (spec->n_paths > 0 || spec->paths_extensions_json) {
     rc = write_paths(root_obj, spec);
     if (rc != 0) {
       json_value_free(root_val);

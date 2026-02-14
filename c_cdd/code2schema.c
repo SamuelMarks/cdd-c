@@ -81,6 +81,110 @@ static JSON_Value *clone_json_value(const JSON_Value *val) {
   return copy;
 }
 
+static void free_string_array(char **arr, size_t n) {
+  size_t i;
+  if (!arr)
+    return;
+  for (i = 0; i < n; ++i) {
+    if (arr[i]) {
+      free(arr[i]);
+      arr[i] = NULL;
+    }
+  }
+  free(arr);
+}
+
+static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+                             size_t src_count) {
+  size_t i;
+  char **out;
+  if (!dst || !dst_count)
+    return EINVAL;
+  *dst = NULL;
+  *dst_count = 0;
+  if (!src || src_count == 0)
+    return 0;
+  out = (char **)calloc(src_count, sizeof(char *));
+  if (!out)
+    return ENOMEM;
+  for (i = 0; i < src_count; ++i) {
+    if (src[i]) {
+      out[i] = c_cdd_strdup(src[i]);
+      if (!out[i]) {
+        free_string_array(out, src_count);
+        return ENOMEM;
+      }
+    }
+  }
+  *dst = out;
+  *dst_count = src_count;
+  return 0;
+}
+
+static int parse_type_union_array(const JSON_Array *arr, char ***out_union,
+                                  size_t *out_count, const char **out_primary,
+                                  int *out_nullable) {
+  size_t i, count, n = 0;
+  char **types;
+  const char *primary = NULL;
+  int saw_null = 0;
+
+  if (out_union)
+    *out_union = NULL;
+  if (out_count)
+    *out_count = 0;
+  if (out_primary)
+    *out_primary = NULL;
+  if (out_nullable)
+    *out_nullable = 0;
+
+  if (!arr)
+    return 0;
+
+  count = json_array_get_count(arr);
+  if (count == 0)
+    return 0;
+
+  types = (char **)calloc(count, sizeof(char *));
+  if (!types)
+    return ENOMEM;
+
+  for (i = 0; i < count; ++i) {
+    const char *t = json_array_get_string(arr, i);
+    if (!t)
+      continue;
+    types[n] = c_cdd_strdup(t);
+    if (!types[n]) {
+      free_string_array(types, count);
+      return ENOMEM;
+    }
+    if (strcmp(t, "null") == 0) {
+      saw_null = 1;
+      if (out_nullable)
+        *out_nullable = 1;
+    } else if (!primary) {
+      primary = types[n];
+    }
+    n++;
+  }
+
+  if (n == 0) {
+    free(types);
+    return 0;
+  }
+
+  if (!primary && saw_null)
+    primary = "null";
+
+  if (out_union)
+    *out_union = types;
+  if (out_count)
+    *out_count = n;
+  if (out_primary)
+    *out_primary = primary;
+  return 0;
+}
+
 static int collect_schema_extras(const JSON_Object *obj,
                                  const char *const *skip_keys,
                                  size_t skip_count, char **out_json) {
@@ -282,6 +386,13 @@ static const char *const k_property_skip_keys[] = {"type",
 
 static const char *const k_items_skip_keys[] = {"type", "$ref"};
 
+static int openapi_type_is_primitive(const char *type) {
+  if (!type)
+    return 0;
+  return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
+         strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0;
+}
+
 static int schema_object_is_string_enum(const JSON_Object *schema_obj,
                                         const JSON_Array **enum_arr_out);
 static int ref_points_to_string_enum(const JSON_Object *root, const char *ref);
@@ -295,9 +406,13 @@ static void merge_struct_field(struct StructField *dest,
 static int apply_allof_to_struct_fields(const JSON_Array *all_of,
                                         struct StructFields *dest,
                                         const JSON_Object *root);
-static int apply_union_to_struct_fields(const JSON_Array *union_arr,
-                                        struct StructFields *dest,
-                                        const JSON_Object *root);
+static int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+                                                 struct StructFields *dest,
+                                                 const JSON_Object *root);
+static int apply_union_to_struct_fields_ex(
+    const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
+    const char *schema_name, int is_anyof, const JSON_Object *schema_obj,
+    int allow_inline);
 
 int parse_struct_member_line(const char *line, struct StructFields *sf) {
   char buf[MAX_LINE_LENGTH];
@@ -420,8 +535,28 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 
     if (struct_fields_add(sf, name, final_type, final_ref, NULL,
                           bit_width[0] ? bit_width : NULL) == 0) {
+      struct StructField *field = &sf->fields[sf->size - 1];
       if (is_fam) {
-        sf->fields[sf->size - 1].is_flexible_array = 1;
+        field->is_flexible_array = 1;
+      }
+      if (mapping.oa_format && mapping.oa_type) {
+        if (mapping.kind == OA_TYPE_PRIMITIVE) {
+          strncpy(field->format, mapping.oa_format, sizeof(field->format) - 1);
+          field->format[sizeof(field->format) - 1] = '\0';
+        } else if (mapping.kind == OA_TYPE_ARRAY &&
+                   openapi_type_is_primitive(mapping.oa_type)) {
+          char fmt_json[64];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(fmt_json, sizeof(fmt_json), "{\"format\":\"%s\"}",
+                    mapping.oa_format);
+#else
+          sprintf(fmt_json, "{\"format\":\"%s\"}", mapping.oa_format);
+#endif
+          if (merge_schema_extras_strings(&field->items_extra_json, fmt_json) !=
+              0) {
+            rc = ENOMEM;
+          }
+        }
       }
     } else {
       rc = ENOMEM;
@@ -447,8 +582,11 @@ int json_array_to_enum_members(const JSON_Array *a, struct EnumMembers *e) {
   return 0;
 }
 
-int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
-                                 const JSON_Object *root) {
+static int json_object_to_struct_fields_internal(const JSON_Object *o,
+                                                 struct StructFields *f,
+                                                 JSON_Object *root,
+                                                 const char *schema_name,
+                                                 int allow_inline_union) {
   JSON_Object *props;
   size_t i, count;
   const JSON_Array *required;
@@ -485,17 +623,32 @@ int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
 
   any_of = json_object_get_array(o, "anyOf");
   if (any_of) {
-    rc = apply_union_to_struct_fields(any_of, f, root);
+    rc = apply_union_to_struct_fields_ex(any_of, f, root, schema_name, 1, o,
+                                         allow_inline_union);
     if (rc != 0)
       return rc;
+    if (!f->is_union) {
+      rc = apply_union_to_struct_fields_fallback(any_of, f, root);
+      if (rc != 0)
+        return rc;
+    }
   }
 
   one_of = json_object_get_array(o, "oneOf");
   if (one_of) {
-    rc = apply_union_to_struct_fields(one_of, f, root);
+    rc = apply_union_to_struct_fields_ex(one_of, f, root, schema_name, 0, o,
+                                         allow_inline_union);
     if (rc != 0)
       return rc;
+    if (!f->is_union) {
+      rc = apply_union_to_struct_fields_fallback(one_of, f, root);
+      if (rc != 0)
+        return rc;
+    }
   }
+
+  if (f->is_union)
+    return 0;
 
   required = json_object_get_array(o, "required");
 
@@ -508,12 +661,15 @@ int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
     const char *name = json_object_get_name(props, i);
     JSON_Object *prop = json_object_get_object(props, name);
     const char *type = json_object_get_string(prop, "type");
+    const JSON_Array *type_arr = NULL;
     const char *ref = json_object_get_string(prop, "$ref");
     const char *bw = json_object_get_string(prop, "x-c-bitwidth");
     char default_buf[128] = {0};
     const char *d_val = NULL;
     struct StructField *field = NULL;
     int field_added = 0;
+    char **type_union = NULL;
+    size_t n_type_union = 0;
 
     if (json_object_has_value_of_type(prop, "default", JSONString)) {
       const char *s = json_object_get_string(prop, "default");
@@ -532,21 +688,67 @@ int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
       d_val = default_buf;
     }
 
+    if (!type) {
+      type_arr = json_object_get_array(prop, "type");
+      if (type_arr) {
+        const char *primary = NULL;
+        rc = parse_type_union_array(type_arr, &type_union, &n_type_union,
+                                    &primary, NULL);
+        if (rc != 0) {
+          free_string_array(type_union, n_type_union);
+          return rc;
+        }
+        type = primary;
+      }
+    }
+
     if (type) {
       if (strcmp(type, "array") == 0) {
         JSON_Object *items = json_object_get_object(prop, "items");
         const char *item_type = json_object_get_string(items, "type");
+        const JSON_Array *item_type_arr = NULL;
+        char **items_type_union = NULL;
+        size_t n_items_type_union = 0;
         const char *item_ref = json_object_get_string(items, "$ref");
         if (item_ref && ref_points_to_string_enum(root, item_ref)) {
           /* Enum arrays are not strongly typed yet; treat as string arrays */
           item_ref = NULL;
           item_type = "string";
         }
+        if (!item_ref && !item_type && items) {
+          item_type_arr = json_object_get_array(items, "type");
+          if (item_type_arr) {
+            const char *primary = NULL;
+            rc = parse_type_union_array(item_type_arr, &items_type_union,
+                                        &n_items_type_union, &primary, NULL);
+            if (rc != 0) {
+              free_string_array(type_union, n_type_union);
+              free_string_array(items_type_union, n_items_type_union);
+              return rc;
+            }
+            item_type = primary;
+          }
+        }
         if (struct_fields_add(f, name, "array", item_ref ? item_ref : item_type,
-                              NULL, bw) != 0)
+                              NULL, bw) != 0) {
+          free_string_array(type_union, n_type_union);
+          free_string_array(items_type_union, n_items_type_union);
           return ENOMEM;
+        }
         field = &f->fields[f->size - 1];
         field_added = 1;
+        if (type_union && n_type_union > 0) {
+          field->type_union = type_union;
+          field->n_type_union = n_type_union;
+          type_union = NULL;
+          n_type_union = 0;
+        }
+        if (items_type_union && n_items_type_union > 0) {
+          field->items_type_union = items_type_union;
+          field->n_items_type_union = n_items_type_union;
+          items_type_union = NULL;
+          n_items_type_union = 0;
+        }
         if (items) {
           if (collect_schema_extras(items, k_items_skip_keys,
                                     sizeof(k_items_skip_keys) /
@@ -554,23 +756,36 @@ int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
                                     &field->items_extra_json) != 0)
             return ENOMEM;
         }
+        free_string_array(items_type_union, n_items_type_union);
       } else {
-        if (struct_fields_add(f, name, type, ref, d_val, bw) != 0)
+        if (struct_fields_add(f, name, type, ref, d_val, bw) != 0) {
+          free_string_array(type_union, n_type_union);
           return ENOMEM;
+        }
         field = &f->fields[f->size - 1];
         field_added = 1;
+        if (type_union && n_type_union > 0) {
+          field->type_union = type_union;
+          field->n_type_union = n_type_union;
+          type_union = NULL;
+          n_type_union = 0;
+        }
       }
     } else if (ref) {
       const char *field_type =
           ref_points_to_string_enum(root, ref) ? "enum" : "object";
-      if (struct_fields_add(f, name, field_type, ref, NULL, bw) != 0)
+      if (struct_fields_add(f, name, field_type, ref, NULL, bw) != 0) {
+        free_string_array(type_union, n_type_union);
         return ENOMEM;
+      }
       field = &f->fields[f->size - 1];
       field_added = 1;
     }
 
-    if (!field_added)
+    if (!field_added) {
+      free_string_array(type_union, n_type_union);
       continue;
+    }
 
     if (required_name_in_list(required, name))
       field->required = 1;
@@ -667,6 +882,29 @@ int json_object_to_struct_fields(const JSON_Object *o, struct StructFields *f,
       return ENOMEM;
   }
   return 0;
+}
+
+int json_object_to_struct_fields_ex(const JSON_Object *schema_obj,
+                                    struct StructFields *fields,
+                                    const JSON_Object *schemas_obj_root,
+                                    const char *schema_name) {
+  return json_object_to_struct_fields_internal(
+      schema_obj, fields, (JSON_Object *)schemas_obj_root, schema_name, 0);
+}
+
+int json_object_to_struct_fields_ex_codegen(const JSON_Object *schema_obj,
+                                            struct StructFields *fields,
+                                            JSON_Object *schemas_obj_root,
+                                            const char *schema_name) {
+  return json_object_to_struct_fields_internal(
+      schema_obj, fields, schemas_obj_root, schema_name, 1);
+}
+
+int json_object_to_struct_fields(const JSON_Object *schema_obj,
+                                 struct StructFields *fields,
+                                 const JSON_Object *schemas_obj_root) {
+  return json_object_to_struct_fields_ex(schema_obj, fields, schemas_obj_root,
+                                         NULL);
 }
 
 static const char *strip_quotes(const char *in, char *buf, size_t bufsz) {
@@ -787,6 +1025,238 @@ static const JSON_Object *resolve_schema_ref_object(const JSON_Object *root,
   return json_object_get_object(root, name);
 }
 
+static enum UnionVariantJsonType
+detect_union_json_type(const JSON_Object *schema_obj) {
+  const char *type;
+  const JSON_Object *props;
+  if (!schema_obj)
+    return UNION_JSON_UNKNOWN;
+  if (schema_object_is_string_enum(schema_obj, NULL))
+    return UNION_JSON_STRING;
+  type = json_object_get_string(schema_obj, "type");
+  if (type) {
+    if (strcmp(type, "object") == 0)
+      return UNION_JSON_OBJECT;
+    if (strcmp(type, "string") == 0)
+      return UNION_JSON_STRING;
+    if (strcmp(type, "integer") == 0)
+      return UNION_JSON_INTEGER;
+    if (strcmp(type, "number") == 0)
+      return UNION_JSON_NUMBER;
+    if (strcmp(type, "boolean") == 0)
+      return UNION_JSON_BOOLEAN;
+    if (strcmp(type, "array") == 0)
+      return UNION_JSON_ARRAY;
+    if (strcmp(type, "null") == 0)
+      return UNION_JSON_NULL;
+  }
+  props = json_object_get_object(schema_obj, "properties");
+  if (props)
+    return UNION_JSON_OBJECT;
+  return UNION_JSON_UNKNOWN;
+}
+
+static int collect_string_array(const JSON_Array *arr, char ***out,
+                                size_t *out_count) {
+  size_t i, count;
+  char **vals;
+  if (!out || !out_count)
+    return EINVAL;
+  *out = NULL;
+  *out_count = 0;
+  if (!arr)
+    return 0;
+  count = json_array_get_count(arr);
+  if (count == 0)
+    return 0;
+  vals = (char **)calloc(count, sizeof(char *));
+  if (!vals)
+    return ENOMEM;
+  for (i = 0; i < count; ++i) {
+    const char *s = json_array_get_string(arr, i);
+    if (s) {
+      vals[i] = c_cdd_strdup(s);
+      if (!vals[i]) {
+        free_string_array(vals, count);
+        return ENOMEM;
+      }
+    }
+  }
+  *out = vals;
+  *out_count = count;
+  return 0;
+}
+
+static int collect_property_names(const JSON_Object *schema_obj, char ***out,
+                                  size_t *out_count) {
+  size_t i, count;
+  char **vals;
+  const JSON_Object *props;
+  if (!out || !out_count)
+    return EINVAL;
+  *out = NULL;
+  *out_count = 0;
+  if (!schema_obj)
+    return 0;
+  props = json_object_get_object(schema_obj, "properties");
+  if (!props)
+    return 0;
+  count = json_object_get_count(props);
+  if (count == 0)
+    return 0;
+  vals = (char **)calloc(count, sizeof(char *));
+  if (!vals)
+    return ENOMEM;
+  for (i = 0; i < count; ++i) {
+    const char *name = json_object_get_name(props, i);
+    if (name) {
+      vals[i] = c_cdd_strdup(name);
+      if (!vals[i]) {
+        free_string_array(vals, count);
+        return ENOMEM;
+      }
+    }
+  }
+  *out = vals;
+  *out_count = count;
+  return 0;
+}
+
+static char *sanitize_identifier(const char *in) {
+  size_t i, len;
+  char *out;
+  if (!in || !*in)
+    return c_cdd_strdup("Variant");
+  len = strlen(in);
+  out = (char *)calloc(len + 1, sizeof(char));
+  if (!out)
+    return NULL;
+  for (i = 0; i < len; ++i) {
+    const char c = in[i];
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') || c == '_') {
+      out[i] = c;
+    } else {
+      out[i] = '_';
+    }
+  }
+  if (!out[0]) {
+    free(out);
+    return c_cdd_strdup("Variant");
+  }
+  return out;
+}
+
+static char *make_unique_variant_name(const struct StructFields *dest,
+                                      const char *base, size_t index) {
+  char buf[128];
+  char *sanitized;
+  char *out;
+  if (!dest)
+    return NULL;
+  sanitized = sanitize_identifier(base);
+  if (!sanitized)
+    return NULL;
+  if (!struct_fields_get(dest, sanitized))
+    return sanitized;
+  snprintf(buf, sizeof(buf), "%s_%zu", sanitized, index + 1);
+  free(sanitized);
+  out = c_cdd_strdup(buf);
+  if (!out)
+    return NULL;
+  if (!struct_fields_get(dest, out))
+    return out;
+  free(out);
+  snprintf(buf, sizeof(buf), "Variant_%zu", index + 1);
+  return c_cdd_strdup(buf);
+}
+
+static char *make_inline_schema_name(const char *schema_name,
+                                     const char *variant_name,
+                                     const char *suffix) {
+  char buf[256];
+  const char *base_schema =
+      (schema_name && *schema_name) ? schema_name : "Union";
+  const char *base_variant =
+      (variant_name && *variant_name) ? variant_name : "Variant";
+  if (suffix && *suffix)
+    snprintf(buf, sizeof(buf), "%s_%s_%s", base_schema, base_variant, suffix);
+  else
+    snprintf(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
+  return sanitize_identifier(buf);
+}
+
+static int register_inline_schema(JSON_Object *root, const char *schema_name,
+                                  const char *variant_name, const char *suffix,
+                                  const JSON_Value *schema_val,
+                                  char **out_name) {
+  char *name;
+
+  if (!root || !schema_val || !out_name)
+    return EINVAL;
+
+  name = make_inline_schema_name(schema_name, variant_name, suffix);
+  if (!name)
+    return ENOMEM;
+
+  if (!json_object_has_value(root, name)) {
+    JSON_Value *copy = clone_json_value(schema_val);
+    if (!copy) {
+      free(name);
+      return ENOMEM;
+    }
+    if (json_object_set_value(root, name, copy) != JSONSuccess) {
+      json_value_free(copy);
+      free(name);
+      return ENOMEM;
+    }
+  }
+
+  *out_name = name;
+  return 0;
+}
+
+static char *discriminator_value_for_variant(const JSON_Object *disc_obj,
+                                             const char *schema_name,
+                                             const char *ref) {
+  const JSON_Object *mapping;
+  size_t i, count;
+  const char *ref_name;
+
+  if (!schema_name && !ref)
+    return NULL;
+
+  ref_name = ref ? c_cdd_str_after_last(ref, '/') : NULL;
+
+  if (!disc_obj)
+    goto fallback;
+
+  mapping = json_object_get_object(disc_obj, "mapping");
+  if (!mapping)
+    goto fallback;
+
+  count = json_object_get_count(mapping);
+  for (i = 0; i < count; ++i) {
+    const char *key = json_object_get_name(mapping, i);
+    const char *val = json_object_get_string(mapping, key);
+    if (!key || !val)
+      continue;
+    if (ref && strcmp(val, ref) == 0)
+      return c_cdd_strdup(key);
+    if (ref_name && strcmp(val, ref_name) == 0)
+      return c_cdd_strdup(key);
+    if (schema_name && strcmp(val, schema_name) == 0)
+      return c_cdd_strdup(key);
+  }
+
+fallback:
+  if (schema_name)
+    return c_cdd_strdup(schema_name);
+  if (ref_name)
+    return c_cdd_strdup(ref_name);
+  return NULL;
+}
+
 static void merge_struct_field(struct StructField *dest,
                                const struct StructField *src) {
   if (!dest || !src)
@@ -872,6 +1342,21 @@ static void merge_struct_field(struct StructField *dest,
                                   src->items_extra_json) != 0) {
     /* Best-effort: ignore merge failures */
   }
+
+  if (!dest->type_union && src->type_union && src->n_type_union > 0) {
+    if (copy_string_array(&dest->type_union, &dest->n_type_union,
+                          src->type_union, src->n_type_union) != 0) {
+      /* Best-effort: ignore copy failures */
+    }
+  }
+  if (!dest->items_type_union && src->items_type_union &&
+      src->n_items_type_union > 0) {
+    if (copy_string_array(&dest->items_type_union, &dest->n_items_type_union,
+                          src->items_type_union,
+                          src->n_items_type_union) != 0) {
+      /* Best-effort: ignore copy failures */
+    }
+  }
 }
 
 static int merge_struct_fields(struct StructFields *dest,
@@ -908,6 +1393,10 @@ static int merge_struct_fields(struct StructFields *dest,
         *dest_field = tmp;
         dest_field->schema_extra_json = NULL;
         dest_field->items_extra_json = NULL;
+        dest_field->type_union = NULL;
+        dest_field->n_type_union = 0;
+        dest_field->items_type_union = NULL;
+        dest_field->n_items_type_union = 0;
         if (src_field->schema_extra_json) {
           dest_field->schema_extra_json =
               c_cdd_strdup(src_field->schema_extra_json);
@@ -918,6 +1407,19 @@ static int merge_struct_fields(struct StructFields *dest,
           dest_field->items_extra_json =
               c_cdd_strdup(src_field->items_extra_json);
           if (!dest_field->items_extra_json)
+            return ENOMEM;
+        }
+        if (src_field->type_union && src_field->n_type_union > 0) {
+          if (copy_string_array(
+                  &dest_field->type_union, &dest_field->n_type_union,
+                  src_field->type_union, src_field->n_type_union) != 0)
+            return ENOMEM;
+        }
+        if (src_field->items_type_union && src_field->n_items_type_union > 0) {
+          if (copy_string_array(&dest_field->items_type_union,
+                                &dest_field->n_items_type_union,
+                                src_field->items_type_union,
+                                src_field->n_items_type_union) != 0)
             return ENOMEM;
         }
       }
@@ -974,9 +1476,9 @@ static int apply_allof_to_struct_fields(const JSON_Array *all_of,
   return 0;
 }
 
-static int apply_union_to_struct_fields(const JSON_Array *union_arr,
-                                        struct StructFields *dest,
-                                        const JSON_Object *root) {
+static int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+                                                 struct StructFields *dest,
+                                                 const JSON_Object *root) {
   size_t i, count;
 
   if (!union_arr || !dest)
@@ -1019,6 +1521,295 @@ static int apply_union_to_struct_fields(const JSON_Array *union_arr,
     }
 
     struct_fields_free(&tmp);
+  }
+
+  return 0;
+}
+
+static int union_array_items_supported(const JSON_Object *schema_obj,
+                                       const JSON_Object *root,
+                                       int allow_inline) {
+  const JSON_Object *items;
+  const JSON_Array *item_type_arr = NULL;
+  const char *item_ref;
+  const char *item_type;
+  char **items_type_union = NULL;
+  size_t n_items_type_union = 0;
+  const char *primary = NULL;
+
+  if (!schema_obj)
+    return 0;
+
+  items = json_object_get_object(schema_obj, "items");
+  if (!items)
+    return 0;
+
+  item_ref = json_object_get_string(items, "$ref");
+  if (item_ref && root && ref_points_to_string_enum(root, item_ref))
+    return 1;
+
+  item_type = json_object_get_string(items, "type");
+  if (!item_ref && !item_type) {
+    item_type_arr = json_object_get_array(items, "type");
+    if (item_type_arr) {
+      if (parse_type_union_array(item_type_arr, &items_type_union,
+                                 &n_items_type_union, &primary, NULL) == 0)
+        item_type = primary;
+    } else if (json_object_get_object(items, "properties")) {
+      item_type = "object";
+    }
+  }
+
+  if (item_ref) {
+    free_string_array(items_type_union, n_items_type_union);
+    return 1;
+  }
+  if (!item_type) {
+    free_string_array(items_type_union, n_items_type_union);
+    return 0;
+  }
+  if (strcmp(item_type, "array") == 0) {
+    free_string_array(items_type_union, n_items_type_union);
+    return 0;
+  }
+  if (strcmp(item_type, "object") == 0 && (!allow_inline || !root)) {
+    free_string_array(items_type_union, n_items_type_union);
+    return 0;
+  }
+
+  free_string_array(items_type_union, n_items_type_union);
+  return 1;
+}
+
+static int apply_union_to_struct_fields_ex(
+    const JSON_Array *union_arr, struct StructFields *dest, JSON_Object *root,
+    const char *schema_name, int is_anyof, const JSON_Object *schema_obj,
+    int allow_inline) {
+  size_t i, count;
+  const JSON_Object *disc_obj;
+
+  if (!union_arr || !dest)
+    return 0;
+
+  if (dest->size > 0)
+    return 0;
+
+  count = json_array_get_count(union_arr);
+  if (count == 0)
+    return 0;
+
+  /* Validate variant support */
+  for (i = 0; i < count; ++i) {
+    const JSON_Object *sub = json_array_get_object(union_arr, i);
+    const JSON_Object *resolved = sub;
+    const char *ref;
+    enum UnionVariantJsonType jtype;
+    if (!sub)
+      continue;
+    ref = json_object_get_string(sub, "$ref");
+    if (ref && root)
+      resolved = resolve_schema_ref_object(root, ref);
+    jtype = detect_union_json_type(resolved);
+    if (jtype == UNION_JSON_ARRAY) {
+      if (!allow_inline)
+        return 0;
+      if (!union_array_items_supported(resolved, root, allow_inline))
+        return 0;
+    }
+    if (jtype == UNION_JSON_OBJECT && !ref) {
+      if (!allow_inline || !root)
+        return 0;
+      if (!json_array_get_value(union_arr, i))
+        return 0;
+    }
+    if (jtype == UNION_JSON_UNKNOWN)
+      return 0;
+  }
+
+  dest->is_union = 1;
+  dest->union_is_anyof = is_anyof ? 1 : 0;
+
+  disc_obj =
+      schema_obj ? json_object_get_object(schema_obj, "discriminator") : NULL;
+  if (disc_obj) {
+    const char *prop = json_object_get_string(disc_obj, "propertyName");
+    if (prop && *prop) {
+      dest->union_discriminator = c_cdd_strdup(prop);
+      if (!dest->union_discriminator)
+        return ENOMEM;
+    }
+  }
+
+  dest->union_variants =
+      (struct UnionVariantMeta *)calloc(count, sizeof(struct UnionVariantMeta));
+  if (!dest->union_variants)
+    return ENOMEM;
+  dest->n_union_variants = count;
+
+  for (i = 0; i < count; ++i) {
+    const JSON_Value *sub_val = json_array_get_value(union_arr, i);
+    const JSON_Object *sub = json_value_get_object(sub_val);
+    const JSON_Object *resolved = sub;
+    const char *ref;
+    enum UnionVariantJsonType jtype;
+    const char *type_name = NULL;
+    const char *name_hint = NULL;
+    char *variant_name = NULL;
+    char *inline_ref_name = NULL;
+    char *inline_item_ref = NULL;
+    const char *item_ref = NULL;
+    const char *item_type = NULL;
+    char **items_type_union = NULL;
+    size_t n_items_type_union = 0;
+    struct StructField *field = NULL;
+    struct UnionVariantMeta *meta = &dest->union_variants[i];
+    int rc;
+
+    if (!sub)
+      continue;
+
+    ref = json_object_get_string(sub, "$ref");
+    if (ref && root)
+      resolved = resolve_schema_ref_object(root, ref);
+
+    jtype = detect_union_json_type(resolved);
+    meta->json_type = jtype;
+
+    if (ref) {
+      name_hint = c_cdd_str_after_last(ref, '/');
+    } else if (resolved) {
+      name_hint = json_object_get_string(resolved, "title");
+      if (!name_hint)
+        name_hint = json_object_get_string(resolved, "type");
+    }
+    if (!name_hint)
+      name_hint = schema_name ? schema_name : "Variant";
+
+    variant_name = make_unique_variant_name(dest, name_hint, i);
+    if (!variant_name)
+      return ENOMEM;
+
+    if (jtype == UNION_JSON_OBJECT && !ref) {
+      if (allow_inline && root && sub_val) {
+        rc = register_inline_schema(root, schema_name, variant_name, NULL,
+                                    sub_val, &inline_ref_name);
+        if (rc != 0) {
+          free(variant_name);
+          return rc;
+        }
+        ref = inline_ref_name;
+      }
+    }
+
+    if (jtype == UNION_JSON_ARRAY && resolved) {
+      const JSON_Object *items = json_object_get_object(resolved, "items");
+      const JSON_Value *items_val = json_object_get_value(resolved, "items");
+      const JSON_Array *item_type_arr = NULL;
+
+      if (items) {
+        item_ref = json_object_get_string(items, "$ref");
+        if (item_ref && root && ref_points_to_string_enum(root, item_ref)) {
+          item_ref = NULL;
+          item_type = "string";
+        }
+        item_type = json_object_get_string(items, "type");
+        if (!item_ref && !item_type) {
+          item_type_arr = json_object_get_array(items, "type");
+          if (item_type_arr) {
+            rc = parse_type_union_array(item_type_arr, &items_type_union,
+                                        &n_items_type_union, &item_type, NULL);
+            if (rc != 0) {
+              free(variant_name);
+              free(inline_ref_name);
+              return rc;
+            }
+          } else if (json_object_get_object(items, "properties")) {
+            item_type = "object";
+          }
+        }
+        if (!item_ref && item_type && strcmp(item_type, "object") == 0) {
+          if (allow_inline && root && items_val) {
+            rc = register_inline_schema(root, schema_name, variant_name, "Item",
+                                        items_val, &inline_item_ref);
+            if (rc != 0) {
+              free(variant_name);
+              free(inline_ref_name);
+              free_string_array(items_type_union, n_items_type_union);
+              return rc;
+            }
+            item_ref = inline_item_ref;
+          }
+        }
+      }
+    }
+
+    switch (jtype) {
+    case UNION_JSON_OBJECT:
+      type_name = "object";
+      break;
+    case UNION_JSON_STRING:
+      type_name = "string";
+      break;
+    case UNION_JSON_INTEGER:
+      type_name = "integer";
+      break;
+    case UNION_JSON_NUMBER:
+      type_name = "number";
+      break;
+    case UNION_JSON_BOOLEAN:
+      type_name = "boolean";
+      break;
+    case UNION_JSON_ARRAY:
+      type_name = "array";
+      break;
+    case UNION_JSON_NULL:
+      type_name = "null";
+      break;
+    default:
+      type_name = "object";
+      break;
+    }
+
+    if (struct_fields_add(dest, variant_name, type_name,
+                          (jtype == UNION_JSON_OBJECT) ? ref
+                          : (jtype == UNION_JSON_ARRAY)
+                              ? (item_ref ? item_ref : item_type)
+                              : NULL,
+                          NULL, NULL) != 0) {
+      free(variant_name);
+      free(inline_ref_name);
+      free(inline_item_ref);
+      free_string_array(items_type_union, n_items_type_union);
+      return ENOMEM;
+    }
+    field = &dest->fields[dest->size - 1];
+
+    if (jtype == UNION_JSON_ARRAY && items_type_union &&
+        n_items_type_union > 0) {
+      field->items_type_union = items_type_union;
+      field->n_items_type_union = n_items_type_union;
+      items_type_union = NULL;
+      n_items_type_union = 0;
+    }
+
+    free(variant_name);
+
+    if (jtype == UNION_JSON_OBJECT && resolved) {
+      const JSON_Array *required = json_object_get_array(resolved, "required");
+      if (collect_string_array(required, &meta->required_props,
+                               &meta->n_required_props) != 0)
+        return ENOMEM;
+      if (collect_property_names(resolved, &meta->property_names,
+                                 &meta->n_property_names) != 0)
+        return ENOMEM;
+    }
+
+    meta->disc_value = discriminator_value_for_variant(
+        disc_obj, (ref ? c_cdd_str_after_last(ref, '/') : name_hint), ref);
+
+    free(inline_ref_name);
+    free(inline_item_ref);
+    free_string_array(items_type_union, n_items_type_union);
   }
 
   return 0;
@@ -1115,6 +1906,32 @@ static void write_array_constraints(JSON_Object *pobj,
     json_object_set_boolean(pobj, "uniqueItems", 1);
 }
 
+static void write_type_union(JSON_Object *obj, const char *type,
+                             char **type_union, size_t n_type_union) {
+  size_t i;
+  JSON_Value *arr_val;
+  JSON_Array *arr;
+
+  if (!obj)
+    return;
+
+  if (type_union && n_type_union > 0) {
+    arr_val = json_value_init_array();
+    if (!arr_val)
+      return;
+    arr = json_value_get_array(arr_val);
+    for (i = 0; i < n_type_union; ++i) {
+      if (type_union[i])
+        json_array_append_string(arr, type_union[i]);
+    }
+    json_object_set_value(obj, "type", arr_val);
+    return;
+  }
+
+  if (type)
+    json_object_set_string(obj, "type", type);
+}
+
 int write_struct_to_json_schema(JSON_Object *schemas_obj,
                                 const char *struct_name,
                                 const struct StructFields *sf) {
@@ -1170,8 +1987,11 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
     if (strcmp(typ, "array") == 0) {
       JSON_Value *items_val = json_value_init_object();
       JSON_Object *items_obj = json_value_get_object(items_val);
-      json_object_set_string(pobj, "type", "array");
-      if (ref && *ref) {
+      write_type_union(pobj, "array", field->type_union, field->n_type_union);
+      if (field->items_type_union && field->n_items_type_union > 0) {
+        write_type_union(items_obj, ref, field->items_type_union,
+                         field->n_items_type_union);
+      } else if (ref && *ref) {
         if (strcmp(ref, "integer") == 0 || strcmp(ref, "string") == 0 ||
             strcmp(ref, "boolean") == 0 || strcmp(ref, "number") == 0) {
           json_object_set_string(items_obj, "type", ref);
@@ -1204,10 +2024,11 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
 #endif
           json_object_set_string(pobj, "$ref", ref_str);
         } else {
-          json_object_set_string(pobj, "type", "object");
+          write_type_union(pobj, "object", field->type_union,
+                           field->n_type_union);
         }
       } else {
-        json_object_set_string(pobj, "type", typ);
+        write_type_union(pobj, typ, field->type_union, field->n_type_union);
       }
     }
     write_numeric_constraints(pobj, field);

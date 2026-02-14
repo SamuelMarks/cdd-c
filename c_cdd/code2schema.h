@@ -128,6 +128,37 @@ json_object_to_struct_fields(const JSON_Object *schema_obj,
 
                              const JSON_Object *schemas_obj_root);
 
+/**
+ * @brief Convert a JSON schema object properties to StructFields container.
+ * Supports union extraction for oneOf/anyOf when possible.
+ *
+ * @param[in] schema_obj The JSON object representing the schema.
+ * @param[out] fields The container to populate.
+ * @param[in] schemas_obj_root Optional root schema object for resolving $ref.
+ * @param[in] schema_name Optional schema name for generated variant names.
+ * @return 0 on success, non-zero on failure.
+ */
+extern C_CDD_EXPORT int json_object_to_struct_fields_ex(
+    const JSON_Object *schema_obj, struct StructFields *fields,
+    const JSON_Object *schemas_obj_root, const char *schema_name);
+
+/**
+ * @brief Convert a JSON schema object properties to StructFields container for
+ *        code generation.
+ * Supports union extraction for oneOf/anyOf including inline object/array
+ * variants by promoting them to synthetic component schemas.
+ *
+ * @param[in] schema_obj The JSON object representing the schema.
+ * @param[out] fields The container to populate.
+ * @param[in,out] schemas_obj_root Root schema object for resolving $ref and
+ *                                 registering synthetic components.
+ * @param[in] schema_name Optional schema name for generated variant names.
+ * @return 0 on success, non-zero on failure.
+ */
+extern C_CDD_EXPORT int json_object_to_struct_fields_ex_codegen(
+    const JSON_Object *schema_obj, struct StructFields *fields,
+    JSON_Object *schemas_obj_root, const char *schema_name);
+
 #ifdef __cplusplus
 }
 

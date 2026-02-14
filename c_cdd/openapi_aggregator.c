@@ -16,34 +16,43 @@
 /**
  * @brief Comparison function to find a path by route string.
  */
-static struct OpenAPI_Path *find_path(struct OpenAPI_Spec *spec,
-                                      const char *route) {
+static struct OpenAPI_Path *find_path_in_list(struct OpenAPI_Path *paths,
+                                              size_t n_paths,
+                                              const char *route) {
   size_t i;
-  for (i = 0; i < spec->n_paths; ++i) {
-    if (spec->paths[i].route && strcmp(spec->paths[i].route, route) == 0) {
-      return &spec->paths[i];
+  if (!paths || !route)
+    return NULL;
+  for (i = 0; i < n_paths; ++i) {
+    if (paths[i].route && strcmp(paths[i].route, route) == 0) {
+      return &paths[i];
     }
   }
   return NULL;
 }
 
 /**
- * @brief Append a new path object to the spec.
+ * @brief Append a new path object to a list.
  */
-static int append_path(struct OpenAPI_Spec *spec, const char *route,
-                       struct OpenAPI_Path **out_ptr) {
-  size_t new_count = spec->n_paths + 1;
-  struct OpenAPI_Path *new_arr = (struct OpenAPI_Path *)realloc(
-      spec->paths, new_count * sizeof(struct OpenAPI_Path));
+static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
+                               const char *route,
+                               struct OpenAPI_Path **out_ptr) {
+  size_t new_count;
+  struct OpenAPI_Path *new_arr;
 
+  if (!paths || !n_paths || !route || !out_ptr)
+    return EINVAL;
+
+  new_count = *n_paths + 1;
+  new_arr = (struct OpenAPI_Path *)realloc(
+      *paths, new_count * sizeof(struct OpenAPI_Path));
   if (!new_arr)
     return ENOMEM;
 
-  spec->paths = new_arr;
-  spec->n_paths = new_count;
+  *paths = new_arr;
+  *n_paths = new_count;
 
   /* Initialize new slot */
-  *out_ptr = &spec->paths[new_count - 1];
+  *out_ptr = &(*paths)[new_count - 1];
   memset(*out_ptr, 0, sizeof(struct OpenAPI_Path));
 
   (*out_ptr)->route = c_cdd_strdup(route);
@@ -53,12 +62,31 @@ static int append_path(struct OpenAPI_Spec *spec, const char *route,
   return 0;
 }
 
+static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
+                            struct OpenAPI_Operation *op) {
+  struct OpenAPI_Operation *new_ops;
+  size_t new_count;
+
+  if (!ops || !count || !op)
+    return EINVAL;
+
+  new_count = *count + 1;
+  new_ops = (struct OpenAPI_Operation *)realloc(
+      *ops, new_count * sizeof(struct OpenAPI_Operation));
+  if (!new_ops)
+    return ENOMEM;
+
+  *ops = new_ops;
+  (*ops)[new_count - 1] = *op;
+  *count = new_count;
+  memset(op, 0, sizeof(*op));
+  return 0;
+}
+
 int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
                                      const char *const route,
                                      struct OpenAPI_Operation *const op) {
   struct OpenAPI_Path *target_path;
-  struct OpenAPI_Operation *new_ops;
-  size_t new_op_count;
   int rc;
 
   if (!spec || !route || !op) {
@@ -66,9 +94,9 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
   }
 
   /* 1. Find or Create Path */
-  target_path = find_path(spec, route);
+  target_path = find_path_in_list(spec->paths, spec->n_paths, route);
   if (!target_path) {
-    rc = append_path(spec, route, &target_path);
+    rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != 0)
       return rc;
   }
@@ -85,28 +113,36 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
   */
 
   /* 3. Append Operation to Path */
-  new_op_count = target_path->n_operations + 1;
-  new_ops = (struct OpenAPI_Operation *)realloc(
-      target_path->operations, new_op_count * sizeof(struct OpenAPI_Operation));
+  if (op->is_additional) {
+    return append_operation(&target_path->additional_operations,
+                            &target_path->n_additional_operations, op);
+  }
+  return append_operation(&target_path->operations, &target_path->n_operations,
+                          op);
+}
 
-  if (!new_ops) {
-    /* If path was newly created, it remains valid but empty.
-       If we fail here, we don't have transaction rollback for the path
-       creation, but in this simple model it's acceptable. */
-    return ENOMEM;
+int openapi_aggregator_add_webhook_operation(
+    struct OpenAPI_Spec *const spec, const char *const route,
+    struct OpenAPI_Operation *const op) {
+  struct OpenAPI_Path *target_path;
+  int rc;
+
+  if (!spec || !route || !op) {
+    return EINVAL;
   }
 
-  target_path->operations = new_ops;
-  target_path->n_operations = new_op_count;
+  target_path = find_path_in_list(spec->webhooks, spec->n_webhooks, route);
+  if (!target_path) {
+    rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
+                             &target_path);
+    if (rc != 0)
+      return rc;
+  }
 
-  /* Transfer ownership of content from input op to stored op */
-  /* Structure copy */
-  target_path->operations[new_op_count - 1] = *op;
-
-  /* Since we transferred ownership (pointers), the caller's struct is now
-     pointing to aliased memory. The caller should NOT free the internals. We
-     zero the caller's struct to prevent double-free mistakes. */
-  memset(op, 0, sizeof(*op));
-
-  return 0;
+  if (op->is_additional) {
+    return append_operation(&target_path->additional_operations,
+                            &target_path->n_additional_operations, op);
+  }
+  return append_operation(&target_path->operations, &target_path->n_operations,
+                          op);
 }

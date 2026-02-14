@@ -53,8 +53,8 @@ write_union_to_json_func(FILE *fp, const char *union_name,
 
 /**
  * @brief Generate `_from_jsonObject` for a Tagged Union.
- * Emits logic to check which property exists in the JSON and set the `tag`
- * accordingly.
+ * Emits logic to select an object variant using a discriminator or
+ * schema-derived property hints and set the `tag` accordingly.
  *
  * @param[in] fp Output stream.
  * @param[in] union_name Name of the union wrapper struct.
@@ -66,6 +66,22 @@ extern C_CDD_EXPORT int
 write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                  const struct StructFields *sf,
                                  const struct CodegenTypesConfig *config);
+
+/**
+ * @brief Generate `_from_json` for a Tagged Union.
+ * Parses a JSON string to a JSON value and dispatches to object/primitive
+ * handlers based on the union variant metadata.
+ *
+ * @param[in] fp Output stream.
+ * @param[in] union_name Name of the union wrapper struct.
+ * @param[in] sf Fields representing the options.
+ * @param[in] config Optional config.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int
+write_union_from_json_func(FILE *fp, const char *union_name,
+                           const struct StructFields *sf,
+                           const struct CodegenTypesConfig *config);
 
 /**
  * @brief Generate `_cleanup` for a Tagged Union.

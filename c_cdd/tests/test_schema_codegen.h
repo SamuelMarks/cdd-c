@@ -231,6 +231,8 @@ TEST test_union_config_json_guards(void) {
 
   ASSERT_EQ(0, write_union_from_jsonObject_func(tmp, "U", &sf, &config));
 
+  ASSERT_EQ(0, write_union_from_json_func(tmp, "U", &sf, &config));
+
   fseek(tmp, 0, SEEK_END);
 
   sz = ftell(tmp);
@@ -251,6 +253,146 @@ TEST test_union_config_json_guards(void) {
 
   fclose(tmp);
 
+  PASS();
+}
+
+TEST test_schema_codegen_union_output(void) {
+  const char *const filename = "union_schema.json";
+  const char *argv[] = {filename, "union_out"};
+  int rc;
+  char *header_content = NULL;
+  char *source_content = NULL;
+  size_t sz;
+
+  const char *schema = "{"
+                       "\"components\":{"
+                       "\"schemas\":{"
+                       "\"Cat\":{\"type\":\"object\",\"properties\":{\"meow\":{"
+                       "\"type\":\"string\"}}},"
+                       "\"Dog\":{\"type\":\"object\",\"properties\":{\"bark\":{"
+                       "\"type\":\"string\"}}},"
+                       "\"Pet\":{\"oneOf\":["
+                       "{\"$ref\":\"#/components/schemas/Cat\"},"
+                       "{\"$ref\":\"#/components/schemas/Dog\"}"
+                       "],\"discriminator\":{\"propertyName\":\"petType\"}}"
+                       "}}}";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file("union_out.h", "r", &header_content, &sz);
+  ASSERT_EQ(0, rc);
+  rc = read_to_file("union_out.c", "r", &source_content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(header_content, "enum Pet_tag"));
+  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet"));
+  ASSERT(strstr(header_content, "Pet_from_json"));
+  ASSERT(strstr(header_content, "Pet_to_json"));
+
+  ASSERT(strstr(source_content, "Pet_from_jsonObject"));
+  ASSERT(strstr(source_content, "Pet_from_json"));
+  ASSERT(strstr(source_content, "Pet_to_json"));
+
+  free(header_content);
+  free(source_content);
+  remove(filename);
+  remove("union_out.h");
+  remove("union_out.c");
+  PASS();
+}
+
+TEST test_schema_codegen_union_inline_variants(void) {
+  const char *const filename = "union_inline_schema.json";
+  const char *argv[] = {filename, "union_inline_out"};
+  int rc;
+  char *header_content = NULL;
+  char *source_content = NULL;
+  size_t sz;
+
+  const char *schema =
+      "{"
+      "\"components\":{"
+      "\"schemas\":{"
+      "\"Pet\":{\"oneOf\":["
+      "{\"title\":\"InlineCat\",\"type\":\"object\",\"properties\":"
+      "{\"meow\":{\"type\":\"string\"}}},"
+      "{\"title\":\"TagList\",\"type\":\"array\",\"items\":{\"type\":"
+      "\"string\"}}"
+      "]}"
+      "}}}";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file("union_inline_out.h", "r", &header_content, &sz);
+  ASSERT_EQ(0, rc);
+  rc = read_to_file("union_inline_out.c", "r", &source_content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet_InlineCat"));
+  ASSERT(strstr(header_content, "meow"));
+  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet"));
+  ASSERT(strstr(header_content, "n_TagList"));
+  ASSERT(strstr(header_content, "TagList"));
+
+  ASSERT(strstr(source_content, "case JSONArray"));
+  ASSERT(strstr(source_content, "Pet_InlineCat_from_jsonObject"));
+
+  free(header_content);
+  free(source_content);
+  remove(filename);
+  remove("union_inline_out.h");
+  remove("union_inline_out.c");
+  PASS();
+}
+
+TEST test_schema_codegen_enum_output(void) {
+  const char *const filename = "enum_schema.json";
+  const char *argv[] = {filename, "enum_out"};
+  int rc;
+  char *header_content = NULL;
+  char *source_content = NULL;
+  size_t sz;
+
+  const char *schema =
+      "{"
+      "\"components\":{"
+      "\"schemas\":{"
+      "\"Color\":{\"type\":\"string\",\"enum\":[\"RED\",\"GREEN\"]}"
+      "}}}";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  rc = read_to_file("enum_out.h", "r", &header_content, &sz);
+  ASSERT_EQ(0, rc);
+  rc = read_to_file("enum_out.c", "r", &source_content, &sz);
+  ASSERT_EQ(0, rc);
+
+  ASSERT(strstr(header_content, "enum LIB_EXPORT Color"));
+  ASSERT(strstr(header_content, "Color_RED"));
+  ASSERT(strstr(header_content, "Color_GREEN"));
+  ASSERT(strstr(header_content, "Color_from_str"));
+  ASSERT(strstr(header_content, "Color_to_str"));
+
+  ASSERT(strstr(source_content, "Color_from_str"));
+  ASSERT(strstr(source_content, "Color_to_str"));
+
+  free(header_content);
+  free(source_content);
+  remove(filename);
+  remove("enum_out.h");
+  remove("enum_out.c");
   PASS();
 }
 
@@ -333,6 +475,12 @@ SUITE(schema_codegen_suite) {
   RUN_TEST(test_codegen_config_json_guards);
 
   RUN_TEST(test_union_config_json_guards);
+
+  RUN_TEST(test_schema_codegen_union_output);
+
+  RUN_TEST(test_schema_codegen_union_inline_variants);
+
+  RUN_TEST(test_schema_codegen_enum_output);
 
   RUN_TEST(test_codegen_config_utils_guards);
 }

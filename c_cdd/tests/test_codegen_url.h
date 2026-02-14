@@ -250,6 +250,205 @@ TEST test_query_gen_querystring(void) {
   PASS();
 }
 
+TEST test_query_gen_querystring_form_object(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "object";
+  param.content_type = "application/x-www-form-urlencoded";
+  param.schema.inline_type = "object";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (form object)") != NULL);
+  ASSERT(strstr(code, "url_query_build_form(&qp, &qs_form_body)") != NULL);
+  ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &qs[i]") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_json_ref(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "object";
+  param.content_type = "application/json";
+  param.schema.ref_name = "Pet";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (json)") != NULL);
+  ASSERT(strstr(code, "Pet_to_json(qs") != NULL);
+  ASSERT(strstr(code, "url_encode(qs_json)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_json_primitive(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "integer";
+  param.content_type = "application/json";
+  param.schema.inline_type = "integer";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (json primitive)") != NULL);
+  ASSERT(strstr(code, "json_value_init_number") != NULL);
+  ASSERT(strstr(code, "url_encode(qs_json)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_json_array(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "array";
+  param.content_type = "application/json";
+  param.schema.is_array = 1;
+  param.schema.inline_type = "string";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (json array)") != NULL);
+  ASSERT(strstr(code, "json_value_init_array") != NULL);
+  ASSERT(strstr(code, "json_array_append_string") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_json_array_object(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "array";
+  param.content_type = "application/json";
+  param.schema.is_array = 1;
+  param.items_type = "Pet";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (json array objects)") != NULL);
+  ASSERT(strstr(code, "Pet_to_json") != NULL);
+  ASSERT(strstr(code, "json_parse_string(item_json)") != NULL);
+  ASSERT(strstr(code, "json_array_append_value") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_raw_string(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "string";
+  param.content_type = "text/plain";
+  param.schema.inline_type = "string";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
+  ASSERT(strstr(code, "url_encode(qs)") != NULL);
+  ASSERT(strstr(code, "asprintf(&query_str, \"?%s\", qs_enc)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_querystring_raw_integer(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "qs";
+  param.in = OA_PARAM_IN_QUERYSTRING;
+  param.type = "integer";
+  param.content_type = "application/jsonpath";
+  param.schema.inline_type = "integer";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
+  ASSERT(strstr(code, "sprintf(num_buf") != NULL);
+  ASSERT(strstr(code, "url_encode(num_buf)") != NULL);
+
+  free(code);
+  PASS();
+}
+
 TEST test_query_gen_array_form_explode_false(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Parameter param;
@@ -476,6 +675,119 @@ TEST test_query_gen_object_deep_object(void) {
   PASS();
 }
 
+TEST test_query_gen_object_space_delimited(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = "object";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_object_pipe_delimited(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = "object";
+  param.style = OA_STYLE_PIPE_DELIMITED;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
+  ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_object_space_delimited_allow_reserved(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = "object";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+  param.allow_reserved_set = 1;
+  param.allow_reserved = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "url_encode_allow_reserved(kv_key)") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
+         NULL);
+  ASSERT(strstr(code, "\"%20\"") != NULL);
+
+  free(code);
+  PASS();
+}
+
+TEST test_query_gen_array_space_delimited_allow_reserved(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "tags";
+  param.in = OA_PARAM_IN_QUERY;
+  param.type = "array";
+  param.is_array = 1;
+  param.items_type = "string";
+  param.style = OA_STYLE_SPACE_DELIMITED;
+  param.allow_reserved_set = 1;
+  param.allow_reserved = 1;
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+
+  ASSERT(strstr(code, "url_encode_allow_reserved(raw)") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
+  ASSERT(strstr(code, "\"%20\"") != NULL);
+
+  free(code);
+  PASS();
+}
+
 TEST test_path_matrix_param_string(void) {
   struct OpenAPI_Parameter param;
   char *code;
@@ -559,6 +871,33 @@ TEST test_path_simple_param_number(void) {
   PASS();
 }
 
+TEST test_query_gen_json_content_ref(void) {
+  struct OpenAPI_Operation op;
+  struct OpenAPI_Parameter param;
+  char *code;
+
+  memset(&op, 0, sizeof(op));
+  memset(&param, 0, sizeof(param));
+
+  param.name = "filter";
+  param.in = OA_PARAM_IN_QUERY;
+  param.content_type = "application/json";
+  param.schema.ref_name = "Filter";
+  param.type = "Filter";
+
+  op.parameters = &param;
+  op.n_parameters = 1;
+
+  code = gen_query_code(&op);
+  ASSERT(code);
+  ASSERT(strstr(code, "Query Parameter (json): filter") != NULL);
+  ASSERT(strstr(code, "Filter_to_json") != NULL);
+  ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\"") != NULL);
+
+  free(code);
+  PASS();
+}
+
 SUITE(codegen_url_suite) {
   /* Re-run original tests */
   /* (Omitted for brevity in this file update but would be here) */
@@ -569,6 +908,14 @@ SUITE(codegen_url_suite) {
   RUN_TEST(test_query_gen_array_explode_string);
   RUN_TEST(test_query_gen_array_form_default_explode);
   RUN_TEST(test_query_gen_querystring);
+  RUN_TEST(test_query_gen_querystring_form_object);
+  RUN_TEST(test_query_gen_querystring_json_ref);
+  RUN_TEST(test_query_gen_querystring_json_primitive);
+  RUN_TEST(test_query_gen_querystring_json_array);
+  RUN_TEST(test_query_gen_querystring_json_array_object);
+  RUN_TEST(test_query_gen_querystring_raw_string);
+  RUN_TEST(test_query_gen_querystring_raw_integer);
+  RUN_TEST(test_query_gen_json_content_ref);
   RUN_TEST(test_query_gen_array_form_explode_false);
   RUN_TEST(test_query_gen_array_space_delimited);
   RUN_TEST(test_query_gen_array_pipe_delimited);
@@ -577,6 +924,10 @@ SUITE(codegen_url_suite) {
   RUN_TEST(test_query_gen_object_form_explode);
   RUN_TEST(test_query_gen_object_form_explode_false);
   RUN_TEST(test_query_gen_object_deep_object);
+  RUN_TEST(test_query_gen_object_space_delimited);
+  RUN_TEST(test_query_gen_object_pipe_delimited);
+  RUN_TEST(test_query_gen_object_space_delimited_allow_reserved);
+  RUN_TEST(test_query_gen_array_space_delimited_allow_reserved);
   RUN_TEST(test_path_matrix_param_string);
   RUN_TEST(test_path_label_array_explode);
   RUN_TEST(test_path_matrix_object_explode_false);

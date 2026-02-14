@@ -69,8 +69,9 @@ struct HttpPart {
   char *filename;     /**< Filename (optional, implies file upload) */
   char *content_type; /**< Content-Type of the part (e.g. "application/json"),
                          optional */
-  void *data;         /**< Pointer to data buffer */
-  size_t data_len;    /**< Length of data buffer */
+  struct HttpHeaders headers; /**< Optional per-part headers */
+  void *data;                 /**< Pointer to data buffer */
+  size_t data_len;            /**< Length of data buffer */
 };
 
 /**
@@ -202,6 +203,18 @@ extern C_CDD_EXPORT int
 http_request_add_part(struct HttpRequest *req, const char *name,
                       const char *filename, const char *content_type,
                       const void *data, size_t data_len);
+
+/**
+ * @brief Add a header to the most recently added multipart part.
+ *
+ * @param[in,out] req The request object.
+ * @param[in] key Header name.
+ * @param[in] value Header value.
+ * @return 0 on success, EINVAL if no part exists or inputs are invalid.
+ */
+extern C_CDD_EXPORT int
+http_request_add_part_header_last(struct HttpRequest *req, const char *key,
+                                  const char *value);
 
 /**
  * @brief Flatten parts into a single multipart/form-data body buffer.

@@ -42,10 +42,14 @@ struct StructField {
                     "object") */
   char ref[64];  /**< Reference type name (for objects/enums) or item type (for
                     arrays) */
+  char **type_union;       /**< Optional type array (e.g. ["string","null"]) */
+  size_t n_type_union;     /**< Count of type_union entries */
   char default_val[64];    /**< Default value literal (e.g. "5", "0b101",
                               "nullptr") or empty */
   char *schema_extra_json; /**< Serialized JSON for extra schema keywords */
   char *items_extra_json;  /**< Serialized JSON for array items keywords */
+  char **items_type_union; /**< Optional items type array for arrays */
+  size_t n_items_type_union; /**< Count of items_type_union entries */
 
   /* Validation Constraints */
   int has_min;           /**< 1 if minimum constraint exists */
@@ -82,6 +86,32 @@ struct StructField {
 };
 
 /**
+ * @brief Union variant JSON type (for oneOf/anyOf codegen).
+ */
+enum UnionVariantJsonType {
+  UNION_JSON_UNKNOWN = 0,
+  UNION_JSON_OBJECT,
+  UNION_JSON_STRING,
+  UNION_JSON_INTEGER,
+  UNION_JSON_NUMBER,
+  UNION_JSON_BOOLEAN,
+  UNION_JSON_ARRAY,
+  UNION_JSON_NULL
+};
+
+/**
+ * @brief Metadata for a union variant.
+ */
+struct UnionVariantMeta {
+  enum UnionVariantJsonType json_type; /**< Expected JSON value type */
+  char **required_props;               /**< Required property names */
+  size_t n_required_props;             /**< Count of required properties */
+  char **property_names;               /**< Defined property names */
+  size_t n_property_names;             /**< Count of properties */
+  char *disc_value; /**< Discriminator value for this variant */
+};
+
+/**
  * @brief Container for fields of a struct.
  */
 struct StructFields {
@@ -91,6 +121,11 @@ struct StructFields {
   int is_enum;                     /**< 1 if schema is an enum */
   struct EnumMembers enum_members; /**< Enum values when is_enum=1 */
   char *schema_extra_json; /**< Serialized JSON for extra schema keywords */
+  int is_union;            /**< 1 if schema represents a union (oneOf/anyOf) */
+  int union_is_anyof;      /**< 1 if union came from anyOf (else oneOf) */
+  char *union_discriminator; /**< Discriminator property name, if any */
+  struct UnionVariantMeta *union_variants; /**< Per-variant metadata */
+  size_t n_union_variants;                 /**< Count of union variants */
 };
 
 /**
