@@ -43,7 +43,7 @@ TEST test_parse_fam_int(void) {
 
   f = &sf.fields[0];
   ASSERT_STR_EQ("items", f->name);
-  ASSERT_STR_EQ("integer", f->type);
+  ASSERT_STR_EQ("array", f->type);
   ASSERT_EQ(1, f->is_flexible_array);
 
   struct_fields_free(&sf);

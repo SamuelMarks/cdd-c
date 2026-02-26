@@ -143,19 +143,19 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
     if (!call_expr)
       return ENOMEM;
 
-    /* Build safe block */
-    /* { void *_safe_tmp = call_expr; if (!_safe_tmp) return ENOMEM; var =
-     * _safe_tmp; } */
+      /* Build safe block */
+      /* { void *_safe_tmp = call_expr; if (!_safe_tmp) return ENOMEM; var =
+       * _safe_tmp; } */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    /* Use explicit size calc + sprintf_s or malloc+sprintf in C89 portable way?
-       The codebase uses asprintf extension usually.
-       Assuming asprintf/compatibility macro exists from str_utils context. */
-    /* Wait, asprintf is provided by project macros. */
+      /* Use explicit size calc + sprintf_s or malloc+sprintf in C89 portable
+         way? The codebase uses asprintf extension usually. Assuming
+         asprintf/compatibility macro exists from str_utils context. */
+      /* Wait, asprintf is provided by project macros. */
 #endif
-    /* Using asprintf for consistency as per previous project standards */
-    /* However, strict C89 doesn't have it. We assume project provides it via
-     * c89stringutils. */
+      /* Using asprintf for consistency as per previous project standards */
+      /* However, strict C89 doesn't have it. We assume project provides it via
+       * c89stringutils. */
 #ifdef HAVE_ASPRINTF
     if (asprintf(&replacement,
                  "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "

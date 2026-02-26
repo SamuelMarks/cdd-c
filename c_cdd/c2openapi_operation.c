@@ -754,7 +754,8 @@ static int response_has_media_type(const struct OpenAPI_Response *resp,
 
 static int init_media_type_from_response(struct OpenAPI_MediaType *mt,
                                          const char *name,
-                                         const struct OpenAPI_Response *resp) {
+                                         const struct OpenAPI_Response *resp,
+                                         int is_item_schema) {
   if (!mt || !name || !resp)
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
@@ -762,15 +763,21 @@ static int init_media_type_from_response(struct OpenAPI_MediaType *mt,
   if (!mt->name)
     return ENOMEM;
   if (schema_ref_has_data_basic(&resp->schema)) {
-    if (copy_schema_ref_basic(&mt->schema, &resp->schema) != 0)
-      return ENOMEM;
-    mt->schema_set = 1;
+    if (is_item_schema) {
+      if (copy_schema_ref_basic(&mt->item_schema, &resp->schema) != 0)
+        return ENOMEM;
+      mt->item_schema_set = 1;
+    } else {
+      if (copy_schema_ref_basic(&mt->schema, &resp->schema) != 0)
+        return ENOMEM;
+      mt->schema_set = 1;
+    }
   }
   return 0;
 }
 
 static int add_response_media_type(struct OpenAPI_Response *resp,
-                                   const char *name) {
+                                   const char *name, int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
 
@@ -788,7 +795,8 @@ static int add_response_media_type(struct OpenAPI_Response *resp,
     resp->n_content_media_types = 0;
     if (resp->content_type) {
       if (init_media_type_from_response(&resp->content_media_types[0],
-                                        resp->content_type, resp) != 0)
+                                        resp->content_type, resp,
+                                        is_item_schema) != 0)
         return ENOMEM;
       resp->n_content_media_types = 1;
     }
@@ -801,8 +809,8 @@ static int add_response_media_type(struct OpenAPI_Response *resp,
     return ENOMEM;
   resp->content_media_types = new_mts;
   if (init_media_type_from_response(
-          &resp->content_media_types[resp->n_content_media_types], name,
-          resp) != 0)
+          &resp->content_media_types[resp->n_content_media_types], name, resp,
+          is_item_schema) != 0)
     return ENOMEM;
   resp->n_content_media_types = new_count;
   return 0;
@@ -825,10 +833,10 @@ static int request_body_has_media_type(const struct OpenAPI_Operation *op,
   return 0;
 }
 
-static int
-init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
-                                  const char *name,
-                                  const struct OpenAPI_Operation *op) {
+static int init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
+                                             const char *name,
+                                             const struct OpenAPI_Operation *op,
+                                             int is_item_schema) {
   if (!mt || !name || !op)
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
@@ -836,15 +844,21 @@ init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
   if (!mt->name)
     return ENOMEM;
   if (schema_ref_has_data_basic(&op->req_body)) {
-    if (copy_schema_ref_basic(&mt->schema, &op->req_body) != 0)
-      return ENOMEM;
-    mt->schema_set = 1;
+    if (is_item_schema) {
+      if (copy_schema_ref_basic(&mt->item_schema, &op->req_body) != 0)
+        return ENOMEM;
+      mt->item_schema_set = 1;
+    } else {
+      if (copy_schema_ref_basic(&mt->schema, &op->req_body) != 0)
+        return ENOMEM;
+      mt->schema_set = 1;
+    }
   }
   return 0;
 }
 
 static int add_request_body_media_type(struct OpenAPI_Operation *op,
-                                       const char *name) {
+                                       const char *name, int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
 
@@ -862,7 +876,8 @@ static int add_request_body_media_type(struct OpenAPI_Operation *op,
     op->n_req_body_media_types = 0;
     if (op->req_body.content_type) {
       if (init_media_type_from_request_body(&op->req_body_media_types[0],
-                                            op->req_body.content_type, op) != 0)
+                                            op->req_body.content_type, op,
+                                            is_item_schema) != 0)
         return ENOMEM;
       op->n_req_body_media_types = 1;
     }
@@ -875,7 +890,8 @@ static int add_request_body_media_type(struct OpenAPI_Operation *op,
     return ENOMEM;
   op->req_body_media_types = new_mts;
   if (init_media_type_from_request_body(
-          &op->req_body_media_types[op->n_req_body_media_types], name, op) != 0)
+          &op->req_body_media_types[op->n_req_body_media_types], name, op,
+          is_item_schema) != 0)
     return ENOMEM;
   op->n_req_body_media_types = new_count;
   return 0;
@@ -1391,8 +1407,12 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         c_mapping_free(&type_map);
         return ENOMEM;
       }
-      if (fmt_rc > 0)
-        curr_param.schema_set = 1;
+      if (fmt_rc > 0) {
+        if (dp && dp->item_schema)
+          curr_param.item_schema_set = 1;
+        else
+          curr_param.schema_set = 1;
+      }
     }
 
     if (dp) {
@@ -1472,7 +1492,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
           if (!out_op->req_body.content_type)
             return ENOMEM;
         }
-        if (add_request_body_media_type(out_op, rb_content_type) != 0)
+        if (add_request_body_media_type(out_op, rb_content_type,
+                                        rb->item_schema) != 0)
           return ENOMEM;
         if (rb->example) {
           struct OpenAPI_MediaType *mt =
@@ -1480,6 +1501,58 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
                               out_op->n_req_body_media_types, rb_content_type);
           if (mt && apply_example_to_media_type(mt, rb->example) != 0)
             return ENOMEM;
+        }
+
+        {
+          struct OpenAPI_MediaType *mt =
+              find_media_type(out_op->req_body_media_types,
+                              out_op->n_req_body_media_types, rb_content_type);
+          if (mt && doc->n_encodings > 0) {
+            size_t enc_i;
+            for (enc_i = 0; enc_i < doc->n_encodings; ++enc_i) {
+              const struct DocEncoding *d_enc = &doc->encodings[enc_i];
+              struct OpenAPI_Encoding enc;
+              memset(&enc, 0, sizeof(enc));
+
+              if (d_enc->name)
+                enc.name = c_cdd_strdup(d_enc->name);
+              if (d_enc->content_type)
+                enc.content_type = c_cdd_strdup(d_enc->content_type);
+              if (d_enc->style)
+                enc.style = doc_style_to_openapi(d_enc->style);
+
+              enc.explode = d_enc->explode;
+              enc.explode_set = d_enc->explode_set;
+              enc.allow_reserved = d_enc->allow_reserved;
+              enc.allow_reserved_set = d_enc->allow_reserved_set;
+
+              if (d_enc->kind == 0) {
+                struct OpenAPI_Encoding *new_encs =
+                    realloc(mt->encoding, (mt->n_encoding + 1) *
+                                              sizeof(struct OpenAPI_Encoding));
+                if (new_encs) {
+                  mt->encoding = new_encs;
+                  mt->encoding[mt->n_encoding++] = enc;
+                }
+              } else if (d_enc->kind == 1) {
+                struct OpenAPI_Encoding *new_encs = realloc(
+                    mt->prefix_encoding, (mt->n_prefix_encoding + 1) *
+                                             sizeof(struct OpenAPI_Encoding));
+                if (new_encs) {
+                  mt->prefix_encoding = new_encs;
+                  mt->prefix_encoding[mt->n_prefix_encoding++] = enc;
+                }
+              } else if (d_enc->kind == 2) {
+                if (!mt->item_encoding) {
+                  mt->item_encoding =
+                      calloc(1, sizeof(struct OpenAPI_Encoding));
+                }
+                if (mt->item_encoding) {
+                  *mt->item_encoding = enc;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -1530,7 +1603,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
           }
           if (doc->returns[i].content_type) {
             int add_rc = add_response_media_type(&out_op->responses[k],
-                                                 doc->returns[i].content_type);
+                                                 doc->returns[i].content_type,
+                                                 doc->returns[i].item_schema);
             if (add_rc != 0)
               return add_rc;
             if (!out_op->responses[k].content_type) {

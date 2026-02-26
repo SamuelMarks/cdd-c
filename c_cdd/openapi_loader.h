@@ -493,6 +493,7 @@ struct OpenAPI_Parameter {
   size_t n_content_media_types;                  /**< Content entry count */
   struct OpenAPI_SchemaRef schema; /**< Inline schema when present */
   int schema_set;                  /**< 1 if schema object was present */
+  int item_schema_set;             /**< 1 if itemSchema object was present */
 
   /* Array Support */
   int is_array;     /**< 1 if this parameter is an array */
