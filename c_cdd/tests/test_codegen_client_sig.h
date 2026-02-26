@@ -164,7 +164,7 @@ TEST test_sig_inline_response_string(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "char **out") != NULL);
+  ASSERT(strstr(code, "char ** out") != NULL);
 
   free(code);
   PASS();
@@ -187,7 +187,7 @@ TEST test_sig_inline_response_array(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
+  ASSERT(strstr(code, "int ** out, size_t *out_len") != NULL);
 
   free(code);
   PASS();
@@ -204,7 +204,7 @@ TEST test_sig_inline_request_body_string(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char *req_body") != NULL);
+  ASSERT(strstr(code, "const char * req_body") != NULL);
 
   free(code);
   PASS();
@@ -222,7 +222,7 @@ TEST test_sig_inline_request_body_array(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const double *body, size_t body_len") != NULL);
+  ASSERT(strstr(code, "const double * body, size_t body_len") != NULL);
 
   free(code);
   PASS();
@@ -264,7 +264,7 @@ TEST test_sig_multipart_encoding_headers(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char *file_hdr_X_Trace") != NULL);
+  ASSERT(strstr(code, "const char * file_hdr_X_Trace") != NULL);
   ASSERT(strstr(code, "const int *file_hdr_X_Ids, size_t file_hdr_X_Ids_len") !=
          NULL);
   ASSERT(strstr(code, "file_hdr_Content_Type") == NULL);
@@ -284,7 +284,7 @@ TEST test_sig_text_plain_request_body(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char *req_body") != NULL);
+  ASSERT(strstr(code, "const char * req_body") != NULL);
 
   free(code);
   PASS();
@@ -300,7 +300,7 @@ TEST test_sig_textual_request_body_xml(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char *req_body") != NULL);
+  ASSERT(strstr(code, "const char * req_body") != NULL);
 
   free(code);
   PASS();
@@ -485,7 +485,7 @@ TEST test_sig_querystring_json_array(void) {
   code = gen_sig(&op, NULL);
   ASSERT(code);
   ASSERT(strstr(code,
-                "int searchJsonTags(struct HttpClient *ctx, const char **qs, "
+                "int searchJsonTags(struct HttpClient *ctx, const char ** qs, "
                 "size_t qs_len, struct ApiError **api_error) {") != NULL);
 
   free(code);
@@ -541,7 +541,7 @@ TEST test_sig_querystring_raw_string(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "int searchRaw(struct HttpClient *ctx, const char *qs, "
+  ASSERT(strstr(code, "int searchRaw(struct HttpClient *ctx, const char * qs, "
                       "struct ApiError **api_error) {") != NULL);
 
   free(code);

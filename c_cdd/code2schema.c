@@ -533,6 +533,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       final_ref = mapping.ref_name ? mapping.ref_name : mapping.oa_type;
     }
 
+    if (is_fam && mapping.kind != OA_TYPE_ARRAY) {
+      final_ref = final_type;
+      final_type = "array";
+    }
+
     if (struct_fields_add(sf, name, final_type, final_ref, NULL,
                           bit_width[0] ? bit_width : NULL) == 0) {
       struct StructField *field = &sf->fields[sf->size - 1];
@@ -540,10 +545,10 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
         field->is_flexible_array = 1;
       }
       if (mapping.oa_format && mapping.oa_type) {
-        if (mapping.kind == OA_TYPE_PRIMITIVE) {
+        if (mapping.kind == OA_TYPE_PRIMITIVE && !is_fam) {
           strncpy(field->format, mapping.oa_format, sizeof(field->format) - 1);
           field->format[sizeof(field->format) - 1] = '\0';
-        } else if (mapping.kind == OA_TYPE_ARRAY &&
+        } else if ((mapping.kind == OA_TYPE_ARRAY || is_fam) &&
                    openapi_type_is_primitive(mapping.oa_type)) {
           char fmt_json[64];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1861,8 +1866,8 @@ static void write_numeric_constraints(JSON_Object *pobj,
                                       const struct StructField *field) {
   if (!pobj || !field)
     return;
-  if (!field->type || !(strcmp(field->type, "integer") == 0 ||
-                        strcmp(field->type, "number") == 0))
+  if (!field->type[0] || !(strcmp(field->type, "integer") == 0 ||
+                           strcmp(field->type, "number") == 0))
     return;
   if (field->has_min) {
     if (field->exclusive_min)
@@ -1882,7 +1887,7 @@ static void write_string_constraints(JSON_Object *pobj,
                                      const struct StructField *field) {
   if (!pobj || !field)
     return;
-  if (!field->type || strcmp(field->type, "string") != 0)
+  if (!field->type[0] || strcmp(field->type, "string") != 0)
     return;
   if (field->has_min_len)
     json_object_set_number(pobj, "minLength", (double)field->min_len);
@@ -1896,7 +1901,7 @@ static void write_array_constraints(JSON_Object *pobj,
                                     const struct StructField *field) {
   if (!pobj || !field)
     return;
-  if (!field->type || strcmp(field->type, "array") != 0)
+  if (!field->type[0] || strcmp(field->type, "array") != 0)
     return;
   if (field->has_min_items)
     json_object_set_number(pobj, "minItems", (double)field->min_items);

@@ -201,6 +201,7 @@ static int parse_tag_meta_line(const char *line, const char *end,
     return EINVAL;
 
   memset(&meta, 0, sizeof(meta));
+  printf("LINE: %.*s\n", (int)(end - line), line);
 
   meta.name = extract_word(cur, end, &cur);
   if (!meta.name)

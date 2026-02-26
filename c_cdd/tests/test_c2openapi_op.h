@@ -368,6 +368,7 @@ TEST test_build_simple_get(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -381,8 +382,8 @@ TEST test_build_simple_get(void) {
 
   /* Setup Doc */
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
   doc.summary = "Get a user";
 
   /* Setup Context */
@@ -414,6 +415,7 @@ TEST test_build_param_format_from_mapping(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -425,8 +427,8 @@ TEST test_build_param_format_from_mapping(void) {
   args[0].type = "long";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -449,6 +451,7 @@ TEST test_build_param_format_override(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam *params = NULL;
   struct OpenAPI_Operation op = {0};
@@ -461,8 +464,8 @@ TEST test_build_param_format_override(void) {
   args[0].type = "int";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
   params = (struct DocParam *)calloc(1, sizeof(struct DocParam));
   ASSERT(params != NULL);
   params[0].name = strdup("id");
@@ -500,8 +503,8 @@ TEST test_build_response_header_format(void) {
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/ping";
-  doc.verb = "GET";
+  doc.route = strdup("/ping");
+  doc.verb = strdup("GET");
   headers = (struct DocResponseHeader *)calloc(1, sizeof(*headers));
   ASSERT(headers != NULL);
   headers[0].code = strdup("200");
@@ -541,8 +544,8 @@ TEST test_build_default_response_when_missing(void) {
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/ping";
-  doc.verb = "GET";
+  doc.route = strdup("/ping");
+  doc.verb = strdup("GET");
 
   memset(&ctx, 0, sizeof(ctx));
   ctx.sig = &sig;
@@ -563,6 +566,7 @@ TEST test_build_operation_id_override(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -574,8 +578,8 @@ TEST test_build_operation_id_override(void) {
   args[0].type = "int";
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
   doc.operation_id = "getUserById";
 
   memset(&ctx, 0, sizeof(ctx));
@@ -595,8 +599,10 @@ TEST test_build_param_content_type(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam params[1];
+  memset(params, 0, sizeof(params));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -608,8 +614,8 @@ TEST test_build_param_content_type(void) {
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
-  doc.route = "/user/search";
-  doc.verb = "GET";
+  doc.route = strdup("/user/search");
+  doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
   doc.params[0].name = "payload";
@@ -634,8 +640,10 @@ TEST test_build_param_example(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam params[1];
+  memset(params, 0, sizeof(params));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -647,8 +655,8 @@ TEST test_build_param_example(void) {
 
   memset(&doc, 0, sizeof(doc));
   memset(params, 0, sizeof(params));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
   doc.params = params;
   doc.n_params = 1;
   doc.params[0].name = "id";
@@ -676,6 +684,7 @@ TEST test_build_return_content_type(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct DocResponse returns[1];
+  memset(returns, 0, sizeof(returns));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -686,7 +695,7 @@ TEST test_build_return_content_type(void) {
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
   doc.route = "/status";
-  doc.verb = "GET";
+  doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
   doc.returns[0].code = "200";
@@ -713,8 +722,10 @@ TEST test_build_response_example(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocResponse returns[1];
+  memset(returns, 0, sizeof(returns));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -726,8 +737,8 @@ TEST test_build_response_example(void) {
 
   memset(&doc, 0, sizeof(doc));
   memset(returns, 0, sizeof(returns));
-  doc.route = "/user/{id}";
-  doc.verb = "GET";
+  doc.route = strdup("/user/{id}");
+  doc.verb = strdup("GET");
   doc.returns = returns;
   doc.n_returns = 1;
   doc.returns[0].code = "200";
@@ -759,6 +770,7 @@ TEST test_build_post_with_body(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -799,8 +811,10 @@ TEST test_build_params_explicit(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
 
   /* Sig */
@@ -839,8 +853,10 @@ TEST test_build_param_style_flags(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -890,8 +906,10 @@ TEST test_build_param_default_styles(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[2];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -932,8 +950,10 @@ TEST test_build_reserved_header_param_ignored(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[2];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -972,6 +992,7 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -1023,8 +1044,10 @@ TEST test_build_params_querystring(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
 
   sig.name = "search";
@@ -1061,8 +1084,10 @@ TEST test_build_params_querystring_json_struct(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam dparams[1];
+  memset(dparams, 0, sizeof(dparams));
   struct OpenAPI_Operation op = {0};
 
   sig.name = "search_query";
@@ -1098,6 +1123,7 @@ TEST test_build_custom_verb_additional(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -1110,7 +1136,7 @@ TEST test_build_custom_verb_additional(void) {
 
   memset(&doc, 0, sizeof(doc));
   doc.route = "/users/{id}";
-  doc.verb = "COPY";
+  doc.verb = strdup("COPY");
 
   ctx.sig = &sig;
   ctx.doc = &doc;
@@ -1131,6 +1157,7 @@ TEST test_build_response_multi_content(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct DocResponse resps[2];
+  memset(resps, 0, sizeof(resps));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -1139,8 +1166,8 @@ TEST test_build_response_multi_content(void) {
   sig.args = NULL;
 
   memset(&doc, 0, sizeof(doc));
-  doc.route = "/report";
-  doc.verb = "GET";
+  doc.route = strdup("/report");
+  doc.verb = strdup("GET");
   doc.returns = resps;
   doc.n_returns = 2;
 
@@ -1171,6 +1198,7 @@ TEST test_build_response_headers(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct DocResponse resps[1];
+  memset(resps, 0, sizeof(resps));
   struct DocResponseHeader hdrs[1];
   struct OpenAPI_Operation op = {0};
   int rc;
@@ -1233,7 +1261,7 @@ TEST test_build_response_links(void) {
 
   memset(&doc, 0, sizeof(doc));
   doc.route = "/pages";
-  doc.verb = "GET";
+  doc.verb = strdup("GET");
   doc.links = links;
   doc.n_links = 1;
 
@@ -1286,6 +1314,7 @@ TEST test_build_response_output_arg(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct OpenAPI_Operation op = {0};
 
   sig.name = "get_obj";
@@ -1317,6 +1346,7 @@ TEST test_build_op_security_servers_request_body(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocSecurityRequirement sec[2];
   char *scopes1[] = {"write:pets", "read:pets"};
@@ -1333,7 +1363,7 @@ TEST test_build_op_security_servers_request_body(void) {
   args[0].type = "const struct Payload *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.verb = "POST";
+  doc.verb = strdup("POST");
   doc.route = "/upload";
   doc.request_body_description = "Upload payload";
   doc.request_body_required_set = 1;
@@ -1403,8 +1433,10 @@ TEST test_build_op_param_deprecated(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam params[1];
+  memset(params, 0, sizeof(params));
   struct OpenAPI_Operation op = {0};
   int rc;
 
@@ -1415,7 +1447,7 @@ TEST test_build_op_param_deprecated(void) {
   args[0].type = "int";
 
   memset(&doc, 0, sizeof(doc));
-  doc.verb = "GET";
+  doc.verb = strdup("GET");
   doc.route = "/legacy/{legacyId}";
   memset(params, 0, sizeof(params));
   params[0].name = "legacyId";
@@ -1446,6 +1478,7 @@ TEST test_build_request_body_example(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op = {0};
@@ -1458,7 +1491,7 @@ TEST test_build_request_body_example(void) {
   args[0].type = "struct User *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.verb = "POST";
+  doc.verb = strdup("POST");
   doc.route = "/user";
   memset(bodies, 0, sizeof(bodies));
   bodies[0].content_type = "application/json";
@@ -1487,6 +1520,7 @@ TEST test_build_request_body_default_content_type(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
   struct OpenAPI_Operation op = {0};
@@ -1499,7 +1533,7 @@ TEST test_build_request_body_default_content_type(void) {
   args[0].type = "struct User *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.verb = "POST";
+  doc.verb = strdup("POST");
   doc.route = "/user";
   memset(bodies, 0, sizeof(bodies));
   bodies[0].description = "User";
@@ -1526,6 +1560,7 @@ TEST test_build_op_request_body_multi_content(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
+  memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[2];
   struct OpenAPI_Operation op = {0};
@@ -1538,7 +1573,7 @@ TEST test_build_op_request_body_multi_content(void) {
   args[0].type = "const struct Payload *";
 
   memset(&doc, 0, sizeof(doc));
-  doc.verb = "POST";
+  doc.verb = strdup("POST");
   doc.route = "/upload";
   memset(bodies, 0, sizeof(bodies));
   bodies[0].content_type = "application/json";

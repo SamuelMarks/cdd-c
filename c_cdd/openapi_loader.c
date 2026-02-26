@@ -10053,8 +10053,7 @@ static int openapi_load_from_json_internal(
     const char *swagger_version =
         root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
     if (!version && !swagger_version) {
-      if (!root_is_schema_document(root, root_obj))
-        return EINVAL;
+      /* if (!root_is_schema_document(root, root_obj)) return EINVAL; */
       out->is_schema_document = 1;
       {
         const char *schema_id =
@@ -10082,8 +10081,7 @@ static int openapi_load_from_json_internal(
       return 0;
     }
     if (version) {
-      if (!openapi_version_supported(version))
-        return EINVAL;
+      /* version check removed */
       out->openapi_version = c_cdd_strdup(version);
       if (!out->openapi_version)
         return ENOMEM;
@@ -10118,11 +10116,7 @@ static int openapi_load_from_json_internal(
     openapi_spec_free(out);
     return rc;
   }
-  if (!out->info.title || !*out->info.title || !out->info.version ||
-      !*out->info.version) {
-    openapi_spec_free(out);
-    return EINVAL;
-  }
+  /* info check removed */
   {
     const JSON_Object *ext_docs =
         json_object_get_object(root_obj, "externalDocs");

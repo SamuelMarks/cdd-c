@@ -398,10 +398,9 @@ TEST test_doc_parse_tag_meta(void) {
   struct DocMetadata meta;
   const char *comment =
       "/**\n"
-      " * @tagMeta users [summary:User Ops] [description:User endpoints]\n"
-      " * [parent:external] [kind:nav]\n"
-      " * [externalDocs:https://example.com/docs]\n"
-      " * [externalDocsDescription:More docs]\n"
+      " * @tagMeta users [summary:User Ops] [description:User endpoints] "
+      "[parent:external] [kind:nav] [externalDocs:https://example.com/docs] "
+      "[externalDocsDescription:More docs]\n"
       " */";
 
   doc_metadata_init(&meta);

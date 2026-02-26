@@ -1136,7 +1136,7 @@ static int process_file(const char *path, struct OpenAPI_Spec *spec) {
             int rc_meta = apply_doc_tag_meta(spec, &meta);
             if (rc_meta == 0)
               rc_meta = apply_doc_security_schemes(spec, &meta);
-            if (rc_meta == 0 && !meta.route)
+            if (rc_meta == 0)
               rc_meta = apply_doc_global_meta(spec, &meta);
             if (rc_meta != 0) {
               doc_metadata_free(&meta);
@@ -1215,7 +1215,7 @@ static int process_file(const char *path, struct OpenAPI_Spec *spec) {
           int rc_meta = apply_doc_tag_meta(spec, &meta);
           if (rc_meta == 0)
             rc_meta = apply_doc_security_schemes(spec, &meta);
-          if (rc_meta == 0 && !meta.route)
+          if (rc_meta == 0)
             rc_meta = apply_doc_global_meta(spec, &meta);
           if (rc_meta != 0) {
             doc_metadata_free(&meta);

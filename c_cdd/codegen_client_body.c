@@ -1283,7 +1283,7 @@ static int write_form_urlencoded_body(FILE *fp,
   mt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
                        "application/x-www-form-urlencoded");
 
-  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body.schema);
+  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
@@ -2596,7 +2596,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   const struct OpenAPI_MediaType *mt;
   size_t i;
 
-  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body.schema);
+  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,

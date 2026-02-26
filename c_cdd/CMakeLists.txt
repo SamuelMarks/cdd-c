@@ -144,13 +144,18 @@ endif ()
 
 # Dependencies
 if (C_CDD_USE_LIBCURL)
+    if(NOT TARGET CURL::libcurl)
+        if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+            find_package(CURL REQUIRED)
+        else ()
+            find_package(CURL CONFIG REQUIRED)
+        endif ()
+    endif()
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
-        find_package(CURL REQUIRED)
         find_package(OpenSSL REQUIRED)
     else ()
-        find_package(CURL CONFIG REQUIRED)
         find_package(OpenSSL CONFIG REQUIRED)
-    endif ()
+    endif()
     target_link_libraries("${LIBRARY_NAME}" PRIVATE CURL::libcurl)
 endif ()
 
@@ -160,10 +165,18 @@ if (WIN32)
     # http_winhttp needs Winhttp.lib
     # you can use crypto backend from windows with curl I think, TODO
     if (C_CDD_USE_LIBCURL)
+        if(TARGET OpenSSL::SSL)
         target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    else()
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
+    endif()
     endif (C_CDD_USE_LIBCURL)
 else ()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    if(TARGET OpenSSL::SSL)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    else()
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
+    endif()
 endif ()
 
 if (MSVC)
@@ -211,36 +224,43 @@ if (MSVC)
     endif (PATHCCH_LIB)
 endif (MSVC)
 
-if (NOT DEFINED HAVE_ASPRINTF)
+if(NOT TARGET c89stringutils)
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
         find_package(c89stringutils REQUIRED)
     else ()
         find_package(c89stringutils CONFIG REQUIRED)
     endif ()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE c89stringutils c89stringutils_compiler_flags)
-endif (NOT DEFINED HAVE_ASPRINTF)
+endif()
+target_link_libraries("${LIBRARY_NAME}" PRIVATE c89stringutils c89stringutils_compiler_flags)
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+
+if(NOT TARGET c_str_span)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
     find_package(c_str_span REQUIRED)
 else ()
     find_package(c_str_span CONFIG REQUIRED)
 endif ()
+endif()
 
 target_link_libraries(
         "${LIBRARY_NAME}"
         PUBLIC
         c_str_span c_str_span_compiler_flags
 )
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+if(NOT TARGET parson)
+    if(NOT TARGET parson)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
     find_package(parson REQUIRED)
 else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
-target_link_libraries(
-        "${LIBRARY_NAME}"
-        PRIVATE
-        "parson::parson"
-)
+endif()
+endif()
+if(TARGET parson::parson)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
+else()
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
+endif()
 
 target_link_libraries(
         "${LIBRARY_NAME}"
@@ -274,11 +294,15 @@ add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
+if(NOT TARGET parson)
+    if(NOT TARGET parson)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT DEFINED VCPKG_TOOLCHAIN)
     find_package(parson REQUIRED)
 else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
+endif()
+endif()
 
 include(GenerateExportHeader)
 set(_export_file "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}_export.h")

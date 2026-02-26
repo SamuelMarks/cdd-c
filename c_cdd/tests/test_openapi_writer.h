@@ -24,7 +24,7 @@
 
 /* --- Helpers --- */
 
-static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
+static int load_spec_str2(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
   int rc;
   if (!dyn)
@@ -934,7 +934,8 @@ TEST test_writer_preserves_composed_component_schema(void) {
   const char *json =
       "{"
       "\"openapi\":\"3.2.0\","
-      "\"info\":{\"title\":\"Spec\",\"version\":\"1\"},"
+      "\"info\":{\"title\":\"Spec\",\"version\":\"1\",\"license\":{\"name\":"
+      "\"MIT\"}},"
       "\"components\":{"
       "\"schemas\":{"
       "\"Pet\":{"
@@ -951,7 +952,7 @@ TEST test_writer_preserves_composed_component_schema(void) {
   char *out_json = NULL;
   int rc;
 
-  rc = load_spec_str(json, &spec);
+  rc = load_spec_str2(json, &spec);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
@@ -979,7 +980,8 @@ TEST test_writer_preserves_inline_composed_schema(void) {
   const char *json =
       "{"
       "\"openapi\":\"3.2.0\","
-      "\"info\":{\"title\":\"Spec\",\"version\":\"1\"},"
+      "\"info\":{\"title\":\"Spec\",\"version\":\"1\",\"license\":{\"name\":"
+      "\"MIT\"}},"
       "\"paths\":{"
       "\"/pets\":{"
       "\"get\":{"
@@ -1007,7 +1009,7 @@ TEST test_writer_preserves_inline_composed_schema(void) {
   char *out_json = NULL;
   int rc;
 
-  rc = load_spec_str(json, &spec);
+  rc = load_spec_str2(json, &spec);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
@@ -1114,8 +1116,8 @@ TEST test_writer_options_trace_verbs(void) {
 
   {
     JSON_Value *root = json_parse_string(json);
-    JSON_Object *verbs =
-        json_object_get_object(json_object_get_object(root, "paths"), "/verbs");
+    JSON_Object *verbs = json_object_get_object(
+        json_object_get_object(json_value_get_object(root), "paths"), "/verbs");
     ASSERT(json_object_get_object(verbs, "options") != NULL);
     ASSERT(json_object_get_object(verbs, "trace") != NULL);
     json_value_free(root);
@@ -2141,7 +2143,9 @@ TEST test_writer_components_and_response_headers(void) {
                       json_object_get_object(params, "LimitParam"), "name"));
     ASSERT_STR_EQ("integer",
                   json_object_get_string(
-                      json_object_get_object(hdrs, "RateLimit"), "type"));
+                      json_object_get_object(
+                          json_object_get_object(hdrs, "RateLimit"), "schema"),
+                      "type"));
     ASSERT_STR_EQ("missing", json_object_get_string(
                                  json_object_get_object(resps, "NotFound"),
                                  "description"));
@@ -2676,6 +2680,7 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 TEST test_writer_media_type_prefix_item_encoding(void) {
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_MediaType media[1];
+  char *media_names[1];
   struct OpenAPI_Encoding prefix[2];
   struct OpenAPI_Encoding item = {0};
   struct OpenAPI_Encoding nested[1];
@@ -2687,6 +2692,8 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   memset(prefix, 0, sizeof(prefix));
   memset(nested, 0, sizeof(nested));
 
+  media_names[0] = "multipart/mixed";
+  spec.component_media_type_names = media_names;
   media[0].name = "multipart/mixed";
   media[0].schema_set = 1;
   media[0].schema.inline_type = "array";
@@ -3615,7 +3622,7 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   char *out_json = NULL;
   int rc;
 
-  rc = load_spec_str(json, &spec);
+  rc = load_spec_str2(json, &spec);
   ASSERT_EQ(0, rc);
 
   rc = openapi_write_spec_to_json(&spec, &out_json);
