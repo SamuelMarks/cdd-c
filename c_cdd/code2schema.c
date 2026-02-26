@@ -533,7 +533,9 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       final_ref = mapping.ref_name ? mapping.ref_name : mapping.oa_type;
     }
 
-    if (is_fam && mapping.kind != OA_TYPE_ARRAY) {
+    if (is_fam && mapping.kind != OA_TYPE_ARRAY &&
+        !(mapping.kind == OA_TYPE_PRIMITIVE &&
+          strcmp(mapping.oa_type, "string") == 0)) {
       final_ref = final_type;
       final_type = "array";
     }

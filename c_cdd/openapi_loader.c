@@ -48,6 +48,19 @@ static int component_key_is_valid(const char *name);
 static int validate_component_key_map(const JSON_Object *obj);
 static const char *parse_schema_type(const JSON_Object *schema,
                                      int *out_nullable);
+
+struct ResolvedRefTarget {
+  const struct OpenAPI_Spec *spec;
+  const char *ref;
+  char *resolved_ref;
+};
+
+static struct ResolvedRefTarget
+resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref);
+
+static const char *ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                        const char *ref, const char *prefix);
+
 struct SchemaConstraintTarget {
   int *has_min;
   double *min_val;
@@ -102,6 +115,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                            const struct OpenAPI_SchemaRef *src);
 static void free_example(struct OpenAPI_Example *ex);
 static void free_header(struct OpenAPI_Header *hdr);
+static void free_link(struct OpenAPI_Link *link);
 static char *json_pointer_unescape(const char *in);
 static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
 static int parse_external_docs(const JSON_Object *obj,
@@ -130,6 +144,12 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
                                  const struct OpenAPI_Operation *src);
 static int copy_path_fields(struct OpenAPI_Path *dst,
                             const struct OpenAPI_Path *src);
+static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
+                                    const struct OpenAPI_RequestBody *src);
+static int copy_media_type_array(struct OpenAPI_MediaType **dst,
+                                 size_t *dst_count,
+                                 const struct OpenAPI_MediaType *src,
+                                 size_t src_count);
 static int
 apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                           const struct OpenAPI_SchemaRef *schema_ref);
@@ -2810,12 +2830,6 @@ static int store_schema_root_json(struct OpenAPI_Spec *spec,
   return 0;
 }
 
-struct ResolvedRefTarget {
-  const struct OpenAPI_Spec *spec;
-  const char *ref;
-  char *resolved_ref;
-};
-
 static struct ResolvedRefTarget
 resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref) {
   struct ResolvedRefTarget out;
@@ -3680,12 +3694,6 @@ static int copy_server_object(struct OpenAPI_Server *dst,
     if (!dst->extensions_json)
       return ENOMEM;
   }
-  if (src->responses_extensions_json) {
-    dst->responses_extensions_json =
-        c_cdd_strdup(src->responses_extensions_json);
-    if (!dst->responses_extensions_json)
-      return ENOMEM;
-  }
   if (src->n_variables > 0 && src->variables) {
     dst->variables = (struct OpenAPI_ServerVariable *)calloc(
         src->n_variables, sizeof(struct OpenAPI_ServerVariable));
@@ -3739,11 +3747,6 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
   size_t i;
   if (!dst || !src)
     return 0;
-  if (!dst->code && src->code) {
-    dst->code = c_cdd_strdup(src->code);
-    if (!dst->code)
-      return ENOMEM;
-  }
   if (src->summary) {
     dst->summary = c_cdd_strdup(src->summary);
     if (!dst->summary)
@@ -7558,9 +7561,10 @@ static int media_type_specificity(const char *name) {
     return -1;
   sub_len = len - type_len - 1;
   if (type_len == 1 && name[0] == '*' && sub_len == 1 && slash[1] == '*')
-    return 0;                                       /* */
-  */ if (sub_len == 1 && slash[1] == '*') return 1; /* type/* */
-  return 2;                                         /* type/subtype */
+    return 0; /* */
+  if (sub_len == 1 && slash[1] == '*')
+    return 1; /* type/* */
+  return 2;   /* type/subtype */
 }
 
 static int media_type_preference_rank(const char *name) {

@@ -38,6 +38,7 @@
  * - `@serverVar <name> [default:<value>] [enum:<v1,v2,...>]
  * [description:<text>]` (attaches to the most recent @server in the same doc
  * block)
+ * - `@jsonSchemaDialect <uri>`
  * - `@infoTitle <text>`
  * - `@infoVersion <text>`
  * - `@infoSummary <text>`
@@ -95,6 +96,8 @@ struct DocParam {
   int required;       /**< 1 if marked required, 0 otherwise */
   char *content_type; /**< Optional content media type */
   char *example;      /**< Optional example (raw JSON or string) */
+  int item_schema;    /**< 1 if this parameter should use itemSchema instead of
+                         schema */
   int deprecated;     /**< 1 if deprecated */
   int deprecated_set; /**< 1 if deprecated explicitly set */
 
@@ -118,6 +121,8 @@ struct DocResponse {
   char *description;  /**< Response description */
   char *content_type; /**< Optional response content media type */
   char *example;      /**< Optional example (raw JSON or string) */
+  int item_schema;    /**< 1 if this response should use itemSchema instead of
+                         schema */
 };
 
 /**
@@ -160,6 +165,8 @@ struct DocRequestBody {
   char *content_type; /**< Optional request body content media type */
   char *description;  /**< Optional request body description */
   char *example;      /**< Optional example (raw JSON or string) */
+  int item_schema; /**< 1 if this body should use itemSchema instead of schema
+                    */
 };
 
 /**
@@ -169,6 +176,21 @@ struct DocSecurityRequirement {
   char *scheme;    /**< Security scheme name */
   char **scopes;   /**< Optional scopes */
   size_t n_scopes; /**< Scope count */
+};
+
+/**
+ * @brief Represents an encoding override.
+ */
+struct DocEncoding {
+  char *name;               /**< Property name (NULL for prefix/item) */
+  char *content_type;       /**< Optional content type */
+  enum DocParamStyle style; /**< Optional style */
+  int style_set;
+  int explode;
+  int explode_set;
+  int allow_reserved;
+  int allow_reserved_set;
+  int kind; /**< 0=encoding, 1=prefixEncoding, 2=itemEncoding */
 };
 
 /**
@@ -287,28 +309,29 @@ struct DocTagMeta {
  * @brief Container for extracted metadata.
  */
 struct DocMetadata {
-  char *route;              /**< Route path (e.g. "/users/{id}") */
-  char *verb;               /**< HTTP Method (e.g. "GET", "POST") */
-  int is_webhook;           /**< 1 if this route is a webhook */
-  char *operation_id;       /**< Optional explicit operationId */
-  char *summary;            /**< Operation summary */
-  char *description;        /**< Operation description */
-  char *info_title;         /**< Global info.title override */
-  char *info_version;       /**< Global info.version override */
-  char *info_summary;       /**< Global info.summary override */
-  char *info_description;   /**< Global info.description override */
-  char *terms_of_service;   /**< Global info.termsOfService override */
-  char *contact_name;       /**< Global info.contact.name override */
-  char *contact_url;        /**< Global info.contact.url override */
-  char *contact_email;      /**< Global info.contact.email override */
-  char *license_name;       /**< Global info.license.name override */
-  char *license_identifier; /**< Global info.license.identifier override */
-  char *license_url;        /**< Global info.license.url override */
-  int deprecated;           /**< Deprecated flag */
-  int deprecated_set;       /**< 1 if deprecated explicitly set */
-  char **tags;              /**< Operation tags */
-  size_t n_tags;            /**< Number of tags */
-  char *external_docs_url;  /**< externalDocs URL */
+  char *route;               /**< Route path (e.g. "/users/{id}") */
+  char *verb;                /**< HTTP Method (e.g. "GET", "POST") */
+  int is_webhook;            /**< 1 if this route is a webhook */
+  char *operation_id;        /**< Optional explicit operationId */
+  char *json_schema_dialect; /**< Global jsonSchemaDialect override */
+  char *summary;             /**< Operation summary */
+  char *description;         /**< Operation description */
+  char *info_title;          /**< Global info.title override */
+  char *info_version;        /**< Global info.version override */
+  char *info_summary;        /**< Global info.summary override */
+  char *info_description;    /**< Global info.description override */
+  char *terms_of_service;    /**< Global info.termsOfService override */
+  char *contact_name;        /**< Global info.contact.name override */
+  char *contact_url;         /**< Global info.contact.url override */
+  char *contact_email;       /**< Global info.contact.email override */
+  char *license_name;        /**< Global info.license.name override */
+  char *license_identifier;  /**< Global info.license.identifier override */
+  char *license_url;         /**< Global info.license.url override */
+  int deprecated;            /**< Deprecated flag */
+  int deprecated_set;        /**< 1 if deprecated explicitly set */
+  char **tags;               /**< Operation tags */
+  size_t n_tags;             /**< Number of tags */
+  char *external_docs_url;   /**< externalDocs URL */
   char *external_docs_description; /**< externalDocs description */
 
   struct DocParam *params; /**< Array of parameters */
@@ -334,6 +357,9 @@ struct DocMetadata {
 
   struct DocRequestBody *request_bodies; /**< Request body entries */
   size_t n_request_bodies;               /**< Request body entry count */
+
+  struct DocEncoding *encodings; /**< Encoding metadata */
+  size_t n_encodings;            /**< Encoding count */
 
   struct DocTagMeta *tag_meta; /**< Tag metadata entries */
   size_t n_tag_meta;           /**< Tag metadata entry count */

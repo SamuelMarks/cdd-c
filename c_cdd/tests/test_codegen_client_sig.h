@@ -41,11 +41,10 @@ static char *gen_sig(const struct OpenAPI_Operation *op,
 }
 
 TEST test_sig_simple_get(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "get_pet";
 
   param.name = "id";
@@ -68,9 +67,8 @@ TEST test_sig_simple_get(void) {
 }
 
 TEST test_sig_verify_apierror(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
-  memset(&op, 0, sizeof(op));
   op.operation_id = "do";
 
   code = gen_sig(&op, NULL);
@@ -83,14 +81,12 @@ TEST test_sig_verify_apierror(void) {
 }
 
 TEST test_sig_grouped(void) {
-  struct OpenAPI_Operation op;
-  struct CodegenSigConfig cfg;
+  struct OpenAPI_Operation op = {0};
+  struct CodegenSigConfig cfg = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "getById";
 
-  memset(&cfg, 0, sizeof(cfg));
   cfg.prefix = "api_";
   cfg.group_name = "Pet";
 
@@ -105,12 +101,10 @@ TEST test_sig_grouped(void) {
 }
 
 TEST test_sig_success_range_response(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "listPets";
 
   resp.code = "2XX";
@@ -127,12 +121,10 @@ TEST test_sig_success_range_response(void) {
 }
 
 TEST test_sig_default_response_success(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "defaultPet";
 
   resp.code = "default";
@@ -149,12 +141,10 @@ TEST test_sig_default_response_success(void) {
 }
 
 TEST test_sig_inline_response_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "getInline";
 
   resp.code = "200";
@@ -164,19 +154,17 @@ TEST test_sig_inline_response_string(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "char ** out") != NULL);
+  ASSERT(strstr(code, "char **out") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_inline_response_array(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "getInlineArr";
 
   resp.code = "200";
@@ -187,34 +175,32 @@ TEST test_sig_inline_response_array(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "int ** out, size_t *out_len") != NULL);
+  ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_inline_request_body_string(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postInline";
   op.req_body.content_type = "application/json";
   op.req_body.inline_type = "string";
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char * req_body") != NULL);
+  ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_inline_request_body_array(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postInlineArr";
   op.req_body.content_type = "application/json";
   op.req_body.is_array = 1;
@@ -222,23 +208,19 @@ TEST test_sig_inline_request_body_array(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const double * body, size_t body_len") != NULL);
+  ASSERT(strstr(code, "const double *body, size_t body_len") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_multipart_encoding_headers(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_MediaType mt;
-  struct OpenAPI_Encoding enc;
-  struct OpenAPI_Header headers[3];
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_MediaType mt = {0};
+  struct OpenAPI_Encoding enc = {0};
+  struct OpenAPI_Header headers[3] = {{0}};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&mt, 0, sizeof(mt));
-  memset(&enc, 0, sizeof(enc));
-  memset(&headers, 0, sizeof(headers));
   op.operation_id = "upload";
 
   op.req_body.ref_name = "Upload";
@@ -264,7 +246,7 @@ TEST test_sig_multipart_encoding_headers(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char * file_hdr_X_Trace") != NULL);
+  ASSERT(strstr(code, "const char *file_hdr_X_Trace") != NULL);
   ASSERT(strstr(code, "const int *file_hdr_X_Ids, size_t file_hdr_X_Ids_len") !=
          NULL);
   ASSERT(strstr(code, "file_hdr_Content_Type") == NULL);
@@ -274,43 +256,40 @@ TEST test_sig_multipart_encoding_headers(void) {
 }
 
 TEST test_sig_text_plain_request_body(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postText";
   op.req_body.content_type = "text/plain";
   op.req_body.inline_type = "string";
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char * req_body") != NULL);
+  ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_textual_request_body_xml(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postXml";
   op.req_body.content_type = "application/xml";
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "const char * req_body") != NULL);
+  ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
   PASS();
 }
 
 TEST test_sig_octet_stream_request_body(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postBinary";
   op.req_body.content_type = "application/octet-stream";
 
@@ -323,10 +302,9 @@ TEST test_sig_octet_stream_request_body(void) {
 }
 
 TEST test_sig_binary_request_body_pdf(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
   op.operation_id = "postPdf";
   op.req_body.content_type = "application/pdf";
 
@@ -339,12 +317,10 @@ TEST test_sig_binary_request_body_pdf(void) {
 }
 
 TEST test_sig_octet_stream_response_body(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "download";
   resp.code = "200";
   resp.content_type = "application/octet-stream";
@@ -360,12 +336,10 @@ TEST test_sig_octet_stream_response_body(void) {
 }
 
 TEST test_sig_binary_response_body_pdf(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&resp, 0, sizeof(resp));
   op.operation_id = "downloadPdf";
   resp.code = "200";
   resp.content_type = "application/pdf";
@@ -381,12 +355,10 @@ TEST test_sig_binary_response_body_pdf(void) {
 }
 
 TEST test_sig_querystring_form_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "search";
 
   param.name = "qs";
@@ -409,12 +381,10 @@ TEST test_sig_querystring_form_object(void) {
 }
 
 TEST test_sig_querystring_json_ref(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchJson";
 
   param.name = "qs";
@@ -437,12 +407,10 @@ TEST test_sig_querystring_json_ref(void) {
 }
 
 TEST test_sig_querystring_json_primitive(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchJsonInt";
 
   param.name = "qs";
@@ -464,12 +432,10 @@ TEST test_sig_querystring_json_primitive(void) {
 }
 
 TEST test_sig_querystring_json_array(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchJsonTags";
 
   param.name = "qs";
@@ -485,7 +451,7 @@ TEST test_sig_querystring_json_array(void) {
   code = gen_sig(&op, NULL);
   ASSERT(code);
   ASSERT(strstr(code,
-                "int searchJsonTags(struct HttpClient *ctx, const char ** qs, "
+                "int searchJsonTags(struct HttpClient *ctx, const char **qs, "
                 "size_t qs_len, struct ApiError **api_error) {") != NULL);
 
   free(code);
@@ -493,12 +459,10 @@ TEST test_sig_querystring_json_array(void) {
 }
 
 TEST test_sig_querystring_json_array_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchJsonPets";
 
   param.name = "qs";
@@ -522,12 +486,10 @@ TEST test_sig_querystring_json_array_object(void) {
 }
 
 TEST test_sig_querystring_raw_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchRaw";
 
   param.name = "qs";
@@ -541,7 +503,7 @@ TEST test_sig_querystring_raw_string(void) {
 
   code = gen_sig(&op, NULL);
   ASSERT(code);
-  ASSERT(strstr(code, "int searchRaw(struct HttpClient *ctx, const char * qs, "
+  ASSERT(strstr(code, "int searchRaw(struct HttpClient *ctx, const char *qs, "
                       "struct ApiError **api_error) {") != NULL);
 
   free(code);
@@ -549,12 +511,10 @@ TEST test_sig_querystring_raw_string(void) {
 }
 
 TEST test_sig_querystring_raw_integer(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "searchRawInt";
 
   param.name = "qs";
@@ -576,12 +536,10 @@ TEST test_sig_querystring_raw_integer(void) {
 }
 
 TEST test_sig_query_object_param_kv(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "list";
 
   param.name = "filter";
@@ -601,12 +559,10 @@ TEST test_sig_query_object_param_kv(void) {
 }
 
 TEST test_sig_path_object_param_kv(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "byPath";
 
   param.name = "filter";
@@ -626,12 +582,10 @@ TEST test_sig_path_object_param_kv(void) {
 }
 
 TEST test_sig_header_object_param_kv(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "byHeader";
 
   param.name = "filter";
@@ -651,12 +605,10 @@ TEST test_sig_header_object_param_kv(void) {
 }
 
 TEST test_sig_cookie_object_param_kv(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "byCookie";
 
   param.name = "prefs";
@@ -676,12 +628,10 @@ TEST test_sig_cookie_object_param_kv(void) {
 }
 
 TEST test_sig_json_content_query_ref(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
-  memset(&op, 0, sizeof(op));
-  memset(&param, 0, sizeof(param));
   op.operation_id = "list";
 
   param.name = "filter";

@@ -674,6 +674,35 @@ TEST test_doc_parse_malformed_lines(void) {
   PASS();
 }
 
+TEST test_doc_parse_encodings(void) {
+  const char *comment = "/**\n"
+                        " * @encoding profileImage [contentType: image/png] "
+                        "[style: form] [explode: true]\n"
+                        " * @prefixEncoding [contentType: image/jpeg]\n"
+                        " * @itemEncoding [contentType: application/json]\n"
+                        " */";
+  struct DocMetadata meta;
+  doc_metadata_init(&meta);
+  ASSERT_EQ(0, doc_parse_block(comment, &meta));
+  ASSERT_EQ(3, meta.n_encodings);
+  ASSERT_STR_EQ("profileImage", meta.encodings[0].name);
+  ASSERT_STR_EQ("image/png", meta.encodings[0].content_type);
+  ASSERT_EQ(DOC_PARAM_STYLE_FORM, meta.encodings[0].style);
+  ASSERT_EQ(1, meta.encodings[0].explode);
+  ASSERT_EQ(0, meta.encodings[0].kind);
+
+  ASSERT_EQ(NULL, meta.encodings[1].name);
+  ASSERT_STR_EQ("image/jpeg", meta.encodings[1].content_type);
+  ASSERT_EQ(1, meta.encodings[1].kind);
+
+  ASSERT_EQ(NULL, meta.encodings[2].name);
+  ASSERT_STR_EQ("application/json", meta.encodings[2].content_type);
+  ASSERT_EQ(2, meta.encodings[2].kind);
+
+  doc_metadata_free(&meta);
+  PASS();
+}
+
 SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_init_free);
   RUN_TEST(test_doc_parse_simple_route);
@@ -704,6 +733,7 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_examples);
   RUN_TEST(test_doc_parse_invalid_inputs);
   RUN_TEST(test_doc_parse_malformed_lines);
+  RUN_TEST(test_doc_parse_encodings);
 }
 
 #endif /* TEST_DOC_PARSER_H */

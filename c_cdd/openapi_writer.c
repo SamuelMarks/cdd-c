@@ -1223,12 +1223,14 @@ static void write_parameter_object(JSON_Object *p_obj,
     JSON_Value *media_val = json_value_init_object();
     JSON_Object *media_obj = json_value_get_object(media_val);
 
-    if (p->schema_set && schema_ref_has_data(&p->schema)) {
+    if (p->item_schema_set && schema_ref_has_data(&p->schema)) {
+      write_schema_ref(media_obj, "itemSchema", &p->schema);
+    } else if (p->schema_set && schema_ref_has_data(&p->schema)) {
       write_schema_ref(media_obj, "schema", &p->schema);
     } else if (p->type || p->is_array) {
-      write_schema_from_type_fields(media_obj, "schema",
-                                    p->type ? p->type : "string", p->is_array,
-                                    p->items_type);
+      write_schema_from_type_fields(
+          media_obj, p->item_schema_set ? "itemSchema" : "schema",
+          p->type ? p->type : "string", p->is_array, p->items_type);
     }
     if (p->example_location == OA_EXAMPLE_LOC_MEDIA) {
       write_example_fields(media_obj, &p->example, p->example_set, p->examples,

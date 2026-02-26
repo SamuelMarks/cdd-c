@@ -656,6 +656,12 @@ static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
   int rc;
   if (!spec || !meta)
     return 0;
+  if (meta->json_schema_dialect) {
+    rc = set_str_if_missing(&spec->json_schema_dialect,
+                            meta->json_schema_dialect);
+    if (rc != 0)
+      return rc;
+  }
   if (meta->info_title) {
     rc = set_str_if_missing(&spec->info.title, meta->info_title);
     if (rc != 0)

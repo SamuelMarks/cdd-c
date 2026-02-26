@@ -22,14 +22,16 @@
   } while (0)
 
 static const char *map_type_to_c_arg(const char *oa_type) {
+  if (!oa_type)
+    return "const void *";
   if (strcmp(oa_type, "integer") == 0)
-    return "int";
+    return "int ";
   if (strcmp(oa_type, "string") == 0)
     return "const char *";
   if (strcmp(oa_type, "boolean") == 0)
-    return "int";
+    return "int ";
   if (strcmp(oa_type, "number") == 0)
-    return "double";
+    return "double ";
   return "const void *";
 }
 
@@ -540,13 +542,13 @@ int codegen_client_write_signature(
       } else if (qs_json_item) {
         const char *c_type = map_array_item_type(qs_json_item);
         CHECK_IO(
-            fprintf(fp, ", %s %s, size_t %s_len", c_type, p->name, p->name));
+            fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
       } else if (qs_json_prim) {
         const char *c_type = map_type_to_c_arg(qs_json_prim);
-        CHECK_IO(fprintf(fp, ", %s %s", c_type, p->name));
+        CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       } else if (qs_raw) {
         const char *c_type = map_type_to_c_arg(qs_raw);
-        CHECK_IO(fprintf(fp, ", %s %s", c_type, p->name));
+        CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       } else {
         CHECK_IO(fprintf(fp, ", const char *%s", p->name));
       }
@@ -564,7 +566,7 @@ int codegen_client_write_signature(
         if (item_type && is_primitive_type(item_type)) {
           const char *c_type = map_array_item_type(item_type);
           CHECK_IO(
-              fprintf(fp, ", %s %s, size_t %s_len", c_type, p->name, p->name));
+              fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
         } else if (item_type && strcmp(item_type, "object") != 0) {
           CHECK_IO(fprintf(fp, ", const struct %s **%s, size_t %s_len",
                            item_type, p->name, p->name));
@@ -580,7 +582,7 @@ int codegen_client_write_signature(
       } else {
         const char *prim = p->type ? p->type : p->schema.inline_type;
         const char *c_type = map_type_to_c_arg(prim ? prim : "string");
-        CHECK_IO(fprintf(fp, ", %s %s", c_type, p->name));
+        CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       }
       continue;
     }
@@ -590,10 +592,10 @@ int codegen_client_write_signature(
     } else if (p->is_array) {
       /* Emit pointer + length */
       const char *c_type = map_array_item_type(p->items_type);
-      CHECK_IO(fprintf(fp, ", %s %s, size_t %s_len", c_type, p->name, p->name));
+      CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
     } else {
       const char *c_type = map_type_to_c_arg(p->type);
-      CHECK_IO(fprintf(fp, ", %s %s", c_type, p->name));
+      CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
     }
   }
 
@@ -626,10 +628,10 @@ int codegen_client_write_signature(
     if (op->req_body.is_array) {
       const char *item_type = op->req_body.inline_type;
       const char *c_type = map_array_item_type(item_type);
-      CHECK_IO(fprintf(fp, ", %s body, size_t body_len", c_type));
+      CHECK_IO(fprintf(fp, ", %sbody, size_t body_len", c_type));
     } else {
       const char *c_type = map_type_to_c_arg(op->req_body.inline_type);
-      CHECK_IO(fprintf(fp, ", %s req_body", c_type));
+      CHECK_IO(fprintf(fp, ", %sreq_body", c_type));
     }
   }
 
@@ -662,14 +664,14 @@ int codegen_client_write_signature(
             const char *item_type =
                 hdr->items_type ? hdr->items_type : "string";
             const char *c_type = map_array_item_type(item_type);
-            CHECK_IO(fprintf(fp, ", %s %s, size_t %s_len", c_type, param_name,
+            CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, param_name,
                              param_name));
           } else if (strcmp(hdr_type, "object") == 0) {
             CHECK_IO(fprintf(fp, ", const struct OpenAPI_KV *%s, size_t %s_len",
                              param_name, param_name));
           } else {
             const char *c_type = map_type_to_c_arg(hdr_type);
-            CHECK_IO(fprintf(fp, ", %s %s", c_type, param_name));
+            CHECK_IO(fprintf(fp, ", %s%s", c_type, param_name));
           }
         }
       }
@@ -697,13 +699,13 @@ int codegen_client_write_signature(
       } else if (success_schema->inline_type) {
         const char *out_type =
             map_array_item_type_out(success_schema->inline_type);
-        CHECK_IO(fprintf(fp, ", %s out, size_t *out_len", out_type));
+        CHECK_IO(fprintf(fp, ", %sout, size_t *out_len", out_type));
       }
     } else if (success_schema->ref_name) {
       CHECK_IO(fprintf(fp, ", struct %s **out", success_schema->ref_name));
     } else if (success_schema->inline_type) {
       const char *out_type = map_type_to_c_out(success_schema->inline_type);
-      CHECK_IO(fprintf(fp, ", %s out", out_type));
+      CHECK_IO(fprintf(fp, ", %sout", out_type));
     }
   } else if (success_is_binary) {
     CHECK_IO(fprintf(fp, ", unsigned char **out, size_t *out_len"));

@@ -95,7 +95,12 @@ int generate_cmake_project(const char *const output_path,
 
   /* Handle optional path construction */
   if (output_path) {
-    size_t len = strlen(output_path) + strlen(filename) + 2;
+    size_t len;
+    rc = makedirs(output_path);
+    if (rc != 0)
+      return rc;
+
+    len = strlen(output_path) + strlen(filename) + 2;
     full_path = malloc(len);
     if (!full_path)
       return ENOMEM;

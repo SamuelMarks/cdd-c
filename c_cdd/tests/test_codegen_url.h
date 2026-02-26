@@ -464,6 +464,7 @@ TEST test_query_gen_array_form_explode_false(void) {
   param.items_type = "string";
   param.style = OA_STYLE_FORM;
   param.explode = 0;
+  param.explode_set = 1;
 
   op.parameters = &param;
   op.n_parameters = 1;
@@ -633,6 +634,7 @@ TEST test_query_gen_object_form_explode_false(void) {
   param.type = "object";
   param.style = OA_STYLE_FORM;
   param.explode = 0;
+  param.explode_set = 1;
 
   op.parameters = &param;
   op.n_parameters = 1;

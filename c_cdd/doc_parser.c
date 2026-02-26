@@ -311,9 +311,11 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
     *out_val = 1;
     return;
   }
-  if (strncmp(attr, key, key_len) == 0 && attr[key_len] == ':') {
+  if (strncmp(attr, key, key_len) == 0 &&
+      (attr[key_len] == ':' || attr[key_len] == '=')) {
     int value = 0;
-    parsed = parse_bool_text(attr + key_len + 1, &value);
+    char *val_trimmed = trim_segment((char *)(attr + key_len + 1));
+    parsed = parse_bool_text(val_trimmed, &value);
     if (parsed) {
       *out_set = 1;
       *out_val = value;
@@ -803,6 +805,8 @@ void doc_metadata_free(struct DocMetadata *const meta) {
     free(meta->verb);
   if (meta->operation_id)
     free(meta->operation_id);
+  if (meta->json_schema_dialect)
+    free(meta->json_schema_dialect);
   if (meta->summary)
     free(meta->summary);
   if (meta->description)
@@ -1006,6 +1010,16 @@ void doc_metadata_free(struct DocMetadata *const meta) {
     free(meta->request_bodies);
   }
 
+  if (meta->encodings) {
+    for (i = 0; i < meta->n_encodings; ++i) {
+      if (meta->encodings[i].name)
+        free(meta->encodings[i].name);
+      if (meta->encodings[i].content_type)
+        free(meta->encodings[i].content_type);
+    }
+    free(meta->encodings);
+  }
+
   if (meta->tag_meta) {
     for (i = 0; i < meta->n_tag_meta; ++i) {
       free(meta->tag_meta[i].name);
@@ -1095,6 +1109,11 @@ static int parse_param_line(const char *line, const char *end,
           parse_optional_bool_attr(attr, "allowEmptyValue",
                                    &p->allow_empty_value_set,
                                    &p->allow_empty_value);
+          if (strcmp(attr, "itemSchema") == 0 ||
+              strcmp(attr, "itemSchema:true") == 0 ||
+              strcmp(attr, "itemSchema=true") == 0) {
+            p->item_schema = 1;
+          }
           parse_optional_bool_attr(attr, "deprecated", &p->deprecated_set,
                                    &p->deprecated);
           if (parse_optional_example_attr(attr, &p->example) == ENOMEM) {
@@ -1169,6 +1188,10 @@ static int parse_return_line(const char *line, const char *end,
               free(r->summary);
             r->summary = c_cdd_strdup(val);
           }
+        } else if (strcmp(attr, "itemSchema") == 0 ||
+                   strcmp(attr, "itemSchema:true") == 0 ||
+                   strcmp(attr, "itemSchema=true") == 0) {
+          r->item_schema = 1;
         } else if (parse_optional_example_attr(attr, &r->example) == ENOMEM) {
           free(attr);
           return ENOMEM;
@@ -1800,6 +1823,82 @@ static int parse_server_var_line(const char *line, const char *end,
   return 0;
 }
 
+static int parse_encoding_line(const char *line, const char *end,
+                               struct DocMetadata *out, int kind) {
+  const char *cur = line;
+  struct DocEncoding *new_arr;
+  struct DocEncoding *entry;
+
+  if (!out)
+    return EINVAL;
+
+  new_arr = (struct DocEncoding *)realloc(
+      out->encodings, (out->n_encodings + 1) * sizeof(struct DocEncoding));
+  if (!new_arr)
+    return ENOMEM;
+  out->encodings = new_arr;
+  entry = &out->encodings[out->n_encodings];
+  memset(entry, 0, sizeof(*entry));
+  entry->kind = kind;
+
+  cur = skip_ws(cur);
+
+  if (kind == 0) {
+    /* Need to parse property name */
+    const char *name_end = cur;
+    while (name_end < end && !isspace((unsigned char)*name_end) &&
+           *name_end != '[') {
+      name_end++;
+    }
+    if (name_end > cur) {
+      entry->name = extract_rest(cur, name_end);
+      if (!entry->name)
+        return ENOMEM;
+    }
+    cur = name_end;
+    cur = skip_ws(cur);
+  }
+
+  while (cur < end && *cur == '[') {
+    const char *close_bracket = strchr(cur, ']');
+    if (close_bracket && close_bracket < end) {
+      char *attr = extract_rest(cur + 1, close_bracket);
+      if (attr) {
+        if (strncmp(attr, "contentType:", 12) == 0 ||
+            strncmp(attr, "contentType=", 12) == 0) {
+          char *val = trim_segment(attr + 12);
+          if (val && *val) {
+            entry->content_type = c_cdd_strdup(val);
+          }
+        } else if (strncmp(attr, "style:", 6) == 0 ||
+                   strncmp(attr, "style=", 6) == 0) {
+          char *val = trim_segment(attr + 6);
+          if (val && *val) {
+            enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
+            if (parse_style_text(val, &style)) {
+              entry->style = style;
+              entry->style_set = 1;
+            }
+          }
+        } else {
+          parse_optional_bool_attr(attr, "explode", &entry->explode_set,
+                                   &entry->explode);
+          parse_optional_bool_attr(attr, "allowReserved",
+                                   &entry->allow_reserved_set,
+                                   &entry->allow_reserved);
+        }
+        free(attr);
+      }
+      cur = close_bracket + 1;
+      cur = skip_ws(cur);
+    } else {
+      break;
+    }
+  }
+
+  out->n_encodings++;
+  return 0;
+}
 static int parse_request_body_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
   const char *cur = line;
@@ -1810,6 +1909,7 @@ static int parse_request_body_line(const char *line, const char *end,
   char *example = NULL;
   int required_set = 0;
   int required_val = 0;
+  int item_schema = 0;
 
   if (!out)
     return EINVAL;
@@ -1846,6 +1946,10 @@ static int parse_request_body_line(const char *line, const char *end,
               free(content_type);
             content_type = c_cdd_strdup(val);
           }
+        } else if (strcmp(attr, "itemSchema") == 0 ||
+                   strcmp(attr, "itemSchema:true") == 0 ||
+                   strcmp(attr, "itemSchema=true") == 0) {
+          item_schema = 1;
         } else if (parse_optional_example_attr(attr, &example) == ENOMEM) {
           free(attr);
           if (content_type)
@@ -1884,6 +1988,7 @@ static int parse_request_body_line(const char *line, const char *end,
   entry->content_type = content_type;
   entry->description = description;
   entry->example = example;
+  entry->item_schema = item_schema;
   out->n_request_bodies++;
 
   if (required_set) {
@@ -2067,6 +2172,19 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
         } else if (strcmp(cmd, "requestBody") == 0 ||
                    strcmp(cmd, "requestbody") == 0) {
           rc = parse_request_body_line(cmd_end, line_end, out);
+        } else if (strcmp(cmd, "encoding") == 0) {
+          rc = parse_encoding_line(cmd_end, line_end, out, 0);
+        } else if (strcmp(cmd, "prefixEncoding") == 0 ||
+                   strcmp(cmd, "prefixencoding") == 0) {
+          rc = parse_encoding_line(cmd_end, line_end, out, 1);
+        } else if (strcmp(cmd, "itemEncoding") == 0 ||
+                   strcmp(cmd, "itemencoding") == 0) {
+          rc = parse_encoding_line(cmd_end, line_end, out, 2);
+        } else if (strcmp(cmd, "jsonSchemaDialect") == 0 ||
+                   strcmp(cmd, "jsonschemadialect") == 0) {
+          if (out->json_schema_dialect)
+            free(out->json_schema_dialect);
+          out->json_schema_dialect = extract_rest(cmd_end, line_end);
         } else if (strcmp(cmd, "infoTitle") == 0 ||
                    strcmp(cmd, "infotitle") == 0) {
           if (out->info_title)
