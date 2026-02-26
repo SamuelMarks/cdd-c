@@ -315,6 +315,15 @@ struct OpenAPI_Xml {
 };
 
 /**
+ * @brief External documentation reference.
+ */
+struct OpenAPI_ExternalDocs {
+  char *description;     /**< Optional description */
+  char *url;             /**< REQUIRED URL */
+  char *extensions_json; /**< Serialized JSON for x- extensions */
+};
+
+/**
  * @brief Represents an extracted Schema (Body or Response).
  */
 struct OpenAPI_SchemaRef {
@@ -600,15 +609,6 @@ struct OpenAPI_SecurityScheme {
   char *oauth2_metadata_url;       /**< oauth2MetadataUrl, if provided */
   struct OpenAPI_OAuthFlow *flows; /**< OAuth2 flows */
   size_t n_flows;                  /**< OAuth2 flow count */
-};
-
-/**
- * @brief External documentation reference.
- */
-struct OpenAPI_ExternalDocs {
-  char *description;     /**< Optional description */
-  char *url;             /**< REQUIRED URL */
-  char *extensions_json; /**< Serialized JSON for x- extensions */
 };
 
 /**

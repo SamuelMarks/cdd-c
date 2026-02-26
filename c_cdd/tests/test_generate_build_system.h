@@ -21,12 +21,12 @@
 #include "generate_build_system.h"
 
 TEST test_gen_cmake_basic(void) {
-  const char *out_file = "CMakeLists.txt";
+  const char *out_file = "test_build_dir/CMakeLists.txt";
   char *content;
   size_t sz;
   int rc;
 
-  rc = generate_cmake_project(".", "MyLib", 0);
+  rc = generate_cmake_project("test_build_dir", "MyLib", 0);
   ASSERT_EQ(0, rc);
 
   rc = read_to_file(out_file, "r", &content, &sz);
@@ -47,12 +47,12 @@ TEST test_gen_cmake_basic(void) {
 }
 
 TEST test_gen_cmake_with_tests(void) {
-  const char *out_file = "CMakeLists.txt";
+  const char *out_file = "test_build_dir/CMakeLists.txt";
   char *content;
   size_t sz;
   int rc;
 
-  rc = generate_cmake_project(".", "TestProj", 1);
+  rc = generate_cmake_project("test_build_dir", "TestProj", 1);
   ASSERT_EQ(0, rc);
 
   rc = read_to_file(out_file, "r", &content, &sz);
@@ -66,7 +66,7 @@ TEST test_gen_cmake_with_tests(void) {
 }
 
 TEST test_gen_build_system_cli_args(void) {
-  char *argv[] = {"cmake", ".", "CLIProj"};
+  char *argv[] = {"cmake", "test_build_dir", "CLIProj"};
   int rc;
 
   rc = generate_build_system_main(3, argv);
@@ -76,15 +76,15 @@ TEST test_gen_build_system_cli_args(void) {
   {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    if (fopen_s(&f, "CMakeLists.txt", "r") != 0)
+    if (fopen_s(&f, "test_build_dir/CMakeLists.txt", "r") != 0)
       f = NULL;
 #else
-    f = fopen("CMakeLists.txt", "r");
+    f = fopen("test_build_dir/CMakeLists.txt", "r");
 #endif
     ASSERT(f != NULL);
     fclose(f);
   }
-  remove("CMakeLists.txt");
+  remove("test_build_dir/CMakeLists.txt");
   PASS();
 }
 

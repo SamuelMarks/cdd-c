@@ -356,9 +356,9 @@ static int merge_schema_extras_object(JSON_Object *target,
 static int schema_ref_has_data(const struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return 0;
-  return ref->schema_is_boolean || ref->ref_name || ref->inline_type ||
-         ref->n_type_union > 0 || ref->is_array || ref->format ||
-         ref->content_media_type || ref->content_encoding ||
+  return ref->schema_is_boolean || ref->ref_name || ref->ref ||
+         ref->inline_type || ref->n_type_union > 0 || ref->is_array ||
+         ref->format || ref->content_media_type || ref->content_encoding ||
          ref->items_format || ref->n_items_type_union > 0 ||
          ref->items_content_media_type || ref->items_content_encoding ||
          ref->n_multipart_fields > 0 || ref->nullable || ref->items_nullable ||

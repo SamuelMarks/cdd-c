@@ -37,7 +37,7 @@ bool c_cdd_str_starts_with(const char *const str, const char *const prefix) {
   return true;
 }
 
-bool c_cdd_str_equal(const char *const a, const char *const b) {
+bool c_cdd_str_equal(const char *a, const char *b) {
   if (a == b)
     return true; /* Handles both NULL case */
   if (a == NULL || b == NULL)
@@ -45,7 +45,7 @@ bool c_cdd_str_equal(const char *const a, const char *const b) {
   return strcmp(a, b) == 0;
 }
 
-bool c_cdd_str_iequal(const char *const a, const char *const b) {
+bool c_cdd_str_iequal(const char *a, const char *b) {
   if (a == b)
     return true; /* Handles both NULL case */
   if (a == NULL || b == NULL)

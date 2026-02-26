@@ -2399,7 +2399,7 @@ TEST test_load_inline_request_body_object_promoted(void) {
 
   ASSERT_EQ(2, spec.n_defined_schemas);
   ASSERT_STR_EQ("Inline_createPet_Request_1",
-                spec.paths[0].operations[0].req_body.schema.ref_name);
+                spec.paths[0].operations[0].req_body.ref_name);
   {
     const struct StructFields *sf =
         openapi_spec_find_schema(&spec, "Inline_createPet_Request_1");

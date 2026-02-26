@@ -97,9 +97,57 @@ if (NOT DEFINED TARGET_ARCH)
 endif (NOT DEFINED TARGET_ARCH)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND (NOT DEFINED VCPKG_TOOLCHAIN OR VCPKG_TOOLCHAIN STREQUAL ""))
+    include(FetchContent)
+    set(BUILD_SHARED_LIBS OFF)
+
+    # c-str-span
+    FetchContent_Declare(
+        c_str_span
+        GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(c_str_span)
+    include_directories(${c_str_span_SOURCE_DIR})
+
+    # c89stringutils
+    FetchContent_Declare(
+        c89stringutils
+        GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(c89stringutils)
+    include_directories(${c89stringutils_SOURCE_DIR}/c89stringutils)
+
+    # curl
+    FetchContent_Declare(
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_TAG curl-8_4_0
+    )
+    set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(curl)
+
+    # parson
+    FetchContent_Declare(
+        parson
+        GIT_REPOSITORY https://github.com/kgabis/parson.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(parson)
+    include_directories(${parson_SOURCE_DIR})
+    if(TARGET parson AND NOT TARGET parson::parson)
+        add_library(parson::parson ALIAS parson)
+    endif()
+    if(TARGET curl AND NOT TARGET CURL::libcurl)
+        add_library(CURL::libcurl ALIAS curl)
+    elseif(TARGET libcurl AND NOT TARGET CURL::libcurl)
+        add_library(CURL::libcurl ALIAS libcurl)
+    endif()
+    
+    # We still keep the module path just in case
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-    find_package(parson REQUIRED)
-    include_directories(${parson_INCLUDE_DIRS})
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND (NOT DEFINED VCPKG_TOOLCHAIN OR VCPKG_TOOLCHAIN STREQUAL ""))
 
 # configure a header file to pass the version number only
