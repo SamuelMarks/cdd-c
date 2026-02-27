@@ -232,4 +232,4 @@ $ cmake --build "build"
 $ cd "build" && ctest -C "Debug" --verbose
 ```
 
-More docs: [USAGE](./USAGE.md); [ARCHITECTURE](./ARCHITECTURE.md).
+More docs: [USAGE](./USAGE.md); [ARCHITECTURE](./ARCHITECTURE.md); [DEVELOPING](./DEVELOPING.md); [COMPLIANCE](./COMPLIANCE.md); [PUBLISH](./PUBLISH.md); [PUBLISH_OUTPUT](./PUBLISH_OUTPUT.md).
