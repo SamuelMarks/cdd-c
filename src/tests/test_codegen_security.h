@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "openapi/parse_openapi.h"
 #include "routes/emit_security.h"
-#include "routes/parse_openapi.h"
 
 /* Helper to capture output */
 static char *gen_sec_code(const struct OpenAPI_Spec *spec,

@@ -15,7 +15,7 @@
 
 #include "classes/parse_code2schema.h" /* for json_object_to_struct_fields */
 #include "functions/parse_str.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /* --- Helper Function Prototypes --- */
 
@@ -375,6 +375,10 @@ static void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     free(ref->content_media_type);
   if (ref->content_encoding)
     free(ref->content_encoding);
+  if (ref->content_schema) {
+    free_schema_ref_content(ref->content_schema);
+    free(ref->content_schema);
+  }
   if (ref->items_format)
     free(ref->items_format);
   if (ref->items_type_union)
@@ -385,6 +389,10 @@ static void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
     free(ref->items_content_media_type);
   if (ref->items_content_encoding)
     free(ref->items_content_encoding);
+  if (ref->items_content_schema) {
+    free_schema_ref_content(ref->items_content_schema);
+    free(ref->items_content_schema);
+  }
   if (ref->summary)
     free(ref->summary);
   if (ref->description)
@@ -1051,18 +1059,30 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
     free(spec->components_extensions_json);
     spec->components_extensions_json = NULL;
   }
-  if (spec->info.title)
+  if (spec->info.title) {
     free(spec->info.title);
-  if (spec->info.summary)
+    spec->info.title = NULL;
+  }
+  if (spec->info.summary) {
     free(spec->info.summary);
-  if (spec->info.description)
+    spec->info.summary = NULL;
+  }
+  if (spec->info.description) {
     free(spec->info.description);
-  if (spec->info.terms_of_service)
+    spec->info.description = NULL;
+  }
+  if (spec->info.terms_of_service) {
     free(spec->info.terms_of_service);
-  if (spec->info.version)
+    spec->info.terms_of_service = NULL;
+  }
+  if (spec->info.version) {
     free(spec->info.version);
-  if (spec->info.extensions_json)
+    spec->info.version = NULL;
+  }
+  if (spec->info.extensions_json) {
     free(spec->info.extensions_json);
+    spec->info.extensions_json = NULL;
+  }
   if (spec->info.contact.name)
     free(spec->info.contact.name);
   if (spec->info.contact.url)
@@ -1355,6 +1375,7 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
   spec->n_component_callbacks = 0;
   spec->n_security = 0;
   spec->security_set = 0;
+  memset(spec, 0, sizeof(*spec));
 }
 
 /* --- Parsing Helpers --- */
@@ -7827,10 +7848,11 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
   if (!content || json_object_get_count(content) == 0)
     return EINVAL;
   if (content) {
-    if (parse_content_object(content, &out_rb->content_media_types,
-                             &out_rb->n_content_media_types, spec,
-                             resolve_refs) != 0)
-      return ENOMEM;
+    int rc = parse_content_object(content, &out_rb->content_media_types,
+                                  &out_rb->n_content_media_types, spec,
+                                  resolve_refs);
+    if (rc != 0)
+      return rc;
     primary_idx = select_primary_media_type_index(
         out_rb->content_media_types, out_rb->n_content_media_types);
     if (primary_idx >= 0) {
@@ -8275,8 +8297,9 @@ static int parse_responses(const JSON_Object *responses,
       return ENOMEM;
 
     if (resp_obj) {
-      if (parse_response_object(resp_obj, curr, spec, 1, op_id, code) != 0)
-        return ENOMEM;
+      int rc_resp = parse_response_object(resp_obj, curr, spec, 1, op_id, code);
+      if (rc_resp != 0)
+        return rc_resp;
     }
   }
   return 0;
@@ -8429,9 +8452,10 @@ static int parse_operation(const char *const verb_str,
   deprecated_val = json_object_get_boolean(op_obj, "deprecated");
   if (deprecated_present)
     out_op->deprecated = (deprecated_val == 1);
-  if (parse_security_field(op_obj, "security", &out_op->security,
-                           &out_op->n_security, &out_op->security_set) != 0)
-    return ENOMEM;
+  int rc_sec = parse_security_field(op_obj, "security", &out_op->security,
+                                    &out_op->n_security, &out_op->security_set);
+  if (rc_sec != 0)
+    return rc_sec;
   if (collect_extensions(op_obj, &out_op->extensions_json) != 0)
     return ENOMEM;
 
@@ -8449,9 +8473,10 @@ static int parse_operation(const char *const verb_str,
   if (req_body) {
     struct OpenAPI_RequestBody rb;
     memset(&rb, 0, sizeof(rb));
-    if (parse_request_body_object(req_body, &rb, spec, 1,
-                                  out_op->operation_id) != 0)
-      return ENOMEM;
+    int rc_req =
+        parse_request_body_object(req_body, &rb, spec, 1, out_op->operation_id);
+    if (rc_req != 0)
+      return rc_req;
     if (rb.ref) {
       out_op->req_body_ref = c_cdd_strdup(rb.ref);
       if (!out_op->req_body_ref) {
@@ -9296,11 +9321,14 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
               strcmp(verb, "additionalOperations") == 0) {
             continue;
           }
-          if (parse_operation(verb, op_obj, &curr_path->operations[valid_ops],
-                              spec, 0, curr_path->route) == 0) {
-            if (curr_path->operations[valid_ops].verb != OA_VERB_UNKNOWN) {
-              valid_ops++;
-            }
+          int err =
+              parse_operation(verb, op_obj, &curr_path->operations[valid_ops],
+                              spec, 0, curr_path->route);
+          if (err != 0) {
+            return err;
+          }
+          if (curr_path->operations[valid_ops].verb != OA_VERB_UNKNOWN) {
+            valid_ops++;
           }
         }
       }
@@ -10058,7 +10086,8 @@ static int openapi_load_from_json_internal(
     const char *swagger_version =
         root_obj ? json_object_get_string(root_obj, "swagger") : NULL;
     if (!version && !swagger_version) {
-      /* if (!root_is_schema_document(root, root_obj)) return EINVAL; */
+      if (!root_is_schema_document(root, root_obj))
+        return EINVAL;
       out->is_schema_document = 1;
       {
         const char *schema_id =
@@ -10086,7 +10115,8 @@ static int openapi_load_from_json_internal(
       return 0;
     }
     if (version) {
-      /* version check removed */
+      if (!openapi_version_supported(version))
+        return EINVAL;
       out->openapi_version = c_cdd_strdup(version);
       if (!out->openapi_version)
         return ENOMEM;

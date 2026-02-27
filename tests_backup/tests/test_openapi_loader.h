@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "classes/emit_struct.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);

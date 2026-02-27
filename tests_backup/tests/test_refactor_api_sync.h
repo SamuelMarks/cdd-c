@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "functions/parse_fs.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 #include "routes/parse_sync.h"
 
 static int load_spec(const char *json, struct OpenAPI_Spec *spec) {

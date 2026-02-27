@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "functions/emit_client_sig.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 static char *gen_sig(const struct OpenAPI_Operation *op,
                      const struct CodegenSigConfig *cfg) {

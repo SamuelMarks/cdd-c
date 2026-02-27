@@ -20,8 +20,8 @@
 
 #include "classes/parse_inspector.h"
 #include "docstrings/parse_doc.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_operation.h"
-#include "routes/parse_openapi.h"
 
 /* --- Helpers --- */
 

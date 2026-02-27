@@ -14,7 +14,7 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /**
  * @brief Configuration for test generation.

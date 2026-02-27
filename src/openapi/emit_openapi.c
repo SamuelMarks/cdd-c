@@ -17,7 +17,7 @@
 
 #include "classes/parse_code2schema.h"
 #include "functions/parse_str.h"
-#include "routes/emit_openapi.h"
+#include "openapi/emit_openapi.h"
 
 /* --- Helper Prototypes --- */
 
@@ -918,6 +918,9 @@ static void write_items_schema_fields(JSON_Object *item_obj,
   if (ref->items_content_media_type)
     json_object_set_string(item_obj, "contentMediaType",
                            ref->items_content_media_type);
+  if (ref->items_content_schema) {
+    write_schema_ref(item_obj, "contentSchema", ref->items_content_schema);
+  }
   if (ref->items_content_encoding)
     json_object_set_string(item_obj, "contentEncoding",
                            ref->items_content_encoding);
@@ -1053,6 +1056,9 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
   if (ref->content_media_type)
     json_object_set_string(sch_obj, "contentMediaType",
                            ref->content_media_type);
+  if (ref->content_schema) {
+    write_schema_ref(sch_obj, "contentSchema", ref->content_schema);
+  }
   if (ref->content_encoding)
     json_object_set_string(sch_obj, "contentEncoding", ref->content_encoding);
   if (ref->summary && (ref->ref_name || ref->ref))

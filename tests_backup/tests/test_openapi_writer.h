@@ -19,8 +19,8 @@
 #include <string.h>
 
 #include "functions/parse_str.h"
-#include "routes/emit_openapi.h"
-#include "routes/parse_openapi.h"
+#include "openapi/emit_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /* --- Helpers --- */
 

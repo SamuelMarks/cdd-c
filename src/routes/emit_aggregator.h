@@ -22,7 +22,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "c_cdd_export.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /**
  * @brief Add an operation to the OpenAPI Spec, organizing by Path.

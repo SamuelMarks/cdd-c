@@ -27,7 +27,7 @@ extern "C" {
 #include "c_cdd_export.h"
 #include "classes/parse_inspector.h"
 #include "docstrings/parse_doc.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /**
  * @brief Represents a single argument parsed from a signature string.
