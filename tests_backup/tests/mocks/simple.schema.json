@@ -1,0 +1,29 @@
+{
+  "$id": "https://example.com/arrays.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "simple",
+  "type": "object",
+  "properties": {
+    "bar": {
+      "type": "string"
+    },
+    "can": {
+      "type": "integer"
+    },
+    "haz": {
+      "type": "object",
+      "$ref": "#/$defs/Haz"
+    }
+  },
+  "$defs": {
+    "Haz": {
+      "type": "object",
+      "required": [ "bzr" ],
+      "properties": {
+        "bzr": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

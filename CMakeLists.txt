@@ -161,7 +161,7 @@ configure_file(
 # Doing this at the end so that all definitions and link/include paths are
 # available for the sub-projects.
 #===============================================================================
-add_subdirectory("${PROJECT_NAME}")
+add_subdirectory("src")
 option(BUILD_C "Build C (with flex and bison)" OFF)
 if (BUILD_C)
     add_subdirectory("c")
@@ -170,9 +170,9 @@ endif (BUILD_C)
 include(CTest)
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)
-if (BUILD_TESTING AND C_CDD_BUILD_TESTING)
-    add_subdirectory("${PROJECT_NAME}/tests")
-endif (BUILD_TESTING AND C_CDD_BUILD_TESTING)
+if (C_CDD_BUILD_TESTING)
+    add_subdirectory("src/tests")
+endif (C_CDD_BUILD_TESTING)
 
 ###########
 # Install #
