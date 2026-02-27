@@ -35,6 +35,7 @@ set(Header_Files
         "test_c_inspector_types.h" 
         "test_code2schema.h" 
         "test_codegen_build.h" 
+        "test_generate_build_system.h" 
         "test_codegen_client_body.h"
         "test_codegen_client_sig.h"
         "test_codegen_defaults.h" 
