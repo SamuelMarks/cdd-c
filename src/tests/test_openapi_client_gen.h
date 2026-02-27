@@ -13,8 +13,8 @@
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse_fs.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_client_gen.h"
-#include "routes/parse_openapi.h"
 
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
                                struct OpenAPI_Operation *op) {

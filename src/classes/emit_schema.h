@@ -20,7 +20,7 @@ extern "C" {
 
 #include "c_cdd_export.h"
 #include "classes/parse_inspector.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /**
  * @brief Register a list of types discovered in a file into the Spec.

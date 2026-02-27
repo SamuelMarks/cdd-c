@@ -18,9 +18,9 @@
 #include "classes/emit_struct.h"
 #include "functions/emit_client_body.h"
 #include "functions/parse_str.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_security.h"
 #include "routes/emit_url.h"
-#include "routes/parse_openapi.h"
 
 #define CHECK_IO(x)                                                            \
   do {                                                                         \

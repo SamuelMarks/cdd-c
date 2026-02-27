@@ -18,11 +18,11 @@
 #include "functions/parse_fs.h"
 #include "functions/parse_str.h"
 #include "functions/parse_tokenizer.h"
+#include "openapi/emit_openapi.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_aggregator.h"
-#include "routes/emit_openapi.h"
 #include "routes/emit_operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse_cli.h"
-#include "routes/parse_openapi.h"
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup

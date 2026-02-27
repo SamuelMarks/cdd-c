@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "classes/emit_struct.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
@@ -83,11 +83,11 @@ find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
 TEST test_load_parameter_array(void) {
 
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"tags\",\"in\":\"query\","
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
       "\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},"
-      "\"style\":\"form\",\"explode\":true"
-      "}]}}}}";
+      "\"style\":\"form\",\"explode\":true}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -138,22 +138,15 @@ TEST test_load_schema_external_docs_discriminator_xml(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/p\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"id\",\"in\":\"query\","
-      "\"schema\":{"
-      "\"type\":\"string\","
-      "\"externalDocs\":{\"url\":\"https://example.com/docs\","
-      "\"description\":\"Schema docs\"},"
-      "\"discriminator\":{"
-      "\"propertyName\":\"kind\","
-      "\"mapping\":{\"a\":\"#/components/schemas/A\"},"
-      "\"defaultMapping\":\"#/components/schemas/Base\"},"
-      "\"xml\":{\"name\":\"id\","
-      "\"namespace\":\"https://example.com/ns\","
-      "\"prefix\":\"p\","
-      "\"nodeType\":\"attribute\"}"
-      "}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"id\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\",\"externalDocs\":{\"url\":\"https://"
+      "example.com/docs\",\"description\":\"Schema "
+      "docs\"},\"discriminator\":{\"propertyName\":\"kind\",\"mapping\":{\"a\":"
+      "\"#/components/schemas/A\"},\"defaultMapping\":\"#/components/schemas/"
+      "Base\"},\"xml\":{\"name\":\"id\",\"namespace\":\"https://example.com/"
+      "ns\",\"prefix\":\"p\",\"nodeType\":\"attribute\"}}}],\"responses\":{"
+      "\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -187,10 +180,10 @@ TEST test_load_form_content_type(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/login\":{\"post\":{\"requestBody\":{"
-      "\"content\": {\"application/x-www-form-urlencoded\": { "
-      "\"schema\": {\"$ref\":\"#/components/schemas/Login\"}}}"
-      "}}}}}";
+      "\"paths\":{\"/"
+      "login\":{\"post\":{\"requestBody\":{\"content\":{\"application/"
+      "x-www-form-urlencoded\":{\"schema\":{\"$ref\":\"#/components/schemas/"
+      "Login\"}}}},\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -222,10 +215,10 @@ TEST test_param_content_multiple_entries_rejected(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\","
-      "\"content\":{\"application/json\":{},\"text/plain\":{}}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"content\":{\"application/json\":{},\"text/"
+      "plain\":{}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -263,7 +256,8 @@ TEST test_response_description_required(void) {
 TEST test_operation_responses_required(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/r\":{\"get\":{}}}}";
+      "\"paths\":{\"/"
+      "r\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -310,15 +304,11 @@ TEST test_paths_require_leading_slash(void) {
 
 TEST test_paths_ambiguous_templates_rejected(void) {
 
-  const char *json =
-      "{"
-      "\"paths\":{"
-      "\"/pets/"
-      "{petId}\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}},"
-      "\"/pets/"
-      "{name}\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}}"
-      "}"
-      "}";
+  const char *json = "{\"paths\":{\"/pets/"
+                     "{petId}\":{\"get\":{\"responses\":{\"200\":{"
+                     "\"description\":\"OK\"}}}},\"/pets/"
+                     "{name}\":{\"get\":{\"responses\":{\"200\":{"
+                     "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -436,10 +426,11 @@ TEST test_operation_id_duplicate_in_callback_rejected(void) {
 TEST test_parameter_duplicates_rejected(void) {
 
   const char *json =
-      "{\"paths\":{\"/p\":{\"get\":{\"parameters\":["
-      "{\"name\":\"id\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}},"
-      "{\"name\":\"id\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}"
-      "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"id\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"}},{\"name\":\"id\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -450,11 +441,12 @@ TEST test_parameter_duplicates_rejected(void) {
 TEST test_querystring_with_query_rejected(void) {
 
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":["
-      "{\"name\":\"raw\",\"in\":\"querystring\","
-      "\"content\":{\"application/x-www-form-urlencoded\":{}}},"
-      "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}"
-      "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"raw\",\"in\":\"querystring\","
+      "\"content\":{\"application/"
+      "x-www-form-urlencoded\":{}}},{\"name\":\"q\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -482,12 +474,12 @@ TEST test_querystring_duplicate_rejected(void) {
 TEST test_querystring_path_and_operation_mixed_rejected(void) {
 
   const char *json =
-      "{\"paths\":{\"/q\":{"
-      "\"parameters\":[{\"name\":\"raw\",\"in\":\"querystring\","
-      "\"content\":{\"application/x-www-form-urlencoded\":{}}}],"
-      "\"get\":{\"parameters\":["
-      "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}"
-      "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"parameters\":[{\"name\":\"raw\",\"in\":\"querystring\","
+      "\"content\":{\"application/"
+      "x-www-form-urlencoded\":{}}}],\"get\":{\"parameters\":[{\"name\":\"q\","
+      "\"in\":\"query\",\"schema\":{\"type\":\"string\"}}],\"responses\":{"
+      "\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -498,16 +490,14 @@ TEST test_querystring_path_and_operation_mixed_rejected(void) {
 TEST test_querystring_with_query_in_callback_rejected(void) {
 
   const char *json =
-      "{\"paths\":{\"/pets\":{\"get\":{"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}},"
-      "\"callbacks\":{\"cb\":{\"{$request.body#/url}\":{"
-      "\"post\":{\"parameters\":["
-      "{\"name\":\"raw\",\"in\":\"querystring\","
-      "\"content\":{\"application/x-www-form-urlencoded\":{}}},"
-      "{\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"}}"
-      "],\"responses\":{\"200\":{\"description\":\"OK\"}}}"
-      "}}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "pets\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}},"
+      "\"callbacks\":{\"cb\":{\"{$request.body#/"
+      "url}\":{\"post\":{\"parameters\":[{\"name\":\"raw\",\"in\":"
+      "\"querystring\",\"content\":{\"application/"
+      "x-www-form-urlencoded\":{}}},{\"name\":\"q\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}}}}}},\"openapi\":\"3.2.0\"}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
@@ -570,7 +560,7 @@ TEST test_encoding_object_conflict_rejected(void) {
                      "\"a\":{\"type\":\"string\"}}},"
                      "\"encoding\":{\"a\":{"
                      "\"encoding\":{\"b\":{}},"
-                     "\"itemEncoding\":{}}}}},"
+                     "\"itemEncoding\":{}}}}}},"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -581,11 +571,11 @@ TEST test_encoding_object_conflict_rejected(void) {
 
 TEST test_load_operation_tags(void) {
 
-  const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
-                     "\"version\":\"1\"},\"paths\":{\"/tagged\":{\"get\":{"
-                     "\"tags\":[\"pet\", \"store\"],"
-                     "\"operationId\":\"getTagged\""
-                     "}}}}";
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/"
+      "tagged\":{\"get\":{\"tags\":[\"pet\",\"store\"],\"operationId\":"
+      "\"getTagged\",\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -606,13 +596,11 @@ TEST test_load_parameter_metadata(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\","
-      "\"description\":\"Search term\","
-      "\"deprecated\":true,"
-      "\"allowReserved\":true,"
-      "\"schema\":{\"type\":\"string\"}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"description\":\"Search "
+      "term\",\"deprecated\":true,\"allowReserved\":true,\"schema\":{\"type\":"
+      "\"string\"}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -635,11 +623,10 @@ TEST test_load_allow_empty_value(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\","
-      "\"allowEmptyValue\":true,"
-      "\"schema\":{\"type\":\"string\"}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"allowEmptyValue\":true,\"schema\":{\"type\":\"string\"}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -659,11 +646,10 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"header\","
-      "\"allowEmptyValue\":true,"
-      "\"schema\":{\"type\":\"string\"}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"header\","
+      "\"allowEmptyValue\":true,\"schema\":{\"type\":\"string\"}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -673,11 +659,11 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
 
 TEST test_load_parameter_explode_false(void) {
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"ids\",\"in\":\"query\","
-      "\"style\":\"form\",\"explode\":false,"
-      "\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}"
-      "}]}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"ids\",\"in\":\"query\","
+      "\"style\":\"form\",\"explode\":false,\"schema\":{\"type\":\"array\","
+      "\"items\":{\"type\":\"string\"}}}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -697,12 +683,11 @@ TEST test_load_querystring_parameter(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/search\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"qs\",\"in\":\"querystring\","
-      "\"content\":{\"application/x-www-form-urlencoded\":{"
-      "\"schema\":{\"type\":\"object\"}"
-      "}}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "search\":{\"get\":{\"parameters\":[{\"name\":\"qs\",\"in\":"
+      "\"querystring\",\"content\":{\"application/"
+      "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\"}}}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -723,13 +708,11 @@ TEST test_load_querystring_json_inline_promoted(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/search\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"qs\",\"in\":\"querystring\","
-      "\"content\":{\"application/json\":{"
-      "\"schema\":{\"type\":\"object\",\"properties\":{\"q\":{"
-      "\"type\":\"string\"}}}"
-      "}}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "search\":{\"get\":{\"parameters\":[{\"name\":\"qs\",\"in\":"
+      "\"querystring\",\"content\":{\"application/"
+      "json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"q\":{\"type\":"
+      "\"string\"}}}}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -819,15 +802,12 @@ TEST test_param_schema_and_content_conflict(void) {
 
 TEST test_header_schema_and_content_conflict(void) {
 
-  const char *json =
-      "{\"paths\":{\"/c\":{\"get\":{\"responses\":{\"200\":{"
-      "\"description\":\"ok\","
-      "\"headers\":{"
-      "\"X-Foo\":{"
-      "\"schema\":{\"type\":\"string\"},"
-      "\"content\":{\"text/plain\":{\"schema\":{\"type\":\"string\"}}}"
-      "}"
-      "}}}}}}}";
+  const char *json = "{\"paths\":{\"/"
+                     "c\":{\"get\":{\"responses\":{\"200\":{\"description\":"
+                     "\"ok\",\"headers\":{\"X-Foo\":{\"schema\":{\"type\":"
+                     "\"string\"},\"content\":{\"text/"
+                     "plain\":{\"schema\":{\"type\":\"string\"}}}}}}}}}},"
+                     "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -862,21 +842,15 @@ TEST test_load_parameter_content_any(void) {
 
 TEST test_load_parameter_content_media_type_encoding(void) {
 
-  const char *json =
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/p\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"filter\",\"in\":\"query\","
-      "\"content\":{\"application/x-www-form-urlencoded\":{"
-      "\"schema\":{\"type\":\"object\",\"properties\":{"
-      "\"id\":{\"type\":\"string\"}"
-      "}},"
-      "\"encoding\":{\"id\":{"
-      "\"contentType\":\"text/plain\","
-      "\"style\":\"form\","
-      "\"explode\":true"
-      "}}"
-      "}}"
-      "}]}}}}";
+  const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
+                     "\"version\":\"1\"},\"paths\":{\"/"
+                     "p\":{\"get\":{\"parameters\":[{\"name\":\"filter\","
+                     "\"in\":\"query\",\"content\":{\"application/"
+                     "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\","
+                     "\"properties\":{\"id\":{\"type\":\"string\"}}},"
+                     "\"encoding\":{\"id\":{\"contentType\":\"text/"
+                     "plain\",\"style\":\"form\",\"explode\":true}}}}}],"
+                     "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -911,7 +885,7 @@ TEST test_load_header_content_media_type(void) {
       "\"200\":{\"description\":\"ok\",\"headers\":{"
       "\"X-Rate\":{\"content\":{"
       "\"text/plain\":{\"schema\":{\"type\":\"string\"}}"
-      "}}}}}}}}";
+      "}}}}}}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -933,16 +907,14 @@ TEST test_load_header_content_media_type(void) {
 TEST test_load_parameter_schema_ref(void) {
 
   const char *json =
-      "{\"openapi\":\"3.2.0\",\"paths\":{\"/pets\":{\"get\":{\"parameters\":["
-      "{\"name\":\"pet\",\"in\":\"query\","
-      "\"schema\":{\"$ref\":\"#/components/schemas/Pet\"}},"
-      "{\"name\":\"tags\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\",\"items\":{"
-      "\"$ref\":\"#/components/schemas/Tag\"}}}"
-      "]}}},\"components\":{\"schemas\":{"
-      "\"Pet\":{\"type\":\"object\"},"
-      "\"Tag\":{\"type\":\"object\"}"
-      "}}}";
+      "{\"openapi\":\"3.2.0\",\"paths\":{\"/"
+      "pets\":{\"get\":{\"parameters\":[{\"name\":\"pet\",\"in\":\"query\","
+      "\"schema\":{\"$ref\":\"#/components/schemas/"
+      "Pet\"}},{\"name\":\"tags\",\"in\":\"query\",\"schema\":{\"type\":"
+      "\"array\",\"items\":{\"$ref\":\"#/components/schemas/"
+      "Tag\"}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+      "\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"},\"Tag\":{"
+      "\"type\":\"object\"}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -991,10 +963,10 @@ TEST test_load_path_level_parameters(void) {
 
   const char *json =
       "{\"paths\":{\"/pets\":{\"summary\":\"Pets\",\"description\":\"All "
-      "pets\","
-      "\"parameters\":[{\"name\":\"x-trace\",\"in\":\"header\","
-      "\"schema\":{\"type\":\"string\"}}],"
-      "\"get\":{\"operationId\":\"listPets\"}}}}";
+      "pets\",\"parameters\":[{\"name\":\"x-trace\",\"in\":\"header\","
+      "\"schema\":{\"type\":\"string\"}}],\"get\":{\"operationId\":"
+      "\"listPets\",\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+      "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1092,8 +1064,8 @@ TEST test_load_server_duplicate_name_rejected(void) {
 
 TEST test_load_missing_openapi_and_swagger_rejected(void) {
 
-  const char *json =
-      "{\"info\":{\"title\":\"T\",\"version\":\"1\"},\"paths\":{}}";
+  const char *json = "{\"info\":{\"title\":\"T\",\"version\":\"1\"},\"paths\":{"
+                     "},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1200,20 +1172,13 @@ TEST test_load_server_url_query_rejected(void) {
 TEST test_load_security_requirements(void) {
 
   const char *json =
-      "{"
-      "\"openapi\":\"3.2.0\","
-      "\"security\":["
-      "  {\"ApiKeyAuth\":[]},"
-      "  {\"bearerAuth\":[\"read:pets\"]}"
-      "],"
-      "\"paths\":{\"/pets\":{\"get\":{\"operationId\":\"listPets\","
-      "\"security\":[{}]}}},"
-      "\"components\":{\"securitySchemes\":{"
-      "\"ApiKeyAuth\":{\"type\":\"apiKey\",\"in\":\"header\",\"name\":\"X-"
-      "Api\"},"
-      "\"bearerAuth\":{\"type\":\"http\",\"scheme\":\"bearer\"}"
-      "}}"
-      "}";
+      "{\"openapi\":\"3.2.0\",\"security\":[{\"ApiKeyAuth\":[]},{"
+      "\"bearerAuth\":[\"read:pets\"]}],\"paths\":{\"/"
+      "pets\":{\"get\":{\"operationId\":\"listPets\",\"security\":[{}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"components\":{"
+      "\"securitySchemes\":{\"ApiKeyAuth\":{\"type\":\"apiKey\",\"in\":"
+      "\"header\",\"name\":\"X-Api\"},\"bearerAuth\":{\"type\":\"http\","
+      "\"scheme\":\"bearer\"}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1241,13 +1206,11 @@ TEST test_load_security_requirements(void) {
 TEST test_load_security_schemes(void) {
 
   const char *json =
-      "{\"components\":{\"securitySchemes\":{"
-      "\"bearerAuth\":{\"type\":\"http\",\"scheme\":\"bearer\","
-      "\"bearerFormat\":\"JWT\"},"
-      "\"apiKeyAuth\":{\"type\":\"apiKey\",\"in\":\"header\","
-      "\"name\":\"X-Api-Key\"},"
-      "\"mtlsAuth\":{\"type\":\"mutualTLS\",\"description\":\"mTLS only\"}"
-      "}}}";
+      "{\"components\":{\"securitySchemes\":{\"bearerAuth\":{\"type\":\"http\","
+      "\"scheme\":\"bearer\",\"bearerFormat\":\"JWT\"},\"apiKeyAuth\":{"
+      "\"type\":\"apiKey\",\"in\":\"header\",\"name\":\"X-Api-Key\"},"
+      "\"mtlsAuth\":{\"type\":\"mutualTLS\",\"description\":\"mTLS "
+      "only\"}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   const struct OpenAPI_SecurityScheme *bearer;
@@ -1450,11 +1413,11 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
 TEST test_load_parameter_examples_object(void) {
 
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"string\"},"
-      "\"examples\":{\"basic\":{\"summary\":\"Basic\",\"dataValue\":\"hello\"}}"
-      "}]}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"},\"examples\":{\"basic\":{\"summary\":"
+      "\"Basic\",\"dataValue\":\"hello\"}}}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1477,15 +1440,13 @@ TEST test_load_parameter_examples_object(void) {
 
 TEST test_load_parameter_examples_media(void) {
 
-  const char *json =
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\","
-      "\"content\":{\"application/json\":{"
-      "\"schema\":{\"type\":\"string\"},"
-      "\"examples\":{\"m\":{\"serializedValue\":\"\\\"hi\\\"\"}}"
-      "}}"
-      "}]}}}}";
+  const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
+                     "\"version\":\"1\"},\"paths\":{\"/"
+                     "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":"
+                     "\"query\",\"content\":{\"application/"
+                     "json\":{\"schema\":{\"type\":\"string\"},\"examples\":{"
+                     "\"m\":{\"serializedValue\":\"\\\"hi\\\"\"}}}}}],"
+                     "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1558,12 +1519,12 @@ TEST test_load_media_example_and_examples_rejected(void) {
 
 TEST test_load_example_data_value_and_value_rejected(void) {
 
-  const char *json =
-      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},"
-      "\"examples\":{\"bad\":{\"dataValue\":\"a\",\"value\":\"b\"}}"
-      "}]}}}}";
+  const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\","
+                     "\"version\":\"1\"},\"paths\":{\"/"
+                     "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":"
+                     "\"query\",\"schema\":{\"type\":\"string\"},\"examples\":{"
+                     "\"bad\":{\"dataValue\":\"a\",\"value\":\"b\"}}}],"
+                     "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1575,11 +1536,11 @@ TEST test_load_example_serialized_and_external_rejected(void) {
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},"
-      "\"examples\":{\"bad\":{\"serializedValue\":\"x\","
-      "\"externalValue\":\"http://example.com/ex\"}}"
-      "}]}}}}";
+      "\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"},\"examples\":{\"bad\":{"
+      "\"serializedValue\":\"x\",\"externalValue\":\"http://example.com/"
+      "ex\"}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1639,21 +1600,15 @@ TEST test_load_component_examples(void) {
 TEST test_load_example_component_ref_strict(void) {
 
   const char *json =
-      "{\"openapi\":\"3.2.0\","
-      "\"$self\":\"https://example.com/spec.json\","
-      "\"info\":{\"title\":\"T\",\"version\":\"1\"},"
-      "\"components\":{\"examples\":{"
-      "\"Ex\":{\"summary\":\"Right\",\"value\":\"ok\"},"
-      "\"foo\":{\"summary\":\"Wrong\",\"value\":\"bad\"}"
-      "}},"
-      "\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"q\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},"
-      "\"examples\":{"
-      "\"good\":{\"$ref\":\"https://example.com/spec.json#/components/examples/"
-      "Ex\"},"
-      "\"bad\":{\"$ref\":\"#/components/examples/Ex/foo\"}"
-      "}"
-      "}]}}}}";
+      "{\"openapi\":\"3.2.0\",\"$self\":\"https://example.com/"
+      "spec.json\",\"info\":{\"title\":\"T\",\"version\":\"1\"},\"components\":"
+      "{\"examples\":{\"Ex\":{\"summary\":\"Right\",\"value\":\"ok\"},\"foo\":{"
+      "\"summary\":\"Wrong\",\"value\":\"bad\"}}},\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"string\"},\"examples\":{\"good\":{\"$ref\":"
+      "\"https://example.com/spec.json#/components/examples/"
+      "Ex\"},\"bad\":{\"$ref\":\"#/components/examples/Ex/"
+      "foo\"}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1678,7 +1633,7 @@ TEST test_load_request_body_metadata_and_response_description(void) {
       "{\"paths\":{\"/p\":{\"post\":{\"requestBody\":{"
       "\"description\":\"Payload\",\"required\":false,"
       "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}"
-      "},\"responses\":{\"200\":{\"description\":\"OK\","
+      ",\"responses\":{\"200\":{\"description\":\"OK\","
       "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}"
       "}}}}}}}";
 
@@ -1701,21 +1656,15 @@ TEST test_load_request_body_metadata_and_response_description(void) {
 TEST test_load_request_body_component_ref(void) {
 
   const char *json =
-      "{"
-      "\"components\":{"
-      "\"schemas\":{\"Pet\":{\"type\":\"object\",\"properties\":{"
-      "\"id\":{\"type\":\"integer\"}}}},"
-      "\"requestBodies\":{"
-      "\"CreatePet\":{\"description\":\"Create\",\"required\":true,"
-      "\"content\":{\"application/json\":{\"schema\":{"
-      "\"$ref\":\"#/components/schemas/Pet\"}}}}"
-      "}"
-      "},"
-      "\"paths\":{\"/pets\":{\"post\":{"
-      "\"requestBody\":{\"$ref\":\"#/components/requestBodies/CreatePet\"},"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}"
-      "}";
+      "{\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\","
+      "\"properties\":{\"id\":{\"type\":\"integer\"}}}},\"requestBodies\":{"
+      "\"CreatePet\":{\"description\":\"Create\",\"required\":true,\"content\":"
+      "{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/"
+      "Pet\"}}}}}},\"paths\":{\"/"
+      "pets\":{\"post\":{\"requestBody\":{\"$ref\":\"#/components/"
+      "requestBodies/"
+      "CreatePet\"},\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+      "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1782,17 +1731,15 @@ TEST test_load_response_multiple_content(void) {
 TEST test_load_request_body_multiple_content_with_ref(void) {
 
   const char *json =
-      "{\"openapi\":\"3.2.0\",\"components\":{\"schemas\":{"
-      "\"Pet\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":"
-      "\"integer\"}}}"
-      "},\"mediaTypes\":{"
-      "\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/"
-      "Pet\"}}"
-      "}},\"paths\":{\"/pets\":{\"post\":{\"requestBody\":{\"content\":{"
-      "\"application/json\":{\"$ref\":\"#/components/mediaTypes/"
-      "application~1json\"},"
-      "\"application/x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\"}}"
-      "}}}}}}";
+      "{\"openapi\":\"3.2.0\",\"components\":{\"schemas\":{\"Pet\":{\"type\":"
+      "\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}}},"
+      "\"mediaTypes\":{\"application/json\":{\"schema\":{\"$ref\":\"#/"
+      "components/schemas/Pet\"}}}},\"paths\":{\"/"
+      "pets\":{\"post\":{\"requestBody\":{\"content\":{\"application/"
+      "json\":{\"$ref\":\"#/components/mediaTypes/"
+      "application~1json\"},\"application/"
+      "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\"}}}},"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -1988,12 +1935,11 @@ TEST test_load_license_missing_name_rejected(void) {
 TEST test_load_operation_metadata(void) {
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
-                     "\"version\":\"1\"},\"paths\":{\"/meta\":{\"get\":{"
-                     "\"operationId\":\"getMeta\","
-                     "\"summary\":\"Summary text\","
-                     "\"description\":\"Longer description\","
-                     "\"deprecated\":true"
-                     "}}}}";
+                     "\"version\":\"1\"},\"paths\":{\"/"
+                     "meta\":{\"get\":{\"operationId\":\"getMeta\",\"summary\":"
+                     "\"Summary text\",\"description\":\"Longer "
+                     "description\",\"deprecated\":true,\"responses\":{\"200\":"
+                     "{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2009,14 +1955,12 @@ TEST test_load_operation_metadata(void) {
 TEST test_load_response_content_type(void) {
 
   const char *json =
-      "{\"paths\":{\"/r\":{\"get\":{"
-      "\"responses\":{\"200\":{\"description\":\"OK\","
+      "{\"paths\":{\"/"
+      "r\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\","
       "\"content\":{\"text/plain\":{\"schema\":{\"$ref\":\"#/components/"
-      "schemas/Message\"}}}"
-      "}}"
-      "}}},"
-      "\"components\":{\"schemas\":{\"Message\":{\"type\":\"string\"}}}"
-      "}";
+      "schemas/"
+      "Message\"}}}}}}}},\"components\":{\"schemas\":{\"Message\":{\"type\":"
+      "\"string\"}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2054,14 +1998,12 @@ TEST test_load_response_content_type_specificity(void) {
 TEST test_load_response_content_type_params_json(void) {
 
   const char *json =
-      "{\"paths\":{\"/r\":{\"get\":{"
-      "\"responses\":{\"200\":{\"description\":\"OK\","
-      "\"content\":{"
-      "\"text/plain\":{\"schema\":{\"type\":\"string\"}},"
-      "\"application/json; charset=utf-8\":{\"schema\":{\"type\":\"string\"}}"
-      "}"
-      "}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "r\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\","
+      "\"content\":{\"text/"
+      "plain\":{\"schema\":{\"type\":\"string\"}},\"application/json; "
+      "charset=utf-8\":{\"schema\":{\"type\":\"string\"}}}}}}}},\"openapi\":"
+      "\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2075,11 +2017,10 @@ TEST test_load_response_content_type_params_json(void) {
 TEST test_load_inline_response_schema_primitive(void) {
 
   const char *json =
-      "{\"paths\":{\"/r\":{\"get\":{"
-      "\"responses\":{\"200\":{\"description\":\"OK\","
-      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}"
-      "}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "r\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\","
+      "\"content\":{\"application/"
+      "json\":{\"schema\":{\"type\":\"string\"}}}}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2100,7 +2041,7 @@ TEST test_load_inline_response_schema_array(void) {
       "\"content\":{\"application/json\":{"
       "\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}}}"
       "}}"
-      "}}}}";
+      "}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2218,18 +2159,13 @@ TEST test_load_inline_schema_const_examples_annotations(void) {
 TEST test_load_schema_ref_summary_description(void) {
 
   const char *json =
-      "{"
-      "\"paths\":{\"/p\":{\"get\":{"
-      "\"parameters\":[{\"name\":\"mode\",\"in\":\"query\","
-      "\"schema\":{"
-      "\"$ref\":\"#/components/schemas/Mode\","
-      "\"summary\":\"Mode summary\","
-      "\"description\":\"Mode description\""
-      "}}],"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}},"
-      "\"components\":{\"schemas\":{\"Mode\":{\"type\":\"string\"}}}"
-      "}";
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"mode\",\"in\":\"query\","
+      "\"schema\":{\"$ref\":\"#/components/schemas/Mode\",\"summary\":\"Mode "
+      "summary\",\"description\":\"Mode "
+      "description\"}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+      "\"components\":{\"schemas\":{\"Mode\":{\"type\":\"string\"}}},"
+      "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2307,11 +2243,10 @@ TEST test_load_inline_schema_enum_default_nullable(void) {
 TEST test_load_inline_schema_type_union(void) {
 
   const char *json =
-      "{\"paths\":{\"/p\":{\"get\":{"
-      "\"parameters\":[{\"name\":\"mix\",\"in\":\"query\","
-      "\"schema\":{\"type\":[\"string\",\"integer\",\"null\"]}}],"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"mix\",\"in\":\"query\","
+      "\"schema\":{\"type\":[\"string\",\"integer\",\"null\"]}}],\"responses\":"
+      "{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2334,12 +2269,11 @@ TEST test_load_inline_schema_type_union(void) {
 TEST test_load_inline_schema_array_items_enum_nullable(void) {
 
   const char *json =
-      "{\"paths\":{\"/p\":{\"get\":{"
-      "\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\",\"items\":{"
-      "\"type\":[\"string\",\"null\"],\"enum\":[\"a\",\"b\"]}}}],"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\",\"items\":{\"type\":[\"string\",\"null\"]"
+      ",\"enum\":[\"a\",\"b\"]}}}],\"responses\":{\"200\":{\"description\":"
+      "\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2425,15 +2359,12 @@ TEST test_load_schema_boolean_and_numeric_enum(void) {
 
 TEST test_load_schema_items_examples_and_boolean_items(void) {
   const char *json =
-      "{\"paths\":{\"/p\":{\"get\":{"
-      "\"parameters\":["
-      "{\"name\":\"tags\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\","
-      "\"items\":{\"type\":\"string\",\"examples\":[\"a\",\"b\"]}}},"
-      "{\"name\":\"anys\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\",\"items\":false}}],"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\",\"items\":{\"type\":\"string\","
+      "\"examples\":[\"a\",\"b\"]}}},{\"name\":\"anys\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\",\"items\":false}}],\"responses\":{"
+      "\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2494,14 +2425,13 @@ TEST test_load_inline_schema_example_and_numeric_constraints(void) {
 TEST test_load_inline_schema_array_constraints_and_items_example(void) {
 
   const char *json =
-      "{\"paths\":{\"/p\":{\"get\":{"
-      "\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
+      "{\"paths\":{\"/"
+      "p\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
       "\"schema\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":3,"
-      "\"uniqueItems\":true,\"items\":{"
-      "\"type\":\"string\",\"minLength\":2,\"maxLength\":5,"
-      "\"pattern\":\"^[a-z]+$\",\"example\":\"ab\"}}}],"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}}";
+      "\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"minLength\":2,"
+      "\"maxLength\":5,\"pattern\":\"^[a-z]+$\",\"example\":\"ab\"}}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2."
+      "0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2531,12 +2461,12 @@ TEST test_load_inline_schema_array_constraints_and_items_example(void) {
 TEST test_load_inline_schema_items_const_default_and_extras(void) {
 
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"tags\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\",\"x-top\":true,"
-      "\"items\":{\"type\":\"string\",\"const\":\"x\",\"default\":\"y\","
-      "\"x-custom\":99}}"
-      "}]}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\",\"x-top\":true,\"items\":{\"type\":"
+      "\"string\",\"const\":\"x\",\"default\":\"y\",\"x-custom\":99}}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2."
+      "0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2709,17 +2639,13 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
 TEST test_load_request_body_ref_description_override(void) {
 
   const char *json =
-      "{"
-      "\"components\":{\"requestBodies\":{"
-      "\"CreatePet\":{\"description\":\"Create\",\"required\":true,"
-      "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}"
-      "}}},"
-      "\"paths\":{\"/pets\":{\"post\":{"
-      "\"requestBody\":{\"$ref\":\"#/components/requestBodies/CreatePet\","
-      "\"description\":\"Override\"},"
-      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "}}}"
-      "}";
+      "{\"components\":{\"requestBodies\":{\"CreatePet\":{\"description\":"
+      "\"Create\",\"required\":true,\"content\":{\"application/"
+      "json\":{\"schema\":{\"type\":\"string\"}}}}}},\"paths\":{\"/"
+      "pets\":{\"post\":{\"requestBody\":{\"$ref\":\"#/components/"
+      "requestBodies/"
+      "CreatePet\",\"description\":\"Override\"},\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -2735,9 +2661,11 @@ TEST test_load_request_body_ref_description_override(void) {
 
 TEST test_load_options_trace_verbs(void) {
 
-  const char *json =
-      "{\"paths\":{\"/v\":{\"options\":{\"operationId\":\"opt\"},"
-      "\"trace\":{\"operationId\":\"tr\"}}}}";
+  const char *json = "{\"paths\":{\"/"
+                     "v\":{\"options\":{\"operationId\":\"opt\",\"responses\":{"
+                     "\"200\":{\"description\":\"OK\"}}},\"trace\":{"
+                     "\"operationId\":\"tr\",\"responses\":{\"200\":{"
+                     "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3124,12 +3052,13 @@ TEST test_external_component_ref_registry_relative(void) {
 
 TEST test_load_query_verb_and_external_docs(void) {
 
-  const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
-                     "\"version\":\"1\"},\"paths\":{\"/search\":{\"query\":{"
-                     "\"operationId\":\"querySearch\","
-                     "\"externalDocs\":{\"description\":\"Op "
-                     "docs\",\"url\":\"https://example.com/op\"}"
-                     "}}}}";
+  const char *json =
+      "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/"
+      "search\":{\"query\":{\"operationId\":\"querySearch\",\"externalDocs\":{"
+      "\"description\":\"Op "
+      "docs\",\"url\":\"https://example.com/"
+      "op\"},\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3147,20 +3076,12 @@ TEST test_load_query_verb_and_external_docs(void) {
 
 TEST test_load_path_and_operation_servers(void) {
 
-  const char *json = "{"
-                     "\"paths\":{"
-                     "  \"/pets\":{"
-                     "    \"servers\":[{\"url\":\"https://path.example.com\"}],"
-                     "    \"get\":{"
-                     "      \"operationId\":\"listPets\","
-                     "      "
-                     "\"servers\":[{\"url\":\"https://"
-                     "op.example.com\",\"description\":\"Op\"}],"
-                     "      \"responses\":{\"200\":{\"description\":\"OK\"}}"
-                     "    }"
-                     "  }"
-                     "}"
-                     "}";
+  const char *json =
+      "{\"paths\":{\"/pets\":{\"servers\":[{\"url\":\"https://"
+      "path.example.com\"}],\"get\":{\"operationId\":\"listPets\",\"servers\":["
+      "{\"url\":\"https://"
+      "op.example.com\",\"description\":\"Op\"}],\"responses\":{\"200\":{"
+      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3182,16 +3103,9 @@ TEST test_load_path_and_operation_servers(void) {
 
 TEST test_load_webhooks(void) {
 
-  const char *json = "{"
-                     "\"webhooks\":{"
-                     "  \"petEvent\":{"
-                     "    \"post\":{"
-                     "      \"operationId\":\"onPetEvent\","
-                     "      \"responses\":{\"200\":{\"description\":\"OK\"}}"
-                     "    }"
-                     "  }"
-                     "}"
-                     "}";
+  const char *json = "{\"webhooks\":{\"petEvent\":{\"post\":{\"operationId\":"
+                     "\"onPetEvent\",\"responses\":{\"200\":{\"description\":"
+                     "\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3209,13 +3123,8 @@ TEST test_load_webhooks(void) {
 
 TEST test_load_path_ref(void) {
 
-  const char *json = "{"
-                     "\"paths\":{"
-                     "  \"/foo\":{"
-                     "    \"$ref\":\"#/components/pathItems/Foo\""
-                     "  }"
-                     "}"
-                     "}";
+  const char *json = "{\"paths\":{\"/foo\":{\"$ref\":\"#/components/pathItems/"
+                     "Foo\"}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3232,24 +3141,11 @@ TEST test_load_path_ref(void) {
 TEST test_load_component_parameter_ref(void) {
 
   const char *json =
-      "{"
-      "\"components\":{"
-      "  \"parameters\":{"
-      "    \"LimitParam\":{\"name\":\"limit\",\"in\":\"query\","
-      "      \"schema\":{\"type\":\"integer\"}"
-      "    }"
-      "  }"
-      "},"
-      "\"paths\":{"
-      "  \"/items\":{"
-      "    \"get\":{"
-      "      "
-      "\"parameters\":[{\"$ref\":\"#/components/parameters/LimitParam\"}],"
-      "      \"responses\":{\"200\":{\"description\":\"OK\"}}"
-      "    }"
-      "  }"
-      "}"
-      "}";
+      "{\"components\":{\"parameters\":{\"LimitParam\":{\"name\":\"limit\","
+      "\"in\":\"query\",\"schema\":{\"type\":\"integer\"}}}},\"paths\":{\"/"
+      "items\":{\"get\":{\"parameters\":[{\"$ref\":\"#/components/parameters/"
+      "LimitParam\"}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
+      "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3272,39 +3168,13 @@ TEST test_load_component_parameter_ref(void) {
 TEST test_load_component_response_and_headers(void) {
 
   const char *json =
-      "{"
-      "\"components\":{"
-      "  \"responses\":{"
-      "    \"NotFound\":{"
-      "      \"description\":\"missing\","
-      "      \"headers\":{"
-      "        \"X-Trace\":{\"schema\":{\"type\":\"string\"}}"
-      "      }"
-      "    }"
-      "  },"
-      "  \"headers\":{"
-      "    \"RateLimit\":{"
-      "      \"description\":\"limit\","
-      "      \"schema\":{\"type\":\"integer\"}"
-      "    }"
-      "  }"
-      "},"
-      "\"paths\":{"
-      "  \"/x\":{"
-      "    \"get\":{"
-      "      \"responses\":{"
-      "        \"404\":{\"$ref\":\"#/components/responses/NotFound\"},"
-      "        \"200\":{"
-      "          \"description\":\"ok\","
-      "          \"headers\":{"
-      "            \"X-Rate\":{\"$ref\":\"#/components/headers/RateLimit\"}"
-      "          }"
-      "        }"
-      "      }"
-      "    }"
-      "  }"
-      "}"
-      "}";
+      "{\"components\":{\"responses\":{\"NotFound\":{\"description\":"
+      "\"missing\",\"headers\":{\"X-Trace\":{\"schema\":{\"type\":\"string\"}}}"
+      "}},\"headers\":{\"RateLimit\":{\"description\":\"limit\",\"schema\":{"
+      "\"type\":\"integer\"}}}},\"paths\":{\"/"
+      "x\":{\"get\":{\"responses\":{\"404\":{\"$ref\":\"#/components/responses/"
+      "NotFound\"},\"200\":{\"description\":\"ok\",\"headers\":{\"X-Rate\":{\"$"
+      "ref\":\"#/components/headers/RateLimit\"}}}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3421,19 +3291,10 @@ TEST test_load_component_media_type_ref(void) {
 
 TEST test_load_component_path_items(void) {
 
-  const char *json = "{"
-                     "\"components\":{"
-                     "  \"pathItems\":{"
-                     "    \"FooItem\":{"
-                     "      \"summary\":\"foo\","
-                     "      \"get\":{"
-                     "        \"operationId\":\"getFoo\","
-                     "        \"responses\":{\"200\":{\"description\":\"ok\"}}"
-                     "      }"
-                     "    }"
-                     "  }"
-                     "}"
-                     "}";
+  const char *json =
+      "{\"components\":{\"pathItems\":{\"FooItem\":{\"summary\":\"foo\","
+      "\"get\":{\"operationId\":\"getFoo\",\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3451,36 +3312,14 @@ TEST test_load_component_path_items(void) {
 
 TEST test_load_response_links_and_component_links(void) {
 
-  const char *json = "{"
-                     "\"components\":{"
-                     "  \"links\":{"
-                     "    \"NextPage\":{"
-                     "      \"operationId\":\"listPets\","
-                     "      \"parameters\":{"
-                     "        \"limit\":50,"
-                     "        \"offset\":\"$response.body#/offset\""
-                     "      },"
-                     "      \"server\":{\"url\":\"https://api.example.com\"}"
-                     "    }"
-                     "  }"
-                     "},"
-                     "\"paths\":{"
-                     "  \"/pets\":{"
-                     "    \"get\":{"
-                     "      \"responses\":{"
-                     "        \"200\":{"
-                     "          \"description\":\"ok\","
-                     "          \"links\":{"
-                     "            \"next\":{"
-                     "              \"$ref\":\"#/components/links/NextPage\""
-                     "            }"
-                     "          }"
-                     "        }"
-                     "      }"
-                     "    }"
-                     "  }"
-                     "}"
-                     "}";
+  const char *json =
+      "{\"components\":{\"links\":{\"NextPage\":{\"operationId\":\"listPets\","
+      "\"parameters\":{\"limit\":50,\"offset\":\"$response.body#/"
+      "offset\"},\"server\":{\"url\":\"https://"
+      "api.example.com\"}}}},\"paths\":{\"/"
+      "pets\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\","
+      "\"links\":{\"next\":{\"$ref\":\"#/components/links/"
+      "NextPage\"}}}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -3516,35 +3355,13 @@ TEST test_load_response_links_and_component_links(void) {
 TEST test_load_callbacks_and_component_callbacks(void) {
 
   const char *json =
-      "{"
-      "\"components\":{"
-      "  \"callbacks\":{"
-      "    \"OnEvent\":{"
-      "      \"{$request.body#/url}\":{"
-      "        \"post\":{"
-      "          \"responses\":{\"200\":{\"description\":\"ok\"}}"
-      "        }"
-      "      }"
-      "    }"
-      "  }"
-      "},"
-      "\"paths\":{"
-      "  \"/pets\":{"
-      "    \"get\":{"
-      "      \"responses\":{\"200\":{\"description\":\"ok\"}},"
-      "      \"callbacks\":{"
-      "        \"onEvent\":{"
-      "          \"{$request.body#/url}\":{"
-      "            \"post\":{"
-      "              \"responses\":{\"200\":{\"description\":\"ok\"}}"
-      "            }"
-      "          }"
-      "        }"
-      "      }"
-      "    }"
-      "  }"
-      "}"
-      "}";
+      "{\"components\":{\"callbacks\":{\"OnEvent\":{\"{$request.body#/"
+      "url}\":{\"post\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}},"
+      "\"paths\":{\"/"
+      "pets\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}},"
+      "\"callbacks\":{\"onEvent\":{\"{$request.body#/"
+      "url}\":{\"post\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}}}"
+      "},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -4068,12 +3885,11 @@ TEST test_load_path_template_missing_param(void) {
 
 TEST test_load_path_template_param_not_in_route(void) {
 
-  const char *json =
-      "{\"paths\":{\"/pets\":{\"parameters\":["
-      "{\"name\":\"petId\",\"in\":\"path\",\"required\":true,"
-      "\"schema\":{\"type\":\"string\"}}],"
-      "\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}"
-      "}}}";
+  const char *json = "{\"paths\":{\"/"
+                     "pets\":{\"parameters\":[{\"name\":\"petId\",\"in\":"
+                     "\"path\",\"required\":true,\"schema\":{\"type\":"
+                     "\"string\"}}],\"get\":{\"responses\":{\"200\":{"
+                     "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -4083,12 +3899,11 @@ TEST test_load_path_template_param_not_in_route(void) {
 
 TEST test_load_path_template_param_not_required(void) {
 
-  const char *json =
-      "{\"paths\":{\"/pets/{petId}\":{\"parameters\":["
-      "{\"name\":\"petId\",\"in\":\"path\",\"required\":false,"
-      "\"schema\":{\"type\":\"string\"}}],"
-      "\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}"
-      "}}}";
+  const char *json = "{\"paths\":{\"/pets/"
+                     "{petId}\":{\"parameters\":[{\"name\":\"petId\",\"in\":"
+                     "\"path\",\"required\":false,\"schema\":{\"type\":"
+                     "\"string\"}}],\"get\":{\"responses\":{\"200\":{"
+                     "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -4194,9 +4009,9 @@ TEST test_load_server_missing_url_rejected(void) {
 TEST test_load_additional_operations_standard_method_rejected(void) {
 
   const char *json =
-      "{\"paths\":{\"/x\":{\"additionalOperations\":{"
-      "\"POST\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}"
-      "}}}}";
+      "{\"paths\":{\"/"
+      "x\":{\"additionalOperations\":{\"POST\":{\"responses\":{\"200\":{"
+      "\"description\":\"ok\"}}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -4206,12 +4021,10 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
 
 TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
 
-  const char *json =
-      "{"
-      "\"components\":{\"links\":{\"BadLink\":{\"parameters\":{\"id\":1}}}},"
-      "\"paths\":{\"/"
-      "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}"
-      "}";
+  const char *json = "{\"components\":{\"links\":{\"BadLink\":{\"parameters\":{"
+                     "\"id\":1}}}},\"paths\":{\"/"
+                     "x\":{\"get\":{\"responses\":{\"200\":{\"description\":"
+                     "\"ok\"}}}}},\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);
@@ -4222,14 +4035,10 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
 TEST test_load_link_operation_ref_and_id_both_rejected(void) {
 
   const char *json =
-      "{"
-      "\"components\":{\"links\":{\"BadLink\":{"
-      "\"operationId\":\"op\","
-      "\"operationRef\":\"#/paths/~1x/get\""
-      "}}},"
-      "\"paths\":{\"/"
-      "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}"
-      "}";
+      "{\"components\":{\"links\":{\"BadLink\":{\"operationId\":\"op\","
+      "\"operationRef\":\"#/paths/~1x/get\"}}},\"paths\":{\"/"
+      "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}},"
+      "\"openapi\":\"3.2.0\"}";
 
   struct OpenAPI_Spec spec;
   int rc = load_spec_str(json, &spec);

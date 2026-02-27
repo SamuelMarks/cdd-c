@@ -19,8 +19,8 @@
 #include <string.h>
 
 #include "functions/parse_str.h"
-#include "routes/emit_openapi.h"
-#include "routes/parse_openapi.h"
+#include "openapi/emit_openapi.h"
+#include "openapi/parse_openapi.h"
 
 /* --- Helpers --- */
 
@@ -3613,12 +3613,12 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
 
 TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   const char *json =
-      "{\"paths\":{\"/q\":{\"get\":{\"parameters\":[{"
-      "\"name\":\"tags\",\"in\":\"query\","
-      "\"schema\":{\"type\":\"array\",\"x-top\":true,"
-      "\"items\":{\"type\":\"string\",\"const\":\"x\",\"default\":\"y\","
-      "\"x-custom\":99}}"
-      "}]}}}}";
+      "{\"paths\":{\"/"
+      "q\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
+      "\"schema\":{\"type\":\"array\",\"x-top\":true,\"items\":{\"type\":"
+      "\"string\",\"const\":\"x\",\"default\":\"y\",\"x-custom\":99}}}],"
+      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2."
+      "0\"}";
 
   struct OpenAPI_Spec spec;
   char *out_json = NULL;

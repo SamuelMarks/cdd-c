@@ -17,7 +17,7 @@
 #include "classes/emit_schema.h"
 #include "classes/parse_inspector.h"
 #include "functions/parse_fs.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 TEST test_register_single_struct(void) {
   struct OpenAPI_Spec spec;

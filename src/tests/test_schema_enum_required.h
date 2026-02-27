@@ -13,8 +13,8 @@
 
 #include "classes/emit_enum.h"
 #include "classes/emit_struct.h"
-#include "routes/emit_openapi.h"
-#include "routes/parse_openapi.h"
+#include "openapi/emit_openapi.h"
+#include "openapi/parse_openapi.h"
 
 static int load_spec_string(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *root;

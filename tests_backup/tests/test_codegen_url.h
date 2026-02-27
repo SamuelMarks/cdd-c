@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "openapi/parse_openapi.h"
 #include "routes/emit_url.h"
-#include "routes/parse_openapi.h"
 
 static char *gen_url_code(const char *tmpl,
                           const struct OpenAPI_Parameter *params,

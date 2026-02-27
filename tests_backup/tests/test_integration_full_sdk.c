@@ -21,8 +21,8 @@
 #include "functions/parse_http_types.h"
 #include "functions/parse_http_winhttp.h"
 #include "functions/parse_str.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_client_gen.h"
-#include "routes/parse_openapi.h"
 
 /* Platform compatibility for strdup/sprintfs */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

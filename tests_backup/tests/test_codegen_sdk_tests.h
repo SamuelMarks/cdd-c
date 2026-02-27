@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 #include "tests/emit_sdk_tests.h"
 
 TEST test_gen_sdk_test_basic(void) {

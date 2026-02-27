@@ -344,14 +344,17 @@ struct OpenAPI_SchemaRef {
   int items_ref_is_dynamic;  /**< 1 if items_ref uses $dynamicRef */
 
   /* Multipart / Form-urlencoded Extension */
-  char *content_type;             /**< "application/json" or
-                                     "application/x-www-form-urlencoded" */
-  char *content_media_type;       /**< Schema contentMediaType */
-  char *content_encoding;         /**< Schema contentEncoding */
-  char *items_content_media_type; /**< Array item contentMediaType */
-  char *items_content_encoding;   /**< Array item contentEncoding */
-  int nullable;                   /**< 1 if type includes null (type array) */
-  int items_nullable;             /**< 1 if items type includes null */
+  char *content_type; /**< "application/json" or
+                         "application/x-www-form-urlencoded" */
+  char *content_media_type;
+  struct OpenAPI_SchemaRef *content_schema; /**< Schema contentMediaType */
+  char *content_encoding;                   /**< Schema contentEncoding */
+  char *items_content_media_type;
+  struct OpenAPI_SchemaRef
+      *items_content_schema;    /**< Array item contentMediaType */
+  char *items_content_encoding; /**< Array item contentEncoding */
+  int nullable;                 /**< 1 if type includes null (type array) */
+  int items_nullable;           /**< 1 if items type includes null */
   char *summary;      /**< Reference Object summary (valid only with $ref) */
   char *description;  /**< Schema description or Reference Object description */
   int deprecated;     /**< 1 if deprecated=true */

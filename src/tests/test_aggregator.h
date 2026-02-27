@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "openapi/parse_openapi.h"
 #include "routes/emit_aggregator.h"
-#include "routes/parse_openapi.h"
 
 static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));

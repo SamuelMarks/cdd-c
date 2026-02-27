@@ -20,9 +20,9 @@
 #include "functions/parse_audit.h"
 #include "functions/parse_orchestrator.h"
 #include "functions/parse_str.h"
+#include "openapi/parse_openapi.h"
 #include "routes/emit_client_gen.h"
 #include "routes/parse_cli.h" /* New entry */
-#include "routes/parse_openapi.h"
 #include "tests/emit_schema2tests.h"
 
 static void print_error(int rc, const char *command_name) {

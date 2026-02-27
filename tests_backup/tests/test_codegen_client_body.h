@@ -13,7 +13,7 @@
 
 #include "classes/emit_struct.h"
 #include "functions/emit_client_body.h"
-#include "routes/parse_openapi.h"
+#include "openapi/parse_openapi.h"
 
 static char *gen_body(const struct OpenAPI_Operation *op,
                       const struct OpenAPI_Spec *spec, const char *tmpl,
