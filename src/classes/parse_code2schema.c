@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../win_compat_sym.h"
+
 #include <parson.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -431,8 +433,12 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   if (!line || !sf)
     return EINVAL;
 
-  /* Basic heuristic parsing: "Type name;" or "Type name : width;" */
+/* Basic heuristic parsing: "Type name;" or "Type name : width;" */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strncpy_s(buf, sizeof(buf), line, sizeof(buf) - 1);
+#else
   strncpy(buf, line, sizeof(buf) - 1);
+#endif
   buf[sizeof(buf) - 1] = '\0';
   trim_trailing(buf);
 
@@ -444,7 +450,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       w++;
     if (*w && (isdigit((unsigned char)*w) || *w == '(' ||
                isalpha((unsigned char)*w))) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      strncpy_s(bit_width, sizeof(bit_width), w, sizeof(bit_width) - 1);
+#else
       strncpy(bit_width, w, sizeof(bit_width) - 1);
+#endif
       *colon_ptr = '\0';
       trim_trailing(buf);
     }
@@ -475,7 +485,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       is_ptr = 1;
       n++;
     }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(name, 63 + 1, n, 63);
+#else
     strncpy(name, n, 63);
+#endif
 
     /* Check FAM */
     {
@@ -487,11 +501,15 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     }
   }
 
-  /* Extract Type Raw */
-  /* If buf was "int *p", and we split at space, buf="int", name="*p". */
-  /* If buf was "struct S* p", split at last space (' '), buf="struct S*",
-   * name="p" */
+/* Extract Type Raw */
+/* If buf was "int *p", and we split at space, buf="int", name="*p". */
+/* If buf was "struct S* p", split at last space (' '), buf="struct S*",
+ * name="p" */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strncpy_s(type_raw, 63 + 1, buf, 63);
+#else
   strncpy(type_raw, buf, 63);
+#endif
   /* Ensure we capture the pointer asterisk if it was on the type side */
   /* "struct S* p" -> type="struct S*" */
   /* "struct S *p" -> type="struct S", name="*p" (handled above) */
@@ -501,7 +519,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   if (is_ptr) {
     /* Append * if not present */
     if (type_raw[strlen(type_raw) - 1] != '*') {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      strncat_s(type_raw, sizeof(type_raw), "*", 63 - strlen(type_raw));
+#else
       strncat(type_raw, "*", 63 - strlen(type_raw));
+#endif
     }
   }
 
@@ -548,7 +570,12 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       }
       if (mapping.oa_format && mapping.oa_type) {
         if (mapping.kind == OA_TYPE_PRIMITIVE && !is_fam) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          strncpy_s(field->format, sizeof(field->format), mapping.oa_format,
+                    sizeof(field->format) - 1);
+#else
           strncpy(field->format, mapping.oa_format, sizeof(field->format) - 1);
+#endif
           field->format[sizeof(field->format) - 1] = '\0';
         } else if ((mapping.kind == OA_TYPE_ARRAY || is_fam) &&
                    openapi_type_is_primitive(mapping.oa_type)) {
@@ -680,18 +707,34 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
 
     if (json_object_has_value_of_type(prop, "default", JSONString)) {
       const char *s = json_object_get_string(prop, "default");
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(default_buf, sizeof(default_buf), "\"%s\"", s);
+#else
       sprintf(default_buf, "\"%s\"", s);
+#endif
       d_val = default_buf;
     } else if (json_object_has_value_of_type(prop, "default", JSONNumber)) {
       double d = json_object_get_number(prop, "default");
       if (type && strcmp(type, "integer") == 0)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sprintf_s(default_buf, sizeof(default_buf), "%d", (int)d);
+#else
         sprintf(default_buf, "%d", (int)d);
+#endif
       else
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sprintf_s(default_buf, sizeof(default_buf), "%f", d);
+#else
         sprintf(default_buf, "%f", d);
+#endif
       d_val = default_buf;
     } else if (json_object_has_value_of_type(prop, "default", JSONBoolean)) {
       int b = json_object_get_boolean(prop, "default");
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(default_buf, sizeof(default_buf), "%d", b);
+#else
       sprintf(default_buf, "%d", b);
+#endif
       d_val = default_buf;
     }
 
@@ -861,11 +904,21 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
       const char *desc = json_object_get_string(prop, "description");
       const char *fmt = json_object_get_string(prop, "format");
       if (desc) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strncpy_s(field->description, sizeof(field->description), desc,
+                  sizeof(field->description) - 1);
+#else
         strncpy(field->description, desc, sizeof(field->description) - 1);
+#endif
         field->description[sizeof(field->description) - 1] = '\0';
       }
       if (fmt) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strncpy_s(field->format, sizeof(field->format), fmt,
+                  sizeof(field->format) - 1);
+#else
         strncpy(field->format, fmt, sizeof(field->format) - 1);
+#endif
         field->format[sizeof(field->format) - 1] = '\0';
       }
       if (json_object_has_value(prop, "deprecated")) {
@@ -1270,7 +1323,12 @@ static void merge_struct_field(struct StructField *dest,
     return;
 
   if (!dest->default_val[0] && src->default_val[0]) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(dest->default_val, sizeof(dest->default_val), src->default_val,
+              sizeof(dest->default_val) - 1);
+#else
     strncpy(dest->default_val, src->default_val, sizeof(dest->default_val) - 1);
+#endif
     dest->default_val[sizeof(dest->default_val) - 1] = '\0';
   }
 
@@ -1329,7 +1387,12 @@ static void merge_struct_field(struct StructField *dest,
     dest->unique_items = 1;
 
   if (!dest->pattern[0] && src->pattern[0]) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(dest->pattern, sizeof(dest->pattern), src->pattern,
+              sizeof(dest->pattern) - 1);
+#else
     strncpy(dest->pattern, src->pattern, sizeof(dest->pattern) - 1);
+#endif
     dest->pattern[sizeof(dest->pattern) - 1] = '\0';
   }
 
@@ -1337,7 +1400,12 @@ static void merge_struct_field(struct StructField *dest,
     dest->is_flexible_array = 1;
 
   if (!dest->bit_width[0] && src->bit_width[0]) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    strncpy_s(dest->bit_width, sizeof(dest->bit_width), src->bit_width,
+              sizeof(dest->bit_width) - 1);
+#else
     strncpy(dest->bit_width, src->bit_width, sizeof(dest->bit_width) - 1);
+#endif
     dest->bit_width[sizeof(dest->bit_width) - 1] = '\0';
   }
 
@@ -2100,7 +2168,12 @@ static int parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
     {
       char typebuf[64] = {0};
       char namebuf[64] = {0};
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      if (sscanf_s(p, "%63s %63[^;]", typebuf, (unsigned)sizeof(typebuf),
+                   namebuf, (unsigned)sizeof(namebuf)) == 2) {
+#else
       if (sscanf(p, "%63s %63[^;]", typebuf, namebuf) == 2) {
+#endif
         char *n = namebuf;
         char *t = typebuf;
         if (n[0] == '*')
@@ -2178,7 +2251,12 @@ int code2schema_main(int argc, char **argv) {
       char *brace = strchr(p, '{');
       if (brace) {
         *brace = 0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        if (sscanf_s(p + 6, "%63s", union_name, (unsigned)sizeof(union_name)) ==
+            1) {
+#else
         if (sscanf(p + 6, "%63s", union_name) == 1) {
+#endif
           parse_union_and_write(fp, schemas_obj, union_name);
         }
       }
@@ -2188,7 +2266,12 @@ int code2schema_main(int argc, char **argv) {
       if (brace) {
         struct StructFields sf;
         *brace = 0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        if (sscanf_s(p + 7, "%63s", struct_name,
+                     (unsigned)sizeof(struct_name)) == 1) {
+#else
         if (sscanf(p + 7, "%63s", struct_name) == 1) {
+#endif
           if (struct_fields_init(&sf) == 0) {
             char subline[MAX_LINE_LENGTH];
             while (read_line(fp, subline, sizeof(subline))) {
@@ -2215,7 +2298,12 @@ int code2schema_main(int argc, char **argv) {
         JSON_Array *earr = json_value_get_array(arrval);
 
         *brace = 0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        if (sscanf_s(p + 5, "%63s", enum_name, (unsigned)sizeof(enum_name)) ==
+            1) {
+#else
         if (sscanf(p + 5, "%63s", enum_name) == 1) {
+#endif
           const char *delim = ",}";
           char *token;
           char *ctx = NULL;

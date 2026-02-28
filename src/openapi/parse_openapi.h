@@ -485,6 +485,7 @@ struct OpenAPI_Parameter {
   enum OpenAPI_ParamIn in; /**< Location */
   int required;            /**< 1 if mandatory, 0 optional */
   char *type;              /**< Basic type ("integer", "string", "array") */
+  char *summary;           /**< Optional summary (for Reference Object) */
   char *description;       /**< Optional description */
   char *extensions_json;   /**< Serialized JSON for x- extensions */
   char *ref;               /**< Optional $ref to a parameter component */

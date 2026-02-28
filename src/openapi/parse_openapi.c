@@ -292,6 +292,7 @@ static void free_servers_array(struct OpenAPI_Server *servers,
 
 void openapi_spec_init(struct OpenAPI_Spec *const spec) {
   if (spec) {
+    memset(spec, 0, sizeof(struct OpenAPI_Spec));
     spec->openapi_version = NULL;
     spec->is_schema_document = 0;
     spec->schema_root_json = NULL;
@@ -1671,8 +1672,11 @@ static int parse_any_field(const JSON_Object *const obj, const char *const key,
   val = json_object_get_value(obj, key);
   if (!val)
     return 0;
-  if (parse_any_value(val, out) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_any_value(val, out);
+    if (_rc != 0)
+      return _rc;
+  }
   *out_set = 1;
   return 0;
 }
@@ -1932,9 +1936,12 @@ parse_schema_constraints(const JSON_Object *const schema,
     return 0;
 
   if (target->example && target->example_set) {
-    if (parse_any_field(schema, "example", target->example,
-                        target->example_set) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_any_field(schema, "example", target->example,
+                                target->example_set);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   if (target->has_min && target->min_val) {
@@ -2141,13 +2148,19 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
       return ENOMEM;
   }
   if (src->data_value_set && !dst->data_value_set) {
-    if (copy_any_value(&dst->data_value, &src->data_value) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->data_value, &src->data_value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->data_value_set = 1;
   }
   if (src->value_set && !dst->value_set) {
-    if (copy_any_value(&dst->value, &src->value) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->value, &src->value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->value_set = 1;
   }
   if (src->serialized_value && !dst->serialized_value) {
@@ -2248,8 +2261,11 @@ static int parse_example_object(const JSON_Object *const ex_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Example *comp = find_component_example(spec, ref);
       if (comp) {
-        if (copy_example_fields(out, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_example_fields(out, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
   }
@@ -2267,15 +2283,24 @@ static int parse_example_object(const JSON_Object *const ex_obj,
       return ENOMEM;
   }
   if (!ref) {
-    if (collect_extensions(ex_obj, &out->extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(ex_obj, &out->extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
-  if (parse_any_field(ex_obj, "dataValue", &out->data_value,
-                      &out->data_value_set) != 0)
-    return ENOMEM;
-  if (parse_any_field(ex_obj, "value", &out->value, &out->value_set) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_any_field(ex_obj, "dataValue", &out->data_value,
+                              &out->data_value_set);
+    if (_rc != 0)
+      return _rc;
+  }
+  {
+    int _rc = parse_any_field(ex_obj, "value", &out->value, &out->value_set);
+    if (_rc != 0)
+      return _rc;
+  }
 
   serialized = json_object_get_string(ex_obj, "serializedValue");
   if (serialized) {
@@ -2327,9 +2352,12 @@ static int parse_examples_object(const JSON_Object *const examples,
     const JSON_Object *ex_obj =
         json_value_get_object(json_object_get_value_at(examples, i));
     if (ex_obj) {
-      if (parse_example_object(ex_obj, name, &(*out)[i], spec, resolve_refs) !=
-          0)
-        return ENOMEM;
+      {
+        int rc =
+            parse_example_object(ex_obj, name, &(*out)[i], spec, resolve_refs);
+        if (rc != 0)
+          return rc;
+      }
     }
   }
   return 0;
@@ -2470,10 +2498,17 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
         if (!flow->device_authorization_url)
           return ENOMEM;
       }
-      if (parse_oauth_scopes(scopes_obj, &flow->scopes, &flow->n_scopes) != 0)
-        return ENOMEM;
-      if (collect_extensions(flow_obj, &flow->extensions_json) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            parse_oauth_scopes(scopes_obj, &flow->scopes, &flow->n_scopes);
+        if (_rc != 0)
+          return _rc;
+      }
+      {
+        int _rc = collect_extensions(flow_obj, &flow->extensions_json);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -3343,9 +3378,12 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
   }
   if (src->type_union && src->n_type_union > 0) {
-    if (copy_string_array(&dst->type_union, &dst->n_type_union, src->type_union,
-                          src->n_type_union) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_string_array(&dst->type_union, &dst->n_type_union,
+                                  src->type_union, src->n_type_union);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->format) {
     dst->format = c_cdd_strdup(src->format);
@@ -3373,9 +3411,13 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
   }
   if (src->items_type_union && src->n_items_type_union > 0) {
-    if (copy_string_array(&dst->items_type_union, &dst->n_items_type_union,
-                          src->items_type_union, src->n_items_type_union) != 0)
-      return ENOMEM;
+    {
+      int _rc =
+          copy_string_array(&dst->items_type_union, &dst->n_items_type_union,
+                            src->items_type_union, src->n_items_type_union);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->items_ref) {
     dst->items_ref = c_cdd_strdup(src->items_ref);
@@ -3418,8 +3460,11 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->write_only = src->write_only;
   }
   if (src->const_value_set) {
-    if (copy_any_value(&dst->const_value, &src->const_value) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->const_value, &src->const_value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->const_value_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -3429,18 +3474,27 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_any_value(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_any_value(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->default_value_set) {
-    if (copy_any_value(&dst->default_value, &src->default_value) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->default_value, &src->default_value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->default_value_set = 1;
   }
   if (src->enum_values && src->n_enum_values > 0) {
@@ -3450,8 +3504,11 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
     dst->n_enum_values = src->n_enum_values;
     for (i = 0; i < src->n_enum_values; ++i) {
-      if (copy_any_value(&dst->enum_values[i], &src->enum_values[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_any_value(&dst->enum_values[i], &src->enum_values[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->schema_extra_json) {
@@ -3551,9 +3608,12 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
     dst->n_items_enum_values = src->n_items_enum_values;
     for (i = 0; i < src->n_items_enum_values; ++i) {
-      if (copy_any_value(&dst->items_enum_values[i],
-                         &src->items_enum_values[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_any_value(&dst->items_enum_values[i],
+                                 &src->items_enum_values[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   dst->has_min = src->has_min;
@@ -3597,8 +3657,11 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->items_max_items = src->items_max_items;
   dst->items_unique_items = src->items_unique_items;
   if (src->items_example_set) {
-    if (copy_any_value(&dst->items_example, &src->items_example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->items_example, &src->items_example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->items_example_set = 1;
   }
   if (src->items_examples && src->n_items_examples > 0) {
@@ -3608,19 +3671,30 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       return ENOMEM;
     dst->n_items_examples = src->n_items_examples;
     for (i = 0; i < src->n_items_examples; ++i) {
-      if (copy_any_value(&dst->items_examples[i], &src->items_examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            copy_any_value(&dst->items_examples[i], &src->items_examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->items_const_value_set) {
-    if (copy_any_value(&dst->items_const_value, &src->items_const_value) != 0)
-      return ENOMEM;
+    {
+      int _rc =
+          copy_any_value(&dst->items_const_value, &src->items_const_value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->items_const_value_set = 1;
   }
   if (src->items_default_value_set) {
-    if (copy_any_value(&dst->items_default_value, &src->items_default_value) !=
-        0)
-      return ENOMEM;
+    {
+      int _rc =
+          copy_any_value(&dst->items_default_value, &src->items_default_value);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->items_default_value_set = 1;
   }
   if (src->items_extra_json) {
@@ -3660,8 +3734,11 @@ static int copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
                                      const struct OpenAPI_SchemaRef *item) {
   if (!dst || !item)
     return 0;
-  if (copy_schema_ref(dst, item) != 0)
-    return ENOMEM;
+  {
+    int _rc = copy_schema_ref(dst, item);
+    if (_rc != 0)
+      return _rc;
+  }
   dst->is_array = 1;
   if (dst->schema_is_boolean) {
     dst->items_schema_is_boolean = 1;
@@ -3806,15 +3883,21 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
         if (!dst->parameters[i].name)
           return ENOMEM;
       }
-      if (copy_any_value(&dst->parameters[i].value,
-                         &src->parameters[i].value) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_any_value(&dst->parameters[i].value,
+                                 &src->parameters[i].value);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->request_body_set) {
     dst->request_body_set = 1;
-    if (copy_any_value(&dst->request_body, &src->request_body) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->request_body, &src->request_body);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->server_set && src->server) {
     dst->server =
@@ -3822,8 +3905,11 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
     if (!dst->server)
       return ENOMEM;
     dst->server_set = 1;
-    if (copy_server_object(dst->server, src->server) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_server_object(dst->server, src->server);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   return 0;
 }
@@ -3871,15 +3957,21 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
       return ENOMEM;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
-    if (copy_media_type_array(
-            &dst->content_media_types, &dst->n_content_media_types,
-            src->content_media_types, src->n_content_media_types) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_media_type_array(
+          &dst->content_media_types, &dst->n_content_media_types,
+          src->content_media_types, src->n_content_media_types);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->schema_set) {
     dst->schema_set = 1;
-    if (copy_schema_ref(&dst->schema, &src->schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(&dst->schema, &src->schema);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->items_type) {
     dst->items_type = c_cdd_strdup(src->items_type);
@@ -3887,8 +3979,11 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
       return ENOMEM;
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -3899,8 +3994,11 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_example_fields(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_example_fields(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -3935,15 +4033,21 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
       return ENOMEM;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
-    if (copy_media_type_array(
-            &dst->content_media_types, &dst->n_content_media_types,
-            src->content_media_types, src->n_content_media_types) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_media_type_array(
+          &dst->content_media_types, &dst->n_content_media_types,
+          src->content_media_types, src->n_content_media_types);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->schema_set) {
     dst->schema_set = 1;
-    if (copy_schema_ref(&dst->schema, &src->schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(&dst->schema, &src->schema);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->type) {
     dst->type = c_cdd_strdup(src->type);
@@ -3956,8 +4060,11 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
       return ENOMEM;
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -3968,8 +4075,11 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_example_fields(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_example_fields(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -4010,8 +4120,11 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
         if (!dst_hdr->name)
           return ENOMEM;
       }
-      if (copy_header_fields(dst_hdr, src_hdr) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_header_fields(dst_hdr, src_hdr);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->encoding && src->n_encoding > 0) {
@@ -4021,8 +4134,11 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
       return ENOMEM;
     dst->n_encoding = src->n_encoding;
     for (i = 0; i < src->n_encoding; ++i) {
-      if (copy_encoding_fields(&dst->encoding[i], &src->encoding[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_encoding_fields(&dst->encoding[i], &src->encoding[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->prefix_encoding && src->n_prefix_encoding > 0) {
@@ -4032,9 +4148,12 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
       return ENOMEM;
     dst->n_prefix_encoding = src->n_prefix_encoding;
     for (i = 0; i < src->n_prefix_encoding; ++i) {
-      if (copy_encoding_fields(&dst->prefix_encoding[i],
-                               &src->prefix_encoding[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_encoding_fields(&dst->prefix_encoding[i],
+                                       &src->prefix_encoding[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->item_encoding) {
@@ -4043,8 +4162,11 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
     if (!dst->item_encoding)
       return ENOMEM;
     dst->item_encoding_set = 1;
-    if (copy_encoding_fields(dst->item_encoding, src->item_encoding) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_encoding_fields(dst->item_encoding, src->item_encoding);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   return 0;
 }
@@ -4066,20 +4188,29 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
   }
   if (src->schema_set || src->schema.ref_name || src->schema.inline_type ||
       src->schema.is_array || src->schema.n_multipart_fields > 0) {
-    if (copy_schema_ref(&dst->schema, &src->schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(&dst->schema, &src->schema);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->schema_set = 1;
   }
   if (src->item_schema_set || src->item_schema.ref_name ||
       src->item_schema.inline_type || src->item_schema.is_array ||
       src->item_schema.n_multipart_fields > 0) {
-    if (copy_schema_ref(&dst->item_schema, &src->item_schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(&dst->item_schema, &src->item_schema);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->item_schema_set = 1;
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -4089,8 +4220,11 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_example_fields(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_example_fields(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->encoding && src->n_encoding > 0) {
@@ -4100,8 +4234,11 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
       return ENOMEM;
     dst->n_encoding = src->n_encoding;
     for (i = 0; i < src->n_encoding; ++i) {
-      if (copy_encoding_fields(&dst->encoding[i], &src->encoding[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_encoding_fields(&dst->encoding[i], &src->encoding[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->prefix_encoding && src->n_prefix_encoding > 0) {
@@ -4111,9 +4248,12 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
       return ENOMEM;
     dst->n_prefix_encoding = src->n_prefix_encoding;
     for (i = 0; i < src->n_prefix_encoding; ++i) {
-      if (copy_encoding_fields(&dst->prefix_encoding[i],
-                               &src->prefix_encoding[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_encoding_fields(&dst->prefix_encoding[i],
+                                       &src->prefix_encoding[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->item_encoding) {
@@ -4122,8 +4262,11 @@ static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
     if (!dst->item_encoding)
       return ENOMEM;
     dst->item_encoding_set = 1;
-    if (copy_encoding_fields(dst->item_encoding, src->item_encoding) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_encoding_fields(dst->item_encoding, src->item_encoding);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   return 0;
 }
@@ -4177,14 +4320,20 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
       return ENOMEM;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
-    if (copy_media_type_array(
-            &dst->content_media_types, &dst->n_content_media_types,
-            src->content_media_types, src->n_content_media_types) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_media_type_array(
+          &dst->content_media_types, &dst->n_content_media_types,
+          src->content_media_types, src->n_content_media_types);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -4194,8 +4343,11 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_example_fields(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_example_fields(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_headers > 0 && src->headers) {
@@ -4212,8 +4364,11 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         if (!dst_hdr->name)
           return ENOMEM;
       }
-      if (copy_header_fields(dst_hdr, src_hdr) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_header_fields(dst_hdr, src_hdr);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_links > 0 && src->links) {
@@ -4235,8 +4390,11 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
         if (!dst_link->ref)
           return ENOMEM;
       }
-      if (copy_link_fields(dst_link, src_link) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_link_fields(dst_link, src_link);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return copy_schema_ref(&dst->schema, &src->schema);
@@ -4336,8 +4494,11 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
       return ENOMEM;
     dst->n_paths = src->n_paths;
     for (i = 0; i < src->n_paths; ++i) {
-      if (copy_path_fields(&dst->paths[i], &src->paths[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_path_fields(&dst->paths[i], &src->paths[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -4378,9 +4539,12 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       return ENOMEM;
   }
   if (src->n_security > 0 && src->security) {
-    if (copy_security_requirement_sets(&dst->security, &dst->n_security,
-                                       src->security, src->n_security) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_security_requirement_sets(&dst->security, &dst->n_security,
+                                               src->security, src->n_security);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->n_parameters > 0 && src->parameters) {
     dst->parameters = (struct OpenAPI_Parameter *)calloc(
@@ -4389,8 +4553,12 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       return ENOMEM;
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
-      if (copy_parameter_fields(&dst->parameters[i], &src->parameters[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            copy_parameter_fields(&dst->parameters[i], &src->parameters[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_tags > 0 && src->tags) {
@@ -4406,13 +4574,19 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       }
     }
   }
-  if (copy_schema_ref(&dst->req_body, &src->req_body) != 0)
-    return ENOMEM;
+  {
+    int _rc = copy_schema_ref(&dst->req_body, &src->req_body);
+    if (_rc != 0)
+      return _rc;
+  }
   if (src->n_req_body_media_types > 0 && src->req_body_media_types) {
-    if (copy_media_type_array(
-            &dst->req_body_media_types, &dst->n_req_body_media_types,
-            src->req_body_media_types, src->n_req_body_media_types) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_media_type_array(
+          &dst->req_body_media_types, &dst->n_req_body_media_types,
+          src->req_body_media_types, src->n_req_body_media_types);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   dst->req_body_required = src->req_body_required;
   dst->req_body_required_set = src->req_body_required_set;
@@ -4455,8 +4629,11 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       return ENOMEM;
     dst->n_servers = src->n_servers;
     for (i = 0; i < src->n_servers; ++i) {
-      if (copy_server_object(&dst->servers[i], &src->servers[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_server_object(&dst->servers[i], &src->servers[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_responses > 0 && src->responses) {
@@ -4466,8 +4643,11 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       return ENOMEM;
     dst->n_responses = src->n_responses;
     for (i = 0; i < src->n_responses; ++i) {
-      if (copy_response_fields(&dst->responses[i], &src->responses[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_response_fields(&dst->responses[i], &src->responses[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_callbacks > 0 && src->callbacks) {
@@ -4477,8 +4657,11 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
       return ENOMEM;
     dst->n_callbacks = src->n_callbacks;
     for (i = 0; i < src->n_callbacks; ++i) {
-      if (copy_callback_fields(&dst->callbacks[i], &src->callbacks[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_callback_fields(&dst->callbacks[i], &src->callbacks[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -4521,8 +4704,12 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
       return ENOMEM;
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
-      if (copy_parameter_fields(&dst->parameters[i], &src->parameters[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            copy_parameter_fields(&dst->parameters[i], &src->parameters[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_servers > 0 && src->servers && !dst->servers) {
@@ -4532,8 +4719,11 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
       return ENOMEM;
     dst->n_servers = src->n_servers;
     for (i = 0; i < src->n_servers; ++i) {
-      if (copy_server_object(&dst->servers[i], &src->servers[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_server_object(&dst->servers[i], &src->servers[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_operations > 0 && src->operations && !dst->operations) {
@@ -4543,8 +4733,12 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
       return ENOMEM;
     dst->n_operations = src->n_operations;
     for (i = 0; i < src->n_operations; ++i) {
-      if (copy_operation_fields(&dst->operations[i], &src->operations[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            copy_operation_fields(&dst->operations[i], &src->operations[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   if (src->n_additional_operations > 0 && src->additional_operations &&
@@ -4555,9 +4749,12 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
       return ENOMEM;
     dst->n_additional_operations = src->n_additional_operations;
     for (i = 0; i < src->n_additional_operations; ++i) {
-      if (copy_operation_fields(&dst->additional_operations[i],
-                                &src->additional_operations[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_operation_fields(&dst->additional_operations[i],
+                                        &src->additional_operations[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   return 0;
@@ -4607,8 +4804,11 @@ static int parse_info(const JSON_Object *const root_obj,
     if (!out->info.version)
       return ENOMEM;
   }
-  if (collect_extensions(info_obj, &out->info.extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(info_obj, &out->info.extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   contact_obj = json_object_get_object(info_obj, "contact");
   if (contact_obj) {
@@ -4630,9 +4830,12 @@ static int parse_info(const JSON_Object *const root_obj,
       if (!out->info.contact.email)
         return ENOMEM;
     }
-    if (collect_extensions(contact_obj, &out->info.contact.extensions_json) !=
-        0)
-      return ENOMEM;
+    {
+      int _rc =
+          collect_extensions(contact_obj, &out->info.contact.extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   license_obj = json_object_get_object(info_obj, "license");
@@ -4660,9 +4863,12 @@ static int parse_info(const JSON_Object *const root_obj,
       if (!out->info.license.url)
         return ENOMEM;
     }
-    if (collect_extensions(license_obj, &out->info.license.extensions_json) !=
-        0)
-      return ENOMEM;
+    {
+      int _rc =
+          collect_extensions(license_obj, &out->info.license.extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   return 0;
@@ -4688,8 +4894,11 @@ static int parse_external_docs(const JSON_Object *const obj,
   out->url = c_cdd_strdup(url);
   if (!out->url)
     return ENOMEM;
-  if (collect_extensions(obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -4755,8 +4964,11 @@ static int parse_discriminator_object(const JSON_Object *const obj,
     }
   }
 
-  if (collect_extensions(obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -4808,8 +5020,11 @@ static int parse_xml_object(const JSON_Object *const obj,
     out->wrapped = json_object_get_boolean(obj, "wrapped") == 1;
   }
 
-  if (collect_extensions(obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -4881,8 +5096,11 @@ static int parse_tags(const JSON_Object *const root_obj,
       if (rc != 0)
         return rc;
     }
-    if (collect_extensions(tag_obj, &out->tags[i].extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(tag_obj, &out->tags[i].extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   return 0;
@@ -5079,8 +5297,11 @@ static int parse_server_object(const JSON_Object *const srv_obj,
     if (!out_srv->name)
       return ENOMEM;
   }
-  if (collect_extensions(srv_obj, &out_srv->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(srv_obj, &out_srv->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   if (vars) {
     size_t vcount = json_object_get_count(vars);
@@ -5142,8 +5363,11 @@ static int parse_server_object(const JSON_Object *const srv_obj,
                 return EINVAL;
             }
           }
-          if (collect_extensions(v_obj, &curr->extensions_json) != 0)
-            return ENOMEM;
+          {
+            int _rc = collect_extensions(v_obj, &curr->extensions_json);
+            if (_rc != 0)
+              return _rc;
+          }
         }
       }
     }
@@ -5188,8 +5412,11 @@ static int parse_servers_array(const JSON_Object *const parent,
   for (i = 0; i < count; ++i) {
     const JSON_Object *srv_obj = json_array_get_object(servers, i);
     if (srv_obj) {
-      if (parse_server_object(srv_obj, &(*out_servers)[i]) != 0)
-        return ENOMEM;
+      {
+        int rc = parse_server_object(srv_obj, &(*out_servers)[i]);
+        if (rc != 0)
+          return rc;
+      }
     }
   }
 
@@ -5598,17 +5825,23 @@ static int parse_schema_ref(const JSON_Object *const schema,
 
   type_arr = json_object_get_array(schema, "type");
   if (type_arr) {
-    if (parse_string_enum_array(type_arr, &out->type_union,
-                                &out->n_type_union) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_string_enum_array(type_arr, &out->type_union,
+                                        &out->n_type_union);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   type = parse_schema_type(schema, &nullable);
   out->nullable = nullable;
 
-  if (parse_any_field(schema, "default", &out->default_value,
-                      &out->default_value_set) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_any_field(schema, "default", &out->default_value,
+                              &out->default_value_set);
+    if (_rc != 0)
+      return _rc;
+  }
   if (collect_schema_extras(schema, k_schema_skip_keys,
                             sizeof(k_schema_skip_keys) /
                                 sizeof(k_schema_skip_keys[0]),
@@ -5623,14 +5856,21 @@ static int parse_schema_ref(const JSON_Object *const schema,
         &out->min_items,    &out->has_max_items, &out->max_items,
         &out->unique_items, &out->example,       &out->example_set,
     };
-    if (parse_schema_constraints(schema, &target) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_schema_constraints(schema, &target);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   enum_arr = json_object_get_array(schema, "enum");
   if (enum_arr) {
-    if (parse_any_array(enum_arr, &out->enum_values, &out->n_enum_values) != 0)
-      return ENOMEM;
+    {
+      int _rc =
+          parse_any_array(enum_arr, &out->enum_values, &out->n_enum_values);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   if (format) {
@@ -5678,8 +5918,11 @@ static int parse_schema_ref(const JSON_Object *const schema,
         json_object_get_object(schema, "discriminator");
     if (disc_obj) {
       out->discriminator_set = 1;
-      if (parse_discriminator_object(disc_obj, &out->discriminator) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_discriminator_object(disc_obj, &out->discriminator);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -5687,8 +5930,11 @@ static int parse_schema_ref(const JSON_Object *const schema,
     const JSON_Object *xml_obj = json_object_get_object(schema, "xml");
     if (xml_obj) {
       out->xml_set = 1;
-      if (parse_xml_object(xml_obj, &out->xml) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_xml_object(xml_obj, &out->xml);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -5711,14 +5957,20 @@ static int parse_schema_ref(const JSON_Object *const schema,
     out->write_only = (write_only_val == 1);
   }
 
-  if (parse_any_field(schema, "const", &out->const_value,
-                      &out->const_value_set) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_any_field(schema, "const", &out->const_value,
+                              &out->const_value_set);
+    if (_rc != 0)
+      return _rc;
+  }
 
   examples_arr = json_object_get_array(schema, "examples");
   if (examples_arr) {
-    if (parse_any_array(examples_arr, &out->examples, &out->n_examples) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_any_array(examples_arr, &out->examples, &out->n_examples);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   if (ref_val) {
@@ -5786,16 +6038,22 @@ static int parse_schema_ref(const JSON_Object *const schema,
             &out->items_max_items,     &out->items_unique_items,
             &out->items_example,       &out->items_example_set,
         };
-        if (parse_schema_constraints(items, &target) != 0)
-          return ENOMEM;
+        {
+          int _rc = parse_schema_constraints(items, &target);
+          if (_rc != 0)
+            return _rc;
+        }
       }
       item_type = parse_schema_type(items, &items_nullable);
       out->items_nullable = items_nullable;
       item_types_arr = json_object_get_array(items, "type");
       if (item_types_arr) {
-        if (parse_string_enum_array(item_types_arr, &out->items_type_union,
-                                    &out->n_items_type_union) != 0)
-          return ENOMEM;
+        {
+          int _rc = parse_string_enum_array(
+              item_types_arr, &out->items_type_union, &out->n_items_type_union);
+          if (_rc != 0)
+            return _rc;
+        }
       }
       if (item_format) {
         out->items_format = c_cdd_strdup(item_format);
@@ -5814,22 +6072,34 @@ static int parse_schema_ref(const JSON_Object *const schema,
       }
       item_enum = json_object_get_array(items, "enum");
       if (item_enum) {
-        if (parse_any_array(item_enum, &out->items_enum_values,
-                            &out->n_items_enum_values) != 0)
-          return ENOMEM;
+        {
+          int _rc = parse_any_array(item_enum, &out->items_enum_values,
+                                    &out->n_items_enum_values);
+          if (_rc != 0)
+            return _rc;
+        }
       }
       item_examples = json_object_get_array(items, "examples");
       if (item_examples) {
-        if (parse_any_array(item_examples, &out->items_examples,
-                            &out->n_items_examples) != 0)
-          return ENOMEM;
+        {
+          int _rc = parse_any_array(item_examples, &out->items_examples,
+                                    &out->n_items_examples);
+          if (_rc != 0)
+            return _rc;
+        }
       }
-      if (parse_any_field(items, "const", &out->items_const_value,
-                          &out->items_const_value_set) != 0)
-        return ENOMEM;
-      if (parse_any_field(items, "default", &out->items_default_value,
-                          &out->items_default_value_set) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_any_field(items, "const", &out->items_const_value,
+                                  &out->items_const_value_set);
+        if (_rc != 0)
+          return _rc;
+      }
+      {
+        int _rc = parse_any_field(items, "default", &out->items_default_value,
+                                  &out->items_default_value_set);
+        if (_rc != 0)
+          return _rc;
+      }
       if (collect_schema_extras(items, k_items_skip_keys,
                                 sizeof(k_items_skip_keys) /
                                     sizeof(k_items_skip_keys[0]),
@@ -6212,8 +6482,11 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
   if (!spec || !schema_obj || !out_name)
     return EINVAL;
 
-  if (struct_fields_init(&tmp) != 0)
-    return ENOMEM;
+  {
+    int _rc = struct_fields_init(&tmp);
+    if (_rc != 0)
+      return _rc;
+  }
 
   rc = json_object_to_struct_fields_ex(schema_obj, &tmp, NULL, base_name);
   if (rc != 0) {
@@ -6387,9 +6660,12 @@ static int parse_security_schemes(const JSON_Object *const components,
       out->security_schemes[i].deprecated =
           json_object_get_boolean(sec_obj, "deprecated") == 1;
     }
-    if (collect_extensions(sec_obj,
-                           &out->security_schemes[i].extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(sec_obj,
+                                   &out->security_schemes[i].extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
 
     if (out->security_schemes[i].type == OA_SEC_APIKEY) {
       const char *in = json_object_get_string(sec_obj, "in");
@@ -6473,7 +6749,7 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
   const char *media_type;
   const char *media_ref;
   const struct OpenAPI_SchemaRef *resolved_schema;
-  struct OpenAPI_SchemaRef parsed_schema;
+  struct OpenAPI_SchemaRef parsed_schema = {0};
   int parsed_schema_set;
   const char *type;
 
@@ -6488,8 +6764,11 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Header *comp = find_component_header(spec, ref);
       if (comp) {
-        if (copy_header_fields(out_hdr, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_header_fields(out_hdr, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     desc = json_object_get_string(hdr_obj, "description");
@@ -6552,10 +6831,13 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
   if (content) {
     if (json_object_get_count(content) != 1)
       return EINVAL;
-    if (parse_content_object(content, &out_hdr->content_media_types,
-                             &out_hdr->n_content_media_types, spec,
-                             resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_content_object(content, &out_hdr->content_media_types,
+                                     &out_hdr->n_content_media_types, spec,
+                                     resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
@@ -6608,10 +6890,16 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
                           : NULL;
 
   if (resolved_schema) {
-    if (apply_schema_ref_to_header(out_hdr, resolved_schema) != 0)
-      return ENOMEM;
-    if (copy_schema_ref(&out_hdr->schema, resolved_schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = apply_schema_ref_to_header(out_hdr, resolved_schema);
+      if (_rc != 0)
+        return _rc;
+    }
+    {
+      int _rc = copy_schema_ref(&out_hdr->schema, resolved_schema);
+      if (_rc != 0)
+        return _rc;
+    }
     out_hdr->schema_set = 1;
   } else if (effective_schema_val &&
              json_value_get_type(effective_schema_val) == JSONBoolean) {
@@ -6620,8 +6908,11 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
         json_value_get_boolean(effective_schema_val);
     out_hdr->schema_set = 1;
   } else if (effective_schema) {
-    if (parse_schema_ref(effective_schema, &parsed_schema, spec) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
+      if (_rc != 0)
+        return _rc;
+    }
     parsed_schema_set = 1;
     if (apply_schema_ref_to_header(out_hdr, &parsed_schema) != 0) {
       free_schema_ref_content(&parsed_schema);
@@ -6646,29 +6937,41 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
   if (object_has_example_and_examples(hdr_obj))
     return EINVAL;
 
-  if (parse_examples_object(json_object_get_object(hdr_obj, "examples"),
-                            &out_hdr->examples, &out_hdr->n_examples, spec,
-                            resolve_refs) != 0)
-    return ENOMEM;
+  {
+    int rc = parse_examples_object(json_object_get_object(hdr_obj, "examples"),
+                                   &out_hdr->examples, &out_hdr->n_examples,
+                                   spec, resolve_refs);
+    if (rc != 0)
+      return rc;
+  }
   if (out_hdr->n_examples == 0) {
-    if (parse_any_field(hdr_obj, "example", &out_hdr->example,
-                        &out_hdr->example_set) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_any_field(hdr_obj, "example", &out_hdr->example,
+                                &out_hdr->example_set);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (out_hdr->example_set || out_hdr->n_examples > 0) {
     out_hdr->example_location = OA_EXAMPLE_LOC_OBJECT;
   } else if (media_obj && !media_ref) {
-    if (parse_media_examples(media_obj, &out_hdr->example,
-                             &out_hdr->example_set, &out_hdr->examples,
-                             &out_hdr->n_examples, spec, resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int rc = parse_media_examples(media_obj, &out_hdr->example,
+                                    &out_hdr->example_set, &out_hdr->examples,
+                                    &out_hdr->n_examples, spec, resolve_refs);
+      if (rc != 0)
+        return rc;
+    }
     if (out_hdr->example_set || out_hdr->n_examples > 0) {
       out_hdr->example_location = OA_EXAMPLE_LOC_MEDIA;
     }
   }
 
-  if (collect_extensions(hdr_obj, &out_hdr->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(hdr_obj, &out_hdr->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   if (parsed_schema_set)
     free_schema_ref_content(&parsed_schema);
@@ -6738,8 +7041,11 @@ static int parse_link_object(const JSON_Object *const link_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Link *comp = find_component_link(spec, ref);
       if (comp) {
-        if (copy_link_fields(out_link, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_link_fields(out_link, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     summary = json_object_get_string(link_obj, "summary");
@@ -6784,19 +7090,28 @@ static int parse_link_object(const JSON_Object *const link_obj,
   }
   if ((op_ref && op_id) || (!op_ref && !op_id))
     return EINVAL;
-  if (collect_extensions(link_obj, &out_link->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(link_obj, &out_link->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   params_obj = json_object_get_object(link_obj, "parameters");
-  if (parse_link_parameters(params_obj, &out_link->parameters,
-                            &out_link->n_parameters) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_link_parameters(params_obj, &out_link->parameters,
+                                    &out_link->n_parameters);
+    if (_rc != 0)
+      return _rc;
+  }
 
   req_body_val = json_object_get_value(link_obj, "requestBody");
   if (req_body_val) {
     out_link->request_body_set = 1;
-    if (parse_any_value(req_body_val, &out_link->request_body) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_any_value(req_body_val, &out_link->request_body);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   server_obj = json_object_get_object(link_obj, "server");
@@ -6806,8 +7121,11 @@ static int parse_link_object(const JSON_Object *const link_obj,
     if (!out_link->server)
       return ENOMEM;
     out_link->server_set = 1;
-    if (parse_server_object(server_obj, out_link->server) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_server_object(server_obj, out_link->server);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   return 0;
@@ -6849,8 +7167,11 @@ static int parse_links_object(const JSON_Object *const links,
         return ENOMEM;
     }
     if (link_obj) {
-      if (parse_link_object(link_obj, curr, spec, resolve_refs) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_link_object(link_obj, curr, spec, resolve_refs);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -6979,16 +7300,23 @@ static int parse_encoding_object(const JSON_Object *const enc_obj,
 
   nested_encoding_obj = json_object_get_object(enc_obj, "encoding");
   if (nested_encoding_obj) {
-    if (parse_encoding_map(nested_encoding_obj, &out->encoding,
-                           &out->n_encoding, spec, resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_encoding_map(nested_encoding_obj, &out->encoding,
+                                   &out->n_encoding, spec, resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   prefix_encoding_arr = json_object_get_array(enc_obj, "prefixEncoding");
   if (prefix_encoding_arr) {
-    if (parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
-                             &out->n_prefix_encoding, spec, resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc =
+          parse_encoding_array(prefix_encoding_arr, &out->prefix_encoding,
+                               &out->n_prefix_encoding, spec, resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   item_encoding_obj = json_object_get_object(enc_obj, "itemEncoding");
@@ -6998,13 +7326,19 @@ static int parse_encoding_object(const JSON_Object *const enc_obj,
     if (!out->item_encoding)
       return ENOMEM;
     out->item_encoding_set = 1;
-    if (parse_encoding_object(item_encoding_obj, out->item_encoding, spec,
-                              resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_encoding_object(item_encoding_obj, out->item_encoding,
+                                      spec, resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
-  if (collect_extensions(enc_obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(enc_obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -7126,7 +7460,7 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   const char *media_type;
   const char *media_ref;
   const struct OpenAPI_SchemaRef *resolved_schema;
-  struct OpenAPI_SchemaRef parsed_schema;
+  struct OpenAPI_SchemaRef parsed_schema = {0};
   int parsed_schema_set;
   const char *type;
   const char *style_str;
@@ -7145,8 +7479,11 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
       const struct OpenAPI_Parameter *comp =
           find_component_parameter(spec, ref);
       if (comp) {
-        if (copy_parameter_fields(out_param, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_parameter_fields(out_param, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     desc = json_object_get_string(p_obj, "description");
@@ -7176,10 +7513,13 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   if (content) {
     if (json_object_get_count(content) != 1)
       return EINVAL;
-    if (parse_content_object(content, &out_param->content_media_types,
-                             &out_param->n_content_media_types, spec,
-                             resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_content_object(content, &out_param->content_media_types,
+                                     &out_param->n_content_media_types, spec,
+                                     resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
@@ -7282,11 +7622,17 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   }
   if (resolved_schema) {
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
-      if (apply_schema_ref_to_param(out_param, resolved_schema) != 0)
-        return ENOMEM;
+      {
+        int _rc = apply_schema_ref_to_param(out_param, resolved_schema);
+        if (_rc != 0)
+          return _rc;
+      }
     }
-    if (copy_schema_ref(&out_param->schema, resolved_schema) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(&out_param->schema, resolved_schema);
+      if (_rc != 0)
+        return _rc;
+    }
     out_param->schema_set = 1;
   } else if (effective_schema_val &&
              json_value_get_type(effective_schema_val) == JSONBoolean) {
@@ -7295,8 +7641,11 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
         json_value_get_boolean(effective_schema_val);
     out_param->schema_set = 1;
   } else if (effective_schema) {
-    if (parse_schema_ref(effective_schema, &parsed_schema, spec) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_schema_ref(effective_schema, &parsed_schema, spec);
+      if (_rc != 0)
+        return _rc;
+    }
     parsed_schema_set = 1;
     if (out_param->in != OA_PARAM_IN_QUERYSTRING) {
       if (apply_schema_ref_to_param(out_param, &parsed_schema) != 0) {
@@ -7377,29 +7726,41 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   if (object_has_example_and_examples(p_obj))
     return EINVAL;
 
-  if (parse_examples_object(json_object_get_object(p_obj, "examples"),
-                            &out_param->examples, &out_param->n_examples, spec,
-                            resolve_refs) != 0)
-    return ENOMEM;
+  {
+    int rc = parse_examples_object(json_object_get_object(p_obj, "examples"),
+                                   &out_param->examples, &out_param->n_examples,
+                                   spec, resolve_refs);
+    if (rc != 0)
+      return rc;
+  }
   if (out_param->n_examples == 0) {
-    if (parse_any_field(p_obj, "example", &out_param->example,
-                        &out_param->example_set) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_any_field(p_obj, "example", &out_param->example,
+                                &out_param->example_set);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (out_param->example_set || out_param->n_examples > 0) {
     out_param->example_location = OA_EXAMPLE_LOC_OBJECT;
   } else if (media_obj && !media_ref) {
-    if (parse_media_examples(media_obj, &out_param->example,
-                             &out_param->example_set, &out_param->examples,
-                             &out_param->n_examples, spec, resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int rc = parse_media_examples(
+          media_obj, &out_param->example, &out_param->example_set,
+          &out_param->examples, &out_param->n_examples, spec, resolve_refs);
+      if (rc != 0)
+        return rc;
+    }
     if (out_param->example_set || out_param->n_examples > 0) {
       out_param->example_location = OA_EXAMPLE_LOC_MEDIA;
     }
   }
 
-  if (collect_extensions(p_obj, &out_param->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(p_obj, &out_param->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   if (parsed_schema_set)
     free_schema_ref_content(&parsed_schema);
@@ -7439,8 +7800,11 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_MediaType *mt = find_component_media_type(spec, ref);
       if (mt) {
-        if (copy_media_type_fields(out, mt) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_media_type_fields(out, mt);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     return 0;
@@ -7454,8 +7818,11 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
       out->schema.schema_boolean_value = json_value_get_boolean(schema_val);
       out->schema_set = 1;
     } else if (schema_obj) {
-      if (parse_schema_ref(schema_obj, &out->schema, spec) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_schema_ref(schema_obj, &out->schema, spec);
+        if (_rc != 0)
+          return _rc;
+      }
       out->schema_set = 1;
     }
   }
@@ -7470,8 +7837,11 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
           json_value_get_boolean(item_schema_val);
       out->item_schema_set = 1;
     } else if (item_schema_obj) {
-      if (parse_schema_ref(item_schema_obj, &out->item_schema, spec) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_schema_ref(item_schema_obj, &out->item_schema, spec);
+        if (_rc != 0)
+          return _rc;
+      }
       out->item_schema_set = 1;
     }
   }
@@ -7507,13 +7877,19 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
     }
   }
 
-  if (parse_media_examples(media_obj, &out->example, &out->example_set,
-                           &out->examples, &out->n_examples, spec,
-                           resolve_refs) != 0)
-    return ENOMEM;
+  {
+    int rc = parse_media_examples(media_obj, &out->example, &out->example_set,
+                                  &out->examples, &out->n_examples, spec,
+                                  resolve_refs);
+    if (rc != 0)
+      return rc;
+  }
 
-  if (collect_extensions(media_obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(media_obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -7817,8 +8193,11 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
       const struct OpenAPI_RequestBody *comp =
           find_component_request_body(spec, ref);
       if (comp) {
-        if (copy_request_body_fields(out_rb, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_request_body_fields(out_rb, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     desc = json_object_get_string(rb_obj, "description");
@@ -7888,9 +8267,12 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                       free(primary->schema.inline_type);
                       primary->schema.inline_type = NULL;
                     }
-                    if (assign_schema_ref_name(&primary->schema, registered) !=
-                        0)
-                      return ENOMEM;
+                    {
+                      int _rc =
+                          assign_schema_ref_name(&primary->schema, registered);
+                      if (_rc != 0)
+                        return _rc;
+                    }
                   }
                   free(base);
                 }
@@ -7906,8 +8288,12 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                     free(primary->schema.inline_type);
                     primary->schema.inline_type = NULL;
                   }
-                  if (assign_schema_ref_name(&primary->schema, registered) != 0)
-                    return ENOMEM;
+                  {
+                    int _rc =
+                        assign_schema_ref_name(&primary->schema, registered);
+                    if (_rc != 0)
+                      return _rc;
+                  }
                 }
                 free(base);
               }
@@ -7925,9 +8311,12 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                   free(primary->item_schema.inline_type);
                   primary->item_schema.inline_type = NULL;
                 }
-                if (assign_schema_ref_name(&primary->item_schema, registered) !=
-                    0)
-                  return ENOMEM;
+                {
+                  int _rc =
+                      assign_schema_ref_name(&primary->item_schema, registered);
+                  if (_rc != 0)
+                    return _rc;
+                }
               }
               free(base);
             }
@@ -7940,12 +8329,18 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
           return ENOMEM;
       }
       if (primary->schema_set) {
-        if (copy_schema_ref(&out_rb->schema, &primary->schema) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_schema_ref(&out_rb->schema, &primary->schema);
+          if (_rc != 0)
+            return _rc;
+        }
       } else if (primary->item_schema_set) {
-        if (copy_item_schema_as_array(&out_rb->schema, &primary->item_schema) !=
-            0)
-          return ENOMEM;
+        {
+          int _rc =
+              copy_item_schema_as_array(&out_rb->schema, &primary->item_schema);
+          if (_rc != 0)
+            return _rc;
+        }
       }
       if (primary->examples && primary->n_examples > 0) {
         out_rb->examples = (struct OpenAPI_Example *)calloc(
@@ -7956,14 +8351,20 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
         {
           size_t i;
           for (i = 0; i < primary->n_examples; ++i) {
-            if (copy_example_fields(&out_rb->examples[i],
-                                    &primary->examples[i]) != 0)
-              return ENOMEM;
+            {
+              int _rc = copy_example_fields(&out_rb->examples[i],
+                                            &primary->examples[i]);
+              if (_rc != 0)
+                return _rc;
+            }
           }
         }
       } else if (primary->example_set) {
-        if (copy_any_value(&out_rb->example, &primary->example) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_any_value(&out_rb->example, &primary->example);
+          if (_rc != 0)
+            return _rc;
+        }
         out_rb->example_set = 1;
       }
       if (primary->name) {
@@ -7974,8 +8375,11 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
     }
   }
 
-  if (collect_extensions(rb_obj, &out_rb->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(rb_obj, &out_rb->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -8005,14 +8409,20 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
       return ENOMEM;
   }
   if (src->content_media_types && src->n_content_media_types > 0) {
-    if (copy_media_type_array(
-            &dst->content_media_types, &dst->n_content_media_types,
-            src->content_media_types, src->n_content_media_types) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_media_type_array(
+          &dst->content_media_types, &dst->n_content_media_types,
+          src->content_media_types, src->n_content_media_types);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (src->example_set) {
-    if (copy_any_value(&dst->example, &src->example) != 0)
-      return ENOMEM;
+    {
+      int _rc = copy_any_value(&dst->example, &src->example);
+      if (_rc != 0)
+        return _rc;
+    }
     dst->example_set = 1;
   }
   if (src->examples && src->n_examples > 0) {
@@ -8023,14 +8433,20 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
       return ENOMEM;
     dst->n_examples = src->n_examples;
     for (i = 0; i < src->n_examples; ++i) {
-      if (copy_example_fields(&dst->examples[i], &src->examples[i]) != 0)
-        return ENOMEM;
+      {
+        int _rc = copy_example_fields(&dst->examples[i], &src->examples[i]);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
   dst->required = src->required;
   dst->required_set = src->required_set;
-  if (copy_schema_ref(&dst->schema, &src->schema) != 0)
-    return ENOMEM;
+  {
+    int _rc = copy_schema_ref(&dst->schema, &src->schema);
+    if (_rc != 0)
+      return _rc;
+  }
   return 0;
 }
 
@@ -8057,8 +8473,11 @@ static int parse_response_object(const JSON_Object *const resp_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Response *comp = find_component_response(spec, ref);
       if (comp) {
-        if (copy_response_fields(out_resp, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_response_fields(out_resp, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
   }
@@ -8080,8 +8499,11 @@ static int parse_response_object(const JSON_Object *const resp_obj,
   }
 
   if (!ref) {
-    if (collect_extensions(resp_obj, &out_resp->extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(resp_obj, &out_resp->extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   if (ref)
@@ -8097,19 +8519,25 @@ static int parse_response_object(const JSON_Object *const resp_obj,
 
   links = json_object_get_object(resp_obj, "links");
   if (links) {
-    if (parse_links_object(links, &out_resp->links, &out_resp->n_links, spec,
-                           resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_links_object(links, &out_resp->links, &out_resp->n_links,
+                                   spec, resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   content = json_object_get_object(resp_obj, "content");
   if (content) {
     struct OpenAPI_MediaType *primary = NULL;
     int primary_idx = -1;
-    if (parse_content_object(content, &out_resp->content_media_types,
-                             &out_resp->n_content_media_types, spec,
-                             resolve_refs) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_content_object(content, &out_resp->content_media_types,
+                                     &out_resp->n_content_media_types, spec,
+                                     resolve_refs);
+      if (_rc != 0)
+        return _rc;
+    }
     primary_idx = select_primary_media_type_index(
         out_resp->content_media_types, out_resp->n_content_media_types);
     if (primary_idx >= 0) {
@@ -8145,9 +8573,12 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                       free(primary->schema.inline_type);
                       primary->schema.inline_type = NULL;
                     }
-                    if (assign_schema_ref_name(&primary->schema, registered) !=
-                        0)
-                      return ENOMEM;
+                    {
+                      int _rc =
+                          assign_schema_ref_name(&primary->schema, registered);
+                      if (_rc != 0)
+                        return _rc;
+                    }
                   }
                   free(base);
                 }
@@ -8163,8 +8594,12 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                     free(primary->schema.inline_type);
                     primary->schema.inline_type = NULL;
                   }
-                  if (assign_schema_ref_name(&primary->schema, registered) != 0)
-                    return ENOMEM;
+                  {
+                    int _rc =
+                        assign_schema_ref_name(&primary->schema, registered);
+                    if (_rc != 0)
+                      return _rc;
+                  }
                 }
                 free(base);
               }
@@ -8182,9 +8617,12 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                   free(primary->item_schema.inline_type);
                   primary->item_schema.inline_type = NULL;
                 }
-                if (assign_schema_ref_name(&primary->item_schema, registered) !=
-                    0)
-                  return ENOMEM;
+                {
+                  int _rc =
+                      assign_schema_ref_name(&primary->item_schema, registered);
+                  if (_rc != 0)
+                    return _rc;
+                }
               }
               free(base);
             }
@@ -8202,12 +8640,18 @@ static int parse_response_object(const JSON_Object *const resp_obj,
           return ENOMEM;
       }
       if (primary->schema_set) {
-        if (copy_schema_ref(&out_resp->schema, &primary->schema) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_schema_ref(&out_resp->schema, &primary->schema);
+          if (_rc != 0)
+            return _rc;
+        }
       } else if (primary->item_schema_set) {
-        if (copy_item_schema_as_array(&out_resp->schema,
-                                      &primary->item_schema) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_item_schema_as_array(&out_resp->schema,
+                                              &primary->item_schema);
+          if (_rc != 0)
+            return _rc;
+        }
       }
       if (primary->examples && primary->n_examples > 0) {
         out_resp->examples = (struct OpenAPI_Example *)calloc(
@@ -8218,14 +8662,20 @@ static int parse_response_object(const JSON_Object *const resp_obj,
         {
           size_t i;
           for (i = 0; i < primary->n_examples; ++i) {
-            if (copy_example_fields(&out_resp->examples[i],
-                                    &primary->examples[i]) != 0)
-              return ENOMEM;
+            {
+              int _rc = copy_example_fields(&out_resp->examples[i],
+                                            &primary->examples[i]);
+              if (_rc != 0)
+                return _rc;
+            }
           }
         }
       } else if (primary->example_set) {
-        if (copy_any_value(&out_resp->example, &primary->example) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_any_value(&out_resp->example, &primary->example);
+          if (_rc != 0)
+            return _rc;
+        }
         out_resp->example_set = 1;
       }
     }
@@ -8262,8 +8712,11 @@ static int parse_responses(const JSON_Object *responses,
   if (count == 0)
     return EINVAL;
 
-  if (collect_extensions(responses, &out_op->responses_extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(responses, &out_op->responses_extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   for (i = 0; i < count; ++i) {
     const char *code = json_object_get_name(responses, i);
@@ -8324,8 +8777,11 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
     if (resolve_refs && spec) {
       const struct OpenAPI_Callback *comp = find_component_callback(spec, ref);
       if (comp) {
-        if (copy_callback_fields(out_cb, comp) != 0)
-          return ENOMEM;
+        {
+          int _rc = copy_callback_fields(out_cb, comp);
+          if (_rc != 0)
+            return _rc;
+        }
       }
     }
     summary = json_object_get_string(cb_obj, "summary");
@@ -8347,8 +8803,11 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
     return 0;
   }
 
-  if (collect_extensions(cb_obj, &out_cb->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(cb_obj, &out_cb->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return parse_paths_object(cb_obj, &out_cb->paths, &out_cb->n_paths, spec, 0,
                             resolve_refs);
@@ -8390,8 +8849,11 @@ static int parse_callbacks_object(const JSON_Object *const callbacks,
         return ENOMEM;
     }
     if (cb_obj) {
-      if (parse_callback_object(cb_obj, curr, spec, resolve_refs) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_callback_object(cb_obj, curr, spec, resolve_refs);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8456,8 +8918,11 @@ static int parse_operation(const char *const verb_str,
                                     &out_op->n_security, &out_op->security_set);
   if (rc_sec != 0)
     return rc_sec;
-  if (collect_extensions(op_obj, &out_op->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(op_obj, &out_op->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   /* 1. Parameters */
   params = json_object_get_array(op_obj, "parameters");
@@ -8531,9 +8996,12 @@ static int parse_operation(const char *const verb_str,
   {
     const JSON_Object *callbacks_obj =
         json_object_get_object(op_obj, "callbacks");
-    if (parse_callbacks_object(callbacks_obj, &out_op->callbacks,
-                               &out_op->n_callbacks, spec, 1) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_callbacks_object(callbacks_obj, &out_op->callbacks,
+                                       &out_op->n_callbacks, spec, 1);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   /* 5. Tags */
@@ -8555,9 +9023,12 @@ static int parse_operation(const char *const verb_str,
     }
   }
 
-  if (parse_servers_array(op_obj, "servers", &out_op->servers,
-                          &out_op->n_servers) != 0)
-    return ENOMEM;
+  {
+    int _rc = parse_servers_array(op_obj, "servers", &out_op->servers,
+                                  &out_op->n_servers);
+    if (_rc != 0)
+      return _rc;
+  }
 
   return 0;
 }
@@ -8600,9 +9071,12 @@ static int parse_component_parameters(const JSON_Object *const components,
         return ENOMEM;
     }
     if (p_obj) {
-      if (parse_parameter_object(p_obj, &out->component_parameters[i], out,
-                                 0) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_parameter_object(p_obj, &out->component_parameters[i],
+                                         out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8647,9 +9121,12 @@ static int parse_component_responses(const JSON_Object *const components,
         return ENOMEM;
     }
     if (r_obj) {
-      if (parse_response_object(r_obj, &out->component_responses[i], out, 0,
-                                NULL, NULL) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_response_object(r_obj, &out->component_responses[i],
+                                        out, 0, NULL, NULL);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8694,8 +9171,12 @@ static int parse_component_headers(const JSON_Object *const components,
         return ENOMEM;
     }
     if (h_obj) {
-      if (parse_header_object(h_obj, &out->component_headers[i], out, 0) != 0)
-        return ENOMEM;
+      {
+        int _rc =
+            parse_header_object(h_obj, &out->component_headers[i], out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8740,9 +9221,12 @@ static int parse_component_request_bodies(const JSON_Object *const components,
         return ENOMEM;
     }
     if (rb_obj) {
-      if (parse_request_body_object(rb_obj, &out->component_request_bodies[i],
-                                    out, 0, NULL) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_request_body_object(
+            rb_obj, &out->component_request_bodies[i], out, 0, NULL);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8792,8 +9276,11 @@ static int parse_component_media_types(const JSON_Object *const components,
         return ENOMEM;
     }
     if (mt_obj) {
-      if (parse_media_type_object(mt_obj, curr, out, 0) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_media_type_object(mt_obj, curr, out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8838,9 +9325,12 @@ static int parse_component_examples(const JSON_Object *const components,
         return ENOMEM;
     }
     if (ex_obj) {
-      if (parse_example_object(ex_obj, name, &out->component_examples[i], out,
-                               0) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_example_object(ex_obj, name,
+                                       &out->component_examples[i], out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8885,8 +9375,11 @@ static int parse_component_links(const JSON_Object *const components,
         return ENOMEM;
     }
     if (link_obj) {
-      if (parse_link_object(link_obj, curr, out, 0) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_link_object(link_obj, curr, out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -8931,8 +9424,11 @@ static int parse_component_callbacks(const JSON_Object *const components,
         return ENOMEM;
     }
     if (cb_obj) {
-      if (parse_callback_object(cb_obj, curr, out, 0) != 0)
-        return ENOMEM;
+      {
+        int _rc = parse_callback_object(cb_obj, curr, out, 0);
+        if (_rc != 0)
+          return _rc;
+      }
     }
   }
 
@@ -9174,8 +9670,11 @@ static int parse_additional_operations(const JSON_Object *const path_obj,
     struct OpenAPI_Operation *curr = &path->additional_operations[i];
     if (is_fixed_operation_method(method))
       return EINVAL;
-    if (parse_operation(method, op_obj, curr, spec, 1, path->route) != 0)
-      return ENOMEM;
+    {
+      int _rc = parse_operation(method, op_obj, curr, spec, 1, path->route);
+      if (_rc != 0)
+        return _rc;
+    }
   }
 
   return 0;
@@ -9252,8 +9751,11 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
           const struct OpenAPI_Path *comp =
               find_component_path_item(spec, path_ref);
           if (comp) {
-            if (copy_path_fields(curr_path, comp) != 0)
-              return ENOMEM;
+            {
+              int _rc = copy_path_fields(curr_path, comp);
+              if (_rc != 0)
+                return _rc;
+            }
           }
         }
         if (path_summary) {
@@ -9283,20 +9785,27 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
         if (!curr_path->description)
           return ENOMEM;
       }
-      if (collect_extensions(p_obj, &curr_path->extensions_json) != 0)
-        return ENOMEM;
+      {
+        int _rc = collect_extensions(p_obj, &curr_path->extensions_json);
+        if (_rc != 0)
+          return _rc;
+      }
       {
         int rc = parse_parameters_array(path_params, &curr_path->parameters,
                                         &curr_path->n_parameters, spec);
         if (rc != 0)
           return rc;
       }
-      if (parse_servers_array(p_obj, "servers", &curr_path->servers,
-                              &curr_path->n_servers) != 0) {
-        return ENOMEM;
+      {
+        int _rc = parse_servers_array(p_obj, "servers", &curr_path->servers,
+                                      &curr_path->n_servers);
+        if (_rc != 0)
+          return _rc;
       }
-      if (parse_additional_operations(p_obj, curr_path, spec) != 0) {
-        return ENOMEM;
+      {
+        int _rc = parse_additional_operations(p_obj, curr_path, spec);
+        if (_rc != 0)
+          return _rc;
       }
     }
 
@@ -10143,8 +10652,11 @@ static int openapi_load_from_json_internal(
         return ENOMEM;
     }
   }
-  if (collect_extensions(root_obj, &out->extensions_json) != 0)
-    return ENOMEM;
+  {
+    int _rc = collect_extensions(root_obj, &out->extensions_json);
+    if (_rc != 0)
+      return _rc;
+  }
 
   rc = parse_info(root_obj, out);
   if (rc != 0) {
@@ -10191,16 +10703,26 @@ static int openapi_load_from_json_internal(
   webhooks_obj = json_object_get_object(root_obj, "webhooks");
   comps_obj = json_object_get_object(root_obj, "components");
   if (paths_obj) {
-    if (collect_extensions(paths_obj, &out->paths_extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(paths_obj, &out->paths_extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (webhooks_obj) {
-    if (collect_extensions(webhooks_obj, &out->webhooks_extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc =
+          collect_extensions(webhooks_obj, &out->webhooks_extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (comps_obj) {
-    if (collect_extensions(comps_obj, &out->components_extensions_json) != 0)
-      return ENOMEM;
+    {
+      int _rc = collect_extensions(comps_obj, &out->components_extensions_json);
+      if (_rc != 0)
+        return _rc;
+    }
   }
   if (!paths_obj && !webhooks_obj && !comps_obj) {
     openapi_spec_free(out);

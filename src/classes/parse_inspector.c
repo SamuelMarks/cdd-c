@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../win_compat_sym.h"
+
 #include "classes/parse_code2schema.h" /* For parse_struct_member_line */
 #include "classes/parse_inspector.h"
 #include "functions/parse_cst.h" /* For CST analysis */
