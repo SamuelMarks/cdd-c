@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../win_compat_sym.h"
+
 #include "classes/parse_mapping.h"
 #include "functions/parse_str.h"
 #include "routes/emit_operation.h"

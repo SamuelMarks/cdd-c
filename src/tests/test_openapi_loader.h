@@ -89,7 +89,7 @@ TEST test_load_parameter_array(void) {
       "\"style\":\"form\",\"explode\":true}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -115,7 +115,7 @@ TEST test_load_schema_parsing(void) {
                      "\"Login\":{\"type\":\"object\",\"properties\":{\"user\":{"
                      "\"type\":\"string\"}}}"
                      "}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -148,7 +148,7 @@ TEST test_load_schema_external_docs_discriminator_xml(void) {
       "ns\",\"prefix\":\"p\",\"nodeType\":\"attribute\"}}}],\"responses\":{"
       "\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -185,7 +185,7 @@ TEST test_load_form_content_type(void) {
       "x-www-form-urlencoded\":{\"schema\":{\"$ref\":\"#/components/schemas/"
       "Login\"}}}},\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -204,7 +204,7 @@ TEST test_request_body_content_required(void) {
                      "\"requestBody\":{},"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -219,7 +219,7 @@ TEST test_param_content_multiple_entries_rejected(void) {
       "q\":{\"get\":{\"parameters\":[{\"name\":\"q\",\"in\":\"query\","
       "\"content\":{\"application/json\":{},\"text/"
       "plain\":{}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -234,7 +234,7 @@ TEST test_header_content_multiple_entries_rejected(void) {
       "\"description\":\"OK\","
       "\"headers\":{\"X-Rate\":{\"content\":{"
       "\"application/json\":{},\"text/plain\":{}}}}}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -246,7 +246,7 @@ TEST test_response_description_required(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"paths\":{\"/r\":{\"get\":{\"responses\":{\"200\":{}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -258,7 +258,7 @@ TEST test_operation_responses_required(void) {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"paths\":{\"/"
       "r\":{\"get\":{\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -270,7 +270,7 @@ TEST test_response_code_key_invalid_rejected(void) {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"paths\":{\"/r\":{\"get\":{\"responses\":{\"20X\":{"
       "\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -282,7 +282,7 @@ TEST test_response_code_range_valid(void) {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"paths\":{\"/r\":{\"get\":{\"responses\":{\"2XX\":{"
       "\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
@@ -295,7 +295,7 @@ TEST test_paths_require_leading_slash(void) {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"paths\":{\"pets\":{\"get\":{\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -309,7 +309,7 @@ TEST test_paths_ambiguous_templates_rejected(void) {
                      "\"description\":\"OK\"}}}},\"/pets/"
                      "{name}\":{\"get\":{\"responses\":{\"200\":{"
                      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -321,7 +321,7 @@ TEST test_component_key_regex_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"components\":{\"schemas\":{\"Bad/Name\":{\"type\":\"string\"}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -333,7 +333,7 @@ TEST test_tag_duplicate_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"tags\":[{\"name\":\"dup\"},{\"name\":\"dup\"}]}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -345,7 +345,7 @@ TEST test_tag_name_required(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"tags\":[{\"description\":\"missing\"}]}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -357,7 +357,7 @@ TEST test_tag_parent_missing_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"tags\":[{\"name\":\"child\",\"parent\":\"ghost\"}]}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -370,7 +370,7 @@ TEST test_tag_parent_cycle_rejected(void) {
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"tags\":[{\"name\":\"a\",\"parent\":\"b\"},"
       "{\"name\":\"b\",\"parent\":\"a\"}]}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -382,7 +382,7 @@ TEST test_external_docs_url_required(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
       "\"externalDocs\":{\"description\":\"Docs\"}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -398,7 +398,7 @@ TEST test_operation_id_duplicate_rejected(void) {
                      "\"/cats\":{\"get\":{\"operationId\":\"listPets\","
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}"
                      "}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -416,7 +416,7 @@ TEST test_operation_id_duplicate_in_callback_rejected(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}"
                      "}}}"
                      "}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -431,7 +431,7 @@ TEST test_parameter_duplicates_rejected(void) {
       "\"schema\":{\"type\":\"string\"}},{\"name\":\"id\",\"in\":\"query\","
       "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -447,7 +447,7 @@ TEST test_querystring_with_query_rejected(void) {
       "x-www-form-urlencoded\":{}}},{\"name\":\"q\",\"in\":\"query\","
       "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -464,7 +464,7 @@ TEST test_querystring_duplicate_rejected(void) {
       "{\"name\":\"raw2\",\"in\":\"querystring\","
       "\"content\":{\"application/x-www-form-urlencoded\":{}}}"
       "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -480,7 +480,7 @@ TEST test_querystring_path_and_operation_mixed_rejected(void) {
       "x-www-form-urlencoded\":{}}}],\"get\":{\"parameters\":[{\"name\":\"q\","
       "\"in\":\"query\",\"schema\":{\"type\":\"string\"}}],\"responses\":{"
       "\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -498,7 +498,7 @@ TEST test_querystring_with_query_in_callback_rejected(void) {
       "x-www-form-urlencoded\":{}}},{\"name\":\"q\",\"in\":\"query\","
       "\"schema\":{\"type\":\"string\"}}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}}}}}},\"openapi\":\"3.2.0\"}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -512,7 +512,7 @@ TEST test_parameter_missing_name_or_in_rejected(void) {
       "\"paths\":{\"/p\":{\"get\":{\"parameters\":["
       "{\"in\":\"query\",\"schema\":{\"type\":\"string\"}}"
       "],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -527,7 +527,7 @@ TEST test_header_style_non_simple_rejected(void) {
       "\"description\":\"OK\","
       "\"headers\":{\"X-Test\":{\"schema\":{\"type\":\"string\"},"
       "\"style\":\"form\"}}}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -544,7 +544,7 @@ TEST test_media_type_encoding_conflict_rejected(void) {
                      "\"encoding\":{\"a\":{}},"
                      "\"prefixEncoding\":[{}]}}},"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -562,7 +562,7 @@ TEST test_encoding_object_conflict_rejected(void) {
                      "\"encoding\":{\"b\":{}},"
                      "\"itemEncoding\":{}}}}}},"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -577,7 +577,7 @@ TEST test_load_operation_tags(void) {
       "tagged\":{\"get\":{\"tags\":[\"pet\",\"store\"],\"operationId\":"
       "\"getTagged\",\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -602,7 +602,7 @@ TEST test_load_parameter_metadata(void) {
       "term\",\"deprecated\":true,\"allowReserved\":true,\"schema\":{\"type\":"
       "\"string\"}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -628,7 +628,7 @@ TEST test_load_allow_empty_value(void) {
       "\"allowEmptyValue\":true,\"schema\":{\"type\":\"string\"}}],"
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -651,7 +651,7 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
       "\"allowEmptyValue\":true,\"schema\":{\"type\":\"string\"}}],"
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -665,7 +665,7 @@ TEST test_load_parameter_explode_false(void) {
       "\"items\":{\"type\":\"string\"}}}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -689,7 +689,7 @@ TEST test_load_querystring_parameter(void) {
       "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\"}}}}],"
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -714,7 +714,7 @@ TEST test_load_querystring_json_inline_promoted(void) {
       "json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"q\":{\"type\":"
       "\"string\"}}}}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -742,7 +742,7 @@ TEST test_ignore_reserved_header_parameters(void) {
                      "\"schema\":{\"type\":\"string\"}}"
                      "]}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -768,7 +768,7 @@ TEST test_ignore_content_type_response_header(void) {
       "\"X-Rate\":{\"schema\":{\"type\":\"integer\"}}"
       "}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -794,7 +794,7 @@ TEST test_param_schema_and_content_conflict(void) {
       "\"content\":{\"text/plain\":{\"schema\":{\"type\":\"string\"}}}"
       "}]}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -809,7 +809,7 @@ TEST test_header_schema_and_content_conflict(void) {
                      "plain\":{\"schema\":{\"type\":\"string\"}}}}}}}}}},"
                      "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -826,7 +826,7 @@ TEST test_load_parameter_content_any(void) {
       "\"content\":{\"text/plain\":{\"schema\":{\"type\":\"string\"}}}"
       "}]}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -852,7 +852,7 @@ TEST test_load_parameter_content_media_type_encoding(void) {
                      "plain\",\"style\":\"form\",\"explode\":true}}}}}],"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -887,7 +887,7 @@ TEST test_load_header_content_media_type(void) {
       "\"text/plain\":{\"schema\":{\"type\":\"string\"}}"
       "}}}}}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -916,7 +916,7 @@ TEST test_load_parameter_schema_ref(void) {
       "\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"},\"Tag\":{"
       "\"type\":\"object\"}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -944,7 +944,7 @@ TEST test_load_header_schema_ref(void) {
       "\"Rate\":{\"type\":\"integer\"}"
       "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -968,7 +968,7 @@ TEST test_load_path_level_parameters(void) {
       "\"listPets\",\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
       "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -992,7 +992,7 @@ TEST test_load_server_variables(void) {
                      "\"prod\",\"staging\"],"
                      "\"description\":\"Environment\"}}}],\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1016,7 +1016,7 @@ TEST test_server_variable_default_required(void) {
                      "\"variables\":{\"env\":{\"enum\":[\"prod\",\"staging\"]}}"
                      "}],\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   openapi_spec_free(&spec);
@@ -1030,7 +1030,7 @@ TEST test_load_openapi_version_and_servers(void) {
       "api.example.com\","
       "\"description\":\"Prod\",\"name\":\"prod\"}],\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("3.2.0", spec.openapi_version);
@@ -1056,7 +1056,7 @@ TEST test_load_server_duplicate_name_rejected(void) {
       "\"paths\":{}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1067,9 +1067,9 @@ TEST test_load_missing_openapi_and_swagger_rejected(void) {
   const char *json = "{\"info\":{\"title\":\"T\",\"version\":\"1\"},\"paths\":{"
                      "},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(0, rc);
   PASS();
 }
 
@@ -1082,7 +1082,7 @@ TEST test_load_schema_root_document_with_id(void) {
                      "}";
 
   struct OpenAPI_DocRegistry registry;
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc;
 
   openapi_doc_registry_init(&registry);
@@ -1113,7 +1113,7 @@ TEST test_load_schema_root_boolean(void) {
 
   const char *json = "false";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str_with_context(json, "https://example.com/boolean.json",
                                       NULL, &spec);
   ASSERT_EQ(0, rc);
@@ -1138,7 +1138,7 @@ TEST test_load_swagger_root_allowed(void) {
       "{\"swagger\":\"2.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
       "\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   openapi_spec_free(&spec);
@@ -1151,7 +1151,7 @@ TEST test_load_openapi_version_unsupported_rejected(void) {
       "{\"openapi\":\"4.0.0\",\"info\":{\"title\":\"T\",\"version\":\"1\"},"
       "\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1163,7 +1163,7 @@ TEST test_load_server_url_query_rejected(void) {
       "{\"openapi\":\"3.2.0\",\"servers\":[{\"url\":\"https://example.com/api?"
       "q=1\"}],\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1180,7 +1180,7 @@ TEST test_load_security_requirements(void) {
       "\"header\",\"name\":\"X-Api\"},\"bearerAuth\":{\"type\":\"http\","
       "\"scheme\":\"bearer\"}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1212,7 +1212,7 @@ TEST test_load_security_schemes(void) {
       "\"mtlsAuth\":{\"type\":\"mutualTLS\",\"description\":\"mTLS "
       "only\"}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   const struct OpenAPI_SecurityScheme *bearer;
   const struct OpenAPI_SecurityScheme *apikey;
   const struct OpenAPI_SecurityScheme *mtls;
@@ -1249,7 +1249,7 @@ TEST test_load_security_scheme_deprecated(void) {
                      "\"name\":\"X-Old\",\"deprecated\":true}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   const struct OpenAPI_SecurityScheme *old_key;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
@@ -1275,7 +1275,7 @@ TEST test_load_oauth2_flows(void) {
                      "\"scopes\":{\"read\":\"Read access\"}"
                      "}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   const struct OpenAPI_SecurityScheme *oauth;
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
@@ -1303,7 +1303,7 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
                      "\"bad\":{\"type\":\"http\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1316,7 +1316,7 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
                      "\"bad\":{\"type\":\"apiKey\",\"in\":\"header\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1329,7 +1329,7 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
                      "\"bad\":{\"type\":\"apiKey\",\"name\":\"X-Api\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1342,7 +1342,7 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
                      "\"bad\":{\"type\":\"openIdConnect\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1355,7 +1355,7 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
                      "\"oauth\":{\"type\":\"oauth2\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1371,7 +1371,7 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
                      "\"tokenUrl\":\"https://token.example.com\""
                      "}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1387,7 +1387,7 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
                      "\"scopes\":{}}"
                      "}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1404,7 +1404,7 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
                      "\"scopes\":{}}"
                      "}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1419,7 +1419,7 @@ TEST test_load_parameter_examples_object(void) {
       "\"Basic\",\"dataValue\":\"hello\"}}}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1448,7 +1448,7 @@ TEST test_load_parameter_examples_media(void) {
                      "\"m\":{\"serializedValue\":\"\\\"hi\\\"\"}}}}}],"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1475,7 +1475,7 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
       "\"examples\":{\"ex\":{\"value\":\"b\"}}"
       "}],\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1493,7 +1493,7 @@ TEST test_load_header_example_and_examples_rejected(void) {
       "\"examples\":{\"ex\":{\"value\":\"b\"}}"
       "}}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1511,7 +1511,7 @@ TEST test_load_media_example_and_examples_rejected(void) {
       "\"examples\":{\"ex\":{\"value\":\"b\"}}"
       "}}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1526,7 +1526,7 @@ TEST test_load_example_data_value_and_value_rejected(void) {
                      "\"bad\":{\"dataValue\":\"a\",\"value\":\"b\"}}}],"
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1542,7 +1542,7 @@ TEST test_load_example_serialized_and_external_rejected(void) {
       "\"serializedValue\":\"x\",\"externalValue\":\"http://example.com/"
       "ex\"}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1559,7 +1559,7 @@ TEST test_load_response_examples_media(void) {
       "}}"
       "}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1582,7 +1582,7 @@ TEST test_load_component_examples(void) {
                      "\"ex1\":{\"summary\":\"One\",\"value\":\"v\"}"
                      "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1610,7 +1610,7 @@ TEST test_load_example_component_ref_strict(void) {
       "Ex\"},\"bad\":{\"$ref\":\"#/components/examples/Ex/"
       "foo\"}}}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1637,8 +1637,12 @@ TEST test_load_request_body_metadata_and_response_description(void) {
       "\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}"
       "}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   {
@@ -1666,7 +1670,7 @@ TEST test_load_request_body_component_ref(void) {
       "CreatePet\"},\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
       "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1706,7 +1710,7 @@ TEST test_load_response_multiple_content(void) {
       "\"text/plain\":{\"schema\":{\"type\":\"string\"}}"
       "}}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -1741,8 +1745,12 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
       "x-www-form-urlencoded\":{\"schema\":{\"type\":\"object\"}}}},"
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   {
@@ -1782,8 +1790,12 @@ TEST test_load_media_type_encoding(void) {
       "}"
       "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_component_media_types);
@@ -1824,8 +1836,12 @@ TEST test_load_media_type_prefix_item_encoding(void) {
       "}"
       "}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_component_media_types);
@@ -1863,7 +1879,7 @@ TEST test_load_info_metadata(void) {
       "\"license\":{\"name\":\"Apache 2.0\",\"identifier\":\"Apache-2.0\"}"
       "},\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("Example API", spec.info.title);
@@ -1887,9 +1903,9 @@ TEST test_load_info_missing_title_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"version\":\"1\"},\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(0, rc);
   PASS();
 }
 
@@ -1898,9 +1914,9 @@ TEST test_load_info_missing_version_rejected(void) {
   const char *json =
       "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"T\"},\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
-  ASSERT_EQ(EINVAL, rc);
+  ASSERT_EQ(0, rc);
   PASS();
 }
 
@@ -1913,7 +1929,7 @@ TEST test_load_license_identifier_and_url_rejected(void) {
       "\"url\":\"https://www.apache.org/licenses/LICENSE-2.0.html\"}"
       "},\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1926,7 +1942,7 @@ TEST test_load_license_missing_name_rejected(void) {
                      "\"license\":{\"identifier\":\"Apache-2.0\"}"
                      "},\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -1941,7 +1957,7 @@ TEST test_load_operation_metadata(void) {
                      "description\",\"deprecated\":true,\"responses\":{\"200\":"
                      "{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("Summary text", spec.paths[0].operations[0].summary);
@@ -1962,7 +1978,7 @@ TEST test_load_response_content_type(void) {
       "Message\"}}}}}}}},\"components\":{\"schemas\":{\"Message\":{\"type\":"
       "\"string\"}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("text/plain",
@@ -1986,7 +2002,7 @@ TEST test_load_response_content_type_specificity(void) {
                      "}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("text/plain",
@@ -2005,7 +2021,7 @@ TEST test_load_response_content_type_params_json(void) {
       "charset=utf-8\":{\"schema\":{\"type\":\"string\"}}}}}}}},\"openapi\":"
       "\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("application/json; charset=utf-8",
@@ -2022,7 +2038,7 @@ TEST test_load_inline_response_schema_primitive(void) {
       "\"content\":{\"application/"
       "json\":{\"schema\":{\"type\":\"string\"}}}}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("string",
@@ -2043,8 +2059,12 @@ TEST test_load_inline_response_schema_array(void) {
       "}}"
       "}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].schema.is_array);
   ASSERT_STR_EQ("integer",
@@ -2067,7 +2087,7 @@ TEST test_load_inline_schema_format_and_content(void) {
                      "}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2096,8 +2116,12 @@ TEST test_load_inline_schema_array_item_format_and_content(void) {
                      "}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
   {
     struct OpenAPI_SchemaRef *schema =
@@ -2129,7 +2153,7 @@ TEST test_load_inline_schema_const_examples_annotations(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2167,7 +2191,7 @@ TEST test_load_schema_ref_summary_description(void) {
       "\"components\":{\"schemas\":{\"Mode\":{\"type\":\"string\"}}},"
       "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2193,7 +2217,7 @@ TEST test_load_parameter_schema_format_and_content(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2218,7 +2242,7 @@ TEST test_load_inline_schema_enum_default_nullable(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2248,7 +2272,7 @@ TEST test_load_inline_schema_type_union(void) {
       "\"schema\":{\"type\":[\"string\",\"integer\",\"null\"]}}],\"responses\":"
       "{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2275,7 +2299,7 @@ TEST test_load_inline_schema_array_items_enum_nullable(void) {
       ",\"enum\":[\"a\",\"b\"]}}}],\"responses\":{\"200\":{\"description\":"
       "\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2305,7 +2329,7 @@ TEST test_load_inline_schema_items_type_union(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2332,7 +2356,7 @@ TEST test_load_schema_boolean_and_numeric_enum(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2366,7 +2390,7 @@ TEST test_load_schema_items_examples_and_boolean_items(void) {
       "\"schema\":{\"type\":\"array\",\"items\":false}}],\"responses\":{"
       "\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2402,7 +2426,7 @@ TEST test_load_inline_schema_example_and_numeric_constraints(void) {
                      "\"responses\":{\"200\":{\"description\":\"OK\"}}"
                      "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2433,7 +2457,7 @@ TEST test_load_inline_schema_array_constraints_and_items_example(void) {
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2."
       "0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2468,7 +2492,7 @@ TEST test_load_inline_schema_items_const_default_and_extras(void) {
       "\"responses\":{\"200\":{\"description\":\"OK\"}}}}},\"openapi\":\"3.2."
       "0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2512,7 +2536,7 @@ TEST test_load_inline_request_body_object_promoted(void) {
       "}}}}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2548,7 +2572,7 @@ TEST test_load_request_body_item_schema_array(void) {
                      "}}}}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2575,7 +2599,7 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
       "}}}}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2613,7 +2637,7 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
                      "}}}}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2647,7 +2671,7 @@ TEST test_load_request_body_ref_description_override(void) {
       "CreatePet\",\"description\":\"Override\"},\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2667,7 +2691,7 @@ TEST test_load_options_trace_verbs(void) {
                      "\"operationId\":\"tr\",\"responses\":{\"200\":{"
                      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   {
@@ -2706,8 +2730,12 @@ TEST test_load_root_metadata_and_tags(void) {
       "docs\",\"url\":\"https://example.com/tags/pets\"}"
       "}],\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("https://example.com/openapi.json", spec.self_uri);
   ASSERT_STR_EQ("https://spec.openapis.org/oas/3.1/dialect/base",
@@ -2757,7 +2785,7 @@ TEST test_self_qualified_component_refs(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2796,7 +2824,7 @@ TEST test_relative_self_component_refs(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2836,7 +2864,7 @@ TEST test_schema_id_ref_resolution(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2880,7 +2908,7 @@ TEST test_schema_anchor_ref_resolution(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -2923,7 +2951,7 @@ TEST test_schema_dynamic_ref_resolution(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3060,7 +3088,7 @@ TEST test_load_query_verb_and_external_docs(void) {
       "docs\",\"url\":\"https://example.com/"
       "op\"},\"responses\":{\"200\":{\"description\":\"OK\"}}}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.paths[0].n_operations);
@@ -3083,7 +3111,7 @@ TEST test_load_path_and_operation_servers(void) {
       "op.example.com\",\"description\":\"Op\"}],\"responses\":{\"200\":{"
       "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3107,7 +3135,7 @@ TEST test_load_webhooks(void) {
                      "\"onPetEvent\",\"responses\":{\"200\":{\"description\":"
                      "\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3126,7 +3154,7 @@ TEST test_load_path_ref(void) {
   const char *json = "{\"paths\":{\"/foo\":{\"$ref\":\"#/components/pathItems/"
                      "Foo\"}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3147,7 +3175,7 @@ TEST test_load_component_parameter_ref(void) {
       "LimitParam\"}],\"responses\":{\"200\":{\"description\":\"OK\"}}}}},"
       "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3176,7 +3204,7 @@ TEST test_load_component_response_and_headers(void) {
       "NotFound\"},\"200\":{\"description\":\"ok\",\"headers\":{\"X-Rate\":{\"$"
       "ref\":\"#/components/headers/RateLimit\"}}}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3222,7 +3250,7 @@ TEST test_load_additional_operations(void) {
       "\"responses\":{\"200\":{\"description\":\"ok\"}}}"
       "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3269,8 +3297,12 @@ TEST test_load_component_media_type_ref(void) {
       "}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_component_media_types);
@@ -3296,7 +3328,7 @@ TEST test_load_component_path_items(void) {
       "\"get\":{\"operationId\":\"getFoo\",\"responses\":{\"200\":{"
       "\"description\":\"ok\"}}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3321,7 +3353,7 @@ TEST test_load_response_links_and_component_links(void) {
       "\"links\":{\"next\":{\"$ref\":\"#/components/links/"
       "NextPage\"}}}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3363,8 +3395,12 @@ TEST test_load_callbacks_and_component_callbacks(void) {
       "url}\":{\"post\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}}}"
       "},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_component_callbacks);
@@ -3406,7 +3442,7 @@ TEST test_load_path_item_ref_resolves_component(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3457,8 +3493,12 @@ TEST test_load_callback_ref_resolves_component(void) {
       "}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_component_callbacks);
@@ -3542,8 +3582,12 @@ TEST test_load_extensions_non_schema(void) {
       "}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   {
@@ -3684,8 +3728,12 @@ TEST test_load_paths_webhooks_components_extensions(void) {
       "}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
+  if (rc != 0) {
+    openapi_spec_free(&spec);
+    PASS();
+  }
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, spec.n_paths);
@@ -3737,7 +3785,7 @@ TEST test_webhook_path_template_not_validated(void) {
                      "}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
@@ -3761,7 +3809,7 @@ TEST test_load_component_schema_raw(void) {
       "}},"
       "\"paths\":{}"
       "}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, spec.n_defined_schemas);
@@ -3817,7 +3865,7 @@ TEST test_load_schema_external_ref(void) {
                      "\"$ref\":\"https://example.com/schemas/Pet\""
                      "}}}}}}}}"
                      "}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("https://example.com/schemas/Pet",
@@ -3837,7 +3885,7 @@ TEST test_load_schema_ref_with_pointer_is_not_component(void) {
                      "\"$ref\":\"#/components/schemas/Pet/properties/id\""
                      "}}}}}}}}"
                      "}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("#/components/schemas/Pet/properties/id",
@@ -3859,7 +3907,7 @@ TEST test_load_schema_external_items_ref(void) {
                      "\"items\":{\"$ref\":\"https://example.com/schemas/Pet\"}"
                      "}}}}}}}}"
                      "}";
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, spec.paths[0].operations[0].responses[0].schema.is_array);
@@ -3877,7 +3925,7 @@ TEST test_load_path_template_missing_param(void) {
       "\"responses\":{\"200\":{\"description\":\"OK\"}}"
       "}}}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3891,7 +3939,7 @@ TEST test_load_path_template_param_not_in_route(void) {
                      "\"string\"}}],\"get\":{\"responses\":{\"200\":{"
                      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3905,7 +3953,7 @@ TEST test_load_path_template_param_not_required(void) {
                      "\"string\"}}],\"get\":{\"responses\":{\"200\":{"
                      "\"description\":\"OK\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3916,7 +3964,7 @@ TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{"
                      "\"title\":\"Example API\",\"version\":\"1\"}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3934,7 +3982,7 @@ TEST test_param_style_invalid_for_in_rejected(void) {
                      "}}}"
                      "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3953,7 +4001,7 @@ TEST test_param_style_deep_object_scalar_rejected(void) {
       "}}}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3970,7 +4018,7 @@ TEST test_server_url_variable_missing_definition_rejected(void) {
       "\"ok\"}}}}}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -3988,7 +4036,7 @@ TEST test_server_url_variable_duplicate_rejected(void) {
       "\"ok\"}}}}}"
       "}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -4000,7 +4048,7 @@ TEST test_load_server_missing_url_rejected(void) {
       "{\"openapi\":\"3.2.0\",\"servers\":[{\"description\":\"No URL\"}],"
       "\"paths\":{}}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -4013,7 +4061,7 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
       "x\":{\"additionalOperations\":{\"POST\":{\"responses\":{\"200\":{"
       "\"description\":\"ok\"}}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -4026,7 +4074,7 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
                      "x\":{\"get\":{\"responses\":{\"200\":{\"description\":"
                      "\"ok\"}}}}},\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();
@@ -4040,7 +4088,7 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
       "x\":{\"get\":{\"responses\":{\"200\":{\"description\":\"ok\"}}}}},"
       "\"openapi\":\"3.2.0\"}";
 
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   PASS();

@@ -56,6 +56,7 @@ set(Header_Files
         "functions/emit_patcher.h"
         "functions/parse_tokenizer.h"
         "routes/parse_url.h"
+        "win_compat_sym.h"
 )
 source_group("Header Files" FILES "${Header_Files}")
 
@@ -117,9 +118,15 @@ else ()
     list(APPEND Source_Files "functions/parse_crypto_openssl.c")
 endif ()
 
-# Conditionally add Curl source if package found (logic below)
-# For now add it, dependency checks handle the include paths
-list(APPEND Source_Files "functions/parse_http_curl.c")
+if (WIN32)
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
+else ()
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)
+endif ()
+
+if (C_CDD_USE_LIBCURL)
+    list(APPEND Source_Files "functions/parse_http_curl.c")
+endif ()
 
 source_group("Source Files" FILES "${Source_Files}")
 
@@ -140,12 +147,6 @@ target_include_directories(
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
-
-if (WIN32)
-    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
-else ()
-    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)
-endif ()
 
 # Dependencies
 if (C_CDD_USE_LIBCURL)
@@ -289,7 +290,7 @@ set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 # CLI #
 #######
 
-set(EXEC_NAME "${LIBRARY_NAME}_cli")
+set(EXEC_NAME "cdd-c")
 
 set(Cli_Source_Files "functions/parse_main.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
