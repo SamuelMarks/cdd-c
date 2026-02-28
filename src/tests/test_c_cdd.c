@@ -72,8 +72,8 @@
 #include "test_c_mapping.h"
 #include "test_doc_parser.h"
 #include "test_integration_c2openapi.h"
-#include "test_to_docs_json.h"
 #include "test_openapi_writer.h"
+#include "test_to_docs_json.h"
 
 GREATEST_MAIN_DEFS();
 

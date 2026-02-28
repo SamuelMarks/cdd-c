@@ -127,7 +127,6 @@ static int handle_to_openapi(int argc, char **argv) {
   return c2openapi_cli_main(3, c2_argv);
 }
 
-
 int main(int argc, char **argv) {
   int rc = 0;
   const char *cmd;

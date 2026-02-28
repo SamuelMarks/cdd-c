@@ -1422,7 +1422,8 @@ int to_docs_json_cli_main(int argc, char **argv) {
   size_t p, op_idx;
 
   for (i = 0; i < argc; i++) {
-    if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) && i + 1 < argc) {
+    if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) &&
+        i + 1 < argc) {
       input_file = argv[++i];
     } else if (strcmp(argv[i], "--no-imports") == 0) {
       no_imports = 1;
