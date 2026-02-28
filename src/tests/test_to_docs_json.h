@@ -7,9 +7,9 @@
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
+#include "functions/parse_fs.h"
 #include "greatest.h"
 #include "routes/parse_cli.h"
-#include "functions/parse_fs.h"
 #include <parson.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +80,7 @@ TEST test_to_docs_json_basic(void) {
 
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
-  
+
   arr = json_value_get_array(val);
   ASSERT(arr != NULL);
   ASSERT_EQ(1, json_array_get_count(arr));
@@ -112,7 +112,8 @@ TEST test_to_docs_json_basic(void) {
 }
 
 TEST test_to_docs_json_no_imports_no_wrapping(void) {
-  char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i", TEMP_SPEC_FILE};
+  char *argv[] = {"to_docs_json", "--no-imports", "--no-wrapping", "-i",
+                  TEMP_SPEC_FILE};
   int rc;
   int stdout_fd;
   fpos_t pos;
@@ -144,7 +145,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
 
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
-  
+
   arr = json_value_get_array(val);
   lang_obj = json_array_get_object(arr, 0);
   ops = json_object_get_array(lang_obj, "operations");
