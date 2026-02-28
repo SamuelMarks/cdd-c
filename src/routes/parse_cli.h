@@ -39,6 +39,11 @@ extern "C" {
  */
 extern C_CDD_EXPORT int c2openapi_cli_main(int argc, char **argv);
 
+/**
+ * @brief Main entry point for the `to_docs_json` command.
+ */
+extern C_CDD_EXPORT int to_docs_json_cli_main(int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
