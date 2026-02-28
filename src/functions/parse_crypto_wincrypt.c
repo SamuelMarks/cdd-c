@@ -14,10 +14,8 @@
 #include <string.h>
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <wincrypt.h>
 #include <windows.h>
-
+#include <wincrypt.h>
 #endif
 
 #include "functions/parse_crypto_types.h"

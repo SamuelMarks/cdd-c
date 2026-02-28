@@ -205,8 +205,13 @@ void mock_server_destroy(MockServerPtr server) {
   /* Stop thread if running */
   if (server->running) {
     server->running = 0;
-    /* Force accept to unblock by closing socket */
+    /* Force accept to unblock by shutting down and closing socket */
     if (server->server_fd != INVALID_SOCK) {
+#if defined(_WIN32)
+      shutdown(server->server_fd, SD_BOTH);
+#else
+      shutdown(server->server_fd, SHUT_RDWR);
+#endif
       close_socket(server->server_fd);
       server->server_fd = INVALID_SOCK;
     }
