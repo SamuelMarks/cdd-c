@@ -384,7 +384,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
 static int header_name_is_content_type(const char *name) {
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type");
+  return c_cdd_str_iequal(name, "Content-Type") != 0;
 }
 
 static const char *map_type_to_c_out(const char *oa_type) {

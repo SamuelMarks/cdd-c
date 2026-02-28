@@ -221,7 +221,7 @@ static int parse_tag_meta_line(const char *line, const char *end,
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "summary:", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val)
             meta.summary = c_cdd_strdup(val);
         } else if (strncmp(attr, "description:", 12) == 0) {
@@ -329,7 +329,7 @@ static int parse_optional_example_attr(const char *attr, char **out_example) {
     return 0;
   if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
     return 0;
-  val = trim_segment(attr + 8);
+  val = trim_segment((char *)(attr + 8));
   if (!val || !*val)
     return 1;
   if (*out_example)
@@ -625,7 +625,7 @@ static int parse_response_header_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val) {
             if (h->content_type)
               free(h->content_type);
@@ -728,7 +728,7 @@ static int parse_link_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val) {
             if (link->summary)
               free(link->summary);
@@ -1182,7 +1182,7 @@ static int parse_return_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val) {
             if (r->summary)
               free(r->summary);
@@ -1231,12 +1231,20 @@ static int split_scopes(const char *input, char ***out_scopes,
   if (!buf)
     return ENOMEM;
 
+#ifdef _WIN32
+  token = strtok_s(buf, ", \t", &saveptr);
+#else
   token = strtok_r(buf, ", \t", &saveptr);
+#endif
   while (token) {
     char *trimmed = trim_segment(token);
     char **new_scopes;
     if (!trimmed || !*trimmed) {
+#ifdef _WIN32
+      token = strtok_s(NULL, ", \t", &saveptr);
+#else
       token = strtok_r(NULL, ", \t", &saveptr);
+#endif
       continue;
     }
     new_scopes = (char **)realloc(scopes, (n + 1) * sizeof(char *));
@@ -1259,7 +1267,11 @@ static int split_scopes(const char *input, char ***out_scopes,
       return ENOMEM;
     }
     n++;
+#ifdef _WIN32
+    token = strtok_s(NULL, ", \t", &saveptr);
+#else
     token = strtok_r(NULL, ", \t", &saveptr);
+#endif
   }
 
   free(buf);
@@ -1739,7 +1751,7 @@ static int parse_server_var_line(const char *line, const char *end,
 
         if (strncmp(attr, "default:", 8) == 0 ||
             strncmp(attr, "default=", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val) {
             if (default_value)
               free(default_value);
@@ -1940,7 +1952,7 @@ static int parse_request_body_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = trim_segment(attr + 8);
+          char *val = trim_segment((char *)(attr + 8));
           if (val && *val) {
             if (content_type)
               free(content_type);

@@ -21,13 +21,14 @@ extern "C" {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
-#define strtok_r strtok_s
 typedef struct _stat32 c_stat;
 
 /* Type definitions for Windows HANDLEs to avoid including windows.h globally */
+#ifndef _WINDOWS_
 typedef void *PVOID;
 typedef PVOID HANDLE;
 typedef struct HWND__ *HWND;
+#endif
 
 #include <direct.h>
 #include <io.h>

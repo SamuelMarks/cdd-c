@@ -393,15 +393,20 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
       asprintf(out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
                sig.args, k_r_suffix);
 #else
-      int len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
-                strlen(sig.args) + strlen(k_r_suffix) + 20;
+      size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
+                   strlen(sig.args) + strlen(k_r_suffix) + 20;
       *out_code = malloc(len);
       if (!*out_code) {
         rc = ENOMEM;
         goto cleanup;
       }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(*out_code, sizeof(*out_code), "%s%sint %s(%s)%s", prefix,
+                sig.storage, sig.name, sig.args, k_r_suffix);
+#else
       sprintf(*out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
               sig.args, k_r_suffix);
+#endif
 #endif
     } else {
       /* Case: Type f(...) -> int f(..., Type *out) */
@@ -426,7 +431,11 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           asprintf(&new_args, "%s, out", sig.args);
 #else
           new_args = malloc(strlen(sig.args) + 10);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(new_args, sizeof(new_args), "%s, out", sig.args);
+#else
           sprintf(new_args, "%s, out", sig.args);
+#endif
 #endif
         }
       } else {
@@ -436,14 +445,23 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           asprintf(&new_args, "%s *out", sig.ret_type);
 #else
           new_args = malloc(strlen(sig.ret_type) + 10);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(new_args, sizeof(new_args), "%s *out", sig.ret_type);
+#else
           sprintf(new_args, "%s *out", sig.ret_type);
+#endif
 #endif
         } else {
 #ifdef HAVE_ASPRINTF
           asprintf(&new_args, "%s, %s *out", sig.args, sig.ret_type);
 #else
           new_args = malloc(strlen(sig.args) + strlen(sig.ret_type) + 10);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(new_args, sizeof(new_args), "%s, %s *out", sig.args,
+                    sig.ret_type);
+#else
           sprintf(new_args, "%s, %s *out", sig.args, sig.ret_type);
+#endif
 #endif
         }
       }
@@ -464,16 +482,21 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
       }
 #else
       {
-        int len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
-                  strlen(new_args) + strlen(k_r_suffix) + strlen(sig.ret_type) +
-                  30;
+        size_t len = strlen(prefix) + strlen(sig.storage) + strlen(sig.name) +
+                     strlen(new_args) + strlen(k_r_suffix) +
+                     strlen(sig.ret_type) + 20;
         *out_code = malloc(len);
         if (sig.k_r_decls) {
           sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
                   sig.name, new_args, k_r_suffix, sig.ret_type);
         } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          sprintf_s(*out_code, sizeof(*out_code), "%s%sint %s(%s)", prefix,
+                    sig.storage, sig.name, new_args);
+#else
           sprintf(*out_code, "%s%sint %s(%s)", prefix, sig.storage, sig.name,
                   new_args);
+#endif
         }
       }
 #endif

@@ -207,10 +207,10 @@ int rewrite_body(const struct TokenList *const tokens,
 
                   if (is_decl) {
                     patch_list_add(&patches, eq_idx, eq_idx + 1,
-                                   strdup("; rc ="));
+                                   c_cdd_strdup("; rc ="));
                   } else {
                     patch_list_add(&patches, lhs_start, eq_idx + 1,
-                                   strdup("rc ="));
+                                   c_cdd_strdup("rc ="));
                   }
 
                   /* Append arg */
@@ -224,9 +224,19 @@ int rewrite_body(const struct TokenList *const tokens,
                         is_empty = 0;
 
                     if (is_empty)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+                      sprintf_s(arg_append, sizeof(arg_append), "&%s",
+                                lhs_name);
+#else
                       sprintf(arg_append, "&%s", lhs_name);
+#endif
                     else
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+                      sprintf_s(arg_append, sizeof(arg_append), ", &%s",
+                                lhs_name);
+#else
                       sprintf(arg_append, ", &%s", lhs_name);
+#endif
                     patch_list_add(&patches, rparen, rparen, arg_append);
                   }
 
@@ -234,7 +244,7 @@ int rewrite_body(const struct TokenList *const tokens,
                   semi = find_semicolon(tokens, rparen);
                   if (semi < tokens->size)
                     patch_list_add(&patches, semi + 1, semi + 1,
-                                   strdup(" if (rc != 0) return rc;"));
+                                   c_cdd_strdup(" if (rc != 0) return rc;"));
 
                   free(lhs_name);
                   injected_rc = 1;
@@ -247,11 +257,11 @@ int rewrite_body(const struct TokenList *const tokens,
                         tokens->tokens[prev].kind == TOKEN_RBRACE)) {
               /* Case 2: Statement */
               size_t semi;
-              patch_list_add(&patches, i, i, strdup("rc = "));
+              patch_list_add(&patches, i, i, c_cdd_strdup("rc = "));
               semi = find_semicolon(tokens, next);
               if (semi < tokens->size) {
                 patch_list_add(&patches, semi + 1, semi + 1,
-                               strdup(" if (rc != 0) return rc;"));
+                               c_cdd_strdup(" if (rc != 0) return rc;"));
               }
               injected_rc = 1;
 
@@ -263,7 +273,12 @@ int rewrite_body(const struct TokenList *const tokens,
               char *injection = NULL;
               size_t stmt_start = find_stmt_start(tokens, i);
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%zu",
+                        tmp_var_counter++);
+#else
               sprintf(tmp_var, "_tmp_cdd_%zu", tmp_var_counter++);
+#endif
 
               /* Extract original args */
               call_args = join_tokens_range(tokens, lparen + 1, rparen);
@@ -277,17 +292,25 @@ int rewrite_body(const struct TokenList *const tokens,
                        (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 #else
               injection = malloc(1024);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+              sprintf_s(injection, 1024,
+                        "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
+                        "rc;\n  ",
+                        rf->original_return_type, tmp_var, rf->name, call_args,
+                        (strlen(call_args) > 0 ? ", " : ""), tmp_var);
+#else
               sprintf(injection,
                       "%s %s; rc = %s(%s%s&%s); if (rc != 0) return "
                       "rc;\n  ",
                       rf->original_return_type, tmp_var, rf->name, call_args,
                       (strlen(call_args) > 0 ? ", " : ""), tmp_var);
 #endif
+#endif
               /* Inject before statement */
               patch_list_add(&patches, stmt_start, stmt_start, injection);
 
               /* Replace call with var */
-              patch_list_add(&patches, i, rparen + 1, strdup(tmp_var));
+              patch_list_add(&patches, i, rparen + 1, c_cdd_strdup(tmp_var));
 
               free(call_args);
               injected_rc = 1;
@@ -310,7 +333,7 @@ int rewrite_body(const struct TokenList *const tokens,
             next++;
           if (next < tokens->size &&
               tokens->tokens[next].kind == TOKEN_SEMICOLON) {
-            patch_list_add(&patches, i, next, strdup("return 0"));
+            patch_list_add(&patches, i, next, c_cdd_strdup("return 0"));
           }
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
           size_t semi = find_semicolon(tokens, i);
@@ -346,19 +369,28 @@ int rewrite_body(const struct TokenList *const tokens,
                        transform->arg_name, transform->success_code);
 #else
               replacement = malloc(strlen(expr) + 256);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+              sprintf_s(replacement, strlen(expr) + 256,
+                        "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
+                        "_safe_ret; return %s; }",
+                        transform->return_type, expr, transform->error_code,
+                        transform->arg_name, transform->success_code);
+#else
               sprintf(replacement,
                       "{ %s _safe_ret = %s; if (!_safe_ret) return %s; *%s = "
                       "_safe_ret; return %s; }",
                       transform->return_type, expr, transform->error_code,
                       transform->arg_name, transform->success_code);
 #endif
+#endif
               /* Replace entire statement "return ...;" */
               patch_list_add(&patches, i, semi + 1, replacement);
               free(expr);
             } else {
               /* Replace return val; -> *out = val; return 0; */
-              patch_list_add(&patches, i, i + 1, strdup("*out ="));
-              patch_list_add(&patches, semi, semi + 1, strdup("; return 0;"));
+              patch_list_add(&patches, i, i + 1, c_cdd_strdup("*out ="));
+              patch_list_add(&patches, semi, semi + 1,
+                             c_cdd_strdup("; return 0;"));
             }
           }
         }
@@ -385,7 +417,7 @@ int rewrite_body(const struct TokenList *const tokens,
             break;
         }
         if (!has_ret) {
-          patch_list_add(&patches, last, last, strdup(" return 0; "));
+          patch_list_add(&patches, last, last, c_cdd_strdup(" return 0; "));
         }
       }
     }
@@ -397,7 +429,7 @@ int rewrite_body(const struct TokenList *const tokens,
     while (k < tokens->size && tokens->tokens[k].kind != TOKEN_LBRACE)
       k++;
     if (k < tokens->size) {
-      patch_list_add(&patches, k + 1, k + 1, strdup("\n  int rc = 0;"));
+      patch_list_add(&patches, k + 1, k + 1, c_cdd_strdup("\n  int rc = 0;"));
     }
   }
 

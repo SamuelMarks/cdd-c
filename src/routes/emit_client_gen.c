@@ -218,7 +218,11 @@ static char *build_base_url_literal(const char *url) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(literal, len, "\"%s\"", escaped);
 #else
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(literal, sizeof(literal), "\"%s\"", escaped);
+#else
   sprintf(literal, "\"%s\"", escaped);
+#endif
 #endif
   free(escaped);
   return literal;
@@ -258,7 +262,11 @@ static char *derive_model_header(const char *base) {
   m = malloc(len + 1);
   if (!m)
     return NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(m, sizeof(m), "%s_models.h", base);
+#else
   sprintf(m, "%s_models.h", base);
+#endif
   return m;
 }
 
@@ -705,7 +713,12 @@ static int emit_operation(FILE *hfile, FILE *cfile,
       rc = ENOMEM;
       goto cleanup;
     }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    sprintf_s(full_group, sizeof(full_group), "%s_%s", config->namespace_prefix,
+              sanitized_group);
+#else
     sprintf(full_group, "%s_%s", config->namespace_prefix, sanitized_group);
+#endif
   } else if (config->namespace_prefix) {
     /* Name: Namespace */
     full_group = strdup(config->namespace_prefix);
@@ -797,8 +810,16 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
     rc = ENOMEM;
     goto cleanup;
   }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(h_name, sizeof(h_name), "%s.h", config->filename_base);
+#else
   sprintf(h_name, "%s.h", config->filename_base);
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(c_name, sizeof(c_name), "%s.c", config->filename_base);
+#else
   sprintf(c_name, "%s.c", config->filename_base);
+#endif
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (fopen_s(&hfile, h_name, "w") != 0)

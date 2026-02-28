@@ -327,7 +327,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
 static int header_name_is_content_type(const char *name) {
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type");
+  return c_cdd_str_iequal(name, "Content-Type") != 0;
 }
 
 static int media_type_is_textual(const char *media_type) {
@@ -1313,7 +1313,11 @@ static int write_form_urlencoded_body(FILE *fp,
       int add_encoded = 0;
       int items_is_object = is_object_ref_type(items_type);
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
+#else
       sprintf(len_field, "n_%s", f->name);
+#endif
 
       if (allow_reserved) {
         encode_fn = "url_encode_form_allow_reserved";
@@ -2630,7 +2634,11 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         ct_arg = ct_buf;
       }
       char len_field[80];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
+#else
       sprintf(len_field, "n_%s", f->name);
+#endif
 
       CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
       CHECK_IO(fprintf(fp, "    size_t i;\n"));
@@ -3273,9 +3281,10 @@ int codegen_client_write_body(FILE *const fp,
         CHECK_IO(fprintf(fp,
                          "    if (res->status_code >= %d && "
                          "res->status_code < %d) {\n",
-                         i * 100, (i + 1) * 100));
+                         (int)(i * 100), (int)((i + 1) * 100)));
         CHECK_IO(fprintf(fp, "      handled = 1;\n"));
-        CHECK_IO(fprintf(fp, "      rc = %d;\n", mapped_err_code(i * 100)));
+        CHECK_IO(
+            fprintf(fp, "      rc = %d;\n", mapped_err_code((int)(i * 100))));
         CHECK_IO(fprintf(fp, "      if (res->body && api_error) {\n"));
         CHECK_IO(fprintf(fp, "        ApiError_from_json((const "
                              "char*)res->body, api_error);\n"));

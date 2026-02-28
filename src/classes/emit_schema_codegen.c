@@ -247,8 +247,17 @@ static int generate_header(const char *basename, JSON_Object *schemas_obj,
   FILE *fp;
   size_t i;
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(fname, sizeof(fname), "%s.h", basename);
+#else
   sprintf(fname, "%s.h", basename);
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (fopen_s(&fp, fname, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(fname, "w");
+#endif
   if (!fp)
     return errno;
 
@@ -353,8 +362,17 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
     enum_cfg.guard_macro = NULL;
   }
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  sprintf_s(fname, sizeof(fname), "%s.c", basename);
+#else
   sprintf(fname, "%s.c", basename);
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  if (fopen_s(&fp, fname, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(fname, "w");
+#endif
   if (!fp)
     return errno;
 

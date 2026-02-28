@@ -1854,7 +1854,7 @@ int pp_scan_includes(const char *const filename,
 
                                tokens->tokens[next].kind == TOKEN_KEYWORD_EMBED;
 
-          int input_is_include = token_matches_string(cmd, "include");
+          int input_is_include = token_matches_string(cmd, "include") != 0;
 
           if (input_is_embed || input_is_include) {
 

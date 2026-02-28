@@ -324,7 +324,11 @@ int write_struct_from_jsonObject_func(
             /* strip anchors */
             char pat[256];
             size_t pl = strlen(f->pattern) - 2;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
+#else
             strncpy(pat, f->pattern + 1, pl);
+#endif
             pat[pl] = 0;
             CHECK_IO(fprintf(fp,
                              "      if (strcmp(ret->%s, \"%s\") != 0) { "
@@ -339,7 +343,11 @@ int write_struct_from_jsonObject_func(
           } else if (f->pattern[strlen(f->pattern) - 1] == '$') { /* suffix */
             char pat[256];
             size_t pl = strlen(f->pattern) - 1;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
+#else
             strncpy(pat, f->pattern, pl);
+#endif
             pat[pl] = 0;
             CHECK_IO(
                 fprintf(fp,

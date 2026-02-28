@@ -162,6 +162,30 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
   /* Zero out new slot to clear constraints/flags */
   memset(f, 0, sizeof(struct StructField));
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  strncpy_s(f->name, sizeof(f->name), name, sizeof(f->name) - 1);
+  f->name[sizeof(f->name) - 1] = '\0';
+
+  strncpy_s(f->type, sizeof(f->type), type, sizeof(f->type) - 1);
+  f->type[sizeof(f->type) - 1] = '\0';
+
+  if (ref) {
+    strncpy_s(f->ref, sizeof(f->ref), ref, sizeof(f->ref) - 1);
+    f->ref[sizeof(f->ref) - 1] = '\0';
+  }
+
+  if (default_val) {
+    strncpy_s(f->default_val, sizeof(f->default_val), default_val,
+              sizeof(f->default_val) - 1);
+    f->default_val[sizeof(f->default_val) - 1] = '\0';
+  }
+
+  if (bit_width) {
+    strncpy_s(f->bit_width, sizeof(f->bit_width), bit_width,
+              sizeof(f->bit_width) - 1);
+    f->bit_width[sizeof(f->bit_width) - 1] = '\0';
+  }
+#else
   strncpy(f->name, name, sizeof(f->name) - 1);
   f->name[sizeof(f->name) - 1] = '\0';
 
@@ -182,6 +206,7 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
     strncpy(f->bit_width, bit_width, sizeof(f->bit_width) - 1);
     f->bit_width[sizeof(f->bit_width) - 1] = '\0';
   }
+#endif
 
   sf->size++;
   return 0;
