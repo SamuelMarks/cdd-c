@@ -125,12 +125,15 @@ TEST test_generator_output_correctness(void) {
   int rc;
 
   const char *json_spec =
-      "{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},\"paths\":{\"/pets/"
+      "{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},"
+      "\"paths\":{\"/pets/"
       "{petId}\":{\"get\":{\"operationId\":\"getPetById\",\"parameters\":[{"
       "\"name\":\"petId\",\"in\":\"path\",\"required\":true,\"schema\":{"
-      "\"type\":\"integer\"}}],\"responses\":{\"200\":{\"description\":\"ok\",\"content\":{"
+      "\"type\":\"integer\"}}],\"responses\":{\"200\":{\"description\":\"ok\","
+      "\"content\":{"
       "\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/"
-      "Pet\"}}}}}}}},\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"}}}}";
+      "Pet\"}}}}}}}},\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"}"
+      "}}}";
 
   write_to_file(spec_fname, json_spec);
 
