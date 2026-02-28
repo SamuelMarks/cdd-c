@@ -1405,3 +1405,150 @@ int c2openapi_cli_main(int argc, char **argv) {
 
   return (rc == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+int to_docs_json_cli_main(int argc, char **argv) {
+  const char *input_file = NULL;
+  int no_imports = 0;
+  int no_wrapping = 0;
+  int i;
+  struct OpenAPI_Spec spec = {0};
+  int rc;
+  JSON_Value *root_val, *parsed_root;
+  JSON_Array *root_arr;
+  JSON_Value *lang_val;
+  JSON_Object *lang_obj;
+  JSON_Value *ops_val;
+  JSON_Array *ops_arr;
+  size_t p, op_idx;
+
+  for (i = 0; i < argc; i++) {
+    if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) && i + 1 < argc) {
+      input_file = argv[++i];
+    } else if (strcmp(argv[i], "--no-imports") == 0) {
+      no_imports = 1;
+    } else if (strcmp(argv[i], "--no-wrapping") == 0) {
+      no_wrapping = 1;
+    }
+  }
+
+  if (!input_file) {
+    fprintf(stderr, "Error: -i <spec.json> required\n");
+    return EXIT_FAILURE;
+  }
+
+  parsed_root = json_parse_file(input_file);
+  if (!parsed_root) {
+    fprintf(stderr, "Failed to parse JSON file: %s\n", input_file);
+    return EXIT_FAILURE;
+  }
+
+  rc = openapi_load_from_json(parsed_root, &spec);
+  json_value_free(parsed_root);
+
+  if (rc != 0) {
+    fprintf(stderr, "Failed to load openapi spec from %s\n", input_file);
+    return rc;
+  }
+
+  root_val = json_value_init_array();
+  root_arr = json_value_get_array(root_val);
+
+  lang_val = json_value_init_object();
+  lang_obj = json_value_get_object(lang_val);
+  json_object_set_string(lang_obj, "language", "c");
+
+  ops_val = json_value_init_array();
+  ops_arr = json_value_get_array(ops_val);
+
+  for (p = 0; p < spec.n_paths; p++) {
+    struct OpenAPI_Path *pi = &spec.paths[p];
+    for (op_idx = 0; op_idx < pi->n_operations; op_idx++) {
+      struct OpenAPI_Operation *op = &pi->operations[op_idx];
+      JSON_Value *op_val = json_value_init_object();
+      JSON_Object *op_obj = json_value_get_object(op_val);
+      JSON_Value *code_val = json_value_init_object();
+      JSON_Object *code_obj = json_value_get_object(code_val);
+
+      const char *method = "";
+      char snippet[1024];
+      const char *op_id = op->operation_id ? op->operation_id : "unknown";
+
+      switch (op->verb) {
+      case OA_VERB_GET:
+        method = "GET";
+        break;
+      case OA_VERB_POST:
+        method = "POST";
+        break;
+      case OA_VERB_PUT:
+        method = "PUT";
+        break;
+      case OA_VERB_DELETE:
+        method = "DELETE";
+        break;
+      case OA_VERB_PATCH:
+        method = "PATCH";
+        break;
+      case OA_VERB_HEAD:
+        method = "HEAD";
+        break;
+      case OA_VERB_OPTIONS:
+        method = "OPTIONS";
+        break;
+      case OA_VERB_TRACE:
+        method = "TRACE";
+        break;
+      case OA_VERB_QUERY:
+        method = "QUERY";
+        break;
+      default:
+        method =
+            op->is_additional ? (op->method ? op->method : "CUSTOM") : "CUSTOM";
+        break;
+      }
+
+      json_object_set_string(op_obj, "method", method);
+      json_object_set_string(op_obj, "path", pi->route);
+      json_object_set_string(op_obj, "operationId", op_id);
+
+      if (!no_imports) {
+        json_object_set_string(
+            code_obj, "imports",
+            "#include \"generated_client.h\"\n#include <stdio.h>\n");
+      }
+      if (!no_wrapping) {
+        json_object_set_string(
+            code_obj, "wrapper_start",
+            "int main(void) {\n  struct HttpClient client;\n  struct ApiError "
+            "*err = NULL;\n  api_init(&client, "
+            "\"https://api.example.com\");\n");
+        json_object_set_string(code_obj, "wrapper_end",
+                               "  api_cleanup(&client);\n  return 0;\n}\n");
+      }
+
+      /* Format specific snippet depending on how the SDK gets generated.
+         Ideally it matches C conventions of this SDK builder. */
+      snprintf(snippet, sizeof(snippet),
+               "  /* Call the %s API */\n  int rc = api_%s(&client, &err);\n  "
+               "if (rc != 0) {\n    /* handle error */\n  }\n",
+               op_id, op_id);
+      json_object_set_string(code_obj, "snippet", snippet);
+
+      json_object_set_value(op_obj, "code", code_val);
+      json_array_append_value(ops_arr, op_val);
+    }
+  }
+
+  json_object_set_value(lang_obj, "operations", ops_val);
+  json_array_append_value(root_arr, lang_val);
+
+  {
+    char *serialized = json_serialize_to_string_pretty(root_val);
+    printf("%s\n", serialized);
+    json_free_serialized_string(serialized);
+  }
+
+  json_value_free(root_val);
+  openapi_spec_free(&spec);
+  return EXIT_SUCCESS;
+}

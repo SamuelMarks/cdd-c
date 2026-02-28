@@ -72,6 +72,7 @@
 #include "test_c_mapping.h"
 #include "test_doc_parser.h"
 #include "test_integration_c2openapi.h"
+#include "test_to_docs_json.h"
 #include "test_openapi_writer.h"
 
 GREATEST_MAIN_DEFS();
@@ -145,6 +146,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(aggregator_suite);
   RUN_SUITE(c2openapi_schema_suite);
   RUN_SUITE(integration_c2openapi_suite);
+  RUN_SUITE(to_docs_json_suite);
 
   GREATEST_MAIN_END();
 }

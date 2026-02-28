@@ -1,109 +1,95 @@
-Architecture
-============
+# cdd-c Architecture
 
-`cdd-c` is built as a modular library (`c_cdd`) with a CLI wrapper. It avoids using heavy compiler frontends like
-`libclang` in favor of a bespoke, lightweight tokenizer and CST (Concrete Syntax Tree) parser targeted specifically at
-C89/C23 constructs relevant to data modeling and API logic.
+<!-- BADGES_START -->
+<!-- Replace these placeholders with your repository-specific badges -->
+[![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI/CD](https://github.com/offscale/cdd-c/workflows/CI/badge.svg)](https://github.com/offscale/cdd-c/actions)
+[![Coverage](https://codecov.io/gh/offscale/cdd-c/branch/master/graph/badge.svg)](https://codecov.io/gh/offscale/cdd-c)
+<!-- BADGES_END -->
 
-## Core Modules
+The **cdd-c** tool acts as a dedicated compiler and transpiler. Its fundamental architecture follows standard compiler design principles, divided into three distinct phases: **Frontend (Parsing)**, **Intermediate Representation (IR)**, and **Backend (Emitting)**.
 
-### 1. Parsing Layer
+This decoupled design ensures that any format capable of being parsed into the IR can subsequently be emitted into any supported output format, whether that is a server-side route, a client-side SDK, a database ORM, or an OpenAPI specification.
 
-* **Tokenizer (`tokenizer.c`):** Implements ISO C Translation Phases 1-3. It handles trigraphs, line splicing (`\`), and
-  standard C tokens. It is robust enough to handle C23 features like digit separators (`1'000`).
-* **CST Parser (`cst_parser.c`):** Groups tokens into semantic nodes (Functions, Structs, Enums). Unlike an AST, it
-  retains position data for precise text patching.
-* **Doc Parser (`doc_parser.c`):** extracts annotations (`@route`, `@param`) from comment blocks.
-
-### 2. Analysis & Refactoring
-
-* **Analysis (`analysis.c`):** A heuristic engine that detects allocation patterns (`malloc`, `asprintf`) and verifies
-  if the result is checked against `NULL` or error codes before use.
-* **Refactor Orchestrator (`refactor_orchestrator.c`):** Builds a dependency graph of functions. If a deep calle changes
-  signature (e.g., `void` to `int` for error propagation), the orchestrator propagates this change up the graph to
-  callers.
-* **Text Patcher (`text_patcher.c`):** Applies non-destructive edits to the source code based on token indices.
-
-### 3. Code Generation
-
-* **Schema Codegen (`schema_codegen.c`):** Generates C structs, JSON serializers (`parson` based), and memory management
-  functions (`_cleanup`, `_deepcopy`) from internal `StructFields` representations.
-* **Client Gen (`openapi_client_gen.c`):** Generates networking code. It abstracts the HTTP layer, allowing the
-  generated code to compile against **libcurl** (Linux/macOS) or **WinHTTP/WinInet** (Windows) without code changes.
-
-## Transport Abstraction Layer
-
-To ensure portability, generated clients interact with an **Abstract Network Interface (ANI)** defined in
-`http_types.h`.
+## 🏗 High-Level Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'fontFamily': 'Google Sans Normal'}}%%
-classDiagram
-  class HttpClient {
-    +char* base_url
-    +HttpConfig config
-    +send(ctx, req, res)
-  }
+graph TD
+    %% Styling Definitions
+    classDef frontend fill:#57caff,stroke:#4285f4,stroke-width:2px,color:#20344b,font-family:Roboto Mono
+    classDef core fill:#ffd427,stroke:#f9ab00,stroke-width:3px,color:#20344b,font-family:Google Sans,font-weight:bold
+    classDef backend fill:#5cdb6d,stroke:#34a853,stroke-width:2px,color:#20344b,font-family:Roboto Mono
+    classDef endpoint fill:#ffffff,stroke:#20344b,stroke-width:1px,color:#20344b,font-family:Google Sans
 
-  class HttpRequest {
-    +char* url
-    +HttpMethod method
-    +HttpHeaders headers
-    +void* body
-  }
+    subgraph Frontend [Parsers]
+        A[OpenAPI .yaml/.json]:::endpoint --> P1(OpenAPI Parser):::frontend
+        B[LANGUAGE Models / Source]:::endpoint --> P2(LANGUAGE Parser):::frontend
+        C[Server Routes / Frameworks]:::endpoint --> P3(Framework Parser):::frontend
+        D[Client SDKs / ORMs]:::endpoint --> P4(Ext Parser):::frontend
+    end
 
-  class HttpResponse {
-    +int status_code
-    +void* body
-    +size_t body_len
-  }
+    subgraph Core [Intermediate Representation]
+        IR((CDD IR)):::core
+    end
 
-  class TransportFactory {
-    <<Interface>>
-  }
+    subgraph Backend [Emitters]
+        E1(OpenAPI Emitter):::backend --> X[OpenAPI .yaml/.json]:::endpoint
+        E2(LANGUAGE Emitter):::backend --> Y[LANGUAGE Models / Structs]:::endpoint
+        E3(Server Emitter):::backend --> Z[Server Routes / Controllers]:::endpoint
+        E4(Client Emitter):::backend --> W[Client SDKs / API Calls]:::endpoint
+        E5(Data Emitter):::backend --> V[ORM Models / CLI Parsers]:::endpoint
+    end
 
-  class LibCurlBackend {
-    +http_curl_send()
-    +http_curl_context_init()
-  }
+    P1 --> IR
+    P2 --> IR
+    P3 --> IR
+    P4 --> IR
 
-  class WinHttpBackend {
-    +http_winhttp_send()
-    +http_winhttp_context_init()
-  }
-
-  HttpClient ..> HttpRequest: Creates
-  HttpClient ..> HttpResponse: Receives
-  HttpClient --> TransportFactory: Uses logic
-  TransportFactory <|-- LibCurlBackend: #ifdef UNIX
-  TransportFactory <|-- WinHttpBackend: #ifdef WIN32
-
-%% Styling Fixes:
-%% 1. Properties MUST be separated by commas.
-%% 2. No spaces allowed after commas or inside values.
-%% 3. Removed specific fonts from classDef to avoid quote parsing bugs.
-%% 4. Replaced 'stroke:none' with 'stroke-width:0px' (safer for all parsers).
-classDef styleAbstract fill:#4285f4,color:#ffffff,stroke-width:0px
-classDef styleImpl fill:#f9ab00,color:#20344b,stroke-width:0px
-classDef styleStruct fill:#ffffff,color:#20344b,stroke:#4285f4
-
-class TransportFactory styleAbstract
-class LibCurlBackend, WinHttpBackend styleImpl
-class HttpClient, HttpRequest, HttpResponse styleStruct
+    IR --> E1
+    IR --> E2
+    IR --> E3
+    IR --> E4
+    IR --> E5
 ```
 
-## Security & Mapping
 
-The architecture includes a dedicated **C Type Mapper** (`c_mapping.c`) which bridges the gap between C types and
-OpenAPI types:
+## 🧩 Core Components
 
-| C Type           | OpenAPI Type | Notes                          |
-|:-----------------|:-------------|:-------------------------------|
-| `int`, `short`   | `integer`    | format: `int32`                |
-| `long`, `size_t` | `integer`    | format: `int64`                |
-| `char *`         | `string`     |                                |
-| `bool`           | `boolean`    | Requires `stdbool.h` or C23    |
-| `struct X`       | `object`     | `$ref: #/components/schemas/X` |
-| `int []`         | `array`      | items: `integer`               |
+### 1. The Frontend (Parsers)
 
-This mapping is bidirectional, allowing `c2openapi` to read C types and `openapi2client` to generate C types.
+The Frontend's responsibility is to read an input source and translate it into the universal CDD Intermediate Representation (IR).
+
+* **Static Analysis (AST-Driven)**: For `C` source code, the tool **does not** use dynamic reflection or execute the code. Instead, it reads the source files, generates an Abstract Syntax Tree (AST), and navigates the tree to extract classes, structs, functions, type signatures, API client definitions, server routes, and docstrings.
+* **OpenAPI Parsing**: For OpenAPI and JSON Schema inputs, the parser normalizes the structure, resolving internal `$ref`s and extracting properties, endpoints (client or server perspectives), and metadata into the IR.
+
+### 2. Intermediate Representation (IR)
+
+The Intermediate Representation is the crucial "glue" of the architecture. It is a normalized, language-agnostic data structure that represents concepts like:
+* **Models**: Entities containing typed properties, required fields, defaults, and descriptions.
+* **Endpoints / Operations**: HTTP verbs, paths, path/query/body parameters, and responses. In the IR, an operation is an abstract concept that can represent *either* a Server Route receiving a request *or* an API Client dispatching a request.
+* **Metadata**: Tooling hints, docstrings, and validations.
+
+By standardizing on a single IR (heavily inspired by OpenAPI / JSON Schema primitives), the system guarantees that parsing logic and emitting logic remain completely decoupled.
+
+### 3. The Backend (Emitters)
+
+The Backend's responsibility is to take the universal IR and generate valid target output. Emitters can be written to support various environments (e.g., Client vs Server, Web vs CLI).
+
+* **Code Generation**: Emitters iterate over the IR and generate idiomatic `C` source code. 
+  * A **Server Emitter** creates routing controllers and request-validation logic.
+  * A **Client Emitter** creates API wrappers, fetch functions, and response-parsing logic.
+* **Database & CLI Generation**: Emitters can also target ORM models or command-line parsers by mapping IR properties to database columns or CLI arguments.
+* **Specification Generation**: Emitters translating back to OpenAPI serialize the IR into standard OpenAPI 3.x JSON or YAML, rigorously formatting descriptions, type constraints, and endpoint schemas based on what was parsed from the source code.
+
+## 🔄 Extensibility
+
+Because of the IR-centric design, adding support for a new `C` framework (e.g., a new Client library, Web framework, or ORM) requires minimal effort:
+1. **To support parsing a new framework**: Write a parser that converts the framework's AST/DSL into the CDD IR. Once written, the framework can automatically be exported to OpenAPI, Client SDKs, CLI parsers, or any other existing output target.
+2. **To support emitting a new framework**: Write an emitter that converts the CDD IR into the framework's DSL/AST. Once written, the framework can automatically be generated from OpenAPI or any other supported input.
+
+## 🛡 Design Principles
+
+1. **A Single Source of Truth**: Developers should be able to maintain their definitions in whichever format is most ergonomic for their team (OpenAPI files, Native Code, Client libraries, ORM models) and generate the rest.
+2. **Zero-Execution Parsing**: Ensure security and resilience by strictly statically analyzing inputs. The compiler must never need to run the target code to understand its structure.
+3. **Lossless Conversion**: Maximize the retention of metadata (e.g., type annotations, docstrings, default values, validators) during the transition `Source -> IR -> Target`.
+4. **Symmetric Operations**: An Endpoint in the IR holds all the information necessary to generate both the Server-side controller that fulfills it, and the Client-side SDK method that calls it.
