@@ -125,12 +125,12 @@ TEST test_generator_output_correctness(void) {
   int rc;
 
   const char *json_spec =
-      "{\"openapi\":\"3.0.0\",\"paths\":{\"/pets/"
+      "{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"t\",\"version\":\"1\"},\"paths\":{\"/pets/"
       "{petId}\":{\"get\":{\"operationId\":\"getPetById\",\"parameters\":[{"
       "\"name\":\"petId\",\"in\":\"path\",\"required\":true,\"schema\":{"
-      "\"type\":\"integer\"}}],\"responses\":{\"200\":{\"content\":{"
+      "\"type\":\"integer\"}}],\"responses\":{\"200\":{\"description\":\"ok\",\"content\":{"
       "\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/"
-      "Pet\"}}}}}}}}}";
+      "Pet\"}}}}}}}},\"components\":{\"schemas\":{\"Pet\":{\"type\":\"object\"}}}}";
 
   write_to_file(spec_fname, json_spec);
 
@@ -139,7 +139,6 @@ TEST test_generator_output_correctness(void) {
     struct OpenAPI_Spec spec;
     struct OpenApiClientConfig config;
     JSON_Value *root = json_parse_file(spec_fname);
-
     ASSERT(root != NULL);
     openapi_spec_init(&spec);
     ASSERT_EQ(0, openapi_load_from_json(root, &spec));
