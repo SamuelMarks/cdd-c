@@ -241,13 +241,13 @@ static const char *xml_node_type_to_str(enum OpenAPI_XmlNodeType t) {
 static int header_name_is_content_type(const char *const name) {
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type");
+  return c_cdd_str_iequal(name, "Content-Type") != 0;
 }
 
 static int param_is_reserved_header(const struct OpenAPI_Parameter *p) {
   if (!p || p->in != OA_PARAM_IN_HEADER || !p->name)
     return 0;
-  return c_cdd_str_iequal(p->name, "Accept") ||
+  return c_cdd_str_iequal(p->name, "Accept") != 0 ||
          c_cdd_str_iequal(p->name, "Content-Type") ||
          c_cdd_str_iequal(p->name, "Authorization");
 }
@@ -837,9 +837,10 @@ static void write_multipart_schema(JSON_Object *parent, const char *key,
 static void write_schema_example(JSON_Object *obj,
                                  const struct OpenAPI_Any *example,
                                  int example_set) {
+  JSON_Value *ex_val;
   if (!obj || !example_set)
     return;
-  JSON_Value *ex_val = any_to_json_value(example);
+  ex_val = any_to_json_value(example);
   if (ex_val)
     json_object_set_value(obj, "example", ex_val);
 }
@@ -2203,13 +2204,15 @@ static int write_server_array(JSON_Object *parent, const char *key,
   arr = json_value_get_array(arr_val);
 
   for (i = 0; i < n_servers; ++i) {
+    JSON_Value *srv_val;
+    JSON_Object *srv_obj;
     const struct OpenAPI_Server *srv = &servers[i];
     if (server_url_has_query_or_fragment(srv->url)) {
       json_value_free(arr_val);
       return EINVAL;
     }
-    JSON_Value *srv_val = json_value_init_object();
-    JSON_Object *srv_obj = json_value_get_object(srv_val);
+    srv_val = json_value_init_object();
+    srv_obj = json_value_get_object(srv_val);
     write_server_object(srv_obj, srv);
 
     json_array_append_value(arr, srv_val);

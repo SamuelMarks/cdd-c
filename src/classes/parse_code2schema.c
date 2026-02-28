@@ -881,8 +881,14 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
       }
 
       if (json_object_has_value_of_type(prop, "pattern", JSONString)) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        strncpy_s(field->pattern, sizeof(field->pattern),
+                  json_object_get_string(prop, "pattern"),
+                  sizeof(field->pattern) - 1);
+#else
         strncpy(field->pattern, json_object_get_string(prop, "pattern"),
                 sizeof(field->pattern) - 1);
+#endif
       }
     } else if (type && strcmp(type, "array") == 0) {
       if (json_object_has_value_of_type(prop, "minItems", JSONNumber)) {
@@ -2311,14 +2317,27 @@ int code2schema_main(int argc, char **argv) {
           char full_body[4096] = {0};
 
           /* Accumulate body */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+          strcat_s(full_body, sizeof(full_body), rest);
+          while (!strchr(full_body, '}')) {
+            if (!read_line(fp, line, sizeof(line)))
+              break;
+            strcat_s(full_body, sizeof(full_body), line);
+          }
+#else
           strcat(full_body, rest);
           while (!strchr(full_body, '}')) {
             if (!read_line(fp, line, sizeof(line)))
               break;
             strcat(full_body, line);
           }
+#endif
 
+#ifdef _WIN32
+          token = strtok_s(full_body, delim, &ctx);
+#else
           token = strtok_r(full_body, delim, &ctx);
+#endif
           while (token) {
             char *tm = token;
             while (isspace((unsigned char)*tm))
@@ -2332,7 +2351,11 @@ int code2schema_main(int argc, char **argv) {
             }
             if (*tm)
               json_array_append_string(earr, tm);
+#ifdef _WIN32
+            token = strtok_s(NULL, delim, &ctx);
+#else
             token = strtok_r(NULL, delim, &ctx);
+#endif
           }
           json_object_set_string(eobj, "type", "string");
           json_object_set_value(eobj, "enum", arrval);

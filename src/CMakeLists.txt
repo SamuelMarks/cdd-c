@@ -1,3 +1,4 @@
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 ###########
 # Library #
 ###########
@@ -131,6 +132,7 @@ endif ()
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" "${Header_Files}" "${Source_Files}")
+
 
 include(GNUInstallDirs)
 target_include_directories(

@@ -134,7 +134,7 @@ int c_inspector_scan_file_types(const char *const filename,
           char *brace = strchr(p, '{');
 
           if (brace) {
-            int is_enum = c_cdd_str_starts_with(p, "enum ");
+            int is_enum = (int)c_cdd_str_starts_with(p, "enum ");
             /* Extract "Name" from "enum Name {" or "struct Name {" */
             const char *name_start = p + (is_enum ? 5 : 7);
             const char *name_end_ptr = brace;
@@ -219,7 +219,11 @@ int c_inspector_scan_file_types(const char *const filename,
           char *copy = c_cdd_strdup(p);
           if (copy) {
             char *ctx = NULL;
+#ifdef _WIN32
+            char *tok = strtok_s(copy, ",", &ctx);
+#else
             char *tok = strtok_r(copy, ",", &ctx);
+#endif
             while (tok) {
               char *eq = strchr(tok, '=');
               if (eq)
@@ -229,7 +233,11 @@ int c_inspector_scan_file_types(const char *const filename,
                 tok++;
               if (*tok)
                 enum_members_add(curr_em, tok);
+#ifdef _WIN32
+              tok = strtok_s(NULL, ",", &ctx);
+#else
               tok = strtok_r(NULL, ",", &ctx);
+#endif
             }
             free(copy);
           }
@@ -239,7 +247,11 @@ int c_inspector_scan_file_types(const char *const filename,
             char *copy = c_cdd_strdup(p);
             if (copy) {
               char *ctx = NULL;
+#ifdef _WIN32
+              char *tok = strtok_s(copy, ";", &ctx);
+#else
               char *tok = strtok_r(copy, ";", &ctx);
+#endif
               while (tok) {
                 /* Ensure not just whitespace */
                 char *chk = tok;
@@ -247,7 +259,11 @@ int c_inspector_scan_file_types(const char *const filename,
                   chk++;
                 if (*chk)
                   parse_struct_member_line(tok, curr_sf);
+#ifdef _WIN32
+                tok = strtok_s(NULL, ";", &ctx);
+#else
                 tok = strtok_r(NULL, ";", &ctx);
+#endif
               }
               free(copy);
             }

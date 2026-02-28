@@ -111,7 +111,7 @@ static int headers_to_wide_block(const struct HttpHeaders *headers,
       return EIO;
     }
     p += written;
-    wcscpy(p, L": ");
+    wcscpy_s(p, total_wide_chars - (p - buf), L": ");
     p += 2;
     if (ascii_to_wide(headers->headers[i].value, p,
                       total_wide_chars - (p - buf), &written) != 0) {
@@ -119,7 +119,7 @@ static int headers_to_wide_block(const struct HttpHeaders *headers,
       return EIO;
     }
     p += written;
-    wcscpy(p, L"\r\n");
+    wcscpy_s(p, total_wide_chars - (p - buf), L"\r\n");
     p += 2;
   }
   *out = buf;

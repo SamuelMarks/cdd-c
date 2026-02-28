@@ -932,7 +932,7 @@ static int write_path_object_serialization(FILE *const fp,
         "        path_%s[path_len] = '\\0';\n",
         prefix_len, delim_len, name, name, prefix_len, name, prefix, prefix_len,
         prefix_len, delim_len, name, pair_delim, delim_len, delim_len, name,
-        name, name, name, name));
+        name, name, name));
   } else {
     CHECK_IO(fprintf(
         fp,

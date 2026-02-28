@@ -1727,9 +1727,17 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       char *dup_name = c_cdd_strdup(ctx->func_name);
       char *token;
       char *ctx_ptr = NULL;
-      /* assume snake case */
-      token = strtok_r(dup_name, "_", &ctx_ptr); /* prefix */
-      token = strtok_r(NULL, "_", &ctx_ptr);     /* resource or next */
+/* assume snake case */
+#ifdef _WIN32
+      token = strtok_s(dup_name, "_", &ctx_ptr);
+#else
+      token = strtok_r(dup_name, "_", &ctx_ptr);
+#endif /* prefix */
+#ifdef _WIN32
+      token = strtok_s(NULL, "_", &ctx_ptr);
+#else
+      token = strtok_r(NULL, "_", &ctx_ptr);
+#endif /* resource or next */
       if (token) {
         out_op->tags = (char **)malloc(sizeof(char *));
         if (out_op->tags) {

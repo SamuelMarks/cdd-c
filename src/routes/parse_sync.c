@@ -65,7 +65,8 @@ static char *generate_expected_sig(const struct OpenAPI_Operation *op,
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
     c_cdd_str_trim_trailing_whitespace(buf);
-    size_t len = strlen(buf);
+    size_t len;
+    len = strlen(buf);
     if (len > 0 && buf[len - 1] == '{')
       buf[len - 1] = '\0';
     c_cdd_str_trim_trailing_whitespace(buf);
@@ -326,8 +327,13 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
       char comment_text[256];
       size_t found_idx = 0;
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(comment_text, sizeof(comment_text),
+                "/* Header Parameter: %s */", op->parameters[i].name);
+#else
       sprintf(comment_text, "/* Header Parameter: %s */",
               op->parameters[i].name);
+#endif
 
       /* Scan for comment token that matches */
       for (k = node->start_token; k < node->end_token; ++k) {

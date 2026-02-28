@@ -23,7 +23,11 @@
 char *c_cdd_strdup(const char *const s) {
   if (s == NULL)
     return NULL;
+#ifdef _WIN32
+  return _strdup(s);
+#else
   return strdup(s);
+#endif
 }
 
 bool c_cdd_str_starts_with(const char *const str, const char *const prefix) {

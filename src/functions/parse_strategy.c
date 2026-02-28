@@ -231,24 +231,39 @@ int strategy_inject_safety_checks(const struct TokenList *const tokens,
       injection = (char *)malloc(len);
       if (!injection)
         return ENOMEM;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(injection, len, " if (!%s) { return %s; }", site->var_name,
+                DEFAULT_ERROR_CODE);
+#else
       sprintf(injection, " if (!%s) { return %s; }", site->var_name,
               DEFAULT_ERROR_CODE);
+#endif
 
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection)
         return ENOMEM;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(injection, len, " if (%s < 0) { return %s; }", site->var_name,
+                DEFAULT_ERROR_CODE);
+#else
       sprintf(injection, " if (%s < 0) { return %s; }", site->var_name,
               DEFAULT_ERROR_CODE);
+#endif
 
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection)
         return ENOMEM;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(injection, len, " if (%s != 0) { return %s; }", site->var_name,
+                DEFAULT_ERROR_CODE);
+#else
       sprintf(injection, " if (%s != 0) { return %s; }", site->var_name,
               DEFAULT_ERROR_CODE);
+#endif
     } else {
       /* Unknown -> skip */
       continue;

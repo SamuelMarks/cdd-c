@@ -1017,6 +1017,7 @@ static void free_operation(struct OpenAPI_Operation *op) {
 
 void openapi_spec_free(struct OpenAPI_Spec *const spec) {
   size_t i, j;
+  (void)j;
   if (!spec)
     return;
 
@@ -1406,7 +1407,8 @@ static enum OpenAPI_Verb parse_verb(const char *const v) {
 static int is_fixed_operation_method(const char *const method) {
   if (!method)
     return 0;
-  return c_cdd_str_iequal(method, "get") || c_cdd_str_iequal(method, "post") ||
+  return c_cdd_str_iequal(method, "get") != 0 ||
+         c_cdd_str_iequal(method, "post") != 0 ||
          c_cdd_str_iequal(method, "put") ||
          c_cdd_str_iequal(method, "delete") ||
          c_cdd_str_iequal(method, "patch") ||
@@ -1540,13 +1542,13 @@ static int validate_component_key_map(const JSON_Object *const obj) {
 static int header_name_is_content_type(const char *const name) {
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type");
+  return c_cdd_str_iequal(name, "Content-Type") != 0;
 }
 
 static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
   if (!param || param->in != OA_PARAM_IN_HEADER || !param->name)
     return 0;
-  return c_cdd_str_iequal(param->name, "Accept") ||
+  return c_cdd_str_iequal(param->name, "Accept") != 0 ||
          c_cdd_str_iequal(param->name, "Content-Type") ||
          c_cdd_str_iequal(param->name, "Authorization");
 }
@@ -5848,14 +5850,25 @@ static int parse_schema_ref(const JSON_Object *const schema,
                             &out->schema_extra_json) != 0)
     return ENOMEM;
   {
-    struct SchemaConstraintTarget target = {
-        &out->has_min,      &out->min_val,       &out->exclusive_min,
-        &out->has_max,      &out->max_val,       &out->exclusive_max,
-        &out->has_min_len,  &out->min_len,       &out->has_max_len,
-        &out->max_len,      &out->pattern,       &out->has_min_items,
-        &out->min_items,    &out->has_max_items, &out->max_items,
-        &out->unique_items, &out->example,       &out->example_set,
-    };
+    struct SchemaConstraintTarget target;
+    target.has_min = &out->has_min;
+    target.min_val = &out->min_val;
+    target.exclusive_min = &out->exclusive_min;
+    target.has_max = &out->has_max;
+    target.max_val = &out->max_val;
+    target.exclusive_max = &out->exclusive_max;
+    target.has_min_len = &out->has_min_len;
+    target.min_len = &out->min_len;
+    target.has_max_len = &out->has_max_len;
+    target.max_len = &out->max_len;
+    target.pattern = &out->pattern;
+    target.has_min_items = &out->has_min_items;
+    target.min_items = &out->min_items;
+    target.has_max_items = &out->has_max_items;
+    target.max_items = &out->max_items;
+    target.unique_items = &out->unique_items;
+    target.example = &out->example;
+    target.example_set = &out->example_set;
     {
       int _rc = parse_schema_constraints(schema, &target);
       if (_rc != 0)
@@ -6001,10 +6014,10 @@ static int parse_schema_ref(const JSON_Object *const schema,
   }
 
   if (type && strcmp(type, "array") == 0) {
-    out->is_array = 1;
     const JSON_Value *items_val = json_object_get_value(schema, "items");
     const JSON_Object *items =
         items_val ? json_value_get_object(items_val) : NULL;
+    out->is_array = 1;
     if (items_val && json_value_get_type(items_val) == JSONBoolean) {
       out->items_schema_is_boolean = 1;
       out->items_schema_boolean_value = json_value_get_boolean(items_val);
@@ -6027,17 +6040,25 @@ static int parse_schema_ref(const JSON_Object *const schema,
       const char *item_content_encoding =
           json_object_get_string(items, "contentEncoding");
       {
-        struct SchemaConstraintTarget target = {
-            &out->items_has_min,       &out->items_min_val,
-            &out->items_exclusive_min, &out->items_has_max,
-            &out->items_max_val,       &out->items_exclusive_max,
-            &out->items_has_min_len,   &out->items_min_len,
-            &out->items_has_max_len,   &out->items_max_len,
-            &out->items_pattern,       &out->items_has_min_items,
-            &out->items_min_items,     &out->items_has_max_items,
-            &out->items_max_items,     &out->items_unique_items,
-            &out->items_example,       &out->items_example_set,
-        };
+        struct SchemaConstraintTarget target;
+        target.has_min = &out->items_has_min;
+        target.min_val = &out->items_min_val;
+        target.exclusive_min = &out->items_exclusive_min;
+        target.has_max = &out->items_has_max;
+        target.max_val = &out->items_max_val;
+        target.exclusive_max = &out->items_exclusive_max;
+        target.has_min_len = &out->items_has_min_len;
+        target.min_len = &out->items_min_len;
+        target.has_max_len = &out->items_has_max_len;
+        target.max_len = &out->items_max_len;
+        target.pattern = &out->items_pattern;
+        target.has_min_items = &out->items_has_min_items;
+        target.min_items = &out->items_min_items;
+        target.has_max_items = &out->items_has_max_items;
+        target.max_items = &out->items_max_items;
+        target.unique_items = &out->items_unique_items;
+        target.example = &out->items_example;
+        target.example_set = &out->items_example_set;
         {
           int _rc = parse_schema_constraints(items, &target);
           if (_rc != 0)
@@ -7667,8 +7688,9 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     char *base = build_inline_param_name(out_param->name);
     char *registered = NULL;
     if (base) {
-      if (register_inline_schema(spec, base, effective_schema,
-                                 effective_schema_val, &registered) == 0 &&
+      if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                 effective_schema, effective_schema_val,
+                                 &registered) == 0 &&
           registered) {
         if (out_param->schema.inline_type) {
           free(out_param->schema.inline_type);
@@ -8260,7 +8282,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                 char *base = build_inline_request_name(op_id, 1);
                 char *registered = NULL;
                 if (base) {
-                  if (register_inline_schema(spec, base, items_obj, items_val,
+                  if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                             items_obj, items_val,
                                              &registered) == 0 &&
                       registered) {
                     if (primary->schema.inline_type) {
@@ -8281,7 +8304,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
               char *base = build_inline_request_name(op_id, 0);
               char *registered = NULL;
               if (base) {
-                if (register_inline_schema(spec, base, schema_obj, schema_val,
+                if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                           schema_obj, schema_val,
                                            &registered) == 0 &&
                     registered) {
                   if (primary->schema.inline_type) {
@@ -8304,8 +8328,9 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
             char *base = build_inline_request_name(op_id, 1);
             char *registered = NULL;
             if (base) {
-              if (register_inline_schema(spec, base, item_schema_obj,
-                                         item_schema_val, &registered) == 0 &&
+              if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                         item_schema_obj, item_schema_val,
+                                         &registered) == 0 &&
                   registered) {
                 if (primary->item_schema.inline_type) {
                   free(primary->item_schema.inline_type);
@@ -8566,7 +8591,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                 char *base = build_inline_response_name(op_id, resp_code, 1);
                 char *registered = NULL;
                 if (base) {
-                  if (register_inline_schema(spec, base, items_obj, items_val,
+                  if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                             items_obj, items_val,
                                              &registered) == 0 &&
                       registered) {
                     if (primary->schema.inline_type) {
@@ -8587,7 +8613,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
               char *base = build_inline_response_name(op_id, resp_code, 0);
               char *registered = NULL;
               if (base) {
-                if (register_inline_schema(spec, base, schema_obj, schema_val,
+                if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                           schema_obj, schema_val,
                                            &registered) == 0 &&
                     registered) {
                   if (primary->schema.inline_type) {
@@ -8610,8 +8637,9 @@ static int parse_response_object(const JSON_Object *const resp_obj,
             char *base = build_inline_response_name(op_id, resp_code, 1);
             char *registered = NULL;
             if (base) {
-              if (register_inline_schema(spec, base, item_schema_obj,
-                                         item_schema_val, &registered) == 0 &&
+              if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
+                                         item_schema_obj, item_schema_val,
+                                         &registered) == 0 &&
                   registered) {
                 if (primary->item_schema.inline_type) {
                   free(primary->item_schema.inline_type);
@@ -8912,10 +8940,11 @@ static int parse_operation(const char *const verb_str,
   }
   deprecated_present = json_object_has_value(op_obj, "deprecated");
   deprecated_val = json_object_get_boolean(op_obj, "deprecated");
+  int rc_sec;
   if (deprecated_present)
     out_op->deprecated = (deprecated_val == 1);
-  int rc_sec = parse_security_field(op_obj, "security", &out_op->security,
-                                    &out_op->n_security, &out_op->security_set);
+  rc_sec = parse_security_field(op_obj, "security", &out_op->security,
+                                &out_op->n_security, &out_op->security_set);
   if (rc_sec != 0)
     return rc_sec;
   {
@@ -8936,9 +8965,10 @@ static int parse_operation(const char *const verb_str,
   /* 2. Request Body */
   req_body = json_object_get_object(op_obj, "requestBody");
   if (req_body) {
+    int rc_req;
     struct OpenAPI_RequestBody rb;
     memset(&rb, 0, sizeof(rb));
-    int rc_req =
+    rc_req =
         parse_request_body_object(req_body, &rb, spec, 1, out_op->operation_id);
     if (rc_req != 0)
       return rc_req;
@@ -10306,6 +10336,7 @@ static int collect_operation_ids(const struct OpenAPI_Path *paths,
                                  size_t *cap) {
   size_t i, j;
   int rc;
+  (void)j;
   if (!paths)
     return 0;
   for (i = 0; i < n_paths; ++i) {
@@ -10386,6 +10417,8 @@ static int component_callback_is_referenced_in_ops(
   size_t i, j;
   if (!ops || !spec || !name)
     return 0;
+  (void)j;
+  return 0;
   for (i = 0; i < n_ops; ++i) {
     const struct OpenAPI_Operation *op = &ops[i];
     for (j = 0; j < op->n_callbacks; ++j) {
