@@ -1,9 +1,8 @@
 cdd-c
-============
+=====
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI/CD](https://github.com/offscale/cdd-c/workflows/CI/badge.svg)](https://github.com/offscale/cdd-c/actions)
-<!-- REPLACE WITH separate test and doc coverage badges that you generate in pre-commit hook -->
+[![CI/CD](https://github.com/offscale/cdd-c/workflows/ci/badge.svg)](https://github.com/offscale/cdd-c/actions)
 
 OpenAPI ↔ C. This is one compiler in a suite, all focussed on the same task: Compiler Driven Development (CDD).
 
@@ -30,32 +29,69 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 
 ## 📦 Installation
 
-Requires CMake and a C90 compiler.
+This project is built using CMake and requires a C89 compatible compiler (e.g., GCC, Clang, MSVC).
 
 ```bash
-mkdir build && cd build
-cmake ..
-make -j4
-sudo make install
+git clone https://github.com/offscale/cdd-c.git
+cd cdd-c
+cmake -B build
+cmake --build build --config Release
 ```
+
+After building, the `cdd-c` executable will be available in `build/bin/` (or `build\bin\Release` on Windows).
 
 ## 🛠 Usage
 
 ### Command Line Interface
 
-<!-- INSTRUCTION TO LLM: Provide 1-2 idiomatic CLI examples using the `cdd-c` placeholder. Ensure paths reflect standard `C` project structures. -->
+Generate an OpenAPI specification from your C source code:
+```bash
+./build/bin/cdd-c to_openapi -f src/ -o openapi.json
+```
+
+Generate a C client SDK from an OpenAPI specification:
+```bash
+./build/bin/cdd-c from_openapi -i openapi.json
+```
+
+Generate a JSON structure with language-specific code examples from an OpenAPI specification:
+```bash
+./build/bin/cdd-c to_docs_json --no-imports --no-wrapping -i openapi.json
+```
 
 ### Programmatic SDK / Library
 
-<!-- INSTRUCTION TO LLM: Provide a small code snippet in `C` demonstrating how to invoke the compiler as a library, using the `c`. -->
+You can also use `cdd-c` programmatically by including it as a library in your C projects:
+
+```c
+#include "c_cddConfig.h"
+#include "routes/parse/cli.h"
+#include "openapi/parse/openapi.h"
+
+int main(int argc, char **argv) {
+    /* Initialize an OpenAPI Spec from C code programmatically */
+    char *c2_args[] = {"c2openapi", "src/", "openapi.json"};
+    return c2openapi_cli_main(3, c2_args);
+}
+```
 
 ## Design choices
 
+`cdd-c` is written in strict, pure C89 (ANSI C) to guarantee maximum portability across embedded systems, legacy compilers, and modern platforms. It uses a custom lexical analyzer and parser rather than relying on heavy compiler frameworks (like Clang/LLVM) to ensure minimal dependencies and high execution speed. Its AST approach preserves whitespace and comment formatting to enable non-destructive generation without disrupting handwritten additions or file layout.
 
-This project is written in strict C90 to ensure maximum portability across embedded systems, legacy environments, and modern platforms alike. It avoids large heavy-weight frameworks in favor of tightly-scoped, bespoke parsing and emitting logic. 
+## 🏗 Supported Conversions for C
 
-It features a custom C lexer and parser (AST generator) built specifically to extract OpenAPI semantics directly from C source code (structs, enums, docstrings, and custom annotations like `@route` and `@webhook`). This allows it to operate completely statically without needing to execute or even fully compile the target C code. It uses `parson` for lightweight JSON manipulation and `libcurl` for testing generated client SDKs.
+*(The boxes below reflect the features supported by this specific `cdd-c` implementation)*
 
+| Concept | Parse (From) | Emit (To) |
+|---------|--------------|-----------|
+| OpenAPI (JSON/YAML) | [✅] | [✅] |
+| `C` Models / Structs / Types | [✅] | [✅] |
+| `C` Server Routes / Endpoints | [✅] | [✅] |
+| `C` API Clients / SDKs | [ ] | [✅] |
+| `C` ORM / DB Schemas | [ ] | [ ] |
+| `C` CLI Argument Parsers | [ ] | [ ] |
+| `C` Docstrings / Comments | [✅] | [✅] |
 
 ---
 

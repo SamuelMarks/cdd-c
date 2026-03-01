@@ -1,81 +1,43 @@
-# Developing `cdd-c`
+# Developing
 
-This guide explains how to set up, build, and test `cdd-c` locally.
+> **Purpose of this file (`DEVELOPING.md`)**: To provide contributor guidelines, build instructions, and testing methodologies for developers working on the `cdd-c` library and CLI.
 
-## Prerequisites
+## Requirements
+- CMake (3.10 or newer)
+- A compliant C89 compiler (MSVC, GCC, or Clang)
+- `vcpkg` (for dependency management like `parson` and `curl`)
 
-To build the toolchain and run its tests, you will need:
-*   **CMake:** Minimum version 3.11.
-*   **A C Compiler:** GCC, Clang, or MSVC (Visual Studio 2022 recommended on Windows).
-*   **vcpkg:** The C++ package manager is used to automatically fetch dependencies like `parson` (JSON parser).
-*   **Git**
+## Building the Project
 
-## Setup and Build
+Use standard CMake commands to build the CLI and libraries:
 
-1.  **Install vcpkg:**
-    ```bash
-    git clone https://github.com/microsoft/vcpkg.git -b 2024.04.26  # Or a compatible baseline
-    cd vcpkg
-    # On Windows:
-    .\bootstrap-vcpkg.bat
-    # On Linux/macOS:
-    ./bootstrap-vcpkg.sh
-    cd ..
-    ```
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build . -j$(nproc)
+```
 
-2.  **Clone `cdd-c`:**
-    ```bash
-    git clone https://github.com/SamuelMarks/cdd-c.git
-    cd cdd-c
-    ```
+## Running the Test Suite
 
-3.  **Configure the Build with CMake:**
-    The project requires specific CMake arguments to find the `vcpkg` toolchain and enable testing.
+The test suite validates the C parser, the OpenAPI 3.2.0 dialect emitter, and the bidirectional synchronization engine.
 
-    *   **Windows:**
-        ```cmd
-        cmake -DCMAKE_BUILD_TYPE="Debug" -DBUILD_TESTING=ON -DC_CDD_BUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -S . -B "build"
-        ```
-    *   **Linux / macOS:**
-        ```bash
-        cmake -DCMAKE_BUILD_TYPE="Debug" -DBUILD_TESTING=ON -DC_CDD_BUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" -S . -B "build"
-        ```
-
-4.  **Compile the Code:**
-    ```bash
-    cmake --build "build" --parallel
-    ```
-
-## Testing
-
-`cdd-c` uses the `greatest.h` testing framework internally (downloaded automatically via CMake).
-
-Run tests using CTest:
 ```bash
 cd build
-ctest -C Debug --verbose
+ctest -V
 ```
-Or run the test binary directly:
+
+### Coverage Reports
+To generate a coverage report, configure CMake with coverage enabled:
+
 ```bash
-./bin/test_c_cdd
+cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON ..
+make -j$(nproc) coverage
 ```
 
-## Adding Code
+## Contributor Guidelines
 
-*   **Structure:**
-    *   `src/classes/` contains parsers and emitters for objects (structs, schemas).
-    *   `src/functions/` contains function-level parsers, code generators, and network abstraction layers.
-    *   `src/openapi/` contains the OpenAPI specific logic.
-    *   `src/tests/` contains all unit and integration tests.
-*   **CMake:** Ensure you add new `.c` and `.h` files to `src/CMakeLists.txt` or `src/tests/CMakeLists.txt` and run `cmake -B build` to refresh the build files.
-*   **Code Style:**
-    *   Adhere to C89 standards (no `//` comments, declare variables at the top of scopes).
-    *   Run `clang-format` if available before committing.
-    *   Avoid dynamic allocations where `c-str-span` (string views) can be used.
-
-## Submitting a PR
-
-1.  Create a feature branch.
-2.  Write tests for any new parsers or emitters (add headers to `test_c_cdd.c`).
-3.  Ensure the build completes and `ctest` passes locally.
-4.  Commit changes and push to GitHub. GitHub Actions will verify your code across Linux, Windows, and macOS.
+1. **Strict C89**: All modifications must compile as strict C89. Do not use inline variable declarations, VLAs, or non-standard GNU/MSVC extensions.
+2. **Modular Placement**: When adding logic, place it strictly inside `src/<domain>/parse/` or `src/<domain>/emit/`. If the logic crosses boundaries, it belongs in the orchestrator pipeline.
+3. **100% Test Coverage**: A PR will not be accepted if it drops coverage below 100%. Add explicit unit tests for all new code branches.
+4. **Bidirectional Safety**: Always verify that emitting C code from an OpenAPI spec and re-parsing that C code yields the exact same logical OpenAPI spec.
