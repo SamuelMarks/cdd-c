@@ -423,6 +423,7 @@ int url_query_build(const struct UrlQueryParams *const qp, char **out_str) {
 
   for (i = 0; i < qp->count; ++i) {
     char *e_key = url_encode(qp->params[i].key);
+    size_t kl, vl;
     char *e_val = NULL;
     const char *raw_val = qp->params[i].value;
 
@@ -434,7 +435,7 @@ int url_query_build(const struct UrlQueryParams *const qp, char **out_str) {
 
     /* e_key/e_val guaranteed non-null here as checks passed in pass 1 */
     /* Copy Key */
-    size_t kl = strlen(e_key);
+    kl = strlen(e_key);
     memcpy(ptr, e_key, kl);
     ptr += kl;
 

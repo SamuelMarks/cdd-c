@@ -62,10 +62,10 @@ static char *generate_expected_sig(const struct OpenAPI_Operation *op,
 
   buf = (char *)malloc(sz + 1);
   if (buf) {
+    size_t len;
     fread(buf, 1, sz, tmp);
     buf[sz] = '\0';
     c_cdd_str_trim_trailing_whitespace(buf);
-    size_t len;
     len = strlen(buf);
     if (len > 0 && buf[len - 1] == '{')
       buf[len - 1] = '\0';

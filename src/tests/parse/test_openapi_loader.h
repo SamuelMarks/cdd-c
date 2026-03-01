@@ -3662,42 +3662,47 @@ TEST test_load_extensions_non_schema(void) {
     struct OpenAPI_Response *resp = &op->responses[0];
     struct OpenAPI_Callback *cb = &op->callbacks[0];
 
-    JSON_Value *path_ext = json_parse_string(path->extensions_json);
-    JSON_Object *path_obj = json_value_get_object(path_ext);
+    JSON_Value *path_ext, *op_ext, *rb_ext, *param_ext, *resp_ext, *resps_ext,
+        *cb_ext;
+    JSON_Object *path_obj, *op_obj, *rb_obj, *param_obj, *resp_obj, *resps_obj,
+        *cb_obj;
+
+    path_ext = json_parse_string(path->extensions_json);
+    path_obj = json_value_get_object(path_ext);
     ASSERT_STR_EQ("path", json_object_get_string(path_obj, "x-path"));
     json_value_free(path_ext);
 
-    JSON_Value *op_ext = json_parse_string(op->extensions_json);
-    JSON_Object *op_obj = json_value_get_object(op_ext);
+    op_ext = json_parse_string(op->extensions_json);
+    op_obj = json_value_get_object(op_ext);
     ASSERT_EQ(2, (int)json_object_get_number(op_obj, "x-op"));
     json_value_free(op_ext);
 
-    JSON_Value *rb_ext = json_parse_string(op->req_body_extensions_json);
-    JSON_Object *rb_obj = json_value_get_object(rb_ext);
+    rb_ext = json_parse_string(op->req_body_extensions_json);
+    rb_obj = json_value_get_object(rb_ext);
     ASSERT_EQ(1, json_object_get_boolean(json_object_get_object(rb_obj, "x-rb"),
                                          "note"));
     json_value_free(rb_ext);
 
-    JSON_Value *param_ext = json_parse_string(param->extensions_json);
-    JSON_Object *param_obj = json_value_get_object(param_ext);
+    param_ext = json_parse_string(param->extensions_json);
+    param_obj = json_value_get_object(param_ext);
     ASSERT_STR_EQ("param", json_object_get_string(param_obj, "x-param"));
     json_value_free(param_ext);
 
-    JSON_Value *resp_ext = json_parse_string(resp->extensions_json);
-    JSON_Object *resp_obj = json_value_get_object(resp_ext);
+    resp_ext = json_parse_string(resp->extensions_json);
+    resp_obj = json_value_get_object(resp_ext);
     ASSERT_EQ(1, json_object_get_boolean(
                      json_object_get_object(resp_obj, "x-resp"), "ok"));
     json_value_free(resp_ext);
 
-    JSON_Value *resps_ext = json_parse_string(op->responses_extensions_json);
-    JSON_Object *resps_obj = json_value_get_object(resps_ext);
+    resps_ext = json_parse_string(op->responses_extensions_json);
+    resps_obj = json_value_get_object(resps_ext);
     ASSERT_EQ(1,
               json_object_get_boolean(
                   json_object_get_object(resps_obj, "x-responses"), "trace"));
     json_value_free(resps_ext);
 
-    JSON_Value *cb_ext = json_parse_string(cb->extensions_json);
-    JSON_Object *cb_obj = json_value_get_object(cb_ext);
+    cb_ext = json_parse_string(cb->extensions_json);
+    cb_obj = json_value_get_object(cb_ext);
     ASSERT_STR_EQ("cb", json_object_get_string(cb_obj, "x-cb"));
     json_value_free(cb_ext);
   }

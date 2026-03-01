@@ -7,7 +7,7 @@
  * - Parameter annotations (attributes, names, descriptions)
  * - Return value annotations
  * - Summary extraction
- * - Handling of block (`/**`) and line (`///`) comment styles.
+ * - Handling of block and line comment styles.
  *
  * @author Samuel Marks
  */

@@ -274,10 +274,11 @@ int rewrite_body(const struct TokenList *const tokens,
               size_t stmt_start = find_stmt_start(tokens, i);
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%zu",
-                        tmp_var_counter++);
+              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
+                        (unsigned long)(tmp_var_counter++));
 #else
-              sprintf(tmp_var, "_tmp_cdd_%zu", tmp_var_counter++);
+              sprintf(tmp_var, "_tmp_cdd_%lu",
+                      (unsigned long)(tmp_var_counter++));
 #endif
 
               /* Extract original args */

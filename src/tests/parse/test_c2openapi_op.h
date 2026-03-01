@@ -719,8 +719,8 @@ TEST test_build_return_content_type(void) {
 }
 
 TEST test_build_response_example(void) {
-  //
-  //
+  /* */
+  /* */
 
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -1478,8 +1478,8 @@ TEST test_build_op_param_deprecated(void) {
 }
 
 TEST test_build_request_body_example(void) {
-  //
-  //
+  /* */
+  /* */
 
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
@@ -1523,8 +1523,8 @@ TEST test_build_request_body_example(void) {
 }
 
 TEST test_build_request_body_default_content_type(void) {
-  //
-  //
+  /* */
+  /* */
 
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;

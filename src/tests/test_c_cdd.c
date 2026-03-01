@@ -3,6 +3,12 @@
  * @brief Main test runner.
  */
 
+#include <errno.h>
+
+#ifndef ENOTSUP
+#define ENOTSUP 134
+#endif
+
 #include <stdlib.h>
 #include <time.h>
 
