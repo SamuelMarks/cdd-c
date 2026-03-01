@@ -70,8 +70,8 @@ jobs:
         run: |
           mkdir -p 'build_gen/src/test'
           build/bin/cdd-c generate_build_system cmake 'build_gen' 'simp'
-          build/bin/cdd-c schema2code 'src/mocks/simple_json.schema.json' 'build_gen/src/simp'
-          build/bin/cdd-c jsonschema2tests 'src/mocks/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
+          build/bin/cdd-c schema2code 'src/mocks/emit/simple_json.schema.json' 'build_gen/src/simp'
+          build/bin/cdd-c jsonschema2tests 'src/mocks/emit/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
           cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake'
           cmake --build 'build_gen/cmake_debug_build'
           cd build_gen
@@ -82,8 +82,8 @@ jobs:
         run: |
           md "build_gen\src\test"
           build\bin\cdd-c generate_build_system cmake "build_gen" "simp"
-          build\bin\cdd-c schema2code "src\mocks\simple_json.schema.json" "build_gen\src\simp"
-          build\bin\cdd-c jsonschema2tests "src\mocks\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
+          build\bin\cdd-c schema2code "src\mocks\emit\simple_json.schema.json" "build_gen\src\simp"
+          build\bin\cdd-c jsonschema2tests "src\mocks\emit\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
           cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build "build_gen\cmake_debug_build"
           cd build_gen

@@ -72,7 +72,7 @@ static int print_enum_declaration(FILE *const hfile,
   if (!hfile || !enum_name || !sf)
     return EINVAL;
 
-  CHECK_IO(fprintf(hfile, "enum LIB_EXPORT %s {\n", enum_name));
+  CHECK_IO(fprintf(hfile, "enum %s {\n", enum_name));
   CHECK_IO(fprintf(hfile, "  %s_UNKNOWN = 0,\n", enum_name));
   for (i = 0; i < sf->enum_members.size; ++i) {
     const char *member = sf->enum_members.members[i];
@@ -112,7 +112,7 @@ static int print_union_declaration(FILE *const hfile,
   }
   CHECK_IO(fputs("};\n\n", hfile));
 
-  CHECK_IO(fprintf(hfile, "struct LIB_EXPORT %s {\n", union_name));
+  CHECK_IO(fprintf(hfile, "struct %s {\n", union_name));
   CHECK_IO(fprintf(hfile, "  enum %s_tag tag;\n", union_name));
   CHECK_IO(fputs("  union {\n", hfile));
   for (i = 0; i < sf->size; ++i) {
@@ -181,7 +181,7 @@ static int print_struct_declaration(FILE *const hfile,
                                     const struct CodegenConfig *const config) {
   size_t i;
 
-  CHECK_IO(fprintf(hfile, "struct LIB_EXPORT %s {\n", struct_name));
+  CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
   for (i = 0; i < sf->size; i++) {
     const struct StructField *field = &sf->fields[i];
     const char *n = field->name;

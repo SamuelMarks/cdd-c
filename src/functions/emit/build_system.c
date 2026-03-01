@@ -55,6 +55,14 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
   /* Dependency Logic */
+  CHECK_IO(fprintf(fp, "find_package(parson REQUIRED)\n"));
+  CHECK_IO(fprintf(fp, "if(TARGET parson::parson)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson::parson)\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "else()\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson)\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
   CHECK_IO(fprintf(fp, "if (WIN32)\n"));
   CHECK_IO(fprintf(fp, "    # Windows: Link WinHTTP\n"));
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE winhttp)\n",

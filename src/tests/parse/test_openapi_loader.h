@@ -5,6 +5,10 @@
 
 #ifndef TEST_OPENAPI_LOADER_H
 #define TEST_OPENAPI_LOADER_H
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#endif
 
 #include <greatest.h>
 #include <parson.h>
@@ -4257,5 +4261,9 @@ SUITE(openapi_loader_suite) {
   RUN_TEST(test_response_code_key_invalid_rejected);
   RUN_TEST(test_response_code_range_valid);
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #endif /* TEST_OPENAPI_LOADER_H */

@@ -34,7 +34,9 @@ TEST test_schema_codegen_circular_refs(void) {
 
   const char *const filename = "circular.json";
 
-  const char *argv[] = {filename, "circular_out"};
+  const char *argv[2];
+  argv[0] = filename;
+  argv[1] = "circular_out";
 
   int rc;
 
@@ -80,9 +82,9 @@ TEST test_schema_codegen_circular_refs(void) {
 
     char *fwd_b = strstr(header_content, "struct B;");
 
-    char *def_a = strstr(header_content, "struct LIB_EXPORT A {");
+    char *def_a = strstr(header_content, "struct A {");
 
-    char *def_b = strstr(header_content, "struct LIB_EXPORT B {");
+    char *def_b = strstr(header_content, "struct B {");
 
     ASSERT(fwd_a != NULL);
 
@@ -258,7 +260,9 @@ TEST test_union_config_json_guards(void) {
 
 TEST test_schema_codegen_union_output(void) {
   const char *const filename = "union_schema.json";
-  const char *argv[] = {filename, "union_out"};
+  const char *argv[2];
+  argv[0] = filename;
+  argv[1] = "union_out";
   int rc;
   char *header_content = NULL;
   char *source_content = NULL;
@@ -289,7 +293,7 @@ TEST test_schema_codegen_union_output(void) {
   ASSERT_EQ(0, rc);
 
   ASSERT(strstr(header_content, "enum Pet_tag"));
-  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet"));
+  ASSERT(strstr(header_content, "struct Pet"));
   ASSERT(strstr(header_content, "Pet_from_json"));
   ASSERT(strstr(header_content, "Pet_to_json"));
 
@@ -307,7 +311,9 @@ TEST test_schema_codegen_union_output(void) {
 
 TEST test_schema_codegen_union_inline_variants(void) {
   const char *const filename = "union_inline_schema.json";
-  const char *argv[] = {filename, "union_inline_out"};
+  const char *argv[2];
+  argv[0] = filename;
+  argv[1] = "union_inline_out";
   int rc;
   char *header_content = NULL;
   char *source_content = NULL;
@@ -336,9 +342,9 @@ TEST test_schema_codegen_union_inline_variants(void) {
   rc = read_to_file("union_inline_out.c", "r", &source_content, &sz);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet_InlineCat"));
+  ASSERT(strstr(header_content, "struct Pet_InlineCat"));
   ASSERT(strstr(header_content, "meow"));
-  ASSERT(strstr(header_content, "struct LIB_EXPORT Pet"));
+  ASSERT(strstr(header_content, "struct Pet"));
   ASSERT(strstr(header_content, "n_TagList"));
   ASSERT(strstr(header_content, "TagList"));
 
@@ -355,7 +361,9 @@ TEST test_schema_codegen_union_inline_variants(void) {
 
 TEST test_schema_codegen_enum_output(void) {
   const char *const filename = "enum_schema.json";
-  const char *argv[] = {filename, "enum_out"};
+  const char *argv[2];
+  argv[0] = filename;
+  argv[1] = "enum_out";
   int rc;
   char *header_content = NULL;
   char *source_content = NULL;
@@ -379,7 +387,7 @@ TEST test_schema_codegen_enum_output(void) {
   rc = read_to_file("enum_out.c", "r", &source_content, &sz);
   ASSERT_EQ(0, rc);
 
-  ASSERT(strstr(header_content, "enum LIB_EXPORT Color"));
+  ASSERT(strstr(header_content, "enum Color"));
   ASSERT(strstr(header_content, "Color_RED"));
   ASSERT(strstr(header_content, "Color_GREEN"));
   ASSERT(strstr(header_content, "Color_from_str"));
