@@ -14,8 +14,11 @@
 #include <string.h>
 
 #ifdef _WIN32
+#include "c_cddConfig.h"
+#include <winbase.h>
 #include <wincrypt.h>
-#include <windows.h>
+#include <windef.h>
+#include <winerror.h>
 #endif
 
 #include "functions/parse/crypto_types.h"

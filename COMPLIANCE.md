@@ -1,29 +1,18 @@
-# Compliance
+# CDD Compliance Requirements
 
-> **Purpose of this file (`COMPLIANCE.md`)**: To outline the exact specifications, standards, and metrics the project strictly adheres to, and report on the current compliance status.
+The `cdd-c` tool is governed by strict compliance constraints across two primary dimensions:
+1. **OpenAPI Compatibility**: Bound to `OAS 3.2.0`.
+2. **C Standard Portability**: Bound to `ISO C89 (ANSI C)`.
 
-## OpenAPI 3.2.0 Specification Compliance
-`cdd-c` acts as a reference implementation for generating and validating the **OpenAPI 3.2.0** specification.
+## OpenAPI 3.2.0
+The AST must successfully parse and emit standard and drafted `3.2.0` schema definitions losslessly. Native C structures parse primitives (objects, properties, parameters) while complex polymorphic definitions (`allOf`, `oneOf`, `if`/`then`/`else`) are maintained via native pointer arrays and deep-copy replication in the AST.
 
-The project currently fully supports:
-- Root level `paths` and `webhooks` definition.
-- Advanced `components` including schemas, responses, parameters, examples, requestBodies, headers, securitySchemes, links, callbacks, and pathItems.
-- Multi-document and dynamic `$ref` traversal.
-- Precise encoding definitions for Media Types.
-- OAuth2 Security Scheme Flows.
+## C89 (ANSI C) Strict Mode
+Because CDD targets maximal embedded and legacy environment compatibility:
+* No `//` inline comments.
+* Variables must be declared at the top of a block scope (`{`).
+* Variadic macros are discouraged without `#ifdef` guards.
+* Memory allocations (`malloc`, `calloc`) must rigorously verify boundaries without depending on C99+ safety macros.
+* Code must compile cleanly using `-Wextra -Wall -pedantic`.
 
-*Note: The actual specifications are maintained in this repository as `3.2.0.md` and `3.1.1.md` for local test validation and regression checking.*
-
-## Strict C89 (ANSI C) Compliance
-To ensure absolute portability across embedded controllers, IoT applications, and major enterprise backends, the codebase enforces strict C89 constraints.
-
-- Variables are exclusively declared at the start of scope blocks.
-- Uses `/* ... */` comment blocks natively (with parser-awareness for modern `//` styles in user code).
-- Tested simultaneously against:
-  - MSVC
-  - GCC
-  - Clang
-
-## Quality Assurance Metrics
-- **Test Coverage:** The repository enforces a 100% test coverage rule. The CI/CD pipeline validates every code path, edge case, and failure state using automated tests.
-- **Documentation Coverage:** The codebase requires a full Doxygen-style docstring block ensuring 100% doc coverage.
+The AST and code generation templates enforce this uniformly for both the compiler itself and the SDK output.

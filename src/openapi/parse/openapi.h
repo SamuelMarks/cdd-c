@@ -425,6 +425,25 @@ struct OpenAPI_SchemaRef {
   char *items_extra_json;      /**< Serialized JSON for array items keywords */
   int items_schema_is_boolean; /**< 1 if items schema is boolean */
   int items_schema_boolean_value; /**< Items schema boolean value */
+
+  /* OpenAPI 3.2.0 Advanced Constraints & Composition */
+  int has_multiple_of;    /**< 1 if multipleOf present */
+  double multiple_of;     /**< multipleOf value */
+  int has_min_properties; /**< 1 if minProperties present */
+  size_t min_properties;  /**< minProperties value */
+  int has_max_properties; /**< 1 if maxProperties present */
+  size_t max_properties;  /**< maxProperties value */
+
+  struct OpenAPI_SchemaRef *all_of;      /**< allOf schemas */
+  size_t n_all_of;                       /**< allOf count */
+  struct OpenAPI_SchemaRef *any_of;      /**< anyOf schemas */
+  size_t n_any_of;                       /**< anyOf count */
+  struct OpenAPI_SchemaRef *one_of;      /**< oneOf schemas */
+  size_t n_one_of;                       /**< oneOf count */
+  struct OpenAPI_SchemaRef *not_schema;  /**< not schema */
+  struct OpenAPI_SchemaRef *if_schema;   /**< if schema */
+  struct OpenAPI_SchemaRef *then_schema; /**< then schema */
+  struct OpenAPI_SchemaRef *else_schema; /**< else schema */
   struct OpenAPI_MultipartField
       *multipart_fields;     /**< Array of fields (if multipart) */
   size_t n_multipart_fields; /**< Count of multipart fields */

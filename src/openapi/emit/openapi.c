@@ -1056,6 +1056,75 @@ static void write_schema_ref(JSON_Object *parent, const char *key,
   write_array_constraints(sch_obj, ref->has_min_items, ref->min_items,
                           ref->has_max_items, ref->max_items,
                           ref->unique_items);
+
+  if (ref->has_multiple_of)
+    json_object_set_number(sch_obj, "multipleOf", ref->multiple_of);
+  if (ref->has_min_properties)
+    json_object_set_number(sch_obj, "minProperties",
+                           (double)ref->min_properties);
+  if (ref->has_max_properties)
+    json_object_set_number(sch_obj, "maxProperties",
+                           (double)ref->max_properties);
+
+  if (ref->all_of && ref->n_all_of > 0) {
+    JSON_Value *arr_val = json_value_init_array();
+    JSON_Array *arr = json_value_get_array(arr_val);
+    size_t i;
+    for (i = 0; i < ref->n_all_of; ++i) {
+      JSON_Value *temp_val = json_value_init_object();
+      JSON_Value *copied_val;
+      write_schema_ref(json_value_get_object(temp_val), "schema",
+                       &ref->all_of[i]);
+      copied_val = json_value_deep_copy(
+          json_object_get_value(json_value_get_object(temp_val), "schema"));
+      if (copied_val)
+        json_array_append_value(arr, copied_val);
+      json_value_free(temp_val);
+    }
+    json_object_set_value(sch_obj, "allOf", arr_val);
+  }
+  if (ref->any_of && ref->n_any_of > 0) {
+    JSON_Value *arr_val = json_value_init_array();
+    JSON_Array *arr = json_value_get_array(arr_val);
+    size_t i;
+    for (i = 0; i < ref->n_any_of; ++i) {
+      JSON_Value *temp_val = json_value_init_object();
+      JSON_Value *copied_val;
+      write_schema_ref(json_value_get_object(temp_val), "schema",
+                       &ref->any_of[i]);
+      copied_val = json_value_deep_copy(
+          json_object_get_value(json_value_get_object(temp_val), "schema"));
+      if (copied_val)
+        json_array_append_value(arr, copied_val);
+      json_value_free(temp_val);
+    }
+    json_object_set_value(sch_obj, "anyOf", arr_val);
+  }
+  if (ref->one_of && ref->n_one_of > 0) {
+    JSON_Value *arr_val = json_value_init_array();
+    JSON_Array *arr = json_value_get_array(arr_val);
+    size_t i;
+    for (i = 0; i < ref->n_one_of; ++i) {
+      JSON_Value *temp_val = json_value_init_object();
+      JSON_Value *copied_val;
+      write_schema_ref(json_value_get_object(temp_val), "schema",
+                       &ref->one_of[i]);
+      copied_val = json_value_deep_copy(
+          json_object_get_value(json_value_get_object(temp_val), "schema"));
+      if (copied_val)
+        json_array_append_value(arr, copied_val);
+      json_value_free(temp_val);
+    }
+    json_object_set_value(sch_obj, "oneOf", arr_val);
+  }
+  if (ref->not_schema)
+    write_schema_ref(sch_obj, "not", ref->not_schema);
+  if (ref->if_schema)
+    write_schema_ref(sch_obj, "if", ref->if_schema);
+  if (ref->then_schema)
+    write_schema_ref(sch_obj, "then", ref->then_schema);
+  if (ref->else_schema)
+    write_schema_ref(sch_obj, "else", ref->else_schema);
   if (ref->content_media_type)
     json_object_set_string(sch_obj, "contentMediaType",
                            ref->content_media_type);

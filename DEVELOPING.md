@@ -1,43 +1,27 @@
-# Developing
+# Developing `cdd-c`
 
-> **Purpose of this file (`DEVELOPING.md`)**: To provide contributor guidelines, build instructions, and testing methodologies for developers working on the `cdd-c` library and CLI.
+Welcome to `cdd-c`! 
 
-## Requirements
-- CMake (3.10 or newer)
-- A compliant C89 compiler (MSVC, GCC, or Clang)
-- `vcpkg` (for dependency management like `parson` and `curl`)
+## Architecture
+We use a 3-stage compiler approach (Frontend/AST -> IR -> Backend/Emitter).
 
-## Building the Project
+## Core Rules
+1. **Never write non-C89 code.**
+2. Test driven. Add a test in `src/tests` to reproduce a bug *before* fixing it in the main library.
+3. Keep AST components (`src/openapi/parse/openapi.h`) perfectly symmetrical. 
 
-Use standard CMake commands to build the CLI and libraries:
-
+## Testing
 ```bash
-mkdir build
-cd build
-cmake ..
-cmake --build . -j$(nproc)
+make test
+```
+*(Runs standard cmake & ctest).*
+
+To debug memory leaks:
+```bash
+cmake -S . -B build_asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DC_CDD_BUILD_TESTING=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_FLAGS="-fsanitize=address -g -O1 -fPIC" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+cmake --build build_asan -j
+cd build_asan && ctest -V
 ```
 
-## Running the Test Suite
-
-The test suite validates the C parser, the OpenAPI 3.2.0 dialect emitter, and the bidirectional synchronization engine.
-
-```bash
-cd build
-ctest -V
-```
-
-### Coverage Reports
-To generate a coverage report, configure CMake with coverage enabled:
-
-```bash
-cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON ..
-make -j$(nproc) coverage
-```
-
-## Contributor Guidelines
-
-1. **Strict C89**: All modifications must compile as strict C89. Do not use inline variable declarations, VLAs, or non-standard GNU/MSVC extensions.
-2. **Modular Placement**: When adding logic, place it strictly inside `src/<domain>/parse/` or `src/<domain>/emit/`. If the logic crosses boundaries, it belongs in the orchestrator pipeline.
-3. **100% Test Coverage**: A PR will not be accepted if it drops coverage below 100%. Add explicit unit tests for all new code branches.
-4. **Bidirectional Safety**: Always verify that emitting C code from an OpenAPI spec and re-parsing that C code yields the exact same logical OpenAPI spec.
+## Adding new OpenAPI keywords
+Update `struct OpenAPI_SchemaRef`, update `parse_schema_ref`, update `copy_schema_ref`, update `free_schema_ref_content`, update `write_schema_ref`. Ensure `json_value_deep_copy` handles pointer allocations.

@@ -1,15 +1,38 @@
-# Publish Output
+# Publishing Client SDKs (Continuous Delivery)
 
-> **Purpose of this file (`PUBLISH_OUTPUT.md`)**: To track the continuous integration outputs, build artifacts, and deployment logs generated during automated release pipelines.
+The `cdd-c` tool makes it trivial to ensure your client libraries are always in perfect harmony with the latest server OpenAPI specifications.
 
-*(This file acts as a placeholder or historical log for the CI/CD deployment pipeline. Artifact checksums, build metrics, and test coverage thresholds are automatically injected here by GitHub Actions during the release phase.)*
+## Automated Updates via GitHub Actions
+You should set up a scheduled or webhook-triggered GitHub Action in your generated client repository to automatically fetch the latest API specification and run the `from_openapi` compiler.
 
-## Current Targets
+```yaml
+name: Sync C SDK
 
-The standard build output encompasses:
-- `cdd-c` (Linux / macOS / Windows Executable)
-- `libc_cdd.a` (Static Library)
-- `libc_cdd.so` (Dynamic Shared Library)
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily
+  repository_dispatch:
+    types: [openapi_updated] # Or trigger manually from your server repo
 
-## Coverage Reports
-Last automated run ensures **100% test coverage** and full **OpenAPI 3.2.0 compatibility**.
+jobs:
+  update-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cdd-c
+        run: |
+          wget https://github.com/offscale/cdd-c/releases/latest/download/cdd-c-linux-amd64
+          chmod +x cdd-c-linux-amd64
+      - name: Fetch Latest Spec
+        run: curl -O https://api.example.com/openapi.json
+      - name: Generate SDK
+        run: ./cdd-c-linux-amd64 from_openapi -i openapi.json
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Automated SDK Sync via cdd-c"
+          title: "[cdd-c] Sync Client SDK to latest OpenAPI specification"
+          branch: chore/sync-sdk
+```
+
+This ensures your C applications, embedded systems, or hardware endpoints remain compatible with any structural API shifts the moment they happen.

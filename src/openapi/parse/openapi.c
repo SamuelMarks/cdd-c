@@ -62,6 +62,12 @@ static const char *ref_name_from_prefix(const struct OpenAPI_Spec *spec,
                                         const char *ref, const char *prefix);
 
 struct SchemaConstraintTarget {
+  int *has_multiple_of;
+  double *multiple_of;
+  int *has_min_properties;
+  size_t *min_properties;
+  int *has_max_properties;
+  size_t *max_properties;
   int *has_min;
   double *min_val;
   int *exclusive_min;
@@ -360,6 +366,41 @@ void openapi_spec_init(struct OpenAPI_Spec *const spec) {
 static void free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return;
+
+  if (ref->all_of) {
+    size_t i;
+    for (i = 0; i < ref->n_all_of; ++i)
+      free_schema_ref_content(&ref->all_of[i]);
+    free(ref->all_of);
+  }
+  if (ref->any_of) {
+    size_t i;
+    for (i = 0; i < ref->n_any_of; ++i)
+      free_schema_ref_content(&ref->any_of[i]);
+    free(ref->any_of);
+  }
+  if (ref->one_of) {
+    size_t i;
+    for (i = 0; i < ref->n_one_of; ++i)
+      free_schema_ref_content(&ref->one_of[i]);
+    free(ref->one_of);
+  }
+  if (ref->not_schema) {
+    free_schema_ref_content(ref->not_schema);
+    free(ref->not_schema);
+  }
+  if (ref->if_schema) {
+    free_schema_ref_content(ref->if_schema);
+    free(ref->if_schema);
+  }
+  if (ref->then_schema) {
+    free_schema_ref_content(ref->then_schema);
+    free(ref->then_schema);
+  }
+  if (ref->else_schema) {
+    free_schema_ref_content(ref->else_schema);
+    free(ref->else_schema);
+  }
   if (ref->ref_name)
     free(ref->ref_name);
   if (ref->ref)
@@ -3706,6 +3747,94 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   }
   dst->items_schema_is_boolean = src->items_schema_is_boolean;
   dst->items_schema_boolean_value = src->items_schema_boolean_value;
+  dst->has_multiple_of = src->has_multiple_of;
+  dst->multiple_of = src->multiple_of;
+  dst->has_min_properties = src->has_min_properties;
+  dst->min_properties = src->min_properties;
+  dst->has_max_properties = src->has_max_properties;
+  dst->max_properties = src->max_properties;
+
+  if (src->all_of && src->n_all_of > 0) {
+    dst->all_of = (struct OpenAPI_SchemaRef *)calloc(
+        src->n_all_of, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->all_of)
+      return ENOMEM;
+    dst->n_all_of = src->n_all_of;
+    for (i = 0; i < src->n_all_of; ++i) {
+      int _rc = copy_schema_ref(&dst->all_of[i], &src->all_of[i]);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->any_of && src->n_any_of > 0) {
+    dst->any_of = (struct OpenAPI_SchemaRef *)calloc(
+        src->n_any_of, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->any_of)
+      return ENOMEM;
+    dst->n_any_of = src->n_any_of;
+    for (i = 0; i < src->n_any_of; ++i) {
+      int _rc = copy_schema_ref(&dst->any_of[i], &src->any_of[i]);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->one_of && src->n_one_of > 0) {
+    dst->one_of = (struct OpenAPI_SchemaRef *)calloc(
+        src->n_one_of, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->one_of)
+      return ENOMEM;
+    dst->n_one_of = src->n_one_of;
+    for (i = 0; i < src->n_one_of; ++i) {
+      int _rc = copy_schema_ref(&dst->one_of[i], &src->one_of[i]);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->not_schema) {
+    dst->not_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->not_schema)
+      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(dst->not_schema, src->not_schema);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->if_schema) {
+    dst->if_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->if_schema)
+      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(dst->if_schema, src->if_schema);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->then_schema) {
+    dst->then_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->then_schema)
+      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(dst->then_schema, src->then_schema);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+  if (src->else_schema) {
+    dst->else_schema =
+        (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+    if (!dst->else_schema)
+      return ENOMEM;
+    {
+      int _rc = copy_schema_ref(dst->else_schema, src->else_schema);
+      if (_rc != 0)
+        return _rc;
+    }
+  }
+
   if (src->n_multipart_fields > 0 && src->multipart_fields) {
     dst->multipart_fields = (struct OpenAPI_MultipartField *)calloc(
         src->n_multipart_fields, sizeof(struct OpenAPI_MultipartField));
@@ -5664,6 +5793,16 @@ static const char *const k_schema_skip_keys[] = {"$ref",
                                                  "minItems",
                                                  "maxItems",
                                                  "uniqueItems",
+                                                 "multipleOf",
+                                                 "minProperties",
+                                                 "maxProperties",
+                                                 "allOf",
+                                                 "anyOf",
+                                                 "oneOf",
+                                                 "not",
+                                                 "if",
+                                                 "then",
+                                                 "else",
                                                  "summary",
                                                  "description",
                                                  "deprecated",
@@ -5698,6 +5837,61 @@ static const char *const k_items_skip_keys[] = {"$ref",
                                                 "deprecated",
                                                 "readOnly",
                                                 "writeOnly"};
+
+static int parse_schema_array_ref(const JSON_Array *arr,
+                                  struct OpenAPI_SchemaRef **out,
+                                  size_t *out_count,
+                                  const struct OpenAPI_Spec *spec) {
+  size_t i, count;
+  struct OpenAPI_SchemaRef *schemas;
+
+  if (!arr || !out || !out_count)
+    return EINVAL;
+  count = json_array_get_count(arr);
+  if (count == 0) {
+    *out = NULL;
+    *out_count = 0;
+    return 0;
+  }
+  schemas = (struct OpenAPI_SchemaRef *)calloc(
+      count, sizeof(struct OpenAPI_SchemaRef));
+  if (!schemas)
+    return ENOMEM;
+  for (i = 0; i < count; ++i) {
+    int rc = parse_schema_ref(json_array_get_object(arr, i), &schemas[i], spec);
+    if (rc != 0) {
+      size_t j;
+      for (j = 0; j < i; ++j) {
+        free_schema_ref_content(&schemas[j]);
+      }
+      free(schemas);
+      return rc;
+    }
+  }
+  *out = schemas;
+  *out_count = count;
+  return 0;
+}
+
+static int parse_schema_ref_ptr(const JSON_Object *obj,
+                                struct OpenAPI_SchemaRef **out,
+                                const struct OpenAPI_Spec *spec) {
+  struct OpenAPI_SchemaRef *schema;
+  int rc;
+  if (!obj || !out)
+    return EINVAL;
+  schema =
+      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+  if (!schema)
+    return ENOMEM;
+  rc = parse_schema_ref(obj, schema, spec);
+  if (rc != 0) {
+    free(schema);
+    return rc;
+  }
+  *out = schema;
+  return 0;
+}
 
 static int parse_schema_ref(const JSON_Object *const schema,
                             struct OpenAPI_SchemaRef *const out,
@@ -5750,6 +5944,22 @@ static int parse_schema_ref(const JSON_Object *const schema,
   out->content_encoding = NULL;
   out->items_content_media_type = NULL;
   out->items_content_encoding = NULL;
+  out->has_multiple_of = 0;
+  out->multiple_of = 0;
+  out->has_min_properties = 0;
+  out->min_properties = 0;
+  out->has_max_properties = 0;
+  out->max_properties = 0;
+  out->all_of = NULL;
+  out->n_all_of = 0;
+  out->any_of = NULL;
+  out->n_any_of = 0;
+  out->one_of = NULL;
+  out->n_one_of = 0;
+  out->not_schema = NULL;
+  out->if_schema = NULL;
+  out->then_schema = NULL;
+  out->else_schema = NULL;
   out->nullable = 0;
   out->items_nullable = 0;
   out->summary = NULL;
@@ -5838,6 +6048,49 @@ static int parse_schema_ref(const JSON_Object *const schema,
   type = parse_schema_type(schema, &nullable);
   out->nullable = nullable;
 
+  if (json_object_has_value(schema, "allOf")) {
+    int rc = parse_schema_array_ref(json_object_get_array(schema, "allOf"),
+                                    &out->all_of, &out->n_all_of, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "anyOf")) {
+    int rc = parse_schema_array_ref(json_object_get_array(schema, "anyOf"),
+                                    &out->any_of, &out->n_any_of, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "oneOf")) {
+    int rc = parse_schema_array_ref(json_object_get_array(schema, "oneOf"),
+                                    &out->one_of, &out->n_one_of, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "not")) {
+    int rc = parse_schema_ref_ptr(json_object_get_object(schema, "not"),
+                                  &out->not_schema, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "if")) {
+    int rc = parse_schema_ref_ptr(json_object_get_object(schema, "if"),
+                                  &out->if_schema, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "then")) {
+    int rc = parse_schema_ref_ptr(json_object_get_object(schema, "then"),
+                                  &out->then_schema, spec);
+    if (rc != 0)
+      return rc;
+  }
+  if (json_object_has_value(schema, "else")) {
+    int rc = parse_schema_ref_ptr(json_object_get_object(schema, "else"),
+                                  &out->else_schema, spec);
+    if (rc != 0)
+      return rc;
+  }
+
   {
     int _rc = parse_any_field(schema, "default", &out->default_value,
                               &out->default_value_set);
@@ -5851,6 +6104,12 @@ static int parse_schema_ref(const JSON_Object *const schema,
     return ENOMEM;
   {
     struct SchemaConstraintTarget target;
+    target.has_multiple_of = &out->has_multiple_of;
+    target.multiple_of = &out->multiple_of;
+    target.has_min_properties = &out->has_min_properties;
+    target.min_properties = &out->min_properties;
+    target.has_max_properties = &out->has_max_properties;
+    target.max_properties = &out->max_properties;
     target.has_min = &out->has_min;
     target.min_val = &out->min_val;
     target.exclusive_min = &out->exclusive_min;
@@ -6041,6 +6300,12 @@ static int parse_schema_ref(const JSON_Object *const schema,
           json_object_get_string(items, "contentEncoding");
       {
         struct SchemaConstraintTarget target;
+        target.has_multiple_of = NULL;
+        target.multiple_of = NULL;
+        target.has_min_properties = NULL;
+        target.min_properties = NULL;
+        target.has_max_properties = NULL;
+        target.max_properties = NULL;
         target.has_min = &out->items_has_min;
         target.min_val = &out->items_min_val;
         target.exclusive_min = &out->items_exclusive_min;
@@ -10962,6 +11227,40 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
   if (!spec || !ref)
     return NULL;
 
+  if (ref->all_of) {
+    size_t i;
+    for (i = 0; i < ref->n_all_of; ++i)
+      free_schema_ref_content(&ref->all_of[i]);
+    free(ref->all_of);
+  }
+  if (ref->any_of) {
+    size_t i;
+    for (i = 0; i < ref->n_any_of; ++i)
+      free_schema_ref_content(&ref->any_of[i]);
+    free(ref->any_of);
+  }
+  if (ref->one_of) {
+    size_t i;
+    for (i = 0; i < ref->n_one_of; ++i)
+      free_schema_ref_content(&ref->one_of[i]);
+    free(ref->one_of);
+  }
+  if (ref->not_schema) {
+    free_schema_ref_content(ref->not_schema);
+    free(ref->not_schema);
+  }
+  if (ref->if_schema) {
+    free_schema_ref_content(ref->if_schema);
+    free(ref->if_schema);
+  }
+  if (ref->then_schema) {
+    free_schema_ref_content(ref->then_schema);
+    free(ref->then_schema);
+  }
+  if (ref->else_schema) {
+    free_schema_ref_content(ref->else_schema);
+    free(ref->else_schema);
+  }
   if (ref->ref_name) {
     if (ref->ref) {
       resolved = resolve_ref_target(spec, ref->ref);

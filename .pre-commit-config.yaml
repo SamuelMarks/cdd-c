@@ -9,3 +9,11 @@ repos:
     hooks:
       - id: clang-format
         args: ["--style=LLVM", "-i"]
+  - repo: local
+    hooks:
+      - id: update-shields
+        name: Update Shields and Run Tests
+        entry: ./scripts/pre_commit.sh
+        language: script
+        pass_filenames: false
+        always_run: true

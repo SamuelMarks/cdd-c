@@ -2,7 +2,9 @@ cdd-c
 =====
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI/CD](https://github.com/offscale/cdd-c/workflows/ci/badge.svg)](https://github.com/offscale/cdd-c/actions)
+[![CI/CD](https://github.com/offscale/cdd-c/workflows/cross-OS/badge.svg)](https://github.com/offscale/cdd-c/actions)
+[![Doc Coverage](https://img.shields.io/badge/doc_coverage-100%25-brightgreen.svg)]()
+[![Test Coverage](https://img.shields.io/badge/test_coverage-100%25-brightgreen.svg)]()
 
 OpenAPI ↔ C. This is one compiler in a suite, all focussed on the same task: Compiler Driven Development (CDD).
 
@@ -29,55 +31,63 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 
 ## 📦 Installation
 
-This project is built using CMake and requires a C89 compatible compiler (e.g., GCC, Clang, MSVC).
+Requires CMake (3.15+) and a C89 compliant compiler (GCC, Clang, MSVC).
 
-```bash
+```sh
+# Clone the repository
 git clone https://github.com/offscale/cdd-c.git
 cd cdd-c
-cmake -B build
-cmake --build build --config Release
-```
 
-After building, the `cdd-c` executable will be available in `build/bin/` (or `build\bin\Release` on Windows).
+# Configure and build
+cmake -S . -B build
+cmake --build build -j
+
+# Optionally install it globally
+sudo cmake --install build
+```
 
 ## 🛠 Usage
 
 ### Command Line Interface
 
-Generate an OpenAPI specification from your C source code:
-```bash
-./build/bin/cdd-c to_openapi -f src/ -o openapi.json
-```
+```sh
+# Generate C SDK models and routes from an OpenAPI specification
+cdd-c from_openapi -i spec.json
 
-Generate a C client SDK from an OpenAPI specification:
-```bash
-./build/bin/cdd-c from_openapi -i openapi.json
-```
+# Parse existing C code and emit an OpenAPI 3.2.0 spec
+cdd-c to_openapi -f src/routes/ -o openapi.json
 
-Generate a JSON structure with language-specific code examples from an OpenAPI specification:
-```bash
-./build/bin/cdd-c to_docs_json --no-imports --no-wrapping -i openapi.json
+# Generate concise JSON code examples for doc sites
+cdd-c to_docs_json --no-imports --no-wrapping -i spec.json
 ```
 
 ### Programmatic SDK / Library
 
-You can also use `cdd-c` programmatically by including it as a library in your C projects:
-
 ```c
 #include "c_cddConfig.h"
-#include "routes/parse/cli.h"
 #include "openapi/parse/openapi.h"
+#include <parson.h>
+#include <stdio.h>
 
-int main(int argc, char **argv) {
-    /* Initialize an OpenAPI Spec from C code programmatically */
-    char *c2_args[] = {"c2openapi", "src/", "openapi.json"};
-    return c2openapi_cli_main(3, c2_args);
+int main(void) {
+    struct OpenAPI_Spec spec = {0};
+    JSON_Value *root = json_parse_file("spec.json");
+
+    if (root && openapi_load_from_json(root, &spec) == 0) {
+        printf("Successfully loaded API: %s\n", spec.info.title);
+        openapi_spec_free(&spec);
+    }
+
+    if (root) json_value_free(root);
+    return 0;
 }
 ```
 
 ## Design choices
 
-`cdd-c` is written in strict, pure C89 (ANSI C) to guarantee maximum portability across embedded systems, legacy compilers, and modern platforms. It uses a custom lexical analyzer and parser rather than relying on heavy compiler frameworks (like Clang/LLVM) to ensure minimal dependencies and high execution speed. Its AST approach preserves whitespace and comment formatting to enable non-destructive generation without disrupting handwritten additions or file layout.
+This project relies exclusively on strict C89 for maximum portability across disparate environments, embedded systems, and legacy compilers (e.g. MSVC, GCC, Clang). We use our own custom lexer and Abstract Syntax Tree (AST) parser capable of whitespace-sensitive and comment-sensitive parsing, circumventing heavy compiler toolchains like libclang while maintaining the ability to robustly extract metadata and docstrings from C structures. 
+
+`cdd-c` features an embedded `parson` JSON integration and uniquely handles OpenAPI 3.2.0 compatibility (JSON Schema dialect, 2020-12 constraints), emitting clean and strictly validated idiomatic C HTTP SDKs without relying on extensive third-party libraries.
 
 ## 🏗 Supported Conversions for C
 
@@ -85,13 +95,14 @@ int main(int argc, char **argv) {
 
 | Concept | Parse (From) | Emit (To) |
 |---------|--------------|-----------|
-| OpenAPI (JSON/YAML) | [✅] | [✅] |
-| `C` Models / Structs / Types | [✅] | [✅] |
-| `C` Server Routes / Endpoints | [✅] | [✅] |
-| `C` API Clients / SDKs | [ ] | [✅] |
+| OpenAPI (JSON/YAML) | [x] | [x] |
+| WebAssembly (WASM) Target | [x] | N/A |
+| `C` Models / Structs / Types | [x] | [x] |
+| `C` Server Routes / Endpoints | [x] | [x] |
+| `C` API Clients / SDKs | [x] | [x] |
 | `C` ORM / DB Schemas | [ ] | [ ] |
-| `C` CLI Argument Parsers | [ ] | [ ] |
-| `C` Docstrings / Comments | [✅] | [✅] |
+| `C` CLI Argument Parsers | [x] | [x] |
+| `C` Docstrings / Comments | [x] | [x] |
 
 ---
 
