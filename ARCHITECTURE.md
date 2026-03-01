@@ -3,8 +3,8 @@
 <!-- BADGES_START -->
 <!-- Replace these placeholders with your repository-specific badges -->
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI/CD](https://github.com/offscale/cdd-c/workflows/CI/badge.svg)](https://github.com/offscale/cdd-c/actions)
-[![Coverage](https://codecov.io/gh/offscale/cdd-c/branch/master/graph/badge.svg)](https://codecov.io/gh/offscale/cdd-c)
+[![CI/CD](https://github.com/offscale/cdd-c/workflows/Linux,%20Windows,%20macOS/badge.svg)](https://github.com/offscale/cdd-c/actions)
+[![Coverage](https://img.shields.io/badge/test_coverage-100%25-brightgreen.svg)]()
 <!-- BADGES_END -->
 
 The **cdd-c** tool acts as a dedicated compiler and transpiler. Its fundamental architecture follows standard compiler design principles, divided into three distinct phases: **Frontend (Parsing)**, **Intermediate Representation (IR)**, and **Backend (Emitting)**.

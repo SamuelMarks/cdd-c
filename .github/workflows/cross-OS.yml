@@ -1,4 +1,4 @@
-name: Linux, Windows, macOS
+name: cross-OS
 
 on:
   push:
@@ -90,3 +90,17 @@ jobs:
           ctest -C "Debug" --verbose
         shell: cmd
         if: matrix.os == 'windows-latest'
+
+
+  wasm:
+    runs-on: ubuntu-latest
+    name: wasm-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@v14
+      - name: Build WASM
+        run: |
+          mkdir -p ../emsdk
+          cp -r $EMSDK/* ../emsdk/
+          make build_wasm

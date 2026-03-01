@@ -15,7 +15,9 @@
 #include <string.h>
 
 #ifdef _WIN32
-#include <windows.h>
+#include "c_cddConfig.h"
+#include <winbase.h>
+#include <windef.h>
 #include <winhttp.h>
 #else
 /* Stub definitions */

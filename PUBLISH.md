@@ -1,30 +1,28 @@
-# Publishing Guide
+# Publishing `cdd-c`
 
-> **Purpose of this file (`PUBLISH.md`)**: To describe the repository's release pipeline, versioning strategy, and the steps required to cut a new release of the `cdd-c` CLI and libraries.
+The `cdd-c` library is a native C package designed to be distributed primarily via source and package managers like vcpkg or apt/brew tap channels.
 
-## Versioning
-This project strictly follows [Semantic Versioning 2.0.0](https://semver.org/).
+## Distributing Source Releases
+Since C libraries aren't distributed on npm or crates.io, we use GitHub Releases.
+1. Bump the version in `cmake/config.h.in` and `CMakeLists.txt`.
+2. Tag the release: `git tag v1.0.0`
+3. Push tags: `git push origin v1.0.0`
+4. GitHub Actions will build the artifacts (Linux, Windows, macOS, and WASM) and attach them to the release.
 
-## Publishing Process
+## Publishing Documentation
+To host the generated `to_docs_json` examples statically:
 
-To publish a new release:
+```sh
+# Generate the docs payload
+make build_docs docs/
 
-1. **Pre-flight Checks**:
-   - Verify `ctest` runs locally with 100% coverage.
-   - Run `cdd-c audit .` to ensure internal compliance.
-2. **Version Bump**:
-   - Update `C_CDD_VERSION` in `CMakeLists.txt`.
-   - Ensure the `CHANGELOG.md` reflects the changes (if applicable).
-3. **Commit & Tag**:
-   - Commit the changes: `git commit -m "chore: release vX.Y.Z"`
-   - Create an annotated tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
-4. **Push**:
-   - Push the master branch and the tag: `git push origin master --tags`
+# This creates docs/docs.json. You can serve this via GitHub Pages or a simple HTTP server:
+python3 -m http.server -d docs/
+```
 
-The CI/CD pipeline will automatically detect the tag, execute cross-platform C89 compilation across Linux, macOS, and Windows, and bundle the binaries as GitHub Release assets.
-
-## Supported Artifacts
-- Source code tarballs.
-- `cdd-c` binary executable for respective operating systems.
-- `.a` / `.lib` static libraries.
-- `.so` / `.dll` / `.dylib` shared objects.
+To sync with a centralized docs repository:
+```sh
+# Copy to central repo
+cp docs/docs.json ../docs-site/content/cdd-c-examples.json
+cd ../docs-site && git commit -am "Update C API docs" && git push
+```

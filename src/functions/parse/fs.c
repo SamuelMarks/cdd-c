@@ -18,11 +18,12 @@
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define _CRT_RAND_S
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include "c_cddConfig.h"
+#include <winbase.h>
+#include <windef.h>
 
 #include <direct.h>
 #include <fileapi.h>
-#include <winbase.h>
 #include <winerror.h>
 /* strtok_s is defined as a macro for strtok_r in fs.h if needed, or by system
  * headers */
