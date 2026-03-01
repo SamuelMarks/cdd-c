@@ -69,6 +69,7 @@ jobs:
       - name: generate then build & test generated (non Windows)
         run: |
           mkdir -p 'build_gen/src/test'
+          cp vcpkg.json 'build_gen/'
           build/bin/cdd-c generate_build_system cmake 'build_gen' 'simp'
           build/bin/cdd-c schema2code 'src/mocks/emit/simple_json.schema.json' 'build_gen/src/simp'
           build/bin/cdd-c jsonschema2tests 'src/mocks/emit/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
@@ -81,6 +82,7 @@ jobs:
       - name: generate then build & test generated (Windows)
         run: |
           md "build_gen\src\test"
+          copy "vcpkg.json" "build_gen\"
           build\bin\cdd-c generate_build_system cmake "build_gen" "simp"
           build\bin\cdd-c schema2code "src\mocks\emit\simple_json.schema.json" "build_gen\src\simp"
           build\bin\cdd-c jsonschema2tests "src\mocks\emit\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
