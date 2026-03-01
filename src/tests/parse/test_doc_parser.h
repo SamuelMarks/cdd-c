@@ -24,7 +24,7 @@
 
 /* --- Test Helpers --- */
 
-static void reset_meta(struct DocMetadata *meta) {
+AZ_UNUSED static void reset_meta(struct DocMetadata *meta) {
   doc_metadata_free(meta);
   doc_metadata_init(meta);
 }

@@ -444,7 +444,7 @@ int url_query_build(const struct UrlQueryParams *const qp, char **out_str) {
 
     /* Copy Value */
     {
-      size_t vl = strlen(e_val);
+      vl = strlen(e_val);
       memcpy(ptr, e_val, vl);
       ptr += vl;
     }
