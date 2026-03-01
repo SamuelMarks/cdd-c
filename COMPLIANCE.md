@@ -1,18 +1,26 @@
-# CDD Compliance Requirements
+# Compliance
 
-The `cdd-c` tool is governed by strict compliance constraints across two primary dimensions:
-1. **OpenAPI Compatibility**: Bound to `OAS 3.2.0`.
-2. **C Standard Portability**: Bound to `ISO C89 (ANSI C)`.
+This project strives to fully implement the [OpenAPI Specification Version 3.2.0](https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/versions/3.2.0.md).
 
-## OpenAPI 3.2.0
-The AST must successfully parse and emit standard and drafted `3.2.0` schema definitions losslessly. Native C structures parse primitives (objects, properties, parameters) while complex polymorphic definitions (`allOf`, `oneOf`, `if`/`then`/`else`) are maintained via native pointer arrays and deep-copy replication in the AST.
+## Support Matrix
 
-## C89 (ANSI C) Strict Mode
-Because CDD targets maximal embedded and legacy environment compatibility:
-* No `//` inline comments.
-* Variables must be declared at the top of a block scope (`{`).
-* Variadic macros are discouraged without `#ifdef` guards.
-* Memory allocations (`malloc`, `calloc`) must rigorously verify boundaries without depending on C99+ safety macros.
-* Code must compile cleanly using `-Wextra -Wall -pedantic`.
+| Specification Concept                 | Status |
+| ------------------------------------- | ------ |
+| Info Object                           | ✅      |
+| Server Object                         | ✅      |
+| Components Object                     | ✅      |
+| Paths Object                          | ✅      |
+| Path Item Object                      | ✅      |
+| Operation Object                      | ✅      |
+| Parameter Object                      | ✅      |
+| Request Body Object                   | ✅      |
+| Responses Object                      | ✅      |
+| Responses / Schema Object             | ✅      |
+| Reference Object (`$ref`)             | ✅      |
+| OAuth Flows                           | 🚧     |
+| Security Requirement Object           | 🚧     |
+| Links / Callbacks                     | 🚧     |
 
-The AST and code generation templates enforce this uniformly for both the compiler itself and the SDK output.
+### Next Steps
+
+Complete implementations for Webhooks, specialized schema properties, and advanced security constraints defined in OAS 3.2.0. Report compliance when these are fully supported by the parsers and emitters.

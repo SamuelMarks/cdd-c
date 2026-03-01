@@ -1,27 +1,48 @@
 # Developing `cdd-c`
 
-Welcome to `cdd-c`! 
+Welcome to `cdd-c` development! To get started:
 
-## Architecture
-We use a 3-stage compiler approach (Frontend/AST -> IR -> Backend/Emitter).
+## Prerequisites
 
-## Core Rules
-1. **Never write non-C89 code.**
-2. Test driven. Add a test in `src/tests` to reproduce a bug *before* fixing it in the main library.
-3. Keep AST components (`src/openapi/parse/openapi.h`) perfectly symmetrical. 
+- `gcc` or `clang`
+- `cmake` >= 3.10
+- `flex`
+- `bison`
+
+### Setup
+
+```bash
+make install_base
+make build
+```
+
+## Directory Structure
+
+We use a modular architecture organized by semantic responsibilities:
+
+- `src/classes/{emit,parse}` - AST classes processing
+- `src/docstrings/{emit,parse}` - Comments and documentation analysis
+- `src/functions/{emit,parse}` - Function definitions
+- `src/mocks/{emit,parse}` - Mocks for test stubs
+- `src/openapi/{emit,parse}` - Main OpenAPI specification manipulation
+- `src/routes/{emit,parse}` - API server endpoints mapping
+- `src/tests/{emit,parse}` - Testing suites generation
+- `c/main.c` - CLI entry point
+
+When working on a specific feature, like emitting structs, look into `src/classes/emit/struct.c`.
 
 ## Testing
+
 ```bash
 make test
 ```
-*(Runs standard cmake & ctest).*
 
-To debug memory leaks:
+We aim for 100% test coverage. Update the tests when you add or change features! Use `ctest` with Coverage configurations (if configured) to ensure complete test suites.
+
+## WebAssembly
+
+For WASM testing, you need `emsdk` installed in `../emsdk`.
+
 ```bash
-cmake -S . -B build_asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DC_CDD_BUILD_TESTING=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_FLAGS="-fsanitize=address -g -O1 -fPIC" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
-cmake --build build_asan -j
-cd build_asan && ctest -V
+make build_wasm
 ```
-
-## Adding new OpenAPI keywords
-Update `struct OpenAPI_SchemaRef`, update `parse_schema_ref`, update `copy_schema_ref`, update `free_schema_ref_content`, update `write_schema_ref`. Ensure `json_value_deep_copy` handles pointer allocations.

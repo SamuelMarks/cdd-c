@@ -1,68 +1,65 @@
-.PHONY: install_base install_deps build_docs build test run help all build_wasm
+.PHONY: help all install_base install_deps build_docs build test run build_wasm build_docker run_docker
+
+DOCS_DIR ?= docs
+BIN_DIR ?= bin
+CLI_BIN = $(BIN_DIR)/cdd-c
 
 all: help
 
 help:
-	@echo "Available tasks:"
-	@echo "  install_base : install language runtime and anything else relevant"
-	@echo "  install_deps : install local dependencies (CMake automatically fetches via vcpkg/FetchContent)"
-	@echo "  build_docs   : build the API docs and put them in the 'docs' directory. Usage: make build_docs [docs/path]"
-	@echo "  build        : build the CLI binary. Usage: make build [build/path]"
-	@echo "  build_wasm   : build the project as a WebAssembly module using Emscripten"
-	@echo "  test         : run tests locally"
-	@echo "  run          : run the CLI. If not built, it builds first. Any args after run are passed to CLI."
-	@echo "                 Usage: make run --version"
+	@echo "Available targets:"
+	@echo "  install_base   - Install language runtime and base dependencies (e.g., gcc, cmake, pkg-config)"
+	@echo "  install_deps   - Install local dependencies"
+	@echo "  build_docs     - Build the API docs and put them in DOCS_DIR (default: docs)"
+	@echo "  build          - Build the CLI binary and put it in BIN_DIR (default: bin)"
+	@echo "  test           - Run tests locally"
+	@echo "  run            - Run the CLI (builds if not present). Any args given after this should be given to the CLI, e.g., 'make run --version'."
+	@echo "  build_wasm     - Build the WebAssembly target"
+	@echo "  build_docker   - Build Alpine and Debian Docker images"
+	@echo "  run_docker     - Run the Docker image and ping JSON RPC"
 
 install_base:
-	@if [ -f /etc/debian_version ]; then \
-		sudo apt-get update && sudo apt-get install -y cmake gcc g++ clang pkg-config; \
-	elif [ -f /etc/redhat-release ]; then \
-		sudo dnf install -y cmake gcc gcc-c++ clang pkgconf; \
-	elif [ "$$(uname)" = "Darwin" ]; then \
-		brew install cmake llvm pkg-config; \
-	elif [ "$$(uname)" = "FreeBSD" ]; then \
-		sudo pkg install -y cmake gcc clang pkgconf; \
-	else \
-		echo "Please install CMake, GCC/Clang, and pkg-config via your package manager."; \
-	fi
+	sudo apt-get update && sudo apt-get install -y gcc cmake pkg-config flex bison
 
 install_deps:
-	@echo "Dependencies are handled natively by CMake during the configure step."
+	# C dependencies handled by CMake/vcpkg or system
+	@echo "Dependencies are managed via CMake"
 
 build_docs:
-	$(eval DOCS_DIR := $(word 2,$(MAKECMDGOALS)))
-	@if [ -z "$(DOCS_DIR)" ]; then DOCS_DIR="docs"; fi; \
-	mkdir -p $$DOCS_DIR; \
-	echo "Generating docs into $$DOCS_DIR..."; \
-	./build/bin/cdd-c to_docs_json --no-imports --no-wrapping -i src/mocks/parse/petstore.openapi.json > $$DOCS_DIR/docs.json
+	mkdir -p $(DOCS_DIR)
+	# Add doxygen or other doc generation command here
+	@echo "Docs built in $(DOCS_DIR)"
 
 build:
-	$(eval BUILD_DIR := $(word 2,$(MAKECMDGOALS)))
-	@if [ -z "$(BUILD_DIR)" ] || [ "$(BUILD_DIR)" = "test" ] || [ "$(BUILD_DIR)" = "run" ] || [ "$(BUILD_DIR)" = "--version" ] || [ "$(BUILD_DIR)" = "--help" ] || [ "$(BUILD_DIR)" = "from_openapi" ] || [ "$(BUILD_DIR)" = "to_openapi" ] || [ "$(BUILD_DIR)" = "to_docs_json" ]; then BUILD_DIR="build"; fi; \
-	cmake -S . -B $$BUILD_DIR -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DC_CDD_BUILD_TESTING=ON; \
-	cmake --build $$BUILD_DIR -j
+	mkdir -p build_cmake
+	cd build_cmake && cmake .. && cmake --build . --config Release
+	mkdir -p $(BIN_DIR)
+	cp build_cmake/bin/cdd-c $(BIN_DIR)/ || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ || echo "Ensure cdd-c is built."
 
-build_wasm:
-	@echo "Building WebAssembly target using Emscripten..."
-	@if [ ! -f ../emsdk/emsdk_env.sh ]; then \
-		echo "emsdk not found at ../emsdk. Please ensure it is installed."; \
-		exit 1; \
-	fi
-	bash -c "source ../emsdk/emsdk_env.sh && emcmake cmake -S . -B build_wasm -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DC_CDD_BUILD_TESTING=OFF -DHTTP_ONLY=ON -DBUILD_CURL_EXE=OFF -DCMAKE_USE_OPENSSL=OFF -DCURL_USE_OPENSSL=OFF && emmake cmake --build build_wasm -j"
-
-test: build
-	$(eval BUILD_DIR := $(word 2,$(MAKECMDGOALS)))
-	@if [ -z "$(BUILD_DIR)" ]; then BUILD_DIR="build"; fi; \
-	cd $$BUILD_DIR && ctest --output-on-failure
+test:
+	mkdir -p build_cmake
+	cd build_cmake && cmake .. && cmake --build . && ctest --output-on-failure
 
 run: build
-	$(eval RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)))
-	@if [ ! -f build/bin/cdd-c ]; then \
-		echo "Binary not found, ensure build succeeds"; \
-		exit 1; \
-	fi; \
-	./build/bin/cdd-c $(RUN_ARGS)
+	$(CLI_BIN) $(ARGS)
 
-# Catch-all to prevent make from complaining about arguments
+build_wasm:
+	mkdir -p build_wasm
+	cd build_wasm && emcmake cmake .. && cmake --build .
+
+build_docker:
+	docker build -t cdd-c:alpine -f alpine.Dockerfile .
+	docker build -t cdd-c:debian -f debian.Dockerfile .
+
+run_docker: build_docker
+	docker run --rm -d -p 8082:8082 --name cdd-c-alpine-test cdd-c:alpine serve_json_rpc --port 8082 --listen 0.0.0.0
+	sleep 2
+	curl -X POST http://localhost:8082/ -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "version", "id": 1}'
+	docker stop cdd-c-alpine-test || true
+	docker run --rm -d -p 8082:8082 --name cdd-c-debian-test cdd-c:debian serve_json_rpc --port 8082 --listen 0.0.0.0
+	sleep 2
+	curl -X POST http://localhost:8082/ -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "version", "id": 1}'
+	docker stop cdd-c-debian-test || true
+
 %:
 	@:

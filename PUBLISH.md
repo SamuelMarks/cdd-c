@@ -1,28 +1,40 @@
 # Publishing `cdd-c`
 
-The `cdd-c` library is a native C package designed to be distributed primarily via source and package managers like vcpkg or apt/brew tap channels.
+## Publishing the Package
 
-## Distributing Source Releases
-Since C libraries aren't distributed on npm or crates.io, we use GitHub Releases.
-1. Bump the version in `cmake/config.h.in` and `CMakeLists.txt`.
-2. Tag the release: `git tag v1.0.0`
-3. Push tags: `git push origin v1.0.0`
-4. GitHub Actions will build the artifacts (Linux, Windows, macOS, and WASM) and attach them to the release.
+In the C ecosystem, packages are often managed via package managers like `vcpkg` and `Conan`.
 
-## Publishing Documentation
-To host the generated `to_docs_json` examples statically:
+### 1. Vcpkg Registry
+To publish to a `vcpkg` registry, update `vcpkg.json` and push it to your registry repository. Alternatively, open a PR on `microsoft/vcpkg` port.
 
-```sh
-# Generate the docs payload
-make build_docs docs/
-
-# This creates docs/docs.json. You can serve this via GitHub Pages or a simple HTTP server:
-python3 -m http.server -d docs/
+```json
+{
+  "name": "cdd-c",
+  "version": "0.0.1",
+  "description": "Code-Driven Development compiler for OpenAPI and C",
+  "homepage": "https://github.com/offscale/cdd-c"
+}
 ```
 
-To sync with a centralized docs repository:
-```sh
-# Copy to central repo
-cp docs/docs.json ../docs-site/content/cdd-c-examples.json
-cd ../docs-site && git commit -am "Update C API docs" && git push
+### 2. Conan Center
+To publish to `ConanCenter`, create a `conanfile.py` and run:
+
+```bash
+conan create .
+conan upload cdd-c/0.0.1 -r my-remote
 ```
+
+## Publishing the Docs
+
+To build and host static documentation (e.g., using Doxygen or Sphinx):
+
+### Local Serving
+```bash
+make build_docs
+cd docs/html
+python3 -m http.server 8000
+```
+Then navigate to `http://localhost:8000`.
+
+### GitHub Pages (Most Popular Location)
+Use the GitHub Actions workflow to publish the `docs/` folder directly to the `gh-pages` branch.

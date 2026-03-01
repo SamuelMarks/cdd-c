@@ -1,17 +1,16 @@
-FROM debian
+FROM debian:bullseye-slim AS builder
+RUN apt-get update && apt-get install -y build-essential cmake pkg-config flex bison curl jq git libssl-dev zlib1g-dev
 
-RUN apt-get update -qq && \
-    apt-get install -qy cmake gcc git make pkg-config libc-dev && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt
+WORKDIR /app
+COPY . .
 
-COPY . /c_cdd
+# Build
+RUN mkdir -p build_cmake && cd build_cmake && cmake .. && cmake --build . --config Release
 
-WORKDIR /c_cdd
+# Stage 2
+FROM debian:bullseye-slim
+WORKDIR /app
+COPY --from=builder /app/build_cmake/bin/cdd-c /usr/local/bin/cdd-c
 
-RUN cmake -DCMAKE_BUILD_TYPE='Debug' \
-          -DBUILD_TESTING='1' \
-          -DC_CDD_BUILD_TESTING='1' \
-          -S . -B 'build' && \
-    cmake --build 'build'
-
-CMD cd build && ctest .
+ENTRYPOINT ["cdd-c"]
+CMD ["serve_json_rpc", "--port", "8082", "--listen", "0.0.0.0"]

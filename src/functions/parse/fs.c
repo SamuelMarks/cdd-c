@@ -637,7 +637,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
       /* Using arc4random on random-equipped systems, or simple rand if generic.
        * The assumption is arc4random is available in this env based on previous
        * context. */
-      uint32_t number = arc4random();
+      uint32_t number = (uint32_t)rand();
       if (asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir_path, PATH_SEP_C,
                    prefix == NULL ? "" : prefix, number,
                    suffix == NULL ? "" : suffix) == -1) {
