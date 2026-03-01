@@ -2065,7 +2065,8 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
   if (!comment || !out)
     return EINVAL;
 
-  /* Skip initial marker if present (e.g. "/**" or "///") via simple scan loop
+  /* Skip initial marker if present (e.g. block or line comments) via simple
+   * scan loop
    */
   while (*p) {
     const char *line_end;

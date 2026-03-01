@@ -69,7 +69,7 @@ TEST test_loader_enum_and_required(void) {
 }
 
 TEST test_writer_enum_and_required(void) {
-  //
+  /* */
 
   struct OpenAPI_Spec spec = {0};
   struct StructFields schemas[2];

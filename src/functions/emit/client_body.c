@@ -2625,6 +2625,8 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       char ct_buf[256];
       char ct_clean[256];
       const char *ct_arg = "NULL";
+      char len_field[80];
+
       if (!final_ct && items_is_object)
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
@@ -2633,7 +2635,6 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
-      char len_field[80];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(len_field, sizeof(len_field), "n_%s", f->name);
 #else

@@ -1019,7 +1019,7 @@ TEST test_writer_preserves_composed_component_schema(void) {
 }
 
 TEST test_writer_preserves_inline_composed_schema(void) {
-  //
+  /* */
 
   const char *json =
       "{"

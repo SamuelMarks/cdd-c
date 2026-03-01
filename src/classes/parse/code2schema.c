@@ -466,7 +466,7 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
     /* Check for * split if no space */
     last_space = strrchr(buf, '*');
     if (!last_space)
-      return 0; // Skip invalid
+      return 0; /* Skip invalid */
   }
 
   /* Extact Name */
@@ -1225,7 +1225,7 @@ static char *make_unique_variant_name(const struct StructFields *dest,
     return NULL;
   if (!struct_fields_get(dest, sanitized))
     return sanitized;
-  snprintf(buf, sizeof(buf), "%s_%zu", sanitized, index + 1);
+  snprintf(buf, sizeof(buf), "%s_%lu", sanitized, (unsigned long)(index + 1));
   free(sanitized);
   out = c_cdd_strdup(buf);
   if (!out)
@@ -1233,7 +1233,7 @@ static char *make_unique_variant_name(const struct StructFields *dest,
   if (!struct_fields_get(dest, out))
     return out;
   free(out);
-  snprintf(buf, sizeof(buf), "Variant_%zu", index + 1);
+  snprintf(buf, sizeof(buf), "Variant_%lu", (unsigned long)(index + 1));
   return c_cdd_strdup(buf);
 }
 

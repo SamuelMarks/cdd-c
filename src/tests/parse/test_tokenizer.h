@@ -120,7 +120,7 @@ TEST tokenize_digit_separator_edge_case(void) {
   /* Then loop breaks. ' remains. */
   /* Next iteration: ' starts a char literal probably. */
 
-  const az_span code = AZ_SPAN_FROM_STR("123' 456"); // Space after '
+  const az_span code = AZ_SPAN_FROM_STR("123' 456"); /* Space after ' */
   struct TokenList *tl = NULL;
   char buf[32];
   int rc;

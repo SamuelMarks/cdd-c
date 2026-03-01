@@ -74,7 +74,6 @@ static void verify_request_content(struct MockServerRequest *req,
 /* --- Curl Integration --- */
 
 TEST test_curl_transport_integration(void) {
-  SKIPm("Hangs in this environment");
   MockServerPtr server;
   struct HttpClient client;
   struct HttpRequest req;
@@ -83,6 +82,8 @@ TEST test_curl_transport_integration(void) {
   int port;
   char url[128];
   int rc;
+
+  SKIPm("Hangs in this environment");
 
   /* 1. Start Server */
   server = mock_server_init();
