@@ -236,7 +236,6 @@ int write_union_from_jsonObject_func(
   CHECK_IO(fprintf(fp, "  {\n    int match_count = 0;\n"
                        "    int match_idx = -1;\n"));
   for (i = 0; i < sf->size; ++i) {
-    const char *name = sf->fields[i].name;
     const char *type = sf->fields[i].type;
     const struct UnionVariantMeta *meta =
         (sf->union_variants && i < sf->n_union_variants)
@@ -259,8 +258,8 @@ int write_union_from_jsonObject_func(
       }
       CHECK_IO(fprintf(fp,
                        ") { match_count++; if (match_idx < 0) match_idx = "
-                       "%zu; }\n",
-                       i));
+                       "%lu; }\n",
+                       (unsigned long)i));
     } else if (meta && meta->n_property_names > 0) {
       CHECK_IO(fprintf(fp, "    if ("));
       for (k = 0; k < meta->n_property_names; ++k) {
@@ -274,13 +273,13 @@ int write_union_from_jsonObject_func(
       }
       CHECK_IO(fprintf(fp,
                        ") { match_count++; if (match_idx < 0) match_idx = "
-                       "%zu; }\n",
-                       i));
+                       "%lu; }\n",
+                       (unsigned long)i));
     } else {
       CHECK_IO(fprintf(fp,
                        "    if (json_object_get_count(jsonObject) > 0) { "
-                       "match_count++; if (match_idx < 0) match_idx = %zu; }\n",
-                       i));
+                       "match_count++; if (match_idx < 0) match_idx = %lu; }\n",
+                       (unsigned long)i));
     }
   }
 
@@ -298,7 +297,7 @@ int write_union_from_jsonObject_func(
     const char *ref = sf->fields[i].ref;
     if (strcmp(type, "object") != 0)
       continue;
-    CHECK_IO(fprintf(fp, "    case %zu:\n", i));
+    CHECK_IO(fprintf(fp, "    case %lu:\n", (unsigned long)i));
     CHECK_IO(fprintf(fp, "      ret->tag = %s_%s;\n", union_name, name));
     CHECK_IO(fprintf(fp,
                      "      rc = %s_from_jsonObject(jsonObject, "

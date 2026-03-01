@@ -81,7 +81,7 @@ static void reset_op(struct OpenAPI_Operation *op) {
   }
   if (op->tags) {
     if (op->n_tags > 0) {
-      size_t i;
+
       for (i = 0; i < op->n_tags; ++i) {
         if (op->tags[i])
           free(op->tags[i]);
@@ -295,7 +295,7 @@ static void reset_op(struct OpenAPI_Operation *op) {
     free(op->responses);
   }
   if (op->security) {
-    size_t i;
+
     for (i = 0; i < op->n_security; ++i) {
       struct OpenAPI_SecurityRequirementSet *set = &op->security[i];
       if (set->requirements) {
@@ -316,7 +316,7 @@ static void reset_op(struct OpenAPI_Operation *op) {
     free(op->security);
   }
   if (op->servers) {
-    size_t i;
+
     for (i = 0; i < op->n_servers; ++i) {
       size_t v;
       free(op->servers[i].url);

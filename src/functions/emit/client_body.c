@@ -1307,7 +1307,7 @@ static int write_form_urlencoded_body(FILE *fp,
         (enc && enc->allow_reserved_set) ? enc->allow_reserved : 0;
 
     if (strcmp(f->type, "array") == 0) {
-      const char *items_type = f->ref ? f->ref : "string";
+      const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       char len_field[80];
       const char *encode_fn = NULL;
       int add_encoded = 0;
@@ -1457,7 +1457,7 @@ static int write_form_urlencoded_body(FILE *fp,
                        f->name, f->name));
       CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
     } else if (strcmp(f->type, "object") == 0) {
-      if (f->ref && f->ref[0] != '\0') {
+      if (f->ref[0] != '\0') {
         const struct StructFields *obj_sf =
             openapi_spec_find_schema(spec, f->ref);
         const struct OpenAPI_Encoding *obj_enc = enc;
@@ -1538,7 +1538,7 @@ static int write_form_urlencoded_body(FILE *fp,
             size_t pf_idx;
             CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
             CHECK_IO(
-                fprintf(fp, "    struct OpenAPI_KV kvs[%zu];\n", obj_sf->size));
+                fprintf(fp, "    struct OpenAPI_KV kvs[%lu];\n", (unsigned long)obj_sf->size));
             CHECK_IO(fprintf(fp, "    size_t kv_len = 0;\n"));
             for (pf_idx = 0; pf_idx < obj_sf->size; ++pf_idx) {
               const struct StructField *pf = &obj_sf->fields[pf_idx];
@@ -1663,7 +1663,7 @@ static int write_form_urlencoded_body(FILE *fp,
                 (obj_style == OA_STYLE_SPACE_DELIMITED) ? "%20" : "%7C";
             CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
             CHECK_IO(
-                fprintf(fp, "    struct OpenAPI_KV kvs[%zu];\n", obj_sf->size));
+                fprintf(fp, "    struct OpenAPI_KV kvs[%lu];\n", (unsigned long)obj_sf->size));
             CHECK_IO(fprintf(fp, "    size_t kv_len = 0;\n"));
             for (pf_idx = 0; pf_idx < obj_sf->size; ++pf_idx) {
               const struct StructField *pf = &obj_sf->fields[pf_idx];
@@ -2617,7 +2617,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
     const struct OpenAPI_Encoding *enc =
         (mt != NULL) ? find_encoding(mt, f->name) : NULL;
     if (strcmp(f->type, "array") == 0) {
-      const char *items_type = f->ref ? f->ref : "string";
+      const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       int items_is_object = is_object_ref_type(items_type);
       const char *content_type =
           (enc && enc->content_type) ? enc->content_type : NULL;
@@ -2835,7 +2835,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
-      if (f->ref && f->ref[0] != '\0') {
+      if (f->ref[0] != '\0') {
         CHECK_IO(fprintf(fp, "    if (req_body->%s) {\n", f->name));
         CHECK_IO(fprintf(fp, "      char *part_json = NULL;\n"));
         CHECK_IO(fprintf(fp,

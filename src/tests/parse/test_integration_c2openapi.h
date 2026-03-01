@@ -220,7 +220,7 @@ TEST test_c2openapi_full_flow(void) {
 
       /* Check Webhooks */
       {
-        JSON_Object *op =
+        op =
             json_object_dotget_object(obj, "webhooks./user-events.post");
         ASSERT(op != NULL);
         ASSERT_STR_EQ("api_user_event",

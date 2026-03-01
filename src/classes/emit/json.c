@@ -312,18 +312,18 @@ int write_struct_from_jsonObject_func(
         CHECK_IO(fprintf(fp, "      len = strlen(ret->%s);\n", n));
         if (f->has_min_len)
           CHECK_IO(fprintf(
-              fp, "      if (len < %zu) { %s_cleanup(ret); return ERANGE; }\n",
-              f->min_len, struct_name));
+              fp, "      if (len < %lu) { %s_cleanup(ret); return ERANGE; }\n",
+              (unsigned long)f->min_len, struct_name));
         if (f->has_max_len)
           CHECK_IO(fprintf(
-              fp, "      if (len > %zu) { %s_cleanup(ret); return ERANGE; }\n",
-              f->max_len, struct_name));
+              fp, "      if (len > %lu) { %s_cleanup(ret); return ERANGE; }\n",
+              (unsigned long)f->max_len, struct_name));
         if (f->pattern[0]) {
           if (strncmp(f->pattern, "^", 1) == 0 &&
-              f->pattern[strlen(f->pattern) - 1] == '$') { /* exact mismatch */
+              f->pattern[(unsigned long)strlen(f->pattern) - 1] == '$') { /* exact mismatch */
             /* strip anchors */
             char pat[256];
-            size_t pl = strlen(f->pattern) - 2;
+            size_t pl = (unsigned long)strlen(f->pattern) - 2;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
             strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
@@ -336,13 +336,13 @@ int write_struct_from_jsonObject_func(
                              n, pat, struct_name));
           } else if (strncmp(f->pattern, "^", 1) == 0) { /* prefix */
             CHECK_IO(fprintf(fp,
-                             "      if (strncmp(ret->%s, \"%s\", %zu) != 0) { "
+                             "      if (strncmp(ret->%s, \"%s\", %lu) != 0) { "
                              "%s_cleanup(ret); return ERANGE; }\n",
-                             n, f->pattern + 1, strlen(f->pattern) - 1,
+                             n, f->pattern + 1, (unsigned long)strlen(f->pattern) - 1,
                              struct_name));
-          } else if (f->pattern[strlen(f->pattern) - 1] == '$') { /* suffix */
+          } else if (f->pattern[(unsigned long)strlen(f->pattern) - 1] == '$') { /* suffix */
             char pat[256];
-            size_t pl = strlen(f->pattern) - 1;
+            size_t pl = (unsigned long)strlen(f->pattern) - 1;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
             strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
@@ -351,7 +351,7 @@ int write_struct_from_jsonObject_func(
             pat[pl] = 0;
             CHECK_IO(
                 fprintf(fp,
-                        "      if (len < %zu || strcmp(ret->%s + len - %zu, "
+                        "      if (len < %lu || strcmp(ret->%s + len - %lu, "
                         "\"%s\") != 0) { %s_cleanup(ret); return ERANGE; }\n",
                         pl, n, pl, pat, struct_name));
           } else { /* contains */
