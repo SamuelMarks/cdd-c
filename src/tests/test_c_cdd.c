@@ -1,3 +1,9 @@
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 /**
  * @file test_c_cdd.c
  * @brief Main test runner.
@@ -156,3 +162,7 @@ int main(int argc, char **argv) {
 
   GREATEST_MAIN_END();
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif

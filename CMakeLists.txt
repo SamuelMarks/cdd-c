@@ -35,7 +35,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic;-fprofile-arcs;-ftest-coverage>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement;-fprofile-arcs;-ftest-coverage>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
     )
     target_link_options(
@@ -73,7 +73,7 @@ else ()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic>>"
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
     )
 endif ()

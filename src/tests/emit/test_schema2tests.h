@@ -23,7 +23,10 @@ TEST test_schema2tests_argc_error(void) {
 TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
   int rc = write_to_file(filename, "{bad json");
-  char *argv[] = {(char *)filename, "header.h", "out.h"};
+  char *argv[3];
+  argv[0] = (char *)filename;
+  argv[1] = "header.h";
+  argv[2] = "out.h";
   ASSERT_EQ(EXIT_SUCCESS, rc);
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
   remove(filename);
@@ -64,7 +67,10 @@ TEST test_schema2tests_success(void) {
 
 TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
-  char *argv[] = {(char *)schema_filename, "header.h", ""};
+  char *argv[3];
+  argv[0] = (char *)schema_filename;
+  argv[1] = "header.h";
+  argv[2] = "";
   int rc;
   rc = write_to_file(schema_filename, "{\"$defs\":{}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
@@ -120,7 +126,10 @@ TEST test_schema2tests_defs_fallback(void) {
 
 TEST test_schema2tests_invalid_schema_root(void) {
   const char *const schema_file = "bad_root.json";
-  char *argv[] = {(char *)schema_file, "header.h", "out.h"};
+  char *argv[3];
+  argv[0] = (char *)schema_file;
+  argv[1] = "header.h";
+  argv[2] = "out.h";
   write_to_file(schema_file, "[]");
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
   remove(schema_file);
@@ -128,7 +137,10 @@ TEST test_schema2tests_invalid_schema_root(void) {
 }
 TEST test_schema2tests_no_schemas_object(void) {
   const char *const schema_file = "no_schemas.json";
-  char *argv[] = {(char *)schema_file, "header.h", "out.h"};
+  char *argv[3];
+  argv[0] = (char *)schema_file;
+  argv[1] = "header.h";
+  argv[2] = "out.h";
   write_to_file(schema_file, "{}");
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(3, argv));
   remove(schema_file);
@@ -136,7 +148,10 @@ TEST test_schema2tests_no_schemas_object(void) {
 }
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
-  char *argv[] = {(char *)schema_file, "header.h", "build" PATH_SEP "out.h"};
+  char *argv[3];
+  argv[0] = (char *)schema_file;
+  argv[1] = "header.h";
+  argv[2] = "build" PATH_SEP "out.h";
   int rc;
   /* non-object schema, no type, non-string enum member, special char name */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"

@@ -26,7 +26,9 @@ TEST test_sync_code_file_missing(void) {
 
 TEST test_sync_code_simple_struct_enum(void) {
   const char *const filename = "test30.h";
-  char *argv[] = {(char *)filename, "impl30.c"};
+  char *argv[2];
+  argv[0] = (char *)filename;
+  argv[1] = "impl30.c";
   ASSERT_EQ(
       EXIT_SUCCESS,
       write_to_file(filename,
@@ -43,7 +45,9 @@ TEST test_sync_code_simple_struct_enum(void) {
 
 TEST test_sync_code_empty_header(void) {
   const char *const filename = "emptyheader.h";
-  char *argv[] = {(char *)filename, "emptyimpl.c"};
+  char *argv[2];
+  argv[0] = (char *)filename;
+  argv[1] = "emptyimpl.c";
   ASSERT_EQ(0, write_to_file(filename, ""));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -53,7 +57,9 @@ TEST test_sync_code_empty_header(void) {
 
 TEST test_sync_code_no_struct_or_enum(void) {
   const char *const filename = "nostructenum.h";
-  char *argv[] = {(char *)filename, "noimpl.c"};
+  char *argv[2];
+  argv[0] = (char *)filename;
+  argv[1] = "noimpl.c";
   ASSERT_EQ(0, write_to_file(filename, "// just a comment\n"));
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
@@ -63,7 +69,9 @@ TEST test_sync_code_no_struct_or_enum(void) {
 
 TEST test_sync_code_impl_file_cannot_open(void) {
   const char *const filename = "onlystruct.h";
-  char *argv[] = {(char *)filename, "/"};
+  char *argv[2];
+  argv[0] = (char *)filename;
+  argv[1] = "/";
   ASSERT_EQ(0, write_to_file(filename, "struct X {int i;};\n"));
   ASSERT(sync_code_main(2, argv) != 0);
   remove(filename);

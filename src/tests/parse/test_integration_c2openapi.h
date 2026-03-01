@@ -12,6 +12,10 @@
 
 #ifndef TEST_INTEGRATION_C2OPENAPI_H
 #define TEST_INTEGRATION_C2OPENAPI_H
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverlength-strings"
+#endif
 
 #include <greatest.h>
 #include <parson.h>
@@ -510,5 +514,9 @@ SUITE(integration_c2openapi_suite) {
   RUN_TEST(test_c2openapi_with_self_uri);
   RUN_TEST(test_c2openapi_global_meta_security_schemes);
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #endif /* TEST_INTEGRATION_C2OPENAPI_H */
