@@ -1,16 +1,17 @@
-FROM alpine
+FROM alpine:latest AS builder
+RUN apk update && apk add --no-cache build-base cmake pkgconf flex bison curl jq git openssl-dev zlib-dev
 
-RUN apk add --no-cache gcc cmake git make musl-dev linux-headers
+WORKDIR /app
+COPY . .
 
-COPY . /c_cdd
+# Build
+RUN mkdir -p build_cmake && cd build_cmake && cmake .. && cmake --build . --config Release
 
-WORKDIR /c_cdd
+# Stage 2
+FROM alpine:latest
+RUN apk update && apk add --no-cache libgcc libstdc++
+WORKDIR /app
+COPY --from=builder /app/build_cmake/bin/cdd-c /usr/local/bin/cdd-c
 
-RUN cmake -DCMAKE_BUILD_TYPE='Debug' \
-          -DCMAKE_PREFIX_PATH='cmake/modules' \
-          -DBUILD_TESTING=1 \
-          -DC_CDD_BUILD_TESTING=1 \
-          -S . -B build && \
-    cmake --build build
-
-CMD cd build && ctest .
+ENTRYPOINT ["cdd-c"]
+CMD ["serve_json_rpc", "--port", "8082", "--listen", "0.0.0.0"]

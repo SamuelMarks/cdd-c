@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(c_cdd VERSION 0.0.2 LANGUAGES C)
+project(c_cdd VERSION 0.0.1 LANGUAGES C)
 enable_testing()
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
  

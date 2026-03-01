@@ -585,7 +585,7 @@ TEST test_gen_client_file_error(void) {
   struct OpenApiClientConfig config = {0};
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "/";
+  config.filename_base = "/this_dir_does_not_exist/file";
 
   ASSERT_NEQ(0, openapi_client_generate(&spec, &config));
   PASS();

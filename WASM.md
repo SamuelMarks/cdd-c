@@ -1,24 +1,35 @@
-# WebAssembly (WASM) Support in `cdd-c`
+# WebAssembly (WASM) Support
 
-The `cdd-c` compiler fully supports being compiled to a standalone WebAssembly (WASM) module via Emscripten.
+The `cdd-c` project fully supports compilation to WebAssembly using Emscripten.
 
-This enables you to:
-1. Run the CDD compiler entirely in the browser for web interfaces.
-2. Execute the CLI via Node.js/Deno on systems without a native compiler toolchain.
-3. Integrate `cdd-c` into the unified `cdd-*` cross-language orchestrator without requiring complex native distribution layers.
+## Why WebAssembly?
 
-## Building the WASM Target
+Building `cdd-c` into WASM allows it to be integrated into:
+- A unified CLI for all `cdd-*` projects that can run on any system without requiring C compilers, Node.js, PHP, or Python.
+- A unified web interface that runs natively within the browser, providing instant parsing and generation without round-trips to a server.
 
-To build `cdd-c` for WASM, ensure you have the [Emscripten SDK (emsdk)](https://emscripten.org/docs/getting_started/downloads.html) installed in the parent directory (`../emsdk`).
+## Building for WASM
 
-Then, run:
-```sh
+To build the WASM target, you need the Emscripten SDK (`emsdk`). Assuming it is installed in a directory above the current one (`../emsdk`), you can build it via:
+
+```bash
+# Setup emsdk
+source ../emsdk/emsdk_env.sh
+
+# Run the build command
 make build_wasm
 ```
-*(Or use `make.bat build_wasm` on Windows)*
 
-This will execute `emcmake cmake` and output `cdd-c.js` and `cdd-c.wasm` into the `build_wasm/bin/` directory.
+This will create a `build_wasm` directory containing the `cdd-c.js` and `cdd-c.wasm` artifacts, which can then be embedded into your JS environments.
 
-### Build Details
-- Tests are inherently disabled for WASM target compilation.
-- The `libcurl` dependency is built natively via Emscripten using `-DHTTP_ONLY=ON` and `OpenSSL` support is explicitly bypassed to ensure a portable, statically pure WASM binary.
+## Integration
+
+The emitted `cdd-c.js` module can be loaded in browsers or Node.js via standard Emscripten APIs:
+
+```javascript
+const cddModule = require('./build_wasm/cdd-c.js');
+
+cddModule().then((instance) => {
+  // Use instance to call exported C functions
+});
+```

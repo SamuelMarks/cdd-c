@@ -1,38 +1,39 @@
-# Publishing Client SDKs (Continuous Delivery)
+# Publishing the Client SDK
 
-The `cdd-c` tool makes it trivial to ensure your client libraries are always in perfect harmony with the latest server OpenAPI specifications.
+This document describes how to continuously generate and publish the `C` client SDK produced by `cdd-c` based on your OpenAPI specifications.
 
-## Automated Updates via GitHub Actions
-You should set up a scheduled or webhook-triggered GitHub Action in your generated client repository to automatically fetch the latest API specification and run the `from_openapi` compiler.
+## Continuous Integration via GitHub Actions
+
+To ensure the client library is always up-to-date with your backend server OpenAPI spec, use a scheduled cron job or a webhook in a GitHub Action:
 
 ```yaml
-name: Sync C SDK
+name: Update API SDK
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run daily
-  repository_dispatch:
-    types: [openapi_updated] # Or trigger manually from your server repo
+    - cron: '0 0 * * *' # Every night
+  workflow_dispatch:
 
 jobs:
-  update-sdk:
+  generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install cdd-c
-        run: |
-          wget https://github.com/offscale/cdd-c/releases/latest/download/cdd-c-linux-amd64
-          chmod +x cdd-c-linux-amd64
+      - name: Install Base
+        run: sudo apt-get install -y flex bison cmake
+      - name: Build cdd-c
+        run: make build
       - name: Fetch Latest Spec
-        run: curl -O https://api.example.com/openapi.json
+        run: curl -sL https://api.mybackend.com/openapi.json -o spec.json
       - name: Generate SDK
-        run: ./cdd-c-linux-amd64 from_openapi -i openapi.json
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        run: ./bin/cdd-c from_openapi to_sdk -i spec.json -o src/models
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit-message: "Automated SDK Sync via cdd-c"
-          title: "[cdd-c] Sync Client SDK to latest OpenAPI specification"
-          branch: chore/sync-sdk
+          commit_message: "chore: update C client SDK to match latest OpenAPI spec"
+          branch: main
 ```
 
-This ensures your C applications, embedded systems, or hardware endpoints remain compatible with any structural API shifts the moment they happen.
+## Distribution
+
+The resulting `src/models` files can either be embedded directly in a consumer repository, or you can commit them into a separate `my-api-client-c` repository that consumer applications fetch via `git submodule` or `CMake FetchContent`.

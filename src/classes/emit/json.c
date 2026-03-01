@@ -320,7 +320,8 @@ int write_struct_from_jsonObject_func(
               (unsigned long)f->max_len, struct_name));
         if (f->pattern[0]) {
           if (strncmp(f->pattern, "^", 1) == 0 &&
-              f->pattern[(unsigned long)strlen(f->pattern) - 1] == '$') { /* exact mismatch */
+              f->pattern[(unsigned long)strlen(f->pattern) - 1] ==
+                  '$') { /* exact mismatch */
             /* strip anchors */
             char pat[256];
             size_t pl = (unsigned long)strlen(f->pattern) - 2;
@@ -338,9 +339,11 @@ int write_struct_from_jsonObject_func(
             CHECK_IO(fprintf(fp,
                              "      if (strncmp(ret->%s, \"%s\", %lu) != 0) { "
                              "%s_cleanup(ret); return ERANGE; }\n",
-                             n, f->pattern + 1, (unsigned long)strlen(f->pattern) - 1,
+                             n, f->pattern + 1,
+                             (unsigned long)strlen(f->pattern) - 1,
                              struct_name));
-          } else if (f->pattern[(unsigned long)strlen(f->pattern) - 1] == '$') { /* suffix */
+          } else if (f->pattern[(unsigned long)strlen(f->pattern) - 1] ==
+                     '$') { /* suffix */
             char pat[256];
             size_t pl = (unsigned long)strlen(f->pattern) - 1;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

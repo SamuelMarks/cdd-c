@@ -69,7 +69,7 @@ generate_export_header("${LIBRARY_NAME}" EXPORT_FILE_NAME "${_export_file}")
 # CLI #
 #######
 
-set(EXEC_NAME "${LIBRARY_NAME}_cli")
+set(EXEC_NAME "cdd-c")
 
 set(Cli_Source_Files "main.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
