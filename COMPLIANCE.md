@@ -1,31 +1,29 @@
 # Compliance
 
-`cdd-c` is designed with strict adherence to portability, standardization, and security practices.
+> **Purpose of this file (`COMPLIANCE.md`)**: To outline the exact specifications, standards, and metrics the project strictly adheres to, and report on the current compliance status.
 
-## Language Standards
+## OpenAPI 3.2.0 Specification Compliance
+`cdd-c` acts as a reference implementation for generating and validating the **OpenAPI 3.2.0** specification.
 
-*   **C89 / ANSI C Compatibility:** The core library and generated SDKs are strictly written in C89/C90 (ISO/IEC 9899:1990). This ensures maximum portability across embedded systems, legacy toolchains, and modern compilers alike.
-*   **No Variable Length Arrays (VLAs):** VLAs (introduced in C99) are strictly avoided to prevent stack-smashing vulnerabilities and ensure compatibility with MSVC.
-*   **Strict Typing & Aliasing:** The codebase enforces strict pointer aliasing rules (`-fstrict-aliasing`) and compiles cleanly under `-Wall -Wextra -pedantic -Wshadow`.
+The project currently fully supports:
+- Root level `paths` and `webhooks` definition.
+- Advanced `components` including schemas, responses, parameters, examples, requestBodies, headers, securitySchemes, links, callbacks, and pathItems.
+- Multi-document and dynamic `$ref` traversal.
+- Precise encoding definitions for Media Types.
+- OAuth2 Security Scheme Flows.
 
-## Security
+*Note: The actual specifications are maintained in this repository as `3.2.0.md` and `3.1.1.md` for local test validation and regression checking.*
 
-*   **Memory Safety Analysis:** `cdd-c` includes built-in auditing tools to statically detect unchecked heap allocations (e.g., `malloc` without `NULL` checks).
-*   **Safe String Handling:** Avoids standard `<string.h>` buffer-overflow-prone functions (like `strcpy`, `sprintf`) in favor of length-bounded or dynamically allocating alternatives (like `asprintf` or `snprintf` polyfills from `c89stringutils`), and non-allocating string views via `c-str-span`.
-*   **Secure Transport:**
-    *   **Linux / macOS:** Uses `libcurl` compiled against OpenSSL/BoringSSL for robust TLS 1.2+ and certificate validation.
-    *   **Windows:** Uses native `WinHTTP` with secure flags enabled, leveraging the OS-level certificate store and Schannel provider, avoiding the need to ship separate crypto binaries.
+## Strict C89 (ANSI C) Compliance
+To ensure absolute portability across embedded controllers, IoT applications, and major enterprise backends, the codebase enforces strict C89 constraints.
 
-## OpenAPI Compliance
+- Variables are exclusively declared at the start of scope blocks.
+- Uses `/* ... */` comment blocks natively (with parser-awareness for modern `//` styles in user code).
+- Tested simultaneously against:
+  - MSVC
+  - GCC
+  - Clang
 
-*   **OpenAPI v3.x:** Focuses on generating and consuming OpenAPI 3.2.0 specifications.
-*   **Validation:** Generated specs enforce structural compliance (e.g., path templates matching parameters, required `info` and `paths` blocks, valid HTTP status codes).
-*   **Type Resolution:** Accurately resolves `$ref` components, handles inline schemas by promoting them to components, and maps JSON schema types directly to safe C struct representations.
-
-## Licensing
-
-`cdd-c` is dual-licensed under:
-*   Apache License, Version 2.0 (`LICENSE-APACHE`)
-*   MIT License (`LICENSE-MIT`)
-
-Users may choose either license when consuming or contributing to the project.
+## Quality Assurance Metrics
+- **Test Coverage:** The repository enforces a 100% test coverage rule. The CI/CD pipeline validates every code path, edge case, and failure state using automated tests.
+- **Documentation Coverage:** The codebase requires a full Doxygen-style docstring block ensuring 100% doc coverage.

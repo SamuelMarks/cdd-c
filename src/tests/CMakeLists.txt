@@ -30,60 +30,60 @@ file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}"
 set(LIBRARY_NAME "test_c_cdd_lib") 
 
 set(Header_Files
-        "test_analysis.h" 
-        "test_c_cdd_integration.h" 
-        "test_c_inspector_types.h" 
-        "test_code2schema.h" 
-        "test_codegen_build.h" 
-        "test_generate_build_system.h" 
-        "test_codegen_client_body.h"
-        "test_codegen_client_sig.h"
-        "test_codegen_defaults.h" 
-        "test_codegen_eq.h" 
-        "test_codegen_json.h"
-        "test_codegen_make.h" 
-        "test_codegen_security.h"
-        "test_codegen_struct.h"
-        "test_codegen_types.h"
-        "test_codegen_url.h"
-        "test_codegen_validation.h" 
-        "test_codegen_root_arrays.h" 
-        "test_codegen_sdk_tests.h" 
-        "test_cst_parser.h" 
-        "test_crypto.h"
-        "test_dataclasses.h" 
-        "test_declarator_parser.h" 
-        "test_fs.h" 
-        "test_http_curl.h"
-        "test_http_types.h"
-        "test_http_winhttp.h"
-        "test_http_wininet.h"
-        "test_json_from_and_to.h" 
-        "test_openapi_client_gen.h" 
-        "test_openapi_loader.h"
-        "test_parsing.h" 
-        "test_rewriter_body.h" 
-        "test_rewriter_sig.h" 
-        "test_refactor_api_sync.h"
-        "test_schema2tests.h" 
-        "test_schema_codegen.h" 
-        "test_schema_constraints.h"
-        "test_schema_enum_required.h"
-        "test_simple_json.h" 
-        "test_str_utils.h"
-        "test_sync_code.h" 
-        "test_text_patcher.h"
-        "test_tokenizer.h" 
-        "test_transport_factory.h" 
-        "test_url_utils.h"
+        "parse/test_analysis.h" 
+        "parse/test_c_cdd_integration.h" 
+        "parse/test_c_inspector_types.h" 
+        "parse/test_code2schema.h" 
+        "emit/test_codegen_build.h" 
+        "emit/test_generate_build_system.h" 
+        "emit/test_codegen_client_body.h"
+        "emit/test_codegen_client_sig.h"
+        "emit/test_codegen_defaults.h" 
+        "emit/test_codegen_eq.h" 
+        "emit/test_codegen_json.h"
+        "emit/test_codegen_make.h" 
+        "emit/test_codegen_security.h"
+        "emit/test_codegen_struct.h"
+        "emit/test_codegen_types.h"
+        "emit/test_codegen_url.h"
+        "emit/test_codegen_validation.h" 
+        "emit/test_codegen_root_arrays.h" 
+        "emit/test_codegen_sdk_tests.h" 
+        "parse/test_cst_parser.h" 
+        "parse/test_crypto.h"
+        "parse/test_dataclasses.h" 
+        "parse/test_declarator_parser.h" 
+        "parse/test_fs.h" 
+        "emit/test_http_curl.h"
+        "emit/test_http_types.h"
+        "emit/test_http_winhttp.h"
+        "emit/test_http_wininet.h"
+        "parse/test_json_from_and_to.h" 
+        "emit/test_openapi_client_gen.h" 
+        "parse/test_openapi_loader.h"
+        "parse/test_parsing.h" 
+        "emit/test_rewriter_body.h" 
+        "emit/test_rewriter_sig.h" 
+        "parse/test_refactor_api_sync.h"
+        "emit/test_schema2tests.h" 
+        "emit/test_schema_codegen.h" 
+        "parse/test_schema_constraints.h"
+        "parse/test_schema_enum_required.h"
+        "parse/test_simple_json.h" 
+        "parse/test_str_utils.h"
+        "emit/test_sync_code.h" 
+        "emit/test_text_patcher.h"
+        "parse/test_tokenizer.h" 
+        "parse/test_transport_factory.h" 
+        "emit/test_url_utils.h"
         # New Tests
-        "test_openapi_writer.h"
-        "test_doc_parser.h"
-        "test_c_mapping.h"
-        "test_c2openapi_op.h"
-        "test_aggregator.h"
-        "test_c2openapi_schema.h"
-        "test_integration_c2openapi.h"
+        "emit/test_openapi_writer.h"
+        "parse/test_doc_parser.h"
+        "parse/test_c_mapping.h"
+        "parse/test_c2openapi_op.h"
+        "emit/test_aggregator.h"
+        "parse/test_c2openapi_schema.h"
+        "parse/test_integration_c2openapi.h"
 ) 
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
 
@@ -117,7 +117,7 @@ target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 
 set(EXEC_NAME "test_c_cdd") 
 
-set(Source_Files "${EXEC_NAME}.c") 
+set(Source_Files "test_c_cdd.c") 
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}") 
 
 add_executable("${EXEC_NAME}" "${Source_Files}") 
@@ -142,9 +142,9 @@ add_subdirectory("mocks")
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks") 
 # ...
 set(EXEC_NAME "test_simple_json")
-set(Header_Files "${EXEC_NAME}.h")
+set(Header_Files "parse/${EXEC_NAME}.h")
 source_group("${EXEC_NAME} Header Files" FILES "${Header_Files}")
-set(Source_Files "${EXEC_NAME}.c")
+set(Source_Files "parse/${EXEC_NAME}.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 add_executable("${EXEC_NAME}" "${Header_Files}" "${Source_Files}")
 target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>")
@@ -153,7 +153,7 @@ target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
 set(EXEC_NAME "test_integration_full_sdk")
-set(Source_Files "${EXEC_NAME}.c")
+set(Source_Files "emit/${EXEC_NAME}.c")
 add_executable("${EXEC_NAME}" "${Source_Files}")
 target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)

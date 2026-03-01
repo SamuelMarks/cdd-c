@@ -1,9 +1,9 @@
 set(LIBRARY_NAME "simple_mocks")
 
-set(Header_Files "simple.h" "simple_json.h" "c_cdd_stdbool.h")
+set(Header_Files "emit/simple.h" "emit/simple_json.h" "c_cdd_stdbool.h")
 source_group("Header Files" FILES "${Header_Files}")
 
-set(Source_Files "simple.c" "simple_json.c")
+set(Source_Files "emit/simple.c" "emit/simple_json.c")
 source_group("Source Files" FILES "${Source_Files}")
 
 add_library("${LIBRARY_NAME}" SHARED "${Header_Files}" "${Source_Files}")
@@ -58,7 +58,7 @@ set_target_properties(
         C
 )
 
-add_executable(mocks "main.c")
+add_executable(mocks "parse/main.c")
 target_link_libraries(mocks "${LIBRARY_NAME}")
 target_include_directories(
         "${LIBRARY_NAME}"

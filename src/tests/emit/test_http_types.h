@@ -1,0 +1,100 @@
+#ifndef TEST_HTTP_TYPES_H
+#define TEST_HTTP_TYPES_H
+
+#include <errno.h>
+#include <greatest.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "functions/parse/http_types.h"
+
+TEST test_multipart_lifecycle(void) {
+  struct HttpRequest req;
+  http_request_init(&req);
+
+  ASSERT_EQ(0, req.parts.count);
+
+  /* Add text part */
+  ASSERT_EQ(0, http_request_add_part(&req, "field", NULL, NULL, "value", 5));
+  ASSERT_EQ(1, req.parts.count);
+  ASSERT_STR_EQ("field", req.parts.parts[0].name);
+  ASSERT_EQ(NULL, req.parts.parts[0].filename);
+
+  /* Add file part */
+  ASSERT_EQ(0, http_request_add_part(&req, "file", "pic.jpg", "image/jpeg",
+                                     "DATA", 4));
+  ASSERT_EQ(2, req.parts.count);
+  ASSERT_STR_EQ("pic.jpg", req.parts.parts[1].filename);
+
+  http_request_free(&req);
+  PASS();
+}
+
+TEST test_multipart_flatten(void) {
+  struct HttpRequest req;
+  char *content;
+
+  http_request_init(&req);
+  http_request_add_part(&req, "f1", NULL, NULL, "v1", 2);
+  http_request_add_part(&req, "f2", "a.txt", "text/plain", "v2", 2);
+
+  ASSERT_EQ(0, http_request_flatten_parts(&req));
+  ASSERT(req.body != NULL);
+  ASSERT(req.body_len > 0);
+
+  content = (char *)req.body;
+  /* Basic sanity check of content */
+  ASSERT(strstr(content, "Content-Disposition: form-data; name=\"f1\""));
+  ASSERT(strstr(
+      content,
+      "Content-Disposition: form-data; name=\"f2\"; filename=\"a.txt\""));
+  ASSERT(strstr(content, "Content-Type: text/plain"));
+  ASSERT(strstr(content, "v2"));         /* Data */
+  ASSERT(strstr(content, "--cddbound")); /* Boundary */
+
+  http_request_free(&req);
+  PASS();
+}
+
+TEST test_multipart_part_headers(void) {
+  struct HttpRequest req;
+  char *content;
+
+  http_request_init(&req);
+  http_request_add_part(&req, "f1", NULL, NULL, "v1", 2);
+  ASSERT_EQ(0, http_request_add_part_header_last(&req, "X-Trace", "abc"));
+  ASSERT_EQ(0, http_request_add_part_header_last(&req, "X-Count", "2"));
+
+  ASSERT_EQ(0, http_request_flatten_parts(&req));
+  content = (char *)req.body;
+  ASSERT(content != NULL);
+  ASSERT(strstr(content, "X-Trace: abc"));
+  ASSERT(strstr(content, "X-Count: 2"));
+
+  http_request_free(&req);
+  PASS();
+}
+
+TEST test_auth_basic_header(void) {
+  struct HttpRequest req;
+  int rc;
+
+  http_request_init(&req);
+  rc = http_request_set_auth_basic(&req, "dXNlcjpwYXNz");
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, req.headers.count);
+  ASSERT_STR_EQ("Authorization", req.headers.headers[0].key);
+  ASSERT_STR_EQ("Basic dXNlcjpwYXNz", req.headers.headers[0].value);
+
+  http_request_free(&req);
+  PASS();
+}
+
+SUITE(http_types_suite) {
+  RUN_TEST(test_multipart_lifecycle);
+  RUN_TEST(test_multipart_flatten);
+  RUN_TEST(test_multipart_part_headers);
+  RUN_TEST(test_auth_basic_header);
+}
+
+#endif
