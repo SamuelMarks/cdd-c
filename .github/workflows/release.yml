@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache vcpkg
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        with:
+          path: vcpkg
+          key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-project0
+
+      - name: checkout vcpkg
+        uses: actions/checkout@v4
+        with:
+          repository: "offscale/vcpkg"
+          ref: project0
+          path: vcpkg
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+
+      - name: Setup vcpkg (Windows)
+        run: vcpkg\bootstrap-vcpkg.bat -disableMetrics
+        shell: cmd
+        if: matrix.os == 'windows-latest'
+
+      - name: Setup vcpkg (non-Windows)
+        run: ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        if: matrix.os != 'windows-latest'
+
+      - name: Build (Windows)
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=0 -DCMAKE_BUILD_TYPE=Release -S . -B build
+          cmake --build build --config Release
+        shell: cmd
+        if: matrix.os == 'windows-latest'
+
+      - name: Build (non-Windows)
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE="../vcpkg/scripts/buildsystems/vcpkg.cmake" -DBUILD_TESTING=0 -DCMAKE_BUILD_TYPE=Release -S . -B build
+          cmake --build build --config Release
+        if: matrix.os != 'windows-latest'
+
+      - name: Archive binary (Windows)
+        run: tar -czf cdd-c-windows.tar.gz -C build/bin/Release cdd-c.exe
+        if: matrix.os == 'windows-latest'
+
+      - name: Archive binary (Ubuntu)
+        run: tar -czf cdd-c-ubuntu.tar.gz -C build/bin cdd-c
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Archive binary (macOS)
+        run: tar -czf cdd-c-macos.tar.gz -C build/bin cdd-c
+        if: matrix.os == 'macos-latest'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdd-c-${{ matrix.os }}
+          path: cdd-c-*.tar.gz
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@v14
+      - name: Build WASM
+        run: |
+          mkdir -p ../emsdk
+          cp -r $EMSDK/* ../emsdk/
+          make build_wasm
+      - name: Archive WASM
+        run: tar -czf cdd-c-wasm.tar.gz -C build_wasm/bin cdd-c.js cdd-c.wasm
+      - name: Upload WASM
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdd-c-wasm
+          path: cdd-c-wasm.tar.gz
+
+  release:
+    needs: [build, wasm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
+          draft: false
+          prerelease: false
