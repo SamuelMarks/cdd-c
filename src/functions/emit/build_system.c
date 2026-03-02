@@ -42,9 +42,21 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "file(GLOB_RECURSE SOURCES \"*.c\")\n"));
   CHECK_IO(fprintf(fp, "file(GLOB_RECURSE HEADERS \"*.h\")\n\n"));
 
+  CHECK_IO(
+      fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX \"test_.*\\\\.c$\")\n"));
+  CHECK_IO(
+      fprintf(fp, "list(FILTER HEADERS EXCLUDE REGEX \"test_.*\\\\.h$\")\n\n"));
+
   /* Target */
   CHECK_IO(
       fprintf(fp, "add_library(%s ${SOURCES} ${HEADERS})\n\n", project_name));
+
+  CHECK_IO(fprintf(fp, "include(GenerateExportHeader)\n"));
+  CHECK_IO(fprintf(fp,
+                   "generate_export_header(%s EXPORT_FILE_NAME "
+                   "${CMAKE_CURRENT_BINARY_DIR}/lib_export.h EXPORT_MACRO_NAME "
+                   "LIB_EXPORT)\n\n",
+                   project_name));
 
   /* Build Option: Shared/Static */
   CHECK_IO(fprintf(fp, "if (BUILD_SHARED_LIBS)\n"));
@@ -63,6 +75,18 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson)\n",
                    project_name));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
+
+  CHECK_IO(fprintf(fp, "find_package(c89stringutils CONFIG REQUIRED)\n"));
+  CHECK_IO(fprintf(fp,
+                   "target_link_libraries(%s PRIVATE c89stringutils "
+                   "c89stringutils_compiler_flags)\n\n",
+                   project_name));
+
+  CHECK_IO(fprintf(fp, "find_package(c_str_span CONFIG REQUIRED)\n"));
+  CHECK_IO(fprintf(fp,
+                   "target_link_libraries(%s PRIVATE c_str_span "
+                   "c_str_span_compiler_flags)\n\n",
+                   project_name));
   CHECK_IO(fprintf(fp, "if (WIN32)\n"));
   CHECK_IO(fprintf(fp, "    # Windows: Link WinHTTP\n"));
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE winhttp)\n",
@@ -77,14 +101,35 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   /* Include Directories */
   CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));
   CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\n"));
+  CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\n"));
   CHECK_IO(fprintf(fp, "    $<INSTALL_INTERFACE:include>\n"));
   CHECK_IO(fprintf(fp, ")\n\n"));
 
   /* Tests */
   if (has_tests) {
+    CHECK_IO(fprintf(fp, "include(CTest)\n"));
     CHECK_IO(fprintf(fp, "if (BUILD_TESTING)\n"));
     CHECK_IO(fprintf(fp, "    enable_testing()\n"));
-    CHECK_IO(fprintf(fp, "    # Add test targets here\n"));
+    CHECK_IO(fprintf(
+        fp, "    file(DOWNLOAD "
+            "https://raw.githubusercontent.com/silentbicycle/greatest/v1.5.0/"
+            "greatest.h ${CMAKE_CURRENT_BINARY_DIR}/greatest.h)\n"));
+    CHECK_IO(
+        fprintf(fp, "    file(GLOB_RECURSE TEST_SOURCES \"src/test/*.c\")\n"));
+    CHECK_IO(
+        fprintf(fp, "    file(GLOB_RECURSE TEST_HEADERS \"src/test/*.h\")\n"));
+    CHECK_IO(fprintf(
+        fp, "    add_executable(test_%s ${TEST_SOURCES} ${TEST_HEADERS})\n",
+        project_name));
+    CHECK_IO(fprintf(fp, "    target_link_libraries(test_%s PRIVATE %s)\n",
+                     project_name, project_name));
+    CHECK_IO(fprintf(fp,
+                     "    target_include_directories(test_%s PRIVATE "
+                     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> "
+                     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)\n",
+                     project_name));
+    CHECK_IO(fprintf(fp, "    add_test(NAME test_%s COMMAND test_%s)\n",
+                     project_name, project_name));
     CHECK_IO(fprintf(fp, "endif ()\n"));
   }
 
