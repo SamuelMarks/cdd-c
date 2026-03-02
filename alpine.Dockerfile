@@ -1,5 +1,5 @@
 FROM alpine:latest AS builder
-RUN apk update && apk add --no-cache build-base cmake pkgconf flex bison curl jq git openssl-dev zlib-dev
+RUN apk update && apk add --no-cache build-base cmake pkgconf curl jq git openssl-dev zlib-dev
 
 WORKDIR /app
 COPY . .

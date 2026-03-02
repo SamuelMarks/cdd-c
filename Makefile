@@ -19,7 +19,7 @@ help:
 	@echo "  run_docker     - Run the Docker image and ping JSON RPC"
 
 install_base:
-	sudo apt-get update && sudo apt-get install -y gcc cmake pkg-config flex bison
+	sudo apt-get update && sudo apt-get install -y gcc cmake pkg-config
 
 install_deps:
 	# C dependencies handled by CMake/vcpkg or system

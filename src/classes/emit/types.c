@@ -494,15 +494,18 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
                   "json_array_get_boolean(arr, i) ? 1 : 0;\n",
                   name, name, name, name, name, name));
     } else if (strcmp(ref, "string") == 0) {
+      CHECK_IO(
+          fprintf(fp,
+                  "          ret->data.%s.%s = calloc(count, sizeof(char*));\n"
+                  "          if (!ret->data.%s.%s) { free(ret); "
+                  "json_value_free(val); return ENOMEM; }\n"
+                  "          for (i = 0; i < count; ++i) {\n"
+                  "            const char *s = json_array_get_string(arr, i);\n"
+                  "            if (s) ret->data.%s.%s[i] = strdup(s);\n"
+                  "            if (!ret->data.%s.%s[i]) {\n",
+                  name, name, name, name, name, name, name, name));
       CHECK_IO(fprintf(
           fp,
-          "          ret->data.%s.%s = calloc(count, sizeof(char*));\n"
-          "          if (!ret->data.%s.%s) { free(ret); json_value_free(val); "
-          "return ENOMEM; }\n"
-          "          for (i = 0; i < count; ++i) {\n"
-          "            const char *s = json_array_get_string(arr, i);\n"
-          "            if (s) ret->data.%s.%s[i] = strdup(s);\n"
-          "            if (!ret->data.%s.%s[i]) {\n"
           "              size_t j;\n"
           "              for (j = 0; j < i; ++j) free(ret->data.%s.%s[j]);\n"
           "              free(ret->data.%s.%s);\n"
@@ -511,8 +514,7 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
           "              return ENOMEM;\n"
           "            }\n"
           "          }\n",
-          name, name, name, name, name, name, name, name, name, name, name,
-          name));
+          name, name, name, name));
     } else {
       CHECK_IO(fprintf(
           fp,
@@ -522,7 +524,10 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
           "          for (i = 0; i < count; ++i) {\n"
           "            rc = %s_from_jsonObject(json_array_get_object(arr, i), "
           "&ret->data.%s.%s[i]);\n"
-          "            if (rc != 0) {\n"
+          "            if (rc != 0) {\n",
+          name, name, ref, name, name, ref, name, name));
+      CHECK_IO(fprintf(
+          fp,
           "              size_t j;\n"
           "              for (j = 0; j < i; ++j) { "
           "%s_cleanup(ret->data.%s.%s[j]); free(ret->data.%s.%s[j]); }\n"
@@ -532,9 +537,7 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
           "              return rc;\n"
           "            }\n"
           "          }\n",
-          name, name, get_type_from_ref(ref), name, name,
-          get_type_from_ref(ref), name, name, get_type_from_ref(ref), name,
-          name, name, name, name, name));
+          ref, name, name, name, name, name, name));
     }
     CHECK_IO(fprintf(fp, "        }\n"
                          "        *out = ret;\n"
@@ -628,7 +631,10 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
           "          *out = ret;\n"
           "          json_value_free(val);\n"
           "          return 0;\n"
-          "        } else {\n"
+          "        } else {\n",
+          union_name, union_name, union_name, int_name, int_name));
+      CHECK_IO(fprintf(
+          fp,
           "          struct %s *ret = malloc(sizeof(struct %s));\n"
           "          if (!ret) { json_value_free(val); return ENOMEM; }\n"
           "          memset(ret, 0, sizeof(*ret));\n"
@@ -639,8 +645,7 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
           "          return 0;\n"
           "        }\n"
           "      }\n",
-          union_name, union_name, union_name, int_name, int_name, union_name,
-          union_name, union_name, num_name, num_name));
+          union_name, union_name, union_name, num_name, num_name));
     }
   }
 

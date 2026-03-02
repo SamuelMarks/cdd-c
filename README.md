@@ -30,16 +30,16 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 * **Compilation**:
   * **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, database schemas, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
   * **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
-* **AST-Driven & Safe**: Employs static analysis (Abstract Syntax Trees via flex/bison) instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
+* **AST-Driven & Safe**: Employs static analysis (Abstract Syntax Trees via a custom whitespace, comment, and macro sensitive parser) instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
 * **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
 
 ## 📦 Installation
 
-Requires a C compiler (GCC/Clang/MSVC), CMake, Flex, and Bison.
+Requires a C compiler (GCC/Clang/MSVC) and CMake.
 
 ```bash
 # Ubuntu / Debian
-sudo apt-get install gcc cmake pkg-config flex bison
+sudo apt-get install gcc cmake pkg-config
 
 # Build the CLI
 make build
@@ -79,7 +79,7 @@ int main() {
 
 ## Design choices
 
-The `cdd-c` project uses `flex` and `bison` for Lexing and Parsing C, enabling highly robust, standardized syntax tree creation without relying on complex, heavy external C/C++ parsers like Clang AST for everything, ensuring it stays lightweight.
+The `cdd-c` project uses a fully custom whitespace, comment, and macro sensitive parser for Lexing and Parsing C, enabling highly robust, standardized syntax tree creation without relying on complex, heavy external C/C++ parsers like Clang AST for everything, ensuring it stays lightweight.
 
 ## 🏗 Supported Conversions for C
 

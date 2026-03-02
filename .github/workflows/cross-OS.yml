@@ -16,7 +16,7 @@ jobs:
     name: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: mkdir
         run: mkdir build
@@ -29,7 +29,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-project0
 
       - name: checkout vcpkg
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: "offscale/vcpkg"
           ref: project0
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     name: wasm-build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup emsdk
         uses: mymindstorm/setup-emsdk@v14
       - name: Build WASM
