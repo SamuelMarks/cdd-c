@@ -1,0 +1,7 @@
+build/
+build_*/
+cmake-build-debug/
+.idea/
+.git/
+vcpkg/
+vcpkg_installed/
