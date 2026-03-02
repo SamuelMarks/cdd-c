@@ -235,22 +235,33 @@ static int print_struct_declaration(FILE *const hfile,
     CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->utils_guard));
   CHECK_IO(fprintf(hfile, "extern LIB_EXPORT void %s_cleanup(struct %s *);\n",
                    struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "extern LIB_EXPORT int %s_default(struct %s **);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_deepcopy(const struct %s *, struct %s **);\n",
+      struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile,
+      "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s *);\n",
+      struct_name, struct_name, struct_name));
   if (config && config->utils_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 
   return 0;
 }
 
-static int generate_header(const char *basename, JSON_Object *schemas_obj,
+static int generate_header(const char *prefix, const char *basename,
+                           JSON_Object *schemas_obj,
                            const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  sprintf_s(fname, sizeof(fname), "%s.h", basename);
+  sprintf_s(fname, sizeof(fname), "%s.h", prefix);
 #else
-  sprintf(fname, "%s.h", basename);
+  sprintf(fname, "%s.h", prefix);
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (fopen_s(&fp, fname, "w") != 0)
@@ -338,7 +349,8 @@ static int generate_header(const char *basename, JSON_Object *schemas_obj,
   return 0;
 }
 
-static int generate_source(const char *basename, JSON_Object *schemas_obj,
+static int generate_source(const char *prefix, const char *basename,
+                           JSON_Object *schemas_obj,
                            const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
@@ -363,9 +375,9 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  sprintf_s(fname, sizeof(fname), "%s.c", basename);
+  sprintf_s(fname, sizeof(fname), "%s.c", prefix);
 #else
-  sprintf(fname, "%s.c", basename);
+  sprintf(fname, "%s.c", prefix);
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (fopen_s(&fp, fname, "w") != 0)
@@ -376,11 +388,11 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
   if (!fp)
     return errno;
 
-  CHECK_IO(fprintf(
-      fp,
-      "#include <stdlib.h>\n#include <string.h>\n#include <parson.h>\n#include "
-      "<c89stringutils_string_extras.h>\n#include \"%s.h\"\n\n",
-      basename));
+  CHECK_IO(fprintf(fp,
+                   "#include <errno.h>\n#include <stdlib.h>\n#include "
+                   "<string.h>\n#include <parson.h>\n#include "
+                   "<c89stringutils_string_extras.h>\n#include \"%s.h\"\n\n",
+                   basename));
 
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
     const char *name = json_object_get_name(schemas_obj, i);
@@ -418,6 +430,9 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
       CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
       CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
+      CHECK_RC(write_struct_default_func(fp, name, &sf, &struct_cfg));
+      CHECK_RC(write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));
+      CHECK_RC(write_struct_eq_func(fp, name, &sf, &struct_cfg));
     }
 
     struct_fields_free(&sf);
@@ -427,7 +442,8 @@ static int generate_source(const char *basename, JSON_Object *schemas_obj,
 }
 
 int schema2code_main(int argc, char **argv) {
-  const char *schema_file, *basename;
+  const char *schema_file, *prefix;
+  char *basename = NULL;
   struct CodegenConfig config = {0};
   JSON_Value *root = NULL;
   JSON_Object *schemas = NULL;
@@ -436,7 +452,9 @@ int schema2code_main(int argc, char **argv) {
   if (argc < 2)
     return EXIT_FAILURE;
   schema_file = argv[0];
-  basename = argv[1];
+  prefix = argv[1];
+  if (get_basename(prefix, &basename) != 0)
+    return EXIT_FAILURE;
 
   for (i = 2; i < argc; ++i) {
     if (str_starts_with(argv[i], "--guard-enum="))
@@ -459,18 +477,22 @@ int schema2code_main(int argc, char **argv) {
 
   if (!schemas) {
     json_value_free(root);
+    free(basename);
     return EXIT_FAILURE;
   }
 
-  if (generate_header(basename, schemas, &config) != 0) {
+  if (generate_header(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
+    free(basename);
     return EXIT_FAILURE;
   }
-  if (generate_source(basename, schemas, &config) != 0) {
+  if (generate_source(prefix, basename, schemas, &config) != 0) {
     json_value_free(root);
+    free(basename);
     return EXIT_FAILURE;
   }
 
   json_value_free(root);
+  free(basename);
   return EXIT_SUCCESS;
 }

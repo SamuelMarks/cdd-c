@@ -47,7 +47,7 @@ jobs:
 
       - name: configure (with vcpkg on Windows)
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=1 -DC_CDD_BUILD_TESTING=1 -S . -B build
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=1 -DC_CDD_BUILD_TESTING=1 -S . -B build
         shell: cmd
         if: matrix.os == 'windows-latest'
 
@@ -70,10 +70,10 @@ jobs:
         run: |
           mkdir -p 'build_gen/src/test'
           cp vcpkg.json 'build_gen/'
-          build/bin/cdd-c generate_build_system cmake 'build_gen' 'simp'
+          build/bin/cdd-c generate_build_system cmake 'build_gen' 'simp' test
           build/bin/cdd-c schema2code 'src/mocks/emit/simple_json.schema.json' 'build_gen/src/simp'
           build/bin/cdd-c jsonschema2tests 'src/mocks/emit/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
-          cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../vcpkg/scripts/buildsystems/vcpkg.cmake'
+          cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../../vcpkg/scripts/buildsystems/vcpkg.cmake'
           cmake --build 'build_gen/cmake_debug_build'
           cd build_gen
           ctest -C 'Debug' --verbose
@@ -83,10 +83,10 @@ jobs:
         run: |
           md "build_gen\src\test"
           copy "vcpkg.json" "build_gen\"
-          build\bin\cdd-c generate_build_system cmake "build_gen" "simp"
+          build\bin\cdd-c generate_build_system cmake "build_gen" "simp" test
           build\bin\cdd-c schema2code "src\mocks\emit\simple_json.schema.json" "build_gen\src\simp"
           build\bin\cdd-c jsonschema2tests "src\mocks\emit\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
-          cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake"
+          cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build "build_gen\cmake_debug_build"
           cd build_gen
           ctest -C "Debug" --verbose
