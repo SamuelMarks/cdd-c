@@ -6,8 +6,6 @@ Welcome to `cdd-c` development! To get started:
 
 - `gcc` or `clang`
 - `cmake` >= 3.10
-- `flex`
-- `bison`
 
 ### Setup
 

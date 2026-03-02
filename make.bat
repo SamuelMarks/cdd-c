@@ -28,7 +28,7 @@ echo   run_docker     - Run the Docker image and ping JSON RPC
 goto end
 
 :install_base
-echo Install cmake, Visual Studio build tools, flex, bison
+echo Install cmake, Visual Studio build tools
 goto end
 
 :install_deps

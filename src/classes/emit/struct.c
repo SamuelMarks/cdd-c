@@ -1,3 +1,4 @@
+#include <inttypes.h>
 /**
  * @file codegen_struct.c
  * @brief Implementation of struct lifecycle generation.
@@ -475,8 +476,8 @@ int write_struct_default_func(FILE *const fp, const char *const struct_name,
             CHECK_IO(fprintf(fp, "  (*out)->%s = %I64u;\n", n,
                              nv.data.integer.value));
 #else
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %llu;\n", n,
-                             (unsigned long long)nv.data.integer.value));
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %" PRIu64 ";\n", n,
+                             nv.data.integer.value));
 #endif
           } else {
             /* Fallback: print as is (if parse failed or invalid) */

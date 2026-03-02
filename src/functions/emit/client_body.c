@@ -1192,39 +1192,43 @@ static int write_header_param_logic(FILE *fp,
         CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
         CHECK_IO(fprintf(fp, "      {\n"));
         if (explode) {
-          CHECK_IO(fprintf(
-              fp, "        size_t key_len = strlen(kv_key);\n"
-                  "        size_t val_len = strlen(kv_raw);\n"
-                  "        size_t extra = key_len + val_len + 1 + (first ? 0 : "
-                  "1);\n"
-                  "        char *tmp = (char *)realloc(joined, joined_len + "
-                  "extra + 1);\n"
-                  "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                  "        joined = tmp;\n"
-                  "        if (!first) joined[joined_len++] = ',';\n"
-                  "        memcpy(joined + joined_len, kv_key, key_len);\n"
-                  "        joined_len += key_len;\n"
-                  "        joined[joined_len++] = '=';\n"
-                  "        memcpy(joined + joined_len, kv_raw, val_len);\n"
-                  "        joined_len += val_len;\n"
-                  "        joined[joined_len] = '\\0';\n"));
+          CHECK_IO(fputs("        size_t key_len = strlen(kv_key);\n"
+                         "        size_t val_len = strlen(kv_raw);\n"
+                         "        size_t extra = key_len + val_len + 1 + "
+                         "(first ? 0 : 1);\n"
+                         "        char *tmp = (char *)realloc(joined, "
+                         "joined_len + extra + 1);\n"
+                         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
+                         "        joined = tmp;\n",
+                         fp));
+          CHECK_IO(
+              fputs("        if (!first) joined[joined_len++] = ',';\n"
+                    "        memcpy(joined + joined_len, kv_key, key_len);\n"
+                    "        joined_len += key_len;\n"
+                    "        joined[joined_len++] = '=';\n"
+                    "        memcpy(joined + joined_len, kv_raw, val_len);\n"
+                    "        joined_len += val_len;\n"
+                    "        joined[joined_len] = '\\0';\n",
+                    fp));
         } else {
-          CHECK_IO(fprintf(
-              fp, "        size_t key_len = strlen(kv_key);\n"
-                  "        size_t val_len = strlen(kv_raw);\n"
-                  "        size_t extra = key_len + val_len + 1 + (first ? 0 : "
-                  "1) + 1;\n"
-                  "        char *tmp = (char *)realloc(joined, joined_len + "
-                  "extra + 1);\n"
-                  "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-                  "        joined = tmp;\n"
-                  "        if (!first) joined[joined_len++] = ',';\n"
-                  "        memcpy(joined + joined_len, kv_key, key_len);\n"
-                  "        joined_len += key_len;\n"
-                  "        joined[joined_len++] = ',';\n"
-                  "        memcpy(joined + joined_len, kv_raw, val_len);\n"
-                  "        joined_len += val_len;\n"
-                  "        joined[joined_len] = '\\0';\n"));
+          CHECK_IO(fputs("        size_t key_len = strlen(kv_key);\n"
+                         "        size_t val_len = strlen(kv_raw);\n"
+                         "        size_t extra = key_len + val_len + 1 + "
+                         "(first ? 0 : 1) + 1;\n"
+                         "        char *tmp = (char *)realloc(joined, "
+                         "joined_len + extra + 1);\n"
+                         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
+                         "        joined = tmp;\n",
+                         fp));
+          CHECK_IO(
+              fputs("        if (!first) joined[joined_len++] = ',';\n"
+                    "        memcpy(joined + joined_len, kv_key, key_len);\n"
+                    "        joined_len += key_len;\n"
+                    "        joined[joined_len++] = ',';\n"
+                    "        memcpy(joined + joined_len, kv_raw, val_len);\n"
+                    "        joined_len += val_len;\n"
+                    "        joined[joined_len] = '\\0';\n",
+                    fp));
         }
         CHECK_IO(fprintf(fp, "      }\n"));
         CHECK_IO(fprintf(fp, "      first = 0;\n"));
@@ -2497,43 +2501,48 @@ static int write_multipart_part_headers(FILE *fp,
             fp,
             "            size_t key_len = strlen(kv_key);\n"
             "            size_t val_len = strlen(kv_raw);\n"
-            "            size_t extra = key_len + val_len + 1 + (%s ? 0 : "
-            "1);\n"
+            "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1);\n"
             "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
-            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-            "            %s = tmp;\n"
-            "            if (!%s) %s[%s++] = ',';\n"
-            "            memcpy(%s + %s, kv_key, key_len);\n"
-            "            %s += key_len;\n"
-            "            %s[%s++] = '=';\n"
-            "            memcpy(%s + %s, kv_raw, val_len);\n"
-            "            %s += val_len;\n"
-            "            %s[%s] = '\\0';\n",
-            first_name, joined_name, joined_len_name, joined_name, first_name,
-            joined_name, joined_len_name, joined_name, joined_len_name,
-            joined_len_name, joined_name, joined_len_name, joined_name,
-            joined_len_name, joined_len_name, joined_name, joined_len_name));
+            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n",
+            first_name, joined_name, joined_len_name));
+        CHECK_IO(fprintf(fp,
+                         "            %s = tmp;\n"
+                         "            if (!%s) %s[%s++] = ',';\n"
+                         "            memcpy(%s + %s, kv_key, key_len);\n"
+                         "            %s += key_len;\n"
+                         "            %s[%s++] = '=';\n"
+                         "            memcpy(%s + %s, kv_raw, val_len);\n"
+                         "            %s += val_len;\n"
+                         "            %s[%s] = '\\0';\n",
+                         joined_name, first_name, joined_name, joined_len_name,
+                         joined_name, joined_len_name, joined_len_name,
+                         joined_name, joined_len_name, joined_name,
+                         joined_len_name, joined_len_name, joined_name,
+                         joined_len_name));
       } else {
         CHECK_IO(fprintf(
             fp,
             "            size_t key_len = strlen(kv_key);\n"
             "            size_t val_len = strlen(kv_raw);\n"
-            "            size_t extra = key_len + val_len + 1 + (%s ? 0 : "
-            "1) + 1;\n"
+            "            size_t extra = key_len + val_len + 1 + (%s ? 0 : 1) + "
+            "1;\n"
             "            char *tmp = (char *)realloc(%s, %s + extra + 1);\n"
-            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
-            "            %s = tmp;\n"
-            "            if (!%s) %s[%s++] = ',';\n"
-            "            memcpy(%s + %s, kv_key, key_len);\n"
-            "            %s += key_len;\n"
-            "            %s[%s++] = ',';\n"
-            "            memcpy(%s + %s, kv_raw, val_len);\n"
-            "            %s += val_len;\n"
-            "            %s[%s] = '\\0';\n",
-            first_name, joined_name, joined_len_name, joined_name, first_name,
-            joined_name, joined_len_name, joined_name, joined_len_name,
-            joined_len_name, joined_name, joined_len_name, joined_name,
-            joined_len_name, joined_len_name, joined_name, joined_len_name));
+            "            if (!tmp) { rc = ENOMEM; goto cleanup; }\n",
+            first_name, joined_name, joined_len_name));
+        CHECK_IO(fprintf(fp,
+                         "            %s = tmp;\n"
+                         "            if (!%s) %s[%s++] = ',';\n"
+                         "            memcpy(%s + %s, kv_key, key_len);\n"
+                         "            %s += key_len;\n"
+                         "            %s[%s++] = ',';\n"
+                         "            memcpy(%s + %s, kv_raw, val_len);\n"
+                         "            %s += val_len;\n"
+                         "            %s[%s] = '\\0';\n",
+                         joined_name, first_name, joined_name, joined_len_name,
+                         joined_name, joined_len_name, joined_len_name,
+                         joined_name, joined_len_name, joined_name,
+                         joined_len_name, joined_len_name, joined_name,
+                         joined_len_name));
       }
       CHECK_IO(fprintf(fp, "          }\n"));
       CHECK_IO(fprintf(fp, "          %s = 0;\n", first_name));

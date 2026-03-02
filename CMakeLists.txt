@@ -164,10 +164,7 @@ configure_file(
 # available for the sub-projects.
 #===============================================================================
 add_subdirectory("src")
-option(BUILD_C "Build C (with flex and bison)" OFF)
-if (BUILD_C)
-    add_subdirectory("c")
-endif (BUILD_C)
+
 
 include(CTest)
 option(BUILD_TESTING "Build the tests" OFF)

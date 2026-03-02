@@ -57,7 +57,7 @@ graph TD
 
 The Frontend's responsibility is to read an input source and translate it into the universal CDD Intermediate Representation (IR).
 
-* **Static Analysis (AST-Driven)**: For `C` source code, the tool **does not** use dynamic reflection or execute the code. Instead, it reads the source files using `flex` and `bison`, generates an Abstract Syntax Tree (AST), and navigates the tree to extract structures, functions, type signatures, API client definitions, server routes, and docstrings.
+* **Static Analysis (AST-Driven)**: For `C` source code, the tool **does not** use dynamic reflection or execute the code. Instead, it reads the source files using a fully custom whitespace, comment, and macro sensitive parser, generates an Abstract Syntax Tree (AST), and navigates the tree to extract structures, functions, type signatures, API client definitions, server routes, and docstrings.
 * **OpenAPI Parsing**: For OpenAPI and JSON Schema inputs, the parser normalizes the structure, resolving internal `$ref`s and extracting properties, endpoints (client or server perspectives), and metadata into the IR.
 
 ### 2. Intermediate Representation (IR)

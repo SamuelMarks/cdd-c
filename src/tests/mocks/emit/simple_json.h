@@ -17,7 +17,7 @@ extern "C" {
 
 #include "simple_mocks_export.h"
 
-enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
+enum Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 
 extern SIMPLE_MOCKS_EXPORT enum Tank Tank_default(void);
 
@@ -25,7 +25,7 @@ extern SIMPLE_MOCKS_EXPORT int Tank_to_str(enum Tank, char **);
 
 extern SIMPLE_MOCKS_EXPORT int Tank_from_str(const char *, enum Tank *);
 
-struct SIMPLE_MOCKS_EXPORT HazE {
+struct HazE {
   const char *bzr;
   enum Tank tank;
 };
@@ -51,7 +51,7 @@ extern SIMPLE_MOCKS_EXPORT int HazE_from_json(const char *, struct HazE **);
 extern SIMPLE_MOCKS_EXPORT int HazE_from_jsonObject(const JSON_Object *,
                                                     struct HazE **);
 
-struct SIMPLE_MOCKS_EXPORT FooE {
+struct FooE {
   const char *bar;
   int can;
   struct HazE *haz;

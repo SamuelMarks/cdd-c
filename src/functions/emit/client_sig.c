@@ -425,18 +425,6 @@ static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   return 0;
 }
 
-static int schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
-  if (!schema)
-    return 0;
-  if (schema->ref_name && schema->ref_name[0] != '\0')
-    return 1;
-  if (schema_has_inline(schema))
-    return 1;
-  if (schema->is_array)
-    return 1;
-  return 0;
-}
-
 static const struct OpenAPI_Response *
 get_success_response(const struct OpenAPI_Operation *op) {
   const struct OpenAPI_Response *default_resp = NULL;

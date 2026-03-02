@@ -1,5 +1,5 @@
 FROM debian:bullseye-slim AS builder
-RUN apt-get update && apt-get install -y build-essential cmake pkg-config flex bison curl jq git libssl-dev zlib1g-dev
+RUN apt-get update && apt-get install -y build-essential cmake pkg-config curl jq git libssl-dev zlib1g-dev
 
 WORKDIR /app
 COPY . .

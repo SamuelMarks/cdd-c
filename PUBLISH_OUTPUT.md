@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Base
-        run: sudo apt-get install -y flex bison cmake
+        run: sudo apt-get install -y cmake
       - name: Build cdd-c
         run: make build
       - name: Fetch Latest Spec
