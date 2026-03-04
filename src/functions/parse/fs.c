@@ -22,7 +22,6 @@
 #include "c_cddConfig.h"
 #include <winbase.h>
 #include <windef.h>
-#include <windows.h>
 
 #include <direct.h>
 #include <fileapi.h>

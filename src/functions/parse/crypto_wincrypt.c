@@ -18,8 +18,9 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+#include <winbase.h>
 #include <wincrypt.h>
-#include <windows.h>
+#include <windef.h>
 #endif
 
 #include "functions/parse/crypto_types.h"
