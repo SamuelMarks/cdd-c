@@ -107,6 +107,16 @@ if (NOT DEFINED TARGET_ARCH)
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
 
+if (WIN32 OR EMSCRIPTEN)
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
+else ()
+    option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)
+endif ()
+
+if (EMSCRIPTEN)
+    option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" ON)
+endif ()
+
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     include(FetchContent)
     set(BUILD_SHARED_LIBS OFF)
@@ -130,15 +140,17 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     include_directories(${c89stringutils_SOURCE_DIR}/c89stringutils)
 
     # curl
-    FetchContent_Declare(
-        curl
-        GIT_REPOSITORY https://github.com/curl/curl.git
-        GIT_TAG curl-8_4_0
-    )
-    set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(curl)
+    if (C_CDD_USE_LIBCURL)
+        FetchContent_Declare(
+            curl
+            GIT_REPOSITORY https://github.com/curl/curl.git
+            GIT_TAG curl-8_4_0
+        )
+        set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
+        set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+        set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(curl)
+    endif ()
 
     # parson
     FetchContent_Declare(
@@ -151,11 +163,13 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     if(TARGET parson AND NOT TARGET parson::parson)
         add_library(parson::parson ALIAS parson)
     endif()
-    if(TARGET curl AND NOT TARGET CURL::libcurl)
-        add_library(CURL::libcurl ALIAS curl)
-    elseif(TARGET libcurl AND NOT TARGET CURL::libcurl)
-        add_library(CURL::libcurl ALIAS libcurl)
-    endif()
+    if (C_CDD_USE_LIBCURL)
+        if(TARGET curl AND NOT TARGET CURL::libcurl)
+            add_library(CURL::libcurl ALIAS curl)
+        elseif(TARGET libcurl AND NOT TARGET CURL::libcurl)
+            add_library(CURL::libcurl ALIAS libcurl)
+        endif()
+    endif ()
     
     # We still keep the module path just in case
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
@@ -180,6 +194,7 @@ set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-
 option(C_CDD_USE_ASAN "Enable AddressSanitizer" OFF)
 option(C_CDD_USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 include(CTest)
+enable_testing()
 
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)

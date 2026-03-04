@@ -24,7 +24,7 @@ static int is_eol(char c) { return c == '\n' || c == '\r'; }
 /**
  * @brief Skip whitespace in a string buffer.
  */
-static int skip_ws(const char *p, size_t *_out_val) {
+static int skip_ws(const char *p, const char **_out_val) {
   while (*p && isspace((unsigned char)*p) && !is_eol(*p)) {
     p++;
   }
@@ -44,7 +44,7 @@ static int skip_ws(const char *p, size_t *_out_val) {
  */
 static int extract_word(const char *str, const char *end, const char **next_out,
                         char **_out_val) {
-  size_t _ast_skip_ws_0;
+  const char *_ast_skip_ws_0;
   const char *p = (skip_ws(str, &_ast_skip_ws_0), _ast_skip_ws_0);
   const char *word_start = p;
   size_t len;
@@ -86,7 +86,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
  * Trims leading/trailing whitespace.
  */
 static int extract_rest(const char *str, const char *end, char **_out_val) {
-  size_t _ast_skip_ws_1;
+  const char *_ast_skip_ws_1;
   const char *p = (skip_ws(str, &_ast_skip_ws_1), _ast_skip_ws_1);
   const char *e = end;
   size_t len;
@@ -224,14 +224,14 @@ static int parse_bool_text(const char *s, int *out) {
 static int parse_tag_meta_line(const char *line, const char *end,
                                struct DocMetadata *out) {
   char *_ast_extract_word_4;
-  size_t _ast_skip_ws_5;
+  const char *_ast_skip_ws_5;
   char *_ast_trim_segment_6;
   char *_ast_trim_segment_7;
   char *_ast_trim_segment_8;
   char *_ast_trim_segment_9;
   char *_ast_trim_segment_10;
   char *_ast_trim_segment_11;
-  size_t _ast_skip_ws_12;
+  const char *_ast_skip_ws_12;
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
@@ -658,11 +658,11 @@ static int parse_response_header_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
   char *_ast_extract_word_30;
   char *_ast_extract_word_31;
-  size_t _ast_skip_ws_32;
+  const char *_ast_skip_ws_32;
   char *_ast_trim_segment_33;
   char *_ast_trim_segment_34;
   char *_ast_trim_segment_35;
-  size_t _ast_skip_ws_36;
+  const char *_ast_skip_ws_36;
   char *_ast_extract_rest_37;
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
@@ -770,7 +770,7 @@ static int parse_link_line(const char *line, const char *end,
                            struct DocMetadata *out) {
   char *_ast_extract_word_38;
   char *_ast_extract_word_39;
-  size_t _ast_skip_ws_40;
+  const char *_ast_skip_ws_40;
   char *_ast_trim_segment_41;
   char *_ast_trim_segment_42;
   char *_ast_trim_segment_43;
@@ -780,7 +780,7 @@ static int parse_link_line(const char *line, const char *end,
   char *_ast_trim_segment_47;
   char *_ast_trim_segment_48;
   char *_ast_trim_segment_49;
-  size_t _ast_skip_ws_50;
+  const char *_ast_skip_ws_50;
   char *_ast_extract_rest_51;
   char *_ast_strdup_20 = NULL;
   char *_ast_strdup_21 = NULL;
@@ -1202,9 +1202,9 @@ void doc_metadata_free(struct DocMetadata *const meta) {
 static int parse_param_line(const char *line, const char *end,
                             struct DocMetadata *out) {
   char *_ast_extract_word_52;
-  size_t _ast_skip_ws_53;
+  const char *_ast_skip_ws_53;
   char *_ast_trim_segment_54;
-  size_t _ast_skip_ws_55;
+  const char *_ast_skip_ws_55;
   char *_ast_extract_rest_56;
   char *_ast_strdup_29 = NULL;
   char *_ast_strdup_30 = NULL;
@@ -1310,10 +1310,10 @@ static int parse_param_line(const char *line, const char *end,
 static int parse_return_line(const char *line, const char *end,
                              struct DocMetadata *out) {
   char *_ast_extract_word_57;
-  size_t _ast_skip_ws_58;
+  const char *_ast_skip_ws_58;
   char *_ast_trim_segment_59;
   char *_ast_trim_segment_60;
-  size_t _ast_skip_ws_61;
+  const char *_ast_skip_ws_61;
   char *_ast_extract_rest_62;
   char *_ast_strdup_32 = NULL;
   char *_ast_strdup_33 = NULL;
@@ -1652,7 +1652,7 @@ static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
 static int parse_security_scheme_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
   char *_ast_extract_word_66;
-  size_t _ast_skip_ws_67;
+  const char *_ast_skip_ws_67;
   char *_ast_trim_segment_68;
   enum DocSecurityType _ast_parse_security_type_text_69;
   char *_ast_trim_segment_70;
@@ -1670,7 +1670,7 @@ static int parse_security_scheme_line(const char *line, const char *end,
   char *_ast_trim_segment_82;
   char *_ast_trim_segment_83;
   char *_ast_trim_segment_84;
-  size_t _ast_skip_ws_85;
+  const char *_ast_skip_ws_85;
   char *_ast_strdup_36 = NULL;
   char *_ast_strdup_37 = NULL;
   char *_ast_strdup_38 = NULL;
@@ -2047,11 +2047,11 @@ static int split_enum_values(const char *input, char ***out_vals,
 static int parse_server_var_line(const char *line, const char *end,
                                  struct DocMetadata *out) {
   char *_ast_extract_word_93;
-  size_t _ast_skip_ws_94;
+  const char *_ast_skip_ws_94;
   char *_ast_trim_segment_95;
   char *_ast_trim_segment_96;
   char *_ast_trim_segment_97;
-  size_t _ast_skip_ws_98;
+  const char *_ast_skip_ws_98;
   char *_ast_extract_rest_99;
   char *_ast_strdup_50 = NULL;
   char *_ast_strdup_51 = NULL;
@@ -2177,13 +2177,13 @@ static int parse_server_var_line(const char *line, const char *end,
 
 static int parse_encoding_line(const char *line, const char *end,
                                struct DocMetadata *out, int kind) {
-  size_t _ast_skip_ws_100;
+  const char *_ast_skip_ws_100;
   char *_ast_extract_rest_101;
-  size_t _ast_skip_ws_102;
+  const char *_ast_skip_ws_102;
   char *_ast_extract_rest_103;
   char *_ast_trim_segment_104;
   char *_ast_trim_segment_105;
-  size_t _ast_skip_ws_106;
+  const char *_ast_skip_ws_106;
   char *_ast_strdup_53 = NULL;
   const char *cur = line;
   struct DocEncoding *new_arr;
@@ -2267,10 +2267,10 @@ static int parse_encoding_line(const char *line, const char *end,
 }
 static int parse_request_body_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
-  size_t _ast_skip_ws_107;
+  const char *_ast_skip_ws_107;
   char *_ast_trim_segment_108;
   char *_ast_trim_segment_109;
-  size_t _ast_skip_ws_110;
+  const char *_ast_skip_ws_110;
   char *_ast_extract_rest_111;
   char *_ast_strdup_54 = NULL;
   char *_ast_strdup_55 = NULL;

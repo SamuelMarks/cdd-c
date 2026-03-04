@@ -47,7 +47,7 @@ jobs:
 
       - name: configure (with vcpkg on Windows)
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE="..\..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=1 -DC_CDD_BUILD_TESTING=1 -S . -B build
+          cmake -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" -DBUILD_TESTING=1 -DC_CDD_BUILD_TESTING=1 -S . -B build
         shell: cmd
         if: matrix.os == 'windows-latest'
 
@@ -75,7 +75,7 @@ jobs:
           build/bin/cdd-c jsonschema2tests 'src/mocks/emit/simple_json.schema.json' 'simp.h' 'build_gen/src/test/test_simp.h'
           cmake -S 'build_gen' -B 'build_gen/cmake_debug_build' -DCMAKE_BUILD_TYPE='Debug' -DCMAKE_TOOLCHAIN_FILE='../../vcpkg/scripts/buildsystems/vcpkg.cmake'
           cmake --build 'build_gen/cmake_debug_build'
-          cd build_gen
+          cd build_gen/cmake_debug_build
           ctest -C 'Debug' --verbose
         if: matrix.os != 'windows-latest'
 
@@ -88,7 +88,7 @@ jobs:
           build\bin\cdd-c jsonschema2tests "src\mocks\emit\simple_json.schema.json" "simp.h" "build_gen\src\test\test_simp.h"
           cmake -S "build_gen" -B "build_gen\cmake_debug_build" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_TOOLCHAIN_FILE="..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build "build_gen\cmake_debug_build"
-          cd build_gen
+          cd build_gen\cmake_debug_build
           ctest -C "Debug" --verbose
         shell: cmd
         if: matrix.os == 'windows-latest'
