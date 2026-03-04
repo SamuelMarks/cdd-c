@@ -33,7 +33,7 @@
 #define strdup _strdup
 #endif
 
-static int verb_to_enum_str(enum OpenAPI_Verb v, char **_out_val) {
+static int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "HTTP_GET";
@@ -78,7 +78,7 @@ static int verb_to_enum_str(enum OpenAPI_Verb v, char **_out_val) {
   }
 }
 
-static int method_str_to_enum_str(const char *method, char **_out_val) {
+static int method_str_to_enum_str(const char *method, const char **_out_val) {
   bool _ast_iequal_0 = false;
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
@@ -151,7 +151,7 @@ static int mapped_err_code(int status) {
 
 static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
                            const char *name,
-                           struct OpenAPI_MediaType **_out_val) {
+                           const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -345,7 +345,7 @@ static int media_type_is_multipart_form(const char *media_type) {
 }
 
 static int first_content_type_entry(const char *content_type, char *buf,
-                                    size_t buf_sz, char **_out_val) {
+                                    size_t buf_sz, const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
   if (!content_type || !buf || buf_sz == 0) {
@@ -1368,7 +1368,7 @@ static int write_header_param_logic(FILE *fp,
 static int write_form_urlencoded_body(FILE *fp,
                                       const struct OpenAPI_Operation *op,
                                       const struct OpenAPI_Spec *spec) {
-  struct OpenAPI_MediaType *_ast_find_media_type_3;
+  const struct OpenAPI_MediaType *_ast_find_media_type_3;
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_4;
   struct OpenAPI_Encoding *_ast_find_encoding_5;
   struct StructFields *_ast_openapi_spec_find_schema_6;
@@ -2709,14 +2709,14 @@ static int write_multipart_part_headers(FILE *fp,
 static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                                 const struct OpenAPI_Spec *spec) {
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
-  struct OpenAPI_MediaType *_ast_find_media_type_8;
+  const struct OpenAPI_MediaType *_ast_find_media_type_8;
   struct OpenAPI_Encoding *_ast_find_encoding_9;
-  char *_ast_first_content_type_entry_10;
-  char *_ast_first_content_type_entry_11;
-  char *_ast_first_content_type_entry_12;
-  char *_ast_first_content_type_entry_13;
-  char *_ast_first_content_type_entry_14;
-  char *_ast_first_content_type_entry_15;
+  const char *_ast_first_content_type_entry_10;
+  const char *_ast_first_content_type_entry_11;
+  const char *_ast_first_content_type_entry_12;
+  const char *_ast_first_content_type_entry_13;
+  const char *_ast_first_content_type_entry_14;
+  const char *_ast_first_content_type_entry_15;
   const struct StructFields *sf;
   const struct OpenAPI_MediaType *mt;
   size_t i;
@@ -3027,8 +3027,8 @@ int codegen_client_write_body(FILE *const fp,
                               const struct OpenAPI_Spec *const spec,
                               const char *const path_template,
                               const char *const base_url_expr) {
-  char *_ast_verb_to_enum_str_16;
-  char *_ast_method_str_to_enum_str_17;
+  const char *_ast_verb_to_enum_str_16;
+  const char *_ast_method_str_to_enum_str_17;
   int query_exists = 0;
   int cookie_exists = 0;
   int has_querystring = 0;

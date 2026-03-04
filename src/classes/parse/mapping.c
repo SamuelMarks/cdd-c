@@ -64,7 +64,7 @@ static int set_ref(struct OpenApiTypeMapping *out, const char *ref) {
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static int skip_qualifiers(const char *type, char **_out_val) {
+static int skip_qualifiers(const char *type, const char **_out_val) {
   const char *p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
@@ -113,7 +113,7 @@ static int clean_type_str(const char *in, char **_out_val) {
 
 int c_mapping_map_type(const char *const c_type_in, const char *const decl_name,
                        struct OpenApiTypeMapping *const out) {
-  char *_ast_skip_qualifiers_0;
+  const char *_ast_skip_qualifiers_0;
   char *_ast_clean_type_str_1;
   bool _ast_starts_with_4 = false;
   bool _ast_starts_with_5 = false;

@@ -605,15 +605,12 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
 #else
                 char *buf = malloc(strlen(new_sig) + strlen(new_body) + 2);
                 if (buf) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
                   sprintf_s(buf, strlen(new_sig) + strlen(new_body) + 2,
                             "%s %s", new_sig, new_body);
 #else
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-                  sprintf_s(buf, sizeof(buf), "%s %s", new_sig, new_body);
-#else
                   sprintf(buf, "%s %s", new_sig, new_body);
-#endif
 #endif
                 }
                 segment = buf;
@@ -639,15 +636,12 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
 #else
           joined = malloc(strlen(output) + strlen(segment) + 1);
           if (joined) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
             sprintf_s(joined, strlen(output) + strlen(segment) + 1, "%s%s",
                       output, segment);
 #else
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            sprintf_s(joined, sizeof(joined), "%s%s", output, segment);
-#else
             sprintf(joined, "%s%s", output, segment);
-#endif
 #endif
           }
 #endif
@@ -670,15 +664,12 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
 #else
         joined = malloc(strlen(output) + strlen(content) + 1);
         if (joined) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           sprintf_s(joined, strlen(output) + strlen(content) + 1, "%s%s",
                     output, content);
 #else
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(joined, sizeof(joined), "%s%s", output, content);
-#else
           sprintf(joined, "%s%s", output, content);
-#endif
 #endif
         }
 #endif

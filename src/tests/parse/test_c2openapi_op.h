@@ -1203,6 +1203,7 @@ TEST test_build_response_headers(void) {
   struct DocResponse resps[1];
   memset(resps, 0, sizeof(resps));
   struct DocResponseHeader hdrs[1];
+  memset(hdrs, 0, sizeof(hdrs));
   struct OpenAPI_Operation op = {0};
   int rc;
 
