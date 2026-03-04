@@ -21,7 +21,11 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   if (fopen_s(&fp, path, "w") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, path, "w");
+#else
   fp = fopen(path, "w");
+#endif
 #endif
   if (!fp)
     return -1;

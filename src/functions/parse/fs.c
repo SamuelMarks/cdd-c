@@ -22,6 +22,7 @@
 #include "c_cddConfig.h"
 #include <winbase.h>
 #include <windef.h>
+#include <windows.h>
 
 #include <direct.h>
 #include <fileapi.h>
@@ -292,7 +293,11 @@ int fs_write_to_file(const char *const path, const char *const content) {
   if (fopen_s(&f, path, "w") != 0)
     f = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "w");
+#else
   f = fopen(path, "w");
+#endif
 #endif
 
   if (!f)
@@ -326,7 +331,11 @@ int read_to_file(const char *path, const char *mode, char **out_data,
       return FOPEN_UNKNOWN_ERROR;
   }
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, mode);
+#else
   f = fopen(path, mode);
+#endif
   if (f == NULL)
     return errno;
 #endif
@@ -676,7 +685,11 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
         continue;
       }
 #else
+#if defined(_MSC_VER)
+      fopen_s(&file->fh, tmpfilename, mode);
+#else
       file->fh = fopen(tmpfilename, mode);
+#endif
       if (!file->fh) {
         free(tmpfilename);
         continue;
