@@ -24,10 +24,17 @@
 #endif
 #include "c_cddConfig.h"
 #include <process.h>
-#include <winbase.h>
-#include <windef.h>
+/* clang-format off */
+/* winsock2.h must precede windef.h to prevent conflicts */
 #include <winsock2.h>
+
 #include <ws2tcpip.h>
+
+/* windef.h must precede winbase.h */
+#include <windef.h>
+
+#include <winbase.h>
+/* clang-format on */
 
 typedef SOCKET socket_t;
 typedef HANDLE thread_t;
