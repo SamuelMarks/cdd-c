@@ -16,9 +16,14 @@
 
 #ifdef _WIN32
 #include "c_cddConfig.h"
-#include <winbase.h>
+/* clang-format off */
+/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include <windef.h>
+
+#include <winbase.h>
+
 #include <winhttp.h>
+/* clang-format on */
 #else
 /* Stub definitions */
 /** @brief HINTERNET typedef */

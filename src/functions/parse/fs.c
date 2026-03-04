@@ -20,8 +20,12 @@
 #define _CRT_RAND_S
 #define WIN32_LEAN_AND_MEAN
 #include "c_cddConfig.h"
-#include <winbase.h>
+/* clang-format off */
+/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include <windef.h>
+
+#include <winbase.h>
+/* clang-format on */
 
 #include <direct.h>
 #include <fileapi.h>

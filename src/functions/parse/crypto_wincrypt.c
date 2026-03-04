@@ -18,9 +18,14 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <winbase.h>
-#include <wincrypt.h>
+/* clang-format off */
+/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include <windef.h>
+
+#include <winbase.h>
+
+#include <wincrypt.h>
+/* clang-format on */
 #endif
 
 #include "functions/parse/crypto_types.h"

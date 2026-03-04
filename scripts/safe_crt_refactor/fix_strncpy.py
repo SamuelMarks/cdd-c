@@ -15,13 +15,13 @@ def process_file(path):
   strncpy({dest}, {src}, {size});
 #endif"""
 
-    new_content = re.sub(r'strncpy\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)\s*;', replacer, content)
+    new_content = re.sub(r'(?<!#else\n  )(?<!#else\n\t)(?<!#else\n)(?<!#else\r\n)\bstrncpy\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)\s*;', replacer, content)
 
     if new_content != content:
         with open(path, "w") as f:
             f.write(new_content)
 
 for filepath in glob.glob("src/**/*.c", recursive=True):
-    if "test" in filepath or "mock" in filepath:
-        continue
+    process_file(filepath)
+for filepath in glob.glob("src/**/*.h", recursive=True):
     process_file(filepath)

@@ -14,9 +14,14 @@
 
 #ifdef _WIN32
 #include "c_cddConfig.h"
-#include <winbase.h>
+/* clang-format off */
+/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include <windef.h>
+
+#include <winbase.h>
+
 #include <wininet.h>
+/* clang-format on */
 #pragma comment(lib, "wininet.lib")
 #else
 /* Stub definitions for non-Windows linting/compilation checks */
