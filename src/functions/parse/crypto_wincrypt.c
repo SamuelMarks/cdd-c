@@ -15,10 +15,11 @@
 
 #ifdef _WIN32
 #include "c_cddConfig.h"
-#include <winbase.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <wincrypt.h>
-#include <windef.h>
-#include <winerror.h>
+#include <windows.h>
 #endif
 
 #include "functions/parse/crypto_types.h"
