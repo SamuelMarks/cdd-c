@@ -18,6 +18,7 @@
 #include "c_cddConfig.h"
 /* clang-format off */
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
+#include "win_compat_sym.h"
 #include <windef.h>
 
 #include <winbase.h>
