@@ -51,12 +51,12 @@ static void free_string_array(char **arr, size_t n) {
 int get_type_from_ref(const char *const ref, char **_out_val) {
   const char *_ast_after_last_0 = NULL;
   if (ref == NULL) {
-    *_out_val = "";
+    *_out_val = (char *)"";
     return 0;
   }
   {
-    *_out_val =
-        (c_cdd_str_after_last(ref, '/', &_ast_after_last_0), _ast_after_last_0);
+    *_out_val = (c_cdd_str_after_last(ref, '/', &_ast_after_last_0),
+                 (char *)_ast_after_last_0);
     return 0;
   }
 }

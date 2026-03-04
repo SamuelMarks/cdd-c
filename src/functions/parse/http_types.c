@@ -538,7 +538,11 @@ int http_response_save_to_file(const struct HttpResponse *const res,
   if (fopen_s(&f, path, "wb") != 0)
     return EIO;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "wb");
+#else
   f = fopen(path, "wb");
+#endif
   if (!f)
     return errno ? errno : EIO;
 #endif

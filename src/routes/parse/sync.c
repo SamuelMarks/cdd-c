@@ -591,7 +591,11 @@ static int apply_updates(const char *filename, const char *content,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, filename, "w");
+#else
     f = fopen(filename, "w");
+#endif
     if (f) {
 #endif
       fputs(result, f);

@@ -28,8 +28,7 @@ def mask_msc_ver(src: bytes) -> bytes:
     """
     text = src.decode('utf-8')
     out = []
-    lines = text.split('
-')
+    lines = text.split('\n')
     in_msc = False
     in_else = False
     for line in lines:
@@ -51,8 +50,7 @@ def mask_msc_ver(src: bytes) -> bytes:
             out.append(" " * len(line))
         else:
             out.append(line)
-    return '
-'.join(out).encode('utf-8')
+    return '\n'.join(out).encode('utf-8')
 
 
 def get_functions_to_refactor(base_dir: str) -> dict:
