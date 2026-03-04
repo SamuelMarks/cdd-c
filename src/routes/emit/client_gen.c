@@ -55,7 +55,7 @@ find_server_variable(const struct OpenAPI_Server *srv, const char *name,
 }
 
 static int render_server_url_default(const struct OpenAPI_Server *srv,
-                                     const char **_out_val) {
+                                     char **_out_val) {
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_0;
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_1;
   const char *url;
@@ -172,7 +172,7 @@ static int render_server_url_default(const struct OpenAPI_Server *srv,
   }
 }
 
-static int escape_c_string_literal(const char *s, const char **_out_val) {
+static int escape_c_string_literal(const char *s, char **_out_val) {
   size_t i;
   size_t out_len = 0;
   char *out;
@@ -254,9 +254,9 @@ static int select_operation_server(const struct OpenAPI_Path *path,
   }
 }
 
-static int build_base_url_literal(const char *url, const char **_out_val) {
-  const char *_ast_escape_c_string_literal_2;
-  const char *escaped = NULL;
+static int build_base_url_literal(const char *url, char **_out_val) {
+  char *_ast_escape_c_string_literal_2;
+  char *escaped = NULL;
   char *literal = NULL;
   size_t len;
 
@@ -295,7 +295,7 @@ static int build_base_url_literal(const char *url, const char **_out_val) {
 /** @def CHECK_IO_CLEANUP
  * @brief Generate a sanitized uppercase Include Guard macro.
  */
-static int generate_guard(const char *base, const char **_out_val) {
+static int generate_guard(const char *base, char **_out_val) {
   char *g;
   size_t len = strlen(base);
   size_t i;
@@ -325,7 +325,7 @@ static int generate_guard(const char *base, const char **_out_val) {
 /** @def CHECK_IO_CLEANUP
  * @brief Derive the model header name if not provided.
  */
-static int derive_model_header(const char *base, const char **_out_val) {
+static int derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
   m = malloc(len + 1);
@@ -353,7 +353,7 @@ static int derive_model_header(const char *base, const char **_out_val) {
  * @param tag The tag string from the spec.
  * @return Allocated string with sanitized name, or NULL on error.
  */
-static int sanitize_tag(const char *tag, const char **_out_val) {
+static int sanitize_tag(const char *tag, char **_out_val) {
   char *s;
   size_t i;
   if (!tag) {
@@ -448,7 +448,7 @@ static int build_effective_parameters(const struct OpenAPI_Path *path,
  * @brief Write standard includes to the header file.
  * Defines `struct ApiError` for standardized error handling.
  */
-static int write_header_preamble(FILE *fp, const const char *guard,
+static int write_header_preamble(FILE *fp, const char *guard,
                                  const char *model_decl) {
   CHECK_IO(fprintf(fp, "#ifndef %s\n", guard));
   CHECK_IO(fprintf(fp, "#define %s\n\n", guard));
@@ -517,11 +517,11 @@ static int write_source_preamble(FILE *fp, const char *header_name) {
  */
 static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                                  const struct OpenAPI_Spec *spec) {
-  const char *_ast_render_server_url_default_3;
-  const char *_ast_escape_c_string_literal_4;
-  const char *default_url = NULL;
-  const char *default_url_escaped = NULL;
-  const const char *default_url_literal = NULL;
+  char *_ast_render_server_url_default_3;
+  char *_ast_escape_c_string_literal_4;
+  char *default_url = NULL;
+  char *default_url_escaped = NULL;
+  const char *default_url_literal = NULL;
 
   if (spec && spec->servers && spec->n_servers > 0 && spec->servers[0].url) {
     default_url = (render_server_url_default(&spec->servers[0],
@@ -609,7 +609,7 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  rc = http_client_init(client);\n"));
   CHECK_IO(fprintf(c, "  if (rc != 0) return rc;\n"));
   if (default_url_literal) {
-    CHECK_IO(fprintf(c, "  const const char *default_url = \"%s\";\n",
+    CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
                      default_url_literal));
     CHECK_IO(fprintf(c, "  if (!base_url || base_url[0] == '\\0') {\n"));
     CHECK_IO(fprintf(c, "    base_url = default_url;\n"));
@@ -667,7 +667,7 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 /** @def CHECK_IO_CLEANUP
  * @brief Generate DocBlock for an operation.
  */
-static int verb_to_string(enum OpenAPI_Verb verb, const char **_out_val) {
+static int verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
     *_out_val = "GET";
@@ -785,16 +785,16 @@ static int emit_operation(FILE *hfile, FILE *cfile,
                           const char *prefix) {
   const char *_ast_sanitize_tag_6;
   struct OpenAPI_Server *_ast_select_operation_server_7;
-  const char *_ast_render_server_url_default_8;
+  char *_ast_render_server_url_default_8;
   const char *_ast_build_base_url_literal_9;
   struct OpenAPI_Operation effective_op;
   struct OpenAPI_Parameter *effective_params = NULL;
   size_t effective_count = 0;
   struct CodegenSigConfig sig_cfg;
-  const char *sanitized_group = NULL;
+  char *sanitized_group = NULL;
   char *full_group = NULL;
-  const char *override_url = NULL;
-  const char *base_url_expr = NULL;
+  char *override_url = NULL;
+  char *base_url_expr = NULL;
   const struct OpenAPI_Server *server_override = NULL;
   int merge_rc;
   int rc = 0;
@@ -932,11 +932,11 @@ cleanup:
 
 int openapi_client_generate(const struct OpenAPI_Spec *const spec,
                             const struct OpenApiClientConfig *const config) {
-  const char *_ast_generate_guard_10;
-  const char *_ast_derive_model_header_11;
+  char *_ast_generate_guard_10;
+  char *_ast_derive_model_header_11;
   FILE *hfile = NULL, *cfile = NULL;
   char *h_name = NULL, *c_name = NULL;
-  const char *guard = NULL, *model_h = NULL;
+  char *guard = NULL, *model_h = NULL;
   const char *prefix = "";
   int rc = 0;
   size_t i, j;

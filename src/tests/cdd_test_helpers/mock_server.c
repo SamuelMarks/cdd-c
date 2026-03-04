@@ -31,6 +31,7 @@
 #include <ws2tcpip.h>
 
 /* windef.h must precede winbase.h */
+#include "win_compat_sym.h"
 #include <windef.h>
 
 #include <winbase.h>
