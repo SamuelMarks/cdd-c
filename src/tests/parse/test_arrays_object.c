@@ -92,8 +92,14 @@ TEST test_code2schema_obj_array_detection(void) {
     ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
   }
 
-  /* Read JSON output */
+/* Read JSON output */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&f, json_out_file, "r") != 0)
+    f = NULL;
+#else
   f = fopen(json_out_file, "r");
+#endif
   ASSERT(f);
   fseek(f, 0, SEEK_END);
   len = ftell(f);

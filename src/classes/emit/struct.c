@@ -202,17 +202,33 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
   f->type[sizeof(f->type) - 1] = '\0';
 
   if (ref) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strncpy_s(f->ref, sizeof(f->ref) - 1, ref, _TRUNCATE);
+#else
     strncpy(f->ref, ref, sizeof(f->ref) - 1);
+#endif
     f->ref[sizeof(f->ref) - 1] = '\0';
   }
 
   if (default_val) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strncpy_s(f->default_val, sizeof(f->default_val) - 1, default_val,
+              _TRUNCATE);
+#else
     strncpy(f->default_val, default_val, sizeof(f->default_val) - 1);
+#endif
     f->default_val[sizeof(f->default_val) - 1] = '\0';
   }
 
   if (bit_width) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strncpy_s(f->bit_width, sizeof(f->bit_width) - 1, bit_width, _TRUNCATE);
+#else
     strncpy(f->bit_width, bit_width, sizeof(f->bit_width) - 1);
+#endif
     f->bit_width[sizeof(f->bit_width) - 1] = '\0';
   }
 #endif

@@ -23,7 +23,12 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   /* Allocate something to test ownership transfer */
   if (id) {
     op->operation_id = malloc(strlen(id) + 1);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strcpy_s(op->operation_id, sizeof(op->operation_id), id);
+#else
     strcpy(op->operation_id, id);
+#endif
   }
 }
 

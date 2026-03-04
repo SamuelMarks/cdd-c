@@ -29,7 +29,13 @@ TEST test_cli_gen_basic(void) {
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&f, "test_cli_cli.c", "r") != 0)
+    f = NULL;
+#else
   f = fopen("test_cli_cli.c", "r");
+#endif
   ASSERT(f != NULL);
   if (f)
     fclose(f);

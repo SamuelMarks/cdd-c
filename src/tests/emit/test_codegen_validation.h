@@ -188,7 +188,12 @@ TEST test_string_simple_pattern_prefix(void) {
   struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
+#else
   strcpy(f->pattern, "^prefix");
+#endif
 
   code = gen_parse_code("SPat", &sf);
   ASSERT(code != NULL);
@@ -209,7 +214,12 @@ TEST test_string_simple_pattern_suffix(void) {
   struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
+#else
   strcpy(f->pattern, "suffix$");
+#endif
 
   code = gen_parse_code("SSuf", &sf);
   ASSERT(code != NULL);
@@ -230,7 +240,12 @@ TEST test_string_simple_pattern_exact(void) {
   struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
+#else
   strcpy(f->pattern, "^exact$");
+#endif
 
   code = gen_parse_code("SExact", &sf);
   ASSERT(code != NULL);
@@ -251,7 +266,12 @@ TEST test_string_simple_pattern_contains(void) {
   struct_fields_add(&sf, "p", "string", NULL, NULL, NULL);
 
   f = &sf.fields[0];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strcpy_s(f->pattern, sizeof(f->pattern), "sub");
+#else
   strcpy(f->pattern, "sub");
+#endif
 
   code = gen_parse_code("SSub", &sf);
   ASSERT(code != NULL);
