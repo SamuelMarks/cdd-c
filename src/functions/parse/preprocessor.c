@@ -685,7 +685,7 @@ static int parse_primary(struct ExprState *s, long *_out_val);
 /* Helper: skip whitespace */
 
 static int skip_ws(struct ExprState *s, size_t *_out_val) {
-
+  (void)_out_val;
   while (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_WHITESPACE)
 
     s->pos++;

@@ -411,9 +411,10 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
         rc = ENOMEM;
         goto cleanup;
       }
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(*out_code, sizeof(*out_code), "%s%sint %s(%s)%s", prefix,
-                sig.storage, sig.name, sig.args, k_r_suffix);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      sprintf_s(*out_code, len, "%s%sint %s(%s)%s", prefix, sig.storage,
+                sig.name, sig.args, k_r_suffix);
 #else
       sprintf(*out_code, "%s%sint %s(%s)%s", prefix, sig.storage, sig.name,
               sig.args, k_r_suffix);
@@ -442,8 +443,9 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           asprintf(&new_args, "%s, out", sig.args);
 #else
           new_args = malloc(strlen(sig.args) + 10);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(new_args, sizeof(new_args), "%s, out", sig.args);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sprintf_s(new_args, strlen(sig.args) + 10, "%s, out", sig.args);
 #else
           sprintf(new_args, "%s, out", sig.args);
 #endif
@@ -456,8 +458,10 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           asprintf(&new_args, "%s *out", sig.ret_type);
 #else
           new_args = malloc(strlen(sig.ret_type) + 10);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(new_args, sizeof(new_args), "%s *out", sig.ret_type);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sprintf_s(new_args, strlen(sig.ret_type) + 10, "%s *out",
+                    sig.ret_type);
 #else
           sprintf(new_args, "%s *out", sig.ret_type);
 #endif
@@ -467,9 +471,10 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           asprintf(&new_args, "%s, %s *out", sig.args, sig.ret_type);
 #else
           new_args = malloc(strlen(sig.args) + strlen(sig.ret_type) + 10);
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(new_args, sizeof(new_args), "%s, %s *out", sig.args,
-                    sig.ret_type);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sprintf_s(new_args, strlen(sig.args) + strlen(sig.ret_type) + 10,
+                    "%s, %s *out", sig.args, sig.ret_type);
 #else
           sprintf(new_args, "%s, %s *out", sig.args, sig.ret_type);
 #endif
@@ -501,9 +506,10 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
           sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
                   sig.name, new_args, k_r_suffix, sig.ret_type);
         } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          sprintf_s(*out_code, sizeof(*out_code), "%s%sint %s(%s)", prefix,
-                    sig.storage, sig.name, new_args);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sprintf_s(*out_code, len, "%s%sint %s(%s)", prefix, sig.storage,
+                    sig.name, new_args);
 #else
           sprintf(*out_code, "%s%sint %s(%s)", prefix, sig.storage, sig.name,
                   new_args);

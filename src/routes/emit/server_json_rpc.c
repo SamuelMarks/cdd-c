@@ -15,11 +15,20 @@
 #include <unistd.h>
 #endif
 
+#if defined(_WIN32)
+typedef SOCKET cdd_socket_t;
+#else
+typedef int cdd_socket_t;
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
+#endif
+
 int server_json_rpc_main(int argc, char **argv) {
   int port = 8080;
   int listen_flag = 0;
   int i;
-  int server_fd;
+  cdd_socket_t server_fd;
   struct sockaddr_in addr;
   (void)addr;
 
@@ -46,13 +55,13 @@ int server_json_rpc_main(int argc, char **argv) {
 #endif
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (server_fd < 0)
+  if (server_fd == INVALID_SOCKET)
     return 1;
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_port = htons(port);
+  addr.sin_port = htons((unsigned short)port);
 
   if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     perror("bind");
@@ -65,7 +74,7 @@ int server_json_rpc_main(int argc, char **argv) {
   }
 
   while (listen_flag) {
-    int client_fd;
+    cdd_socket_t client_fd;
     struct sockaddr_in client_addr;
 #if defined(_WIN32)
     int addr_len = sizeof(client_addr);
@@ -77,14 +86,14 @@ int server_json_rpc_main(int argc, char **argv) {
     else if (listen_flag > 1)
       listen_flag--;
     client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
-    if (client_fd < 0)
+    if (client_fd == INVALID_SOCKET)
       continue;
 
     {
       const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: "
                          "application/json\r\n\r\n{\"jsonrpc\": \"2.0\", "
                          "\"result\": \"ok\", \"id\": 1}";
-      send(client_fd, resp, strlen(resp), 0);
+      send(client_fd, resp, (int)strlen(resp), 0);
     }
 #if defined(_WIN32)
     closesocket(client_fd);

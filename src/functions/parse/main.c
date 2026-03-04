@@ -139,7 +139,7 @@ static int handle_from_openapi(int argc, char **argv) {
       char *path = malloc(strlen(out_dir) + 32);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      sprintf_s(path, sizeof(path), "%s/generated_client", out_dir);
+      sprintf_s(path, strlen(out_dir) + 32, "%s/generated_client", out_dir);
 #else
       sprintf(path, "%s/generated_client", out_dir);
 #endif

@@ -998,7 +998,7 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
 }
 
 static int strip_quotes(const char *in, char *buf, size_t bufsz,
-                        char **_out_val) {
+                        const char **_out_val) {
   size_t len;
   if (!in || !buf || bufsz == 0) {
     *_out_val = in;
@@ -2075,7 +2075,7 @@ static int apply_union_to_struct_fields_ex(
 
 static void write_default_value(JSON_Object *pobj,
                                 const struct StructField *field) {
-  char *_ast_strip_quotes_19;
+  const char *_ast_strip_quotes_19;
   const char *def;
   const char *typ;
   char buf[256];

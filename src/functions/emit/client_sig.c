@@ -22,7 +22,7 @@
       return EIO;                                                              \
   } while (0)
 
-static int map_type_to_c_arg(const char *oa_type, char **_out_val) {
+static int map_type_to_c_arg(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
     return 0;
@@ -186,7 +186,7 @@ static int media_type_is_multipart_form(const char *media_type) {
 
 static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
                            const char *name,
-                           struct OpenAPI_MediaType **_out_val) {
+                           const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -262,7 +262,7 @@ static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
 
 static int
 querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
-                                      char **_out_val) {
+                                      const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -301,7 +301,7 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
-                                       char **_out_val) {
+                                       const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -341,7 +341,7 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
-                                      char **_out_val) {
+                                      const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -385,7 +385,7 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
-                                     char **_out_val) {
+                                     const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -426,7 +426,7 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
   }
 }
 
-static int map_array_item_type(const char *oa_type, char **_out_val) {
+static int map_array_item_type(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
     return 0;
@@ -502,7 +502,7 @@ static int header_name_is_content_type(const char *name) {
           _ast_iequal_0) != 0;
 }
 
-static int map_type_to_c_out(const char *oa_type, char **_out_val) {
+static int map_type_to_c_out(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void *";
     return 0;
@@ -529,7 +529,7 @@ static int map_type_to_c_out(const char *oa_type, char **_out_val) {
   }
 }
 
-static int map_array_item_type_out(const char *oa_type, char **_out_val) {
+static int map_array_item_type_out(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void **";
     return 0;
@@ -567,7 +567,7 @@ static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
 }
 
 static int get_success_response(const struct OpenAPI_Operation *op,
-                                struct OpenAPI_Response **_out_val) {
+                                const struct OpenAPI_Response **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
   if (!op) {
@@ -599,7 +599,7 @@ static int get_success_response(const struct OpenAPI_Operation *op,
 }
 
 static int response_is_binary_success(const struct OpenAPI_Operation *op) {
-  struct OpenAPI_Response *_ast_get_success_response_3;
+  const struct OpenAPI_Response *_ast_get_success_response_3;
   const struct OpenAPI_Response *resp =
       (get_success_response(op, &_ast_get_success_response_3),
        _ast_get_success_response_3);
@@ -611,7 +611,7 @@ static int response_is_binary_success(const struct OpenAPI_Operation *op) {
 }
 
 static int get_success_schema(const struct OpenAPI_Operation *op,
-                              struct OpenAPI_SchemaRef **_out_val) {
+                              const struct OpenAPI_SchemaRef **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
   for (i = 0; i < op->n_responses; ++i) {
@@ -652,25 +652,25 @@ static int get_success_schema(const struct OpenAPI_Operation *op,
 int codegen_client_write_signature(
     FILE *const fp, const struct OpenAPI_Operation *const op,
     const struct CodegenSigConfig *const config) {
-  char *_ast_querystring_param_json_array_item_type_4;
-  char *_ast_querystring_param_json_array_item_ref_5;
-  char *_ast_querystring_param_json_primitive_type_6;
-  char *_ast_querystring_param_raw_primitive_type_7;
-  char *_ast_map_array_item_type_8;
-  char *_ast_map_type_to_c_arg_9;
-  char *_ast_map_type_to_c_arg_10;
-  char *_ast_map_array_item_type_11;
-  char *_ast_map_type_to_c_arg_12;
-  char *_ast_map_array_item_type_13;
-  char *_ast_map_type_to_c_arg_14;
-  char *_ast_map_array_item_type_15;
-  char *_ast_map_type_to_c_arg_16;
-  struct OpenAPI_MediaType *_ast_find_media_type_17;
-  char *_ast_map_array_item_type_18;
-  char *_ast_map_type_to_c_arg_19;
-  struct OpenAPI_SchemaRef *_ast_get_success_schema_20;
-  char *_ast_map_array_item_type_out_21;
-  char *_ast_map_type_to_c_out_22;
+  const char *_ast_querystring_param_json_array_item_type_4;
+  const char *_ast_querystring_param_json_array_item_ref_5;
+  const char *_ast_querystring_param_json_primitive_type_6;
+  const char *_ast_querystring_param_raw_primitive_type_7;
+  const char *_ast_map_array_item_type_8;
+  const char *_ast_map_type_to_c_arg_9;
+  const char *_ast_map_type_to_c_arg_10;
+  const char *_ast_map_array_item_type_11;
+  const char *_ast_map_type_to_c_arg_12;
+  const char *_ast_map_array_item_type_13;
+  const char *_ast_map_type_to_c_arg_14;
+  const char *_ast_map_array_item_type_15;
+  const char *_ast_map_type_to_c_arg_16;
+  const struct OpenAPI_MediaType *_ast_find_media_type_17;
+  const char *_ast_map_array_item_type_18;
+  const char *_ast_map_type_to_c_arg_19;
+  const struct OpenAPI_SchemaRef *_ast_get_success_schema_20;
+  const char *_ast_map_array_item_type_out_21;
+  const char *_ast_map_type_to_c_out_22;
   const char *ctx_type =
       (config && config->ctx_type) ? config->ctx_type : "struct HttpClient *";
   const char *prefix = (config && config->prefix) ? config->prefix : "";

@@ -19,7 +19,7 @@
 
 static int find_refactored_func(const struct RefactoredFunction *funcs,
                                 size_t func_count, const char *name,
-                                struct RefactoredFunction **_out_val) {
+                                const struct RefactoredFunction **_out_val) {
   size_t i;
   if (!funcs || !name) {
     *_out_val = NULL;
@@ -133,7 +133,7 @@ int rewrite_body(const struct TokenList *const tokens,
                  const struct RefactoredFunction *funcs, size_t func_count,
                  const struct SignatureTransform *transform, char **out_code) {
   char *_ast_extract_token_text_0;
-  struct RefactoredFunction *_ast_find_refactored_func_1;
+  const struct RefactoredFunction *_ast_find_refactored_func_1;
   char *_ast_extract_token_text_2;
   size_t _ast_find_semicolon_3;
   size_t _ast_find_semicolon_4;

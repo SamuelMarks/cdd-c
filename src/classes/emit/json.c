@@ -366,11 +366,11 @@ int write_struct_from_jsonObject_func(
             strncpy(pat, f->pattern, pl);
 #endif
             pat[pl] = 0;
-            CHECK_IO(
-                fprintf(fp,
-                        "      if (len < %lu || strcmp(ret->%s + len - %lu, "
-                        "\"%s\") != 0) { %s_cleanup(ret); return ERANGE; }\n",
-                        pl, n, pl, pat, struct_name));
+            CHECK_IO(fprintf(
+                fp,
+                "      if (len < %lu || strcmp(ret->%s + len - %lu, "
+                "\"%s\") != 0) { %s_cleanup(ret); return ERANGE; }\n",
+                (unsigned long)pl, n, (unsigned long)pl, pat, struct_name));
           } else { /* contains */
             CHECK_IO(fprintf(fp,
                              "      if (strstr(ret->%s, \"%s\") == NULL) { "
