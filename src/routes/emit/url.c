@@ -935,7 +935,12 @@ static int write_path_object_serialization(FILE *const fp,
       prefix = ";";
       pair_delim = ";";
     } else {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
+#else
       sprintf(buf_prefix, ";%s=", name);
+#endif
       prefix = buf_prefix;
       pair_delim = ",";
     }
@@ -1473,8 +1478,18 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
           } else if (style == OA_STYLE_MATRIX) {
             static char buf_prefix[96];
             static char buf_delim[96];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+            sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
+#else
             sprintf(buf_prefix, ";%s=", name);
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+            sprintf_s(buf_delim, sizeof(buf_delim), ";%s=", name);
+#else
             sprintf(buf_delim, ";%s=", name);
+#endif
             prefix = buf_prefix;
             delim = explode ? buf_delim : ",";
           } else {
@@ -1492,7 +1507,12 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
             prefix = ".";
           } else if (style == OA_STYLE_MATRIX) {
             static char buf_prefix[96];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+            sprintf_s(buf_prefix, sizeof(buf_prefix), ";%s=", name);
+#else
             sprintf(buf_prefix, ";%s=", name);
+#endif
             prefix = buf_prefix;
           }
           CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));

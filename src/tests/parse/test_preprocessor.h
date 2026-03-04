@@ -35,7 +35,12 @@ struct TestPPCtx {
 static int mock_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strncpy_s(ctx->last_found, 255, info->resolved_path, _TRUNCATE);
+#else
   strncpy(ctx->last_found, info->resolved_path, 255);
+#endif
   ctx->last_found[255] = '\0';
 
   /* Copy embed params for verification */

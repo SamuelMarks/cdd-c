@@ -32,7 +32,14 @@ TEST test_lift_anonymous_struct(void) {
   {
     char *content = NULL;
     size_t sz;
-    FILE *f = fopen("anon.json", "r");
+    FILE *f = NULL;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    if (fopen_s(&f, "anon.json", "r") != 0)
+      f = NULL;
+#else
+    f = fopen("anon.json", "r");
+#endif
     ASSERT(f);
     fseek(f, 0, SEEK_END);
     sz = ftell(f);

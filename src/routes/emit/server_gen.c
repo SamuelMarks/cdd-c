@@ -16,7 +16,13 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   size_t i, j;
 
   snprintf(path, sizeof(path), "%s_server.c", config->filename_base);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&fp, path, "w") != 0)
+    fp = NULL;
+#else
   fp = fopen(path, "w");
+#endif
   if (!fp)
     return -1;
 
