@@ -135,13 +135,15 @@ TEST test_writer_basic_operation(void) {
 }
 
 TEST test_writer_schema_document(void) {
+  char *_ast_strdup_0 = NULL;
   struct OpenAPI_Spec spec;
   char *json = NULL;
   int rc;
 
   openapi_spec_init(&spec);
   spec.is_schema_document = 1;
-  spec.schema_root_json = c_cdd_strdup("{\"type\":\"string\"}");
+  spec.schema_root_json =
+      (c_cdd_strdup("{\"type\":\"string\"}", &_ast_strdup_0), _ast_strdup_0);
   ASSERT(spec.schema_root_json != NULL);
 
   rc = openapi_write_spec_to_json(&spec, &json);

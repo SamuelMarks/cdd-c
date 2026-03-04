@@ -1,5 +1,5 @@
 /**
- * @file url_utils.h
+ * @file url.h
  * @brief Utilities for URL encoding and Query String construction.
  *
  * Provides functionality to:
@@ -56,15 +56,19 @@ enum OpenAPI_KVType {
 struct OpenAPI_KV {
   const char *key;          /**< Parameter key */
   enum OpenAPI_KVType type; /**< Value type */
+  /** @brief union data */
   union {
     const char *s; /**< String value */
     int i;         /**< Integer value */
     double n;      /**< Number value */
     int b;         /**< Boolean value (0/1) */
+    /** @brief KV value */
   } value;
 };
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Join object-style key/value pairs into a form-encoded value string.
  *
  * Produces a single string suitable for use as the value of a form-style
@@ -81,11 +85,14 @@ struct OpenAPI_KV {
  * @return Newly allocated string containing the joined value, or NULL on
  * allocation failure.
  */
-extern C_CDD_EXPORT char *openapi_kv_join_form(const struct OpenAPI_KV *kvs,
-                                               size_t n, const char *delim,
-                                               int allow_reserved);
+extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
+                                             size_t n, const char *delim,
+                                             int allow_reserved,
+                                             char **_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for use in a URL.
  *
  * Conforms to RFC 3986. Encodes all characters except:
@@ -96,9 +103,11 @@ extern C_CDD_EXPORT char *openapi_kv_join_form(const struct OpenAPI_KV *kvs,
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT char *url_encode(const char *str);
+extern C_CDD_EXPORT int url_encode(const char *str, char **_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string while allowing reserved characters.
  *
  * Encodes all characters except RFC 3986 unreserved and reserved sets.
@@ -109,9 +118,12 @@ extern C_CDD_EXPORT char *url_encode(const char *str);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT char *url_encode_allow_reserved(const char *str);
+extern C_CDD_EXPORT int url_encode_allow_reserved(const char *str,
+                                                  char **_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded.
  *
  * Encodes all characters except: ALPHA, DIGIT, "-", ".", "_", "*".
@@ -121,9 +133,11 @@ extern C_CDD_EXPORT char *url_encode_allow_reserved(const char *str);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT char *url_encode_form(const char *str);
+extern C_CDD_EXPORT int url_encode_form(const char *str, char **_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded while
  * allowing reserved characters (except delimiters).
  *
@@ -135,7 +149,8 @@ extern C_CDD_EXPORT char *url_encode_form(const char *str);
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT char *url_encode_form_allow_reserved(const char *str);
+extern C_CDD_EXPORT int url_encode_form_allow_reserved(const char *str,
+                                                       char **_out_val);
 
 /**
  * @brief Initialize a query parameters container.

@@ -1,5 +1,5 @@
 /**
- * @file doc_parser.h
+ * @file doc.h
  * @brief Parser for extracting API metadata from C documentation comments.
  *
  * Scans comments for Doxygen-style annotations:
@@ -11,41 +11,41 @@
  *     `[explode:true|false] [allowReserved:true|false]`
  *     `[allowEmptyValue:true|false] [contentType:<media/type>] [format:<fmt>]`
  *     `[deprecated:true|false] [example:<json>]`
- * - `@return <status> [contentType:<media/type>] [summary:<text>]`
+ * - `@return <status> [contentType:<media/type>] [summary:text]`
  *      `[example:<json>] <description>`
  *   - Repeat the same status with different `contentType` values to emit
  *     multi-content responses.
  * - `@operationId <id>`
- * - `@summary <text>`
- * - `@description <text>`
+ * - `@summary text`
+ * - `@description text`
  * - `@tag <name>` or `@tags <name1, name2>`
- * - `@tagMeta <name> [summary:<text>] [description:<text>] [parent:<name>]`
- *      [kind:<value>] [externalDocs:<url>]
- *      [externalDocsDescription:<text>]`
+ * - `@tagMeta <name> [summary:text] [description:<text>] [parent:<name>]`
+ *      [kind:<value>] [externalDocs:url]
+ *      [externalDocsDescription:text]`
  * - `@webhook <VERB> <PATH>` (emits operation under OpenAPI `webhooks`)
  * - `@deprecated [true|false]`
- * - `@externalDocs <url> [description]`
+ * - `@externalDocs url [description]`
  * - `@security <scheme> [scope1, scope2]`
  * - `@securityScheme <name>
- * [type:<apiKey|http|mutualTLS|oauth2|openIdConnect>]` [description:<text>]
+ * [type:<apiKey|http|mutualTLS|oauth2|openIdConnect>]` [description:text]
  * [deprecated:true|false] [paramName:<param>] [in:<query|header|cookie>]
  *      [scheme:<http-scheme>] [bearerFormat:<fmt>]
- *      [openIdConnectUrl:<url>] [oauth2MetadataUrl:<url>]
+ *      [openIdConnectUrl:url] [oauth2MetadataUrl:<url>]
  *      [flow:<implicit|password|clientCredentials|authorizationCode|deviceAuthorization>]
- *      [authorizationUrl:<url>] [tokenUrl:<url>] [refreshUrl:<url>]
- *      [deviceAuthorizationUrl:<url>] [scopes:<scope1,scope2,...>]`
- * - `@server <url> [name=<name>] [description=<text>]`
+ *      [authorizationUrl:url] [tokenUrl:<url>] [refreshUrl:<url>]
+ *      [deviceAuthorizationUrl:url] [scopes:<scope1,scope2,...>]`
+ * - `@server url [name=<name>] [description=text]`
  * - `@serverVar <name> [default:<value>] [enum:<v1,v2,...>]
- * [description:<text>]` (attaches to the most recent @server in the same doc
+ * [description:text]` (attaches to the most recent @server in the same doc
  * block)
  * - `@jsonSchemaDialect <uri>`
- * - `@infoTitle <text>`
- * - `@infoVersion <text>`
- * - `@infoSummary <text>`
- * - `@infoDescription <text>`
- * - `@termsOfService <url>`
- * - `@contact [name:<text>] [url:<url>] [email:<email>]`
- * - `@license [name:<text>] [identifier:<spdx>] [url:<url>]`
+ * - `@infoTitle text`
+ * - `@infoVersion text`
+ * - `@infoSummary text`
+ * - `@infoDescription text`
+ * - `@termsOfService url`
+ * - `@contact [name:text] [url:url] [email:<email>]`
+ * - `@license [name:text] [identifier:<spdx>] [url:url]`
  * - `@requestBody [required|required:true|required:false]
  *      [contentType:<media/type>] [example:<json>] <description>`
  * - `@responseHeader <status> <name> [type:<string|integer|number|boolean>]
@@ -53,8 +53,8 @@
  *      [required|required:true|required:false] [example:<json>] <description>`
  * - `@link <status> <name> [operationId:<id> | operationRef:<uri>]
  *      [parameters:<json>] [requestBody:<json>]
- *      [summary:<text>] [description:<text>]
- *      [serverUrl:<url>] [serverName:<name>] [serverDescription:<text>]
+ *      [summary:text] [description:<text>]
+ *      [serverUrl:url] [serverName:<name>] [serverDescription:text]
  *      <description>`
  *
  * @author Samuel Marks
@@ -185,10 +185,17 @@ struct DocEncoding {
   char *name;               /**< Property name (NULL for prefix/item) */
   char *content_type;       /**< Optional content type */
   enum DocParamStyle style; /**< Optional style */
+  /** @brief style_set */
   int style_set;
+  /** @brief explode_set */
+  /** @brief explode */
   int explode;
+  /** @brief allow_reserved_set */
+  /** @brief explode_set */
   int explode_set;
+  /** @brief allow_reserved */
   int allow_reserved;
+  /** @brief allow_reserved_set */
   int allow_reserved_set;
   int kind; /**< 0=encoding, 1=prefixEncoding, 2=itemEncoding */
 };

@@ -19,41 +19,14 @@ extern "C" {
 
 enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 
-extern SIMPLE_MOCKS_EXPORT enum Tank Tank_default(void);
+extern SIMPLE_MOCKS_EXPORT int Tank_default(enum Tank *out);
 
 extern SIMPLE_MOCKS_EXPORT int Tank_to_str(enum Tank, char **);
 
 extern SIMPLE_MOCKS_EXPORT int Tank_from_str(const char *, enum Tank *);
 
 struct SIMPLE_MOCKS_EXPORT HazE {
-  const char *bzr;
-  enum Tank tank;
-};
-
-extern SIMPLE_MOCKS_EXPORT void HazE_cleanup(struct HazE *);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_default(struct HazE **);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_deepcopy(const struct HazE *,
-                                             struct HazE **);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_display(const struct HazE *, FILE *);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_debug(const struct HazE *, FILE *);
-
-extern SIMPLE_MOCKS_EXPORT bool HazE_eq(const struct HazE *,
-                                        const struct HazE *);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_to_json(const struct HazE *, char **);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_from_json(const char *, struct HazE **);
-
-extern SIMPLE_MOCKS_EXPORT int HazE_from_jsonObject(const JSON_Object *,
-                                                    struct HazE **);
-
-struct SIMPLE_MOCKS_EXPORT FooE {
-  const char *bar;
-  int can;
+  /** @brief haz */
   struct HazE *haz;
 };
 
@@ -68,8 +41,8 @@ extern SIMPLE_MOCKS_EXPORT int FooE_display(const struct FooE *, FILE *);
 
 extern SIMPLE_MOCKS_EXPORT int FooE_debug(const struct FooE *, FILE *);
 
-extern SIMPLE_MOCKS_EXPORT bool FooE_eq(const struct FooE *,
-                                        const struct FooE *);
+extern SIMPLE_MOCKS_EXPORT int FooE_eq(const struct FooE *,
+                                       const struct FooE *);
 
 extern SIMPLE_MOCKS_EXPORT int FooE_to_json(const struct FooE *, char **);
 

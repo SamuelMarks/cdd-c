@@ -1,5 +1,5 @@
 /**
- * @file codegen_sdk_tests.h
+ * @file sdk_tests.h
  * @brief Logic for generating integration tests for the C SDK.
  * @author Samuel Marks
  */

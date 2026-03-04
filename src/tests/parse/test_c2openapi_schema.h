@@ -86,6 +86,8 @@ TEST test_register_deduplication(void) {
 }
 
 TEST test_register_multiple_structs(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_0;
+  struct StructFields *_ast_openapi_spec_find_schema_1;
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
   char *header_file = "test_reg_multi.h";
@@ -105,8 +107,12 @@ TEST test_register_multiple_structs(void) {
   /* Order depends on file scan order, usually linear */
   /* Verify existence, not strict index */
   {
-    const struct StructFields *sfA = openapi_spec_find_schema(&spec, "A");
-    const struct StructFields *sfB = openapi_spec_find_schema(&spec, "B");
+    const struct StructFields *sfA =
+        (openapi_spec_find_schema(&spec, "A", &_ast_openapi_spec_find_schema_0),
+         _ast_openapi_spec_find_schema_0);
+    const struct StructFields *sfB =
+        (openapi_spec_find_schema(&spec, "B", &_ast_openapi_spec_find_schema_1),
+         _ast_openapi_spec_find_schema_1);
     ASSERT(sfA != NULL);
     ASSERT(sfB != NULL);
 
@@ -137,6 +143,7 @@ TEST test_register_null_safety(void) {
 }
 
 TEST test_register_enum_schema(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_2;
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
   char *header_file = "test_reg_enum.h";
@@ -155,7 +162,10 @@ TEST test_register_enum_schema(void) {
   ASSERT_EQ(0, rc);
 
   {
-    const struct StructFields *sf = openapi_spec_find_schema(&spec, "Color");
+    const struct StructFields *sf =
+        (openapi_spec_find_schema(&spec, "Color",
+                                  &_ast_openapi_spec_find_schema_2),
+         _ast_openapi_spec_find_schema_2);
     ASSERT(sf != NULL);
     ASSERT_EQ(1, sf->is_enum);
     ASSERT_EQ(3, sf->enum_members.size);

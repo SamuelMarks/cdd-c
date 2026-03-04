@@ -1,5 +1,5 @@
 /**
- * @file refactor_engine.h
+ * @file refactor.h
  * @brief Orchestration logic for applying propagation refactorings across code.
  * @author Samuel Marks
  */

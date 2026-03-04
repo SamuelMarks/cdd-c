@@ -80,6 +80,8 @@ write_struct_to_json_schema(JSON_Object *schemas_obj, const char *struct_name,
                             const struct StructFields *sf);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Check if string starts with prefix.
  *
  * @param[in] str The string to check.
@@ -87,7 +89,8 @@ write_struct_to_json_schema(JSON_Object *schemas_obj, const char *struct_name,
  * @return true if matches, false otherwise.
  */
 
-extern C_CDD_EXPORT bool str_starts_with(const char *str, const char *prefix);
+extern C_CDD_EXPORT int str_starts_with(const char *str, const char *prefix,
+                                        bool *_out_val);
 
 /**
  * @brief Trim trailing whitespace and semicolons from a string in place.

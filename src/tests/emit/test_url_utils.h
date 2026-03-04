@@ -20,7 +20,8 @@
 /* --- Encoding Tests --- */
 
 TEST test_url_encode_simple(void) {
-  char *res = url_encode("hello");
+  char *_ast_url_encode_0;
+  char *res = (url_encode("hello", &_ast_url_encode_0), _ast_url_encode_0);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello", res);
   free(res);
@@ -28,7 +29,9 @@ TEST test_url_encode_simple(void) {
 }
 
 TEST test_url_encode_spaces(void) {
-  char *res = url_encode("hello world");
+  char *_ast_url_encode_1;
+  char *res =
+      (url_encode("hello world", &_ast_url_encode_1), _ast_url_encode_1);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello%20world", res);
   free(res);
@@ -36,13 +39,14 @@ TEST test_url_encode_spaces(void) {
 }
 
 TEST test_url_encode_reserved(void) {
+  char *_ast_url_encode_2;
   /* Gen-delims: : / ? # [ ] @ */
   /* Sub-delims: ! $ & ' ( ) * + , ; = */
   /* These should ALL be encoded in component context (query param value) */
   const char *input = ":/?#[]@!$&'()*+,;=";
   const char *expected = "%3A%2F%3F%23%5B%5D%40%21%24%26%27%28%29%2A%2B%2C%3B%"
                          "3D";
-  char *res = url_encode(input);
+  char *res = (url_encode(input, &_ast_url_encode_2), _ast_url_encode_2);
 
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
@@ -51,9 +55,10 @@ TEST test_url_encode_reserved(void) {
 }
 
 TEST test_url_encode_unreserved(void) {
+  char *_ast_url_encode_3;
   /* ALPHA, DIGIT, - . _ ~ */
   const char *input = "a-b.c_d~1";
-  char *res = url_encode(input);
+  char *res = (url_encode(input, &_ast_url_encode_3), _ast_url_encode_3);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a-b.c_d~1", res);
   free(res);
@@ -61,9 +66,12 @@ TEST test_url_encode_unreserved(void) {
 }
 
 TEST test_url_encode_allow_reserved(void) {
+  char *_ast_url_encode_allow_reserved_4;
   const char *input = ":/?#[]@!$&'()*+,;= %2F";
   const char *expected = ":/?#[]@!$&'()*+,;=%20%2F";
-  char *res = url_encode_allow_reserved(input);
+  char *res =
+      (url_encode_allow_reserved(input, &_ast_url_encode_allow_reserved_4),
+       _ast_url_encode_allow_reserved_4);
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
@@ -71,7 +79,9 @@ TEST test_url_encode_allow_reserved(void) {
 }
 
 TEST test_url_encode_form_spaces(void) {
-  char *res = url_encode_form("hello world");
+  char *_ast_url_encode_form_5;
+  char *res = (url_encode_form("hello world", &_ast_url_encode_form_5),
+               _ast_url_encode_form_5);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello+world", res);
   free(res);
@@ -79,8 +89,10 @@ TEST test_url_encode_form_spaces(void) {
 }
 
 TEST test_url_encode_form_reserved(void) {
+  char *_ast_url_encode_form_6;
   const char *input = "&=+";
-  char *res = url_encode_form(input);
+  char *res =
+      (url_encode_form(input, &_ast_url_encode_form_6), _ast_url_encode_form_6);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("%26%3D%2B", res);
   free(res);
@@ -88,9 +100,12 @@ TEST test_url_encode_form_reserved(void) {
 }
 
 TEST test_url_encode_form_allow_reserved(void) {
+  char *_ast_url_encode_form_allow_reserved_7;
   const char *input = ":/?#[]@!$&'()*+,;= %2F";
   const char *expected = ":/?#[]@!$%26'()*%2B,;%3D+%2F";
-  char *res = url_encode_form_allow_reserved(input);
+  char *res = (url_encode_form_allow_reserved(
+                   input, &_ast_url_encode_form_allow_reserved_7),
+               _ast_url_encode_form_allow_reserved_7);
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
@@ -98,7 +113,8 @@ TEST test_url_encode_form_allow_reserved(void) {
 }
 
 TEST test_url_encode_null(void) {
-  ASSERT(url_encode(NULL) == NULL);
+  char *_ast_url_encode_8;
+  ASSERT((url_encode(NULL, &_ast_url_encode_8), _ast_url_encode_8) == NULL);
   PASS();
 }
 
@@ -223,6 +239,7 @@ TEST test_query_build_form_preserves_encoded_value(void) {
 }
 
 TEST test_openapi_kv_join_form_comma(void) {
+  char *_ast_openapi_kv_join_form_9;
   struct OpenAPI_KV kvs[2];
   char *res;
 
@@ -233,7 +250,8 @@ TEST test_openapi_kv_join_form_comma(void) {
   kvs[1].type = OA_KV_INTEGER;
   kvs[1].value.i = 200;
 
-  res = openapi_kv_join_form(kvs, 2, ",", 0);
+  res = (openapi_kv_join_form(kvs, 2, ",", 0, &_ast_openapi_kv_join_form_9),
+         _ast_openapi_kv_join_form_9);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("R,100,G,200", res);
   free(res);
@@ -241,6 +259,7 @@ TEST test_openapi_kv_join_form_comma(void) {
 }
 
 TEST test_openapi_kv_join_form_space(void) {
+  char *_ast_openapi_kv_join_form_10;
   struct OpenAPI_KV kvs[2];
   char *res;
 
@@ -251,7 +270,8 @@ TEST test_openapi_kv_join_form_space(void) {
   kvs[1].type = OA_KV_STRING;
   kvs[1].value.s = "c";
 
-  res = openapi_kv_join_form(kvs, 2, "%20", 0);
+  res = (openapi_kv_join_form(kvs, 2, "%20", 0, &_ast_openapi_kv_join_form_10),
+         _ast_openapi_kv_join_form_10);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("alpha%20a+b%20beta%20c", res);
   free(res);
@@ -259,6 +279,7 @@ TEST test_openapi_kv_join_form_space(void) {
 }
 
 TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
+  char *_ast_openapi_kv_join_form_11;
   struct OpenAPI_KV kvs[1];
   char *res;
 
@@ -266,7 +287,8 @@ TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
   kvs[0].type = OA_KV_STRING;
   kvs[0].value.s = "a/b";
 
-  res = openapi_kv_join_form(kvs, 1, "%7C", 1);
+  res = (openapi_kv_join_form(kvs, 1, "%7C", 1, &_ast_openapi_kv_join_form_11),
+         _ast_openapi_kv_join_form_11);
   ASSERT(res != NULL);
   ASSERT_STR_EQ("path%7Ca/b", res);
   free(res);

@@ -55,8 +55,12 @@ TEST test_struct_fields_manage(void) {
 }
 
 TEST test_str_starts_with(void) {
-  ASSERT(str_starts_with("enum Color", "enum"));
-  ASSERT(!str_starts_with("structFoo", "enum"));
+  bool _ast_str_starts_with_0;
+  bool _ast_str_starts_with_1;
+  ASSERT((str_starts_with("enum Color", "enum", &_ast_str_starts_with_0),
+          _ast_str_starts_with_0));
+  ASSERT(!(str_starts_with("structFoo", "enum", &_ast_str_starts_with_1),
+           _ast_str_starts_with_1));
   PASS();
 }
 

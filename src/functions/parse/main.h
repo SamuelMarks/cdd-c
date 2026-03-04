@@ -1,0 +1,6 @@
+#ifndef C_CDD_MAIN_H
+#define C_CDD_MAIN_H
+#include "c_cdd_export.h"
+/** @brief Main entry point function */
+extern C_CDD_EXPORT int cdd_main(int argc, char **argv);
+#endif

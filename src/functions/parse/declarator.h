@@ -1,5 +1,5 @@
 /**
- * @file declarator_parser.h
+ * @file declarator.h
  * @brief "Right-Left" (Spiral) parser for C declarations.
  *
  * Implements logic to parse complex C declarators into a structured type chain.
@@ -43,9 +43,12 @@ enum DeclTypeKind {
  * e.g. `int * const x` -> [PTR(const)] -> [BASE(int)]
  */
 struct DeclType {
+  /** @brief kind */
+  /** @brief kind */
   enum DeclTypeKind kind;
   struct DeclType *inner; /**< The type being modified (next in logic) */
 
+  /** @brief union data */
   union {
     struct {
       char *name; /**< Full text of base type specifiers */
@@ -59,6 +62,8 @@ struct DeclType {
     struct {
       char *args_str; /**< Raw text of argument list */
     } func;
+    /** @brief data */
+    /** @brief data variant */
   } data;
 };
 

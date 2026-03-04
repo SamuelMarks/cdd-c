@@ -1,5 +1,5 @@
 /**
- * @file openapi_loader.c
+ * @file openapi.c
  * @brief Implementation of OpenAPI extraction logic.
  *
  * Includes logic to parse `explode` and `style` for parameters,
@@ -19,18 +19,21 @@
 
 /* --- Helper Function Prototypes --- */
 
-static enum OpenAPI_Verb parse_verb(const char *v);
+static int parse_verb(const char *v, enum OpenAPI_Verb *_out_val);
 static int is_fixed_operation_method(const char *method);
-static enum OpenAPI_ParamIn parse_param_in(const char *in);
-static enum OpenAPI_Style parse_param_style(const char *s);
+static int parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val);
+static int parse_param_style(const char *s, enum OpenAPI_Style *_out_val);
 static int param_type_is_primitive(const char *type);
 static int param_type_is_object_like(const struct OpenAPI_Parameter *p);
 static int validate_parameter_style(const struct OpenAPI_Parameter *p,
                                     int has_content);
-static enum OpenAPI_SecurityType parse_security_type(const char *type);
-static enum OpenAPI_SecurityIn parse_security_in(const char *in);
-static enum OpenAPI_OAuthFlowType parse_oauth_flow_type(const char *flow);
-static enum OpenAPI_XmlNodeType parse_xml_node_type(const char *node_type);
+static int parse_security_type(const char *type,
+                               enum OpenAPI_SecurityType *_out_val);
+static int parse_security_in(const char *in, enum OpenAPI_SecurityIn *_out_val);
+static int parse_oauth_flow_type(const char *flow,
+                                 enum OpenAPI_OAuthFlowType *_out_val);
+static int parse_xml_node_type(const char *node_type,
+                               enum OpenAPI_XmlNodeType *_out_val);
 static int parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out);
 static void free_any_value(struct OpenAPI_Any *val);
 static int parse_any_field(const JSON_Object *obj, const char *key,
@@ -46,45 +49,90 @@ static int openapi_version_supported(const char *version);
 static int example_fields_valid(const struct OpenAPI_Example *ex);
 static int component_key_is_valid(const char *name);
 static int validate_component_key_map(const JSON_Object *obj);
-static const char *parse_schema_type(const JSON_Object *schema,
-                                     int *out_nullable);
+static int parse_schema_type(const JSON_Object *schema, int *out_nullable,
+                             char **_out_val);
 
+/** @brief ResolvedRefTarget structure */
 struct ResolvedRefTarget {
+  /** @brief spec */
+  /** @brief spec */
   const struct OpenAPI_Spec *spec;
+  /** @brief resolved_ref */
+  /** @brief ref */
   const char *ref;
+  /** @brief resolved_ref */
   char *resolved_ref;
 };
 
-static struct ResolvedRefTarget
-resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref);
+static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
+                              struct ResolvedRefTarget *_out_val);
 
-static const char *ref_name_from_prefix(const struct OpenAPI_Spec *spec,
-                                        const char *ref, const char *prefix);
+static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                const char *ref, const char *prefix,
+                                char **_out_val);
 
+/** @brief multiple_of */
+
+/** @brief has_min_properties */
 struct SchemaConstraintTarget {
+  /** @brief min_properties */
+  /** @brief has_multiple_of */
   int *has_multiple_of;
+  /** @brief max_properties */
+  /** @brief multiple_of */
   double *multiple_of;
+  /** @brief min_val */
+  /** @brief has_min_properties */
   int *has_min_properties;
+  /** @brief has_max */
+  /** @brief min_properties */
   size_t *min_properties;
+  /** @brief exclusive_max */
+  /** @brief has_max_properties */
   int *has_max_properties;
+  /** @brief min_len */
+  /** @brief max_properties */
   size_t *max_properties;
+  /** @brief max_len */
+  /** @brief has_min */
   int *has_min;
+  /** @brief has_min_items */
+  /** @brief min_val */
   double *min_val;
+  /** @brief has_max_items */
+  /** @brief exclusive_min */
   int *exclusive_min;
+  /** @brief unique_items */
+  /** @brief has_max */
   int *has_max;
+  /** @brief example_set */
+  /** @brief max_val */
   double *max_val;
+  /** @brief exclusive_max */
   int *exclusive_max;
+  /** @brief has_min_len */
   int *has_min_len;
+  /** @brief min_len */
   size_t *min_len;
+  /** @brief has_max_len */
   int *has_max_len;
+  /** @brief max_len */
   size_t *max_len;
+  /** @brief pattern */
   char **pattern;
+  /** @brief has_min_items */
   int *has_min_items;
+  /** @brief min_items */
   size_t *min_items;
+  /** @brief has_max_items */
   int *has_max_items;
+  /** @brief max_items */
   size_t *max_items;
+  /** @brief unique_items */
   int *unique_items;
+  /** @brief example */
   struct OpenAPI_Any *example;
+  /** @brief example_set */
   int *example_set;
 };
 static int parse_schema_constraints(const JSON_Object *schema,
@@ -122,7 +170,7 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
 static void free_example(struct OpenAPI_Example *ex);
 static void free_header(struct OpenAPI_Header *hdr);
 static void free_link(struct OpenAPI_Link *link);
-static char *json_pointer_unescape(const char *in);
+static int json_pointer_unescape(const char *in, char **_out_val);
 static int parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
 static int parse_external_docs(const JSON_Object *obj,
                                struct OpenAPI_ExternalDocs *out);
@@ -233,8 +281,9 @@ static int parse_callback_object(const JSON_Object *cb_obj,
                                  struct OpenAPI_Callback *out_cb,
                                  const struct OpenAPI_Spec *spec,
                                  int resolve_refs);
-static const struct OpenAPI_Path *
-find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref);
+static int find_component_path_item(const struct OpenAPI_Spec *spec,
+                                    const char *ref,
+                                    struct OpenAPI_Path **_out_val);
 static int parse_callbacks_object(const JSON_Object *callbacks,
                                   struct OpenAPI_Callback **out_callbacks,
                                   size_t *out_count,
@@ -1423,75 +1472,144 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
 
 /* --- Parsing Helpers --- */
 
-static enum OpenAPI_Verb parse_verb(const char *const v) {
-  if (strcmp(v, "get") == 0)
-    return OA_VERB_GET;
-  if (strcmp(v, "post") == 0)
-    return OA_VERB_POST;
-  if (strcmp(v, "put") == 0)
-    return OA_VERB_PUT;
-  if (strcmp(v, "delete") == 0)
-    return OA_VERB_DELETE;
-  if (strcmp(v, "patch") == 0)
-    return OA_VERB_PATCH;
-  if (strcmp(v, "head") == 0)
-    return OA_VERB_HEAD;
-  if (strcmp(v, "options") == 0)
-    return OA_VERB_OPTIONS;
-  if (strcmp(v, "trace") == 0)
-    return OA_VERB_TRACE;
-  if (strcmp(v, "query") == 0)
-    return OA_VERB_QUERY;
-  return OA_VERB_UNKNOWN;
+static int parse_verb(const char *const v, enum OpenAPI_Verb *_out_val) {
+  if (strcmp(v, "get") == 0) {
+    *_out_val = OA_VERB_GET;
+    return 0;
+  }
+  if (strcmp(v, "post") == 0) {
+    *_out_val = OA_VERB_POST;
+    return 0;
+  }
+  if (strcmp(v, "put") == 0) {
+    *_out_val = OA_VERB_PUT;
+    return 0;
+  }
+  if (strcmp(v, "delete") == 0) {
+    *_out_val = OA_VERB_DELETE;
+    return 0;
+  }
+  if (strcmp(v, "patch") == 0) {
+    *_out_val = OA_VERB_PATCH;
+    return 0;
+  }
+  if (strcmp(v, "head") == 0) {
+    *_out_val = OA_VERB_HEAD;
+    return 0;
+  }
+  if (strcmp(v, "options") == 0) {
+    *_out_val = OA_VERB_OPTIONS;
+    return 0;
+  }
+  if (strcmp(v, "trace") == 0) {
+    *_out_val = OA_VERB_TRACE;
+    return 0;
+  }
+  if (strcmp(v, "query") == 0) {
+    *_out_val = OA_VERB_QUERY;
+    return 0;
+  }
+  {
+    *_out_val = OA_VERB_UNKNOWN;
+    return 0;
+  }
 }
 
 static int is_fixed_operation_method(const char *const method) {
+  bool _ast_iequal_0 = false;
+  bool _ast_iequal_1 = false;
+  bool _ast_iequal_2 = false;
+  bool _ast_iequal_3 = false;
+  bool _ast_iequal_4 = false;
+  bool _ast_iequal_5 = false;
+  bool _ast_iequal_6 = false;
+  bool _ast_iequal_7 = false;
+  bool _ast_iequal_8 = false;
   if (!method)
     return 0;
-  return c_cdd_str_iequal(method, "get") != 0 ||
-         c_cdd_str_iequal(method, "post") != 0 ||
-         c_cdd_str_iequal(method, "put") ||
-         c_cdd_str_iequal(method, "delete") ||
-         c_cdd_str_iequal(method, "patch") ||
-         c_cdd_str_iequal(method, "head") ||
-         c_cdd_str_iequal(method, "options") ||
-         c_cdd_str_iequal(method, "trace") || c_cdd_str_iequal(method, "query");
+  return (c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0) !=
+             0 ||
+         (c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1) !=
+             0 ||
+         (c_cdd_str_iequal(method, "put", &_ast_iequal_2), _ast_iequal_2) ||
+         (c_cdd_str_iequal(method, "delete", &_ast_iequal_3), _ast_iequal_3) ||
+         (c_cdd_str_iequal(method, "patch", &_ast_iequal_4), _ast_iequal_4) ||
+         (c_cdd_str_iequal(method, "head", &_ast_iequal_5), _ast_iequal_5) ||
+         (c_cdd_str_iequal(method, "options", &_ast_iequal_6), _ast_iequal_6) ||
+         (c_cdd_str_iequal(method, "trace", &_ast_iequal_7), _ast_iequal_7) ||
+         (c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8);
 }
 
-static enum OpenAPI_ParamIn parse_param_in(const char *const in) {
-  if (strcmp(in, "path") == 0)
-    return OA_PARAM_IN_PATH;
-  if (strcmp(in, "query") == 0)
-    return OA_PARAM_IN_QUERY;
-  if (strcmp(in, "querystring") == 0)
-    return OA_PARAM_IN_QUERYSTRING;
-  if (strcmp(in, "header") == 0)
-    return OA_PARAM_IN_HEADER;
-  if (strcmp(in, "cookie") == 0)
-    return OA_PARAM_IN_COOKIE;
-  return OA_PARAM_IN_UNKNOWN;
+static int parse_param_in(const char *const in,
+                          enum OpenAPI_ParamIn *_out_val) {
+  if (strcmp(in, "path") == 0) {
+    *_out_val = OA_PARAM_IN_PATH;
+    return 0;
+  }
+  if (strcmp(in, "query") == 0) {
+    *_out_val = OA_PARAM_IN_QUERY;
+    return 0;
+  }
+  if (strcmp(in, "querystring") == 0) {
+    *_out_val = OA_PARAM_IN_QUERYSTRING;
+    return 0;
+  }
+  if (strcmp(in, "header") == 0) {
+    *_out_val = OA_PARAM_IN_HEADER;
+    return 0;
+  }
+  if (strcmp(in, "cookie") == 0) {
+    *_out_val = OA_PARAM_IN_COOKIE;
+    return 0;
+  }
+  {
+    *_out_val = OA_PARAM_IN_UNKNOWN;
+    return 0;
+  }
 }
 
-static enum OpenAPI_Style parse_param_style(const char *const s) {
-  if (!s)
-    return OA_STYLE_UNKNOWN;
-  if (strcmp(s, "form") == 0)
-    return OA_STYLE_FORM;
-  if (strcmp(s, "simple") == 0)
-    return OA_STYLE_SIMPLE;
-  if (strcmp(s, "matrix") == 0)
-    return OA_STYLE_MATRIX;
-  if (strcmp(s, "label") == 0)
-    return OA_STYLE_LABEL;
-  if (strcmp(s, "spaceDelimited") == 0)
-    return OA_STYLE_SPACE_DELIMITED;
-  if (strcmp(s, "pipeDelimited") == 0)
-    return OA_STYLE_PIPE_DELIMITED;
-  if (strcmp(s, "deepObject") == 0)
-    return OA_STYLE_DEEP_OBJECT;
-  if (strcmp(s, "cookie") == 0)
-    return OA_STYLE_COOKIE;
-  return OA_STYLE_UNKNOWN;
+static int parse_param_style(const char *const s,
+                             enum OpenAPI_Style *_out_val) {
+  if (!s) {
+    *_out_val = OA_STYLE_UNKNOWN;
+    return 0;
+  }
+  if (strcmp(s, "form") == 0) {
+    *_out_val = OA_STYLE_FORM;
+    return 0;
+  }
+  if (strcmp(s, "simple") == 0) {
+    *_out_val = OA_STYLE_SIMPLE;
+    return 0;
+  }
+  if (strcmp(s, "matrix") == 0) {
+    *_out_val = OA_STYLE_MATRIX;
+    return 0;
+  }
+  if (strcmp(s, "label") == 0) {
+    *_out_val = OA_STYLE_LABEL;
+    return 0;
+  }
+  if (strcmp(s, "spaceDelimited") == 0) {
+    *_out_val = OA_STYLE_SPACE_DELIMITED;
+    return 0;
+  }
+  if (strcmp(s, "pipeDelimited") == 0) {
+    *_out_val = OA_STYLE_PIPE_DELIMITED;
+    return 0;
+  }
+  if (strcmp(s, "deepObject") == 0) {
+    *_out_val = OA_STYLE_DEEP_OBJECT;
+    return 0;
+  }
+  if (strcmp(s, "cookie") == 0) {
+    *_out_val = OA_STYLE_COOKIE;
+    return 0;
+  }
+  {
+    *_out_val = OA_STYLE_UNKNOWN;
+    return 0;
+  }
 }
 
 static int param_type_is_primitive(const char *const type) {
@@ -1581,83 +1699,151 @@ static int validate_component_key_map(const JSON_Object *const obj) {
 }
 
 static int header_name_is_content_type(const char *const name) {
+  bool _ast_iequal_9 = false;
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type") != 0;
+  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_9),
+          _ast_iequal_9) != 0;
 }
 
 static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
+  bool _ast_iequal_10 = false;
+  bool _ast_iequal_11 = false;
+  bool _ast_iequal_12 = false;
   if (!param || param->in != OA_PARAM_IN_HEADER || !param->name)
     return 0;
-  return c_cdd_str_iequal(param->name, "Accept") != 0 ||
-         c_cdd_str_iequal(param->name, "Content-Type") ||
-         c_cdd_str_iequal(param->name, "Authorization");
+  return (c_cdd_str_iequal(param->name, "Accept", &_ast_iequal_10),
+          _ast_iequal_10) != 0 ||
+         (c_cdd_str_iequal(param->name, "Content-Type", &_ast_iequal_11),
+          _ast_iequal_11) ||
+         (c_cdd_str_iequal(param->name, "Authorization", &_ast_iequal_12),
+          _ast_iequal_12);
 }
 
-static enum OpenAPI_SecurityType parse_security_type(const char *const type) {
-  if (!type)
-    return OA_SEC_UNKNOWN;
-  if (strcmp(type, "apiKey") == 0)
-    return OA_SEC_APIKEY;
-  if (strcmp(type, "http") == 0)
-    return OA_SEC_HTTP;
-  if (strcmp(type, "mutualTLS") == 0)
-    return OA_SEC_MUTUALTLS;
-  if (strcmp(type, "oauth2") == 0)
-    return OA_SEC_OAUTH2;
-  if (strcmp(type, "openIdConnect") == 0)
-    return OA_SEC_OPENID;
-  return OA_SEC_UNKNOWN;
+static int parse_security_type(const char *const type,
+                               enum OpenAPI_SecurityType *_out_val) {
+  if (!type) {
+    *_out_val = OA_SEC_UNKNOWN;
+    return 0;
+  }
+  if (strcmp(type, "apiKey") == 0) {
+    *_out_val = OA_SEC_APIKEY;
+    return 0;
+  }
+  if (strcmp(type, "http") == 0) {
+    *_out_val = OA_SEC_HTTP;
+    return 0;
+  }
+  if (strcmp(type, "mutualTLS") == 0) {
+    *_out_val = OA_SEC_MUTUALTLS;
+    return 0;
+  }
+  if (strcmp(type, "oauth2") == 0) {
+    *_out_val = OA_SEC_OAUTH2;
+    return 0;
+  }
+  if (strcmp(type, "openIdConnect") == 0) {
+    *_out_val = OA_SEC_OPENID;
+    return 0;
+  }
+  {
+    *_out_val = OA_SEC_UNKNOWN;
+    return 0;
+  }
 }
 
-static enum OpenAPI_SecurityIn parse_security_in(const char *const in) {
-  if (!in)
-    return OA_SEC_IN_UNKNOWN;
-  if (strcmp(in, "query") == 0)
-    return OA_SEC_IN_QUERY;
-  if (strcmp(in, "header") == 0)
-    return OA_SEC_IN_HEADER;
-  if (strcmp(in, "cookie") == 0)
-    return OA_SEC_IN_COOKIE;
-  return OA_SEC_IN_UNKNOWN;
+static int parse_security_in(const char *const in,
+                             enum OpenAPI_SecurityIn *_out_val) {
+  if (!in) {
+    *_out_val = OA_SEC_IN_UNKNOWN;
+    return 0;
+  }
+  if (strcmp(in, "query") == 0) {
+    *_out_val = OA_SEC_IN_QUERY;
+    return 0;
+  }
+  if (strcmp(in, "header") == 0) {
+    *_out_val = OA_SEC_IN_HEADER;
+    return 0;
+  }
+  if (strcmp(in, "cookie") == 0) {
+    *_out_val = OA_SEC_IN_COOKIE;
+    return 0;
+  }
+  {
+    *_out_val = OA_SEC_IN_UNKNOWN;
+    return 0;
+  }
 }
 
-static enum OpenAPI_OAuthFlowType
-parse_oauth_flow_type(const char *const flow) {
-  if (!flow)
-    return OA_OAUTH_FLOW_UNKNOWN;
-  if (strcmp(flow, "implicit") == 0)
-    return OA_OAUTH_FLOW_IMPLICIT;
-  if (strcmp(flow, "password") == 0)
-    return OA_OAUTH_FLOW_PASSWORD;
-  if (strcmp(flow, "clientCredentials") == 0)
-    return OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  if (strcmp(flow, "authorizationCode") == 0)
-    return OA_OAUTH_FLOW_AUTHORIZATION_CODE;
-  if (strcmp(flow, "deviceAuthorization") == 0)
-    return OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
-  return OA_OAUTH_FLOW_UNKNOWN;
+static int parse_oauth_flow_type(const char *const flow,
+                                 enum OpenAPI_OAuthFlowType *_out_val) {
+  if (!flow) {
+    *_out_val = OA_OAUTH_FLOW_UNKNOWN;
+    return 0;
+  }
+  if (strcmp(flow, "implicit") == 0) {
+    *_out_val = OA_OAUTH_FLOW_IMPLICIT;
+    return 0;
+  }
+  if (strcmp(flow, "password") == 0) {
+    *_out_val = OA_OAUTH_FLOW_PASSWORD;
+    return 0;
+  }
+  if (strcmp(flow, "clientCredentials") == 0) {
+    *_out_val = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
+    return 0;
+  }
+  if (strcmp(flow, "authorizationCode") == 0) {
+    *_out_val = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
+    return 0;
+  }
+  if (strcmp(flow, "deviceAuthorization") == 0) {
+    *_out_val = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
+    return 0;
+  }
+  {
+    *_out_val = OA_OAUTH_FLOW_UNKNOWN;
+    return 0;
+  }
 }
 
-static enum OpenAPI_XmlNodeType
-parse_xml_node_type(const char *const node_type) {
-  if (!node_type)
-    return OA_XML_NODE_UNSET;
-  if (strcmp(node_type, "element") == 0)
-    return OA_XML_NODE_ELEMENT;
-  if (strcmp(node_type, "attribute") == 0)
-    return OA_XML_NODE_ATTRIBUTE;
-  if (strcmp(node_type, "text") == 0)
-    return OA_XML_NODE_TEXT;
-  if (strcmp(node_type, "cdata") == 0)
-    return OA_XML_NODE_CDATA;
-  if (strcmp(node_type, "none") == 0)
-    return OA_XML_NODE_NONE;
-  return OA_XML_NODE_UNSET;
+static int parse_xml_node_type(const char *const node_type,
+                               enum OpenAPI_XmlNodeType *_out_val) {
+  if (!node_type) {
+    *_out_val = OA_XML_NODE_UNSET;
+    return 0;
+  }
+  if (strcmp(node_type, "element") == 0) {
+    *_out_val = OA_XML_NODE_ELEMENT;
+    return 0;
+  }
+  if (strcmp(node_type, "attribute") == 0) {
+    *_out_val = OA_XML_NODE_ATTRIBUTE;
+    return 0;
+  }
+  if (strcmp(node_type, "text") == 0) {
+    *_out_val = OA_XML_NODE_TEXT;
+    return 0;
+  }
+  if (strcmp(node_type, "cdata") == 0) {
+    *_out_val = OA_XML_NODE_CDATA;
+    return 0;
+  }
+  if (strcmp(node_type, "none") == 0) {
+    *_out_val = OA_XML_NODE_NONE;
+    return 0;
+  }
+  {
+    *_out_val = OA_XML_NODE_UNSET;
+    return 0;
+  }
 }
 
 static int parse_any_value(const JSON_Value *const val,
                            struct OpenAPI_Any *const out) {
+  char *_ast_strdup_13 = NULL;
+  char *_ast_strdup_14 = NULL;
   JSON_Value_Type t;
   const char *s;
   char *json_str;
@@ -1672,7 +1858,7 @@ static int parse_any_value(const JSON_Value *const val,
   case JSONString:
     s = json_value_get_string(val);
     out->type = OA_ANY_STRING;
-    out->string = c_cdd_strdup(s ? s : "");
+    out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_13), _ast_strdup_13);
     if (!out->string)
       return ENOMEM;
     break;
@@ -1693,7 +1879,7 @@ static int parse_any_value(const JSON_Value *const val,
     if (!json_str)
       return ENOMEM;
     out->type = OA_ANY_JSON;
-    out->json = c_cdd_strdup(json_str);
+    out->json = (c_cdd_strdup(json_str, &_ast_strdup_14), _ast_strdup_14);
     json_free_serialized_string(json_str);
     if (!out->json)
       return ENOMEM;
@@ -1776,23 +1962,32 @@ static int is_extension_key(const char *key) {
   return key && key[0] == 'x' && key[1] == '-';
 }
 
-static JSON_Value *clone_json_value(const JSON_Value *val) {
+static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
-  if (!val)
-    return NULL;
+  if (!val) {
+    *_out_val = NULL;
+    return 0;
+  }
   serialized = json_serialize_to_string((JSON_Value *)val);
-  if (!serialized)
-    return NULL;
+  if (!serialized) {
+    *_out_val = NULL;
+    return 0;
+  }
   copy = json_parse_string(serialized);
   json_free_serialized_string(serialized);
-  return copy;
+  {
+    *_out_val = copy;
+    return 0;
+  }
 }
 
 static int collect_schema_extras(const JSON_Object *obj,
                                  const char *const *skip_keys,
                                  size_t skip_count, char **out_json) {
+  JSON_Value *_ast_clone_json_value_0;
+  char *_ast_strdup_15 = NULL;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
@@ -1817,7 +2012,8 @@ static int collect_schema_extras(const JSON_Object *obj,
     if (!key || key_in_list(key, skip_keys, skip_count))
       continue;
     val = json_object_get_value(obj, key);
-    copy = clone_json_value(val);
+    copy = (clone_json_value(val, &_ast_clone_json_value_0),
+            _ast_clone_json_value_0);
     if (!copy) {
       json_value_free(extras_val);
       return ENOMEM;
@@ -1839,13 +2035,15 @@ static int collect_schema_extras(const JSON_Object *obj,
     json_value_free(extras_val);
     return ENOMEM;
   }
-  *out_json = c_cdd_strdup(serialized);
+  *out_json = (c_cdd_strdup(serialized, &_ast_strdup_15), _ast_strdup_15);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
   return *out_json ? 0 : ENOMEM;
 }
 
 static int collect_extensions(const JSON_Object *obj, char **out_json) {
+  JSON_Value *_ast_clone_json_value_1;
+  char *_ast_strdup_16 = NULL;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
   size_t i, count;
@@ -1869,7 +2067,8 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
     if (!is_extension_key(key))
       continue;
     val = json_object_get_value(obj, key);
-    copy = clone_json_value(val);
+    copy = (clone_json_value(val, &_ast_clone_json_value_1),
+            _ast_clone_json_value_1);
     if (!copy) {
       json_value_free(extras_val);
       return ENOMEM;
@@ -1891,7 +2090,7 @@ static int collect_extensions(const JSON_Object *obj, char **out_json) {
     json_value_free(extras_val);
     return ENOMEM;
   }
-  *out_json = c_cdd_strdup(serialized);
+  *out_json = (c_cdd_strdup(serialized, &_ast_strdup_16), _ast_strdup_16);
   json_free_serialized_string(serialized);
   json_value_free(extras_val);
   return *out_json ? 0 : ENOMEM;
@@ -1932,8 +2131,8 @@ static int object_has_example_and_examples(const JSON_Object *obj) {
   return 0;
 }
 
-static const char *parse_schema_type(const JSON_Object *const schema,
-                                     int *const out_nullable) {
+static int parse_schema_type(const JSON_Object *const schema,
+                             int *const out_nullable, char **_out_val) {
   const char *type;
   const JSON_Array *types;
   size_t i, count;
@@ -1941,16 +2140,22 @@ static const char *parse_schema_type(const JSON_Object *const schema,
 
   if (out_nullable)
     *out_nullable = 0;
-  if (!schema)
-    return NULL;
+  if (!schema) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   type = json_object_get_string(schema, "type");
-  if (type)
-    return type;
+  if (type) {
+    *_out_val = type;
+    return 0;
+  }
 
   types = json_object_get_array(schema, "type");
-  if (!types)
-    return NULL;
+  if (!types) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   count = json_array_get_count(types);
   for (i = 0; i < count; ++i) {
@@ -1966,15 +2171,21 @@ static const char *parse_schema_type(const JSON_Object *const schema,
       chosen = t;
   }
 
-  if (!chosen && out_nullable && *out_nullable)
-    return "null";
+  if (!chosen && out_nullable && *out_nullable) {
+    *_out_val = "null";
+    return 0;
+  }
 
-  return chosen;
+  {
+    *_out_val = chosen;
+    return 0;
+  }
 }
 
 static int
 parse_schema_constraints(const JSON_Object *const schema,
                          struct SchemaConstraintTarget *const target) {
+  char *_ast_strdup_17 = NULL;
   if (!schema || !target)
     return 0;
 
@@ -2041,7 +2252,8 @@ parse_schema_constraints(const JSON_Object *const schema,
     if (json_object_has_value_of_type(schema, "pattern", JSONString)) {
       const char *pattern = json_object_get_string(schema, "pattern");
       if (pattern) {
-        *target->pattern = c_cdd_strdup(pattern);
+        *target->pattern =
+            (c_cdd_strdup(pattern, &_ast_strdup_17), _ast_strdup_17);
         if (!*target->pattern)
           return ENOMEM;
       }
@@ -2073,6 +2285,7 @@ parse_schema_constraints(const JSON_Object *const schema,
 
 static int parse_string_enum_array(const JSON_Array *const arr, char ***out,
                                    size_t *out_count) {
+  char *_ast_strdup_18 = NULL;
   size_t i, count;
 
   if (!out || !out_count)
@@ -2100,7 +2313,7 @@ static int parse_string_enum_array(const JSON_Array *const arr, char ***out,
     const char *val = json_array_get_string(arr, i);
     if (!val)
       continue;
-    (*out)[i] = c_cdd_strdup(val);
+    (*out)[i] = (c_cdd_strdup(val, &_ast_strdup_18), _ast_strdup_18);
     if (!(*out)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
@@ -2128,6 +2341,7 @@ static void free_string_array(char **arr, size_t n) {
 
 static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
                              size_t src_count) {
+  char *_ast_strdup_19 = NULL;
   size_t i;
   if (!dst || !dst_count)
     return 0;
@@ -2142,7 +2356,7 @@ static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
   for (i = 0; i < src_count; ++i) {
     if (!src[i])
       continue;
-    (*dst)[i] = c_cdd_strdup(src[i]);
+    (*dst)[i] = (c_cdd_strdup(src[i], &_ast_strdup_19), _ast_strdup_19);
     if (!(*dst)[i]) {
       size_t j;
       for (j = 0; j < i; ++j)
@@ -2158,35 +2372,47 @@ static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
 
 static int copy_example_fields(struct OpenAPI_Example *dst,
                                const struct OpenAPI_Example *src) {
+  char *_ast_strdup_20 = NULL;
+  char *_ast_strdup_21 = NULL;
+  char *_ast_strdup_22 = NULL;
+  char *_ast_strdup_23 = NULL;
+  char *_ast_strdup_24 = NULL;
+  char *_ast_strdup_25 = NULL;
+  char *_ast_strdup_26 = NULL;
+  char *_ast_strdup_27 = NULL;
   if (!dst || !src)
     return 0;
   if (src->name && !dst->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_20), _ast_strdup_20);
     if (!dst->name)
       return ENOMEM;
   }
   if (src->ref && !dst->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_21), _ast_strdup_21);
     if (!dst->ref)
       return ENOMEM;
   }
   if (src->extensions_json && !dst->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_22), _ast_strdup_22);
     if (!dst->extensions_json)
       return ENOMEM;
   }
   if (src->summary && !dst->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_23), _ast_strdup_23);
     if (!dst->summary)
       return ENOMEM;
   }
   if (src->description && !dst->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_24), _ast_strdup_24);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->extensions_json && !dst->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_25), _ast_strdup_25);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -2207,12 +2433,14 @@ static int copy_example_fields(struct OpenAPI_Example *dst,
     dst->value_set = 1;
   }
   if (src->serialized_value && !dst->serialized_value) {
-    dst->serialized_value = c_cdd_strdup(src->serialized_value);
+    dst->serialized_value =
+        (c_cdd_strdup(src->serialized_value, &_ast_strdup_26), _ast_strdup_26);
     if (!dst->serialized_value)
       return ENOMEM;
   }
   if (src->external_value && !dst->external_value) {
-    dst->external_value = c_cdd_strdup(src->external_value);
+    dst->external_value =
+        (c_cdd_strdup(src->external_value, &_ast_strdup_27), _ast_strdup_27);
     if (!dst->external_value)
       return ENOMEM;
   }
@@ -2242,24 +2470,39 @@ static void free_example(struct OpenAPI_Example *ex) {
     free_any_value(&ex->value);
 }
 
-static const struct OpenAPI_Example *
-find_component_example(const struct OpenAPI_Spec *spec, const char *ref) {
+static int find_component_example(const struct OpenAPI_Spec *spec,
+                                  const char *ref,
+                                  struct OpenAPI_Example **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_2;
+  char *_ast_ref_name_from_prefix_3;
+  char *_ast_json_pointer_unescape_4;
   size_t i;
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_2),
+       _ast_resolve_ref_target_2);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name_enc =
-      ref_name_from_prefix(target, resolved.ref, "#/components/examples/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/examples/",
+                            &_ast_ref_name_from_prefix_3),
+       _ast_ref_name_from_prefix_3);
   char *name_dec;
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
-  name_dec = json_pointer_unescape(name_enc);
+  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_4),
+              _ast_json_pointer_unescape_4);
   if (!name_dec) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_examples; ++i) {
     if (target->component_example_names && target->component_example_names[i] &&
@@ -2267,13 +2510,19 @@ find_component_example(const struct OpenAPI_Spec *spec, const char *ref) {
       free(name_dec);
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_examples[i];
+      {
+        *_out_val = &target->component_examples[i];
+        return 0;
+      }
     }
   }
   free(name_dec);
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int parse_example_object(const JSON_Object *const ex_obj,
@@ -2281,6 +2530,13 @@ static int parse_example_object(const JSON_Object *const ex_obj,
                                 struct OpenAPI_Example *const out,
                                 const struct OpenAPI_Spec *const spec,
                                 const int resolve_refs) {
+  struct OpenAPI_Example *_ast_find_component_example_5;
+  char *_ast_strdup_28 = NULL;
+  char *_ast_strdup_29 = NULL;
+  char *_ast_strdup_30 = NULL;
+  char *_ast_strdup_31 = NULL;
+  char *_ast_strdup_32 = NULL;
+  char *_ast_strdup_33 = NULL;
   const char *ref;
   const char *summary;
   const char *desc;
@@ -2291,18 +2547,20 @@ static int parse_example_object(const JSON_Object *const ex_obj,
     return 0;
 
   if (name) {
-    out->name = c_cdd_strdup(name);
+    out->name = (c_cdd_strdup(name, &_ast_strdup_28), _ast_strdup_28);
     if (!out->name)
       return ENOMEM;
   }
 
   ref = json_object_get_string(ex_obj, "$ref");
   if (ref) {
-    out->ref = c_cdd_strdup(ref);
+    out->ref = (c_cdd_strdup(ref, &_ast_strdup_29), _ast_strdup_29);
     if (!out->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Example *comp = find_component_example(spec, ref);
+      const struct OpenAPI_Example *comp =
+          (find_component_example(spec, ref, &_ast_find_component_example_5),
+           _ast_find_component_example_5);
       if (comp) {
         {
           int _rc = copy_example_fields(out, comp);
@@ -2315,13 +2573,13 @@ static int parse_example_object(const JSON_Object *const ex_obj,
 
   summary = json_object_get_string(ex_obj, "summary");
   if (summary) {
-    out->summary = c_cdd_strdup(summary);
+    out->summary = (c_cdd_strdup(summary, &_ast_strdup_30), _ast_strdup_30);
     if (!out->summary)
       return ENOMEM;
   }
   desc = json_object_get_string(ex_obj, "description");
   if (desc) {
-    out->description = c_cdd_strdup(desc);
+    out->description = (c_cdd_strdup(desc, &_ast_strdup_31), _ast_strdup_31);
     if (!out->description)
       return ENOMEM;
   }
@@ -2347,13 +2605,15 @@ static int parse_example_object(const JSON_Object *const ex_obj,
 
   serialized = json_object_get_string(ex_obj, "serializedValue");
   if (serialized) {
-    out->serialized_value = c_cdd_strdup(serialized);
+    out->serialized_value =
+        (c_cdd_strdup(serialized, &_ast_strdup_32), _ast_strdup_32);
     if (!out->serialized_value)
       return ENOMEM;
   }
   external = json_object_get_string(ex_obj, "externalValue");
   if (external) {
-    out->external_value = c_cdd_strdup(external);
+    out->external_value =
+        (c_cdd_strdup(external, &_ast_strdup_33), _ast_strdup_33);
     if (!out->external_value)
       return ENOMEM;
   }
@@ -2431,6 +2691,8 @@ static int parse_media_examples(const JSON_Object *const media_obj,
 static int parse_oauth_scopes(const JSON_Object *const scopes_obj,
                               struct OpenAPI_OAuthScope **out,
                               size_t *out_count) {
+  char *_ast_strdup_34 = NULL;
+  char *_ast_strdup_35 = NULL;
   size_t count, i;
   if (!out || !out_count)
     return 0;
@@ -2450,12 +2712,13 @@ static int parse_oauth_scopes(const JSON_Object *const scopes_obj,
     const char *name = json_object_get_name(scopes_obj, i);
     const char *desc = json_object_get_string(scopes_obj, name);
     if (name) {
-      (*out)[i].name = c_cdd_strdup(name);
+      (*out)[i].name = (c_cdd_strdup(name, &_ast_strdup_34), _ast_strdup_34);
       if (!(*out)[i].name)
         return ENOMEM;
     }
     if (desc) {
-      (*out)[i].description = c_cdd_strdup(desc);
+      (*out)[i].description =
+          (c_cdd_strdup(desc, &_ast_strdup_35), _ast_strdup_35);
       if (!(*out)[i].description)
         return ENOMEM;
     }
@@ -2465,6 +2728,11 @@ static int parse_oauth_scopes(const JSON_Object *const scopes_obj,
 
 static int parse_oauth_flows(const JSON_Object *const flows_obj,
                              struct OpenAPI_SecurityScheme *const out) {
+  enum OpenAPI_OAuthFlowType _ast_parse_oauth_flow_type_6;
+  char *_ast_strdup_36 = NULL;
+  char *_ast_strdup_37 = NULL;
+  char *_ast_strdup_38 = NULL;
+  char *_ast_strdup_39 = NULL;
   size_t count, i;
   if (!flows_obj || !out)
     return 0;
@@ -2482,7 +2750,8 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
         json_value_get_object(json_object_get_value_at(flows_obj, i));
     struct OpenAPI_OAuthFlow *flow = &out->flows[i];
     if (name)
-      flow->type = parse_oauth_flow_type(name);
+      flow->type = (parse_oauth_flow_type(name, &_ast_parse_oauth_flow_type_6),
+                    _ast_parse_oauth_flow_type_6);
     if (flow->type == OA_OAUTH_FLOW_UNKNOWN)
       return EINVAL;
     if (flow_obj) {
@@ -2522,22 +2791,27 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
       }
 
       if (authorization_url) {
-        flow->authorization_url = c_cdd_strdup(authorization_url);
+        flow->authorization_url =
+            (c_cdd_strdup(authorization_url, &_ast_strdup_36), _ast_strdup_36);
         if (!flow->authorization_url)
           return ENOMEM;
       }
       if (token_url) {
-        flow->token_url = c_cdd_strdup(token_url);
+        flow->token_url =
+            (c_cdd_strdup(token_url, &_ast_strdup_37), _ast_strdup_37);
         if (!flow->token_url)
           return ENOMEM;
       }
       if (refresh_url) {
-        flow->refresh_url = c_cdd_strdup(refresh_url);
+        flow->refresh_url =
+            (c_cdd_strdup(refresh_url, &_ast_strdup_38), _ast_strdup_38);
         if (!flow->refresh_url)
           return ENOMEM;
       }
       if (device_authorization_url) {
-        flow->device_authorization_url = c_cdd_strdup(device_authorization_url);
+        flow->device_authorization_url =
+            (c_cdd_strdup(device_authorization_url, &_ast_strdup_39),
+             _ast_strdup_39);
         if (!flow->device_authorization_url)
           return ENOMEM;
       }
@@ -2557,15 +2831,19 @@ static int parse_oauth_flows(const JSON_Object *const flows_obj,
   return 0;
 }
 
-static char *json_pointer_unescape(const char *in) {
+static int json_pointer_unescape(const char *in, char **_out_val) {
   size_t len, i, j;
   char *out;
-  if (!in)
-    return NULL;
+  if (!in) {
+    *_out_val = NULL;
+    return 0;
+  }
   len = strlen(in);
   out = (char *)malloc(len + 1);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0, j = 0; i < len; ++i) {
     if (in[i] == '~' && i + 1 < len) {
       if (in[i + 1] == '0') {
@@ -2582,7 +2860,10 @@ static char *json_pointer_unescape(const char *in) {
     out[j++] = in[i];
   }
   out[j] = '\0';
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 static int uri_has_scheme_prefix(const char *uri, size_t len) {
@@ -2599,38 +2880,61 @@ static int uri_has_scheme_prefix(const char *uri, size_t len) {
   return 0;
 }
 
-static size_t uri_base_len(const char *uri) {
-  if (!uri)
+static int uri_base_len(const char *uri, size_t *_out_val) {
+  if (!uri) {
+    *_out_val = 0;
     return 0;
-  return strcspn(uri, "#");
+  }
+  {
+    *_out_val = strcspn(uri, "#");
+    return 0;
+  }
 }
 
-static size_t uri_scheme_len(const char *uri, size_t len) {
+static int uri_scheme_len(const char *uri, size_t len, size_t *_out_val) {
   size_t i;
-  if (!uri || len == 0)
+  if (!uri || len == 0) {
+    *_out_val = 0;
     return 0;
+  }
   for (i = 0; i < len; ++i) {
-    if (uri[i] == ':')
-      return i;
+    if (uri[i] == ':') {
+      *_out_val = i;
+      return 0;
+    }
     if (uri[i] == '/' || uri[i] == '?' || uri[i] == '#')
       break;
   }
-  return 0;
+  {
+    *_out_val = 0;
+    return 0;
+  }
 }
 
-static char *dup_substr(const char *src, size_t len) {
+static int dup_substr(const char *src, size_t len, char **_out_val) {
   char *out;
-  if (!src)
-    return NULL;
+  if (!src) {
+    *_out_val = NULL;
+    return 0;
+  }
   out = (char *)malloc(len + 1);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
   memcpy(out, src, len);
   out[len] = '\0';
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *normalize_path(const char *path) {
+static int normalize_path(const char *path, char **_out_val) {
+  char *_ast_dup_substr_7;
+  char *_ast_strdup_40 = NULL;
+  char *_ast_strdup_41 = NULL;
+  char *_ast_strdup_42 = NULL;
   size_t i = 0;
   int absolute = 0;
   int trailing = 0;
@@ -2640,8 +2944,10 @@ static char *normalize_path(const char *path) {
   char *out = NULL;
   size_t out_len = 0;
 
-  if (!path)
-    return NULL;
+  if (!path) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (path[0] == '/')
     absolute = 1;
   if (path[0] && path[strlen(path) - 1] == '/')
@@ -2676,7 +2982,8 @@ static char *normalize_path(const char *path) {
           segments = tmp;
           cap = new_cap;
         }
-        segments[count++] = c_cdd_strdup("..");
+        segments[count++] =
+            (c_cdd_strdup("..", &_ast_strdup_40), _ast_strdup_40);
       }
       if (path[i] == '/')
         ++i;
@@ -2690,7 +2997,8 @@ static char *normalize_path(const char *path) {
       segments = tmp;
       cap = new_cap;
     }
-    segments[count] = dup_substr(path + start, seg_len);
+    segments[count] = (dup_substr(path + start, seg_len, &_ast_dup_substr_7),
+                       _ast_dup_substr_7);
     if (!segments[count])
       goto cleanup;
     count++;
@@ -2700,15 +3008,21 @@ static char *normalize_path(const char *path) {
 
   if (count == 0) {
     if (absolute) {
-      out = c_cdd_strdup("/");
+      out = (c_cdd_strdup("/", &_ast_strdup_41), _ast_strdup_41);
       if (!out)
         goto cleanup;
-      return out;
+      {
+        *_out_val = out;
+        return 0;
+      }
     }
-    out = c_cdd_strdup("");
+    out = (c_cdd_strdup("", &_ast_strdup_42), _ast_strdup_42);
     if (!out)
       goto cleanup;
-    return out;
+    {
+      *_out_val = out;
+      return 0;
+    }
   }
 
   out_len = absolute ? 1 : 0;
@@ -2745,10 +3059,24 @@ cleanup:
       free(segments[i]);
     free(segments);
   }
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *resolve_uri_reference(const char *base_uri, const char *ref) {
+static int resolve_uri_reference(const char *base_uri, const char *ref,
+                                 char **_out_val) {
+  size_t _ast_uri_scheme_len_8;
+  size_t _ast_uri_base_len_9;
+  size_t _ast_uri_base_len_10;
+  size_t _ast_uri_scheme_len_11;
+  char *_ast_normalize_path_12;
+  char *_ast_normalize_path_13;
+  char *_ast_strdup_43 = NULL;
+  char *_ast_strdup_44 = NULL;
+  char *_ast_strdup_45 = NULL;
+  char *_ast_strdup_46 = NULL;
   size_t ref_len;
   size_t base_len;
   size_t prefix_len = 0;
@@ -2761,34 +3089,58 @@ static char *resolve_uri_reference(const char *base_uri, const char *ref) {
   char *normalized = NULL;
   char *out = NULL;
 
-  if (!ref)
-    return NULL;
+  if (!ref) {
+    *_out_val = NULL;
+    return 0;
+  }
   ref_len = strlen(ref);
-  if (ref_len == 0)
-    return c_cdd_strdup("");
-  if (uri_has_scheme_prefix(ref, ref_len))
-    return c_cdd_strdup(ref);
-  if (!base_uri || !*base_uri)
-    return c_cdd_strdup(ref);
+  if (ref_len == 0) {
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_43), _ast_strdup_43);
+    return 0;
+  }
+  if (uri_has_scheme_prefix(ref, ref_len)) {
+    *_out_val = (c_cdd_strdup(ref, &_ast_strdup_44), _ast_strdup_44);
+    return 0;
+  }
+  if (!base_uri || !*base_uri) {
+    *_out_val = (c_cdd_strdup(ref, &_ast_strdup_45), _ast_strdup_45);
+    return 0;
+  }
 
   if (ref_len >= 2 && ref[0] == '/' && ref[1] == '/') {
-    size_t scheme_len = uri_scheme_len(base_uri, uri_base_len(base_uri));
+    size_t scheme_len =
+        (uri_scheme_len(base_uri,
+                        (uri_base_len(base_uri, &_ast_uri_base_len_9),
+                         _ast_uri_base_len_9),
+                        &_ast_uri_scheme_len_8),
+         _ast_uri_scheme_len_8);
     if (scheme_len > 0) {
       size_t out_len = scheme_len + 1 + ref_len;
       out = (char *)malloc(out_len + 1);
-      if (!out)
-        return NULL;
+      if (!out) {
+        *_out_val = NULL;
+        return 0;
+      }
       memcpy(out, base_uri, scheme_len + 1);
       memcpy(out + scheme_len + 1, ref, ref_len);
       out[out_len] = '\0';
-      return out;
+      {
+        *_out_val = out;
+        return 0;
+      }
     }
-    return c_cdd_strdup(ref);
+    {
+      *_out_val = (c_cdd_strdup(ref, &_ast_strdup_46), _ast_strdup_46);
+      return 0;
+    }
   }
 
-  base_len = uri_base_len(base_uri);
+  base_len =
+      (uri_base_len(base_uri, &_ast_uri_base_len_10), _ast_uri_base_len_10);
   if (uri_has_scheme_prefix(base_uri, base_len)) {
-    size_t scheme_len = uri_scheme_len(base_uri, base_len);
+    size_t scheme_len =
+        (uri_scheme_len(base_uri, base_len, &_ast_uri_scheme_len_11),
+         _ast_uri_scheme_len_11);
     if (scheme_len > 0 && scheme_len + 2 < base_len &&
         base_uri[scheme_len + 1] == '/' && base_uri[scheme_len + 2] == '/') {
       size_t auth_start = scheme_len + 3;
@@ -2804,7 +3156,8 @@ static char *resolve_uri_reference(const char *base_uri, const char *ref) {
   base_path = base_uri + path_offset;
 
   if (ref[0] == '/') {
-    normalized = normalize_path(ref);
+    normalized =
+        (normalize_path(ref, &_ast_normalize_path_12), _ast_normalize_path_12);
   } else {
     if (path_len == 0) {
       if (prefix_len > 0) {
@@ -2824,18 +3177,23 @@ static char *resolve_uri_reference(const char *base_uri, const char *ref) {
     }
 
     combined = (char *)malloc(base_dir_len + ref_len + 1);
-    if (!combined)
-      return NULL;
+    if (!combined) {
+      *_out_val = NULL;
+      return 0;
+    }
     if (base_dir_len > 0)
       memcpy(combined, base_dir, base_dir_len);
     memcpy(combined + base_dir_len, ref, ref_len);
     combined[base_dir_len + ref_len] = '\0';
-    normalized = normalize_path(combined);
+    normalized = (normalize_path(combined, &_ast_normalize_path_13),
+                  _ast_normalize_path_13);
   }
 
   free(combined);
-  if (!normalized)
-    return NULL;
+  if (!normalized) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   {
     size_t norm_len = strlen(normalized);
@@ -2843,7 +3201,10 @@ static char *resolve_uri_reference(const char *base_uri, const char *ref) {
     out = (char *)malloc(out_len + 1);
     if (!out) {
       free(normalized);
-      return NULL;
+      {
+        *_out_val = NULL;
+        return 0;
+      }
     }
     if (prefix_len > 0)
       memcpy(out, base_uri, prefix_len);
@@ -2851,33 +3212,49 @@ static char *resolve_uri_reference(const char *base_uri, const char *ref) {
     out[out_len] = '\0';
   }
   free(normalized);
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *compute_document_uri(const char *self_uri,
-                                  const char *retrieval_uri) {
+static int compute_document_uri(const char *self_uri, const char *retrieval_uri,
+                                char **_out_val) {
+  char *_ast_resolve_uri_reference_14;
+  size_t _ast_uri_base_len_15;
+  char *_ast_dup_substr_16;
+  char *_ast_strdup_47 = NULL;
+  char *_ast_strdup_48 = NULL;
   char *resolved = NULL;
   char *out = NULL;
 
   if (self_uri && *self_uri) {
     if (retrieval_uri && *retrieval_uri) {
-      resolved = resolve_uri_reference(retrieval_uri, self_uri);
+      resolved = (resolve_uri_reference(retrieval_uri, self_uri,
+                                        &_ast_resolve_uri_reference_14),
+                  _ast_resolve_uri_reference_14);
     } else {
-      resolved = c_cdd_strdup(self_uri);
+      resolved = (c_cdd_strdup(self_uri, &_ast_strdup_47), _ast_strdup_47);
     }
   } else if (retrieval_uri && *retrieval_uri) {
-    resolved = c_cdd_strdup(retrieval_uri);
+    resolved = (c_cdd_strdup(retrieval_uri, &_ast_strdup_48), _ast_strdup_48);
   }
 
-  if (!resolved)
-    return NULL;
+  if (!resolved) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   {
-    size_t len = uri_base_len(resolved);
-    out = dup_substr(resolved, len);
+    size_t len =
+        (uri_base_len(resolved, &_ast_uri_base_len_15), _ast_uri_base_len_15);
+    out = (dup_substr(resolved, len, &_ast_dup_substr_16), _ast_dup_substr_16);
   }
   free(resolved);
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 static int root_has_openapi_fields(const JSON_Object *root_obj) {
@@ -2915,6 +3292,7 @@ static int root_is_schema_document(const JSON_Value *root,
 
 static int store_schema_root_json(struct OpenAPI_Spec *spec,
                                   const JSON_Value *root) {
+  char *_ast_strdup_49 = NULL;
   char *raw_json;
   if (!spec || !root)
     return EINVAL;
@@ -2923,15 +3301,18 @@ static int store_schema_root_json(struct OpenAPI_Spec *spec,
   raw_json = json_serialize_to_string(root);
   if (!raw_json)
     return ENOMEM;
-  spec->schema_root_json = c_cdd_strdup(raw_json);
+  spec->schema_root_json =
+      (c_cdd_strdup(raw_json, &_ast_strdup_49), _ast_strdup_49);
   json_free_serialized_string(raw_json);
   if (!spec->schema_root_json)
     return ENOMEM;
   return 0;
 }
 
-static struct ResolvedRefTarget
-resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref) {
+static int resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
+                              struct ResolvedRefTarget *_out_val) {
+  char *_ast_dup_substr_17;
+  char *_ast_resolve_uri_reference_18;
   struct ResolvedRefTarget out;
   const char *hash;
   size_t base_len;
@@ -2942,20 +3323,29 @@ resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref) {
   out.ref = ref;
   out.resolved_ref = NULL;
 
-  if (!spec || !ref)
-    return out;
+  if (!spec || !ref) {
+    *_out_val = out;
+    return 0;
+  }
 
   hash = strchr(ref, '#');
-  if (!hash || hash == ref)
-    return out;
+  if (!hash || hash == ref) {
+    *_out_val = out;
+    return 0;
+  }
 
   base_len = (size_t)(hash - ref);
-  base_part = dup_substr(ref, base_len);
-  if (!base_part)
-    return out;
+  base_part =
+      (dup_substr(ref, base_len, &_ast_dup_substr_17), _ast_dup_substr_17);
+  if (!base_part) {
+    *_out_val = out;
+    return 0;
+  }
 
   if (spec->document_uri && *spec->document_uri) {
-    resolved_base = resolve_uri_reference(spec->document_uri, base_part);
+    resolved_base = (resolve_uri_reference(spec->document_uri, base_part,
+                                           &_ast_resolve_uri_reference_18),
+                     _ast_resolve_uri_reference_18);
     if (resolved_base) {
       free(base_part);
     } else {
@@ -2993,7 +3383,10 @@ resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref) {
     free(resolved_base);
   }
 
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 void openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry) {
@@ -3021,6 +3414,8 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
 
 int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
                              struct OpenAPI_Spec *spec) {
+  size_t _ast_uri_base_len_19;
+  char *_ast_dup_substr_20;
   size_t i;
   const char *base_src;
   char *base = NULL;
@@ -3034,10 +3429,11 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
     return EINVAL;
 
   {
-    size_t len = uri_base_len(base_src);
+    size_t len =
+        (uri_base_len(base_src, &_ast_uri_base_len_19), _ast_uri_base_len_19);
     if (len == 0)
       return EINVAL;
-    base = dup_substr(base_src, len);
+    base = (dup_substr(base_src, len, &_ast_dup_substr_20), _ast_dup_substr_20);
   }
   if (!base)
     return ENOMEM;
@@ -3070,6 +3466,7 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
 
 static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
                                  const char *ref, const char *hash) {
+  size_t _ast_uri_base_len_21;
   size_t base_len;
   const char *self_uri;
   const char *self_hash;
@@ -3085,7 +3482,8 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
 
   if (spec->document_uri && *spec->document_uri) {
     const char *base_uri = spec->document_uri;
-    size_t uri_len = uri_base_len(base_uri);
+    size_t uri_len =
+        (uri_base_len(base_uri, &_ast_uri_base_len_21), _ast_uri_base_len_21);
     base_len = (size_t)(hash - ref);
     if (uri_len == base_len && strncmp(ref, base_uri, base_len) == 0)
       return 1;
@@ -3146,155 +3544,257 @@ static int ref_base_matches_self(const struct OpenAPI_Spec *spec,
   return 0;
 }
 
-static const char *ref_name_from_prefix(const struct OpenAPI_Spec *spec,
-                                        const char *ref, const char *prefix) {
+static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
+                                const char *ref, const char *prefix,
+                                char **_out_val) {
   size_t prefix_len;
   const char *name;
   const char *hash;
-  if (!ref || !prefix)
-    return NULL;
+  if (!ref || !prefix) {
+    *_out_val = NULL;
+    return 0;
+  }
   prefix_len = strlen(prefix);
   if (strncmp(ref, prefix, prefix_len) == 0) {
     name = ref + prefix_len;
-    if (!name || !*name)
-      return NULL;
-    if (strchr(name, '/') != NULL)
-      return NULL;
-    return name;
+    if (!name || !*name) {
+      *_out_val = NULL;
+      return 0;
+    }
+    if (strchr(name, '/') != NULL) {
+      *_out_val = NULL;
+      return 0;
+    }
+    {
+      *_out_val = name;
+      return 0;
+    }
   }
   hash = strchr(ref, '#');
-  if (!hash)
-    return NULL;
-  if (!ref_base_matches_self(spec, ref, hash))
-    return NULL;
-  if (strncmp(hash, prefix, prefix_len) != 0)
-    return NULL;
+  if (!hash) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!ref_base_matches_self(spec, ref, hash)) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (strncmp(hash, prefix, prefix_len) != 0) {
+    *_out_val = NULL;
+    return 0;
+  }
   name = hash + prefix_len;
-  if (!name || !*name)
-    return NULL;
-  if (strchr(name, '/') != NULL)
-    return NULL;
-  return name;
+  if (!name || !*name) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (strchr(name, '/') != NULL) {
+    *_out_val = NULL;
+    return 0;
+  }
+  {
+    *_out_val = name;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Parameter *
-find_component_parameter(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_parameter(const struct OpenAPI_Spec *spec,
+                                    const char *ref,
+                                    struct OpenAPI_Parameter **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_22;
+  char *_ast_ref_name_from_prefix_23;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_22),
+       _ast_resolve_ref_target_22);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/parameters/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/parameters/",
+                            &_ast_ref_name_from_prefix_23),
+       _ast_ref_name_from_prefix_23);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_parameters; ++i) {
     if (target->component_parameter_names[i] &&
         strcmp(target->component_parameter_names[i], name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_parameters[i];
+      {
+        *_out_val = &target->component_parameters[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Response *
-find_component_response(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_response(const struct OpenAPI_Spec *spec,
+                                   const char *ref,
+                                   struct OpenAPI_Response **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_24;
+  char *_ast_ref_name_from_prefix_25;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_24),
+       _ast_resolve_ref_target_24);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/responses/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/responses/",
+                            &_ast_ref_name_from_prefix_25),
+       _ast_ref_name_from_prefix_25);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_responses; ++i) {
     if (target->component_response_names[i] &&
         strcmp(target->component_response_names[i], name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_responses[i];
+      {
+        *_out_val = &target->component_responses[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Header *
-find_component_header(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_header(const struct OpenAPI_Spec *spec,
+                                 const char *ref,
+                                 struct OpenAPI_Header **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_26;
+  char *_ast_ref_name_from_prefix_27;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_26),
+       _ast_resolve_ref_target_26);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/headers/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/headers/",
+                            &_ast_ref_name_from_prefix_27),
+       _ast_ref_name_from_prefix_27);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_headers; ++i) {
     if (target->component_header_names[i] &&
         strcmp(target->component_header_names[i], name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_headers[i];
+      {
+        *_out_val = &target->component_headers[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_RequestBody *
-find_component_request_body(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_request_body(const struct OpenAPI_Spec *spec,
+                                       const char *ref,
+                                       struct OpenAPI_RequestBody **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_28;
+  char *_ast_ref_name_from_prefix_29;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_28),
+       _ast_resolve_ref_target_28);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/requestBodies/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/requestBodies/",
+                            &_ast_ref_name_from_prefix_29),
+       _ast_ref_name_from_prefix_29);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_request_bodies; ++i) {
     if (target->component_request_body_names[i] &&
         strcmp(target->component_request_body_names[i], name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_request_bodies[i];
+      {
+        *_out_val = &target->component_request_bodies[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_MediaType *
-find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_media_type(const struct OpenAPI_Spec *spec,
+                                     const char *ref,
+                                     struct OpenAPI_MediaType **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_30;
+  char *_ast_ref_name_from_prefix_31;
+  char *_ast_json_pointer_unescape_32;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_30),
+       _ast_resolve_ref_target_30);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name_enc =
-      ref_name_from_prefix(target, resolved.ref, "#/components/mediaTypes/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/mediaTypes/",
+                            &_ast_ref_name_from_prefix_31),
+       _ast_ref_name_from_prefix_31);
   char *name_dec;
   size_t i;
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
-  name_dec = json_pointer_unescape(name_enc);
+  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_32),
+              _ast_json_pointer_unescape_32);
   if (!name_dec) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_media_types; ++i) {
     if (target->component_media_type_names[i] &&
@@ -3302,83 +3802,135 @@ find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref) {
       free(name_dec);
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_media_types[i];
+      {
+        *_out_val = &target->component_media_types[i];
+        return 0;
+      }
     }
   }
   free(name_dec);
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Link *
-find_component_link(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
+                               struct OpenAPI_Link **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_33;
+  char *_ast_ref_name_from_prefix_34;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_33),
+       _ast_resolve_ref_target_33);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/links/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/links/",
+                            &_ast_ref_name_from_prefix_34),
+       _ast_ref_name_from_prefix_34);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_links; ++i) {
     if (target->component_links[i].name &&
         strcmp(target->component_links[i].name, name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_links[i];
+      {
+        *_out_val = &target->component_links[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Callback *
-find_component_callback(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_callback(const struct OpenAPI_Spec *spec,
+                                   const char *ref,
+                                   struct OpenAPI_Callback **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_35;
+  char *_ast_ref_name_from_prefix_36;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_35),
+       _ast_resolve_ref_target_35);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name =
-      ref_name_from_prefix(target, resolved.ref, "#/components/callbacks/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/callbacks/",
+                            &_ast_ref_name_from_prefix_36),
+       _ast_ref_name_from_prefix_36);
   size_t i;
   if (!target || !name) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_callbacks; ++i) {
     if (target->component_callbacks[i].name &&
         strcmp(target->component_callbacks[i].name, name) == 0) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_callbacks[i];
+      {
+        *_out_val = &target->component_callbacks[i];
+        return 0;
+      }
     }
   }
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct OpenAPI_Path *
-find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref) {
-  struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref);
+static int find_component_path_item(const struct OpenAPI_Spec *spec,
+                                    const char *ref,
+                                    struct OpenAPI_Path **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_37;
+  char *_ast_ref_name_from_prefix_38;
+  char *_ast_json_pointer_unescape_39;
+  struct ResolvedRefTarget resolved =
+      (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_37),
+       _ast_resolve_ref_target_37);
   const struct OpenAPI_Spec *target = resolved.spec;
   const char *name_enc =
-      ref_name_from_prefix(target, resolved.ref, "#/components/pathItems/");
+      (ref_name_from_prefix(target, resolved.ref, "#/components/pathItems/",
+                            &_ast_ref_name_from_prefix_38),
+       _ast_ref_name_from_prefix_38);
   char *name_dec;
   size_t i;
   if (!target || !name_enc) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
-  name_dec = json_pointer_unescape(name_enc);
+  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_39),
+              _ast_json_pointer_unescape_39);
   if (!name_dec) {
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   for (i = 0; i < target->n_component_path_items; ++i) {
     if (target->component_path_item_names &&
@@ -3387,17 +3939,54 @@ find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref) {
       free(name_dec);
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
-      return &target->component_path_items[i];
+      {
+        *_out_val = &target->component_path_items[i];
+        return 0;
+      }
     }
   }
   free(name_dec);
   if (resolved.resolved_ref)
     free(resolved.resolved_ref);
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                            const struct OpenAPI_SchemaRef *src) {
+  char *_ast_strdup_50 = NULL;
+  char *_ast_strdup_51 = NULL;
+  char *_ast_strdup_52 = NULL;
+  char *_ast_strdup_53 = NULL;
+  char *_ast_strdup_54 = NULL;
+  char *_ast_strdup_55 = NULL;
+  char *_ast_strdup_56 = NULL;
+  char *_ast_strdup_57 = NULL;
+  char *_ast_strdup_58 = NULL;
+  char *_ast_strdup_59 = NULL;
+  char *_ast_strdup_60 = NULL;
+  char *_ast_strdup_61 = NULL;
+  char *_ast_strdup_62 = NULL;
+  char *_ast_strdup_63 = NULL;
+  char *_ast_strdup_64 = NULL;
+  char *_ast_strdup_65 = NULL;
+  char *_ast_strdup_66 = NULL;
+  char *_ast_strdup_67 = NULL;
+  char *_ast_strdup_68 = NULL;
+  char *_ast_strdup_69 = NULL;
+  char *_ast_strdup_70 = NULL;
+  char *_ast_strdup_71 = NULL;
+  char *_ast_strdup_72 = NULL;
+  char *_ast_strdup_73 = NULL;
+  char *_ast_strdup_74 = NULL;
+  char *_ast_strdup_75 = NULL;
+  char *_ast_strdup_76 = NULL;
+  char *_ast_strdup_77 = NULL;
+  char *_ast_strdup_78 = NULL;
+  char *_ast_strdup_79 = NULL;
+  char *_ast_strdup_80 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
@@ -3406,17 +3995,19 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->is_array = src->is_array;
   dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->ref_name) {
-    dst->ref_name = c_cdd_strdup(src->ref_name);
+    dst->ref_name =
+        (c_cdd_strdup(src->ref_name, &_ast_strdup_50), _ast_strdup_50);
     if (!dst->ref_name)
       return ENOMEM;
   }
   if (src->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_51), _ast_strdup_51);
     if (!dst->ref)
       return ENOMEM;
   }
   if (src->inline_type) {
-    dst->inline_type = c_cdd_strdup(src->inline_type);
+    dst->inline_type =
+        (c_cdd_strdup(src->inline_type, &_ast_strdup_52), _ast_strdup_52);
     if (!dst->inline_type)
       return ENOMEM;
   }
@@ -3429,27 +4020,32 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->format) {
-    dst->format = c_cdd_strdup(src->format);
+    dst->format = (c_cdd_strdup(src->format, &_ast_strdup_53), _ast_strdup_53);
     if (!dst->format)
       return ENOMEM;
   }
   if (src->content_type) {
-    dst->content_type = c_cdd_strdup(src->content_type);
+    dst->content_type =
+        (c_cdd_strdup(src->content_type, &_ast_strdup_54), _ast_strdup_54);
     if (!dst->content_type)
       return ENOMEM;
   }
   if (src->content_media_type) {
-    dst->content_media_type = c_cdd_strdup(src->content_media_type);
+    dst->content_media_type =
+        (c_cdd_strdup(src->content_media_type, &_ast_strdup_55),
+         _ast_strdup_55);
     if (!dst->content_media_type)
       return ENOMEM;
   }
   if (src->content_encoding) {
-    dst->content_encoding = c_cdd_strdup(src->content_encoding);
+    dst->content_encoding =
+        (c_cdd_strdup(src->content_encoding, &_ast_strdup_56), _ast_strdup_56);
     if (!dst->content_encoding)
       return ENOMEM;
   }
   if (src->items_format) {
-    dst->items_format = c_cdd_strdup(src->items_format);
+    dst->items_format =
+        (c_cdd_strdup(src->items_format, &_ast_strdup_57), _ast_strdup_57);
     if (!dst->items_format)
       return ENOMEM;
   }
@@ -3463,30 +4059,37 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->items_ref) {
-    dst->items_ref = c_cdd_strdup(src->items_ref);
+    dst->items_ref =
+        (c_cdd_strdup(src->items_ref, &_ast_strdup_58), _ast_strdup_58);
     if (!dst->items_ref)
       return ENOMEM;
   }
   dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->items_content_media_type) {
-    dst->items_content_media_type = c_cdd_strdup(src->items_content_media_type);
+    dst->items_content_media_type =
+        (c_cdd_strdup(src->items_content_media_type, &_ast_strdup_59),
+         _ast_strdup_59);
     if (!dst->items_content_media_type)
       return ENOMEM;
   }
   if (src->items_content_encoding) {
-    dst->items_content_encoding = c_cdd_strdup(src->items_content_encoding);
+    dst->items_content_encoding =
+        (c_cdd_strdup(src->items_content_encoding, &_ast_strdup_60),
+         _ast_strdup_60);
     if (!dst->items_content_encoding)
       return ENOMEM;
   }
   dst->nullable = src->nullable;
   dst->items_nullable = src->items_nullable;
   if (src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_61), _ast_strdup_61);
     if (!dst->summary)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_62), _ast_strdup_62);
     if (!dst->description)
       return ENOMEM;
   }
@@ -3555,43 +4158,50 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     }
   }
   if (src->schema_extra_json) {
-    dst->schema_extra_json = c_cdd_strdup(src->schema_extra_json);
+    dst->schema_extra_json =
+        (c_cdd_strdup(src->schema_extra_json, &_ast_strdup_63), _ast_strdup_63);
     if (!dst->schema_extra_json)
       return ENOMEM;
   }
   if (src->external_docs.description) {
     dst->external_docs.description =
-        c_cdd_strdup(src->external_docs.description);
+        (c_cdd_strdup(src->external_docs.description, &_ast_strdup_64),
+         _ast_strdup_64);
     if (!dst->external_docs.description)
       return ENOMEM;
   }
   if (src->external_docs.url) {
-    dst->external_docs.url = c_cdd_strdup(src->external_docs.url);
+    dst->external_docs.url =
+        (c_cdd_strdup(src->external_docs.url, &_ast_strdup_65), _ast_strdup_65);
     if (!dst->external_docs.url)
       return ENOMEM;
   }
   if (src->external_docs.extensions_json) {
     dst->external_docs.extensions_json =
-        c_cdd_strdup(src->external_docs.extensions_json);
+        (c_cdd_strdup(src->external_docs.extensions_json, &_ast_strdup_66),
+         _ast_strdup_66);
     if (!dst->external_docs.extensions_json)
       return ENOMEM;
   }
   dst->external_docs_set = src->external_docs_set;
   if (src->discriminator.property_name) {
     dst->discriminator.property_name =
-        c_cdd_strdup(src->discriminator.property_name);
+        (c_cdd_strdup(src->discriminator.property_name, &_ast_strdup_67),
+         _ast_strdup_67);
     if (!dst->discriminator.property_name)
       return ENOMEM;
   }
   if (src->discriminator.default_mapping) {
     dst->discriminator.default_mapping =
-        c_cdd_strdup(src->discriminator.default_mapping);
+        (c_cdd_strdup(src->discriminator.default_mapping, &_ast_strdup_68),
+         _ast_strdup_68);
     if (!dst->discriminator.default_mapping)
       return ENOMEM;
   }
   if (src->discriminator.extensions_json) {
     dst->discriminator.extensions_json =
-        c_cdd_strdup(src->discriminator.extensions_json);
+        (c_cdd_strdup(src->discriminator.extensions_json, &_ast_strdup_69),
+         _ast_strdup_69);
     if (!dst->discriminator.extensions_json)
       return ENOMEM;
   }
@@ -3604,13 +4214,16 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     for (i = 0; i < src->discriminator.n_mapping; ++i) {
       if (src->discriminator.mapping[i].value) {
         dst->discriminator.mapping[i].value =
-            c_cdd_strdup(src->discriminator.mapping[i].value);
+            (c_cdd_strdup(src->discriminator.mapping[i].value, &_ast_strdup_70),
+             _ast_strdup_70);
         if (!dst->discriminator.mapping[i].value)
           return ENOMEM;
       }
       if (src->discriminator.mapping[i].schema) {
         dst->discriminator.mapping[i].schema =
-            c_cdd_strdup(src->discriminator.mapping[i].schema);
+            (c_cdd_strdup(src->discriminator.mapping[i].schema,
+                          &_ast_strdup_71),
+             _ast_strdup_71);
         if (!dst->discriminator.mapping[i].schema)
           return ENOMEM;
       }
@@ -3620,22 +4233,27 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->xml.node_type = src->xml.node_type;
   dst->xml.node_type_set = src->xml.node_type_set;
   if (src->xml.name) {
-    dst->xml.name = c_cdd_strdup(src->xml.name);
+    dst->xml.name =
+        (c_cdd_strdup(src->xml.name, &_ast_strdup_72), _ast_strdup_72);
     if (!dst->xml.name)
       return ENOMEM;
   }
   if (src->xml.namespace_uri) {
-    dst->xml.namespace_uri = c_cdd_strdup(src->xml.namespace_uri);
+    dst->xml.namespace_uri =
+        (c_cdd_strdup(src->xml.namespace_uri, &_ast_strdup_73), _ast_strdup_73);
     if (!dst->xml.namespace_uri)
       return ENOMEM;
   }
   if (src->xml.prefix) {
-    dst->xml.prefix = c_cdd_strdup(src->xml.prefix);
+    dst->xml.prefix =
+        (c_cdd_strdup(src->xml.prefix, &_ast_strdup_74), _ast_strdup_74);
     if (!dst->xml.prefix)
       return ENOMEM;
   }
   if (src->xml.extensions_json) {
-    dst->xml.extensions_json = c_cdd_strdup(src->xml.extensions_json);
+    dst->xml.extensions_json =
+        (c_cdd_strdup(src->xml.extensions_json, &_ast_strdup_75),
+         _ast_strdup_75);
     if (!dst->xml.extensions_json)
       return ENOMEM;
   }
@@ -3670,7 +4288,8 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->has_max_len = src->has_max_len;
   dst->max_len = src->max_len;
   if (src->pattern) {
-    dst->pattern = c_cdd_strdup(src->pattern);
+    dst->pattern =
+        (c_cdd_strdup(src->pattern, &_ast_strdup_76), _ast_strdup_76);
     if (!dst->pattern)
       return ENOMEM;
   }
@@ -3690,7 +4309,8 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
   dst->items_has_max_len = src->items_has_max_len;
   dst->items_max_len = src->items_max_len;
   if (src->items_pattern) {
-    dst->items_pattern = c_cdd_strdup(src->items_pattern);
+    dst->items_pattern =
+        (c_cdd_strdup(src->items_pattern, &_ast_strdup_77), _ast_strdup_77);
     if (!dst->items_pattern)
       return ENOMEM;
   }
@@ -3741,7 +4361,8 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
     dst->items_default_value_set = 1;
   }
   if (src->items_extra_json) {
-    dst->items_extra_json = c_cdd_strdup(src->items_extra_json);
+    dst->items_extra_json =
+        (c_cdd_strdup(src->items_extra_json, &_ast_strdup_78), _ast_strdup_78);
     if (!dst->items_extra_json)
       return ENOMEM;
   }
@@ -3847,12 +4468,14 @@ static int copy_schema_ref(struct OpenAPI_SchemaRef *dst,
       struct OpenAPI_MultipartField *dst_field = &dst->multipart_fields[i];
       dst_field->is_binary = src_field->is_binary;
       if (src_field->name) {
-        dst_field->name = c_cdd_strdup(src_field->name);
+        dst_field->name =
+            (c_cdd_strdup(src_field->name, &_ast_strdup_79), _ast_strdup_79);
         if (!dst_field->name)
           return ENOMEM;
       }
       if (src_field->type) {
-        dst_field->type = c_cdd_strdup(src_field->type);
+        dst_field->type =
+            (c_cdd_strdup(src_field->type, &_ast_strdup_80), _ast_strdup_80);
         if (!dst_field->type)
           return ENOMEM;
       }
@@ -3882,17 +4505,19 @@ static int copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
 
 static int copy_any_value(struct OpenAPI_Any *dst,
                           const struct OpenAPI_Any *src) {
+  char *_ast_strdup_81 = NULL;
+  char *_ast_strdup_82 = NULL;
   if (!dst || !src)
     return 0;
   dst->type = src->type;
   dst->number = src->number;
   dst->boolean = src->boolean;
   if (src->type == OA_ANY_STRING && src->string) {
-    dst->string = c_cdd_strdup(src->string);
+    dst->string = (c_cdd_strdup(src->string, &_ast_strdup_81), _ast_strdup_81);
     if (!dst->string)
       return ENOMEM;
   } else if (src->type == OA_ANY_JSON && src->json) {
-    dst->json = c_cdd_strdup(src->json);
+    dst->json = (c_cdd_strdup(src->json, &_ast_strdup_82), _ast_strdup_82);
     if (!dst->json)
       return ENOMEM;
   }
@@ -3901,26 +4526,37 @@ static int copy_any_value(struct OpenAPI_Any *dst,
 
 static int copy_server_object(struct OpenAPI_Server *dst,
                               const struct OpenAPI_Server *src) {
+  char *_ast_strdup_83 = NULL;
+  char *_ast_strdup_84 = NULL;
+  char *_ast_strdup_85 = NULL;
+  char *_ast_strdup_86 = NULL;
+  char *_ast_strdup_87 = NULL;
+  char *_ast_strdup_88 = NULL;
+  char *_ast_strdup_89 = NULL;
+  char *_ast_strdup_90 = NULL;
+  char *_ast_strdup_91 = NULL;
   size_t v, e;
   if (!dst || !src)
     return 0;
   if (src->url) {
-    dst->url = c_cdd_strdup(src->url);
+    dst->url = (c_cdd_strdup(src->url, &_ast_strdup_83), _ast_strdup_83);
     if (!dst->url)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_84), _ast_strdup_84);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_85), _ast_strdup_85);
     if (!dst->name)
       return ENOMEM;
   }
   if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_86), _ast_strdup_86);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -3934,22 +4570,29 @@ static int copy_server_object(struct OpenAPI_Server *dst,
       const struct OpenAPI_ServerVariable *src_var = &src->variables[v];
       struct OpenAPI_ServerVariable *dst_var = &dst->variables[v];
       if (src_var->name) {
-        dst_var->name = c_cdd_strdup(src_var->name);
+        dst_var->name =
+            (c_cdd_strdup(src_var->name, &_ast_strdup_87), _ast_strdup_87);
         if (!dst_var->name)
           return ENOMEM;
       }
       if (src_var->default_value) {
-        dst_var->default_value = c_cdd_strdup(src_var->default_value);
+        dst_var->default_value =
+            (c_cdd_strdup(src_var->default_value, &_ast_strdup_88),
+             _ast_strdup_88);
         if (!dst_var->default_value)
           return ENOMEM;
       }
       if (src_var->description) {
-        dst_var->description = c_cdd_strdup(src_var->description);
+        dst_var->description =
+            (c_cdd_strdup(src_var->description, &_ast_strdup_89),
+             _ast_strdup_89);
         if (!dst_var->description)
           return ENOMEM;
       }
       if (src_var->extensions_json) {
-        dst_var->extensions_json = c_cdd_strdup(src_var->extensions_json);
+        dst_var->extensions_json =
+            (c_cdd_strdup(src_var->extensions_json, &_ast_strdup_90),
+             _ast_strdup_90);
         if (!dst_var->extensions_json)
           return ENOMEM;
       }
@@ -3961,7 +4604,9 @@ static int copy_server_object(struct OpenAPI_Server *dst,
         dst_var->n_enum_values = src_var->n_enum_values;
         for (e = 0; e < src_var->n_enum_values; ++e) {
           if (src_var->enum_values[e]) {
-            dst_var->enum_values[e] = c_cdd_strdup(src_var->enum_values[e]);
+            dst_var->enum_values[e] =
+                (c_cdd_strdup(src_var->enum_values[e], &_ast_strdup_91),
+                 _ast_strdup_91);
             if (!dst_var->enum_values[e])
               return ENOMEM;
           }
@@ -3974,31 +4619,42 @@ static int copy_server_object(struct OpenAPI_Server *dst,
 
 static int copy_link_fields(struct OpenAPI_Link *dst,
                             const struct OpenAPI_Link *src) {
+  char *_ast_strdup_92 = NULL;
+  char *_ast_strdup_93 = NULL;
+  char *_ast_strdup_94 = NULL;
+  char *_ast_strdup_95 = NULL;
+  char *_ast_strdup_96 = NULL;
+  char *_ast_strdup_97 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
   if (src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_92), _ast_strdup_92);
     if (!dst->summary)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_93), _ast_strdup_93);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_94), _ast_strdup_94);
     if (!dst->extensions_json)
       return ENOMEM;
   }
   if (src->operation_ref) {
-    dst->operation_ref = c_cdd_strdup(src->operation_ref);
+    dst->operation_ref =
+        (c_cdd_strdup(src->operation_ref, &_ast_strdup_95), _ast_strdup_95);
     if (!dst->operation_ref)
       return ENOMEM;
   }
   if (src->operation_id) {
-    dst->operation_id = c_cdd_strdup(src->operation_id);
+    dst->operation_id =
+        (c_cdd_strdup(src->operation_id, &_ast_strdup_96), _ast_strdup_96);
     if (!dst->operation_id)
       return ENOMEM;
   }
@@ -4010,7 +4666,9 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
     dst->n_parameters = src->n_parameters;
     for (i = 0; i < src->n_parameters; ++i) {
       if (src->parameters[i].name) {
-        dst->parameters[i].name = c_cdd_strdup(src->parameters[i].name);
+        dst->parameters[i].name =
+            (c_cdd_strdup(src->parameters[i].name, &_ast_strdup_97),
+             _ast_strdup_97);
         if (!dst->parameters[i].name)
           return ENOMEM;
       }
@@ -4047,6 +4705,12 @@ static int copy_link_fields(struct OpenAPI_Link *dst,
 
 static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
                                  const struct OpenAPI_Parameter *src) {
+  char *_ast_strdup_98 = NULL;
+  char *_ast_strdup_99 = NULL;
+  char *_ast_strdup_100 = NULL;
+  char *_ast_strdup_101 = NULL;
+  char *_ast_strdup_102 = NULL;
+  char *_ast_strdup_103 = NULL;
   if (!dst || !src)
     return 0;
   dst->in = src->in;
@@ -4063,27 +4727,30 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
   dst->allow_empty_value_set = src->allow_empty_value_set;
   dst->example_location = src->example_location;
   if (src->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_98), _ast_strdup_98);
     if (!dst->name)
       return ENOMEM;
   }
   if (src->type) {
-    dst->type = c_cdd_strdup(src->type);
+    dst->type = (c_cdd_strdup(src->type, &_ast_strdup_99), _ast_strdup_99);
     if (!dst->type)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_100), _ast_strdup_100);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->content_type) {
-    dst->content_type = c_cdd_strdup(src->content_type);
+    dst->content_type =
+        (c_cdd_strdup(src->content_type, &_ast_strdup_101), _ast_strdup_101);
     if (!dst->content_type)
       return ENOMEM;
   }
   if (src->content_ref) {
-    dst->content_ref = c_cdd_strdup(src->content_ref);
+    dst->content_ref =
+        (c_cdd_strdup(src->content_ref, &_ast_strdup_102), _ast_strdup_102);
     if (!dst->content_ref)
       return ENOMEM;
   }
@@ -4105,7 +4772,8 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
     }
   }
   if (src->items_type) {
-    dst->items_type = c_cdd_strdup(src->items_type);
+    dst->items_type =
+        (c_cdd_strdup(src->items_type, &_ast_strdup_103), _ast_strdup_103);
     if (!dst->items_type)
       return ENOMEM;
   }
@@ -4137,6 +4805,11 @@ static int copy_parameter_fields(struct OpenAPI_Parameter *dst,
 
 static int copy_header_fields(struct OpenAPI_Header *dst,
                               const struct OpenAPI_Header *src) {
+  char *_ast_strdup_104 = NULL;
+  char *_ast_strdup_105 = NULL;
+  char *_ast_strdup_106 = NULL;
+  char *_ast_strdup_107 = NULL;
+  char *_ast_strdup_108 = NULL;
   if (!dst || !src)
     return 0;
   dst->required = src->required;
@@ -4149,17 +4822,20 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
   dst->is_array = src->is_array;
   dst->example_location = src->example_location;
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_104), _ast_strdup_104);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->content_type) {
-    dst->content_type = c_cdd_strdup(src->content_type);
+    dst->content_type =
+        (c_cdd_strdup(src->content_type, &_ast_strdup_105), _ast_strdup_105);
     if (!dst->content_type)
       return ENOMEM;
   }
   if (src->content_ref) {
-    dst->content_ref = c_cdd_strdup(src->content_ref);
+    dst->content_ref =
+        (c_cdd_strdup(src->content_ref, &_ast_strdup_106), _ast_strdup_106);
     if (!dst->content_ref)
       return ENOMEM;
   }
@@ -4181,12 +4857,13 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
     }
   }
   if (src->type) {
-    dst->type = c_cdd_strdup(src->type);
+    dst->type = (c_cdd_strdup(src->type, &_ast_strdup_107), _ast_strdup_107);
     if (!dst->type)
       return ENOMEM;
   }
   if (src->items_type) {
-    dst->items_type = c_cdd_strdup(src->items_type);
+    dst->items_type =
+        (c_cdd_strdup(src->items_type, &_ast_strdup_108), _ast_strdup_108);
     if (!dst->items_type)
       return ENOMEM;
   }
@@ -4218,6 +4895,9 @@ static int copy_header_fields(struct OpenAPI_Header *dst,
 
 static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
                                 const struct OpenAPI_Encoding *src) {
+  char *_ast_strdup_109 = NULL;
+  char *_ast_strdup_110 = NULL;
+  char *_ast_strdup_111 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
@@ -4228,12 +4908,13 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
   dst->allow_reserved = src->allow_reserved;
   dst->allow_reserved_set = src->allow_reserved_set;
   if (src->name && !dst->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_109), _ast_strdup_109);
     if (!dst->name)
       return ENOMEM;
   }
   if (src->content_type) {
-    dst->content_type = c_cdd_strdup(src->content_type);
+    dst->content_type =
+        (c_cdd_strdup(src->content_type, &_ast_strdup_110), _ast_strdup_110);
     if (!dst->content_type)
       return ENOMEM;
   }
@@ -4247,7 +4928,8 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
       struct OpenAPI_Header *dst_hdr = &dst->headers[i];
       const struct OpenAPI_Header *src_hdr = &src->headers[i];
       if (src_hdr->name) {
-        dst_hdr->name = c_cdd_strdup(src_hdr->name);
+        dst_hdr->name =
+            (c_cdd_strdup(src_hdr->name, &_ast_strdup_111), _ast_strdup_111);
         if (!dst_hdr->name)
           return ENOMEM;
       }
@@ -4304,16 +4986,18 @@ static int copy_encoding_fields(struct OpenAPI_Encoding *dst,
 
 static int copy_media_type_fields(struct OpenAPI_MediaType *dst,
                                   const struct OpenAPI_MediaType *src) {
+  char *_ast_strdup_112 = NULL;
+  char *_ast_strdup_113 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
   if (src->name && !dst->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_112), _ast_strdup_112);
     if (!dst->name)
       return ENOMEM;
   }
   if (src->ref && !dst->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_113), _ast_strdup_113);
     if (!dst->ref)
       return ENOMEM;
   }
@@ -4427,26 +5111,37 @@ static int copy_media_type_array(struct OpenAPI_MediaType **dst,
 
 static int copy_response_fields(struct OpenAPI_Response *dst,
                                 const struct OpenAPI_Response *src) {
+  char *_ast_strdup_114 = NULL;
+  char *_ast_strdup_115 = NULL;
+  char *_ast_strdup_116 = NULL;
+  char *_ast_strdup_117 = NULL;
+  char *_ast_strdup_118 = NULL;
+  char *_ast_strdup_119 = NULL;
+  char *_ast_strdup_120 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
   if (src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_114), _ast_strdup_114);
     if (!dst->summary)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_115), _ast_strdup_115);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->content_type) {
-    dst->content_type = c_cdd_strdup(src->content_type);
+    dst->content_type =
+        (c_cdd_strdup(src->content_type, &_ast_strdup_116), _ast_strdup_116);
     if (!dst->content_type)
       return ENOMEM;
   }
   if (src->content_ref) {
-    dst->content_ref = c_cdd_strdup(src->content_ref);
+    dst->content_ref =
+        (c_cdd_strdup(src->content_ref, &_ast_strdup_117), _ast_strdup_117);
     if (!dst->content_ref)
       return ENOMEM;
   }
@@ -4491,7 +5186,8 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
       struct OpenAPI_Header *dst_hdr = &dst->headers[i];
       const struct OpenAPI_Header *src_hdr = &src->headers[i];
       if (src_hdr->name) {
-        dst_hdr->name = c_cdd_strdup(src_hdr->name);
+        dst_hdr->name =
+            (c_cdd_strdup(src_hdr->name, &_ast_strdup_118), _ast_strdup_118);
         if (!dst_hdr->name)
           return ENOMEM;
       }
@@ -4512,12 +5208,14 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
       struct OpenAPI_Link *dst_link = &dst->links[i];
       const struct OpenAPI_Link *src_link = &src->links[i];
       if (src_link->name) {
-        dst_link->name = c_cdd_strdup(src_link->name);
+        dst_link->name =
+            (c_cdd_strdup(src_link->name, &_ast_strdup_119), _ast_strdup_119);
         if (!dst_link->name)
           return ENOMEM;
       }
       if (src_link->ref) {
-        dst_link->ref = c_cdd_strdup(src_link->ref);
+        dst_link->ref =
+            (c_cdd_strdup(src_link->ref, &_ast_strdup_120), _ast_strdup_120);
         if (!dst_link->ref)
           return ENOMEM;
       }
@@ -4534,6 +5232,9 @@ static int copy_response_fields(struct OpenAPI_Response *dst,
 static int copy_security_requirement_sets(
     struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
     const struct OpenAPI_SecurityRequirementSet *src, size_t src_count) {
+  char *_ast_strdup_121 = NULL;
+  char *_ast_strdup_122 = NULL;
+  char *_ast_strdup_123 = NULL;
   size_t i, j, k;
   if (!dst || !dst_count)
     return 0;
@@ -4550,7 +5251,9 @@ static int copy_security_requirement_sets(
     struct OpenAPI_SecurityRequirementSet *dst_set = &(*dst)[i];
     const struct OpenAPI_SecurityRequirementSet *src_set = &src[i];
     if (src_set->extensions_json) {
-      dst_set->extensions_json = c_cdd_strdup(src_set->extensions_json);
+      dst_set->extensions_json =
+          (c_cdd_strdup(src_set->extensions_json, &_ast_strdup_121),
+           _ast_strdup_121);
       if (!dst_set->extensions_json)
         return ENOMEM;
     }
@@ -4565,7 +5268,8 @@ static int copy_security_requirement_sets(
         const struct OpenAPI_SecurityRequirement *src_req =
             &src_set->requirements[j];
         if (src_req->scheme) {
-          dst_req->scheme = c_cdd_strdup(src_req->scheme);
+          dst_req->scheme = (c_cdd_strdup(src_req->scheme, &_ast_strdup_122),
+                             _ast_strdup_122);
           if (!dst_req->scheme)
             return ENOMEM;
         }
@@ -4576,7 +5280,9 @@ static int copy_security_requirement_sets(
           dst_req->n_scopes = src_req->n_scopes;
           for (k = 0; k < src_req->n_scopes; ++k) {
             if (src_req->scopes[k]) {
-              dst_req->scopes[k] = c_cdd_strdup(src_req->scopes[k]);
+              dst_req->scopes[k] =
+                  (c_cdd_strdup(src_req->scopes[k], &_ast_strdup_123),
+                   _ast_strdup_123);
               if (!dst_req->scopes[k])
                 return ENOMEM;
             }
@@ -4590,31 +5296,39 @@ static int copy_security_requirement_sets(
 
 static int copy_callback_fields(struct OpenAPI_Callback *dst,
                                 const struct OpenAPI_Callback *src) {
+  char *_ast_strdup_124 = NULL;
+  char *_ast_strdup_125 = NULL;
+  char *_ast_strdup_126 = NULL;
+  char *_ast_strdup_127 = NULL;
+  char *_ast_strdup_128 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
   if (!dst->name && src->name) {
-    dst->name = c_cdd_strdup(src->name);
+    dst->name = (c_cdd_strdup(src->name, &_ast_strdup_124), _ast_strdup_124);
     if (!dst->name)
       return ENOMEM;
   }
   if (!dst->ref && src->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_125), _ast_strdup_125);
     if (!dst->ref)
       return ENOMEM;
   }
   if (!dst->summary && src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_126), _ast_strdup_126);
     if (!dst->summary)
       return ENOMEM;
   }
   if (!dst->description && src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_127), _ast_strdup_127);
     if (!dst->description)
       return ENOMEM;
   }
   if (!dst->extensions_json && src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_128), _ast_strdup_128);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -4637,6 +5351,18 @@ static int copy_callback_fields(struct OpenAPI_Callback *dst,
 
 static int copy_operation_fields(struct OpenAPI_Operation *dst,
                                  const struct OpenAPI_Operation *src) {
+  char *_ast_strdup_129 = NULL;
+  char *_ast_strdup_130 = NULL;
+  char *_ast_strdup_131 = NULL;
+  char *_ast_strdup_132 = NULL;
+  char *_ast_strdup_133 = NULL;
+  char *_ast_strdup_134 = NULL;
+  char *_ast_strdup_135 = NULL;
+  char *_ast_strdup_136 = NULL;
+  char *_ast_strdup_137 = NULL;
+  char *_ast_strdup_138 = NULL;
+  char *_ast_strdup_139 = NULL;
+  char *_ast_strdup_140 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
@@ -4645,27 +5371,32 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
   dst->deprecated = src->deprecated;
   dst->security_set = src->security_set;
   if (src->method) {
-    dst->method = c_cdd_strdup(src->method);
+    dst->method =
+        (c_cdd_strdup(src->method, &_ast_strdup_129), _ast_strdup_129);
     if (!dst->method)
       return ENOMEM;
   }
   if (src->operation_id) {
-    dst->operation_id = c_cdd_strdup(src->operation_id);
+    dst->operation_id =
+        (c_cdd_strdup(src->operation_id, &_ast_strdup_130), _ast_strdup_130);
     if (!dst->operation_id)
       return ENOMEM;
   }
   if (src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_131), _ast_strdup_131);
     if (!dst->summary)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_132), _ast_strdup_132);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_133), _ast_strdup_133);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -4699,7 +5430,8 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
     dst->n_tags = src->n_tags;
     for (i = 0; i < src->n_tags; ++i) {
       if (src->tags[i]) {
-        dst->tags[i] = c_cdd_strdup(src->tags[i]);
+        dst->tags[i] =
+            (c_cdd_strdup(src->tags[i], &_ast_strdup_134), _ast_strdup_134);
         if (!dst->tags[i])
           return ENOMEM;
       }
@@ -4722,34 +5454,43 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
   dst->req_body_required = src->req_body_required;
   dst->req_body_required_set = src->req_body_required_set;
   if (src->req_body_description) {
-    dst->req_body_description = c_cdd_strdup(src->req_body_description);
+    dst->req_body_description =
+        (c_cdd_strdup(src->req_body_description, &_ast_strdup_135),
+         _ast_strdup_135);
     if (!dst->req_body_description)
       return ENOMEM;
   }
   if (src->req_body_extensions_json) {
-    dst->req_body_extensions_json = c_cdd_strdup(src->req_body_extensions_json);
+    dst->req_body_extensions_json =
+        (c_cdd_strdup(src->req_body_extensions_json, &_ast_strdup_136),
+         _ast_strdup_136);
     if (!dst->req_body_extensions_json)
       return ENOMEM;
   }
   if (src->req_body_ref) {
-    dst->req_body_ref = c_cdd_strdup(src->req_body_ref);
+    dst->req_body_ref =
+        (c_cdd_strdup(src->req_body_ref, &_ast_strdup_137), _ast_strdup_137);
     if (!dst->req_body_ref)
       return ENOMEM;
   }
   if (src->external_docs.description) {
     dst->external_docs.description =
-        c_cdd_strdup(src->external_docs.description);
+        (c_cdd_strdup(src->external_docs.description, &_ast_strdup_138),
+         _ast_strdup_138);
     if (!dst->external_docs.description)
       return ENOMEM;
   }
   if (src->external_docs.url) {
-    dst->external_docs.url = c_cdd_strdup(src->external_docs.url);
+    dst->external_docs.url =
+        (c_cdd_strdup(src->external_docs.url, &_ast_strdup_139),
+         _ast_strdup_139);
     if (!dst->external_docs.url)
       return ENOMEM;
   }
   if (src->external_docs.extensions_json) {
     dst->external_docs.extensions_json =
-        c_cdd_strdup(src->external_docs.extensions_json);
+        (c_cdd_strdup(src->external_docs.extensions_json, &_ast_strdup_140),
+         _ast_strdup_140);
     if (!dst->external_docs.extensions_json)
       return ENOMEM;
   }
@@ -4800,31 +5541,39 @@ static int copy_operation_fields(struct OpenAPI_Operation *dst,
 
 static int copy_path_fields(struct OpenAPI_Path *dst,
                             const struct OpenAPI_Path *src) {
+  char *_ast_strdup_141 = NULL;
+  char *_ast_strdup_142 = NULL;
+  char *_ast_strdup_143 = NULL;
+  char *_ast_strdup_144 = NULL;
+  char *_ast_strdup_145 = NULL;
   size_t i;
   if (!dst || !src)
     return 0;
   if (!dst->route && src->route) {
-    dst->route = c_cdd_strdup(src->route);
+    dst->route = (c_cdd_strdup(src->route, &_ast_strdup_141), _ast_strdup_141);
     if (!dst->route)
       return ENOMEM;
   }
   if (!dst->ref && src->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_142), _ast_strdup_142);
     if (!dst->ref)
       return ENOMEM;
   }
   if (!dst->summary && src->summary) {
-    dst->summary = c_cdd_strdup(src->summary);
+    dst->summary =
+        (c_cdd_strdup(src->summary, &_ast_strdup_143), _ast_strdup_143);
     if (!dst->summary)
       return ENOMEM;
   }
   if (!dst->description && src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_144), _ast_strdup_144);
     if (!dst->description)
       return ENOMEM;
   }
   if (!dst->extensions_json && src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_145), _ast_strdup_145);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -4893,6 +5642,17 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
 
 static int parse_info(const JSON_Object *const root_obj,
                       struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_146 = NULL;
+  char *_ast_strdup_147 = NULL;
+  char *_ast_strdup_148 = NULL;
+  char *_ast_strdup_149 = NULL;
+  char *_ast_strdup_150 = NULL;
+  char *_ast_strdup_151 = NULL;
+  char *_ast_strdup_152 = NULL;
+  char *_ast_strdup_153 = NULL;
+  char *_ast_strdup_154 = NULL;
+  char *_ast_strdup_155 = NULL;
+  char *_ast_strdup_156 = NULL;
   const JSON_Object *info_obj;
   const JSON_Object *contact_obj;
   const JSON_Object *license_obj;
@@ -4907,31 +5667,33 @@ static int parse_info(const JSON_Object *const root_obj,
 
   val = json_object_get_string(info_obj, "title");
   if (val) {
-    out->info.title = c_cdd_strdup(val);
+    out->info.title = (c_cdd_strdup(val, &_ast_strdup_146), _ast_strdup_146);
     if (!out->info.title)
       return ENOMEM;
   }
   val = json_object_get_string(info_obj, "summary");
   if (val) {
-    out->info.summary = c_cdd_strdup(val);
+    out->info.summary = (c_cdd_strdup(val, &_ast_strdup_147), _ast_strdup_147);
     if (!out->info.summary)
       return ENOMEM;
   }
   val = json_object_get_string(info_obj, "description");
   if (val) {
-    out->info.description = c_cdd_strdup(val);
+    out->info.description =
+        (c_cdd_strdup(val, &_ast_strdup_148), _ast_strdup_148);
     if (!out->info.description)
       return ENOMEM;
   }
   val = json_object_get_string(info_obj, "termsOfService");
   if (val) {
-    out->info.terms_of_service = c_cdd_strdup(val);
+    out->info.terms_of_service =
+        (c_cdd_strdup(val, &_ast_strdup_149), _ast_strdup_149);
     if (!out->info.terms_of_service)
       return ENOMEM;
   }
   val = json_object_get_string(info_obj, "version");
   if (val) {
-    out->info.version = c_cdd_strdup(val);
+    out->info.version = (c_cdd_strdup(val, &_ast_strdup_150), _ast_strdup_150);
     if (!out->info.version)
       return ENOMEM;
   }
@@ -4945,19 +5707,22 @@ static int parse_info(const JSON_Object *const root_obj,
   if (contact_obj) {
     val = json_object_get_string(contact_obj, "name");
     if (val) {
-      out->info.contact.name = c_cdd_strdup(val);
+      out->info.contact.name =
+          (c_cdd_strdup(val, &_ast_strdup_151), _ast_strdup_151);
       if (!out->info.contact.name)
         return ENOMEM;
     }
     val = json_object_get_string(contact_obj, "url");
     if (val) {
-      out->info.contact.url = c_cdd_strdup(val);
+      out->info.contact.url =
+          (c_cdd_strdup(val, &_ast_strdup_152), _ast_strdup_152);
       if (!out->info.contact.url)
         return ENOMEM;
     }
     val = json_object_get_string(contact_obj, "email");
     if (val) {
-      out->info.contact.email = c_cdd_strdup(val);
+      out->info.contact.email =
+          (c_cdd_strdup(val, &_ast_strdup_153), _ast_strdup_153);
       if (!out->info.contact.email)
         return ENOMEM;
     }
@@ -4981,16 +5746,19 @@ static int parse_info(const JSON_Object *const root_obj,
     if (lic_identifier && lic_url)
       return EINVAL;
 
-    out->info.license.name = c_cdd_strdup(lic_name);
+    out->info.license.name =
+        (c_cdd_strdup(lic_name, &_ast_strdup_154), _ast_strdup_154);
     if (!out->info.license.name)
       return ENOMEM;
     if (lic_identifier) {
-      out->info.license.identifier = c_cdd_strdup(lic_identifier);
+      out->info.license.identifier =
+          (c_cdd_strdup(lic_identifier, &_ast_strdup_155), _ast_strdup_155);
       if (!out->info.license.identifier)
         return ENOMEM;
     }
     if (lic_url) {
-      out->info.license.url = c_cdd_strdup(lic_url);
+      out->info.license.url =
+          (c_cdd_strdup(lic_url, &_ast_strdup_156), _ast_strdup_156);
       if (!out->info.license.url)
         return ENOMEM;
     }
@@ -5007,6 +5775,8 @@ static int parse_info(const JSON_Object *const root_obj,
 
 static int parse_external_docs(const JSON_Object *const obj,
                                struct OpenAPI_ExternalDocs *const out) {
+  char *_ast_strdup_157 = NULL;
+  char *_ast_strdup_158 = NULL;
   const char *desc;
   const char *url;
 
@@ -5015,14 +5785,14 @@ static int parse_external_docs(const JSON_Object *const obj,
 
   desc = json_object_get_string(obj, "description");
   if (desc) {
-    out->description = c_cdd_strdup(desc);
+    out->description = (c_cdd_strdup(desc, &_ast_strdup_157), _ast_strdup_157);
     if (!out->description)
       return ENOMEM;
   }
   url = json_object_get_string(obj, "url");
   if (!url || !*url)
     return EINVAL;
-  out->url = c_cdd_strdup(url);
+  out->url = (c_cdd_strdup(url, &_ast_strdup_158), _ast_strdup_158);
   if (!out->url)
     return ENOMEM;
   {
@@ -5036,6 +5806,10 @@ static int parse_external_docs(const JSON_Object *const obj,
 
 static int parse_discriminator_object(const JSON_Object *const obj,
                                       struct OpenAPI_Discriminator *const out) {
+  char *_ast_strdup_159 = NULL;
+  char *_ast_strdup_160 = NULL;
+  char *_ast_strdup_161 = NULL;
+  char *_ast_strdup_162 = NULL;
   const char *prop;
   const char *default_mapping;
   const JSON_Object *mapping_obj;
@@ -5046,14 +5820,16 @@ static int parse_discriminator_object(const JSON_Object *const obj,
 
   prop = json_object_get_string(obj, "propertyName");
   if (prop) {
-    out->property_name = c_cdd_strdup(prop);
+    out->property_name =
+        (c_cdd_strdup(prop, &_ast_strdup_159), _ast_strdup_159);
     if (!out->property_name)
       return ENOMEM;
   }
 
   default_mapping = json_object_get_string(obj, "defaultMapping");
   if (default_mapping) {
-    out->default_mapping = c_cdd_strdup(default_mapping);
+    out->default_mapping =
+        (c_cdd_strdup(default_mapping, &_ast_strdup_160), _ast_strdup_160);
     if (!out->default_mapping)
       return ENOMEM;
   }
@@ -5083,10 +5859,12 @@ static int parse_discriminator_object(const JSON_Object *const obj,
         val = json_object_get_string(mapping_obj, name);
         if (!val)
           continue;
-        out->mapping[used].value = c_cdd_strdup(name);
+        out->mapping[used].value =
+            (c_cdd_strdup(name, &_ast_strdup_161), _ast_strdup_161);
         if (!out->mapping[used].value)
           return ENOMEM;
-        out->mapping[used].schema = c_cdd_strdup(val);
+        out->mapping[used].schema =
+            (c_cdd_strdup(val, &_ast_strdup_162), _ast_strdup_162);
         if (!out->mapping[used].schema)
           return ENOMEM;
         used++;
@@ -5106,6 +5884,10 @@ static int parse_discriminator_object(const JSON_Object *const obj,
 
 static int parse_xml_object(const JSON_Object *const obj,
                             struct OpenAPI_Xml *const out) {
+  enum OpenAPI_XmlNodeType _ast_parse_xml_node_type_40;
+  char *_ast_strdup_163 = NULL;
+  char *_ast_strdup_164 = NULL;
+  char *_ast_strdup_165 = NULL;
   const char *node_type;
   const char *name;
   const char *ns;
@@ -5116,27 +5898,29 @@ static int parse_xml_object(const JSON_Object *const obj,
 
   node_type = json_object_get_string(obj, "nodeType");
   if (node_type) {
-    out->node_type = parse_xml_node_type(node_type);
+    out->node_type =
+        (parse_xml_node_type(node_type, &_ast_parse_xml_node_type_40),
+         _ast_parse_xml_node_type_40);
     out->node_type_set = 1;
   }
 
   name = json_object_get_string(obj, "name");
   if (name) {
-    out->name = c_cdd_strdup(name);
+    out->name = (c_cdd_strdup(name, &_ast_strdup_163), _ast_strdup_163);
     if (!out->name)
       return ENOMEM;
   }
 
   ns = json_object_get_string(obj, "namespace");
   if (ns) {
-    out->namespace_uri = c_cdd_strdup(ns);
+    out->namespace_uri = (c_cdd_strdup(ns, &_ast_strdup_164), _ast_strdup_164);
     if (!out->namespace_uri)
       return ENOMEM;
   }
 
   prefix = json_object_get_string(obj, "prefix");
   if (prefix) {
-    out->prefix = c_cdd_strdup(prefix);
+    out->prefix = (c_cdd_strdup(prefix, &_ast_strdup_165), _ast_strdup_165);
     if (!out->prefix)
       return ENOMEM;
   }
@@ -5162,6 +5946,11 @@ static int parse_xml_object(const JSON_Object *const obj,
 
 static int parse_tags(const JSON_Object *const root_obj,
                       struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_166 = NULL;
+  char *_ast_strdup_167 = NULL;
+  char *_ast_strdup_168 = NULL;
+  char *_ast_strdup_169 = NULL;
+  char *_ast_strdup_170 = NULL;
   const JSON_Array *tags_arr;
   size_t count, i;
 
@@ -5199,26 +5988,30 @@ static int parse_tags(const JSON_Object *const root_obj,
           return EINVAL;
       }
     }
-    out->tags[i].name = c_cdd_strdup(name);
+    out->tags[i].name = (c_cdd_strdup(name, &_ast_strdup_166), _ast_strdup_166);
     if (!out->tags[i].name)
       return ENOMEM;
     if (summary) {
-      out->tags[i].summary = c_cdd_strdup(summary);
+      out->tags[i].summary =
+          (c_cdd_strdup(summary, &_ast_strdup_167), _ast_strdup_167);
       if (!out->tags[i].summary)
         return ENOMEM;
     }
     if (description) {
-      out->tags[i].description = c_cdd_strdup(description);
+      out->tags[i].description =
+          (c_cdd_strdup(description, &_ast_strdup_168), _ast_strdup_168);
       if (!out->tags[i].description)
         return ENOMEM;
     }
     if (parent) {
-      out->tags[i].parent = c_cdd_strdup(parent);
+      out->tags[i].parent =
+          (c_cdd_strdup(parent, &_ast_strdup_169), _ast_strdup_169);
       if (!out->tags[i].parent)
         return ENOMEM;
     }
     if (kind) {
-      out->tags[i].kind = c_cdd_strdup(kind);
+      out->tags[i].kind =
+          (c_cdd_strdup(kind, &_ast_strdup_170), _ast_strdup_170);
       if (!out->tags[i].kind)
         return ENOMEM;
     }
@@ -5396,6 +6189,13 @@ oom:
 
 static int parse_server_object(const JSON_Object *const srv_obj,
                                struct OpenAPI_Server *const out_srv) {
+  char *_ast_strdup_171 = NULL;
+  char *_ast_strdup_172 = NULL;
+  char *_ast_strdup_173 = NULL;
+  char *_ast_strdup_174 = NULL;
+  char *_ast_strdup_175 = NULL;
+  char *_ast_strdup_176 = NULL;
+  char *_ast_strdup_177 = NULL;
   const char *url;
   const char *desc;
   const char *name;
@@ -5414,17 +6214,18 @@ static int parse_server_object(const JSON_Object *const srv_obj,
   if (url && url_has_query_or_fragment(url))
     return EINVAL;
 
-  out_srv->url = c_cdd_strdup(url);
+  out_srv->url = (c_cdd_strdup(url, &_ast_strdup_171), _ast_strdup_171);
   if (!out_srv->url)
     return ENOMEM;
 
   if (desc) {
-    out_srv->description = c_cdd_strdup(desc);
+    out_srv->description =
+        (c_cdd_strdup(desc, &_ast_strdup_172), _ast_strdup_172);
     if (!out_srv->description)
       return ENOMEM;
   }
   if (name) {
-    out_srv->name = c_cdd_strdup(name);
+    out_srv->name = (c_cdd_strdup(name, &_ast_strdup_173), _ast_strdup_173);
     if (!out_srv->name)
       return ENOMEM;
   }
@@ -5449,7 +6250,7 @@ static int parse_server_object(const JSON_Object *const srv_obj,
             json_value_get_object(json_object_get_value_at(vars, v));
         struct OpenAPI_ServerVariable *curr = &out_srv->variables[v];
         if (vname) {
-          curr->name = c_cdd_strdup(vname);
+          curr->name = (c_cdd_strdup(vname, &_ast_strdup_174), _ast_strdup_174);
           if (!curr->name)
             return ENOMEM;
         }
@@ -5460,12 +6261,14 @@ static int parse_server_object(const JSON_Object *const srv_obj,
           if (!def_val || !*def_val)
             return EINVAL;
           if (def_val) {
-            curr->default_value = c_cdd_strdup(def_val);
+            curr->default_value =
+                (c_cdd_strdup(def_val, &_ast_strdup_175), _ast_strdup_175);
             if (!curr->default_value)
               return ENOMEM;
           }
           if (v_desc) {
-            curr->description = c_cdd_strdup(v_desc);
+            curr->description =
+                (c_cdd_strdup(v_desc, &_ast_strdup_176), _ast_strdup_176);
             if (!curr->description)
               return ENOMEM;
           }
@@ -5483,7 +6286,8 @@ static int parse_server_object(const JSON_Object *const srv_obj,
               for (e = 0; e < ecount; ++e) {
                 const char *e_val = json_array_get_string(enum_arr, e);
                 if (e_val) {
-                  curr->enum_values[e] = c_cdd_strdup(e_val);
+                  curr->enum_values[e] =
+                      (c_cdd_strdup(e_val, &_ast_strdup_177), _ast_strdup_177);
                   if (!curr->enum_values[e])
                     return ENOMEM;
                   if (strcmp(e_val, def_val) == 0)
@@ -5574,6 +6378,8 @@ static int
 parse_security_requirements(const JSON_Array *const arr,
                             struct OpenAPI_SecurityRequirementSet **out,
                             size_t *out_count) {
+  char *_ast_strdup_178 = NULL;
+  char *_ast_strdup_179 = NULL;
   size_t i, count;
   int rc = 0;
 
@@ -5637,7 +6443,8 @@ parse_security_requirements(const JSON_Array *const arr,
           continue;
         req = &set->requirements[req_idx++];
 
-        req->scheme = c_cdd_strdup(scheme ? scheme : "");
+        req->scheme = (c_cdd_strdup(scheme ? scheme : "", &_ast_strdup_178),
+                       _ast_strdup_178);
         if (!req->scheme) {
           rc = ENOMEM;
           goto fail;
@@ -5661,7 +6468,8 @@ parse_security_requirements(const JSON_Array *const arr,
 
         for (k = 0; k < n_scopes; ++k) {
           const char *scope = json_array_get_string(scopes_arr, k);
-          req->scopes[k] = c_cdd_strdup(scope ? scope : "");
+          req->scopes[k] = (c_cdd_strdup(scope ? scope : "", &_ast_strdup_179),
+                            _ast_strdup_179);
           if (!req->scopes[k]) {
             rc = ENOMEM;
             goto fail;
@@ -5896,6 +6704,26 @@ static int parse_schema_ref_ptr(const JSON_Object *obj,
 static int parse_schema_ref(const JSON_Object *const schema,
                             struct OpenAPI_SchemaRef *const out,
                             const struct OpenAPI_Spec *const spec) {
+  char *_ast_parse_schema_type_41;
+  struct ResolvedRefTarget _ast_resolve_ref_target_42;
+  char *_ast_ref_name_from_prefix_43;
+  char *_ast_json_pointer_unescape_44;
+  char *_ast_parse_schema_type_45;
+  struct ResolvedRefTarget _ast_resolve_ref_target_46;
+  char *_ast_ref_name_from_prefix_47;
+  char *_ast_json_pointer_unescape_48;
+  char *_ast_strdup_180 = NULL;
+  char *_ast_strdup_181 = NULL;
+  char *_ast_strdup_182 = NULL;
+  char *_ast_strdup_183 = NULL;
+  char *_ast_strdup_184 = NULL;
+  char *_ast_strdup_185 = NULL;
+  char *_ast_strdup_186 = NULL;
+  char *_ast_strdup_187 = NULL;
+  char *_ast_strdup_188 = NULL;
+  char *_ast_strdup_189 = NULL;
+  char *_ast_strdup_190 = NULL;
+  char *_ast_strdup_191 = NULL;
   const char *ref = json_object_get_string(schema, "$ref");
   const char *dynamic_ref = json_object_get_string(schema, "$dynamicRef");
   const char *ref_val = ref ? ref : dynamic_ref;
@@ -6045,7 +6873,8 @@ static int parse_schema_ref(const JSON_Object *const schema,
     }
   }
 
-  type = parse_schema_type(schema, &nullable);
+  type = (parse_schema_type(schema, &nullable, &_ast_parse_schema_type_41),
+          _ast_parse_schema_type_41);
   out->nullable = nullable;
 
   if (json_object_has_value(schema, "allOf")) {
@@ -6146,28 +6975,30 @@ static int parse_schema_ref(const JSON_Object *const schema,
   }
 
   if (format) {
-    out->format = c_cdd_strdup(format);
+    out->format = (c_cdd_strdup(format, &_ast_strdup_180), _ast_strdup_180);
     if (!out->format)
       return ENOMEM;
   }
   if (content_media_type) {
-    out->content_media_type = c_cdd_strdup(content_media_type);
+    out->content_media_type =
+        (c_cdd_strdup(content_media_type, &_ast_strdup_181), _ast_strdup_181);
     if (!out->content_media_type)
       return ENOMEM;
   }
   if (content_encoding) {
-    out->content_encoding = c_cdd_strdup(content_encoding);
+    out->content_encoding =
+        (c_cdd_strdup(content_encoding, &_ast_strdup_182), _ast_strdup_182);
     if (!out->content_encoding)
       return ENOMEM;
   }
 
   if (ref_val && summary) {
-    out->summary = c_cdd_strdup(summary);
+    out->summary = (c_cdd_strdup(summary, &_ast_strdup_183), _ast_strdup_183);
     if (!out->summary)
       return ENOMEM;
   }
   if (desc) {
-    out->description = c_cdd_strdup(desc);
+    out->description = (c_cdd_strdup(desc, &_ast_strdup_184), _ast_strdup_184);
     if (!out->description)
       return ENOMEM;
   }
@@ -6246,12 +7077,16 @@ static int parse_schema_ref(const JSON_Object *const schema,
   }
 
   if (ref_val) {
-    struct ResolvedRefTarget resolved = resolve_ref_target(spec, ref_val);
+    struct ResolvedRefTarget resolved =
+        (resolve_ref_target(spec, ref_val, &_ast_resolve_ref_target_42),
+         _ast_resolve_ref_target_42);
     const struct OpenAPI_Spec *target = resolved.spec;
     const char *name_enc =
-        ref_name_from_prefix(target, resolved.ref, "#/components/schemas/");
+        (ref_name_from_prefix(target, resolved.ref, "#/components/schemas/",
+                              &_ast_ref_name_from_prefix_43),
+         _ast_ref_name_from_prefix_43);
     char *name_dec = NULL;
-    out->ref = c_cdd_strdup(ref_val);
+    out->ref = (c_cdd_strdup(ref_val, &_ast_strdup_185), _ast_strdup_185);
     if (!out->ref) {
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
@@ -6259,7 +7094,9 @@ static int parse_schema_ref(const JSON_Object *const schema,
     }
     out->ref_is_dynamic = ref_is_dynamic ? 1 : 0;
     if (name_enc) {
-      name_dec = json_pointer_unescape(name_enc);
+      name_dec =
+          (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_44),
+           _ast_json_pointer_unescape_44);
       if (!name_dec) {
         if (resolved.resolved_ref)
           free(resolved.resolved_ref);
@@ -6330,7 +7167,9 @@ static int parse_schema_ref(const JSON_Object *const schema,
             return _rc;
         }
       }
-      item_type = parse_schema_type(items, &items_nullable);
+      item_type = (parse_schema_type(items, &items_nullable,
+                                     &_ast_parse_schema_type_45),
+                   _ast_parse_schema_type_45);
       out->items_nullable = items_nullable;
       item_types_arr = json_object_get_array(items, "type");
       if (item_types_arr) {
@@ -6342,17 +7181,22 @@ static int parse_schema_ref(const JSON_Object *const schema,
         }
       }
       if (item_format) {
-        out->items_format = c_cdd_strdup(item_format);
+        out->items_format =
+            (c_cdd_strdup(item_format, &_ast_strdup_186), _ast_strdup_186);
         if (!out->items_format)
           return ENOMEM;
       }
       if (item_content_media_type) {
-        out->items_content_media_type = c_cdd_strdup(item_content_media_type);
+        out->items_content_media_type =
+            (c_cdd_strdup(item_content_media_type, &_ast_strdup_187),
+             _ast_strdup_187);
         if (!out->items_content_media_type)
           return ENOMEM;
       }
       if (item_content_encoding) {
-        out->items_content_encoding = c_cdd_strdup(item_content_encoding);
+        out->items_content_encoding =
+            (c_cdd_strdup(item_content_encoding, &_ast_strdup_188),
+             _ast_strdup_188);
         if (!out->items_content_encoding)
           return ENOMEM;
       }
@@ -6393,12 +7237,17 @@ static int parse_schema_ref(const JSON_Object *const schema,
         return ENOMEM;
       if (item_ref_val) {
         struct ResolvedRefTarget resolved =
-            resolve_ref_target(spec, item_ref_val);
+            (resolve_ref_target(spec, item_ref_val,
+                                &_ast_resolve_ref_target_46),
+             _ast_resolve_ref_target_46);
         const struct OpenAPI_Spec *target = resolved.spec;
         const char *name_enc =
-            ref_name_from_prefix(target, resolved.ref, "#/components/schemas/");
+            (ref_name_from_prefix(target, resolved.ref, "#/components/schemas/",
+                                  &_ast_ref_name_from_prefix_47),
+             _ast_ref_name_from_prefix_47);
         char *name_dec = NULL;
-        out->items_ref = c_cdd_strdup(item_ref_val);
+        out->items_ref =
+            (c_cdd_strdup(item_ref_val, &_ast_strdup_189), _ast_strdup_189);
         if (!out->items_ref) {
           if (resolved.resolved_ref)
             free(resolved.resolved_ref);
@@ -6406,7 +7255,9 @@ static int parse_schema_ref(const JSON_Object *const schema,
         }
         out->items_ref_is_dynamic = item_ref_is_dynamic ? 1 : 0;
         if (name_enc) {
-          name_dec = json_pointer_unescape(name_enc);
+          name_dec =
+              (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_48),
+               _ast_json_pointer_unescape_48);
           if (!name_dec) {
             if (resolved.resolved_ref)
               free(resolved.resolved_ref);
@@ -6419,7 +7270,8 @@ static int parse_schema_ref(const JSON_Object *const schema,
         return 0;
       }
       if (item_type) {
-        out->inline_type = c_cdd_strdup(item_type);
+        out->inline_type =
+            (c_cdd_strdup(item_type, &_ast_strdup_190), _ast_strdup_190);
         return out->inline_type ? 0 : ENOMEM;
       }
     }
@@ -6427,7 +7279,7 @@ static int parse_schema_ref(const JSON_Object *const schema,
   }
 
   if (type) {
-    out->inline_type = c_cdd_strdup(type);
+    out->inline_type = (c_cdd_strdup(type, &_ast_strdup_191), _ast_strdup_191);
     return out->inline_type ? 0 : ENOMEM;
   }
 
@@ -6437,6 +7289,11 @@ static int parse_schema_ref(const JSON_Object *const schema,
 static int
 apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
                           const struct OpenAPI_SchemaRef *const schema_ref) {
+  char *_ast_strdup_192 = NULL;
+  char *_ast_strdup_193 = NULL;
+  char *_ast_strdup_194 = NULL;
+  char *_ast_strdup_195 = NULL;
+  char *_ast_strdup_196 = NULL;
   if (!out_param || !schema_ref)
     return 0;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
@@ -6454,15 +7311,20 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
 
   if (schema_ref->is_array) {
     out_param->is_array = 1;
-    out_param->type = c_cdd_strdup("array");
+    out_param->type =
+        (c_cdd_strdup("array", &_ast_strdup_192), _ast_strdup_192);
     if (!out_param->type)
       return ENOMEM;
     if (schema_ref->inline_type) {
-      out_param->items_type = c_cdd_strdup(schema_ref->inline_type);
+      out_param->items_type =
+          (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_193),
+           _ast_strdup_193);
       if (!out_param->items_type)
         return ENOMEM;
     } else if (schema_ref->ref_name) {
-      out_param->items_type = c_cdd_strdup(schema_ref->ref_name);
+      out_param->items_type =
+          (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_194),
+           _ast_strdup_194);
       if (!out_param->items_type)
         return ENOMEM;
     }
@@ -6471,9 +7333,11 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
 
   out_param->is_array = 0;
   if (schema_ref->inline_type) {
-    out_param->type = c_cdd_strdup(schema_ref->inline_type);
+    out_param->type = (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_195),
+                       _ast_strdup_195);
   } else if (schema_ref->ref_name) {
-    out_param->type = c_cdd_strdup(schema_ref->ref_name);
+    out_param->type =
+        (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_196), _ast_strdup_196);
   }
   if (!out_param->type)
     return ENOMEM;
@@ -6484,6 +7348,11 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
 static int
 apply_schema_ref_to_header(struct OpenAPI_Header *const out_hdr,
                            const struct OpenAPI_SchemaRef *const schema_ref) {
+  char *_ast_strdup_197 = NULL;
+  char *_ast_strdup_198 = NULL;
+  char *_ast_strdup_199 = NULL;
+  char *_ast_strdup_200 = NULL;
+  char *_ast_strdup_201 = NULL;
   if (!out_hdr || !schema_ref)
     return 0;
   if (!schema_ref->ref_name && !schema_ref->inline_type &&
@@ -6501,15 +7370,19 @@ apply_schema_ref_to_header(struct OpenAPI_Header *const out_hdr,
 
   if (schema_ref->is_array) {
     out_hdr->is_array = 1;
-    out_hdr->type = c_cdd_strdup("array");
+    out_hdr->type = (c_cdd_strdup("array", &_ast_strdup_197), _ast_strdup_197);
     if (!out_hdr->type)
       return ENOMEM;
     if (schema_ref->inline_type) {
-      out_hdr->items_type = c_cdd_strdup(schema_ref->inline_type);
+      out_hdr->items_type =
+          (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_198),
+           _ast_strdup_198);
       if (!out_hdr->items_type)
         return ENOMEM;
     } else if (schema_ref->ref_name) {
-      out_hdr->items_type = c_cdd_strdup(schema_ref->ref_name);
+      out_hdr->items_type =
+          (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_199),
+           _ast_strdup_199);
       if (!out_hdr->items_type)
         return ENOMEM;
     }
@@ -6518,9 +7391,11 @@ apply_schema_ref_to_header(struct OpenAPI_Header *const out_hdr,
 
   out_hdr->is_array = 0;
   if (schema_ref->inline_type) {
-    out_hdr->type = c_cdd_strdup(schema_ref->inline_type);
+    out_hdr->type = (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_200),
+                     _ast_strdup_200);
   } else if (schema_ref->ref_name) {
-    out_hdr->type = c_cdd_strdup(schema_ref->ref_name);
+    out_hdr->type =
+        (c_cdd_strdup(schema_ref->ref_name, &_ast_strdup_201), _ast_strdup_201);
   }
   if (!out_hdr->type)
     return ENOMEM;
@@ -6546,15 +7421,22 @@ static int schema_name_in_use(const struct OpenAPI_Spec *spec,
   return 0;
 }
 
-static char *sanitize_component_name(const char *name) {
+static int sanitize_component_name(const char *name, char **_out_val) {
+  char *_ast_strdup_202 = NULL;
+  char *_ast_strdup_203 = NULL;
   size_t i, len;
   char *out;
-  if (!name || !*name)
-    return c_cdd_strdup("InlineSchema");
+  if (!name || !*name) {
+    *_out_val =
+        (c_cdd_strdup("InlineSchema", &_ast_strdup_202), _ast_strdup_202);
+    return 0;
+  }
   len = strlen(name);
   out = (char *)calloc(len + 1, sizeof(char));
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < len; ++i) {
     const char c = name[i];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -6566,18 +7448,31 @@ static char *sanitize_component_name(const char *name) {
   }
   if (!out[0]) {
     free(out);
-    return c_cdd_strdup("InlineSchema");
+    {
+      *_out_val =
+          (c_cdd_strdup("InlineSchema", &_ast_strdup_203), _ast_strdup_203);
+      return 0;
+    }
   }
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *make_unique_schema_name(const struct OpenAPI_Spec *spec,
-                                     const char *base) {
+static int make_unique_schema_name(const struct OpenAPI_Spec *spec,
+                                   const char *base, char **_out_val) {
+  char *_ast_strdup_204 = NULL;
+  char *_ast_strdup_205 = NULL;
   size_t attempt = 0;
-  if (!base)
-    return NULL;
-  if (!schema_name_in_use(spec, base))
-    return c_cdd_strdup(base);
+  if (!base) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!schema_name_in_use(spec, base)) {
+    *_out_val = (c_cdd_strdup(base, &_ast_strdup_204), _ast_strdup_204);
+    return 0;
+  }
   for (attempt = 1; attempt < 10000; ++attempt) {
     char buf[256];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -6585,10 +7480,15 @@ static char *make_unique_schema_name(const struct OpenAPI_Spec *spec,
 #else
     sprintf(buf, "%s_%lu", base, (unsigned long)attempt);
 #endif
-    if (!schema_name_in_use(spec, buf))
-      return c_cdd_strdup(buf);
+    if (!schema_name_in_use(spec, buf)) {
+      *_out_val = (c_cdd_strdup(buf, &_ast_strdup_205), _ast_strdup_205);
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int schema_type_array_includes(const JSON_Array *arr, const char *type) {
@@ -6702,6 +7602,8 @@ static int raw_schema_name_exists(const struct OpenAPI_Spec *spec,
 
 static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
                              const JSON_Value *schema_val) {
+  char *_ast_strdup_206 = NULL;
+  char *_ast_strdup_207 = NULL;
   size_t i;
   size_t new_count;
   char **new_names = NULL;
@@ -6718,12 +7620,12 @@ static int append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
   raw_json = json_serialize_to_string(schema_val);
   if (!raw_json)
     return ENOMEM;
-  dup_json = c_cdd_strdup(raw_json);
+  dup_json = (c_cdd_strdup(raw_json, &_ast_strdup_206), _ast_strdup_206);
   json_free_serialized_string(raw_json);
   if (!dup_json)
     return ENOMEM;
 
-  dup_name = c_cdd_strdup(name);
+  dup_name = (c_cdd_strdup(name, &_ast_strdup_207), _ast_strdup_207);
   if (!dup_name) {
     free(dup_json);
     return ENOMEM;
@@ -6760,6 +7662,8 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
                                   const JSON_Object *schema_obj,
                                   const JSON_Value *schema_val,
                                   char **out_name) {
+  char *_ast_sanitize_component_name_49;
+  char *_ast_make_unique_schema_name_50;
   struct StructFields tmp;
   char *sanitized = NULL;
   char *unique = NULL;
@@ -6780,13 +7684,17 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
     return rc;
   }
 
-  sanitized = sanitize_component_name(base_name);
+  sanitized =
+      (sanitize_component_name(base_name, &_ast_sanitize_component_name_49),
+       _ast_sanitize_component_name_49);
   if (!sanitized) {
     struct_fields_free(&tmp);
     return ENOMEM;
   }
 
-  unique = make_unique_schema_name(spec, sanitized);
+  unique = (make_unique_schema_name(spec, sanitized,
+                                    &_ast_make_unique_schema_name_50),
+            _ast_make_unique_schema_name_50);
   free(sanitized);
   if (!unique) {
     struct_fields_free(&tmp);
@@ -6814,10 +7722,11 @@ static int register_inline_schema(struct OpenAPI_Spec *spec,
 
 static int assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
                                   const char *name) {
+  char *_ast_strdup_208 = NULL;
   char *dup;
   if (!schema_ref || !name)
     return EINVAL;
-  dup = c_cdd_strdup(name);
+  dup = (c_cdd_strdup(name, &_ast_strdup_208), _ast_strdup_208);
   if (!dup)
     return ENOMEM;
   if (schema_ref->ref_name)
@@ -6826,31 +7735,39 @@ static int assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
   return 0;
 }
 
-static char *build_inline_request_name(const char *op_id, int is_item) {
+static int build_inline_request_name(const char *op_id, int is_item,
+                                     char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *suffix = is_item ? "Request_Item" : "Request";
   size_t len = strlen("Inline_") + strlen(op) + 1 + strlen(suffix) + 1;
   char *out = (char *)malloc(len);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_%s_%s", op, suffix);
 #else
   sprintf(out, "Inline_%s_%s", op, suffix);
 #endif
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *build_inline_response_name(const char *op_id, const char *code,
-                                        int is_item) {
+static int build_inline_response_name(const char *op_id, const char *code,
+                                      int is_item, char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *resp = (code && *code) ? code : "default";
   const char *suffix = is_item ? "Item" : "";
   size_t len = strlen("Inline_") + strlen(op) + strlen("_Response_") +
                strlen(resp) + (suffix[0] ? 1 + strlen(suffix) : 0) + 1;
   char *out = (char *)malloc(len);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (suffix[0]) {
     sprintf_s(out, len, "Inline_%s_Response_%s_%s", op, resp, suffix);
@@ -6864,21 +7781,29 @@ static char *build_inline_response_name(const char *op_id, const char *code,
     sprintf(out, "Inline_%s_Response_%s", op, resp);
   }
 #endif
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
-static char *build_inline_param_name(const char *param_name) {
+static int build_inline_param_name(const char *param_name, char **_out_val) {
   const char *p = (param_name && *param_name) ? param_name : "param";
   size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
   char *out = (char *)malloc(len);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   sprintf_s(out, len, "Inline_Querystring_%s", p);
 #else
   sprintf(out, "Inline_Querystring_%s", p);
 #endif
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 static int parse_servers(const JSON_Object *const root_obj,
@@ -6889,6 +7814,15 @@ static int parse_servers(const JSON_Object *const root_obj,
 
 static int parse_security_schemes(const JSON_Object *const components,
                                   struct OpenAPI_Spec *const out) {
+  enum OpenAPI_SecurityType _ast_parse_security_type_51;
+  enum OpenAPI_SecurityIn _ast_parse_security_in_52;
+  char *_ast_strdup_209 = NULL;
+  char *_ast_strdup_210 = NULL;
+  char *_ast_strdup_211 = NULL;
+  char *_ast_strdup_212 = NULL;
+  char *_ast_strdup_213 = NULL;
+  char *_ast_strdup_214 = NULL;
+  char *_ast_strdup_215 = NULL;
   const JSON_Object *schemes;
   size_t count, i;
 
@@ -6918,7 +7852,8 @@ static int parse_security_schemes(const JSON_Object *const components,
         json_value_get_object(json_object_get_value_at(schemes, i));
     if (!component_key_is_valid(name))
       return EINVAL;
-    out->security_schemes[i].name = c_cdd_strdup(name ? name : "");
+    out->security_schemes[i].name =
+        (c_cdd_strdup(name ? name : "", &_ast_strdup_209), _ast_strdup_209);
     if (!out->security_schemes[i].name)
       return ENOMEM;
     out->security_schemes[i].type = OA_SEC_UNKNOWN;
@@ -6928,7 +7863,9 @@ static int parse_security_schemes(const JSON_Object *const components,
 
     {
       const char *type = json_object_get_string(sec_obj, "type");
-      out->security_schemes[i].type = parse_security_type(type);
+      out->security_schemes[i].type =
+          (parse_security_type(type, &_ast_parse_security_type_51),
+           _ast_parse_security_type_51);
       if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
         return EINVAL;
     }
@@ -6936,7 +7873,8 @@ static int parse_security_schemes(const JSON_Object *const components,
     {
       const char *desc = json_object_get_string(sec_obj, "description");
       if (desc) {
-        out->security_schemes[i].description = c_cdd_strdup(desc);
+        out->security_schemes[i].description =
+            (c_cdd_strdup(desc, &_ast_strdup_210), _ast_strdup_210);
         if (!out->security_schemes[i].description)
           return ENOMEM;
       }
@@ -6956,12 +7894,15 @@ static int parse_security_schemes(const JSON_Object *const components,
     if (out->security_schemes[i].type == OA_SEC_APIKEY) {
       const char *in = json_object_get_string(sec_obj, "in");
       const char *key_name = json_object_get_string(sec_obj, "name");
-      out->security_schemes[i].in = parse_security_in(in);
+      out->security_schemes[i].in =
+          (parse_security_in(in, &_ast_parse_security_in_52),
+           _ast_parse_security_in_52);
       if (!key_name || !*key_name ||
           out->security_schemes[i].in == OA_SEC_IN_UNKNOWN)
         return EINVAL;
       if (key_name) {
-        out->security_schemes[i].key_name = c_cdd_strdup(key_name);
+        out->security_schemes[i].key_name =
+            (c_cdd_strdup(key_name, &_ast_strdup_211), _ast_strdup_211);
         if (!out->security_schemes[i].key_name)
           return ENOMEM;
       }
@@ -6972,12 +7913,14 @@ static int parse_security_schemes(const JSON_Object *const components,
       if (!scheme || !*scheme)
         return EINVAL;
       if (scheme) {
-        out->security_schemes[i].scheme = c_cdd_strdup(scheme);
+        out->security_schemes[i].scheme =
+            (c_cdd_strdup(scheme, &_ast_strdup_212), _ast_strdup_212);
         if (!out->security_schemes[i].scheme)
           return ENOMEM;
       }
       if (bearer_format) {
-        out->security_schemes[i].bearer_format = c_cdd_strdup(bearer_format);
+        out->security_schemes[i].bearer_format =
+            (c_cdd_strdup(bearer_format, &_ast_strdup_213), _ast_strdup_213);
         if (!out->security_schemes[i].bearer_format)
           return ENOMEM;
       }
@@ -6986,7 +7929,8 @@ static int parse_security_schemes(const JSON_Object *const components,
       if (!oid_url || !*oid_url)
         return EINVAL;
       if (oid_url) {
-        out->security_schemes[i].open_id_connect_url = c_cdd_strdup(oid_url);
+        out->security_schemes[i].open_id_connect_url =
+            (c_cdd_strdup(oid_url, &_ast_strdup_214), _ast_strdup_214);
         if (!out->security_schemes[i].open_id_connect_url)
           return ENOMEM;
       }
@@ -6995,7 +7939,8 @@ static int parse_security_schemes(const JSON_Object *const components,
           json_object_get_string(sec_obj, "oauth2MetadataUrl");
       const JSON_Object *flows_obj = json_object_get_object(sec_obj, "flows");
       if (meta_url) {
-        out->security_schemes[i].oauth2_metadata_url = c_cdd_strdup(meta_url);
+        out->security_schemes[i].oauth2_metadata_url =
+            (c_cdd_strdup(meta_url, &_ast_strdup_215), _ast_strdup_215);
         if (!out->security_schemes[i].oauth2_metadata_url)
           return ENOMEM;
       }
@@ -7016,6 +7961,15 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
                                struct OpenAPI_Header *const out_hdr,
                                const struct OpenAPI_Spec *const spec,
                                const int resolve_refs) {
+  struct OpenAPI_Header *_ast_find_component_header_53;
+  enum OpenAPI_Style _ast_parse_param_style_54;
+  struct OpenAPI_MediaType *_ast_find_component_media_type_55;
+  char *_ast_strdup_216 = NULL;
+  char *_ast_strdup_217 = NULL;
+  char *_ast_strdup_218 = NULL;
+  char *_ast_strdup_219 = NULL;
+  char *_ast_strdup_220 = NULL;
+  char *_ast_strdup_221 = NULL;
   const char *ref;
   const char *desc;
   const char *style_str;
@@ -7044,11 +7998,13 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
 
   ref = json_object_get_string(hdr_obj, "$ref");
   if (ref) {
-    out_hdr->ref = c_cdd_strdup(ref);
+    out_hdr->ref = (c_cdd_strdup(ref, &_ast_strdup_216), _ast_strdup_216);
     if (!out_hdr->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Header *comp = find_component_header(spec, ref);
+      const struct OpenAPI_Header *comp =
+          (find_component_header(spec, ref, &_ast_find_component_header_53),
+           _ast_find_component_header_53);
       if (comp) {
         {
           int _rc = copy_header_fields(out_hdr, comp);
@@ -7059,7 +8015,8 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
     }
     desc = json_object_get_string(hdr_obj, "description");
     if (desc) {
-      out_hdr->description = c_cdd_strdup(desc);
+      out_hdr->description =
+          (c_cdd_strdup(desc, &_ast_strdup_217), _ast_strdup_217);
       if (!out_hdr->description)
         return ENOMEM;
     }
@@ -7068,7 +8025,8 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
 
   desc = json_object_get_string(hdr_obj, "description");
   if (desc) {
-    out_hdr->description = c_cdd_strdup(desc);
+    out_hdr->description =
+        (c_cdd_strdup(desc, &_ast_strdup_218), _ast_strdup_218);
     if (!out_hdr->description)
       return ENOMEM;
   }
@@ -7087,7 +8045,9 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
 
   style_str = json_object_get_string(hdr_obj, "style");
   if (style_str) {
-    enum OpenAPI_Style parsed_style = parse_param_style(style_str);
+    enum OpenAPI_Style parsed_style =
+        (parse_param_style(style_str, &_ast_parse_param_style_54),
+         _ast_parse_param_style_54);
     if (parsed_style != OA_STYLE_SIMPLE)
       return EINVAL;
     out_hdr->style_set = 1;
@@ -7143,19 +8103,23 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
       }
     }
     if (media_type) {
-      out_hdr->content_type = c_cdd_strdup(media_type);
+      out_hdr->content_type =
+          (c_cdd_strdup(media_type, &_ast_strdup_219), _ast_strdup_219);
       if (!out_hdr->content_type)
         return ENOMEM;
     }
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
-        out_hdr->content_ref = c_cdd_strdup(media_ref);
+        out_hdr->content_ref =
+            (c_cdd_strdup(media_ref, &_ast_strdup_220), _ast_strdup_220);
         if (!out_hdr->content_ref)
           return ENOMEM;
         if (resolve_refs && spec) {
           const struct OpenAPI_MediaType *mt =
-              find_component_media_type(spec, media_ref);
+              (find_component_media_type(spec, media_ref,
+                                         &_ast_find_component_media_type_55),
+               _ast_find_component_media_type_55);
           if (mt) {
             if (mt->schema_set)
               resolved_schema = &mt->schema;
@@ -7212,7 +8176,8 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
   }
 
   if (!out_hdr->type) {
-    out_hdr->type = c_cdd_strdup(type ? type : "string");
+    out_hdr->type = (c_cdd_strdup(type ? type : "string", &_ast_strdup_221),
+                     _ast_strdup_221);
     if (!out_hdr->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
@@ -7268,6 +8233,7 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
 static int parse_link_parameters(const JSON_Object *const params_obj,
                                  struct OpenAPI_LinkParam **out_params,
                                  size_t *out_count) {
+  char *_ast_strdup_222 = NULL;
   size_t count, i;
   if (!out_params || !out_count)
     return 0;
@@ -7290,7 +8256,8 @@ static int parse_link_parameters(const JSON_Object *const params_obj,
     const char *name = json_object_get_name(params_obj, i);
     const JSON_Value *val = json_object_get_value_at(params_obj, i);
     if (name) {
-      (*out_params)[i].name = c_cdd_strdup(name);
+      (*out_params)[i].name =
+          (c_cdd_strdup(name, &_ast_strdup_222), _ast_strdup_222);
       if (!(*out_params)[i].name)
         return ENOMEM;
     }
@@ -7307,6 +8274,14 @@ static int parse_link_object(const JSON_Object *const link_obj,
                              struct OpenAPI_Link *const out_link,
                              const struct OpenAPI_Spec *const spec,
                              const int resolve_refs) {
+  struct OpenAPI_Link *_ast_find_component_link_56;
+  char *_ast_strdup_223 = NULL;
+  char *_ast_strdup_224 = NULL;
+  char *_ast_strdup_225 = NULL;
+  char *_ast_strdup_226 = NULL;
+  char *_ast_strdup_227 = NULL;
+  char *_ast_strdup_228 = NULL;
+  char *_ast_strdup_229 = NULL;
   const char *ref;
   const char *summary;
   const char *desc;
@@ -7321,11 +8296,13 @@ static int parse_link_object(const JSON_Object *const link_obj,
 
   ref = json_object_get_string(link_obj, "$ref");
   if (ref) {
-    out_link->ref = c_cdd_strdup(ref);
+    out_link->ref = (c_cdd_strdup(ref, &_ast_strdup_223), _ast_strdup_223);
     if (!out_link->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Link *comp = find_component_link(spec, ref);
+      const struct OpenAPI_Link *comp =
+          (find_component_link(spec, ref, &_ast_find_component_link_56),
+           _ast_find_component_link_56);
       if (comp) {
         {
           int _rc = copy_link_fields(out_link, comp);
@@ -7336,13 +8313,15 @@ static int parse_link_object(const JSON_Object *const link_obj,
     }
     summary = json_object_get_string(link_obj, "summary");
     if (summary) {
-      out_link->summary = c_cdd_strdup(summary);
+      out_link->summary =
+          (c_cdd_strdup(summary, &_ast_strdup_224), _ast_strdup_224);
       if (!out_link->summary)
         return ENOMEM;
     }
     desc = json_object_get_string(link_obj, "description");
     if (desc) {
-      out_link->description = c_cdd_strdup(desc);
+      out_link->description =
+          (c_cdd_strdup(desc, &_ast_strdup_225), _ast_strdup_225);
       if (!out_link->description)
         return ENOMEM;
     }
@@ -7351,26 +8330,30 @@ static int parse_link_object(const JSON_Object *const link_obj,
 
   summary = json_object_get_string(link_obj, "summary");
   if (summary) {
-    out_link->summary = c_cdd_strdup(summary);
+    out_link->summary =
+        (c_cdd_strdup(summary, &_ast_strdup_226), _ast_strdup_226);
     if (!out_link->summary)
       return ENOMEM;
   }
   desc = json_object_get_string(link_obj, "description");
   if (desc) {
-    out_link->description = c_cdd_strdup(desc);
+    out_link->description =
+        (c_cdd_strdup(desc, &_ast_strdup_227), _ast_strdup_227);
     if (!out_link->description)
       return ENOMEM;
   }
 
   op_ref = json_object_get_string(link_obj, "operationRef");
   if (op_ref) {
-    out_link->operation_ref = c_cdd_strdup(op_ref);
+    out_link->operation_ref =
+        (c_cdd_strdup(op_ref, &_ast_strdup_228), _ast_strdup_228);
     if (!out_link->operation_ref)
       return ENOMEM;
   }
   op_id = json_object_get_string(link_obj, "operationId");
   if (op_id) {
-    out_link->operation_id = c_cdd_strdup(op_id);
+    out_link->operation_id =
+        (c_cdd_strdup(op_id, &_ast_strdup_229), _ast_strdup_229);
     if (!out_link->operation_id)
       return ENOMEM;
   }
@@ -7422,6 +8405,7 @@ static int parse_links_object(const JSON_Object *const links,
                               size_t *out_count,
                               const struct OpenAPI_Spec *const spec,
                               const int resolve_refs) {
+  char *_ast_strdup_230 = NULL;
   size_t i, count;
   if (!out_links || !out_count)
     return 0;
@@ -7448,7 +8432,7 @@ static int parse_links_object(const JSON_Object *const links,
         json_value_get_object(json_object_get_value_at(links, i));
     struct OpenAPI_Link *curr = &(*out_links)[i];
     if (name) {
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_230), _ast_strdup_230);
       if (!curr->name)
         return ENOMEM;
     }
@@ -7470,6 +8454,7 @@ static int parse_headers_object(const JSON_Object *const headers,
                                 const struct OpenAPI_Spec *const spec,
                                 const int resolve_refs,
                                 const int ignore_content_type) {
+  char *_ast_strdup_231 = NULL;
   size_t i, count, valid = 0;
   if (!out_headers || !out_count)
     return 0;
@@ -7497,7 +8482,7 @@ static int parse_headers_object(const JSON_Object *const headers,
     if (ignore_content_type && header_name_is_content_type(name))
       continue;
     if (name) {
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_231), _ast_strdup_231);
       if (!curr->name)
         return ENOMEM;
     }
@@ -7529,6 +8514,8 @@ static int parse_encoding_object(const JSON_Object *const enc_obj,
                                  struct OpenAPI_Encoding *const out,
                                  const struct OpenAPI_Spec *const spec,
                                  const int resolve_refs) {
+  enum OpenAPI_Style _ast_parse_param_style_57;
+  char *_ast_strdup_232 = NULL;
   const char *content_type;
   const char *style_str;
   int explode_present;
@@ -7553,14 +8540,16 @@ static int parse_encoding_object(const JSON_Object *const enc_obj,
 
   content_type = json_object_get_string(enc_obj, "contentType");
   if (content_type) {
-    out->content_type = c_cdd_strdup(content_type);
+    out->content_type =
+        (c_cdd_strdup(content_type, &_ast_strdup_232), _ast_strdup_232);
     if (!out->content_type)
       return ENOMEM;
   }
 
   style_str = json_object_get_string(enc_obj, "style");
   if (style_str) {
-    out->style = parse_param_style(style_str);
+    out->style = (parse_param_style(style_str, &_ast_parse_param_style_57),
+                  _ast_parse_param_style_57);
     out->style_set = 1;
   }
   explode_present = json_object_has_value(enc_obj, "explode");
@@ -7633,6 +8622,7 @@ static int parse_encoding_map(const JSON_Object *const enc_obj,
                               struct OpenAPI_Encoding **out, size_t *out_count,
                               const struct OpenAPI_Spec *const spec,
                               const int resolve_refs) {
+  char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return 0;
@@ -7656,7 +8646,7 @@ static int parse_encoding_map(const JSON_Object *const enc_obj,
     struct OpenAPI_Encoding *curr = &(*out)[valid];
     if (!name || !enc_def)
       continue;
-    curr->name = c_cdd_strdup(name);
+    curr->name = (c_cdd_strdup(name, &_ast_strdup_233), _ast_strdup_233);
     if (!curr->name)
       return ENOMEM;
     {
@@ -7725,6 +8715,18 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
                                   struct OpenAPI_Parameter *const out_param,
                                   const struct OpenAPI_Spec *const spec,
                                   const int resolve_refs) {
+  struct OpenAPI_Parameter *_ast_find_component_parameter_58;
+  enum OpenAPI_ParamIn _ast_parse_param_in_59;
+  struct OpenAPI_MediaType *_ast_find_component_media_type_60;
+  char *_ast_build_inline_param_name_61;
+  enum OpenAPI_Style _ast_parse_param_style_62;
+  char *_ast_strdup_234 = NULL;
+  char *_ast_strdup_235 = NULL;
+  char *_ast_strdup_236 = NULL;
+  char *_ast_strdup_237 = NULL;
+  char *_ast_strdup_238 = NULL;
+  char *_ast_strdup_239 = NULL;
+  char *_ast_strdup_240 = NULL;
   const char *ref;
   const char *name;
   const char *in;
@@ -7758,12 +8760,14 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
 
   ref = json_object_get_string(p_obj, "$ref");
   if (ref) {
-    out_param->ref = c_cdd_strdup(ref);
+    out_param->ref = (c_cdd_strdup(ref, &_ast_strdup_234), _ast_strdup_234);
     if (!out_param->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
       const struct OpenAPI_Parameter *comp =
-          find_component_parameter(spec, ref);
+          (find_component_parameter(spec, ref,
+                                    &_ast_find_component_parameter_58),
+           _ast_find_component_parameter_58);
       if (comp) {
         {
           int _rc = copy_parameter_fields(out_param, comp);
@@ -7774,7 +8778,8 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     }
     desc = json_object_get_string(p_obj, "description");
     if (desc) {
-      out_param->description = c_cdd_strdup(desc);
+      out_param->description =
+          (c_cdd_strdup(desc, &_ast_strdup_235), _ast_strdup_235);
       if (!out_param->description)
         return ENOMEM;
     }
@@ -7820,8 +8825,11 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   explode_present = json_object_has_value(p_obj, "explode");
   explode_val = json_object_get_boolean(p_obj, "explode");
 
-  out_param->name = c_cdd_strdup(name ? name : "");
-  out_param->in = in ? parse_param_in(in) : OA_PARAM_IN_UNKNOWN;
+  out_param->name =
+      (c_cdd_strdup(name ? name : "", &_ast_strdup_236), _ast_strdup_236);
+  out_param->in =
+      in ? (parse_param_in(in, &_ast_parse_param_in_59), _ast_parse_param_in_59)
+         : OA_PARAM_IN_UNKNOWN;
   if (out_param->in == OA_PARAM_IN_UNKNOWN)
     return EINVAL;
   out_param->required = (req == 1);
@@ -7857,19 +8865,23 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
       }
     }
     if (media_type) {
-      out_param->content_type = c_cdd_strdup(media_type);
+      out_param->content_type =
+          (c_cdd_strdup(media_type, &_ast_strdup_237), _ast_strdup_237);
       if (!out_param->content_type)
         return ENOMEM;
     }
     if (media_obj) {
       media_ref = json_object_get_string(media_obj, "$ref");
       if (media_ref) {
-        out_param->content_ref = c_cdd_strdup(media_ref);
+        out_param->content_ref =
+            (c_cdd_strdup(media_ref, &_ast_strdup_238), _ast_strdup_238);
         if (!out_param->content_ref)
           return ENOMEM;
         if (resolve_refs && spec) {
           const struct OpenAPI_MediaType *mt =
-              find_component_media_type(spec, media_ref);
+              (find_component_media_type(spec, media_ref,
+                                         &_ast_find_component_media_type_60),
+               _ast_find_component_media_type_60);
           if (mt) {
             if (mt->schema_set)
               resolved_schema = &mt->schema;
@@ -7890,7 +8902,8 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
     type = json_object_get_string(effective_schema, "type");
 
   if (desc) {
-    out_param->description = c_cdd_strdup(desc);
+    out_param->description =
+        (c_cdd_strdup(desc, &_ast_strdup_239), _ast_strdup_239);
     if (!out_param->description)
       return ENOMEM;
   }
@@ -7950,7 +8963,9 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
       out_param->content_type && media_type_is_json(out_param->content_type) &&
       effective_schema && schema_object_is_object_like(effective_schema) &&
       !out_param->schema.ref_name) {
-    char *base = build_inline_param_name(out_param->name);
+    char *base = (build_inline_param_name(out_param->name,
+                                          &_ast_build_inline_param_name_61),
+                  _ast_build_inline_param_name_61);
     char *registered = NULL;
     if (base) {
       if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -7971,7 +8986,8 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   }
 
   if (!out_param->type) {
-    out_param->type = c_cdd_strdup(type ? type : "string");
+    out_param->type = (c_cdd_strdup(type ? type : "string", &_ast_strdup_240),
+                       _ast_strdup_240);
     if (!out_param->type) {
       if (parsed_schema_set)
         free_schema_ref_content(&parsed_schema);
@@ -7980,7 +8996,9 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   }
 
   if (style_str) {
-    out_param->style = parse_param_style(style_str);
+    out_param->style =
+        (parse_param_style(style_str, &_ast_parse_param_style_62),
+         _ast_parse_param_style_62);
     if (out_param->style == OA_STYLE_UNKNOWN)
       return EINVAL;
   } else {
@@ -8059,6 +9077,8 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
                                    struct OpenAPI_MediaType *const out,
                                    const struct OpenAPI_Spec *const spec,
                                    const int resolve_refs) {
+  struct OpenAPI_MediaType *_ast_find_component_media_type_63;
+  char *_ast_strdup_241 = NULL;
   const JSON_Value *schema_val;
   const JSON_Object *schema_obj;
   const JSON_Value *item_schema_val;
@@ -8081,11 +9101,14 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
 
   ref = json_object_get_string(media_obj, "$ref");
   if (ref) {
-    out->ref = c_cdd_strdup(ref);
+    out->ref = (c_cdd_strdup(ref, &_ast_strdup_241), _ast_strdup_241);
     if (!out->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_MediaType *mt = find_component_media_type(spec, ref);
+      const struct OpenAPI_MediaType *mt =
+          (find_component_media_type(spec, ref,
+                                     &_ast_find_component_media_type_63),
+           _ast_find_component_media_type_63);
       if (mt) {
         {
           int _rc = copy_media_type_fields(out, mt);
@@ -8181,47 +9204,57 @@ static int parse_media_type_object(const JSON_Object *const media_obj,
   return 0;
 }
 
-static size_t media_type_base_len(const char *name) {
+static int media_type_base_len(const char *name, size_t *_out_val) {
   size_t len = 0;
-  if (!name)
+  if (!name) {
+    *_out_val = 0;
     return 0;
+  }
   while (name[len] && name[len] != ';')
     ++len;
-  return len;
+  {
+    *_out_val = len;
+    return 0;
+  }
 }
 
 static int media_type_base_equal(const char *a, const char *b) {
+  size_t _ast_media_type_base_len_64;
+  size_t _ast_media_type_base_len_65;
   size_t alen;
   size_t blen;
   if (!a || !b)
     return 0;
-  alen = media_type_base_len(a);
-  blen = media_type_base_len(b);
+  alen = (media_type_base_len(a, &_ast_media_type_base_len_64),
+          _ast_media_type_base_len_64);
+  blen = (media_type_base_len(b, &_ast_media_type_base_len_65),
+          _ast_media_type_base_len_65);
   if (alen != blen)
     return 0;
   return strncmp(a, b, alen) == 0;
 }
 
 #if 0
-static const struct OpenAPI_MediaType *
-find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
-                        const char *name) {
+static int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
+                        const char *name, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   if (!mts || !name)
-    return NULL;
+    { *_out_val = NULL; return 0; }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && media_type_base_equal(mts[i].name, name))
-      return &mts[i];
+      { *_out_val = &mts[i]; return 0; }
   }
-  return NULL;
+  { *_out_val = NULL; return 0; }
 }
 #endif
 
 static int media_type_is_json(const char *name) {
+  size_t _ast_media_type_base_len_66;
   size_t len;
   if (!name)
     return 0;
-  len = media_type_base_len(name);
+  len = (media_type_base_len(name, &_ast_media_type_base_len_66),
+         _ast_media_type_base_len_66);
   if (len == strlen("application/json") &&
       strncmp(name, "application/json", len) == 0)
     return 1;
@@ -8231,13 +9264,15 @@ static int media_type_is_json(const char *name) {
 }
 
 static int media_type_specificity(const char *name) {
+  size_t _ast_media_type_base_len_67;
   const char *slash;
   size_t len;
   size_t type_len;
   size_t sub_len;
   if (!name)
     return -1;
-  len = media_type_base_len(name);
+  len = (media_type_base_len(name, &_ast_media_type_base_len_67),
+         _ast_media_type_base_len_67);
   if (len == 0)
     return -1;
   slash = (const char *)memchr(name, '/', len);
@@ -8267,8 +9302,7 @@ static int media_type_preference_rank(const char *name) {
 }
 
 #if 0
-static const struct OpenAPI_MediaType *
-select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n) {
+static int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   const struct OpenAPI_MediaType *best = NULL;
   int best_spec = -1;
@@ -8289,7 +9323,7 @@ select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n) {
     }
   }
 
-  return best;
+  { *_out_val = best; return 0; }
 }
 #endif
 
@@ -8317,15 +9351,20 @@ static int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
   return best_idx;
 }
 
-static const JSON_Object *find_media_object_by_name(const JSON_Object *content,
-                                                    const char *media_name) {
+static int find_media_object_by_name(const JSON_Object *content,
+                                     const char *media_name,
+                                     JSON_Object **_out_val) {
   size_t i, count;
-  if (!content || !media_name)
-    return NULL;
+  if (!content || !media_name) {
+    *_out_val = NULL;
+    return 0;
+  }
   {
     const JSON_Object *exact = json_object_get_object(content, media_name);
-    if (exact)
-      return exact;
+    if (exact) {
+      *_out_val = exact;
+      return 0;
+    }
   }
   count = json_object_get_count(content);
   for (i = 0; i < count; ++i) {
@@ -8333,10 +9372,16 @@ static const JSON_Object *find_media_object_by_name(const JSON_Object *content,
     if (!name)
       continue;
     if (media_type_base_equal(name, media_name)) {
-      return json_object_get_object(content, name);
+      {
+        *_out_val = json_object_get_object(content, name);
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int parse_content_object(const JSON_Object *const content,
@@ -8344,6 +9389,7 @@ static int parse_content_object(const JSON_Object *const content,
                                 size_t *out_count,
                                 const struct OpenAPI_Spec *const spec,
                                 const int resolve_refs) {
+  char *_ast_strdup_242 = NULL;
   size_t i, count, valid = 0;
   if (!out || !out_count)
     return 0;
@@ -8367,7 +9413,7 @@ static int parse_content_object(const JSON_Object *const content,
     struct OpenAPI_MediaType *curr = &(*out)[valid];
     if (!name || !media_obj)
       continue;
-    curr->name = c_cdd_strdup(name);
+    curr->name = (c_cdd_strdup(name, &_ast_strdup_242), _ast_strdup_242);
     if (!curr->name)
       return ENOMEM;
     {
@@ -8464,6 +9510,16 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                                      const struct OpenAPI_Spec *const spec,
                                      const int resolve_refs,
                                      const char *const op_id) {
+  struct OpenAPI_RequestBody *_ast_find_component_request_body_68;
+  JSON_Object *_ast_find_media_object_by_name_69;
+  char *_ast_build_inline_request_name_70;
+  char *_ast_build_inline_request_name_71;
+  char *_ast_build_inline_request_name_72;
+  char *_ast_strdup_243 = NULL;
+  char *_ast_strdup_244 = NULL;
+  char *_ast_strdup_245 = NULL;
+  char *_ast_strdup_246 = NULL;
+  char *_ast_strdup_247 = NULL;
   const char *ref;
   const char *desc;
   int required_present;
@@ -8477,12 +9533,14 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
 
   ref = json_object_get_string(rb_obj, "$ref");
   if (ref) {
-    out_rb->ref = c_cdd_strdup(ref);
+    out_rb->ref = (c_cdd_strdup(ref, &_ast_strdup_243), _ast_strdup_243);
     if (!out_rb->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
       const struct OpenAPI_RequestBody *comp =
-          find_component_request_body(spec, ref);
+          (find_component_request_body(spec, ref,
+                                       &_ast_find_component_request_body_68),
+           _ast_find_component_request_body_68);
       if (comp) {
         {
           int _rc = copy_request_body_fields(out_rb, comp);
@@ -8493,7 +9551,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
     }
     desc = json_object_get_string(rb_obj, "description");
     if (desc) {
-      out_rb->description = c_cdd_strdup(desc);
+      out_rb->description =
+          (c_cdd_strdup(desc, &_ast_strdup_244), _ast_strdup_244);
       if (!out_rb->description)
         return ENOMEM;
     }
@@ -8502,7 +9561,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
 
   desc = json_object_get_string(rb_obj, "description");
   if (desc) {
-    out_rb->description = c_cdd_strdup(desc);
+    out_rb->description =
+        (c_cdd_strdup(desc, &_ast_strdup_245), _ast_strdup_245);
     if (!out_rb->description)
       return ENOMEM;
   }
@@ -8531,7 +9591,9 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
     if (primary) {
       if (spec && op_id) {
         const JSON_Object *media_obj =
-            find_media_object_by_name(content, primary->name);
+            (find_media_object_by_name(content, primary->name,
+                                       &_ast_find_media_object_by_name_69),
+             _ast_find_media_object_by_name_69);
         if (media_obj) {
           const JSON_Value *schema_val =
               json_object_get_value(media_obj, "schema");
@@ -8548,7 +9610,9 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
               const JSON_Object *items_obj =
                   items_val ? json_value_get_object(items_val) : NULL;
               if (items_obj && schema_object_is_object_like(items_obj)) {
-                char *base = build_inline_request_name(op_id, 1);
+                char *base = (build_inline_request_name(
+                                  op_id, 1, &_ast_build_inline_request_name_70),
+                              _ast_build_inline_request_name_70);
                 char *registered = NULL;
                 if (base) {
                   if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8570,7 +9634,9 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
                 }
               }
             } else if (schema_object_is_object_like(schema_obj)) {
-              char *base = build_inline_request_name(op_id, 0);
+              char *base = (build_inline_request_name(
+                                op_id, 0, &_ast_build_inline_request_name_71),
+                            _ast_build_inline_request_name_71);
               char *registered = NULL;
               if (base) {
                 if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8594,7 +9660,9 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
           }
           if (primary->item_schema_set && item_schema_obj &&
               schema_object_is_object_like(item_schema_obj)) {
-            char *base = build_inline_request_name(op_id, 1);
+            char *base = (build_inline_request_name(
+                              op_id, 1, &_ast_build_inline_request_name_72),
+                          _ast_build_inline_request_name_72);
             char *registered = NULL;
             if (base) {
               if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8618,7 +9686,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
         }
       }
       if (primary->ref) {
-        out_rb->content_ref = c_cdd_strdup(primary->ref);
+        out_rb->content_ref =
+            (c_cdd_strdup(primary->ref, &_ast_strdup_246), _ast_strdup_246);
         if (!out_rb->content_ref)
           return ENOMEM;
       }
@@ -8662,7 +9731,8 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
         out_rb->example_set = 1;
       }
       if (primary->name) {
-        out_rb->schema.content_type = c_cdd_strdup(primary->name);
+        out_rb->schema.content_type =
+            (c_cdd_strdup(primary->name, &_ast_strdup_247), _ast_strdup_247);
         if (!out_rb->schema.content_type)
           return ENOMEM;
       }
@@ -8680,25 +9750,32 @@ static int parse_request_body_object(const JSON_Object *const rb_obj,
 
 static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
                                     const struct OpenAPI_RequestBody *src) {
+  char *_ast_strdup_248 = NULL;
+  char *_ast_strdup_249 = NULL;
+  char *_ast_strdup_250 = NULL;
+  char *_ast_strdup_251 = NULL;
   if (!dst || !src)
     return 0;
   if (src->ref && !dst->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_248), _ast_strdup_248);
     if (!dst->ref)
       return ENOMEM;
   }
   if (src->description) {
-    dst->description = c_cdd_strdup(src->description);
+    dst->description =
+        (c_cdd_strdup(src->description, &_ast_strdup_249), _ast_strdup_249);
     if (!dst->description)
       return ENOMEM;
   }
   if (src->content_ref) {
-    dst->content_ref = c_cdd_strdup(src->content_ref);
+    dst->content_ref =
+        (c_cdd_strdup(src->content_ref, &_ast_strdup_250), _ast_strdup_250);
     if (!dst->content_ref)
       return ENOMEM;
   }
   if (src->extensions_json) {
-    dst->extensions_json = c_cdd_strdup(src->extensions_json);
+    dst->extensions_json =
+        (c_cdd_strdup(src->extensions_json, &_ast_strdup_251), _ast_strdup_251);
     if (!dst->extensions_json)
       return ENOMEM;
   }
@@ -8750,6 +9827,16 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                                  const int resolve_refs,
                                  const char *const op_id,
                                  const char *const resp_code) {
+  struct OpenAPI_Response *_ast_find_component_response_73;
+  JSON_Object *_ast_find_media_object_by_name_74;
+  char *_ast_build_inline_response_name_75;
+  char *_ast_build_inline_response_name_76;
+  char *_ast_build_inline_response_name_77;
+  char *_ast_strdup_252 = NULL;
+  char *_ast_strdup_253 = NULL;
+  char *_ast_strdup_254 = NULL;
+  char *_ast_strdup_255 = NULL;
+  char *_ast_strdup_256 = NULL;
   const char *ref;
   const char *summary;
   const char *desc;
@@ -8761,11 +9848,13 @@ static int parse_response_object(const JSON_Object *const resp_obj,
 
   ref = json_object_get_string(resp_obj, "$ref");
   if (ref) {
-    out_resp->ref = c_cdd_strdup(ref);
+    out_resp->ref = (c_cdd_strdup(ref, &_ast_strdup_252), _ast_strdup_252);
     if (!out_resp->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Response *comp = find_component_response(spec, ref);
+      const struct OpenAPI_Response *comp =
+          (find_component_response(spec, ref, &_ast_find_component_response_73),
+           _ast_find_component_response_73);
       if (comp) {
         {
           int _rc = copy_response_fields(out_resp, comp);
@@ -8778,7 +9867,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
 
   summary = json_object_get_string(resp_obj, "summary");
   if (summary) {
-    out_resp->summary = c_cdd_strdup(summary);
+    out_resp->summary =
+        (c_cdd_strdup(summary, &_ast_strdup_253), _ast_strdup_253);
     if (!out_resp->summary)
       return ENOMEM;
   }
@@ -8787,7 +9877,8 @@ static int parse_response_object(const JSON_Object *const resp_obj,
   if (0)
     return EINVAL;
   if (desc) {
-    out_resp->description = c_cdd_strdup(desc);
+    out_resp->description =
+        (c_cdd_strdup(desc, &_ast_strdup_254), _ast_strdup_254);
     if (!out_resp->description)
       return ENOMEM;
   }
@@ -8840,7 +9931,9 @@ static int parse_response_object(const JSON_Object *const resp_obj,
     if (primary) {
       if (spec && op_id && resp_code) {
         const JSON_Object *media_obj =
-            find_media_object_by_name(content, primary->name);
+            (find_media_object_by_name(content, primary->name,
+                                       &_ast_find_media_object_by_name_74),
+             _ast_find_media_object_by_name_74);
         if (media_obj) {
           const JSON_Value *schema_val =
               json_object_get_value(media_obj, "schema");
@@ -8857,7 +9950,10 @@ static int parse_response_object(const JSON_Object *const resp_obj,
               const JSON_Object *items_obj =
                   items_val ? json_value_get_object(items_val) : NULL;
               if (items_obj && schema_object_is_object_like(items_obj)) {
-                char *base = build_inline_response_name(op_id, resp_code, 1);
+                char *base = (build_inline_response_name(
+                                  op_id, resp_code, 1,
+                                  &_ast_build_inline_response_name_75),
+                              _ast_build_inline_response_name_75);
                 char *registered = NULL;
                 if (base) {
                   if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8879,7 +9975,10 @@ static int parse_response_object(const JSON_Object *const resp_obj,
                 }
               }
             } else if (schema_object_is_object_like(schema_obj)) {
-              char *base = build_inline_response_name(op_id, resp_code, 0);
+              char *base = (build_inline_response_name(
+                                op_id, resp_code, 0,
+                                &_ast_build_inline_response_name_76),
+                            _ast_build_inline_response_name_76);
               char *registered = NULL;
               if (base) {
                 if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8903,7 +10002,10 @@ static int parse_response_object(const JSON_Object *const resp_obj,
           }
           if (primary->item_schema_set && item_schema_obj &&
               schema_object_is_object_like(item_schema_obj)) {
-            char *base = build_inline_response_name(op_id, resp_code, 1);
+            char *base =
+                (build_inline_response_name(
+                     op_id, resp_code, 1, &_ast_build_inline_response_name_77),
+                 _ast_build_inline_response_name_77);
             char *registered = NULL;
             if (base) {
               if (register_inline_schema((struct OpenAPI_Spec *)spec, base,
@@ -8927,12 +10029,14 @@ static int parse_response_object(const JSON_Object *const resp_obj,
         }
       }
       if (primary->name) {
-        out_resp->content_type = c_cdd_strdup(primary->name);
+        out_resp->content_type =
+            (c_cdd_strdup(primary->name, &_ast_strdup_255), _ast_strdup_255);
         if (!out_resp->content_type)
           return ENOMEM;
       }
       if (primary->ref) {
-        out_resp->content_ref = c_cdd_strdup(primary->ref);
+        out_resp->content_ref =
+            (c_cdd_strdup(primary->ref, &_ast_strdup_256), _ast_strdup_256);
         if (!out_resp->content_ref)
           return ENOMEM;
       }
@@ -9001,6 +10105,7 @@ static int is_valid_response_code_key(const char *code) {
 static int parse_responses(const JSON_Object *responses,
                            struct OpenAPI_Operation *out_op,
                            const struct OpenAPI_Spec *spec, const char *op_id) {
+  char *_ast_strdup_257 = NULL;
   size_t i, count, valid = 0, resp_idx = 0;
   if (!responses || !out_op)
     return 0;
@@ -9042,7 +10147,7 @@ static int parse_responses(const JSON_Object *responses,
     if (resp_idx >= valid)
       return EINVAL;
     curr = &out_op->responses[resp_idx++];
-    curr->code = c_cdd_strdup(code);
+    curr->code = (c_cdd_strdup(code, &_ast_strdup_257), _ast_strdup_257);
     if (!curr->code)
       return ENOMEM;
 
@@ -9059,6 +10164,10 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
                                  struct OpenAPI_Callback *const out_cb,
                                  const struct OpenAPI_Spec *const spec,
                                  const int resolve_refs) {
+  struct OpenAPI_Callback *_ast_find_component_callback_78;
+  char *_ast_strdup_258 = NULL;
+  char *_ast_strdup_259 = NULL;
+  char *_ast_strdup_260 = NULL;
   const char *ref;
   const char *summary;
   const char *desc;
@@ -9068,11 +10177,13 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
 
   ref = json_object_get_string(cb_obj, "$ref");
   if (ref) {
-    out_cb->ref = c_cdd_strdup(ref);
+    out_cb->ref = (c_cdd_strdup(ref, &_ast_strdup_258), _ast_strdup_258);
     if (!out_cb->ref)
       return ENOMEM;
     if (resolve_refs && spec) {
-      const struct OpenAPI_Callback *comp = find_component_callback(spec, ref);
+      const struct OpenAPI_Callback *comp =
+          (find_component_callback(spec, ref, &_ast_find_component_callback_78),
+           _ast_find_component_callback_78);
       if (comp) {
         {
           int _rc = copy_callback_fields(out_cb, comp);
@@ -9085,7 +10196,8 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
     if (summary) {
       if (out_cb->summary)
         free(out_cb->summary);
-      out_cb->summary = c_cdd_strdup(summary);
+      out_cb->summary =
+          (c_cdd_strdup(summary, &_ast_strdup_259), _ast_strdup_259);
       if (!out_cb->summary)
         return ENOMEM;
     }
@@ -9093,7 +10205,8 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
     if (desc) {
       if (out_cb->description)
         free(out_cb->description);
-      out_cb->description = c_cdd_strdup(desc);
+      out_cb->description =
+          (c_cdd_strdup(desc, &_ast_strdup_260), _ast_strdup_260);
       if (!out_cb->description)
         return ENOMEM;
     }
@@ -9115,6 +10228,7 @@ static int parse_callbacks_object(const JSON_Object *const callbacks,
                                   size_t *out_count,
                                   const struct OpenAPI_Spec *const spec,
                                   const int resolve_refs) {
+  char *_ast_strdup_261 = NULL;
   size_t i, count;
   if (!out_callbacks || !out_count)
     return 0;
@@ -9141,7 +10255,7 @@ static int parse_callbacks_object(const JSON_Object *const callbacks,
         json_value_get_object(json_object_get_value_at(callbacks, i));
     struct OpenAPI_Callback *curr = &(*out_callbacks)[i];
     if (name) {
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_261), _ast_strdup_261);
       if (!curr->name)
         return ENOMEM;
     }
@@ -9163,6 +10277,15 @@ static int parse_operation(const char *const verb_str,
                            const struct OpenAPI_Spec *const spec,
                            const int is_additional,
                            const char *const route_hint) {
+  enum OpenAPI_Verb _ast_parse_verb_79;
+  char *_ast_strdup_262 = NULL;
+  char *_ast_strdup_263 = NULL;
+  char *_ast_strdup_264 = NULL;
+  char *_ast_strdup_265 = NULL;
+  char *_ast_strdup_266 = NULL;
+  char *_ast_strdup_267 = NULL;
+  char *_ast_strdup_268 = NULL;
+  char *_ast_strdup_269 = NULL;
   const char *op_id;
   const JSON_Array *params;
   const JSON_Array *tags;
@@ -9178,10 +10301,12 @@ static int parse_operation(const char *const verb_str,
     return EINVAL;
   (void)route_hint;
 
-  out_op->verb = parse_verb(verb_str);
+  out_op->verb =
+      (parse_verb(verb_str, &_ast_parse_verb_79), _ast_parse_verb_79);
   out_op->is_additional = is_additional;
   if (verb_str) {
-    out_op->method = c_cdd_strdup(verb_str);
+    out_op->method =
+        (c_cdd_strdup(verb_str, &_ast_strdup_262), _ast_strdup_262);
     if (!out_op->method)
       return ENOMEM;
   }
@@ -9189,16 +10314,20 @@ static int parse_operation(const char *const verb_str,
     return 0;
 
   op_id = json_object_get_string(op_obj, "operationId");
-  out_op->operation_id = c_cdd_strdup(op_id ? op_id : "unnamed");
+  out_op->operation_id =
+      (c_cdd_strdup(op_id ? op_id : "unnamed", &_ast_strdup_263),
+       _ast_strdup_263);
   summary = json_object_get_string(op_obj, "summary");
   if (summary) {
-    out_op->summary = c_cdd_strdup(summary);
+    out_op->summary =
+        (c_cdd_strdup(summary, &_ast_strdup_264), _ast_strdup_264);
     if (!out_op->summary)
       return ENOMEM;
   }
   description = json_object_get_string(op_obj, "description");
   if (description) {
-    out_op->description = c_cdd_strdup(description);
+    out_op->description =
+        (c_cdd_strdup(description, &_ast_strdup_265), _ast_strdup_265);
     if (!out_op->description)
       return ENOMEM;
   }
@@ -9242,14 +10371,16 @@ static int parse_operation(const char *const verb_str,
     if (rc_req != 0)
       return rc_req;
     if (rb.ref) {
-      out_op->req_body_ref = c_cdd_strdup(rb.ref);
+      out_op->req_body_ref =
+          (c_cdd_strdup(rb.ref, &_ast_strdup_266), _ast_strdup_266);
       if (!out_op->req_body_ref) {
         free_request_body(&rb);
         return ENOMEM;
       }
     }
     if (rb.description) {
-      out_op->req_body_description = c_cdd_strdup(rb.description);
+      out_op->req_body_description =
+          (c_cdd_strdup(rb.description, &_ast_strdup_267), _ast_strdup_267);
       if (!out_op->req_body_description) {
         free_request_body(&rb);
         return ENOMEM;
@@ -9260,7 +10391,8 @@ static int parse_operation(const char *const verb_str,
       out_op->req_body_required = rb.required;
     }
     if (rb.extensions_json) {
-      out_op->req_body_extensions_json = c_cdd_strdup(rb.extensions_json);
+      out_op->req_body_extensions_json =
+          (c_cdd_strdup(rb.extensions_json, &_ast_strdup_268), _ast_strdup_268);
       if (!out_op->req_body_extensions_json) {
         free_request_body(&rb);
         return ENOMEM;
@@ -9315,7 +10447,8 @@ static int parse_operation(const char *const verb_str,
         return ENOMEM;
       for (k = 0; k < t_count; ++k) {
         const char *t_val = json_array_get_string(tags, k);
-        out_op->tags[k] = c_cdd_strdup(t_val ? t_val : "");
+        out_op->tags[k] = (c_cdd_strdup(t_val ? t_val : "", &_ast_strdup_269),
+                           _ast_strdup_269);
         if (!out_op->tags[k])
           return ENOMEM;
       }
@@ -9334,6 +10467,7 @@ static int parse_operation(const char *const verb_str,
 
 static int parse_component_parameters(const JSON_Object *const components,
                                       struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_270 = NULL;
   const JSON_Object *params;
   size_t count, i;
 
@@ -9365,7 +10499,8 @@ static int parse_component_parameters(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_parameter_names[i] = c_cdd_strdup(name);
+      out->component_parameter_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_270), _ast_strdup_270);
       if (!out->component_parameter_names[i])
         return ENOMEM;
     }
@@ -9384,6 +10519,7 @@ static int parse_component_parameters(const JSON_Object *const components,
 
 static int parse_component_responses(const JSON_Object *const components,
                                      struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_271 = NULL;
   const JSON_Object *responses;
   size_t count, i;
 
@@ -9415,7 +10551,8 @@ static int parse_component_responses(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_response_names[i] = c_cdd_strdup(name);
+      out->component_response_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_271), _ast_strdup_271);
       if (!out->component_response_names[i])
         return ENOMEM;
     }
@@ -9434,6 +10571,7 @@ static int parse_component_responses(const JSON_Object *const components,
 
 static int parse_component_headers(const JSON_Object *const components,
                                    struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_272 = NULL;
   const JSON_Object *headers;
   size_t count, i;
 
@@ -9465,7 +10603,8 @@ static int parse_component_headers(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_header_names[i] = c_cdd_strdup(name);
+      out->component_header_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_272), _ast_strdup_272);
       if (!out->component_header_names[i])
         return ENOMEM;
     }
@@ -9484,6 +10623,7 @@ static int parse_component_headers(const JSON_Object *const components,
 
 static int parse_component_request_bodies(const JSON_Object *const components,
                                           struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_273 = NULL;
   const JSON_Object *bodies;
   size_t count, i;
 
@@ -9515,7 +10655,8 @@ static int parse_component_request_bodies(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_request_body_names[i] = c_cdd_strdup(name);
+      out->component_request_body_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_273), _ast_strdup_273);
       if (!out->component_request_body_names[i])
         return ENOMEM;
     }
@@ -9534,6 +10675,8 @@ static int parse_component_request_bodies(const JSON_Object *const components,
 
 static int parse_component_media_types(const JSON_Object *const components,
                                        struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_274 = NULL;
+  char *_ast_strdup_275 = NULL;
   const JSON_Object *media_types;
   size_t count, i;
 
@@ -9567,10 +10710,11 @@ static int parse_component_media_types(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_media_type_names[i] = c_cdd_strdup(name);
+      out->component_media_type_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_274), _ast_strdup_274);
       if (!out->component_media_type_names[i])
         return ENOMEM;
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_275), _ast_strdup_275);
       if (!curr->name)
         return ENOMEM;
     }
@@ -9588,6 +10732,7 @@ static int parse_component_media_types(const JSON_Object *const components,
 
 static int parse_component_examples(const JSON_Object *const components,
                                     struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_276 = NULL;
   const JSON_Object *examples;
   size_t count, i;
 
@@ -9619,7 +10764,8 @@ static int parse_component_examples(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      out->component_example_names[i] = c_cdd_strdup(name);
+      out->component_example_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_276), _ast_strdup_276);
       if (!out->component_example_names[i])
         return ENOMEM;
     }
@@ -9638,6 +10784,7 @@ static int parse_component_examples(const JSON_Object *const components,
 
 static int parse_component_links(const JSON_Object *const components,
                                  struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_277 = NULL;
   const JSON_Object *links;
   size_t count, i;
 
@@ -9669,7 +10816,7 @@ static int parse_component_links(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_277), _ast_strdup_277);
       if (!curr->name)
         return ENOMEM;
     }
@@ -9687,6 +10834,7 @@ static int parse_component_links(const JSON_Object *const components,
 
 static int parse_component_callbacks(const JSON_Object *const components,
                                      struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_278 = NULL;
   const JSON_Object *callbacks;
   size_t count, i;
 
@@ -9718,7 +10866,7 @@ static int parse_component_callbacks(const JSON_Object *const components,
     if (name) {
       if (!component_key_is_valid(name))
         return EINVAL;
-      curr->name = c_cdd_strdup(name);
+      curr->name = (c_cdd_strdup(name, &_ast_strdup_278), _ast_strdup_278);
       if (!curr->name)
         return ENOMEM;
     }
@@ -9736,6 +10884,7 @@ static int parse_component_callbacks(const JSON_Object *const components,
 
 static int parse_component_path_items(const JSON_Object *const components,
                                       struct OpenAPI_Spec *const out) {
+  char *_ast_strdup_279 = NULL;
   const JSON_Object *path_items;
   size_t i;
   int rc;
@@ -9766,7 +10915,8 @@ static int parse_component_path_items(const JSON_Object *const components,
   for (i = 0; i < out->n_component_path_items; ++i) {
     const char *name = out->component_path_items[i].route;
     if (name) {
-      out->component_path_item_names[i] = c_cdd_strdup(name);
+      out->component_path_item_names[i] =
+          (c_cdd_strdup(name, &_ast_strdup_279), _ast_strdup_279);
       if (!out->component_path_item_names[i])
         return ENOMEM;
     }
@@ -9777,6 +10927,12 @@ static int parse_component_path_items(const JSON_Object *const components,
 
 static int parse_components(const JSON_Object *components,
                             struct OpenAPI_Spec *out) {
+  char *_ast_strdup_280 = NULL;
+  char *_ast_strdup_281 = NULL;
+  char *_ast_strdup_282 = NULL;
+  char *_ast_strdup_283 = NULL;
+  char *_ast_strdup_284 = NULL;
+  char *_ast_strdup_285 = NULL;
   const JSON_Object *schemas;
   size_t i, count;
 
@@ -9881,13 +11037,15 @@ static int parse_components(const JSON_Object *components,
         const char *schema_id = NULL;
         const char *schema_anchor = NULL;
         const char *schema_dynamic_anchor = NULL;
-        out->defined_schema_names[struct_idx] = c_cdd_strdup(name);
+        out->defined_schema_names[struct_idx] =
+            (c_cdd_strdup(name, &_ast_strdup_280), _ast_strdup_280);
         if (!out->defined_schema_names[struct_idx])
           return ENOMEM;
         if (schema_obj)
           schema_id = json_object_get_string(schema_obj, "$id");
         if (schema_id) {
-          out->defined_schema_ids[struct_idx] = c_cdd_strdup(schema_id);
+          out->defined_schema_ids[struct_idx] =
+              (c_cdd_strdup(schema_id, &_ast_strdup_281), _ast_strdup_281);
           if (!out->defined_schema_ids[struct_idx])
             return ENOMEM;
         }
@@ -9897,13 +11055,15 @@ static int parse_components(const JSON_Object *components,
               json_object_get_string(schema_obj, "$dynamicAnchor");
         }
         if (schema_anchor) {
-          out->defined_schema_anchors[struct_idx] = c_cdd_strdup(schema_anchor);
+          out->defined_schema_anchors[struct_idx] =
+              (c_cdd_strdup(schema_anchor, &_ast_strdup_282), _ast_strdup_282);
           if (!out->defined_schema_anchors[struct_idx])
             return ENOMEM;
         }
         if (schema_dynamic_anchor) {
           out->defined_schema_dynamic_anchors[struct_idx] =
-              c_cdd_strdup(schema_dynamic_anchor);
+              (c_cdd_strdup(schema_dynamic_anchor, &_ast_strdup_283),
+               _ast_strdup_283);
           if (!out->defined_schema_dynamic_anchors[struct_idx])
             return ENOMEM;
         }
@@ -9920,13 +11080,14 @@ static int parse_components(const JSON_Object *components,
           schema_has_composition(schema_obj)) {
         char *raw_json = NULL;
         char *dup_json = NULL;
-        out->raw_schema_names[raw_idx] = c_cdd_strdup(name);
+        out->raw_schema_names[raw_idx] =
+            (c_cdd_strdup(name, &_ast_strdup_284), _ast_strdup_284);
         if (!out->raw_schema_names[raw_idx])
           return ENOMEM;
         raw_json = json_serialize_to_string(schema_val);
         if (!raw_json)
           return ENOMEM;
-        dup_json = c_cdd_strdup(raw_json);
+        dup_json = (c_cdd_strdup(raw_json, &_ast_strdup_285), _ast_strdup_285);
         json_free_serialized_string(raw_json);
         if (!dup_json)
           return ENOMEM;
@@ -9984,6 +11145,13 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
                               size_t *out_count,
                               const struct OpenAPI_Spec *const spec,
                               int require_leading_slash, int resolve_refs) {
+  struct OpenAPI_Path *_ast_find_component_path_item_80;
+  char *_ast_strdup_286 = NULL;
+  char *_ast_strdup_287 = NULL;
+  char *_ast_strdup_288 = NULL;
+  char *_ast_strdup_289 = NULL;
+  char *_ast_strdup_290 = NULL;
+  char *_ast_strdup_291 = NULL;
   size_t i, n_paths;
   size_t raw_count;
   size_t out_idx;
@@ -10029,7 +11197,8 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
     if (require_leading_slash && (!route || route[0] != '/'))
       return EINVAL;
     if (route) {
-      curr_path->route = c_cdd_strdup(route);
+      curr_path->route =
+          (c_cdd_strdup(route, &_ast_strdup_286), _ast_strdup_286);
       if (!curr_path->route)
         return ENOMEM;
     }
@@ -10043,12 +11212,15 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
           json_object_get_array(p_obj, "parameters");
 
       if (path_ref) {
-        curr_path->ref = c_cdd_strdup(path_ref);
+        curr_path->ref =
+            (c_cdd_strdup(path_ref, &_ast_strdup_287), _ast_strdup_287);
         if (!curr_path->ref)
           return ENOMEM;
         if (resolve_refs && spec) {
           const struct OpenAPI_Path *comp =
-              find_component_path_item(spec, path_ref);
+              (find_component_path_item(spec, path_ref,
+                                        &_ast_find_component_path_item_80),
+               _ast_find_component_path_item_80);
           if (comp) {
             {
               int _rc = copy_path_fields(curr_path, comp);
@@ -10060,14 +11232,17 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
         if (path_summary) {
           if (curr_path->summary)
             free(curr_path->summary);
-          curr_path->summary = c_cdd_strdup(path_summary);
+          curr_path->summary =
+              (c_cdd_strdup(path_summary, &_ast_strdup_288), _ast_strdup_288);
           if (!curr_path->summary)
             return ENOMEM;
         }
         if (path_description) {
           if (curr_path->description)
             free(curr_path->description);
-          curr_path->description = c_cdd_strdup(path_description);
+          curr_path->description =
+              (c_cdd_strdup(path_description, &_ast_strdup_289),
+               _ast_strdup_289);
           if (!curr_path->description)
             return ENOMEM;
         }
@@ -10075,12 +11250,14 @@ static int parse_paths_object(const JSON_Object *const paths_obj,
         continue;
       }
       if (path_summary) {
-        curr_path->summary = c_cdd_strdup(path_summary);
+        curr_path->summary =
+            (c_cdd_strdup(path_summary, &_ast_strdup_290), _ast_strdup_290);
         if (!curr_path->summary)
           return ENOMEM;
       }
       if (path_description) {
-        curr_path->description = c_cdd_strdup(path_description);
+        curr_path->description =
+            (c_cdd_strdup(path_description, &_ast_strdup_291), _ast_strdup_291);
         if (!curr_path->description)
           return ENOMEM;
       }
@@ -10235,21 +11412,28 @@ static int collect_path_template_names(const char *route, char ***out_names,
   return 0;
 }
 
-static const struct OpenAPI_Parameter *
-find_path_param(const struct OpenAPI_Parameter *params, size_t n,
-                const char *name) {
+static int find_path_param(const struct OpenAPI_Parameter *params, size_t n,
+                           const char *name,
+                           struct OpenAPI_Parameter **_out_val) {
   size_t i;
-  if (!params || !name)
-    return NULL;
+  if (!params || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < n; ++i) {
     if (params[i].in != OA_PARAM_IN_PATH)
       continue;
     if (!params[i].name)
       continue;
-    if (strcmp(params[i].name, name) == 0)
-      return &params[i];
+    if (strcmp(params[i].name, name) == 0) {
+      *_out_val = &params[i];
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int validate_path_params_list(const struct OpenAPI_Parameter *params,
@@ -10273,6 +11457,8 @@ static int validate_path_params_list(const struct OpenAPI_Parameter *params,
 static int validate_path_template_for_operation(
     const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
     char **template_names, size_t n_template_names) {
+  struct OpenAPI_Parameter *_ast_find_path_param_81;
+  struct OpenAPI_Parameter *_ast_find_path_param_82;
   size_t i;
   if (!path || !template_names || n_template_names == 0)
     return 0;
@@ -10284,12 +11470,14 @@ static int validate_path_template_for_operation(
 
   for (i = 0; i < n_template_names; ++i) {
     const struct OpenAPI_Parameter *p =
-        op ? find_path_param(op->parameters, op->n_parameters,
-                             template_names[i])
+        op ? (find_path_param(op->parameters, op->n_parameters,
+                              template_names[i], &_ast_find_path_param_81),
+              _ast_find_path_param_81)
            : NULL;
     if (!p) {
-      p = find_path_param(path->parameters, path->n_parameters,
-                          template_names[i]);
+      p = (find_path_param(path->parameters, path->n_parameters,
+                           template_names[i], &_ast_find_path_param_82),
+           _ast_find_path_param_82);
     }
     if (!p)
       return EINVAL;
@@ -10358,20 +11546,24 @@ static int validate_path_templates(const struct OpenAPI_Path *paths,
   return 0;
 }
 
-static char *normalize_path_template_route(const char *route) {
+static int normalize_path_template_route(const char *route, char **_out_val) {
   size_t i = 0;
   size_t len = 0;
   char *out;
   size_t pos = 0;
-  if (!route)
-    return NULL;
+  if (!route) {
+    *_out_val = NULL;
+    return 0;
+  }
   while (route[i]) {
     if (route[i] == '{') {
       size_t j = i + 1;
       while (route[j] && route[j] != '}')
         ++j;
-      if (!route[j])
-        return NULL;
+      if (!route[j]) {
+        *_out_val = NULL;
+        return 0;
+      }
       len += 2;
       i = j + 1;
     } else {
@@ -10380,8 +11572,10 @@ static char *normalize_path_template_route(const char *route) {
     }
   }
   out = (char *)calloc(len + 1, sizeof(char));
-  if (!out)
-    return NULL;
+  if (!out) {
+    *_out_val = NULL;
+    return 0;
+  }
   i = 0;
   while (route[i]) {
     if (route[i] == '{') {
@@ -10390,7 +11584,10 @@ static char *normalize_path_template_route(const char *route) {
         ++j;
       if (!route[j]) {
         free(out);
-        return NULL;
+        {
+          *_out_val = NULL;
+          return 0;
+        }
       }
       out[pos++] = '{';
       out[pos++] = '}';
@@ -10400,11 +11597,16 @@ static char *normalize_path_template_route(const char *route) {
     }
   }
   out[pos] = '\0';
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
                                              size_t n_paths) {
+  char *_ast_normalize_path_template_route_83;
+  char *_ast_normalize_path_template_route_84;
   size_t i;
   if (!paths)
     return 0;
@@ -10414,7 +11616,9 @@ static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
     size_t j;
     if (!route_i || route_i[0] != '/' || !strchr(route_i, '{'))
       continue;
-    norm_i = normalize_path_template_route(route_i);
+    norm_i = (normalize_path_template_route(
+                  route_i, &_ast_normalize_path_template_route_83),
+              _ast_normalize_path_template_route_83);
     if (!norm_i)
       return EINVAL;
     for (j = i + 1; j < n_paths; ++j) {
@@ -10422,7 +11626,9 @@ static int validate_path_template_collisions(const struct OpenAPI_Path *paths,
       char *norm_j;
       if (!route_j || route_j[0] != '/' || !strchr(route_j, '{'))
         continue;
-      norm_j = normalize_path_template_route(route_j);
+      norm_j = (normalize_path_template_route(
+                    route_j, &_ast_normalize_path_template_route_84),
+                _ast_normalize_path_template_route_84);
       if (!norm_j) {
         free(norm_i);
         return EINVAL;
@@ -10577,6 +11783,7 @@ static int validate_querystring_usage_in_component_callbacks(
 
 static int add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
                                    const char *op_id) {
+  char *_ast_strdup_292 = NULL;
   size_t i;
   char **tmp;
   if (!op_id || !*op_id)
@@ -10593,7 +11800,7 @@ static int add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
     *ids = tmp;
     *cap = new_cap;
   }
-  (*ids)[*count] = c_cdd_strdup(op_id);
+  (*ids)[*count] = (c_cdd_strdup(op_id, &_ast_strdup_292), _ast_strdup_292);
   if (!(*ids)[*count])
     return ENOMEM;
   (*count)++;
@@ -10628,15 +11835,20 @@ static int collect_operation_ids(const struct OpenAPI_Path *paths,
 
 static int path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                            const char *ref, const char *name) {
+  char *_ast_ref_name_from_prefix_85;
+  char *_ast_json_pointer_unescape_86;
   const char *name_enc;
   char *name_dec;
   int match = 0;
   if (!ref || !name)
     return 0;
-  name_enc = ref_name_from_prefix(spec, ref, "#/components/pathItems/");
+  name_enc = (ref_name_from_prefix(spec, ref, "#/components/pathItems/",
+                                   &_ast_ref_name_from_prefix_85),
+              _ast_ref_name_from_prefix_85);
   if (!name_enc)
     return 0;
-  name_dec = json_pointer_unescape(name_enc);
+  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_86),
+              _ast_json_pointer_unescape_86);
   if (!name_dec)
     return 0;
   match = (strcmp(name_dec, name) == 0);
@@ -10664,15 +11876,20 @@ static int component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
 
 static int callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                           const char *ref, const char *name) {
+  char *_ast_ref_name_from_prefix_87;
+  char *_ast_json_pointer_unescape_88;
   const char *name_enc;
   char *name_dec;
   int match = 0;
   if (!ref || !name)
     return 0;
-  name_enc = ref_name_from_prefix(spec, ref, "#/components/callbacks/");
+  name_enc = (ref_name_from_prefix(spec, ref, "#/components/callbacks/",
+                                   &_ast_ref_name_from_prefix_87),
+              _ast_ref_name_from_prefix_87);
   if (!name_enc)
     return 0;
-  name_dec = json_pointer_unescape(name_enc);
+  name_dec = (json_pointer_unescape(name_enc, &_ast_json_pointer_unescape_88),
+              _ast_json_pointer_unescape_88);
   if (!name_dec)
     return 0;
   match = (strcmp(name_dec, name) == 0);
@@ -10871,6 +12088,12 @@ cleanup:
 static int openapi_load_from_json_internal(
     const JSON_Value *const root, struct OpenAPI_Spec *const out,
     const char *retrieval_uri, struct OpenAPI_DocRegistry *registry) {
+  char *_ast_compute_document_uri_89;
+  char *_ast_compute_document_uri_90;
+  char *_ast_strdup_293 = NULL;
+  char *_ast_strdup_294 = NULL;
+  char *_ast_strdup_295 = NULL;
+  char *_ast_strdup_296 = NULL;
   const JSON_Object *root_obj;
   const JSON_Object *paths_obj;
   const JSON_Object *webhooks_obj;
@@ -10886,7 +12109,8 @@ static int openapi_load_from_json_internal(
 
   out->doc_registry = registry;
   if (retrieval_uri && *retrieval_uri) {
-    out->retrieval_uri = c_cdd_strdup(retrieval_uri);
+    out->retrieval_uri =
+        (c_cdd_strdup(retrieval_uri, &_ast_strdup_293), _ast_strdup_293);
     if (!out->retrieval_uri)
       return ENOMEM;
   }
@@ -10906,7 +12130,9 @@ static int openapi_load_from_json_internal(
         if ((schema_id && *schema_id) ||
             (out->retrieval_uri && *out->retrieval_uri)) {
           out->document_uri =
-              compute_document_uri(schema_id, out->retrieval_uri);
+              (compute_document_uri(schema_id, out->retrieval_uri,
+                                    &_ast_compute_document_uri_89),
+               _ast_compute_document_uri_89);
           if (!out->document_uri)
             return ENOMEM;
         }
@@ -10928,7 +12154,8 @@ static int openapi_load_from_json_internal(
     if (version) {
       if (!openapi_version_supported(version))
         return EINVAL;
-      out->openapi_version = c_cdd_strdup(version);
+      out->openapi_version =
+          (c_cdd_strdup(version, &_ast_strdup_294), _ast_strdup_294);
       if (!out->openapi_version)
         return ENOMEM;
     }
@@ -10936,20 +12163,24 @@ static int openapi_load_from_json_internal(
   {
     const char *self_uri = json_object_get_string(root_obj, "$self");
     if (self_uri) {
-      out->self_uri = c_cdd_strdup(self_uri);
+      out->self_uri =
+          (c_cdd_strdup(self_uri, &_ast_strdup_295), _ast_strdup_295);
       if (!out->self_uri)
         return ENOMEM;
     }
   }
   if (out->self_uri || out->retrieval_uri) {
-    out->document_uri = compute_document_uri(out->self_uri, out->retrieval_uri);
+    out->document_uri = (compute_document_uri(out->self_uri, out->retrieval_uri,
+                                              &_ast_compute_document_uri_90),
+                         _ast_compute_document_uri_90);
     if (!out->document_uri)
       return ENOMEM;
   }
   {
     const char *dialect = json_object_get_string(root_obj, "jsonSchemaDialect");
     if (dialect) {
-      out->json_schema_dialect = c_cdd_strdup(dialect);
+      out->json_schema_dialect =
+          (c_cdd_strdup(dialect, &_ast_strdup_296), _ast_strdup_296);
       if (!out->json_schema_dialect)
         return ENOMEM;
     }
@@ -11139,93 +12370,138 @@ int openapi_load_from_json_with_context(const JSON_Value *const root,
   return openapi_load_from_json_internal(root, out, retrieval_uri, registry);
 }
 
-const struct StructFields *
-openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name) {
+int openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
+                             struct StructFields **_out_val) {
   size_t i;
-  if (!spec || !name)
-    return NULL;
+  if (!spec || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < spec->n_defined_schemas; ++i) {
     if (spec->defined_schema_names[i] &&
         strcmp(spec->defined_schema_names[i], name) == 0) {
-      return &spec->defined_schemas[i];
+      {
+        *_out_val = &spec->defined_schemas[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct StructFields *
-openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
-                               const char *ref) {
+static int openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
+                                          const char *ref,
+                                          struct StructFields **_out_val) {
   size_t i;
   const char *hash;
   size_t base_len;
 
-  if (!spec || !ref || !spec->defined_schema_ids)
-    return NULL;
+  if (!spec || !ref || !spec->defined_schema_ids) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   hash = strchr(ref, '#');
   if (hash && hash[1] != '\0') {
     /* Fragmented refs may target subschemas; do not map to root structs. */
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
   base_len = hash ? (size_t)(hash - ref) : strlen(ref);
-  if (base_len == 0)
-    return NULL;
+  if (base_len == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   for (i = 0; i < spec->n_defined_schemas; ++i) {
     const char *id = spec->defined_schema_ids[i];
     if (!id)
       continue;
     if (strlen(id) == base_len && strncmp(id, ref, base_len) == 0) {
-      return &spec->defined_schemas[i];
+      {
+        *_out_val = &spec->defined_schemas[i];
+        return 0;
+      }
     }
   }
 
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const struct StructFields *
-openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
-                                   const char *ref, int dynamic_anchor) {
+static int openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
+                                              const char *ref,
+                                              int dynamic_anchor,
+                                              struct StructFields **_out_val) {
   size_t i;
   const char *hash;
   const char *anchor;
   char **anchors;
 
-  if (!spec || !ref)
-    return NULL;
+  if (!spec || !ref) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   hash = strchr(ref, '#');
-  if (!hash || hash[1] == '\0')
-    return NULL;
+  if (!hash || hash[1] == '\0') {
+    *_out_val = NULL;
+    return 0;
+  }
   anchor = hash + 1;
-  if (anchor[0] == '/')
-    return NULL; /* JSON Pointer fragment, not an anchor */
+  if (anchor[0] == '/') {
+    *_out_val = NULL;
+    return 0;
+  } /* JSON Pointer fragment, not an anchor */
 
   anchors = dynamic_anchor ? spec->defined_schema_dynamic_anchors
                            : spec->defined_schema_anchors;
-  if (!anchors)
-    return NULL;
+  if (!anchors) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   for (i = 0; i < spec->n_defined_schemas; ++i) {
     const char *cand = anchors[i];
     if (!cand)
       continue;
-    if (strcmp(cand, anchor) == 0)
-      return &spec->defined_schemas[i];
+    if (strcmp(cand, anchor) == 0) {
+      *_out_val = &spec->defined_schemas[i];
+      return 0;
+    }
   }
 
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-const struct StructFields *
-openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
-                                 const struct OpenAPI_SchemaRef *ref) {
+int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
+                                     const struct OpenAPI_SchemaRef *ref,
+                                     struct StructFields **_out_val) {
+  struct ResolvedRefTarget _ast_resolve_ref_target_91;
+  struct StructFields *_ast_openapi_spec_find_schema_92;
+  struct ResolvedRefTarget _ast_resolve_ref_target_93;
+  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_94;
+  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_95;
+  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_96;
+  struct StructFields *_ast_openapi_spec_find_schema_by_anchor_97;
+  struct StructFields *_ast_openapi_spec_find_schema_by_id_98;
   struct ResolvedRefTarget resolved;
   const struct OpenAPI_Spec *target;
 
-  if (!spec || !ref)
-    return NULL;
+  if (!spec || !ref) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   if (ref->all_of) {
     size_t i;
@@ -11263,35 +12539,64 @@ openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
   }
   if (ref->ref_name) {
     if (ref->ref) {
-      resolved = resolve_ref_target(spec, ref->ref);
+      resolved =
+          (resolve_ref_target(spec, ref->ref, &_ast_resolve_ref_target_91),
+           _ast_resolve_ref_target_91);
       target = resolved.spec ? resolved.spec : spec;
       if (resolved.resolved_ref)
         free(resolved.resolved_ref);
     } else {
       target = spec;
     }
-    return openapi_spec_find_schema(target, ref->ref_name);
+    {
+      *_out_val = (openapi_spec_find_schema(target, ref->ref_name,
+                                            &_ast_openapi_spec_find_schema_92),
+                   _ast_openapi_spec_find_schema_92);
+      return 0;
+    }
   }
 
   if (ref->ref) {
     const struct StructFields *found = NULL;
-    resolved = resolve_ref_target(spec, ref->ref);
+    resolved = (resolve_ref_target(spec, ref->ref, &_ast_resolve_ref_target_93),
+                _ast_resolve_ref_target_93);
     target = resolved.spec ? resolved.spec : spec;
     if (ref->ref_is_dynamic) {
-      found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1);
+      found = (openapi_spec_find_schema_by_anchor(
+                   target, resolved.ref, 1,
+                   &_ast_openapi_spec_find_schema_by_anchor_94),
+               _ast_openapi_spec_find_schema_by_anchor_94);
       if (!found)
-        found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0);
+        found = (openapi_spec_find_schema_by_anchor(
+                     target, resolved.ref, 0,
+                     &_ast_openapi_spec_find_schema_by_anchor_95),
+                 _ast_openapi_spec_find_schema_by_anchor_95);
     } else {
-      found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 0);
+      found = (openapi_spec_find_schema_by_anchor(
+                   target, resolved.ref, 0,
+                   &_ast_openapi_spec_find_schema_by_anchor_96),
+               _ast_openapi_spec_find_schema_by_anchor_96);
       if (!found)
-        found = openapi_spec_find_schema_by_anchor(target, resolved.ref, 1);
+        found = (openapi_spec_find_schema_by_anchor(
+                     target, resolved.ref, 1,
+                     &_ast_openapi_spec_find_schema_by_anchor_97),
+                 _ast_openapi_spec_find_schema_by_anchor_97);
     }
     if (!found)
-      found = openapi_spec_find_schema_by_id(target, resolved.ref);
+      found =
+          (openapi_spec_find_schema_by_id(
+               target, resolved.ref, &_ast_openapi_spec_find_schema_by_id_98),
+           _ast_openapi_spec_find_schema_by_id_98);
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
-    return found;
+    {
+      *_out_val = found;
+      return 0;
+    }
   }
 
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }

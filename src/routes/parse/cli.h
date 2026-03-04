@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_cli.h
+ * @file cli.h
  * @brief Command-line interface logic for C-to-OpenAPI generation.
  *
  * Entry point for the `c2openapi` command. Orchestrates the scanning of C

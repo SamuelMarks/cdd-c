@@ -1,6 +1,6 @@
 #include <inttypes.h>
 /**
- * @file codegen_struct.c
+ * @file struct.c
  * @brief Implementation of struct lifecycle generation.
  *
  * Updates include:
@@ -28,6 +28,7 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -47,10 +48,17 @@ static void free_string_array(char **arr, size_t n) {
   free(arr);
 }
 
-const char *get_type_from_ref(const char *const ref) {
-  if (ref == NULL)
-    return "";
-  return c_cdd_str_after_last(ref, '/');
+int get_type_from_ref(const char *const ref, char **_out_val) {
+  const char *_ast_after_last_0 = NULL;
+  if (ref == NULL) {
+    *_out_val = "";
+    return 0;
+  }
+  {
+    *_out_val =
+        (c_cdd_str_after_last(ref, '/', &_ast_after_last_0), _ast_after_last_0);
+    return 0;
+  }
 }
 
 int struct_fields_init(struct StructFields *const sf) {
@@ -213,16 +221,23 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
   return 0;
 }
 
-struct StructField *struct_fields_get(const struct StructFields *const sf,
-                                      const char *const name) {
+int struct_fields_get(const struct StructFields *const sf,
+                      const char *const name, struct StructField **_out_val) {
   size_t i;
-  if (!sf || !name)
-    return NULL;
-  for (i = 0; i < sf->size; ++i) {
-    if (strcmp(sf->fields[i].name, name) == 0)
-      return &sf->fields[i];
+  if (!sf || !name) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
+  for (i = 0; i < sf->size; ++i) {
+    if (strcmp(sf->fields[i].name, name) == 0) {
+      *_out_val = &sf->fields[i];
+      return 0;
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 /* --- Generation Implementing --- */
@@ -230,6 +245,8 @@ struct StructField *struct_fields_get(const struct StructFields *const sf,
 int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
                               const struct StructFields *const sf,
                               const struct CodegenStructConfig *const config) {
+  char *_ast_get_type_from_ref_0;
+  char *_ast_get_type_from_ref_1;
   size_t i;
   bool iter_needed = false;
 
@@ -260,9 +277,11 @@ int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
     if (strcmp(t, "string") == 0) {
       CHECK_IO(fprintf(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(
-          fprintf(fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n",
-                  n, get_type_from_ref(r), n, n));
+      CHECK_IO(fprintf(
+          fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n", n,
+          (get_type_from_ref(r, &_ast_get_type_from_ref_0),
+           _ast_get_type_from_ref_0),
+          n, n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
       if (strcmp(r, "string") == 0) {
@@ -271,7 +290,9 @@ int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
                  (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
                   strcmp(r, "number") != 0)) {
         CHECK_IO(fprintf(fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n",
-                         get_type_from_ref(r), n, n));
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_1),
+                          _ast_get_type_from_ref_1),
+                         n, n));
       }
       CHECK_IO(fprintf(fp, "  }\n"));
       CHECK_IO(fprintf(fp, "  free(obj->%s);\n", n));
@@ -338,6 +359,7 @@ int write_struct_deepcopy_func(FILE *const fp, const char *const struct_name,
 int write_struct_eq_func(FILE *const fp, const char *const struct_name,
                          const struct StructFields *const sf,
                          const struct CodegenStructConfig *const config) {
+  char *_ast_get_type_from_ref_2;
   size_t i;
   int iter_needed = 0;
   if (!fp || !struct_name || !sf)
@@ -362,7 +384,9 @@ int write_struct_eq_func(FILE *const fp, const char *const struct_name,
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
     const char *t = sf->fields[i].type;
-    const char *r = get_type_from_ref(sf->fields[i].ref);
+    const char *r =
+        (get_type_from_ref(sf->fields[i].ref, &_ast_get_type_from_ref_2),
+         _ast_get_type_from_ref_2);
 
     if (strcmp(t, "string") == 0) {
       CHECK_IO(fprintf(fp,
@@ -405,6 +429,7 @@ int write_struct_eq_func(FILE *const fp, const char *const struct_name,
 int write_struct_default_func(FILE *const fp, const char *const struct_name,
                               const struct StructFields *const sf,
                               const struct CodegenStructConfig *const config) {
+  char *_ast_get_type_from_ref_3;
   size_t i;
   int rc_needed = 0;
   if (!fp || !struct_name || !sf)
@@ -436,7 +461,9 @@ int write_struct_default_func(FILE *const fp, const char *const struct_name,
     if (def[0] != '\0') {
       const char *n = sf->fields[i].name;
       const char *t = sf->fields[i].type;
-      const char *r = get_type_from_ref(sf->fields[i].ref);
+      const char *r =
+          (get_type_from_ref(sf->fields[i].ref, &_ast_get_type_from_ref_3),
+           _ast_get_type_from_ref_3);
 
       if (strcmp(t, "string") == 0) {
         if (strcmp(def, "nullptr") == 0) {

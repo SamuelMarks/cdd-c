@@ -98,6 +98,7 @@ static void platform_cleanup(void) {}
 
 /* --- Internal Structure --- */
 
+/** \brief mock */
 struct MockServer_ {
   socket_t server_fd;   /**< Listening socket */
   int port;             /**< Bound port */
@@ -110,8 +111,12 @@ struct MockServer_ {
   size_t captured_len;    /**< Length */
 
   /* Sync */
+  /** @brief lock */
   mutex_t lock;
+  /** @brief has_request */
+  /** @brief cond_req_ready */
   cond_t cond_req_ready; /* Signaled when a request is parsed */
+  /** @brief has_request */
   int has_request;
 
   int init_success; /**< Flag for lazy winsock init tracking */
@@ -181,14 +186,20 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 
 /* --- Wrapper API --- */
 
-MockServerPtr mock_server_init(void) {
+int mock_server_init(MockServerPtr *out) {
   struct MockServer_ *s;
-  if (platform_init() != 0)
-    return NULL;
+  if (platform_init() != 0) {
+    if (out)
+      *out = NULL;
+    return 1;
+  }
 
   s = (struct MockServer_ *)calloc(1, sizeof(struct MockServer_));
-  if (!s)
-    return NULL;
+  if (!s) {
+    if (out)
+      *out = NULL;
+    return 1;
+  }
 
   s->server_fd = INVALID_SOCK;
   s->running = 0;
@@ -197,7 +208,8 @@ MockServerPtr mock_server_init(void) {
   mutex_init(&s->lock);
   cond_init(&s->cond_req_ready);
 
-  return s;
+  *out = s;
+  return 0;
 }
 
 void mock_server_destroy(MockServerPtr server) {

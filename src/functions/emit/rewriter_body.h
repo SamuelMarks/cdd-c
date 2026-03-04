@@ -52,9 +52,15 @@ enum TransformType {
  * statements.
  */
 struct SignatureTransform {
+  /** @brief type */
+  /** @brief type */
   enum TransformType type;
+  /** @brief success_code */
+  /** @brief arg_name */
   const char *arg_name;
+  /** @brief success_code */
   const char *success_code;
+  /** @brief error_code */
   const char *error_code;
   const char
       *return_type; /**< Original return type (e.g. "char *") for temp vars */

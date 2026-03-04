@@ -71,17 +71,24 @@ find_scheme(const struct OpenAPI_Spec *spec, const char *name) {
   return NULL;
 }
 
-static const struct OpenAPI_MediaType *
-find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                const char *name) {
+static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           struct OpenAPI_MediaType **_out_val) {
   size_t i;
-  if (!mts || !name)
-    return NULL;
-  for (i = 0; i < n; ++i) {
-    if (mts[i].name && strcmp(mts[i].name, name) == 0)
-      return &mts[i];
+  if (!mts || !name) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
+  for (i = 0; i < n; ++i) {
+    if (mts[i].name && strcmp(mts[i].name, name) == 0) {
+      *_out_val = &mts[i];
+      return 0;
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 TEST test_load_parameter_array(void) {
@@ -112,6 +119,7 @@ TEST test_load_parameter_array(void) {
 }
 
 TEST test_load_schema_parsing(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_0;
 
   /* Test that schemas are loaded into the global registry */
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
@@ -127,7 +135,10 @@ TEST test_load_schema_parsing(void) {
   ASSERT_STR_EQ("Login", spec.defined_schema_names[0]);
 
   {
-    const struct StructFields *sf = openapi_spec_find_schema(&spec, "Login");
+    const struct StructFields *sf =
+        (openapi_spec_find_schema(&spec, "Login",
+                                  &_ast_openapi_spec_find_schema_0),
+         _ast_openapi_spec_find_schema_0);
     ASSERT(sf != NULL);
     ASSERT_EQ(1, sf->size);
     ASSERT_STR_EQ("user", sf->fields[0].name);
@@ -1702,6 +1713,7 @@ TEST test_load_request_body_component_ref(void) {
 }
 
 TEST test_load_response_multiple_content(void) {
+  struct OpenAPI_MediaType *_ast_find_media_type_1;
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"components\":{\"schemas\":{"
@@ -1724,8 +1736,11 @@ TEST test_load_response_multiple_content(void) {
     ASSERT_STR_EQ("application/json", resp->content_type);
     ASSERT_STR_EQ("Pet", resp->schema.ref_name);
     {
-      const struct OpenAPI_MediaType *text_mt = find_media_type(
-          resp->content_media_types, resp->n_content_media_types, "text/plain");
+      const struct OpenAPI_MediaType *text_mt =
+          (find_media_type(resp->content_media_types,
+                           resp->n_content_media_types, "text/plain",
+                           &_ast_find_media_type_1),
+           _ast_find_media_type_1);
       ASSERT(text_mt != NULL);
       ASSERT_EQ(1, text_mt->schema_set);
       ASSERT_STR_EQ("string", text_mt->schema.inline_type);
@@ -1737,6 +1752,7 @@ TEST test_load_response_multiple_content(void) {
 }
 
 TEST test_load_request_body_multiple_content_with_ref(void) {
+  struct OpenAPI_MediaType *_ast_find_media_type_2;
 
   const char *json =
       "{\"openapi\":\"3.2.0\",\"components\":{\"schemas\":{\"Pet\":{\"type\":"
@@ -1764,8 +1780,9 @@ TEST test_load_request_body_multiple_content_with_ref(void) {
     ASSERT_STR_EQ("Pet", op->req_body.ref_name);
     {
       const struct OpenAPI_MediaType *mt =
-          find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                          "application/json");
+          (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                           "application/json", &_ast_find_media_type_2),
+           _ast_find_media_type_2);
       ASSERT(mt != NULL);
       ASSERT_STR_EQ("#/components/mediaTypes/application~1json", mt->ref);
     }
@@ -2521,6 +2538,8 @@ TEST test_load_inline_schema_items_const_default_and_extras(void) {
 }
 
 TEST test_load_inline_request_body_object_promoted(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_3;
+  struct StructField *_ast_struct_fields_get_4;
 
   const char *json =
       "{"
@@ -2549,10 +2568,14 @@ TEST test_load_inline_request_body_object_promoted(void) {
                 spec.paths[0].operations[0].req_body.ref_name);
   {
     const struct StructFields *sf =
-        openapi_spec_find_schema(&spec, "Inline_createPet_Request_1");
+        (openapi_spec_find_schema(&spec, "Inline_createPet_Request_1",
+                                  &_ast_openapi_spec_find_schema_3),
+         _ast_openapi_spec_find_schema_3);
     ASSERT(sf != NULL);
     {
-      struct StructField *field = struct_fields_get(sf, "name");
+      struct StructField *field =
+          (struct_fields_get(sf, "name", &_ast_struct_fields_get_4),
+           _ast_struct_fields_get_4);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("string", field->type);
     }
@@ -2588,6 +2611,8 @@ TEST test_load_request_body_item_schema_array(void) {
 }
 
 TEST test_load_inline_response_schema_object_item_promoted(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_5;
+  struct StructField *_ast_struct_fields_get_6;
 
   const char *json =
       "{"
@@ -2613,10 +2638,14 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
   {
     const struct StructFields *sf =
-        openapi_spec_find_schema(&spec, "Inline_listPets_Response_200_Item");
+        (openapi_spec_find_schema(&spec, "Inline_listPets_Response_200_Item",
+                                  &_ast_openapi_spec_find_schema_5),
+         _ast_openapi_spec_find_schema_5);
     ASSERT(sf != NULL);
     {
-      struct StructField *field = struct_fields_get(sf, "id");
+      struct StructField *field =
+          (struct_fields_get(sf, "id", &_ast_struct_fields_get_6),
+           _ast_struct_fields_get_6);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("integer", field->type);
     }
@@ -2627,6 +2656,8 @@ TEST test_load_inline_response_schema_object_item_promoted(void) {
 }
 
 TEST test_load_inline_response_item_schema_object_promoted(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_7;
+  struct StructField *_ast_struct_fields_get_8;
 
   const char *json = "{"
                      "\"openapi\":\"3.2.0\","
@@ -2651,10 +2682,14 @@ TEST test_load_inline_response_item_schema_object_promoted(void) {
                 spec.paths[0].operations[0].responses[0].schema.ref_name);
   {
     const struct StructFields *sf =
-        openapi_spec_find_schema(&spec, "Inline_streamPets_Response_200_Item");
+        (openapi_spec_find_schema(&spec, "Inline_streamPets_Response_200_Item",
+                                  &_ast_openapi_spec_find_schema_7),
+         _ast_openapi_spec_find_schema_7);
     ASSERT(sf != NULL);
     {
-      struct StructField *field = struct_fields_get(sf, "name");
+      struct StructField *field =
+          (struct_fields_get(sf, "name", &_ast_struct_fields_get_8),
+           _ast_struct_fields_get_8);
       ASSERT(field != NULL);
       ASSERT_STR_EQ("string", field->type);
     }
@@ -2843,6 +2878,7 @@ TEST test_relative_self_component_refs(void) {
 }
 
 TEST test_schema_id_ref_resolution(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_for_ref_9;
 
   const char *json = "{"
                      "\"openapi\":\"3.2.0\","
@@ -2875,7 +2911,9 @@ TEST test_schema_id_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        openapi_spec_find_schema_for_ref(&spec, &p->schema);
+        (openapi_spec_find_schema_for_ref(
+             &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_9),
+         _ast_openapi_spec_find_schema_for_ref_9);
     ASSERT(sf != NULL);
     ASSERT(spec.defined_schema_ids != NULL);
     ASSERT_STR_EQ("https://example.com/schemas/foo",
@@ -2887,6 +2925,7 @@ TEST test_schema_id_ref_resolution(void) {
 }
 
 TEST test_schema_anchor_ref_resolution(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_for_ref_10;
 
   const char *json = "{"
                      "\"openapi\":\"3.2.0\","
@@ -2919,7 +2958,9 @@ TEST test_schema_anchor_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        openapi_spec_find_schema_for_ref(&spec, &p->schema);
+        (openapi_spec_find_schema_for_ref(
+             &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_10),
+         _ast_openapi_spec_find_schema_for_ref_10);
     ASSERT(sf != NULL);
     ASSERT(spec.defined_schema_anchors != NULL);
     ASSERT_STR_EQ("FooAnchor", spec.defined_schema_anchors[0]);
@@ -2930,6 +2971,7 @@ TEST test_schema_anchor_ref_resolution(void) {
 }
 
 TEST test_schema_dynamic_ref_resolution(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_for_ref_11;
 
   const char *json = "{"
                      "\"openapi\":\"3.2.0\","
@@ -2962,7 +3004,9 @@ TEST test_schema_dynamic_ref_resolution(void) {
   {
     struct OpenAPI_Parameter *p = &spec.paths[0].operations[0].parameters[0];
     const struct StructFields *sf =
-        openapi_spec_find_schema_for_ref(&spec, &p->schema);
+        (openapi_spec_find_schema_for_ref(
+             &spec, &p->schema, &_ast_openapi_spec_find_schema_for_ref_11),
+         _ast_openapi_spec_find_schema_for_ref_11);
     ASSERT(sf != NULL);
     ASSERT(spec.defined_schema_dynamic_anchors != NULL);
     ASSERT_STR_EQ("FooDyn", spec.defined_schema_dynamic_anchors[0]);

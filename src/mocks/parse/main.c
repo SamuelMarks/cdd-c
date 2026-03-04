@@ -15,6 +15,7 @@ static const char *const foo_e_mock0 =
     "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
     "\"some_bzr\",\"tank\": \"SMALL\"}}";
 
+/** \brief func */
 int main(void) {
   const enum Tank t = Tank_BIG;
   char *tank_as_str = NULL;

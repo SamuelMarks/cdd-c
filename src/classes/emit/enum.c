@@ -1,5 +1,5 @@
 /**
- * @file codegen_enum.c
+ * @file enum.c
  * @brief Implementation of Enum extraction and generation logic.
  *
  * @author Samuel Marks
@@ -13,6 +13,7 @@
 #include "functions/parse/str.h"
 
 /* Wrapper for fprintf to check errors tersely */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -54,6 +55,7 @@ void enum_members_free(struct EnumMembers *const em) {
 }
 
 int enum_members_add(struct EnumMembers *const em, const char *const name) {
+  char *_ast_strdup_0 = NULL;
   if (!em || !name)
     return EINVAL;
   if (em->size >= em->capacity) {
@@ -65,7 +67,7 @@ int enum_members_add(struct EnumMembers *const em, const char *const name) {
     em->members = new_members;
     em->capacity = new_cap;
   }
-  em->members[em->size] = c_cdd_strdup(name);
+  em->members[em->size] = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
   if (!em->members[em->size])
     return ENOMEM;
   em->size++;

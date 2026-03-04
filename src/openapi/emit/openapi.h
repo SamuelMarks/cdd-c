@@ -1,5 +1,5 @@
 /**
- * @file openapi_writer.h
+ * @file openapi.h
  * @brief Writer module for OpenAPI v3.2 definitions.
  *
  * Provides functionality to serialize an in-memory `OpenAPI_Spec` structure

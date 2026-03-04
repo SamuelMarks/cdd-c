@@ -1,5 +1,5 @@
 /**
- * @file generate_build_system.h
+ * @file build_system.h
  * @brief Utilities for scaffolding build configurations (CMake).
  *
  * Provides functionality to generate `CMakeLists.txt` files for generated

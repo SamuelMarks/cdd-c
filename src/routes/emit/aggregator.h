@@ -1,5 +1,5 @@
 /**
- * @file openapi_aggregator.h
+ * @file aggregator.h
  * @brief Aggregator for organizing OpenAPI Operations into Paths.
  *
  * Provides functionality to insert individual Operation definition structs

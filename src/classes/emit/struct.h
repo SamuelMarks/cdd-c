@@ -1,5 +1,5 @@
 /**
- * @file codegen_struct.h
+ * @file struct.h
  * @brief Struct Lifecycle generation module.
  *
  * Provides functionality to generate C "Data Class" utilities:
@@ -172,14 +172,17 @@ extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
                                           const char *bit_width);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Search for a field by name.
  *
  * @param[in] sf Pointer to the container.
  * @param[in] name Field name to find.
  * @return Pointer to the field if found, NULL otherwise.
  */
-extern C_CDD_EXPORT struct StructField *
-struct_fields_get(const struct StructFields *sf, const char *name);
+extern C_CDD_EXPORT int struct_fields_get(const struct StructFields *sf,
+                                          const char *name,
+                                          struct StructField **_out_val);
 
 /* --- Generator Functions --- */
 
@@ -276,12 +279,14 @@ write_struct_display_func(FILE *fp, const char *struct_name,
                           const struct CodegenStructConfig *config);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Helper to extract type name from a reference path.
  *
  * @param[in] ref Reference string (e.g. "#/components/schemas/Type").
  * @return The base type name ("Type") or the input string if no slash.
  */
-extern C_CDD_EXPORT const char *get_type_from_ref(const char *ref);
+extern C_CDD_EXPORT int get_type_from_ref(const char *ref, char **_out_val);
 
 #ifdef __cplusplus
 }

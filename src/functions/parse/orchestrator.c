@@ -1,5 +1,5 @@
 /**
- * @file refactor_orchestrator.c
+ * @file orchestrator.c
  * @brief Implementation of the refactoring orchestrator.
  *
  * Coordinates the full "fix" pipeline:
@@ -97,14 +97,20 @@ static int get_token_slice(const struct TokenList *src, size_t start,
 }
 
 /* Helper to find specific token type within range */
-static size_t find_token_in_range(const struct TokenList *tokens, size_t start,
-                                  size_t end, enum TokenKind kind) {
+static int find_token_in_range(const struct TokenList *tokens, size_t start,
+                               size_t end, enum TokenKind kind,
+                               size_t *_out_val) {
   size_t i;
   for (i = start; i < end; ++i) {
-    if (tokens->tokens[i].kind == kind)
-      return i;
+    if (tokens->tokens[i].kind == kind) {
+      *_out_val = i;
+      return 0;
+    }
   }
-  return end;
+  {
+    *_out_val = end;
+    return 0;
+  }
 }
 
 /* Helper for token string comparison */
@@ -117,12 +123,17 @@ static int token_eq_str(const struct Token *tok, const char *s) {
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  */
-static char *extract_func_name(const struct TokenList *tokens, size_t start,
-                               size_t body_start) {
-  size_t lparen = find_token_in_range(tokens, start, body_start, TOKEN_LPAREN);
+static int extract_func_name(const struct TokenList *tokens, size_t start,
+                             size_t body_start, char **_out_val) {
+  size_t _ast_find_token_in_range_0;
+  size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
+                                       &_ast_find_token_in_range_0),
+                   _ast_find_token_in_range_0);
   size_t i;
-  if (lparen == body_start)
-    return NULL;
+  if (lparen == body_start) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   /* Backtrack from LPAREN to find Identifier */
   i = lparen;
@@ -133,38 +144,54 @@ static char *extract_func_name(const struct TokenList *tokens, size_t start,
     if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
       size_t len = tokens->tokens[i].length;
       char *name = malloc(len + 1);
-      if (!name)
-        return NULL;
+      if (!name) {
+        *_out_val = NULL;
+        return 0;
+      }
       memcpy(name, tokens->tokens[i].start, len);
       name[len] = '\0';
-      return name;
+      {
+        *_out_val = name;
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 /**
  * @brief Join tokens into a single string.
  */
-static char *join_tokens_str(const struct TokenList *tokens, size_t start,
-                             size_t end) {
+static int join_tokens_str(const struct TokenList *tokens, size_t start,
+                           size_t end, char **_out_val) {
+  char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
   char *buf, *p;
-  if (start >= end)
-    return c_cdd_strdup("");
+  if (start >= end) {
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
+    return 0;
+  }
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
   buf = malloc(len + 1);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
   p = buf;
   for (i = start; i < end; ++i) {
     memcpy(p, tokens->tokens[i].start, tokens->tokens[i].length);
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /**
@@ -174,8 +201,12 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
                                      size_t start, size_t body_start,
                                      int *is_ptr, int *is_void,
                                      char **type_str) {
+  size_t _ast_find_token_in_range_1;
+  char *_ast_join_tokens_str_2;
   size_t i;
-  size_t lparen = find_token_in_range(tokens, start, body_start, TOKEN_LPAREN);
+  size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
+                                       &_ast_find_token_in_range_1),
+                   _ast_find_token_in_range_1);
   size_t name_end_idx = 0;
 
   *is_ptr = 0;
@@ -198,7 +229,9 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
   }
 
   /* Capture return type string [start, name_end_idx) */
-  *type_str = join_tokens_str(tokens, start, name_end_idx);
+  *type_str =
+      (join_tokens_str(tokens, start, name_end_idx, &_ast_join_tokens_str_2),
+       _ast_join_tokens_str_2);
 
   /* Check properties */
   for (i = start; i < name_end_idx; ++i) {
@@ -222,8 +255,9 @@ static void analyze_signature_tokens(const struct TokenList *tokens,
 
 static int graph_add_node(struct DependencyGraph *g, size_t idx,
                           const char *name) {
+  char *_ast_strdup_1 = NULL;
   g->nodes[idx].node_idx = idx;
-  g->nodes[idx].name = c_cdd_strdup(name);
+  g->nodes[idx].name = (c_cdd_strdup(name, &_ast_strdup_1), _ast_strdup_1);
   if (!g->nodes[idx].name)
     return ENOMEM;
   g->nodes[idx].callers = NULL;
@@ -300,6 +334,15 @@ static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
 /* --- Main Orchestrator --- */
 
 int orchestrate_fix(const char *const source_code, char **const out_code) {
+  size_t _ast_find_token_in_range_3;
+  char *_ast_extract_func_name_4;
+  char *_ast_join_tokens_str_5;
+  char *_ast_join_tokens_str_6;
+  char *_ast_join_tokens_str_7;
+  char *_ast_join_tokens_str_8;
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
+  char *_ast_strdup_4 = NULL;
   struct TokenList *tokens = NULL;
   struct CstNodeList cst = {0};
   struct AllocationSiteList allocs = {0};
@@ -370,11 +413,15 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
         fn->token_start = start_idx;
         fn->token_end = end_idx;
         fn->body_start =
-            find_token_in_range(tokens, start_idx, end_idx, TOKEN_LBRACE);
+            (find_token_in_range(tokens, start_idx, end_idx, TOKEN_LBRACE,
+                                 &_ast_find_token_in_range_3),
+             _ast_find_token_in_range_3);
 
-        name = extract_func_name(tokens, start_idx, fn->body_start);
+        name = (extract_func_name(tokens, start_idx, fn->body_start,
+                                  &_ast_extract_func_name_4),
+                _ast_extract_func_name_4);
         if (!name)
-          name = c_cdd_strdup("");
+          name = (c_cdd_strdup("", &_ast_strdup_2), _ast_strdup_2);
 
         rc = graph_add_node(&graph, f_idx, name);
         free(name);
@@ -472,7 +519,7 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
     /* Reconstruct file node by node */
     size_t f_idx = 0;
     size_t current_tok_offset = 0;
-    output = c_cdd_strdup("");
+    output = (c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3);
     if (!output) {
       rc = ENOMEM;
       goto cleanup;
@@ -508,7 +555,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
             /* Generate Signature */
             if (!node->is_main) {
               if (rewrite_signature(&sig_slice, &new_sig) != 0)
-                new_sig = join_tokens_str(tokens, start_idx, node->body_start);
+                new_sig = (join_tokens_str(tokens, start_idx, node->body_start,
+                                           &_ast_join_tokens_str_5),
+                           _ast_join_tokens_str_5);
 
               trans.type = node->returns_ptr ? TRANSFORM_RET_PTR_TO_ARG
                                              : TRANSFORM_VOID_TO_INT;
@@ -517,7 +566,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
               trans.error_code = "ENOMEM";
               trans.return_type = node->original_return_type;
             } else {
-              new_sig = join_tokens_str(tokens, start_idx, node->body_start);
+              new_sig = (join_tokens_str(tokens, start_idx, node->body_start,
+                                         &_ast_join_tokens_str_6),
+                         _ast_join_tokens_str_6);
               trans.type = TRANSFORM_NONE;
             }
 
@@ -532,7 +583,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
                   struct AllocationSite site = allocs.sites[k];
                   site.token_index -= node->body_start; /* Relativize */
                   if (site.var_name)
-                    site.var_name = c_cdd_strdup(site.var_name);
+                    site.var_name =
+                        (c_cdd_strdup(site.var_name, &_ast_strdup_4),
+                         _ast_strdup_4);
                   if (local_allocs.size >= local_allocs.capacity) {
                     size_t nc = local_allocs.capacity == 0
                                     ? 4
@@ -574,7 +627,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
         }
 
         if (!segment) {
-          segment = join_tokens_str(tokens, start_idx, end_idx);
+          segment = (join_tokens_str(tokens, start_idx, end_idx,
+                                     &_ast_join_tokens_str_7),
+                     _ast_join_tokens_str_7);
         }
 
         {
@@ -606,7 +661,9 @@ int orchestrate_fix(const char *const source_code, char **const out_code) {
 
       /* Copy Non-Function Nodes verbatim */
       {
-        char *content = join_tokens_str(tokens, start_idx, end_idx);
+        char *content = (join_tokens_str(tokens, start_idx, end_idx,
+                                         &_ast_join_tokens_str_8),
+                         _ast_join_tokens_str_8);
         char *joined;
 #ifdef HAVE_ASPRINTF
         asprintf(&joined, "%s%s", output, content);
@@ -649,9 +706,15 @@ cleanup:
 
 /* --- CLI Integration --- */
 
+/** @brief FixWalkContext structure */
 struct FixWalkContext {
+  /** @brief in_place */
+  /** @brief in_place */
   int in_place;
+  /** @brief error_count */
+  /** @brief single_output_file */
   const char *single_output_file;
+  /** @brief error_count */
   int error_count;
 };
 

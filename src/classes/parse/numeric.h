@@ -1,5 +1,5 @@
 /**
- * @file numeric_parser.h
+ * @file numeric.h
  * @brief Logic for parsing C numeric literal strings into typed values.
  *
  * Provides a unified interface to convert token strings (e.g., "0xFF", "1.5f",
@@ -33,7 +33,9 @@ extern "C" {
 
 /* Fallback for Pre-C99 environments missing stdint.h */
 #if !defined(UINT64_MAX)
+/** @brief uint64_t definition */
 typedef unsigned long long uint64_t;
+/** @brief int64_t definition */
 typedef long long int64_t;
 #endif
 
@@ -82,9 +84,12 @@ struct FloatInfo {
  */
 struct NumericValue {
   enum NumericKind kind; /**< Type of the number */
+  /** @brief union data */
   union {
     struct IntegerInfo integer; /**< Valid if kind == NUMERIC_INTEGER */
     struct FloatInfo floating;  /**< Valid if kind == NUMERIC_FLOAT */
+    /** @brief data */
+    /** @brief data variant */
   } data;
 };
 

@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_operation.h
+ * @file operation.h
  * @brief Builder for constructing OpenAPI Operations from C functions.
  *
  * Merges extracted C signature details (arguments, return type) with

@@ -25,10 +25,17 @@ GREATEST_MAIN_DEFS();
  * @brief Mock Struct for Array Testing.
  */
 struct ArrayStruct {
+  /** @brief int_arr */
+  /** @brief int_arr */
   int *int_arr;
+  /** @brief n_int_arr */
   size_t n_int_arr;
 
+  /** @brief n_str_arr */
+
+  /** @brief str_arr */
   char **str_arr;
+  /** @brief n_str_arr */
   size_t n_str_arr;
 };
 

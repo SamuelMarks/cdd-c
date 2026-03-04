@@ -40,7 +40,7 @@ struct MockServerRequest {
  *
  * @return A handle to the server, or NULL on failure.
  */
-extern CDD_TEST_HELPERS_EXPORT MockServerPtr mock_server_init(void);
+extern CDD_TEST_HELPERS_EXPORT int mock_server_init(MockServerPtr *out);
 
 /**
  * @brief Destroy a mock server instance.

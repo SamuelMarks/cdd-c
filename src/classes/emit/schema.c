@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_schema.c
+ * @file schema.c
  * @brief Implementation of Schema Registry Integration.
  *
  * @author Samuel Marks
@@ -31,6 +31,7 @@ static void free_string_array(char **arr, size_t n) {
 
 static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
                              size_t src_count) {
+  char *_ast_strdup_0 = NULL;
   size_t i;
   char **out;
   if (!dst || !dst_count)
@@ -44,7 +45,7 @@ static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
     return ENOMEM;
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
-      out[i] = c_cdd_strdup(src[i]);
+      out[i] = (c_cdd_strdup(src[i], &_ast_strdup_0), _ast_strdup_0);
       if (!out[i]) {
         free_string_array(out, src_count);
         return ENOMEM;
@@ -103,11 +104,15 @@ static int copy_enum_members(const struct EnumMembers *src,
  */
 static int copy_struct_fields(const struct StructFields *src,
                               struct StructFields *dst) {
+  char *_ast_strdup_1 = NULL;
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
   size_t i;
   if (struct_fields_init(dst) != 0)
     return ENOMEM;
   if (src->schema_extra_json) {
-    dst->schema_extra_json = c_cdd_strdup(src->schema_extra_json);
+    dst->schema_extra_json =
+        (c_cdd_strdup(src->schema_extra_json, &_ast_strdup_1), _ast_strdup_1);
     if (!dst->schema_extra_json)
       return ENOMEM;
   }
@@ -135,12 +140,14 @@ static int copy_struct_fields(const struct StructFields *src,
       dst_field->items_type_union = NULL;
       dst_field->n_items_type_union = 0;
       if (f->schema_extra_json) {
-        dst_field->schema_extra_json = c_cdd_strdup(f->schema_extra_json);
+        dst_field->schema_extra_json =
+            (c_cdd_strdup(f->schema_extra_json, &_ast_strdup_2), _ast_strdup_2);
         if (!dst_field->schema_extra_json)
           return ENOMEM;
       }
       if (f->items_extra_json) {
-        dst_field->items_extra_json = c_cdd_strdup(f->items_extra_json);
+        dst_field->items_extra_json =
+            (c_cdd_strdup(f->items_extra_json, &_ast_strdup_3), _ast_strdup_3);
         if (!dst_field->items_extra_json)
           return ENOMEM;
       }
@@ -164,6 +171,8 @@ static int copy_struct_fields(const struct StructFields *src,
 
 int c2openapi_register_types(struct OpenAPI_Spec *const spec,
                              const struct TypeDefList *const types) {
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
   size_t i;
   int rc = 0;
 
@@ -196,7 +205,8 @@ int c2openapi_register_types(struct OpenAPI_Spec *const spec,
         spec->defined_schemas = new_schemas;
 
         /* Store */
-        spec->defined_schema_names[new_idx] = c_cdd_strdup(def->name);
+        spec->defined_schema_names[new_idx] =
+            (c_cdd_strdup(def->name, &_ast_strdup_4), _ast_strdup_4);
         if (!spec->defined_schema_names[new_idx])
           return ENOMEM;
 
@@ -226,7 +236,8 @@ int c2openapi_register_types(struct OpenAPI_Spec *const spec,
           return ENOMEM;
         spec->defined_schemas = new_schemas;
 
-        spec->defined_schema_names[new_idx] = c_cdd_strdup(def->name);
+        spec->defined_schema_names[new_idx] =
+            (c_cdd_strdup(def->name, &_ast_strdup_5), _ast_strdup_5);
         if (!spec->defined_schema_names[new_idx])
           return ENOMEM;
 

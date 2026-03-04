@@ -1,5 +1,5 @@
 /**
- * @file str_utils.h
+ * @file str.h
  * @brief Centralized string utilities and platform compatibility safeguards.
  *
  * Consolidates memory-safe string duplication, inspection, modifications,
@@ -47,10 +47,11 @@ extern "C" {
  * @brief Duplicate a string.
  *
  * @param[in] s The null-terminated string to duplicate.
+ * @param[out] out_s Pointer to store the result
  * @return A pointer to the new string, or NULL if allocation failed or input
  * was NULL.
  */
-extern C_CDD_EXPORT char *c_cdd_strdup(const char *s);
+extern C_CDD_EXPORT int c_cdd_strdup(const char *s, char **out_s);
 
 /* --- Inspection Helpers --- */
 
@@ -58,49 +59,57 @@ extern C_CDD_EXPORT char *c_cdd_strdup(const char *s);
  * @brief Check if a string starts with a given prefix.
  *
  * @param[in] str The main string to check.
+ * @param[out] out_b Pointer to store the result
  * @param[in] prefix The prefix string to look for.
  * @return true if `str` begins with `prefix`, false otherwise.
  */
-extern C_CDD_EXPORT bool c_cdd_str_starts_with(const char *str,
-                                               const char *prefix);
+extern C_CDD_EXPORT int c_cdd_str_starts_with(const char *str,
+                                              const char *prefix, bool *out_b);
 
 /**
  * @brief Check if two strings are equal (content-wise).
  *
  * @param[in] a First string.
+ * @param[out] out_b Pointer to store the result
  * @param[in] b Second string.
  * @return true if strings match or both are NULL, false otherwise.
  */
-extern C_CDD_EXPORT bool c_cdd_str_equal(const char *a, const char *b);
+extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
+                                        bool *out_b);
 
 /**
  * @brief Check if two strings are equal ignoring ASCII case.
  *
  * @param[in] a First string.
+ * @param[out] out_b Pointer to store the result
  * @param[in] b Second string.
  * @return true if strings match case-insensitively or both are NULL, false
  * otherwise.
  */
-extern C_CDD_EXPORT bool c_cdd_str_iequal(const char *a, const char *b);
+extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
+                                         bool *out_b);
 
 /**
  * @brief Find the substring after the last occurrence of a character.
  *
  * @param[in] str The string to search.
+ * @param[out] out_s Pointer to store the result
  * @param[in] delimiter The delimiter character (e.g., '/').
  * @return Pointer to character immediately following the last delimiter.
  */
-extern C_CDD_EXPORT const char *c_cdd_str_after_last(const char *str,
-                                                     int delimiter);
+extern C_CDD_EXPORT int c_cdd_str_after_last(const char *str, int delimiter,
+                                             const char **out_s);
 
 /**
  * @brief Check if a pointer reference matches a specific type name.
  *
  * @param[in] ref The reference path.
+ * @param[out] out_b Pointer to store the result
  * @param[in] type The simple type name.
  * @return true if the extracted name matches `type`.
  */
-extern C_CDD_EXPORT bool c_cdd_ref_is_type(const char *ref, const char *type);
+extern C_CDD_EXPORT int c_cdd_ref_is_type(const char *ref, const char *type,
+                                          bool *out_b);
 
 /* --- Modification Helpers --- */
 
@@ -113,6 +122,7 @@ extern C_CDD_EXPORT void c_cdd_str_trim_trailing_whitespace(char *str);
 
 /**
  * @brief Decode a string literal token for _Pragma usage.
+ * @param[out] out_s Pointer to store the result
  *
  * Performs "destringizing" (6.10.9) to convert a string literal token into
  * the corresponding preprocessing tokens text.
@@ -122,7 +132,7 @@ extern C_CDD_EXPORT void c_cdd_str_trim_trailing_whitespace(char *str);
  * @param[in] quoted The string literal (with quotes).
  * @return Allocated string containing the decoded content, or NULL on error.
  */
-extern C_CDD_EXPORT char *c_cdd_destringize(const char *quoted);
+extern C_CDD_EXPORT int c_cdd_destringize(const char *quoted, char **out_s);
 
 #ifdef __cplusplus
 }

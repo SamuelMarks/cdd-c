@@ -1,5 +1,5 @@
 /**
- * @file c_inspector.h
+ * @file inspector.h
  * @brief High-level AST Inspector for C Code.
  *
  * Provides utilities to extract semantic information from C source and header
@@ -45,9 +45,12 @@ struct TypeDefinition {
   char *name;                   /**< Name of the type (e.g., "MyStruct") */
 
   /* Detailed parse info. Union based on kind. */
+  /** @brief union details */
   union {
     struct EnumMembers *enum_members;   /**< Populated if kind == KIND_ENUM */
     struct StructFields *struct_fields; /**< Populated if kind == KIND_STRUCT */
+    /** @brief details */
+    /** @brief Type details */
   } details;
 };
 

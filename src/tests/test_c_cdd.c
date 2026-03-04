@@ -67,6 +67,7 @@
 #include "parse/test_preprocessor.h"
 #include "parse/test_preprocessor_macros.h"
 #include "parse/test_project_audit.h"
+#include "parse/test_refactor.h"
 #include "parse/test_refactor_api_sync.h"
 #include "parse/test_refactor_orchestrator.h"
 #include "parse/test_schema_constraints.h"
@@ -79,12 +80,16 @@
 
 /* New Suites */
 #include "emit/test_aggregator.h"
+#include "emit/test_cli_gen.h"
 #include "emit/test_openapi_writer.h"
+#include "emit/test_server_gen.h"
+#include "emit/test_server_json_rpc.h"
 #include "parse/test_c2openapi_op.h"
 #include "parse/test_c2openapi_schema.h"
 #include "parse/test_c_mapping.h"
 #include "parse/test_doc_parser.h"
 #include "parse/test_integration_c2openapi.h"
+#include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
 
 GREATEST_MAIN_DEFS();
@@ -135,6 +140,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(project_audit_suite);
   RUN_SUITE(api_sync_suite);
   RUN_SUITE(refactor_orchestrator_suite);
+  RUN_SUITE(refactor_suite);
   RUN_SUITE(rewriter_body_suite);
   RUN_SUITE(rewriter_sig_suite);
   RUN_SUITE(schema2tests_suite);
@@ -159,6 +165,10 @@ int main(int argc, char **argv) {
   RUN_SUITE(c2openapi_schema_suite);
   RUN_SUITE(integration_c2openapi_suite);
   RUN_SUITE(to_docs_json_suite);
+  RUN_SUITE(main_suite);
+  RUN_SUITE(cli_gen_suite);
+  RUN_SUITE(server_gen_suite);
+  RUN_SUITE(server_json_rpc_suite);
 
   GREATEST_MAIN_END();
 }

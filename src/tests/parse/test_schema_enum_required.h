@@ -31,6 +31,8 @@ static int load_spec_string(const char *json, struct OpenAPI_Spec *spec) {
 }
 
 TEST test_loader_enum_and_required(void) {
+  struct StructFields *_ast_openapi_spec_find_schema_0;
+  struct StructFields *_ast_openapi_spec_find_schema_1;
   const char *json =
       "{"
       "\"openapi\":\"3.2.0\","
@@ -46,7 +48,10 @@ TEST test_loader_enum_and_required(void) {
   ASSERT_EQ(0, rc);
 
   {
-    const struct StructFields *color = openapi_spec_find_schema(&spec, "Color");
+    const struct StructFields *color =
+        (openapi_spec_find_schema(&spec, "Color",
+                                  &_ast_openapi_spec_find_schema_0),
+         _ast_openapi_spec_find_schema_0);
     ASSERT(color != NULL);
     ASSERT_EQ(1, color->is_enum);
     ASSERT_EQ(2, color->enum_members.size);
@@ -55,7 +60,10 @@ TEST test_loader_enum_and_required(void) {
   }
 
   {
-    const struct StructFields *car = openapi_spec_find_schema(&spec, "Car");
+    const struct StructFields *car =
+        (openapi_spec_find_schema(&spec, "Car",
+                                  &_ast_openapi_spec_find_schema_1),
+         _ast_openapi_spec_find_schema_1);
     ASSERT(car != NULL);
     ASSERT_EQ(0, car->is_enum);
     ASSERT_EQ(1, car->size);

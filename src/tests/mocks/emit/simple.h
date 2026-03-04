@@ -7,6 +7,7 @@ extern "C" {
 
 #include "simple_mocks_export.h"
 
+/** \brief mock */
 struct Haz {
   const char *bzr;
 };

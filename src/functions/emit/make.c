@@ -1,5 +1,5 @@
 /**
- * @file codegen_make.c
+ * @file make.c
  * @brief Implementation of build system generation.
  * @author Samuel Marks
  */
@@ -10,6 +10,7 @@
 
 #include "functions/emit/make.h"
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \

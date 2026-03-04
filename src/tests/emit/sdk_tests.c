@@ -1,5 +1,5 @@
 /**
- * @file codegen_sdk_tests.c
+ * @file sdk_tests.c
  * @brief Implementation of SDK Test Generation.
  * @author Samuel Marks
  */

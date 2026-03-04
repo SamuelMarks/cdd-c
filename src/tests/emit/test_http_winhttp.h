@@ -44,6 +44,7 @@ TEST test_winhttp_lifecycle(void) {
 }
 
 TEST test_winhttp_config_usage(void) {
+  char *_ast_strdup_0 = NULL;
 #ifdef _WIN32
   struct HttpTransportContext *ctx = NULL;
   struct HttpConfig cfg;
@@ -64,7 +65,8 @@ TEST test_winhttp_config_usage(void) {
   /* Test proxy configuration */
   if (cfg.proxy_url)
     free(cfg.proxy_url);
-  cfg.proxy_url = c_cdd_strdup("http://127.0.0.1:8888");
+  cfg.proxy_url =
+      (c_cdd_strdup("http://127.0.0.1:8888", &_ast_strdup_0), _ast_strdup_0);
 
   rc = http_winhttp_config_apply(ctx, &cfg);
   ASSERT_EQ(0, rc);
@@ -78,6 +80,7 @@ TEST test_winhttp_config_usage(void) {
 }
 
 TEST test_winhttp_send_fail(void) {
+  char *_ast_strdup_1 = NULL;
 #ifdef _WIN32
   struct HttpTransportContext *ctx = NULL;
   struct HttpRequest req;
@@ -90,7 +93,7 @@ TEST test_winhttp_send_fail(void) {
   /* Initialize request */
   http_request_init(&req);
   /* Invalid URL syntax to trigger immediate failure in CrackUrl */
-  req.url = c_cdd_strdup("not_a_url");
+  req.url = (c_cdd_strdup("not_a_url", &_ast_strdup_1), _ast_strdup_1);
 
   rc = http_winhttp_send(ctx, &req, &res);
 
@@ -139,7 +142,29 @@ TEST test_winhttp_send_null_checks(void) {
   PASS();
 }
 
+TEST test_winhttp_stubs(void) {
+#ifndef _WIN32
+  struct HttpTransportContext *ctx = NULL;
+  struct HttpConfig cfg;
+  struct HttpRequest req;
+  struct HttpResponse *res = NULL;
+
+  ASSERT_EQ(0, http_winhttp_global_init());
+  http_winhttp_global_cleanup();
+
+  ASSERT_EQ(ENOTSUP, http_winhttp_context_init(&ctx));
+  http_winhttp_context_free(NULL);
+
+  ASSERT_EQ(ENOTSUP, http_winhttp_config_apply(NULL, &cfg));
+  ASSERT_EQ(ENOTSUP, http_winhttp_send(NULL, &req, &res));
+#else
+  SKIPm("WinHTTP is supported on this platform");
+#endif
+  PASS();
+}
+
 SUITE(http_winhttp_suite) {
+  RUN_TEST(test_winhttp_stubs);
   RUN_TEST(test_winhttp_lifecycle);
   RUN_TEST(test_winhttp_config_usage);
   RUN_TEST(test_winhttp_send_fail);

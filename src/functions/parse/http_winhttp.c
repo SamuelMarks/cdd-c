@@ -21,12 +21,19 @@
 #include <winhttp.h>
 #else
 /* Stub definitions */
+/** @brief HINTERNET typedef */
 typedef void *HINTERNET;
+/** @brief BOOL definition */
 typedef int BOOL;
+/** @brief DWORD definition */
 typedef unsigned long DWORD;
+/** @brief wchar_t definition */
 typedef int wchar_t;
+/** @brief LPVOID definition */
 typedef void *LPVOID;
+/** @brief FALSE definition */
 #define FALSE 0
+/** @brief TRUE definition */
 #define TRUE 1
 #endif
 
@@ -39,6 +46,8 @@ typedef void *LPVOID;
 #endif
 
 struct HttpTransportContext {
+  /** @brief hSession */
+  /** @brief hSession */
   HINTERNET hSession;
   DWORD security_flags;
 };
@@ -48,30 +57,41 @@ struct HttpTransportContext {
    correctness) ... */
 
 #ifdef _WIN32
-static const wchar_t *method_to_wide(enum HttpMethod method) {
+static int method_to_wide(enum HttpMethod method, const wchar_t **out) {
   switch (method) {
   case HTTP_GET:
-    return L"GET";
+    *out = L"GET";
+    return 0;
   case HTTP_POST:
-    return L"POST";
+    *out = L"POST";
+    return 0;
   case HTTP_PUT:
-    return L"PUT";
+    *out = L"PUT";
+    return 0;
   case HTTP_DELETE:
-    return L"DELETE";
+    *out = L"DELETE";
+    return 0;
   case HTTP_HEAD:
-    return L"HEAD";
+    *out = L"HEAD";
+    return 0;
   case HTTP_OPTIONS:
-    return L"OPTIONS";
+    *out = L"OPTIONS";
+    return 0;
   case HTTP_TRACE:
-    return L"TRACE";
+    *out = L"TRACE";
+    return 0;
   case HTTP_QUERY:
-    return L"QUERY";
+    *out = L"QUERY";
+    return 0;
   case HTTP_CONNECT:
-    return L"CONNECT";
+    *out = L"CONNECT";
+    return 0;
   case HTTP_PATCH:
-    return L"PATCH";
+    *out = L"PATCH";
+    return 0;
   default:
-    return L"GET";
+    *out = L"GET";
+    return 0;
   }
 }
 
@@ -228,6 +248,7 @@ int http_winhttp_config_apply(struct HttpTransportContext *const ctx,
 #endif
 }
 
+/** @brief CLEANUP_AND_RET definition */
 #define CLEANUP_AND_RET(err)                                                   \
   do {                                                                         \
     rc = (err);                                                                \
@@ -295,9 +316,11 @@ int http_winhttp_send(struct HttpTransportContext *const ctx,
   if (!hConnect)
     CLEANUP_AND_RET(EIO);
 
+  const wchar_t *wmethod = NULL;
+  method_to_wide(req->method, &wmethod);
   hRequest = WinHttpOpenRequest(
-      hConnect, method_to_wide(req->method), urlComp.lpszUrlPath, NULL,
-      WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
+      hConnect, wmethod, urlComp.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
+      WINHTTP_DEFAULT_ACCEPT_TYPES,
       (urlComp.nScheme == INTERNET_SCHEME_HTTPS) ? WINHTTP_FLAG_SECURE : 0);
   if (!hRequest)
     CLEANUP_AND_RET(EIO);

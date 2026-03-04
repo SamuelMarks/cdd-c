@@ -1,3 +1,8 @@
+/**
+ * @file cli_gen.h
+ * @brief Generate a CLI wrapper for the OpenAPI SDK.
+ */
+
 #ifndef C_CDD_OPENAPI_CLI_GEN_H
 #define C_CDD_OPENAPI_CLI_GEN_H
 
@@ -9,6 +14,12 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
 
+/**
+ * @brief Generate CLI C source file.
+ * @param spec OpenAPI specification.
+ * @param config Client configuration.
+ * @return 0 on success, non-zero on error.
+ */
 extern C_CDD_EXPORT int
 openapi_cli_generate(const struct OpenAPI_Spec *spec,
                      const struct OpenApiClientConfig *config);

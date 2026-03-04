@@ -1,5 +1,5 @@
 /**
- * @file text_patcher.c
+ * @file patcher.c
  * @brief Implementation of the text patching engine.
  *
  * Handles dynamic array management for patches, sorting strategy,

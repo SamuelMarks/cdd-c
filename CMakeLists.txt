@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
-enable_testing()
+
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
  
 if(MSVC)
@@ -13,6 +13,15 @@ set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
+if(C_CDD_USE_ASAN)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=address>")
+    target_link_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=address>")
+endif()
+if(C_CDD_USE_UBSAN)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=undefined>")
+    target_link_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=undefined>")
+endif()
+
 
 if (NOT DEFINED MSVC_VERSION
         OR MSVC_VERSION STRGREATER "1900" # 2015
@@ -35,8 +44,8 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement;-fprofile-arcs;-ftest-coverage>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wundef;-Wwrite-strings;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement;-fprofile-arcs;-ftest-coverage>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
@@ -73,8 +82,8 @@ else ()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W3;-WX;-Zi;-permissive->>"
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wundef;-Wwrite-strings;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996>>"
     )
 endif ()
 
@@ -166,7 +175,12 @@ configure_file(
 add_subdirectory("src")
 
 
+find_program(MEMORYCHECK_COMMAND NAMES valgrind)
+set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1")
+option(C_CDD_USE_ASAN "Enable AddressSanitizer" OFF)
+option(C_CDD_USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 include(CTest)
+
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)
 if (C_CDD_BUILD_TESTING)
@@ -220,3 +234,13 @@ write_basic_package_version_file(
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif()

@@ -1,5 +1,5 @@
 /**
- * @file refactor_orchestrator.h
+ * @file orchestrator.h
  * @brief High-level orchestration for automatic code refactoring.
  *
  * Manages the pipeline of parsing, analysis, dependency graph construction,

@@ -1,5 +1,5 @@
 /**
- * @file doc_parser.c
+ * @file doc.c
  * @brief Implementation of the documentation comment parser.
  *
  * @author Samuel Marks
@@ -24,11 +24,14 @@ static int is_eol(char c) { return c == '\n' || c == '\r'; }
 /**
  * @brief Skip whitespace in a string buffer.
  */
-static const char *skip_ws(const char *p) {
+static int skip_ws(const char *p, size_t *_out_val) {
   while (*p && isspace((unsigned char)*p) && !is_eol(*p)) {
     p++;
   }
-  return p;
+  {
+    *_out_val = p;
+    return 0;
+  }
 }
 
 /**
@@ -39,9 +42,10 @@ static const char *skip_ws(const char *p) {
  * @param next_out [out] Pointer to where the scan stopped.
  * @return Allocated string containing the word, or NULL on failure.
  */
-static char *extract_word(const char *str, const char *end,
-                          const char **next_out) {
-  const char *p = skip_ws(str);
+static int extract_word(const char *str, const char *end, const char **next_out,
+                        char **_out_val) {
+  size_t _ast_skip_ws_0;
+  const char *p = (skip_ws(str, &_ast_skip_ws_0), _ast_skip_ws_0);
   const char *word_start = p;
   size_t len;
   char *res;
@@ -54,27 +58,36 @@ static char *extract_word(const char *str, const char *end,
   if (len == 0) {
     if (next_out)
       *next_out = p;
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   res = (char *)malloc(len + 1);
-  if (!res)
-    return NULL;
+  if (!res) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   memcpy(res, word_start, len);
   res[len] = '\0';
 
   if (next_out)
     *next_out = p;
-  return res;
+  {
+    *_out_val = res;
+    return 0;
+  }
 }
 
 /**
  * @brief Extract the remainder of the line as text.
  * Trims leading/trailing whitespace.
  */
-static char *extract_rest(const char *str, const char *end) {
-  const char *p = skip_ws(str);
+static int extract_rest(const char *str, const char *end, char **_out_val) {
+  size_t _ast_skip_ws_1;
+  const char *p = (skip_ws(str, &_ast_skip_ws_1), _ast_skip_ws_1);
   const char *e = end;
   size_t len;
   char *res;
@@ -85,19 +98,27 @@ static char *extract_rest(const char *str, const char *end) {
   }
 
   len = (size_t)(e - p);
-  if (len == 0)
-    return NULL;
+  if (len == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   res = (char *)malloc(len + 1);
-  if (!res)
-    return NULL;
+  if (!res) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   memcpy(res, p, len);
   res[len] = '\0';
-  return res;
+  {
+    *_out_val = res;
+    return 0;
+  }
 }
 
 static int add_tag(struct DocMetadata *out, const char *tag) {
+  char *_ast_strdup_0 = NULL;
   char **new_tags;
   if (!out || !tag || !*tag)
     return 0;
@@ -105,7 +126,7 @@ static int add_tag(struct DocMetadata *out, const char *tag) {
   if (!new_tags)
     return ENOMEM;
   out->tags = new_tags;
-  out->tags[out->n_tags] = c_cdd_strdup(tag);
+  out->tags[out->n_tags] = (c_cdd_strdup(tag, &_ast_strdup_0), _ast_strdup_0);
   if (!out->tags[out->n_tags])
     return ENOMEM;
   out->n_tags++;
@@ -126,11 +147,13 @@ static int add_tag_meta(struct DocMetadata *out, struct DocTagMeta *meta) {
   return 0;
 }
 
-static char *trim_segment(char *s) {
+static int trim_segment(char *s, char **_out_val) {
   char *start;
   char *end;
-  if (!s)
-    return NULL;
+  if (!s) {
+    *_out_val = NULL;
+    return 0;
+  }
   start = s;
   while (*start && isspace((unsigned char)*start))
     start++;
@@ -138,11 +161,16 @@ static char *trim_segment(char *s) {
   while (end > start && isspace((unsigned char)*(end - 1)))
     end--;
   *end = '\0';
-  return start;
+  {
+    *_out_val = start;
+    return 0;
+  }
 }
 
 static int parse_tags_line(const char *line, const char *end,
                            struct DocMetadata *out) {
+  char *_ast_extract_rest_2;
+  char *_ast_trim_segment_3;
   char *rest;
   char *cursor;
   int rc = 0;
@@ -150,7 +178,7 @@ static int parse_tags_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  rest = extract_rest(line, end);
+  rest = (extract_rest(line, end, &_ast_extract_rest_2), _ast_extract_rest_2);
   if (!rest)
     return 0;
 
@@ -160,7 +188,8 @@ static int parse_tags_line(const char *line, const char *end,
     if (comma)
       *comma = '\0';
     {
-      char *tag = trim_segment(cursor);
+      char *tag =
+          (trim_segment(cursor, &_ast_trim_segment_3), _ast_trim_segment_3);
       if (tag && *tag) {
         rc = add_tag(out, tag);
         if (rc != 0)
@@ -194,6 +223,21 @@ static int parse_bool_text(const char *s, int *out) {
 
 static int parse_tag_meta_line(const char *line, const char *end,
                                struct DocMetadata *out) {
+  char *_ast_extract_word_4;
+  size_t _ast_skip_ws_5;
+  char *_ast_trim_segment_6;
+  char *_ast_trim_segment_7;
+  char *_ast_trim_segment_8;
+  char *_ast_trim_segment_9;
+  char *_ast_trim_segment_10;
+  char *_ast_trim_segment_11;
+  size_t _ast_skip_ws_12;
+  char *_ast_strdup_1 = NULL;
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
+  char *_ast_strdup_6 = NULL;
   const char *cur = line;
   struct DocTagMeta meta;
 
@@ -203,11 +247,12 @@ static int parse_tag_meta_line(const char *line, const char *end,
   memset(&meta, 0, sizeof(meta));
   printf("LINE: %.*s\n", (int)(end - line), line);
 
-  meta.name = extract_word(cur, end, &cur);
+  meta.name =
+      (extract_word(cur, end, &cur, &_ast_extract_word_4), _ast_extract_word_4);
   if (!meta.name)
     return 0;
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_5), _ast_skip_ws_5);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -221,36 +266,45 @@ static int parse_tag_meta_line(const char *line, const char *end,
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "summary:", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_6),
+                       _ast_trim_segment_6);
           if (val && *val)
-            meta.summary = c_cdd_strdup(val);
+            meta.summary = (c_cdd_strdup(val, &_ast_strdup_1), _ast_strdup_1);
         } else if (strncmp(attr, "description:", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_7),
+                       _ast_trim_segment_7);
           if (val && *val)
-            meta.description = c_cdd_strdup(val);
+            meta.description =
+                (c_cdd_strdup(val, &_ast_strdup_2), _ast_strdup_2);
         } else if (strncmp(attr, "parent:", 7) == 0) {
-          char *val = trim_segment(attr + 7);
+          char *val = (trim_segment(attr + 7, &_ast_trim_segment_8),
+                       _ast_trim_segment_8);
           if (val && *val)
-            meta.parent = c_cdd_strdup(val);
+            meta.parent = (c_cdd_strdup(val, &_ast_strdup_3), _ast_strdup_3);
         } else if (strncmp(attr, "kind:", 5) == 0) {
-          char *val = trim_segment(attr + 5);
+          char *val = (trim_segment(attr + 5, &_ast_trim_segment_9),
+                       _ast_trim_segment_9);
           if (val && *val)
-            meta.kind = c_cdd_strdup(val);
+            meta.kind = (c_cdd_strdup(val, &_ast_strdup_4), _ast_strdup_4);
         } else if (strncmp(attr, "externalDocs:", 13) == 0 ||
                    strncmp(attr, "externalDocs=", 13) == 0) {
-          char *val = trim_segment(attr + 13);
+          char *val = (trim_segment(attr + 13, &_ast_trim_segment_10),
+                       _ast_trim_segment_10);
           if (val && *val)
-            meta.external_docs_url = c_cdd_strdup(val);
+            meta.external_docs_url =
+                (c_cdd_strdup(val, &_ast_strdup_5), _ast_strdup_5);
         } else if (strncmp(attr, "externalDocsDescription:", 24) == 0 ||
                    strncmp(attr, "externalDocsDescription=", 24) == 0) {
-          char *val = trim_segment(attr + 24);
+          char *val = (trim_segment(attr + 24, &_ast_trim_segment_11),
+                       _ast_trim_segment_11);
           if (val && *val)
-            meta.external_docs_description = c_cdd_strdup(val);
+            meta.external_docs_description =
+                (c_cdd_strdup(val, &_ast_strdup_6), _ast_strdup_6);
         }
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_12), _ast_skip_ws_12);
     } else {
       break;
     }
@@ -299,6 +353,7 @@ static int parse_style_text(const char *s, enum DocParamStyle *out) {
 
 static void parse_optional_bool_attr(const char *attr, const char *key,
                                      int *out_set, int *out_val) {
+  char *_ast_trim_segment_13;
   size_t key_len;
   int parsed;
 
@@ -314,7 +369,9 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
   if (strncmp(attr, key, key_len) == 0 &&
       (attr[key_len] == ':' || attr[key_len] == '=')) {
     int value = 0;
-    char *val_trimmed = trim_segment((char *)(attr + key_len + 1));
+    char *val_trimmed =
+        (trim_segment((char *)(attr + key_len + 1), &_ast_trim_segment_13),
+         _ast_trim_segment_13);
     parsed = parse_bool_text(val_trimmed, &value);
     if (parsed) {
       *out_set = 1;
@@ -324,22 +381,26 @@ static void parse_optional_bool_attr(const char *attr, const char *key,
 }
 
 static int parse_optional_example_attr(const char *attr, char **out_example) {
+  char *_ast_trim_segment_14;
+  char *_ast_strdup_7 = NULL;
   char *val;
   if (!attr || !out_example)
     return 0;
   if (strncmp(attr, "example:", 8) != 0 && strncmp(attr, "example=", 8) != 0)
     return 0;
-  val = trim_segment((char *)(attr + 8));
+  val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_14),
+         _ast_trim_segment_14);
   if (!val || !*val)
     return 1;
   if (*out_example)
     free(*out_example);
-  *out_example = c_cdd_strdup(val);
+  *out_example = (c_cdd_strdup(val, &_ast_strdup_7), _ast_strdup_7);
   return *out_example ? 1 : ENOMEM;
 }
 
 static int parse_deprecated_line(const char *line, const char *end,
                                  struct DocMetadata *out) {
+  char *_ast_extract_rest_15;
   char *rest;
   int value = 1;
 
@@ -347,7 +408,7 @@ static int parse_deprecated_line(const char *line, const char *end,
     return EINVAL;
 
   out->deprecated_set = 1;
-  rest = extract_rest(line, end);
+  rest = (extract_rest(line, end, &_ast_extract_rest_15), _ast_extract_rest_15);
   if (!rest) {
     out->deprecated = 1;
     return 0;
@@ -362,6 +423,8 @@ static int parse_deprecated_line(const char *line, const char *end,
 
 static int parse_external_docs_line(const char *line, const char *end,
                                     struct DocMetadata *out) {
+  char *_ast_extract_word_16;
+  char *_ast_extract_rest_17;
   const char *cur = line;
   char *url;
   char *desc;
@@ -369,7 +432,8 @@ static int parse_external_docs_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  url = extract_word(cur, end, &cur);
+  url = (extract_word(cur, end, &cur, &_ast_extract_word_16),
+         _ast_extract_word_16);
   if (!url)
     return 0;
 
@@ -377,7 +441,7 @@ static int parse_external_docs_line(const char *line, const char *end,
     free(out->external_docs_url);
   out->external_docs_url = url;
 
-  desc = extract_rest(cur, end);
+  desc = (extract_rest(cur, end, &_ast_extract_rest_17), _ast_extract_rest_17);
   if (out->external_docs_description)
     free(out->external_docs_description);
   out->external_docs_description = desc;
@@ -387,6 +451,16 @@ static int parse_external_docs_line(const char *line, const char *end,
 
 static int parse_contact_line(const char *line, const char *end,
                               struct DocMetadata *out) {
+  char *_ast_extract_rest_18;
+  char *_ast_trim_segment_19;
+  char *_ast_trim_segment_20;
+  char *_ast_trim_segment_21;
+  char *_ast_trim_segment_22;
+  char *_ast_trim_segment_23;
+  char *_ast_strdup_8 = NULL;
+  char *_ast_strdup_9 = NULL;
+  char *_ast_strdup_10 = NULL;
+  char *_ast_strdup_11 = NULL;
   char *rest;
   char *name = NULL;
   char *url = NULL;
@@ -397,7 +471,7 @@ static int parse_contact_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  rest = extract_rest(line, end);
+  rest = (extract_rest(line, end, &_ast_extract_rest_18), _ast_extract_rest_18);
   if (!rest)
     return 0;
 
@@ -408,30 +482,34 @@ static int parse_contact_line(const char *line, const char *end,
     if (!close)
       break;
     *close = '\0';
-    attr = trim_segment(open + 1);
+    attr =
+        (trim_segment(open + 1, &_ast_trim_segment_19), _ast_trim_segment_19);
     if (attr && *attr) {
       if (strncmp(attr, "name:", 5) == 0 || strncmp(attr, "name=", 5) == 0) {
-        char *val = trim_segment(attr + 5);
+        char *val = (trim_segment(attr + 5, &_ast_trim_segment_20),
+                     _ast_trim_segment_20);
         if (val && *val) {
           if (name)
             free(name);
-          name = c_cdd_strdup(val);
+          name = (c_cdd_strdup(val, &_ast_strdup_8), _ast_strdup_8);
         }
       } else if (strncmp(attr, "url:", 4) == 0 ||
                  strncmp(attr, "url=", 4) == 0) {
-        char *val = trim_segment(attr + 4);
+        char *val = (trim_segment(attr + 4, &_ast_trim_segment_21),
+                     _ast_trim_segment_21);
         if (val && *val) {
           if (url)
             free(url);
-          url = c_cdd_strdup(val);
+          url = (c_cdd_strdup(val, &_ast_strdup_9), _ast_strdup_9);
         }
       } else if (strncmp(attr, "email:", 6) == 0 ||
                  strncmp(attr, "email=", 6) == 0) {
-        char *val = trim_segment(attr + 6);
+        char *val = (trim_segment(attr + 6, &_ast_trim_segment_22),
+                     _ast_trim_segment_22);
         if (val && *val) {
           if (email)
             free(email);
-          email = c_cdd_strdup(val);
+          email = (c_cdd_strdup(val, &_ast_strdup_10), _ast_strdup_10);
         }
       }
     }
@@ -440,9 +518,10 @@ static int parse_contact_line(const char *line, const char *end,
   }
 
   if (!name) {
-    char *trimmed = trim_segment(rest);
+    char *trimmed =
+        (trim_segment(rest, &_ast_trim_segment_23), _ast_trim_segment_23);
     if (trimmed && *trimmed)
-      name = c_cdd_strdup(trimmed);
+      name = (c_cdd_strdup(trimmed, &_ast_strdup_11), _ast_strdup_11);
   }
 
   free(rest);
@@ -468,6 +547,16 @@ static int parse_contact_line(const char *line, const char *end,
 
 static int parse_license_line(const char *line, const char *end,
                               struct DocMetadata *out) {
+  char *_ast_extract_rest_24;
+  char *_ast_trim_segment_25;
+  char *_ast_trim_segment_26;
+  char *_ast_trim_segment_27;
+  char *_ast_trim_segment_28;
+  char *_ast_trim_segment_29;
+  char *_ast_strdup_12 = NULL;
+  char *_ast_strdup_13 = NULL;
+  char *_ast_strdup_14 = NULL;
+  char *_ast_strdup_15 = NULL;
   char *rest;
   char *name = NULL;
   char *url = NULL;
@@ -478,7 +567,7 @@ static int parse_license_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  rest = extract_rest(line, end);
+  rest = (extract_rest(line, end, &_ast_extract_rest_24), _ast_extract_rest_24);
   if (!rest)
     return 0;
 
@@ -489,30 +578,34 @@ static int parse_license_line(const char *line, const char *end,
     if (!close)
       break;
     *close = '\0';
-    attr = trim_segment(open + 1);
+    attr =
+        (trim_segment(open + 1, &_ast_trim_segment_25), _ast_trim_segment_25);
     if (attr && *attr) {
       if (strncmp(attr, "name:", 5) == 0 || strncmp(attr, "name=", 5) == 0) {
-        char *val = trim_segment(attr + 5);
+        char *val = (trim_segment(attr + 5, &_ast_trim_segment_26),
+                     _ast_trim_segment_26);
         if (val && *val) {
           if (name)
             free(name);
-          name = c_cdd_strdup(val);
+          name = (c_cdd_strdup(val, &_ast_strdup_12), _ast_strdup_12);
         }
       } else if (strncmp(attr, "identifier:", 11) == 0 ||
                  strncmp(attr, "identifier=", 11) == 0) {
-        char *val = trim_segment(attr + 11);
+        char *val = (trim_segment(attr + 11, &_ast_trim_segment_27),
+                     _ast_trim_segment_27);
         if (val && *val) {
           if (identifier)
             free(identifier);
-          identifier = c_cdd_strdup(val);
+          identifier = (c_cdd_strdup(val, &_ast_strdup_13), _ast_strdup_13);
         }
       } else if (strncmp(attr, "url:", 4) == 0 ||
                  strncmp(attr, "url=", 4) == 0) {
-        char *val = trim_segment(attr + 4);
+        char *val = (trim_segment(attr + 4, &_ast_trim_segment_28),
+                     _ast_trim_segment_28);
         if (val && *val) {
           if (url)
             free(url);
-          url = c_cdd_strdup(val);
+          url = (c_cdd_strdup(val, &_ast_strdup_14), _ast_strdup_14);
         }
       }
     }
@@ -521,9 +614,10 @@ static int parse_license_line(const char *line, const char *end,
   }
 
   if (!name) {
-    char *trimmed = trim_segment(rest);
+    char *trimmed =
+        (trim_segment(rest, &_ast_trim_segment_29), _ast_trim_segment_29);
     if (trimmed && *trimmed)
-      name = c_cdd_strdup(trimmed);
+      name = (c_cdd_strdup(trimmed, &_ast_strdup_15), _ast_strdup_15);
   }
 
   free(rest);
@@ -562,6 +656,18 @@ static int parse_license_line(const char *line, const char *end,
 
 static int parse_response_header_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
+  char *_ast_extract_word_30;
+  char *_ast_extract_word_31;
+  size_t _ast_skip_ws_32;
+  char *_ast_trim_segment_33;
+  char *_ast_trim_segment_34;
+  char *_ast_trim_segment_35;
+  size_t _ast_skip_ws_36;
+  char *_ast_extract_rest_37;
+  char *_ast_strdup_16 = NULL;
+  char *_ast_strdup_17 = NULL;
+  char *_ast_strdup_18 = NULL;
+  char *_ast_strdup_19 = NULL;
   struct DocResponseHeader *new_headers;
   struct DocResponseHeader *h;
   const char *cur = line;
@@ -578,18 +684,20 @@ static int parse_response_header_line(const char *line, const char *end,
   h = &out->response_headers[out->n_response_headers];
   memset(h, 0, sizeof(*h));
 
-  h->code = extract_word(cur, end, &cur);
+  h->code = (extract_word(cur, end, &cur, &_ast_extract_word_30),
+             _ast_extract_word_30);
   if (!h->code)
     return 0;
 
-  h->name = extract_word(cur, end, &cur);
+  h->name = (extract_word(cur, end, &cur, &_ast_extract_word_31),
+             _ast_extract_word_31);
   if (!h->name) {
     free(h->code);
     h->code = NULL;
     return 0;
   }
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_32), _ast_skip_ws_32);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -606,30 +714,35 @@ static int parse_response_header_line(const char *line, const char *end,
         if (strncmp(attr, "type:", 5) == 0) {
           if (h->type)
             free(h->type);
-          h->type = c_cdd_strdup(attr + 5);
+          h->type = (c_cdd_strdup(attr + 5, &_ast_strdup_16), _ast_strdup_16);
         } else if (strncmp(attr, "format:", 7) == 0 ||
                    strncmp(attr, "format=", 7) == 0) {
-          char *val = trim_segment(attr + 7);
+          char *val = (trim_segment(attr + 7, &_ast_trim_segment_33),
+                       _ast_trim_segment_33);
           if (val && *val) {
             if (h->format)
               free(h->format);
-            h->format = c_cdd_strdup(val);
+            h->format = (c_cdd_strdup(val, &_ast_strdup_17), _ast_strdup_17);
           }
         } else if (strncmp(attr, "contentType:", 12) == 0 ||
                    strncmp(attr, "contentType=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_34),
+                       _ast_trim_segment_34);
           if (val && *val) {
             if (h->content_type)
               free(h->content_type);
-            h->content_type = c_cdd_strdup(val);
+            h->content_type =
+                (c_cdd_strdup(val, &_ast_strdup_18), _ast_strdup_18);
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_35),
+                       _ast_trim_segment_35);
           if (val && *val) {
             if (h->content_type)
               free(h->content_type);
-            h->content_type = c_cdd_strdup(val);
+            h->content_type =
+                (c_cdd_strdup(val, &_ast_strdup_19), _ast_strdup_19);
           }
         } else if (parse_optional_example_attr(attr, &h->example) == ENOMEM) {
           free(attr);
@@ -641,19 +754,43 @@ static int parse_response_header_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_36), _ast_skip_ws_36);
     } else {
       break;
     }
   }
 
-  h->description = extract_rest(cur, end);
+  h->description =
+      (extract_rest(cur, end, &_ast_extract_rest_37), _ast_extract_rest_37);
   out->n_response_headers++;
   return 0;
 }
 
 static int parse_link_line(const char *line, const char *end,
                            struct DocMetadata *out) {
+  char *_ast_extract_word_38;
+  char *_ast_extract_word_39;
+  size_t _ast_skip_ws_40;
+  char *_ast_trim_segment_41;
+  char *_ast_trim_segment_42;
+  char *_ast_trim_segment_43;
+  char *_ast_trim_segment_44;
+  char *_ast_trim_segment_45;
+  char *_ast_trim_segment_46;
+  char *_ast_trim_segment_47;
+  char *_ast_trim_segment_48;
+  char *_ast_trim_segment_49;
+  size_t _ast_skip_ws_50;
+  char *_ast_extract_rest_51;
+  char *_ast_strdup_20 = NULL;
+  char *_ast_strdup_21 = NULL;
+  char *_ast_strdup_22 = NULL;
+  char *_ast_strdup_23 = NULL;
+  char *_ast_strdup_24 = NULL;
+  char *_ast_strdup_25 = NULL;
+  char *_ast_strdup_26 = NULL;
+  char *_ast_strdup_27 = NULL;
+  char *_ast_strdup_28 = NULL;
   struct DocLink *new_links;
   struct DocLink *link;
   const char *cur = line;
@@ -669,18 +806,20 @@ static int parse_link_line(const char *line, const char *end,
   link = &out->links[out->n_links];
   memset(link, 0, sizeof(*link));
 
-  link->code = extract_word(cur, end, &cur);
+  link->code = (extract_word(cur, end, &cur, &_ast_extract_word_38),
+                _ast_extract_word_38);
   if (!link->code)
     return 0;
 
-  link->name = extract_word(cur, end, &cur);
+  link->name = (extract_word(cur, end, &cur, &_ast_extract_word_39),
+                _ast_extract_word_39);
   if (!link->name) {
     free(link->code);
     link->code = NULL;
     return 0;
   }
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_40), _ast_skip_ws_40);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -696,89 +835,108 @@ static int parse_link_line(const char *line, const char *end,
 
         if (strncmp(attr, "operationId:", 12) == 0 ||
             strncmp(attr, "operationId=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_41),
+                       _ast_trim_segment_41);
           if (val && *val) {
             if (link->operation_id)
               free(link->operation_id);
-            link->operation_id = c_cdd_strdup(val);
+            link->operation_id =
+                (c_cdd_strdup(val, &_ast_strdup_20), _ast_strdup_20);
           }
         } else if (strncmp(attr, "operationRef:", 13) == 0 ||
                    strncmp(attr, "operationRef=", 13) == 0) {
-          char *val = trim_segment(attr + 13);
+          char *val = (trim_segment(attr + 13, &_ast_trim_segment_42),
+                       _ast_trim_segment_42);
           if (val && *val) {
             if (link->operation_ref)
               free(link->operation_ref);
-            link->operation_ref = c_cdd_strdup(val);
+            link->operation_ref =
+                (c_cdd_strdup(val, &_ast_strdup_21), _ast_strdup_21);
           }
         } else if (strncmp(attr, "parameters:", 11) == 0 ||
                    strncmp(attr, "parameters=", 11) == 0) {
-          char *val = trim_segment(attr + 11);
+          char *val = (trim_segment(attr + 11, &_ast_trim_segment_43),
+                       _ast_trim_segment_43);
           if (val && *val) {
             if (link->parameters_json)
               free(link->parameters_json);
-            link->parameters_json = c_cdd_strdup(val);
+            link->parameters_json =
+                (c_cdd_strdup(val, &_ast_strdup_22), _ast_strdup_22);
           }
         } else if (strncmp(attr, "requestBody:", 12) == 0 ||
                    strncmp(attr, "requestBody=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_44),
+                       _ast_trim_segment_44);
           if (val && *val) {
             if (link->request_body_json)
               free(link->request_body_json);
-            link->request_body_json = c_cdd_strdup(val);
+            link->request_body_json =
+                (c_cdd_strdup(val, &_ast_strdup_23), _ast_strdup_23);
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_45),
+                       _ast_trim_segment_45);
           if (val && *val) {
             if (link->summary)
               free(link->summary);
-            link->summary = c_cdd_strdup(val);
+            link->summary =
+                (c_cdd_strdup(val, &_ast_strdup_24), _ast_strdup_24);
           }
         } else if (strncmp(attr, "serverUrl:", 10) == 0 ||
                    strncmp(attr, "serverUrl=", 10) == 0) {
-          char *val = trim_segment(attr + 10);
+          char *val = (trim_segment(attr + 10, &_ast_trim_segment_46),
+                       _ast_trim_segment_46);
           if (val && *val) {
             if (link->server_url)
               free(link->server_url);
-            link->server_url = c_cdd_strdup(val);
+            link->server_url =
+                (c_cdd_strdup(val, &_ast_strdup_25), _ast_strdup_25);
           }
         } else if (strncmp(attr, "serverName:", 11) == 0 ||
                    strncmp(attr, "serverName=", 11) == 0) {
-          char *val = trim_segment(attr + 11);
+          char *val = (trim_segment(attr + 11, &_ast_trim_segment_47),
+                       _ast_trim_segment_47);
           if (val && *val) {
             if (link->server_name)
               free(link->server_name);
-            link->server_name = c_cdd_strdup(val);
+            link->server_name =
+                (c_cdd_strdup(val, &_ast_strdup_26), _ast_strdup_26);
           }
         } else if (strncmp(attr, "serverDescription:", 18) == 0 ||
                    strncmp(attr, "serverDescription=", 18) == 0) {
-          char *val = trim_segment(attr + 18);
+          char *val = (trim_segment(attr + 18, &_ast_trim_segment_48),
+                       _ast_trim_segment_48);
           if (val && *val) {
             if (link->server_description)
               free(link->server_description);
-            link->server_description = c_cdd_strdup(val);
+            link->server_description =
+                (c_cdd_strdup(val, &_ast_strdup_27), _ast_strdup_27);
           }
         } else if (strncmp(attr, "description:", 12) == 0 ||
                    strncmp(attr, "description=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_49),
+                       _ast_trim_segment_49);
           if (val && *val) {
             if (link->description)
               free(link->description);
-            link->description = c_cdd_strdup(val);
+            link->description =
+                (c_cdd_strdup(val, &_ast_strdup_28), _ast_strdup_28);
           }
         }
 
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_50), _ast_skip_ws_50);
     } else {
       break;
     }
   }
 
   if (!link->description) {
-    link->description = extract_rest(cur, end);
+    link->description =
+        (extract_rest(cur, end, &_ast_extract_rest_51), _ast_extract_rest_51);
   }
 
   out->n_links++;
@@ -1043,6 +1201,14 @@ void doc_metadata_free(struct DocMetadata *const meta) {
 
 static int parse_param_line(const char *line, const char *end,
                             struct DocMetadata *out) {
+  char *_ast_extract_word_52;
+  size_t _ast_skip_ws_53;
+  char *_ast_trim_segment_54;
+  size_t _ast_skip_ws_55;
+  char *_ast_extract_rest_56;
+  char *_ast_strdup_29 = NULL;
+  char *_ast_strdup_30 = NULL;
+  char *_ast_strdup_31 = NULL;
   struct DocParam *new_params;
   struct DocParam *p;
   const char *cur = line;
@@ -1057,14 +1223,15 @@ static int parse_param_line(const char *line, const char *end,
   memset(p, 0, sizeof(*p));
 
   /* 1. Name */
-  p->name = extract_word(cur, end, &cur);
+  p->name = (extract_word(cur, end, &cur, &_ast_extract_word_52),
+             _ast_extract_word_52);
   if (!p->name) {
     /* Malformed param line, ignore but don't crash */
     return 0;
   }
 
   /* 2. Check for Attributes [key:val] or [required] */
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_53), _ast_skip_ws_53);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -1080,20 +1247,22 @@ static int parse_param_line(const char *line, const char *end,
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "in:", 3) == 0) {
-          p->in_loc = c_cdd_strdup(attr + 3);
+          p->in_loc = (c_cdd_strdup(attr + 3, &_ast_strdup_29), _ast_strdup_29);
         } else if (strcmp(attr, "required") == 0) {
           p->required = 1;
         } else if (strncmp(attr, "contentType:", 12) == 0) {
           if (p->content_type)
             free(p->content_type);
-          p->content_type = c_cdd_strdup(attr + 12);
+          p->content_type =
+              (c_cdd_strdup(attr + 12, &_ast_strdup_30), _ast_strdup_30);
         } else if (strncmp(attr, "format:", 7) == 0 ||
                    strncmp(attr, "format=", 7) == 0) {
-          char *val = trim_segment(attr + 7);
+          char *val = (trim_segment(attr + 7, &_ast_trim_segment_54),
+                       _ast_trim_segment_54);
           if (val && *val) {
             if (p->format)
               free(p->format);
-            p->format = c_cdd_strdup(val);
+            p->format = (c_cdd_strdup(val, &_ast_strdup_31), _ast_strdup_31);
           }
         } else if (strncmp(attr, "style:", 6) == 0) {
           enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
@@ -1124,14 +1293,15 @@ static int parse_param_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_55), _ast_skip_ws_55);
     } else {
       break; /* Unbalanced */
     }
   }
 
   /* 3. Description */
-  p->description = extract_rest(cur, end);
+  p->description =
+      (extract_rest(cur, end, &_ast_extract_rest_56), _ast_extract_rest_56);
 
   out->n_params++;
   return 0;
@@ -1139,6 +1309,14 @@ static int parse_param_line(const char *line, const char *end,
 
 static int parse_return_line(const char *line, const char *end,
                              struct DocMetadata *out) {
+  char *_ast_extract_word_57;
+  size_t _ast_skip_ws_58;
+  char *_ast_trim_segment_59;
+  char *_ast_trim_segment_60;
+  size_t _ast_skip_ws_61;
+  char *_ast_extract_rest_62;
+  char *_ast_strdup_32 = NULL;
+  char *_ast_strdup_33 = NULL;
   struct DocResponse *new_resps;
   struct DocResponse *r;
   const char *cur = line;
@@ -1152,13 +1330,14 @@ static int parse_return_line(const char *line, const char *end,
   memset(r, 0, sizeof(*r));
 
   /* 1. Code */
-  r->code = extract_word(cur, end, &cur);
+  r->code = (extract_word(cur, end, &cur, &_ast_extract_word_57),
+             _ast_extract_word_57);
   if (!r->code) {
     return 0;
   }
 
   /* 2. Optional Attributes [key:val] */
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_58), _ast_skip_ws_58);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -1174,19 +1353,22 @@ static int parse_return_line(const char *line, const char *end,
 
         if (strncmp(attr, "contentType:", 12) == 0 ||
             strncmp(attr, "contentType=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_59),
+                       _ast_trim_segment_59);
           if (val && *val) {
             if (r->content_type)
               free(r->content_type);
-            r->content_type = c_cdd_strdup(val);
+            r->content_type =
+                (c_cdd_strdup(val, &_ast_strdup_32), _ast_strdup_32);
           }
         } else if (strncmp(attr, "summary:", 8) == 0 ||
                    strncmp(attr, "summary=", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_60),
+                       _ast_trim_segment_60);
           if (val && *val) {
             if (r->summary)
               free(r->summary);
-            r->summary = c_cdd_strdup(val);
+            r->summary = (c_cdd_strdup(val, &_ast_strdup_33), _ast_strdup_33);
           }
         } else if (strcmp(attr, "itemSchema") == 0 ||
                    strcmp(attr, "itemSchema:true") == 0 ||
@@ -1199,14 +1381,15 @@ static int parse_return_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_61), _ast_skip_ws_61);
     } else {
       break; /* Unbalanced */
     }
   }
 
   /* 3. Description */
-  r->description = extract_rest(cur, end);
+  r->description =
+      (extract_rest(cur, end, &_ast_extract_rest_62), _ast_extract_rest_62);
 
   out->n_returns++;
   return 0;
@@ -1214,6 +1397,9 @@ static int parse_return_line(const char *line, const char *end,
 
 static int split_scopes(const char *input, char ***out_scopes,
                         size_t *out_count) {
+  char *_ast_trim_segment_63;
+  char *_ast_strdup_34 = NULL;
+  char *_ast_strdup_35 = NULL;
   char *buf;
   char *token;
   char *saveptr = NULL;
@@ -1227,7 +1413,7 @@ static int split_scopes(const char *input, char ***out_scopes,
   if (!input || !*input)
     return 0;
 
-  buf = c_cdd_strdup(input);
+  buf = (c_cdd_strdup(input, &_ast_strdup_34), _ast_strdup_34);
   if (!buf)
     return ENOMEM;
 
@@ -1237,7 +1423,8 @@ static int split_scopes(const char *input, char ***out_scopes,
   token = strtok_r(buf, ", \t", &saveptr);
 #endif
   while (token) {
-    char *trimmed = trim_segment(token);
+    char *trimmed =
+        (trim_segment(token, &_ast_trim_segment_63), _ast_trim_segment_63);
     char **new_scopes;
     if (!trimmed || !*trimmed) {
 #ifdef _WIN32
@@ -1257,7 +1444,7 @@ static int split_scopes(const char *input, char ***out_scopes,
       return ENOMEM;
     }
     scopes = new_scopes;
-    scopes[n] = c_cdd_strdup(trimmed);
+    scopes[n] = (c_cdd_strdup(trimmed, &_ast_strdup_35), _ast_strdup_35);
     if (!scopes[n]) {
       size_t i;
       for (i = 0; i < n; ++i)
@@ -1282,6 +1469,8 @@ static int split_scopes(const char *input, char ***out_scopes,
 
 static int parse_security_line(const char *line, const char *end,
                                struct DocMetadata *out) {
+  char *_ast_extract_word_64;
+  char *_ast_extract_rest_65;
   const char *cur = line;
   char *scheme;
   char *rest;
@@ -1294,11 +1483,12 @@ static int parse_security_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  scheme = extract_word(cur, end, &cur);
+  scheme = (extract_word(cur, end, &cur, &_ast_extract_word_64),
+            _ast_extract_word_64);
   if (!scheme)
     return 0;
 
-  rest = extract_rest(cur, end);
+  rest = (extract_rest(cur, end, &_ast_extract_rest_65), _ast_extract_rest_65);
   rc = split_scopes(rest, &scopes, &n_scopes);
   if (rc != 0) {
     free(scheme);
@@ -1333,48 +1523,92 @@ static int parse_security_line(const char *line, const char *end,
   return 0;
 }
 
-static enum DocSecurityType parse_security_type_text(const char *text) {
-  if (!text)
-    return DOC_SEC_UNSET;
-  if (strcmp(text, "apiKey") == 0)
-    return DOC_SEC_APIKEY;
-  if (strcmp(text, "http") == 0)
-    return DOC_SEC_HTTP;
-  if (strcmp(text, "mutualTLS") == 0)
-    return DOC_SEC_MUTUALTLS;
-  if (strcmp(text, "oauth2") == 0)
-    return DOC_SEC_OAUTH2;
-  if (strcmp(text, "openIdConnect") == 0)
-    return DOC_SEC_OPENID;
-  return DOC_SEC_UNSET;
+static int parse_security_type_text(const char *text,
+                                    enum DocSecurityType *_out_val) {
+  if (!text) {
+    *_out_val = DOC_SEC_UNSET;
+    return 0;
+  }
+  if (strcmp(text, "apiKey") == 0) {
+    *_out_val = DOC_SEC_APIKEY;
+    return 0;
+  }
+  if (strcmp(text, "http") == 0) {
+    *_out_val = DOC_SEC_HTTP;
+    return 0;
+  }
+  if (strcmp(text, "mutualTLS") == 0) {
+    *_out_val = DOC_SEC_MUTUALTLS;
+    return 0;
+  }
+  if (strcmp(text, "oauth2") == 0) {
+    *_out_val = DOC_SEC_OAUTH2;
+    return 0;
+  }
+  if (strcmp(text, "openIdConnect") == 0) {
+    *_out_val = DOC_SEC_OPENID;
+    return 0;
+  }
+  {
+    *_out_val = DOC_SEC_UNSET;
+    return 0;
+  }
 }
 
-static enum DocSecurityIn parse_security_in_text(const char *text) {
-  if (!text)
-    return DOC_SEC_IN_UNSET;
-  if (strcmp(text, "query") == 0)
-    return DOC_SEC_IN_QUERY;
-  if (strcmp(text, "header") == 0)
-    return DOC_SEC_IN_HEADER;
-  if (strcmp(text, "cookie") == 0)
-    return DOC_SEC_IN_COOKIE;
-  return DOC_SEC_IN_UNSET;
+static int parse_security_in_text(const char *text,
+                                  enum DocSecurityIn *_out_val) {
+  if (!text) {
+    *_out_val = DOC_SEC_IN_UNSET;
+    return 0;
+  }
+  if (strcmp(text, "query") == 0) {
+    *_out_val = DOC_SEC_IN_QUERY;
+    return 0;
+  }
+  if (strcmp(text, "header") == 0) {
+    *_out_val = DOC_SEC_IN_HEADER;
+    return 0;
+  }
+  if (strcmp(text, "cookie") == 0) {
+    *_out_val = DOC_SEC_IN_COOKIE;
+    return 0;
+  }
+  {
+    *_out_val = DOC_SEC_IN_UNSET;
+    return 0;
+  }
 }
 
-static enum DocOAuthFlowType parse_oauth_flow_type_text(const char *text) {
-  if (!text)
-    return DOC_OAUTH_FLOW_UNSET;
-  if (strcmp(text, "implicit") == 0)
-    return DOC_OAUTH_FLOW_IMPLICIT;
-  if (strcmp(text, "password") == 0)
-    return DOC_OAUTH_FLOW_PASSWORD;
-  if (strcmp(text, "clientCredentials") == 0)
-    return DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  if (strcmp(text, "authorizationCode") == 0)
-    return DOC_OAUTH_FLOW_AUTHORIZATION_CODE;
-  if (strcmp(text, "deviceAuthorization") == 0)
-    return DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION;
-  return DOC_OAUTH_FLOW_UNSET;
+static int parse_oauth_flow_type_text(const char *text,
+                                      enum DocOAuthFlowType *_out_val) {
+  if (!text) {
+    *_out_val = DOC_OAUTH_FLOW_UNSET;
+    return 0;
+  }
+  if (strcmp(text, "implicit") == 0) {
+    *_out_val = DOC_OAUTH_FLOW_IMPLICIT;
+    return 0;
+  }
+  if (strcmp(text, "password") == 0) {
+    *_out_val = DOC_OAUTH_FLOW_PASSWORD;
+    return 0;
+  }
+  if (strcmp(text, "clientCredentials") == 0) {
+    *_out_val = DOC_OAUTH_FLOW_CLIENT_CREDENTIALS;
+    return 0;
+  }
+  if (strcmp(text, "authorizationCode") == 0) {
+    *_out_val = DOC_OAUTH_FLOW_AUTHORIZATION_CODE;
+    return 0;
+  }
+  if (strcmp(text, "deviceAuthorization") == 0) {
+    *_out_val = DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION;
+    return 0;
+  }
+  {
+    *_out_val = DOC_OAUTH_FLOW_UNSET;
+    return 0;
+  }
 }
 
 static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
@@ -1417,6 +1651,36 @@ static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
 
 static int parse_security_scheme_line(const char *line, const char *end,
                                       struct DocMetadata *out) {
+  char *_ast_extract_word_66;
+  size_t _ast_skip_ws_67;
+  char *_ast_trim_segment_68;
+  enum DocSecurityType _ast_parse_security_type_text_69;
+  char *_ast_trim_segment_70;
+  char *_ast_trim_segment_71;
+  char *_ast_trim_segment_72;
+  char *_ast_trim_segment_73;
+  char *_ast_trim_segment_74;
+  enum DocSecurityIn _ast_parse_security_in_text_75;
+  char *_ast_trim_segment_76;
+  char *_ast_trim_segment_77;
+  char *_ast_trim_segment_78;
+  enum DocOAuthFlowType _ast_parse_oauth_flow_type_text_79;
+  char *_ast_trim_segment_80;
+  char *_ast_trim_segment_81;
+  char *_ast_trim_segment_82;
+  char *_ast_trim_segment_83;
+  char *_ast_trim_segment_84;
+  size_t _ast_skip_ws_85;
+  char *_ast_strdup_36 = NULL;
+  char *_ast_strdup_37 = NULL;
+  char *_ast_strdup_38 = NULL;
+  char *_ast_strdup_39 = NULL;
+  char *_ast_strdup_40 = NULL;
+  char *_ast_strdup_41 = NULL;
+  char *_ast_strdup_42 = NULL;
+  char *_ast_strdup_43 = NULL;
+  char *_ast_strdup_44 = NULL;
+  char *_ast_strdup_45 = NULL;
   struct DocSecurityScheme *new_schemes;
   struct DocSecurityScheme *scheme;
   const char *cur = line;
@@ -1436,11 +1700,12 @@ static int parse_security_scheme_line(const char *line, const char *end,
   scheme->type = DOC_SEC_UNSET;
   scheme->in = DOC_SEC_IN_UNSET;
 
-  scheme->name = extract_word(cur, end, &cur);
+  scheme->name = (extract_word(cur, end, &cur, &_ast_extract_word_66),
+                  _ast_extract_word_66);
   if (!scheme->name)
     return 0;
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_67), _ast_skip_ws_67);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -1455,64 +1720,86 @@ static int parse_security_scheme_line(const char *line, const char *end,
         attr[inner_len] = '\0';
 
         if (strncmp(attr, "type:", 5) == 0 || strncmp(attr, "type=", 5) == 0) {
-          char *val = trim_segment(attr + 5);
-          scheme->type = parse_security_type_text(val);
+          char *val = (trim_segment(attr + 5, &_ast_trim_segment_68),
+                       _ast_trim_segment_68);
+          scheme->type =
+              (parse_security_type_text(val, &_ast_parse_security_type_text_69),
+               _ast_parse_security_type_text_69);
         } else if (strncmp(attr, "description:", 12) == 0 ||
                    strncmp(attr, "description=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_70),
+                       _ast_trim_segment_70);
           if (val && *val) {
             if (scheme->description)
               free(scheme->description);
-            scheme->description = c_cdd_strdup(val);
+            scheme->description =
+                (c_cdd_strdup(val, &_ast_strdup_36), _ast_strdup_36);
           }
         } else if (strncmp(attr, "scheme:", 7) == 0 ||
                    strncmp(attr, "scheme=", 7) == 0) {
-          char *val = trim_segment(attr + 7);
+          char *val = (trim_segment(attr + 7, &_ast_trim_segment_71),
+                       _ast_trim_segment_71);
           if (val && *val) {
             if (scheme->scheme)
               free(scheme->scheme);
-            scheme->scheme = c_cdd_strdup(val);
+            scheme->scheme =
+                (c_cdd_strdup(val, &_ast_strdup_37), _ast_strdup_37);
           }
         } else if (strncmp(attr, "bearerFormat:", 13) == 0 ||
                    strncmp(attr, "bearerFormat=", 13) == 0) {
-          char *val = trim_segment(attr + 13);
+          char *val = (trim_segment(attr + 13, &_ast_trim_segment_72),
+                       _ast_trim_segment_72);
           if (val && *val) {
             if (scheme->bearer_format)
               free(scheme->bearer_format);
-            scheme->bearer_format = c_cdd_strdup(val);
+            scheme->bearer_format =
+                (c_cdd_strdup(val, &_ast_strdup_38), _ast_strdup_38);
           }
         } else if (strncmp(attr, "paramName:", 10) == 0 ||
                    strncmp(attr, "paramName=", 10) == 0) {
-          char *val = trim_segment(attr + 10);
+          char *val = (trim_segment(attr + 10, &_ast_trim_segment_73),
+                       _ast_trim_segment_73);
           if (val && *val) {
             if (scheme->param_name)
               free(scheme->param_name);
-            scheme->param_name = c_cdd_strdup(val);
+            scheme->param_name =
+                (c_cdd_strdup(val, &_ast_strdup_39), _ast_strdup_39);
           }
         } else if (strncmp(attr, "in:", 3) == 0 ||
                    strncmp(attr, "in=", 3) == 0) {
-          char *val = trim_segment(attr + 3);
-          scheme->in = parse_security_in_text(val);
+          char *val = (trim_segment(attr + 3, &_ast_trim_segment_74),
+                       _ast_trim_segment_74);
+          scheme->in =
+              (parse_security_in_text(val, &_ast_parse_security_in_text_75),
+               _ast_parse_security_in_text_75);
         } else if (strncmp(attr, "openIdConnectUrl:", 17) == 0 ||
                    strncmp(attr, "openIdConnectUrl=", 17) == 0) {
-          char *val = trim_segment(attr + 17);
+          char *val = (trim_segment(attr + 17, &_ast_trim_segment_76),
+                       _ast_trim_segment_76);
           if (val && *val) {
             if (scheme->open_id_connect_url)
               free(scheme->open_id_connect_url);
-            scheme->open_id_connect_url = c_cdd_strdup(val);
+            scheme->open_id_connect_url =
+                (c_cdd_strdup(val, &_ast_strdup_40), _ast_strdup_40);
           }
         } else if (strncmp(attr, "oauth2MetadataUrl:", 18) == 0 ||
                    strncmp(attr, "oauth2MetadataUrl=", 18) == 0) {
-          char *val = trim_segment(attr + 18);
+          char *val = (trim_segment(attr + 18, &_ast_trim_segment_77),
+                       _ast_trim_segment_77);
           if (val && *val) {
             if (scheme->oauth2_metadata_url)
               free(scheme->oauth2_metadata_url);
-            scheme->oauth2_metadata_url = c_cdd_strdup(val);
+            scheme->oauth2_metadata_url =
+                (c_cdd_strdup(val, &_ast_strdup_41), _ast_strdup_41);
           }
         } else if (strncmp(attr, "flow:", 5) == 0 ||
                    strncmp(attr, "flow=", 5) == 0) {
-          char *val = trim_segment(attr + 5);
-          enum DocOAuthFlowType flow_type = parse_oauth_flow_type_text(val);
+          char *val = (trim_segment(attr + 5, &_ast_trim_segment_78),
+                       _ast_trim_segment_78);
+          enum DocOAuthFlowType flow_type =
+              (parse_oauth_flow_type_text(val,
+                                          &_ast_parse_oauth_flow_type_text_79),
+               _ast_parse_oauth_flow_type_text_79);
           if (flow_type != DOC_OAUTH_FLOW_UNSET) {
             struct DocOAuthFlow *new_flows = (struct DocOAuthFlow *)realloc(
                 scheme->flows,
@@ -1529,39 +1816,48 @@ static int parse_security_scheme_line(const char *line, const char *end,
           }
         } else if (strncmp(attr, "authorizationUrl:", 17) == 0 ||
                    strncmp(attr, "authorizationUrl=", 17) == 0) {
-          char *val = trim_segment(attr + 17);
+          char *val = (trim_segment(attr + 17, &_ast_trim_segment_80),
+                       _ast_trim_segment_80);
           if (current_flow && val && *val) {
             if (current_flow->authorization_url)
               free(current_flow->authorization_url);
-            current_flow->authorization_url = c_cdd_strdup(val);
+            current_flow->authorization_url =
+                (c_cdd_strdup(val, &_ast_strdup_42), _ast_strdup_42);
           }
         } else if (strncmp(attr, "tokenUrl:", 9) == 0 ||
                    strncmp(attr, "tokenUrl=", 9) == 0) {
-          char *val = trim_segment(attr + 9);
+          char *val = (trim_segment(attr + 9, &_ast_trim_segment_81),
+                       _ast_trim_segment_81);
           if (current_flow && val && *val) {
             if (current_flow->token_url)
               free(current_flow->token_url);
-            current_flow->token_url = c_cdd_strdup(val);
+            current_flow->token_url =
+                (c_cdd_strdup(val, &_ast_strdup_43), _ast_strdup_43);
           }
         } else if (strncmp(attr, "refreshUrl:", 11) == 0 ||
                    strncmp(attr, "refreshUrl=", 11) == 0) {
-          char *val = trim_segment(attr + 11);
+          char *val = (trim_segment(attr + 11, &_ast_trim_segment_82),
+                       _ast_trim_segment_82);
           if (current_flow && val && *val) {
             if (current_flow->refresh_url)
               free(current_flow->refresh_url);
-            current_flow->refresh_url = c_cdd_strdup(val);
+            current_flow->refresh_url =
+                (c_cdd_strdup(val, &_ast_strdup_44), _ast_strdup_44);
           }
         } else if (strncmp(attr, "deviceAuthorizationUrl:", 23) == 0 ||
                    strncmp(attr, "deviceAuthorizationUrl=", 23) == 0) {
-          char *val = trim_segment(attr + 23);
+          char *val = (trim_segment(attr + 23, &_ast_trim_segment_83),
+                       _ast_trim_segment_83);
           if (current_flow && val && *val) {
             if (current_flow->device_authorization_url)
               free(current_flow->device_authorization_url);
-            current_flow->device_authorization_url = c_cdd_strdup(val);
+            current_flow->device_authorization_url =
+                (c_cdd_strdup(val, &_ast_strdup_45), _ast_strdup_45);
           }
         } else if (strncmp(attr, "scopes:", 7) == 0 ||
                    strncmp(attr, "scopes=", 7) == 0) {
-          char *val = trim_segment(attr + 7);
+          char *val = (trim_segment(attr + 7, &_ast_trim_segment_84),
+                       _ast_trim_segment_84);
           if (current_flow && val) {
             struct DocOAuthScope *scopes = NULL;
             size_t n_scopes = 0;
@@ -1583,7 +1879,7 @@ static int parse_security_scheme_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_85), _ast_skip_ws_85);
     } else {
       break;
     }
@@ -1593,11 +1889,14 @@ static int parse_security_scheme_line(const char *line, const char *end,
   return 0;
 }
 
-static char *find_key_token(char *s, const char *key, size_t *key_len) {
+static int find_key_token(char *s, const char *key, size_t *key_len,
+                          char **_out_val) {
   char *p;
   size_t klen;
-  if (!s || !key)
-    return NULL;
+  if (!s || !key) {
+    *_out_val = NULL;
+    return 0;
+  }
   klen = strlen(key);
   p = strstr(s, key);
   while (p) {
@@ -1605,15 +1904,31 @@ static char *find_key_token(char *s, const char *key, size_t *key_len) {
         (p[klen] == '=' || p[klen] == ':')) {
       if (key_len)
         *key_len = klen + 1;
-      return p;
+      {
+        *_out_val = p;
+        return 0;
+      }
     }
     p = strstr(p + klen, key);
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int parse_server_line(const char *line, const char *end,
                              struct DocMetadata *out) {
+  char *_ast_extract_word_86;
+  char *_ast_extract_rest_87;
+  char *_ast_find_key_token_88;
+  char *_ast_find_key_token_89;
+  char *_ast_trim_segment_90;
+  char *_ast_trim_segment_91;
+  char *_ast_trim_segment_92;
+  char *_ast_strdup_46 = NULL;
+  char *_ast_strdup_47 = NULL;
+  char *_ast_strdup_48 = NULL;
   const char *cur = line;
   char *url;
   char *rest;
@@ -1625,16 +1940,21 @@ static int parse_server_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  url = extract_word(cur, end, &cur);
+  url = (extract_word(cur, end, &cur, &_ast_extract_word_86),
+         _ast_extract_word_86);
   if (!url)
     return 0;
 
-  rest = extract_rest(cur, end);
+  rest = (extract_rest(cur, end, &_ast_extract_rest_87), _ast_extract_rest_87);
   if (rest && *rest) {
     size_t name_key_len = 0;
     size_t desc_key_len = 0;
-    char *name_key = find_key_token(rest, "name", &name_key_len);
-    char *desc_key = find_key_token(rest, "description", &desc_key_len);
+    char *name_key =
+        (find_key_token(rest, "name", &name_key_len, &_ast_find_key_token_88),
+         _ast_find_key_token_88);
+    char *desc_key = (find_key_token(rest, "description", &desc_key_len,
+                                     &_ast_find_key_token_89),
+                      _ast_find_key_token_89);
 
     if (name_key) {
       char *name_start = name_key + name_key_len;
@@ -1648,22 +1968,25 @@ static int parse_server_line(const char *line, const char *end,
       saved = *name_end;
       *name_end = '\0';
       {
-        char *trimmed = trim_segment(name_start);
+        char *trimmed = (trim_segment(name_start, &_ast_trim_segment_90),
+                         _ast_trim_segment_90);
         if (trimmed && *trimmed)
-          name = c_cdd_strdup(trimmed);
+          name = (c_cdd_strdup(trimmed, &_ast_strdup_46), _ast_strdup_46);
       }
       *name_end = saved;
     }
     if (desc_key) {
       char *desc_start = desc_key + desc_key_len;
-      char *trimmed = trim_segment(desc_start);
+      char *trimmed = (trim_segment(desc_start, &_ast_trim_segment_91),
+                       _ast_trim_segment_91);
       if (trimmed && *trimmed)
-        desc = c_cdd_strdup(trimmed);
+        desc = (c_cdd_strdup(trimmed, &_ast_strdup_47), _ast_strdup_47);
     }
     if (!name_key && !desc_key) {
-      char *trimmed = trim_segment(rest);
+      char *trimmed =
+          (trim_segment(rest, &_ast_trim_segment_92), _ast_trim_segment_92);
       if (trimmed && *trimmed)
-        desc = c_cdd_strdup(trimmed);
+        desc = (c_cdd_strdup(trimmed, &_ast_strdup_48), _ast_strdup_48);
     }
   }
 
@@ -1697,6 +2020,7 @@ static int split_scopes(const char *input, char ***out_scopes,
 
 static int split_enum_values(const char *input, char ***out_vals,
                              size_t *out_count) {
+  char *_ast_strdup_49 = NULL;
   char *buf;
   size_t i;
   int rc;
@@ -1708,7 +2032,7 @@ static int split_enum_values(const char *input, char ***out_vals,
   if (!input || !*input)
     return 0;
 
-  buf = c_cdd_strdup(input);
+  buf = (c_cdd_strdup(input, &_ast_strdup_49), _ast_strdup_49);
   if (!buf)
     return ENOMEM;
   for (i = 0; buf[i]; ++i) {
@@ -1722,6 +2046,16 @@ static int split_enum_values(const char *input, char ***out_vals,
 
 static int parse_server_var_line(const char *line, const char *end,
                                  struct DocMetadata *out) {
+  char *_ast_extract_word_93;
+  size_t _ast_skip_ws_94;
+  char *_ast_trim_segment_95;
+  char *_ast_trim_segment_96;
+  char *_ast_trim_segment_97;
+  size_t _ast_skip_ws_98;
+  char *_ast_extract_rest_99;
+  char *_ast_strdup_50 = NULL;
+  char *_ast_strdup_51 = NULL;
+  char *_ast_strdup_52 = NULL;
   const char *cur = line;
   char *name = NULL;
   char *description = NULL;
@@ -1731,11 +2065,12 @@ static int parse_server_var_line(const char *line, const char *end,
   if (!out || out->n_servers == 0)
     return EINVAL;
 
-  name = extract_word(cur, end, &cur);
+  name = (extract_word(cur, end, &cur, &_ast_extract_word_93),
+          _ast_extract_word_93);
   if (!name)
     return 0;
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_94), _ast_skip_ws_94);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -1751,40 +2086,45 @@ static int parse_server_var_line(const char *line, const char *end,
 
         if (strncmp(attr, "default:", 8) == 0 ||
             strncmp(attr, "default=", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_95),
+                       _ast_trim_segment_95);
           if (val && *val) {
             if (default_value)
               free(default_value);
-            default_value = c_cdd_strdup(val);
+            default_value =
+                (c_cdd_strdup(val, &_ast_strdup_50), _ast_strdup_50);
           }
         } else if (strncmp(attr, "enum:", 5) == 0 ||
                    strncmp(attr, "enum=", 5) == 0) {
-          char *val = trim_segment(attr + 5);
+          char *val = (trim_segment(attr + 5, &_ast_trim_segment_96),
+                       _ast_trim_segment_96);
           if (val && *val) {
             if (enum_raw)
               free(enum_raw);
-            enum_raw = c_cdd_strdup(val);
+            enum_raw = (c_cdd_strdup(val, &_ast_strdup_51), _ast_strdup_51);
           }
         } else if (strncmp(attr, "description:", 12) == 0 ||
                    strncmp(attr, "description=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_97),
+                       _ast_trim_segment_97);
           if (val && *val) {
             if (description)
               free(description);
-            description = c_cdd_strdup(val);
+            description = (c_cdd_strdup(val, &_ast_strdup_52), _ast_strdup_52);
           }
         }
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_98), _ast_skip_ws_98);
     } else {
       break;
     }
   }
 
   if (!description) {
-    char *rest = extract_rest(cur, end);
+    char *rest =
+        (extract_rest(cur, end, &_ast_extract_rest_99), _ast_extract_rest_99);
     if (rest && *rest) {
       description = rest;
     } else if (rest) {
@@ -1837,6 +2177,14 @@ static int parse_server_var_line(const char *line, const char *end,
 
 static int parse_encoding_line(const char *line, const char *end,
                                struct DocMetadata *out, int kind) {
+  size_t _ast_skip_ws_100;
+  char *_ast_extract_rest_101;
+  size_t _ast_skip_ws_102;
+  char *_ast_extract_rest_103;
+  char *_ast_trim_segment_104;
+  char *_ast_trim_segment_105;
+  size_t _ast_skip_ws_106;
+  char *_ast_strdup_53 = NULL;
   const char *cur = line;
   struct DocEncoding *new_arr;
   struct DocEncoding *entry;
@@ -1853,7 +2201,7 @@ static int parse_encoding_line(const char *line, const char *end,
   memset(entry, 0, sizeof(*entry));
   entry->kind = kind;
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_100), _ast_skip_ws_100);
 
   if (kind == 0) {
     /* Need to parse property name */
@@ -1863,28 +2211,34 @@ static int parse_encoding_line(const char *line, const char *end,
       name_end++;
     }
     if (name_end > cur) {
-      entry->name = extract_rest(cur, name_end);
+      entry->name = (extract_rest(cur, name_end, &_ast_extract_rest_101),
+                     _ast_extract_rest_101);
       if (!entry->name)
         return ENOMEM;
     }
     cur = name_end;
-    cur = skip_ws(cur);
+    cur = (skip_ws(cur, &_ast_skip_ws_102), _ast_skip_ws_102);
   }
 
   while (cur < end && *cur == '[') {
     const char *close_bracket = strchr(cur, ']');
     if (close_bracket && close_bracket < end) {
-      char *attr = extract_rest(cur + 1, close_bracket);
+      char *attr =
+          (extract_rest(cur + 1, close_bracket, &_ast_extract_rest_103),
+           _ast_extract_rest_103);
       if (attr) {
         if (strncmp(attr, "contentType:", 12) == 0 ||
             strncmp(attr, "contentType=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_104),
+                       _ast_trim_segment_104);
           if (val && *val) {
-            entry->content_type = c_cdd_strdup(val);
+            entry->content_type =
+                (c_cdd_strdup(val, &_ast_strdup_53), _ast_strdup_53);
           }
         } else if (strncmp(attr, "style:", 6) == 0 ||
                    strncmp(attr, "style=", 6) == 0) {
-          char *val = trim_segment(attr + 6);
+          char *val = (trim_segment(attr + 6, &_ast_trim_segment_105),
+                       _ast_trim_segment_105);
           if (val && *val) {
             enum DocParamStyle style = DOC_PARAM_STYLE_UNSET;
             if (parse_style_text(val, &style)) {
@@ -1902,7 +2256,7 @@ static int parse_encoding_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_106), _ast_skip_ws_106);
     } else {
       break;
     }
@@ -1913,6 +2267,15 @@ static int parse_encoding_line(const char *line, const char *end,
 }
 static int parse_request_body_line(const char *line, const char *end,
                                    struct DocMetadata *out) {
+  size_t _ast_skip_ws_107;
+  char *_ast_trim_segment_108;
+  char *_ast_trim_segment_109;
+  size_t _ast_skip_ws_110;
+  char *_ast_extract_rest_111;
+  char *_ast_strdup_54 = NULL;
+  char *_ast_strdup_55 = NULL;
+  char *_ast_strdup_56 = NULL;
+  char *_ast_strdup_57 = NULL;
   const char *cur = line;
   struct DocRequestBody *new_arr;
   struct DocRequestBody *entry;
@@ -1926,7 +2289,7 @@ static int parse_request_body_line(const char *line, const char *end,
   if (!out)
     return EINVAL;
 
-  cur = skip_ws(cur);
+  cur = (skip_ws(cur, &_ast_skip_ws_107), _ast_skip_ws_107);
   while (cur < end && *cur == '[') {
     const char *close_bracket = cur;
     while (close_bracket < end && *close_bracket != ']')
@@ -1944,19 +2307,21 @@ static int parse_request_body_line(const char *line, const char *end,
                                  &required_val);
         if (strncmp(attr, "contentType:", 12) == 0 ||
             strncmp(attr, "contentType=", 12) == 0) {
-          char *val = trim_segment(attr + 12);
+          char *val = (trim_segment(attr + 12, &_ast_trim_segment_108),
+                       _ast_trim_segment_108);
           if (val && *val) {
             if (content_type)
               free(content_type);
-            content_type = c_cdd_strdup(val);
+            content_type = (c_cdd_strdup(val, &_ast_strdup_54), _ast_strdup_54);
           }
         } else if (strncmp(attr, "content:", 8) == 0 ||
                    strncmp(attr, "content=", 8) == 0) {
-          char *val = trim_segment((char *)(attr + 8));
+          char *val = (trim_segment((char *)(attr + 8), &_ast_trim_segment_109),
+                       _ast_trim_segment_109);
           if (val && *val) {
             if (content_type)
               free(content_type);
-            content_type = c_cdd_strdup(val);
+            content_type = (c_cdd_strdup(val, &_ast_strdup_55), _ast_strdup_55);
           }
         } else if (strcmp(attr, "itemSchema") == 0 ||
                    strcmp(attr, "itemSchema:true") == 0 ||
@@ -1974,13 +2339,14 @@ static int parse_request_body_line(const char *line, const char *end,
         free(attr);
       }
       cur = close_bracket + 1;
-      cur = skip_ws(cur);
+      cur = (skip_ws(cur, &_ast_skip_ws_110), _ast_skip_ws_110);
     } else {
       break;
     }
   }
 
-  description = extract_rest(cur, end);
+  description =
+      (extract_rest(cur, end, &_ast_extract_rest_111), _ast_extract_rest_111);
 
   new_arr = (struct DocRequestBody *)realloc(out->request_bodies,
                                              (out->n_request_bodies + 1) *
@@ -2011,14 +2377,16 @@ static int parse_request_body_line(const char *line, const char *end,
   if (entry->content_type) {
     if (out->request_body_content_type)
       free(out->request_body_content_type);
-    out->request_body_content_type = c_cdd_strdup(entry->content_type);
+    out->request_body_content_type =
+        (c_cdd_strdup(entry->content_type, &_ast_strdup_56), _ast_strdup_56);
     if (!out->request_body_content_type)
       return ENOMEM;
   }
   if (entry->description) {
     if (out->request_body_description)
       free(out->request_body_description);
-    out->request_body_description = c_cdd_strdup(entry->description);
+    out->request_body_description =
+        (c_cdd_strdup(entry->description, &_ast_strdup_57), _ast_strdup_57);
     if (!out->request_body_description)
       return ENOMEM;
   }
@@ -2027,8 +2395,11 @@ static int parse_request_body_line(const char *line, const char *end,
 
 static int parse_route_line(const char *line, const char *end,
                             struct DocMetadata *out) {
+  char *_ast_extract_word_112;
+  char *_ast_extract_word_113;
   const char *cur = line;
-  char *word1 = extract_word(cur, end, &cur);
+  char *word1 = (extract_word(cur, end, &cur, &_ast_extract_word_112),
+                 _ast_extract_word_112);
   char *word2 = NULL;
 
   if (!word1)
@@ -2048,7 +2419,8 @@ static int parse_route_line(const char *line, const char *end,
     out->verb = word1;
 
     /* Next word should be path */
-    word2 = extract_word(cur, end, &cur);
+    word2 = (extract_word(cur, end, &cur, &_ast_extract_word_113),
+             _ast_extract_word_113);
     if (word2) {
       if (out->route)
         free(out->route);
@@ -2059,6 +2431,15 @@ static int parse_route_line(const char *line, const char *end,
 }
 
 int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
+  char *_ast_extract_rest_114;
+  char *_ast_extract_rest_115;
+  char *_ast_extract_rest_116;
+  char *_ast_extract_rest_117;
+  char *_ast_extract_rest_118;
+  char *_ast_extract_rest_119;
+  char *_ast_extract_rest_120;
+  char *_ast_extract_rest_121;
+  char *_ast_extract_rest_122;
   const char *p = comment;
   int rc = 0;
 
@@ -2152,17 +2533,23 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
         } else if (strcmp(cmd, "summary") == 0 || strcmp(cmd, "brief") == 0) {
           if (out->summary)
             free(out->summary);
-          out->summary = extract_rest(cmd_end, line_end);
+          out->summary =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_114),
+               _ast_extract_rest_114);
         } else if (strcmp(cmd, "operationId") == 0 ||
                    strcmp(cmd, "operationid") == 0) {
           if (out->operation_id)
             free(out->operation_id);
-          out->operation_id = extract_rest(cmd_end, line_end);
+          out->operation_id =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_115),
+               _ast_extract_rest_115);
         } else if (strcmp(cmd, "description") == 0 ||
                    strcmp(cmd, "details") == 0) {
           if (out->description)
             free(out->description);
-          out->description = extract_rest(cmd_end, line_end);
+          out->description =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_116),
+               _ast_extract_rest_116);
         } else if (strcmp(cmd, "tag") == 0 || strcmp(cmd, "tags") == 0) {
           rc = parse_tags_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "tagMeta") == 0 || strcmp(cmd, "tagmeta") == 0) {
@@ -2197,32 +2584,44 @@ int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
                    strcmp(cmd, "jsonschemadialect") == 0) {
           if (out->json_schema_dialect)
             free(out->json_schema_dialect);
-          out->json_schema_dialect = extract_rest(cmd_end, line_end);
+          out->json_schema_dialect =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_117),
+               _ast_extract_rest_117);
         } else if (strcmp(cmd, "infoTitle") == 0 ||
                    strcmp(cmd, "infotitle") == 0) {
           if (out->info_title)
             free(out->info_title);
-          out->info_title = extract_rest(cmd_end, line_end);
+          out->info_title =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_118),
+               _ast_extract_rest_118);
         } else if (strcmp(cmd, "infoVersion") == 0 ||
                    strcmp(cmd, "infoversion") == 0) {
           if (out->info_version)
             free(out->info_version);
-          out->info_version = extract_rest(cmd_end, line_end);
+          out->info_version =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_119),
+               _ast_extract_rest_119);
         } else if (strcmp(cmd, "infoSummary") == 0 ||
                    strcmp(cmd, "infosummary") == 0) {
           if (out->info_summary)
             free(out->info_summary);
-          out->info_summary = extract_rest(cmd_end, line_end);
+          out->info_summary =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_120),
+               _ast_extract_rest_120);
         } else if (strcmp(cmd, "infoDescription") == 0 ||
                    strcmp(cmd, "infodescription") == 0) {
           if (out->info_description)
             free(out->info_description);
-          out->info_description = extract_rest(cmd_end, line_end);
+          out->info_description =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_121),
+               _ast_extract_rest_121);
         } else if (strcmp(cmd, "termsOfService") == 0 ||
                    strcmp(cmd, "termsofservice") == 0) {
           if (out->terms_of_service)
             free(out->terms_of_service);
-          out->terms_of_service = extract_rest(cmd_end, line_end);
+          out->terms_of_service =
+              (extract_rest(cmd_end, line_end, &_ast_extract_rest_122),
+               _ast_extract_rest_122);
         } else if (strcmp(cmd, "contact") == 0) {
           rc = parse_contact_line(cmd_end, line_end, out);
         } else if (strcmp(cmd, "license") == 0) {

@@ -22,8 +22,12 @@
  * patterns specifically.
  */
 
+/** \brief mock */
 struct Node {
+  /** @brief value */
+  /** @brief value */
   int value;
+  /** @brief next */
   struct Node *next;
 };
 
@@ -154,10 +158,10 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   ASSERT_EQ(0, rc);
   ASSERT(foo1 != NULL);
 
-  ASSERT(FooE_eq(foo0, foo1));
+  ASSERT(FooE_eq(foo0, foo1) == 0);
 
   foo0->can = 53;
-  ASSERT(!FooE_eq(foo0, foo1));
+  ASSERT(FooE_eq(foo0, foo1) != 0);
 
   rc = FooE_deepcopy(NULL, &foo2);
   ASSERT_EQ(0, rc);
@@ -180,10 +184,10 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   ASSERT_EQ(0, rc);
   ASSERT(h1 != NULL);
 
-  ASSERT(HazE_eq(h0, h1));
+  ASSERT(HazE_eq(h0, h1) == 0);
 
   h0->tank = (h0->tank == Tank_BIG) ? Tank_SMALL : Tank_BIG;
-  ASSERT(!HazE_eq(h0, h1));
+  ASSERT(HazE_eq(h0, h1) != 0);
 
   rc = HazE_deepcopy(NULL, &h2);
   ASSERT_EQ(0, rc);
@@ -213,7 +217,7 @@ TEST test_FooE_json_roundtrip(void) {
     rc = FooE_from_json(json_out, &foo_out);
     ASSERT_EQ_FMT(0, rc, "%d");
     ASSERT(foo_out != NULL);
-    ASSERT(FooE_eq(foo_in, foo_out));
+    ASSERT(FooE_eq(foo_in, foo_out) == 0);
     FooE_cleanup(foo_out);
   }
   free(json_out);
@@ -238,7 +242,7 @@ TEST test_HazE_json_roundtrip(void) {
     rc = HazE_from_json(json_out, &haz_out);
     ASSERT_EQ(0, rc);
     ASSERT(haz_out != NULL);
-    ASSERT(HazE_eq(haz_in, haz_out));
+    ASSERT(HazE_eq(haz_in, haz_out) == 0);
     HazE_cleanup(haz_out);
   }
   free(json_out);
@@ -398,22 +402,22 @@ TEST test_eq_null_cases(void) {
   FooE_default(&f2);
   HazE_default(&h2);
 
-  ASSERT(FooE_eq(NULL, NULL));
-  ASSERT(!FooE_eq(f1, NULL));
-  ASSERT(!FooE_eq(NULL, f1));
+  ASSERT(FooE_eq(NULL, NULL) == 0);
+  ASSERT(FooE_eq(f1, NULL) != 0);
+  ASSERT(FooE_eq(NULL, f1) != 0);
 
-  ASSERT(HazE_eq(NULL, NULL));
-  ASSERT(!HazE_eq(h1, NULL));
-  ASSERT(!HazE_eq(NULL, h1));
+  ASSERT(HazE_eq(NULL, NULL) == 0);
+  ASSERT(HazE_eq(h1, NULL) != 0);
+  ASSERT(HazE_eq(NULL, h1) != 0);
 
   free((void *)f1->bar);
   f1->bar = NULL;
   f2->bar = strdup("not null");
-  ASSERT(!FooE_eq(f1, f2));
+  ASSERT(FooE_eq(f1, f2) != 0);
 
   free((void *)f2->bar);
   f2->bar = NULL;
-  ASSERT(FooE_eq(f1, f2)); /* Both bars are null */
+  ASSERT(FooE_eq(f1, f2) == 0); /* Both bars are null */
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
@@ -705,16 +709,16 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
   h1->bzr = strdup("abc");
   free((void *)h2->bzr);
   h2->bzr = strdup("def");
-  ASSERT(!HazE_eq(h1, h2));
+  ASSERT(HazE_eq(h1, h2) != 0);
 
   /* Test one-sided null bzr */
   free((void *)h1->bzr);
   h1->bzr = NULL;
-  ASSERT(!HazE_eq(h1, h2));
+  ASSERT(HazE_eq(h1, h2) != 0);
 
   free((void *)h2->bzr);
   h2->bzr = strdup("abc");
-  ASSERT(!HazE_eq(h2, h1));
+  ASSERT(HazE_eq(h2, h1) != 0);
 
   HazE_cleanup(h1);
   HazE_cleanup(h2);
@@ -729,14 +733,14 @@ TEST test_simple_json_more_eq_cases(void) {
   /* Test can member inequality */
   f1->can = 1;
   f2->can = 2;
-  ASSERT(!FooE_eq(f1, f2));
+  ASSERT(FooE_eq(f1, f2) != 0);
   f2->can = 1;
-  ASSERT(FooE_eq(f1, f2)); /* Back to equal */
+  ASSERT(FooE_eq(f1, f2) == 0); /* Back to equal */
 
   /* Test one-sided null haz */
   HazE_cleanup(f1->haz);
   f1->haz = NULL;
-  ASSERT(!FooE_eq(f1, f2));
+  ASSERT(FooE_eq(f1, f2) != 0);
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
@@ -751,10 +755,10 @@ TEST test_FooE_eq_nested_diff(void) {
   /* Test haz member inequality */
   f1->haz->tank = Tank_BIG;
   f2->haz->tank = Tank_SMALL;
-  ASSERT(!FooE_eq(f1, f2));
+  ASSERT(FooE_eq(f1, f2) != 0);
 
   f2->haz->tank = Tank_BIG;
-  ASSERT(FooE_eq(f1, f2));
+  ASSERT(FooE_eq(f1, f2) == 0);
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);

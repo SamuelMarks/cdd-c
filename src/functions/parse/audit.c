@@ -1,5 +1,5 @@
 /**
- * @file project_audit.c
+ * @file audit.c
  * @brief Implementation of project auditing.
  * Walks directories, filters for source files, runs static analysis, and
  * generates detailed JSON reports including file locations and line numbers.
@@ -182,6 +182,7 @@ static int audit_file_callback(const char *path, void *user_data) {
 
   /* Tokenize */
   if (tokenize(az_span_create_from_str(content), &tokens) != 0) {
+    free_token_list(tokens);
     free(content);
     return 0; /* Tokenization fail - skip */
   }
@@ -226,14 +227,16 @@ int audit_project(const char *const root_path, struct AuditStats *const stats) {
   return walk_directory(root_path, audit_file_callback, stats);
 }
 
-char *audit_print_json(const struct AuditStats *const stats) {
+int audit_print_json(const struct AuditStats *const stats, char **out_json) {
   JSON_Value *root_val = json_value_init_object();
   JSON_Object *root_obj;
   char *str = NULL;
   size_t i;
 
-  if (!stats || !root_val)
-    return NULL;
+  if (!stats || !root_val) {
+    *out_json = NULL;
+    return 0;
+  }
 
   root_obj = json_value_get_object(root_val);
 
@@ -278,5 +281,8 @@ char *audit_print_json(const struct AuditStats *const stats) {
 
   str = json_serialize_to_string_pretty(root_val);
   json_value_free(root_val);
-  return str;
+  {
+    *out_json = str;
+    return 0;
+  }
 }

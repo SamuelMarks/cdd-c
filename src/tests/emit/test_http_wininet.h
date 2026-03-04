@@ -72,6 +72,7 @@ TEST test_wininet_config_apply(void) {
 }
 
 TEST test_wininet_send_validation(void) {
+  char *_ast_strdup_0 = NULL;
 #ifdef _WIN32
   struct HttpTransportContext *ctx = NULL;
   struct HttpRequest req;
@@ -92,7 +93,7 @@ TEST test_wininet_send_validation(void) {
   ASSERT_EQ(EINVAL, rc);
 
   /* Malformed URL handling in local testing (CrackUrl check) */
-  req.url = c_cdd_strdup("not-a-valid-url");
+  req.url = (c_cdd_strdup("not-a-valid-url", &_ast_strdup_0), _ast_strdup_0);
   rc = http_wininet_send(ctx, &req, &res);
   ASSERT_EQ(EINVAL, rc);
 
@@ -104,7 +105,29 @@ TEST test_wininet_send_validation(void) {
   PASS();
 }
 
+TEST test_wininet_stubs(void) {
+#ifndef _WIN32
+  struct HttpTransportContext *ctx = NULL;
+  struct HttpConfig cfg;
+  struct HttpRequest req;
+  struct HttpResponse *res = NULL;
+
+  ASSERT_EQ(0, http_wininet_global_init());
+  http_wininet_global_cleanup();
+
+  ASSERT_EQ(ENOTSUP, http_wininet_context_init(&ctx));
+  http_wininet_context_free(NULL);
+
+  ASSERT_EQ(ENOTSUP, http_wininet_config_apply(NULL, &cfg));
+  ASSERT_EQ(ENOTSUP, http_wininet_send(NULL, &req, &res));
+#else
+  SKIPm("WinINET is supported on this platform");
+#endif
+  PASS();
+}
+
 SUITE(http_wininet_suite) {
+  RUN_TEST(test_wininet_stubs);
   RUN_TEST(test_wininet_lifecycle);
   RUN_TEST(test_wininet_config_apply);
   RUN_TEST(test_wininet_send_validation);

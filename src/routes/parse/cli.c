@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_cli.c
+ * @file cli.c
  * @brief Implementation of the C-to-OpenAPI CLI orchestrator.
  *
  * @author Samuel Marks
@@ -49,6 +49,7 @@ static int spec_has_tag(const struct OpenAPI_Spec *spec, const char *name) {
 }
 
 static int spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
+  char *_ast_strdup_0 = NULL;
   struct OpenAPI_Tag *new_tags;
   struct OpenAPI_Tag *tag;
 
@@ -64,94 +65,143 @@ static int spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   spec->tags = new_tags;
   tag = &spec->tags[spec->n_tags++];
   memset(tag, 0, sizeof(*tag));
-  tag->name = c_cdd_strdup(name);
+  tag->name = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
   if (!tag->name)
     return ENOMEM;
   return 0;
 }
 
-static struct OpenAPI_Tag *spec_find_tag(struct OpenAPI_Spec *spec,
-                                         const char *name) {
+static int spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
+                         struct OpenAPI_Tag **_out_val) {
   size_t i;
-  if (!spec || !name)
-    return NULL;
+  if (!spec || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < spec->n_tags; ++i) {
-    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
-      return &spec->tags[i];
+    if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0) {
+      *_out_val = &spec->tags[i];
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static enum OpenAPI_SecurityType
-map_doc_security_type(enum DocSecurityType type) {
+static int map_doc_security_type(enum DocSecurityType type,
+                                 enum OpenAPI_SecurityType *_out_val) {
   switch (type) {
-  case DOC_SEC_APIKEY:
-    return OA_SEC_APIKEY;
-  case DOC_SEC_HTTP:
-    return OA_SEC_HTTP;
-  case DOC_SEC_MUTUALTLS:
-    return OA_SEC_MUTUALTLS;
-  case DOC_SEC_OAUTH2:
-    return OA_SEC_OAUTH2;
-  case DOC_SEC_OPENID:
-    return OA_SEC_OPENID;
+  case DOC_SEC_APIKEY: {
+    *_out_val = OA_SEC_APIKEY;
+    return 0;
+  }
+  case DOC_SEC_HTTP: {
+    *_out_val = OA_SEC_HTTP;
+    return 0;
+  }
+  case DOC_SEC_MUTUALTLS: {
+    *_out_val = OA_SEC_MUTUALTLS;
+    return 0;
+  }
+  case DOC_SEC_OAUTH2: {
+    *_out_val = OA_SEC_OAUTH2;
+    return 0;
+  }
+  case DOC_SEC_OPENID: {
+    *_out_val = OA_SEC_OPENID;
+    return 0;
+  }
   case DOC_SEC_UNSET:
-  default:
-    return OA_SEC_UNKNOWN;
+  default: {
+    *_out_val = OA_SEC_UNKNOWN;
+    return 0;
+  }
   }
 }
 
-static enum OpenAPI_SecurityIn map_doc_security_in(enum DocSecurityIn in) {
+static int map_doc_security_in(enum DocSecurityIn in,
+                               enum OpenAPI_SecurityIn *_out_val) {
   switch (in) {
-  case DOC_SEC_IN_QUERY:
-    return OA_SEC_IN_QUERY;
-  case DOC_SEC_IN_HEADER:
-    return OA_SEC_IN_HEADER;
-  case DOC_SEC_IN_COOKIE:
-    return OA_SEC_IN_COOKIE;
+  case DOC_SEC_IN_QUERY: {
+    *_out_val = OA_SEC_IN_QUERY;
+    return 0;
+  }
+  case DOC_SEC_IN_HEADER: {
+    *_out_val = OA_SEC_IN_HEADER;
+    return 0;
+  }
+  case DOC_SEC_IN_COOKIE: {
+    *_out_val = OA_SEC_IN_COOKIE;
+    return 0;
+  }
   case DOC_SEC_IN_UNSET:
-  default:
-    return OA_SEC_IN_UNKNOWN;
+  default: {
+    *_out_val = OA_SEC_IN_UNKNOWN;
+    return 0;
+  }
   }
 }
 
-static enum OpenAPI_OAuthFlowType
-map_doc_flow_type(enum DocOAuthFlowType type) {
+static int map_doc_flow_type(enum DocOAuthFlowType type,
+                             enum OpenAPI_OAuthFlowType *_out_val) {
   switch (type) {
-  case DOC_OAUTH_FLOW_IMPLICIT:
-    return OA_OAUTH_FLOW_IMPLICIT;
-  case DOC_OAUTH_FLOW_PASSWORD:
-    return OA_OAUTH_FLOW_PASSWORD;
-  case DOC_OAUTH_FLOW_CLIENT_CREDENTIALS:
-    return OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
-  case DOC_OAUTH_FLOW_AUTHORIZATION_CODE:
-    return OA_OAUTH_FLOW_AUTHORIZATION_CODE;
-  case DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION:
-    return OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
+  case DOC_OAUTH_FLOW_IMPLICIT: {
+    *_out_val = OA_OAUTH_FLOW_IMPLICIT;
+    return 0;
+  }
+  case DOC_OAUTH_FLOW_PASSWORD: {
+    *_out_val = OA_OAUTH_FLOW_PASSWORD;
+    return 0;
+  }
+  case DOC_OAUTH_FLOW_CLIENT_CREDENTIALS: {
+    *_out_val = OA_OAUTH_FLOW_CLIENT_CREDENTIALS;
+    return 0;
+  }
+  case DOC_OAUTH_FLOW_AUTHORIZATION_CODE: {
+    *_out_val = OA_OAUTH_FLOW_AUTHORIZATION_CODE;
+    return 0;
+  }
+  case DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION: {
+    *_out_val = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
+    return 0;
+  }
   case DOC_OAUTH_FLOW_UNSET:
-  default:
-    return OA_OAUTH_FLOW_UNKNOWN;
+  default: {
+    *_out_val = OA_OAUTH_FLOW_UNKNOWN;
+    return 0;
+  }
   }
 }
 
-static struct OpenAPI_SecurityScheme *
-spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name) {
+static int spec_find_security_scheme(struct OpenAPI_Spec *spec,
+                                     const char *name,
+                                     struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
-  if (!spec || !name)
-    return NULL;
+  if (!spec || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < spec->n_security_schemes; ++i) {
     if (spec->security_schemes[i].name &&
-        strcmp(spec->security_schemes[i].name, name) == 0)
-      return &spec->security_schemes[i];
+        strcmp(spec->security_schemes[i].name, name) == 0) {
+      *_out_val = &spec->security_schemes[i];
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int set_str_if_missing(char **dst, const char *src) {
+  char *_ast_strdup_1 = NULL;
   if (!src || !*src)
     return 0;
   if (!*dst) {
-    *dst = c_cdd_strdup(src);
+    *dst = (c_cdd_strdup(src, &_ast_strdup_1), _ast_strdup_1);
     if (!*dst)
       return ENOMEM;
     return 0;
@@ -188,6 +238,10 @@ static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
 
 static int copy_doc_server_variables(struct OpenAPI_Server *dst,
                                      const struct DocServer *src) {
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
   size_t i;
   if (!dst || !src || src->n_variables == 0)
     return 0;
@@ -208,18 +262,20 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
       free_openapi_server_variables(dst);
       return EINVAL;
     }
-    dv->name = c_cdd_strdup(sv->name);
+    dv->name = (c_cdd_strdup(sv->name, &_ast_strdup_2), _ast_strdup_2);
     if (!dv->name) {
       free_openapi_server_variables(dst);
       return ENOMEM;
     }
-    dv->default_value = c_cdd_strdup(sv->default_value);
+    dv->default_value =
+        (c_cdd_strdup(sv->default_value, &_ast_strdup_3), _ast_strdup_3);
     if (!dv->default_value) {
       free_openapi_server_variables(dst);
       return ENOMEM;
     }
     if (sv->description) {
-      dv->description = c_cdd_strdup(sv->description);
+      dv->description =
+          (c_cdd_strdup(sv->description, &_ast_strdup_4), _ast_strdup_4);
       if (!dv->description) {
         free_openapi_server_variables(dst);
         return ENOMEM;
@@ -233,7 +289,8 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
       }
       dv->n_enum_values = sv->n_enum_values;
       for (e = 0; e < sv->n_enum_values; ++e) {
-        dv->enum_values[e] = c_cdd_strdup(sv->enum_values[e]);
+        dv->enum_values[e] =
+            (c_cdd_strdup(sv->enum_values[e], &_ast_strdup_5), _ast_strdup_5);
         if (!dv->enum_values[e]) {
           free_openapi_server_variables(dst);
           return ENOMEM;
@@ -253,6 +310,9 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
 
 static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
                         const struct DocOAuthFlow *src) {
+  char *_ast_strdup_6 = NULL;
+  char *_ast_strdup_7 = NULL;
+  char *_ast_strdup_8 = NULL;
   size_t i;
   if (!dst || !src || !src->scopes || src->n_scopes == 0)
     return 0;
@@ -270,7 +330,8 @@ static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
             strcmp(dst->scopes[j].description, desc) != 0)
           return EINVAL;
         if (!dst->scopes[j].description && desc) {
-          dst->scopes[j].description = c_cdd_strdup(desc);
+          dst->scopes[j].description =
+              (c_cdd_strdup(desc, &_ast_strdup_6), _ast_strdup_6);
           if (!dst->scopes[j].description)
             return ENOMEM;
         }
@@ -284,10 +345,12 @@ static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
       if (!new_scopes)
         return ENOMEM;
       dst->scopes = new_scopes;
-      dst->scopes[dst->n_scopes].name = c_cdd_strdup(name ? name : "");
+      dst->scopes[dst->n_scopes].name =
+          (c_cdd_strdup(name ? name : "", &_ast_strdup_7), _ast_strdup_7);
       if (!dst->scopes[dst->n_scopes].name)
         return ENOMEM;
-      dst->scopes[dst->n_scopes].description = desc ? c_cdd_strdup(desc) : NULL;
+      dst->scopes[dst->n_scopes].description =
+          desc ? (c_cdd_strdup(desc, &_ast_strdup_8), _ast_strdup_8) : NULL;
       if (desc && !dst->scopes[dst->n_scopes].description)
         return ENOMEM;
       dst->n_scopes++;
@@ -296,17 +359,24 @@ static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
   return 0;
 }
 
-static struct OpenAPI_OAuthFlow *
-find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
-                enum OpenAPI_OAuthFlowType type) {
+static int find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
+                           enum OpenAPI_OAuthFlowType type,
+                           struct OpenAPI_OAuthFlow **_out_val) {
   size_t i;
-  if (!scheme || !scheme->flows)
-    return NULL;
-  for (i = 0; i < scheme->n_flows; ++i) {
-    if (scheme->flows[i].type == type)
-      return &scheme->flows[i];
+  if (!scheme || !scheme->flows) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
+  for (i = 0; i < scheme->n_flows; ++i) {
+    if (scheme->flows[i].type == type) {
+      *_out_val = &scheme->flows[i];
+      return 0;
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
@@ -364,16 +434,26 @@ static int validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
 
 static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
                            const struct DocSecurityScheme *doc) {
+  enum OpenAPI_OAuthFlowType _ast_map_doc_flow_type_0;
+  struct OpenAPI_OAuthFlow *_ast_find_oauth_flow_1;
+  char *_ast_strdup_9 = NULL;
+  char *_ast_strdup_10 = NULL;
+  char *_ast_strdup_11 = NULL;
+  char *_ast_strdup_12 = NULL;
+  char *_ast_strdup_13 = NULL;
+  char *_ast_strdup_14 = NULL;
   size_t i;
   if (!scheme || !doc)
     return 0;
   for (i = 0; i < doc->n_flows; ++i) {
     enum OpenAPI_OAuthFlowType flow_type =
-        map_doc_flow_type(doc->flows[i].type);
+        (map_doc_flow_type(doc->flows[i].type, &_ast_map_doc_flow_type_0),
+         _ast_map_doc_flow_type_0);
     struct OpenAPI_OAuthFlow *dst_flow;
     if (flow_type == OA_OAUTH_FLOW_UNKNOWN)
       return EINVAL;
-    dst_flow = find_oauth_flow(scheme, flow_type);
+    dst_flow = (find_oauth_flow(scheme, flow_type, &_ast_find_oauth_flow_1),
+                _ast_find_oauth_flow_1);
     if (dst_flow) {
       int rc = merge_oauth_flow(dst_flow, &doc->flows[i]);
       if (rc != 0)
@@ -392,14 +472,21 @@ static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
       dst_flow->type = flow_type;
       if (doc->flows[i].authorization_url)
         dst_flow->authorization_url =
-            c_cdd_strdup(doc->flows[i].authorization_url);
+            (c_cdd_strdup(doc->flows[i].authorization_url, &_ast_strdup_9),
+             _ast_strdup_9);
       if (doc->flows[i].token_url)
-        dst_flow->token_url = c_cdd_strdup(doc->flows[i].token_url);
+        dst_flow->token_url =
+            (c_cdd_strdup(doc->flows[i].token_url, &_ast_strdup_10),
+             _ast_strdup_10);
       if (doc->flows[i].refresh_url)
-        dst_flow->refresh_url = c_cdd_strdup(doc->flows[i].refresh_url);
+        dst_flow->refresh_url =
+            (c_cdd_strdup(doc->flows[i].refresh_url, &_ast_strdup_11),
+             _ast_strdup_11);
       if (doc->flows[i].device_authorization_url)
         dst_flow->device_authorization_url =
-            c_cdd_strdup(doc->flows[i].device_authorization_url);
+            (c_cdd_strdup(doc->flows[i].device_authorization_url,
+                          &_ast_strdup_12),
+             _ast_strdup_12);
       if ((doc->flows[i].authorization_url && !dst_flow->authorization_url) ||
           (doc->flows[i].token_url && !dst_flow->token_url) ||
           (doc->flows[i].refresh_url && !dst_flow->refresh_url) ||
@@ -416,11 +503,13 @@ static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
         for (s = 0; s < doc->flows[i].n_scopes; ++s) {
           const char *name = doc->flows[i].scopes[s].name;
           const char *desc = doc->flows[i].scopes[s].description;
-          dst_flow->scopes[s].name = c_cdd_strdup(name ? name : "");
+          dst_flow->scopes[s].name =
+              (c_cdd_strdup(name ? name : "", &_ast_strdup_13), _ast_strdup_13);
           if (!dst_flow->scopes[s].name)
             return ENOMEM;
           if (desc) {
-            dst_flow->scopes[s].description = c_cdd_strdup(desc);
+            dst_flow->scopes[s].description =
+                (c_cdd_strdup(desc, &_ast_strdup_14), _ast_strdup_14);
             if (!dst_flow->scopes[s].description)
               return ENOMEM;
           }
@@ -434,13 +523,18 @@ static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
 
 static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
                                     const struct DocSecurityScheme *doc) {
+  enum OpenAPI_SecurityType _ast_map_doc_security_type_2;
+  struct OpenAPI_SecurityScheme *_ast_spec_find_security_scheme_3;
+  enum OpenAPI_SecurityIn _ast_map_doc_security_in_4;
+  char *_ast_strdup_15 = NULL;
   struct OpenAPI_SecurityScheme *scheme;
   enum OpenAPI_SecurityType type;
 
   if (!spec || !doc || !doc->name || !*doc->name)
     return 0;
 
-  type = map_doc_security_type(doc->type);
+  type = (map_doc_security_type(doc->type, &_ast_map_doc_security_type_2),
+          _ast_map_doc_security_type_2);
   if (type == OA_SEC_UNKNOWN)
     return EINVAL;
 
@@ -453,7 +547,9 @@ static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
     }
   }
 
-  scheme = spec_find_security_scheme(spec, doc->name);
+  scheme = (spec_find_security_scheme(spec, doc->name,
+                                      &_ast_spec_find_security_scheme_3),
+            _ast_spec_find_security_scheme_3);
   if (!scheme) {
     struct OpenAPI_SecurityScheme *new_schemes =
         (struct OpenAPI_SecurityScheme *)realloc(
@@ -464,7 +560,7 @@ static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
     spec->security_schemes = new_schemes;
     scheme = &spec->security_schemes[spec->n_security_schemes];
     memset(scheme, 0, sizeof(*scheme));
-    scheme->name = c_cdd_strdup(doc->name);
+    scheme->name = (c_cdd_strdup(doc->name, &_ast_strdup_15), _ast_strdup_15);
     if (!scheme->name)
       return ENOMEM;
     scheme->type = type;
@@ -489,7 +585,9 @@ static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
 
   switch (type) {
   case OA_SEC_APIKEY: {
-    enum OpenAPI_SecurityIn in = map_doc_security_in(doc->in);
+    enum OpenAPI_SecurityIn in =
+        (map_doc_security_in(doc->in, &_ast_map_doc_security_in_4),
+         _ast_map_doc_security_in_4);
     if (!doc->param_name || !*doc->param_name || in == OA_SEC_IN_UNKNOWN)
       return EINVAL;
     scheme->in = in;
@@ -563,6 +661,8 @@ static int apply_doc_security_schemes(struct OpenAPI_Spec *spec,
 
 static int append_root_security(struct OpenAPI_Spec *spec,
                                 const struct DocMetadata *meta) {
+  char *_ast_strdup_16 = NULL;
+  char *_ast_strdup_17 = NULL;
   size_t i;
   if (!spec || !meta || meta->n_security == 0)
     return 0;
@@ -586,7 +686,9 @@ static int append_root_security(struct OpenAPI_Spec *spec,
     if (!set->requirements)
       return ENOMEM;
     set->n_requirements = 1;
-    set->requirements[0].scheme = c_cdd_strdup(src->scheme ? src->scheme : "");
+    set->requirements[0].scheme =
+        (c_cdd_strdup(src->scheme ? src->scheme : "", &_ast_strdup_16),
+         _ast_strdup_16);
     if (!set->requirements[0].scheme)
       return ENOMEM;
     if (src->n_scopes > 0) {
@@ -598,7 +700,9 @@ static int append_root_security(struct OpenAPI_Spec *spec,
       set->requirements[0].n_scopes = src->n_scopes;
       for (s = 0; s < src->n_scopes; ++s) {
         set->requirements[0].scopes[s] =
-            c_cdd_strdup(src->scopes[s] ? src->scopes[s] : "");
+            (c_cdd_strdup(src->scopes[s] ? src->scopes[s] : "",
+                          &_ast_strdup_17),
+             _ast_strdup_17);
         if (!set->requirements[0].scopes[s])
           return ENOMEM;
       }
@@ -611,6 +715,9 @@ static int append_root_security(struct OpenAPI_Spec *spec,
 
 static int append_root_servers(struct OpenAPI_Spec *spec,
                                const struct DocMetadata *meta) {
+  char *_ast_strdup_18 = NULL;
+  char *_ast_strdup_19 = NULL;
+  char *_ast_strdup_20 = NULL;
   size_t i;
   if (!spec || !meta || meta->n_servers == 0)
     return 0;
@@ -627,17 +734,18 @@ static int append_root_servers(struct OpenAPI_Spec *spec,
     struct OpenAPI_Server *dst = &spec->servers[spec->n_servers + i];
     memset(dst, 0, sizeof(*dst));
     if (src->url) {
-      dst->url = c_cdd_strdup(src->url);
+      dst->url = (c_cdd_strdup(src->url, &_ast_strdup_18), _ast_strdup_18);
       if (!dst->url)
         return ENOMEM;
     }
     if (src->name) {
-      dst->name = c_cdd_strdup(src->name);
+      dst->name = (c_cdd_strdup(src->name, &_ast_strdup_19), _ast_strdup_19);
       if (!dst->name)
         return ENOMEM;
     }
     if (src->description) {
-      dst->description = c_cdd_strdup(src->description);
+      dst->description =
+          (c_cdd_strdup(src->description, &_ast_strdup_20), _ast_strdup_20);
       if (!dst->description)
         return ENOMEM;
     }
@@ -653,6 +761,9 @@ static int append_root_servers(struct OpenAPI_Spec *spec,
 
 static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
                                  const struct DocMetadata *meta) {
+  char *_ast_strdup_21 = NULL;
+  char *_ast_strdup_22 = NULL;
+  char *_ast_strdup_23 = NULL;
   int rc;
   if (!spec || !meta)
     return 0;
@@ -733,12 +844,15 @@ static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
   }
   if (meta->external_docs_url) {
     if (!spec->external_docs.url) {
-      spec->external_docs.url = c_cdd_strdup(meta->external_docs_url);
+      spec->external_docs.url =
+          (c_cdd_strdup(meta->external_docs_url, &_ast_strdup_21),
+           _ast_strdup_21);
       if (!spec->external_docs.url)
         return ENOMEM;
       if (meta->external_docs_description) {
         spec->external_docs.description =
-            c_cdd_strdup(meta->external_docs_description);
+            (c_cdd_strdup(meta->external_docs_description, &_ast_strdup_22),
+             _ast_strdup_22);
         if (!spec->external_docs.description)
           return ENOMEM;
       }
@@ -747,7 +861,8 @@ static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
     } else if (!spec->external_docs.description &&
                meta->external_docs_description) {
       spec->external_docs.description =
-          c_cdd_strdup(meta->external_docs_description);
+          (c_cdd_strdup(meta->external_docs_description, &_ast_strdup_23),
+           _ast_strdup_23);
       if (!spec->external_docs.description)
         return ENOMEM;
     }
@@ -763,6 +878,13 @@ static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
 
 static int spec_apply_tag_meta(struct OpenAPI_Spec *spec,
                                const struct DocTagMeta *meta) {
+  struct OpenAPI_Tag *_ast_spec_find_tag_5;
+  char *_ast_strdup_24 = NULL;
+  char *_ast_strdup_25 = NULL;
+  char *_ast_strdup_26 = NULL;
+  char *_ast_strdup_27 = NULL;
+  char *_ast_strdup_28 = NULL;
+  char *_ast_strdup_29 = NULL;
   struct OpenAPI_Tag *tag;
   if (!spec || !meta || !meta->name || !*meta->name)
     return 0;
@@ -771,38 +893,44 @@ static int spec_apply_tag_meta(struct OpenAPI_Spec *spec,
     if (rc != 0)
       return rc;
   }
-  tag = spec_find_tag(spec, meta->name);
+  tag = (spec_find_tag(spec, meta->name, &_ast_spec_find_tag_5),
+         _ast_spec_find_tag_5);
   if (!tag)
     return 0;
   if (meta->summary && !tag->summary) {
-    tag->summary = c_cdd_strdup(meta->summary);
+    tag->summary =
+        (c_cdd_strdup(meta->summary, &_ast_strdup_24), _ast_strdup_24);
     if (!tag->summary)
       return ENOMEM;
   }
   if (meta->description && !tag->description) {
-    tag->description = c_cdd_strdup(meta->description);
+    tag->description =
+        (c_cdd_strdup(meta->description, &_ast_strdup_25), _ast_strdup_25);
     if (!tag->description)
       return ENOMEM;
   }
   if (meta->parent && !tag->parent) {
-    tag->parent = c_cdd_strdup(meta->parent);
+    tag->parent = (c_cdd_strdup(meta->parent, &_ast_strdup_26), _ast_strdup_26);
     if (!tag->parent)
       return ENOMEM;
   }
   if (meta->kind && !tag->kind) {
-    tag->kind = c_cdd_strdup(meta->kind);
+    tag->kind = (c_cdd_strdup(meta->kind, &_ast_strdup_27), _ast_strdup_27);
     if (!tag->kind)
       return ENOMEM;
   }
   if (meta->external_docs_url && !tag->external_docs.url) {
-    tag->external_docs.url = c_cdd_strdup(meta->external_docs_url);
+    tag->external_docs.url =
+        (c_cdd_strdup(meta->external_docs_url, &_ast_strdup_28),
+         _ast_strdup_28);
     if (!tag->external_docs.url)
       return ENOMEM;
   }
   if (meta->external_docs_description && !tag->external_docs.description &&
       tag->external_docs.url) {
     tag->external_docs.description =
-        c_cdd_strdup(meta->external_docs_description);
+        (c_cdd_strdup(meta->external_docs_description, &_ast_strdup_29),
+         _ast_strdup_29);
     if (!tag->external_docs.description)
       return ENOMEM;
   }
@@ -878,6 +1006,7 @@ static int collect_spec_tags(struct OpenAPI_Spec *spec) {
  */
 static int parse_c_signature_string(const char *sig_str,
                                     struct C2OpenAPI_ParsedSig *out) {
+  size_t _ast_token_find_next_6;
   struct TokenList *tl = NULL;
   size_t i;
   int rc = 0;
@@ -931,7 +1060,9 @@ static int parse_c_signature_string(const char *sig_str,
 
   /* Extract Args between ( and ) */
   /* Split by COMMA. For each segment, last ID is name, rest is type. */
-  rp = token_find_next(tl, lp, tl->size, TOKEN_RPAREN);
+  rp =
+      (token_find_next(tl, lp, tl->size, TOKEN_RPAREN, &_ast_token_find_next_6),
+       _ast_token_find_next_6);
   if (rp >= tl->size) {
     rc = EINVAL;
     goto cleanup;

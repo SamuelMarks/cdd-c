@@ -1,5 +1,5 @@
 /**
- * @file c_inspector.c
+ * @file inspector.c
  * @brief Implementation of C code inspection logic.
  *
  * Implements scanning of types (using text heuristics) and functions (using
@@ -65,6 +65,7 @@ void type_def_list_free(struct TypeDefList *const list) {
 static int add_type_def(struct TypeDefList *const list,
                         const enum TypeDefinitionKind kind,
                         const char *const name, void *details) {
+  char *_ast_strdup_0 = NULL;
   struct TypeDefinition *item;
 
   if (list->size >= list->capacity) {
@@ -79,7 +80,7 @@ static int add_type_def(struct TypeDefList *const list,
 
   item = &list->items[list->size];
   item->kind = kind;
-  item->name = c_cdd_strdup(name);
+  item->name = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
   if (!item->name)
     return ENOMEM;
 
@@ -94,6 +95,11 @@ static int add_type_def(struct TypeDefList *const list,
 
 int c_inspector_scan_file_types(const char *const filename,
                                 struct TypeDefList *const out) {
+  bool _ast_starts_with_1 = false;
+  bool _ast_starts_with_2 = false;
+  bool _ast_starts_with_3 = false;
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
   FILE *fp = NULL;
   char line[2048];
   /* Simple State Machine */
@@ -129,12 +135,16 @@ int c_inspector_scan_file_types(const char *const filename,
         break;
 
       if (state == ST_NONE) {
-        if (c_cdd_str_starts_with(p, "enum ") ||
-            c_cdd_str_starts_with(p, "struct ")) {
+        if ((c_cdd_str_starts_with(p, "enum ", &_ast_starts_with_1),
+             _ast_starts_with_1) ||
+            (c_cdd_str_starts_with(p, "struct ", &_ast_starts_with_2),
+             _ast_starts_with_2)) {
           char *brace = strchr(p, '{');
 
           if (brace) {
-            int is_enum = (int)c_cdd_str_starts_with(p, "enum ");
+            int is_enum =
+                (int)(c_cdd_str_starts_with(p, "enum ", &_ast_starts_with_3),
+                      _ast_starts_with_3);
             /* Extract "Name" from "enum Name {" or "struct Name {" */
             const char *name_start = p + (is_enum ? 5 : 7);
             const char *name_end_ptr = brace;
@@ -216,7 +226,7 @@ int c_inspector_scan_file_types(const char *const filename,
         /* Parse Member string in p (up to terminator) */
         /* For enums on one line: "A, B" */
         if (state == ST_ENUM && curr_em && *p) {
-          char *copy = c_cdd_strdup(p);
+          char *copy = (c_cdd_strdup(p, &_ast_strdup_4), _ast_strdup_4);
           if (copy) {
             char *ctx = NULL;
 #ifdef _WIN32
@@ -244,7 +254,7 @@ int c_inspector_scan_file_types(const char *const filename,
         } else if (state == ST_STRUCT && curr_sf) {
           if (*p) {
             /* Support multiple fields on same line separated by semicolon */
-            char *copy = c_cdd_strdup(p);
+            char *copy = (c_cdd_strdup(p, &_ast_strdup_5), _ast_strdup_5);
             if (copy) {
               char *ctx = NULL;
 #ifdef _WIN32
@@ -347,21 +357,26 @@ void func_sig_list_free(struct FuncSigList *const list) {
   list->capacity = 0;
 }
 
-static char *extract_span_text(const struct TokenList *tokens, size_t start,
-                               size_t end) {
+static int extract_span_text(const struct TokenList *tokens, size_t start,
+                             size_t end, char **_out_val) {
+  char *_ast_strdup_6 = NULL;
   size_t total_len = 0;
   size_t i;
   char *buf, *p;
 
-  if (start >= end || !tokens)
-    return c_cdd_strdup("");
+  if (start >= end || !tokens) {
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_6), _ast_strdup_6);
+    return 0;
+  }
 
   for (i = start; i < end; i++)
     total_len += tokens->tokens[i].length;
 
   buf = (char *)malloc(total_len + 1);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   p = buf;
   for (i = start; i < end; i++) {
@@ -369,11 +384,16 @@ static char *extract_span_text(const struct TokenList *tokens, size_t start,
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 int c_inspector_extract_signatures(const char *const source_code,
                                    struct FuncSigList *const out) {
+  char *_ast_extract_span_text_0;
+  char *_ast_extract_span_text_1;
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   int rc;
@@ -435,9 +455,13 @@ int c_inspector_extract_signatures(const char *const source_code,
         }
 
         out->items[out->size].name =
-            extract_span_text(tl, name_idx, name_idx + 1);
+            (extract_span_text(tl, name_idx, name_idx + 1,
+                               &_ast_extract_span_text_0),
+             _ast_extract_span_text_0);
         out->items[out->size].sig =
-            extract_span_text(tl, start_idx, sig_end_idx);
+            (extract_span_text(tl, start_idx, sig_end_idx,
+                               &_ast_extract_span_text_1),
+             _ast_extract_span_text_1);
 
         if (!out->items[out->size].name || !out->items[out->size].sig) {
           rc = ENOMEM;

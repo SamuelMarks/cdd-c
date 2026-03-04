@@ -1,5 +1,5 @@
 /**
- * @file openapi_aggregator.c
+ * @file aggregator.c
  * @brief Implementation of the OpenAPI Path Aggregator.
  *
  * @author Samuel Marks
@@ -16,18 +16,26 @@
 /**
  * @brief Comparison function to find a path by route string.
  */
-static struct OpenAPI_Path *find_path_in_list(struct OpenAPI_Path *paths,
-                                              size_t n_paths,
-                                              const char *route) {
+static int find_path_in_list(struct OpenAPI_Path *paths, size_t n_paths,
+                             const char *route,
+                             struct OpenAPI_Path **_out_val) {
   size_t i;
-  if (!paths || !route)
-    return NULL;
+  if (!paths || !route) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < n_paths; ++i) {
     if (paths[i].route && strcmp(paths[i].route, route) == 0) {
-      return &paths[i];
+      {
+        *_out_val = &paths[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 /**
@@ -36,6 +44,7 @@ static struct OpenAPI_Path *find_path_in_list(struct OpenAPI_Path *paths,
 static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
                                const char *route,
                                struct OpenAPI_Path **out_ptr) {
+  char *_ast_strdup_0 = NULL;
   size_t new_count;
   struct OpenAPI_Path *new_arr;
 
@@ -55,7 +64,7 @@ static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
   *out_ptr = &(*paths)[new_count - 1];
   memset(*out_ptr, 0, sizeof(struct OpenAPI_Path));
 
-  (*out_ptr)->route = c_cdd_strdup(route);
+  (*out_ptr)->route = (c_cdd_strdup(route, &_ast_strdup_0), _ast_strdup_0);
   if (!(*out_ptr)->route)
     return ENOMEM;
 
@@ -86,6 +95,7 @@ static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
 int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
                                      const char *const route,
                                      struct OpenAPI_Operation *const op) {
+  struct OpenAPI_Path *_ast_find_path_in_list_0;
   struct OpenAPI_Path *target_path;
   int rc;
 
@@ -94,7 +104,9 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
   }
 
   /* 1. Find or Create Path */
-  target_path = find_path_in_list(spec->paths, spec->n_paths, route);
+  target_path = (find_path_in_list(spec->paths, spec->n_paths, route,
+                                   &_ast_find_path_in_list_0),
+                 _ast_find_path_in_list_0);
   if (!target_path) {
     rc = append_path_to_list(&spec->paths, &spec->n_paths, route, &target_path);
     if (rc != 0)
@@ -124,6 +136,7 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
 int openapi_aggregator_add_webhook_operation(
     struct OpenAPI_Spec *const spec, const char *const route,
     struct OpenAPI_Operation *const op) {
+  struct OpenAPI_Path *_ast_find_path_in_list_1;
   struct OpenAPI_Path *target_path;
   int rc;
 
@@ -131,7 +144,9 @@ int openapi_aggregator_add_webhook_operation(
     return EINVAL;
   }
 
-  target_path = find_path_in_list(spec->webhooks, spec->n_webhooks, route);
+  target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
+                                   &_ast_find_path_in_list_1),
+                 _ast_find_path_in_list_1);
   if (!target_path) {
     rc = append_path_to_list(&spec->webhooks, &spec->n_webhooks, route,
                              &target_path);

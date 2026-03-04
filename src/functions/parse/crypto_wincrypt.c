@@ -25,15 +25,18 @@
 
 #ifdef _WIN32
 
-/*
- * Internal structure for importing plaintext keys into CAPI.
+/**
+ * @brief Internal structure for importing plaintext keys into CAPI.
  * See:
  * https://docs.microsoft.com/en-us/windows/win32/seccrypto/example-c-program-importing-a-plaintext-key
  */
 struct PlainTextKeyBlob {
+  /** @brief The blob header */
   BLOBHEADER hdr;
+  /** @brief The size of the key data */
   DWORD cbKeySize;
-  BYTE rgbKeyData[1]; /* Variable Length: Actual size allocated dynamically */
+  /** @brief Variable Length: Actual size allocated dynamically */
+  BYTE rgbKeyData[1];
 };
 
 /**

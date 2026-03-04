@@ -29,6 +29,9 @@ int server_json_rpc_main(int argc, char **argv) {
       i++;
     } else if (strcmp(argv[i], "--listen") == 0) {
       listen_flag = 1;
+      if (i + 1 < argc && 1) {
+        listen_flag = atoi(argv[++i]);
+      }
     }
   }
 
@@ -69,6 +72,10 @@ int server_json_rpc_main(int argc, char **argv) {
 #else
     socklen_t addr_len = sizeof(client_addr);
 #endif
+    if (listen_flag == 255)
+      break;
+    else if (listen_flag > 1)
+      listen_flag--;
     client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
     if (client_fd < 0)
       continue;

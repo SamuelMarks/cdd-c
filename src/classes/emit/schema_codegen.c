@@ -35,14 +35,17 @@
 #endif
 
 #ifndef PATH_MAX
+/** @brief PATH_MAX definition */
 #define PATH_MAX 4096
 #endif
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return EIO;                                                              \
   } while (0)
+/** @brief CHECK_RC definition */
 #define CHECK_RC(x)                                                            \
   do {                                                                         \
     int err = (x);                                                             \
@@ -101,6 +104,9 @@ static int print_union_declaration(FILE *const hfile,
                                    const char *const union_name,
                                    const struct StructFields *const sf,
                                    const struct CodegenConfig *const config) {
+  char *_ast_get_type_from_ref_0;
+  char *_ast_get_type_from_ref_1;
+  char *_ast_get_type_from_ref_2;
   size_t i;
   if (!hfile || !union_name || !sf)
     return EINVAL;
@@ -130,9 +136,15 @@ static int print_union_declaration(FILE *const hfile,
     } else if (strcmp(t, "boolean") == 0) {
       CHECK_IO(fprintf(hfile, "    int %s;\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(hfile, "    enum %s %s;\n", get_type_from_ref(r), n));
+      CHECK_IO(fprintf(hfile, "    enum %s %s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_0),
+                        _ast_get_type_from_ref_0),
+                       n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n", get_type_from_ref(r), n));
+      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_1),
+                        _ast_get_type_from_ref_1),
+                       n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(hfile, "    struct {\n"));
       CHECK_IO(fprintf(hfile, "      size_t n_%s;\n", n));
@@ -143,8 +155,10 @@ static int print_union_declaration(FILE *const hfile,
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(fprintf(hfile, "      double *%s;\n", n));
       } else {
-        CHECK_IO(
-            fprintf(hfile, "      struct %s **%s;\n", get_type_from_ref(r), n));
+        CHECK_IO(fprintf(hfile, "      struct %s **%s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_2),
+                          _ast_get_type_from_ref_2),
+                         n));
       }
       CHECK_IO(fprintf(hfile, "    } %s;\n", n));
     } else {
@@ -179,6 +193,9 @@ static int print_struct_declaration(FILE *const hfile,
                                     const char *const struct_name,
                                     const struct StructFields *const sf,
                                     const struct CodegenConfig *const config) {
+  char *_ast_get_type_from_ref_3;
+  char *_ast_get_type_from_ref_4;
+  char *_ast_get_type_from_ref_5;
   size_t i;
 
   CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
@@ -197,9 +214,15 @@ static int print_struct_declaration(FILE *const hfile,
     } else if (strcmp(t, "boolean") == 0) {
       CHECK_IO(fprintf(hfile, "  int %s;\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(hfile, "  enum %s %s;\n", get_type_from_ref(r), n));
+      CHECK_IO(fprintf(hfile, "  enum %s %s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_3),
+                        _ast_get_type_from_ref_3),
+                       n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", get_type_from_ref(r), n));
+      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_4),
+                        _ast_get_type_from_ref_4),
+                       n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
       if (strcmp(r, "string") == 0) {
@@ -209,8 +232,10 @@ static int print_struct_declaration(FILE *const hfile,
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
       } else {
-        CHECK_IO(
-            fprintf(hfile, "  struct %s **%s;\n", get_type_from_ref(r), n));
+        CHECK_IO(fprintf(hfile, "  struct %s **%s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_5),
+                          _ast_get_type_from_ref_5),
+                         n));
       }
     } else {
       CHECK_IO(fprintf(hfile, "  void *%s;\n", n));
@@ -442,6 +467,9 @@ static int generate_source(const char *prefix, const char *basename,
 }
 
 int schema2code_main(int argc, char **argv) {
+  bool _ast_str_starts_with_6;
+  bool _ast_str_starts_with_7;
+  bool _ast_str_starts_with_8;
   const char *schema_file, *prefix;
   char *basename = NULL;
   struct CodegenConfig config = {0};
@@ -457,11 +485,16 @@ int schema2code_main(int argc, char **argv) {
     return EXIT_FAILURE;
 
   for (i = 2; i < argc; ++i) {
-    if (str_starts_with(argv[i], "--guard-enum="))
+    if ((str_starts_with(argv[i], "--guard-enum=", &_ast_str_starts_with_6),
+         _ast_str_starts_with_6))
       config.enum_guard = argv[i] + 13;
-    else if (str_starts_with(argv[i], "--guard-json="))
+    else if ((str_starts_with(argv[i],
+                              "--guard-json=", &_ast_str_starts_with_7),
+              _ast_str_starts_with_7))
       config.json_guard = argv[i] + 13;
-    else if (str_starts_with(argv[i], "--guard-utils="))
+    else if ((str_starts_with(argv[i],
+                              "--guard-utils=", &_ast_str_starts_with_8),
+              _ast_str_starts_with_8))
       config.utils_guard = argv[i] + 14;
   }
 

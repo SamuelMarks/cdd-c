@@ -1,5 +1,5 @@
 /**
- * @file codegen_client_body.h
+ * @file client_body.h
  * @brief Client Function Body Generator Interface.
  *
  * Orchestrates the generation of the full implementation of an API client

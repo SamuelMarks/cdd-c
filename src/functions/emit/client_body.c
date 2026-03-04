@@ -1,5 +1,5 @@
 /**
- * @file codegen_client_body.c
+ * @file client_body.c
  * @brief Implementation of the Request Orchestrator.
  *
  * Generates C implementation for API client functions including retry logic
@@ -22,6 +22,7 @@
 #include "routes/emit/security.h"
 #include "routes/emit/url.h"
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -32,55 +33,110 @@
 #define strdup _strdup
 #endif
 
-static const char *verb_to_enum_str(enum OpenAPI_Verb v) {
+static int verb_to_enum_str(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
-  case OA_VERB_GET:
-    return "HTTP_GET";
-  case OA_VERB_POST:
-    return "HTTP_POST";
-  case OA_VERB_PUT:
-    return "HTTP_PUT";
-  case OA_VERB_DELETE:
-    return "HTTP_DELETE";
-  case OA_VERB_HEAD:
-    return "HTTP_HEAD";
-  case OA_VERB_PATCH:
-    return "HTTP_PATCH";
-  case OA_VERB_OPTIONS:
-    return "HTTP_OPTIONS";
-  case OA_VERB_TRACE:
-    return "HTTP_TRACE";
-  case OA_VERB_QUERY:
-    return "HTTP_QUERY";
-  default:
-    return "HTTP_GET";
+  case OA_VERB_GET: {
+    *_out_val = "HTTP_GET";
+    return 0;
+  }
+  case OA_VERB_POST: {
+    *_out_val = "HTTP_POST";
+    return 0;
+  }
+  case OA_VERB_PUT: {
+    *_out_val = "HTTP_PUT";
+    return 0;
+  }
+  case OA_VERB_DELETE: {
+    *_out_val = "HTTP_DELETE";
+    return 0;
+  }
+  case OA_VERB_HEAD: {
+    *_out_val = "HTTP_HEAD";
+    return 0;
+  }
+  case OA_VERB_PATCH: {
+    *_out_val = "HTTP_PATCH";
+    return 0;
+  }
+  case OA_VERB_OPTIONS: {
+    *_out_val = "HTTP_OPTIONS";
+    return 0;
+  }
+  case OA_VERB_TRACE: {
+    *_out_val = "HTTP_TRACE";
+    return 0;
+  }
+  case OA_VERB_QUERY: {
+    *_out_val = "HTTP_QUERY";
+    return 0;
+  }
+  default: {
+    *_out_val = "HTTP_GET";
+    return 0;
+  }
   }
 }
 
-static const char *method_str_to_enum_str(const char *method) {
-  if (!method)
-    return NULL;
-  if (c_cdd_str_iequal(method, "get"))
-    return "HTTP_GET";
-  if (c_cdd_str_iequal(method, "post"))
-    return "HTTP_POST";
-  if (c_cdd_str_iequal(method, "put"))
-    return "HTTP_PUT";
-  if (c_cdd_str_iequal(method, "delete"))
-    return "HTTP_DELETE";
-  if (c_cdd_str_iequal(method, "patch"))
-    return "HTTP_PATCH";
-  if (c_cdd_str_iequal(method, "head"))
-    return "HTTP_HEAD";
-  if (c_cdd_str_iequal(method, "options"))
-    return "HTTP_OPTIONS";
-  if (c_cdd_str_iequal(method, "trace"))
-    return "HTTP_TRACE";
-  if (c_cdd_str_iequal(method, "query"))
-    return "HTTP_QUERY";
-  if (c_cdd_str_iequal(method, "connect"))
-    return "HTTP_CONNECT";
-  return NULL;
+static int method_str_to_enum_str(const char *method, char **_out_val) {
+  bool _ast_iequal_0 = false;
+  bool _ast_iequal_1 = false;
+  bool _ast_iequal_2 = false;
+  bool _ast_iequal_3 = false;
+  bool _ast_iequal_4 = false;
+  bool _ast_iequal_5 = false;
+  bool _ast_iequal_6 = false;
+  bool _ast_iequal_7 = false;
+  bool _ast_iequal_8 = false;
+  bool _ast_iequal_9 = false;
+  if (!method) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0)) {
+    *_out_val = "HTTP_GET";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1)) {
+    *_out_val = "HTTP_POST";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "put", &_ast_iequal_2), _ast_iequal_2)) {
+    *_out_val = "HTTP_PUT";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "delete", &_ast_iequal_3), _ast_iequal_3)) {
+    *_out_val = "HTTP_DELETE";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "patch", &_ast_iequal_4), _ast_iequal_4)) {
+    *_out_val = "HTTP_PATCH";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "head", &_ast_iequal_5), _ast_iequal_5)) {
+    *_out_val = "HTTP_HEAD";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "options", &_ast_iequal_6), _ast_iequal_6)) {
+    *_out_val = "HTTP_OPTIONS";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "trace", &_ast_iequal_7), _ast_iequal_7)) {
+    *_out_val = "HTTP_TRACE";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8)) {
+    *_out_val = "HTTP_QUERY";
+    return 0;
+  }
+  if ((c_cdd_str_iequal(method, "connect", &_ast_iequal_9), _ast_iequal_9)) {
+    *_out_val = "HTTP_CONNECT";
+    return 0;
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int mapped_err_code(int status) {
@@ -93,30 +149,45 @@ static int mapped_err_code(int status) {
   return 5;   /* EIO generic */
 }
 
-static const struct OpenAPI_MediaType *
-find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                const char *name) {
+static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           struct OpenAPI_MediaType **_out_val) {
   size_t i;
-  if (!mts || !name)
-    return NULL;
-  for (i = 0; i < n; ++i) {
-    if (mts[i].name && strcmp(mts[i].name, name) == 0)
-      return &mts[i];
+  if (!mts || !name) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
-}
-
-static const struct OpenAPI_Encoding *
-find_encoding(const struct OpenAPI_MediaType *mt, const char *name) {
-  size_t i;
-  if (!mt || !name || !mt->encoding)
-    return NULL;
-  for (i = 0; i < mt->n_encoding; ++i) {
-    if (mt->encoding[i].name && strcmp(mt->encoding[i].name, name) == 0) {
-      return &mt->encoding[i];
+  for (i = 0; i < n; ++i) {
+    if (mts[i].name && strcmp(mts[i].name, name) == 0) {
+      *_out_val = &mts[i];
+      return 0;
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
+}
+
+static int find_encoding(const struct OpenAPI_MediaType *mt, const char *name,
+                         struct OpenAPI_Encoding **_out_val) {
+  size_t i;
+  if (!mt || !name || !mt->encoding) {
+    *_out_val = NULL;
+    return 0;
+  }
+  for (i = 0; i < mt->n_encoding; ++i) {
+    if (mt->encoding[i].name && strcmp(mt->encoding[i].name, name) == 0) {
+      {
+        *_out_val = &mt->encoding[i];
+        return 0;
+      }
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int is_primitive_type(const char *type) {
@@ -158,22 +229,29 @@ static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   return schema->inline_type != NULL;
 }
 
-static size_t media_type_base_len(const char *media_type) {
+static int media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;
-  if (!media_type)
+  if (!media_type) {
+    *_out_val = 0;
     return 0;
+  }
   while (media_type[i] && media_type[i] != ';')
     ++i;
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 static int media_type_has_prefix(const char *media_type, const char *prefix) {
+  size_t _ast_media_type_base_len_0;
   size_t i;
   size_t len;
   size_t pre_len;
   if (!media_type || !prefix)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+         _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
     return 0;
@@ -191,13 +269,15 @@ static int media_type_has_prefix(const char *media_type, const char *prefix) {
 }
 
 static int media_type_has_suffix(const char *media_type, const char *suffix) {
+  size_t _ast_media_type_base_len_1;
   size_t i;
   size_t len;
   size_t suf_len;
   size_t start;
   if (!media_type || !suffix)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+         _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
   if (len < suf_len)
     return 0;
@@ -216,12 +296,14 @@ static int media_type_has_suffix(const char *media_type, const char *suffix) {
 }
 
 static int media_type_ieq(const char *media_type, const char *expected) {
+  size_t _ast_media_type_base_len_2;
   size_t i;
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
+         _ast_media_type_base_len_2);
   exp_len = strlen(expected);
   if (len != exp_len)
     return 0;
@@ -262,12 +344,14 @@ static int media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
-static const char *first_content_type_entry(const char *content_type, char *buf,
-                                            size_t buf_sz) {
+static int first_content_type_entry(const char *content_type, char *buf,
+                                    size_t buf_sz, char **_out_val) {
   size_t i = 0;
   size_t j = 0;
-  if (!content_type || !buf || buf_sz == 0)
-    return content_type;
+  if (!content_type || !buf || buf_sz == 0) {
+    *_out_val = content_type;
+    return 0;
+  }
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
     ++i;
   }
@@ -278,9 +362,14 @@ static const char *first_content_type_entry(const char *content_type, char *buf,
   while (j > 0 && isspace((unsigned char)buf[j - 1]))
     --j;
   buf[j] = '\0';
-  if (j == 0)
-    return content_type;
-  return buf;
+  if (j == 0) {
+    *_out_val = content_type;
+    return 0;
+  }
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 static void sanitize_ident(char *out, size_t outsz, const char *in) {
@@ -325,9 +414,11 @@ static void multipart_header_param_name(char *out, size_t outsz,
 }
 
 static int header_name_is_content_type(const char *name) {
+  bool _ast_iequal_10 = false;
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type") != 0;
+  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
+          _ast_iequal_10) != 0;
 }
 
 static int media_type_is_textual(const char *media_type) {
@@ -1277,6 +1368,10 @@ static int write_header_param_logic(FILE *fp,
 static int write_form_urlencoded_body(FILE *fp,
                                       const struct OpenAPI_Operation *op,
                                       const struct OpenAPI_Spec *spec) {
+  struct OpenAPI_MediaType *_ast_find_media_type_3;
+  struct StructFields *_ast_openapi_spec_find_schema_for_ref_4;
+  struct OpenAPI_Encoding *_ast_find_encoding_5;
+  struct StructFields *_ast_openapi_spec_find_schema_6;
   const struct OpenAPI_MediaType *mt;
   const struct StructFields *sf;
   size_t i;
@@ -1284,10 +1379,14 @@ static int write_form_urlencoded_body(FILE *fp,
   if (!fp || !op || !spec)
     return EINVAL;
 
-  mt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                       "application/x-www-form-urlencoded");
+  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                        "application/x-www-form-urlencoded",
+                        &_ast_find_media_type_3),
+        _ast_find_media_type_3);
 
-  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body);
+  sf = (openapi_spec_find_schema_for_ref(
+            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_4),
+        _ast_openapi_spec_find_schema_for_ref_4);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
@@ -1302,7 +1401,9 @@ static int write_form_urlencoded_body(FILE *fp,
 
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    const struct OpenAPI_Encoding *enc = find_encoding(mt, f->name);
+    const struct OpenAPI_Encoding *enc =
+        (find_encoding(mt, f->name, &_ast_find_encoding_5),
+         _ast_find_encoding_5);
     enum OpenAPI_Style style =
         (enc && enc->style_set) ? enc->style : OA_STYLE_FORM;
     int explode = (enc && enc->explode_set) ? enc->explode
@@ -1463,7 +1564,9 @@ static int write_form_urlencoded_body(FILE *fp,
     } else if (strcmp(f->type, "object") == 0) {
       if (f->ref[0] != '\0') {
         const struct StructFields *obj_sf =
-            openapi_spec_find_schema(spec, f->ref);
+            (openapi_spec_find_schema(spec, f->ref,
+                                      &_ast_openapi_spec_find_schema_6),
+             _ast_openapi_spec_find_schema_6);
         const struct OpenAPI_Encoding *obj_enc = enc;
         int style_based =
             obj_enc && (obj_enc->style_set || obj_enc->explode_set ||
@@ -2605,11 +2708,22 @@ static int write_multipart_part_headers(FILE *fp,
 
 static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
                                 const struct OpenAPI_Spec *spec) {
+  struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
+  struct OpenAPI_MediaType *_ast_find_media_type_8;
+  struct OpenAPI_Encoding *_ast_find_encoding_9;
+  char *_ast_first_content_type_entry_10;
+  char *_ast_first_content_type_entry_11;
+  char *_ast_first_content_type_entry_12;
+  char *_ast_first_content_type_entry_13;
+  char *_ast_first_content_type_entry_14;
+  char *_ast_first_content_type_entry_15;
   const struct StructFields *sf;
   const struct OpenAPI_MediaType *mt;
   size_t i;
 
-  sf = openapi_spec_find_schema_for_ref(spec, &op->req_body);
+  sf = (openapi_spec_find_schema_for_ref(
+            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_7),
+        _ast_openapi_spec_find_schema_for_ref_7);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
@@ -2619,12 +2733,15 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
-  mt = find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                       "multipart/form-data");
+  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                        "multipart/form-data", &_ast_find_media_type_8),
+        _ast_find_media_type_8);
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
     const struct OpenAPI_Encoding *enc =
-        (mt != NULL) ? find_encoding(mt, f->name) : NULL;
+        (mt != NULL) ? (find_encoding(mt, f->name, &_ast_find_encoding_9),
+                        _ast_find_encoding_9)
+                     : NULL;
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       int items_is_object = is_object_ref_type(items_type);
@@ -2640,7 +2757,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
         final_ct =
-            first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_10),
+             _ast_first_content_type_entry_10);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -2746,7 +2865,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
         content_type =
-            first_content_type_entry(content_type, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_11),
+             _ast_first_content_type_entry_11);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -2767,7 +2888,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
         content_type =
-            first_content_type_entry(content_type, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_12),
+             _ast_first_content_type_entry_12);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -2790,7 +2913,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
         content_type =
-            first_content_type_entry(content_type, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_13),
+             _ast_first_content_type_entry_13);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -2813,7 +2938,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
         content_type =
-            first_content_type_entry(content_type, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_14),
+             _ast_first_content_type_entry_14);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -2840,7 +2967,9 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
         final_ct =
-            first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean));
+            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_15),
+             _ast_first_content_type_entry_15);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -2898,6 +3027,8 @@ int codegen_client_write_body(FILE *const fp,
                               const struct OpenAPI_Spec *const spec,
                               const char *const path_template,
                               const char *const base_url_expr) {
+  char *_ast_verb_to_enum_str_16;
+  char *_ast_method_str_to_enum_str_17;
   int query_exists = 0;
   int cookie_exists = 0;
   int has_querystring = 0;
@@ -3136,9 +3267,13 @@ int codegen_client_write_body(FILE *const fp,
   }
 
   {
-    const char *method_enum = verb_to_enum_str(op->verb);
+    const char *method_enum =
+        (verb_to_enum_str(op->verb, &_ast_verb_to_enum_str_16),
+         _ast_verb_to_enum_str_16);
     if (op->is_additional) {
-      const char *mapped = method_str_to_enum_str(op->method);
+      const char *mapped =
+          (method_str_to_enum_str(op->method, &_ast_method_str_to_enum_str_17),
+           _ast_method_str_to_enum_str_17);
       if (mapped) {
         method_enum = mapped;
       } else if (op->method && op->method[0] != '\0') {

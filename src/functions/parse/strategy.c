@@ -1,5 +1,5 @@
 /**
- * @file strategy_safety.c
+ * @file strategy.c
  * @brief Implementation of safety injection strategies.
  *
  * @author Samuel Marks
@@ -22,18 +22,23 @@ static const char *const DEFAULT_ERROR_CODE = "ENOMEM";
 /**
  * @brief Find explicit token indices for range extractions.
  */
-static size_t find_next_token_idx(const struct TokenList *tokens, size_t start,
-                                  enum TokenKind kind) {
+static int find_next_token_idx(const struct TokenList *tokens, size_t start,
+                               enum TokenKind kind, size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
-    if (tokens->tokens[i].kind == kind)
-      return i;
+    if (tokens->tokens[i].kind == kind) {
+      *_out_val = i;
+      return 0;
+    }
   }
-  return tokens->size;
+  {
+    *_out_val = tokens->size;
+    return 0;
+  }
 }
 
-static char *range_to_string(const struct TokenList *tokens, size_t start,
-                             size_t end) {
+static int range_to_string(const struct TokenList *tokens, size_t start,
+                           size_t end, char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -42,15 +47,20 @@ static char *range_to_string(const struct TokenList *tokens, size_t start,
     char *empty = (char *)malloc(1);
     if (empty)
       *empty = '\0';
-    return empty;
+    {
+      *_out_val = empty;
+      return 0;
+    }
   }
 
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
   buf = (char *)malloc(len + 1);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   p = buf;
   for (i = start; i < end; ++i) {
@@ -58,7 +68,10 @@ static char *range_to_string(const struct TokenList *tokens, size_t start,
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /* --- Realloc Strategy --- */
@@ -67,6 +80,9 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
                              const struct AllocationSite *const site,
                              const size_t semi_idx,
                              struct PatchList *const patches) {
+  size_t _ast_find_next_token_idx_0;
+  bool _ast_token_matches_string_1;
+  char *_ast_range_to_string_2;
   size_t call_idx = site->token_index;
   size_t lparen_idx;
   size_t assign_op_idx = 0;
@@ -114,7 +130,9 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
     stmt_start++;
 
   /* 3. Check arguments: realloc(ptr, size) */
-  lparen_idx = find_next_token_idx(tokens, call_idx, TOKEN_LPAREN);
+  lparen_idx = (find_next_token_idx(tokens, call_idx, TOKEN_LPAREN,
+                                    &_ast_find_next_token_idx_0),
+                _ast_find_next_token_idx_0);
   if (lparen_idx >= tokens->size)
     return 0;
 
@@ -128,7 +146,9 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
     if (start_arg < tokens->size &&
         tokens->tokens[start_arg].kind == TOKEN_IDENTIFIER) {
       /* Compare against var_name */
-      if (token_matches_string(&tokens->tokens[start_arg], site->var_name)) {
+      if ((token_matches_string(&tokens->tokens[start_arg], site->var_name,
+                                &_ast_token_matches_string_1),
+           _ast_token_matches_string_1)) {
         is_self_assign = 1;
       }
     }
@@ -139,7 +159,9 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
     char *replacement = NULL;
 
     /* Extract "realloc(p, n)" text */
-    call_expr = range_to_string(tokens, call_idx, semi_idx);
+    call_expr =
+        (range_to_string(tokens, call_idx, semi_idx, &_ast_range_to_string_2),
+         _ast_range_to_string_2);
     if (!call_expr)
       return ENOMEM;
 
@@ -193,6 +215,7 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
 int strategy_inject_safety_checks(const struct TokenList *const tokens,
                                   const struct AllocationSiteList *const allocs,
                                   struct PatchList *const patches) {
+  size_t _ast_find_next_token_idx_3;
   size_t i;
   if (!tokens || !allocs || !patches)
     return EINVAL;
@@ -205,7 +228,9 @@ int strategy_inject_safety_checks(const struct TokenList *const tokens,
     if (site->is_checked)
       continue;
 
-    semi_idx = find_next_token_idx(tokens, site->token_index, TOKEN_SEMICOLON);
+    semi_idx = (find_next_token_idx(tokens, site->token_index, TOKEN_SEMICOLON,
+                                    &_ast_find_next_token_idx_3),
+                _ast_find_next_token_idx_3);
     if (semi_idx >= tokens->size)
       continue;
 

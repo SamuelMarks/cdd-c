@@ -51,8 +51,8 @@ static int g_curl_init_count = 0;
  * @brief Libcurl write callback.
  * Appends data to buffer and maintains null-terminator safety.
  */
-static size_t write_memory_callback(void *contents, size_t size, size_t nmemb,
-                                    void *userp) {
+static int write_memory_callback(void *contents, size_t size, size_t nmemb,
+                                 void *userp, size_t *_out_val) {
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
   char *ptr;
@@ -72,7 +72,7 @@ static size_t write_memory_callback(void *contents, size_t size, size_t nmemb,
   return realsize;
 }
 
-static char *format_header(const char *key, const char *value) {
+static int format_header(const char *key, const char *value, char **_out_val) {
   size_t len = strlen(key) + 2 + strlen(value) + 1;
   char *buf = (char *)malloc(len);
   if (buf) {
@@ -82,7 +82,10 @@ static char *format_header(const char *key, const char *value) {
     sprintf(buf, "%s: %s", key, value);
 #endif
   }
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 static int map_curl_error(CURLcode res) {
@@ -199,6 +202,7 @@ int http_curl_config_apply(struct HttpTransportContext *const ctx,
 int http_curl_send(struct HttpTransportContext *const ctx,
                    const struct HttpRequest *const req,
                    struct HttpResponse **const res) {
+  char *_ast_format_header_0;
   CURLcode res_code;
   struct curl_slist *headers = NULL;
   struct MemoryStruct chunk;
@@ -286,8 +290,10 @@ int http_curl_send(struct HttpTransportContext *const ctx,
   }
 
   for (i = 0; i < req->headers.count; ++i) {
-    char *h_str = format_header(req->headers.headers[i].key,
-                                req->headers.headers[i].value);
+    char *h_str =
+        (format_header(req->headers.headers[i].key,
+                       req->headers.headers[i].value, &_ast_format_header_0),
+         _ast_format_header_0);
     if (!h_str) {
       rc = ENOMEM;
       goto cleanup;
