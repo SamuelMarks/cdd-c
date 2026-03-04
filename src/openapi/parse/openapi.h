@@ -1,5 +1,5 @@
 /**
- * @file openapi_loader.h
+ * @file openapi.h
  * @brief Parser for OpenAPI v3.2 definitions.
  *
  * Provides functionalities to load an OpenAPI JSON specification into memory
@@ -346,9 +346,11 @@ struct OpenAPI_SchemaRef {
   /* Multipart / Form-urlencoded Extension */
   char *content_type; /**< "application/json" or
                          "application/x-www-form-urlencoded" */
+  /** @brief content_media_type */
   char *content_media_type;
   struct OpenAPI_SchemaRef *content_schema; /**< Schema contentMediaType */
   char *content_encoding;                   /**< Schema contentEncoding */
+  /** @brief items_content_media_type */
   char *items_content_media_type;
   struct OpenAPI_SchemaRef
       *items_content_schema;    /**< Array item contentMediaType */
@@ -698,6 +700,7 @@ struct OpenAPI_Operation {
  * @brief Represents a URL Path template.
  */
 struct OpenAPI_Path {
+  /** @brief route */
   char *route;           /* The route string (e.g. "/pets/{petId}") */
   char *ref;             /**< Optional $ref to a Path Item Object */
   char *summary;         /**< Optional path summary */
@@ -974,16 +977,19 @@ extern C_CDD_EXPORT int openapi_load_from_json_with_context(
     struct OpenAPI_DocRegistry *registry);
 
 /**
+ * @param[out] _out_val Pointer to store the result
  * @brief Look up a schema definition by name in the loaded spec.
  *
  * @param[in] spec The spec to search.
  * @param[in] name The schema name (e.g. "LoginRequest").
  * @return Pointer to StructFields if found, NULL otherwise.
  */
-extern C_CDD_EXPORT const struct StructFields *
-openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name);
+extern C_CDD_EXPORT int
+openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
+                         struct StructFields **_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
  * @brief Find a schema definition by following a SchemaRef.
  *
  * Uses the document registry when present to resolve external component refs.
@@ -992,9 +998,10 @@ openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name);
  * @param[in] ref The schema reference.
  * @return Pointer to StructFields if found, NULL otherwise.
  */
-extern C_CDD_EXPORT const struct StructFields *
+extern C_CDD_EXPORT int
 openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
-                                 const struct OpenAPI_SchemaRef *ref);
+                                 const struct OpenAPI_SchemaRef *ref,
+                                 struct StructFields **_out_val);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_operation.c
+ * @file operation.c
  * @brief Implementation of the Operation Builder.
  *
  * @author Samuel Marks
@@ -20,18 +20,24 @@
 /* --- Helpers --- */
 
 static int is_reserved_header_name(const char *name) {
+  bool _ast_iequal_0 = false;
+  bool _ast_iequal_1 = false;
+  bool _ast_iequal_2 = false;
   if (!name || !*name)
     return 0;
-  if (c_cdd_str_iequal(name, "accept"))
+  if ((c_cdd_str_iequal(name, "accept", &_ast_iequal_0), _ast_iequal_0))
     return 1;
-  if (c_cdd_str_iequal(name, "content-type"))
+  if ((c_cdd_str_iequal(name, "content-type", &_ast_iequal_1), _ast_iequal_1))
     return 1;
-  if (c_cdd_str_iequal(name, "authorization"))
+  if ((c_cdd_str_iequal(name, "authorization", &_ast_iequal_2), _ast_iequal_2))
     return 1;
   return 0;
 }
 
 static int parse_example_any(const char *example, struct OpenAPI_Any *out) {
+  char *_ast_strdup_3 = NULL;
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
   JSON_Value *val;
   JSON_Value_Type t;
   const char *s;
@@ -44,7 +50,7 @@ static int parse_example_any(const char *example, struct OpenAPI_Any *out) {
   val = json_parse_string(example);
   if (!val) {
     out->type = OA_ANY_STRING;
-    out->string = c_cdd_strdup(example);
+    out->string = (c_cdd_strdup(example, &_ast_strdup_3), _ast_strdup_3);
     return out->string ? 0 : ENOMEM;
   }
 
@@ -53,7 +59,7 @@ static int parse_example_any(const char *example, struct OpenAPI_Any *out) {
   case JSONString:
     s = json_value_get_string(val);
     out->type = OA_ANY_STRING;
-    out->string = c_cdd_strdup(s ? s : "");
+    out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_4), _ast_strdup_4);
     if (!out->string) {
       json_value_free(val);
       return ENOMEM;
@@ -78,7 +84,7 @@ static int parse_example_any(const char *example, struct OpenAPI_Any *out) {
       return ENOMEM;
     }
     out->type = OA_ANY_JSON;
-    out->json = c_cdd_strdup(json_str);
+    out->json = (c_cdd_strdup(json_str, &_ast_strdup_5), _ast_strdup_5);
     json_free_serialized_string(json_str);
     if (!out->json) {
       json_value_free(val);
@@ -94,6 +100,8 @@ static int parse_example_any(const char *example, struct OpenAPI_Any *out) {
 }
 
 static int any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
+  char *_ast_strdup_6 = NULL;
+  char *_ast_strdup_7 = NULL;
   JSON_Value_Type t;
   const char *s;
   char *json_str;
@@ -109,7 +117,7 @@ static int any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   case JSONString:
     s = json_value_get_string(val);
     out->type = OA_ANY_STRING;
-    out->string = c_cdd_strdup(s ? s : "");
+    out->string = (c_cdd_strdup(s ? s : "", &_ast_strdup_6), _ast_strdup_6);
     return out->string ? 0 : ENOMEM;
   case JSONNumber:
     out->type = OA_ANY_NUMBER;
@@ -128,7 +136,7 @@ static int any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
     if (!json_str)
       return ENOMEM;
     out->type = OA_ANY_JSON;
-    out->json = c_cdd_strdup(json_str);
+    out->json = (c_cdd_strdup(json_str, &_ast_strdup_7), _ast_strdup_7);
     json_free_serialized_string(json_str);
     return out->json ? 0 : ENOMEM;
   default:
@@ -139,6 +147,7 @@ static int any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
 static int parse_link_params_json(const char *json,
                                   struct OpenAPI_LinkParam **out,
                                   size_t *out_count) {
+  char *_ast_strdup_8 = NULL;
   JSON_Value *val;
   JSON_Object *obj;
   size_t count, i;
@@ -179,7 +188,7 @@ static int parse_link_params_json(const char *json,
     const JSON_Value *v = json_object_get_value_at(obj, i);
     struct OpenAPI_LinkParam *lp = &(*out)[i];
 
-    lp->name = c_cdd_strdup(name ? name : "");
+    lp->name = (c_cdd_strdup(name ? name : "", &_ast_strdup_8), _ast_strdup_8);
     if (!lp->name) {
       json_value_free(val);
       goto cleanup;
@@ -214,16 +223,20 @@ cleanup:
 
 static int copy_any_value_local(struct OpenAPI_Any *dst,
                                 const struct OpenAPI_Any *src) {
+  char *_ast_strdup_9 = NULL;
+  char *_ast_strdup_10 = NULL;
   if (!dst || !src)
     return 0;
   memset(dst, 0, sizeof(*dst));
   dst->type = src->type;
   switch (src->type) {
   case OA_ANY_STRING:
-    dst->string = c_cdd_strdup(src->string ? src->string : "");
+    dst->string = (c_cdd_strdup(src->string ? src->string : "", &_ast_strdup_9),
+                   _ast_strdup_9);
     return dst->string ? 0 : ENOMEM;
   case OA_ANY_JSON:
-    dst->json = c_cdd_strdup(src->json ? src->json : "");
+    dst->json = (c_cdd_strdup(src->json ? src->json : "", &_ast_strdup_10),
+                 _ast_strdup_10);
     return dst->json ? 0 : ENOMEM;
   case OA_ANY_NUMBER:
     dst->number = src->number;
@@ -248,17 +261,25 @@ static void free_any_value_local(struct OpenAPI_Any *val) {
   memset(val, 0, sizeof(*val));
 }
 
-static const struct DocParam *find_doc_param(const struct DocMetadata *doc,
-                                             const char *name) {
+static int find_doc_param(const struct DocMetadata *doc, const char *name,
+                          struct DocParam **_out_val) {
   size_t i;
-  if (!doc || !name)
-    return NULL;
+  if (!doc || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < doc->n_params; ++i) {
     if (doc->params[i].name && strcmp(doc->params[i].name, name) == 0) {
-      return &doc->params[i];
+      {
+        *_out_val = &doc->params[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int is_path_param(const char *route, const char *name) {
@@ -300,6 +321,10 @@ static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
 
 static int copy_doc_server_variables(struct OpenAPI_Server *dst,
                                      const struct DocServer *src) {
+  char *_ast_strdup_11 = NULL;
+  char *_ast_strdup_12 = NULL;
+  char *_ast_strdup_13 = NULL;
+  char *_ast_strdup_14 = NULL;
   size_t i;
   if (!dst || !src || src->n_variables == 0)
     return 0;
@@ -320,18 +345,20 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
       free_openapi_server_variables(dst);
       return EINVAL;
     }
-    dv->name = c_cdd_strdup(sv->name);
+    dv->name = (c_cdd_strdup(sv->name, &_ast_strdup_11), _ast_strdup_11);
     if (!dv->name) {
       free_openapi_server_variables(dst);
       return ENOMEM;
     }
-    dv->default_value = c_cdd_strdup(sv->default_value);
+    dv->default_value =
+        (c_cdd_strdup(sv->default_value, &_ast_strdup_12), _ast_strdup_12);
     if (!dv->default_value) {
       free_openapi_server_variables(dst);
       return ENOMEM;
     }
     if (sv->description) {
-      dv->description = c_cdd_strdup(sv->description);
+      dv->description =
+          (c_cdd_strdup(sv->description, &_ast_strdup_13), _ast_strdup_13);
       if (!dv->description) {
         free_openapi_server_variables(dst);
         return ENOMEM;
@@ -345,7 +372,8 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
       }
       dv->n_enum_values = sv->n_enum_values;
       for (e = 0; e < sv->n_enum_values; ++e) {
-        dv->enum_values[e] = c_cdd_strdup(sv->enum_values[e]);
+        dv->enum_values[e] =
+            (c_cdd_strdup(sv->enum_values[e], &_ast_strdup_14), _ast_strdup_14);
         if (!dv->enum_values[e]) {
           free_openapi_server_variables(dst);
           return ENOMEM;
@@ -363,30 +391,48 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
   return 0;
 }
 
-static struct OpenAPI_Response *
-find_response_by_code(struct OpenAPI_Operation *op, const char *code) {
+static int find_response_by_code(struct OpenAPI_Operation *op, const char *code,
+                                 struct OpenAPI_Response **_out_val) {
+  bool _ast_iequal_15 = false;
   size_t i;
-  if (!op || !code)
-    return NULL;
+  if (!op || !code) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < op->n_responses; ++i) {
     if (op->responses[i].code &&
-        c_cdd_str_iequal(op->responses[i].code, code)) {
-      return &op->responses[i];
+        (c_cdd_str_iequal(op->responses[i].code, code, &_ast_iequal_15),
+         _ast_iequal_15)) {
+      {
+        *_out_val = &op->responses[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static struct OpenAPI_MediaType *find_media_type(struct OpenAPI_MediaType *mts,
-                                                 size_t n, const char *name) {
+static int find_media_type(struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           struct OpenAPI_MediaType **_out_val) {
   size_t i;
-  if (!mts || !name)
-    return NULL;
-  for (i = 0; i < n; ++i) {
-    if (mts[i].name && strcmp(mts[i].name, name) == 0)
-      return &mts[i];
+  if (!mts || !name) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
+  for (i = 0; i < n; ++i) {
+    if (mts[i].name && strcmp(mts[i].name, name) == 0) {
+      *_out_val = &mts[i];
+      return 0;
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int apply_example_to_media_type(struct OpenAPI_MediaType *mt,
@@ -402,6 +448,7 @@ static int apply_example_to_media_type(struct OpenAPI_MediaType *mt,
 static int apply_example_to_response(struct OpenAPI_Response *resp,
                                      const char *example,
                                      const char *content_type) {
+  struct OpenAPI_MediaType *_ast_find_media_type_0;
   size_t i;
   struct OpenAPI_Any parsed = {0};
 
@@ -412,8 +459,11 @@ static int apply_example_to_response(struct OpenAPI_Response *resp,
     if (parse_example_any(example, &parsed) != 0)
       return ENOMEM;
     if (content_type) {
-      struct OpenAPI_MediaType *mt = find_media_type(
-          resp->content_media_types, resp->n_content_media_types, content_type);
+      struct OpenAPI_MediaType *mt =
+          (find_media_type(resp->content_media_types,
+                           resp->n_content_media_types, content_type,
+                           &_ast_find_media_type_0),
+           _ast_find_media_type_0);
       if (mt && !mt->example_set) {
         if (copy_any_value_local(&mt->example, &parsed) != 0) {
           free_any_value_local(&parsed);
@@ -446,36 +496,72 @@ static int apply_example_to_response(struct OpenAPI_Response *resp,
   return 0;
 }
 
-static struct OpenAPI_Response *
-ensure_response_for_code(struct OpenAPI_Operation *op, const char *code) {
+static int ensure_response_for_code(struct OpenAPI_Operation *op,
+                                    const char *code,
+                                    struct OpenAPI_Response **_out_val) {
+  struct OpenAPI_Response *_ast_find_response_by_code_1;
+  char *_ast_strdup_16 = NULL;
+  char *_ast_strdup_17 = NULL;
+  bool _ast_iequal_18 = false;
   struct OpenAPI_Response *resp;
   struct OpenAPI_Response *new_resps;
-  if (!op || !code)
-    return NULL;
+  if (!op || !code) {
+    *_out_val = NULL;
+    return 0;
+  }
 
-  resp = find_response_by_code(op, code);
-  if (resp)
-    return resp;
+  resp = (find_response_by_code(op, code, &_ast_find_response_by_code_1),
+          _ast_find_response_by_code_1);
+  if (resp) {
+    *_out_val = resp;
+    return 0;
+  }
 
   new_resps = (struct OpenAPI_Response *)realloc(
       op->responses, (op->n_responses + 1) * sizeof(struct OpenAPI_Response));
-  if (!new_resps)
-    return NULL;
+  if (!new_resps) {
+    *_out_val = NULL;
+    return 0;
+  }
   op->responses = new_resps;
   resp = &op->responses[op->n_responses++];
   memset(resp, 0, sizeof(*resp));
-  resp->code = c_cdd_strdup(code);
-  if (!resp->code)
-    return NULL;
+  resp->code = (c_cdd_strdup(code, &_ast_strdup_16), _ast_strdup_16);
+  if (!resp->code) {
+    *_out_val = NULL;
+    return 0;
+  }
   resp->description =
-      c_cdd_strdup(c_cdd_str_iequal(code, "200") ? "Success" : "Response");
-  if (!resp->description)
-    return NULL;
-  return resp;
+      (c_cdd_strdup(
+           (c_cdd_str_iequal(code, "200", &_ast_iequal_18), _ast_iequal_18)
+               ? "Success"
+               : "Response",
+           &_ast_strdup_17),
+       _ast_strdup_17);
+  if (!resp->description) {
+    *_out_val = NULL;
+    return 0;
+  }
+  {
+    *_out_val = resp;
+    return 0;
+  }
 }
 
 static int add_header_to_response(struct OpenAPI_Response *resp,
                                   const struct DocResponseHeader *dh) {
+  bool _ast_iequal_19 = false;
+  char *_ast_strdup_20 = NULL;
+  char *_ast_strdup_21 = NULL;
+  char *_ast_strdup_22 = NULL;
+  char *_ast_strdup_23 = NULL;
+  char *_ast_strdup_24 = NULL;
+  char *_ast_strdup_25 = NULL;
+  char *_ast_strdup_26 = NULL;
+  char *_ast_strdup_27 = NULL;
+  char *_ast_strdup_28 = NULL;
+  char *_ast_strdup_29 = NULL;
+  char *_ast_strdup_30 = NULL;
   struct OpenAPI_Header *new_headers;
   struct OpenAPI_Header *hdr;
   size_t i;
@@ -485,20 +571,23 @@ static int add_header_to_response(struct OpenAPI_Response *resp,
 
   for (i = 0; i < resp->n_headers; ++i) {
     if (resp->headers[i].name &&
-        c_cdd_str_iequal(resp->headers[i].name, dh->name)) {
+        (c_cdd_str_iequal(resp->headers[i].name, dh->name, &_ast_iequal_19),
+         _ast_iequal_19)) {
       hdr = &resp->headers[i];
       if (dh->description && !hdr->description) {
-        hdr->description = c_cdd_strdup(dh->description);
+        hdr->description =
+            (c_cdd_strdup(dh->description, &_ast_strdup_20), _ast_strdup_20);
         if (!hdr->description)
           return ENOMEM;
       }
       if (dh->type && !hdr->type) {
-        hdr->type = c_cdd_strdup(dh->type);
+        hdr->type = (c_cdd_strdup(dh->type, &_ast_strdup_21), _ast_strdup_21);
         if (!hdr->type)
           return ENOMEM;
       }
       if (dh->content_type && !hdr->content_type) {
-        hdr->content_type = c_cdd_strdup(dh->content_type);
+        hdr->content_type =
+            (c_cdd_strdup(dh->content_type, &_ast_strdup_22), _ast_strdup_22);
         if (!hdr->content_type)
           return ENOMEM;
       }
@@ -506,13 +595,15 @@ static int add_header_to_response(struct OpenAPI_Response *resp,
         hdr->schema_set = 1;
         if (!hdr->schema.inline_type) {
           hdr->schema.inline_type =
-              c_cdd_strdup(hdr->type ? hdr->type : "string");
+              (c_cdd_strdup(hdr->type ? hdr->type : "string", &_ast_strdup_23),
+               _ast_strdup_23);
           if (!hdr->schema.inline_type)
             return ENOMEM;
         }
         if (hdr->schema.format)
           free(hdr->schema.format);
-        hdr->schema.format = c_cdd_strdup(dh->format);
+        hdr->schema.format =
+            (c_cdd_strdup(dh->format, &_ast_strdup_24), _ast_strdup_24);
         if (!hdr->schema.format)
           return ENOMEM;
       }
@@ -536,28 +627,34 @@ static int add_header_to_response(struct OpenAPI_Response *resp,
   resp->headers = new_headers;
   hdr = &resp->headers[resp->n_headers++];
   memset(hdr, 0, sizeof(*hdr));
-  hdr->name = c_cdd_strdup(dh->name);
+  hdr->name = (c_cdd_strdup(dh->name, &_ast_strdup_25), _ast_strdup_25);
   if (!hdr->name)
     return ENOMEM;
   if (dh->description) {
-    hdr->description = c_cdd_strdup(dh->description);
+    hdr->description =
+        (c_cdd_strdup(dh->description, &_ast_strdup_26), _ast_strdup_26);
     if (!hdr->description)
       return ENOMEM;
   }
-  hdr->type = c_cdd_strdup(dh->type ? dh->type : "string");
+  hdr->type = (c_cdd_strdup(dh->type ? dh->type : "string", &_ast_strdup_27),
+               _ast_strdup_27);
   if (!hdr->type)
     return ENOMEM;
   if (dh->content_type) {
-    hdr->content_type = c_cdd_strdup(dh->content_type);
+    hdr->content_type =
+        (c_cdd_strdup(dh->content_type, &_ast_strdup_28), _ast_strdup_28);
     if (!hdr->content_type)
       return ENOMEM;
   }
   if (dh->format) {
     hdr->schema_set = 1;
-    hdr->schema.inline_type = c_cdd_strdup(hdr->type ? hdr->type : "string");
+    hdr->schema.inline_type =
+        (c_cdd_strdup(hdr->type ? hdr->type : "string", &_ast_strdup_29),
+         _ast_strdup_29);
     if (!hdr->schema.inline_type)
       return ENOMEM;
-    hdr->schema.format = c_cdd_strdup(dh->format);
+    hdr->schema.format =
+        (c_cdd_strdup(dh->format, &_ast_strdup_30), _ast_strdup_30);
     if (!hdr->schema.format)
       return ENOMEM;
   }
@@ -575,6 +672,14 @@ static int add_header_to_response(struct OpenAPI_Response *resp,
 
 static int add_link_to_response(struct OpenAPI_Response *resp,
                                 const struct DocLink *dl) {
+  char *_ast_strdup_31 = NULL;
+  char *_ast_strdup_32 = NULL;
+  char *_ast_strdup_33 = NULL;
+  char *_ast_strdup_34 = NULL;
+  char *_ast_strdup_35 = NULL;
+  char *_ast_strdup_36 = NULL;
+  char *_ast_strdup_37 = NULL;
+  char *_ast_strdup_38 = NULL;
   struct OpenAPI_Link *new_links;
   struct OpenAPI_Link *link;
   size_t i;
@@ -600,26 +705,30 @@ static int add_link_to_response(struct OpenAPI_Response *resp,
   link = &resp->links[resp->n_links++];
   memset(link, 0, sizeof(*link));
 
-  link->name = c_cdd_strdup(dl->name);
+  link->name = (c_cdd_strdup(dl->name, &_ast_strdup_31), _ast_strdup_31);
   if (!link->name)
     return ENOMEM;
   if (dl->summary) {
-    link->summary = c_cdd_strdup(dl->summary);
+    link->summary =
+        (c_cdd_strdup(dl->summary, &_ast_strdup_32), _ast_strdup_32);
     if (!link->summary)
       return ENOMEM;
   }
   if (dl->description) {
-    link->description = c_cdd_strdup(dl->description);
+    link->description =
+        (c_cdd_strdup(dl->description, &_ast_strdup_33), _ast_strdup_33);
     if (!link->description)
       return ENOMEM;
   }
   if (dl->operation_id) {
-    link->operation_id = c_cdd_strdup(dl->operation_id);
+    link->operation_id =
+        (c_cdd_strdup(dl->operation_id, &_ast_strdup_34), _ast_strdup_34);
     if (!link->operation_id)
       return ENOMEM;
   }
   if (dl->operation_ref) {
-    link->operation_ref = c_cdd_strdup(dl->operation_ref);
+    link->operation_ref =
+        (c_cdd_strdup(dl->operation_ref, &_ast_strdup_35), _ast_strdup_35);
     if (!link->operation_ref)
       return ENOMEM;
   }
@@ -639,7 +748,8 @@ static int add_link_to_response(struct OpenAPI_Response *resp,
     if (!link->server)
       return ENOMEM;
     link->server_set = 1;
-    link->server->url = c_cdd_strdup(dl->server_url);
+    link->server->url =
+        (c_cdd_strdup(dl->server_url, &_ast_strdup_36), _ast_strdup_36);
     if (!link->server->url) {
       free(link->server);
       link->server = NULL;
@@ -647,7 +757,8 @@ static int add_link_to_response(struct OpenAPI_Response *resp,
       return ENOMEM;
     }
     if (dl->server_name) {
-      link->server->name = c_cdd_strdup(dl->server_name);
+      link->server->name =
+          (c_cdd_strdup(dl->server_name, &_ast_strdup_37), _ast_strdup_37);
       if (!link->server->name) {
         free(link->server->url);
         free(link->server);
@@ -657,7 +768,9 @@ static int add_link_to_response(struct OpenAPI_Response *resp,
       }
     }
     if (dl->server_description) {
-      link->server->description = c_cdd_strdup(dl->server_description);
+      link->server->description =
+          (c_cdd_strdup(dl->server_description, &_ast_strdup_38),
+           _ast_strdup_38);
       if (!link->server->description) {
         if (link->server->name)
           free(link->server->name);
@@ -698,39 +811,49 @@ static int schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
 
 static int copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
                                  const struct OpenAPI_SchemaRef *src) {
+  char *_ast_strdup_39 = NULL;
+  char *_ast_strdup_40 = NULL;
+  char *_ast_strdup_41 = NULL;
+  char *_ast_strdup_42 = NULL;
+  char *_ast_strdup_43 = NULL;
+  char *_ast_strdup_44 = NULL;
   if (!dst || !src)
     return 0;
   memset(dst, 0, sizeof(*dst));
   dst->is_array = src->is_array;
   if (src->ref_name) {
-    dst->ref_name = c_cdd_strdup(src->ref_name);
+    dst->ref_name =
+        (c_cdd_strdup(src->ref_name, &_ast_strdup_39), _ast_strdup_39);
     if (!dst->ref_name)
       return ENOMEM;
   }
   if (src->ref) {
-    dst->ref = c_cdd_strdup(src->ref);
+    dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_40), _ast_strdup_40);
     if (!dst->ref)
       return ENOMEM;
   }
   dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->inline_type) {
-    dst->inline_type = c_cdd_strdup(src->inline_type);
+    dst->inline_type =
+        (c_cdd_strdup(src->inline_type, &_ast_strdup_41), _ast_strdup_41);
     if (!dst->inline_type)
       return ENOMEM;
   }
   if (src->items_ref) {
-    dst->items_ref = c_cdd_strdup(src->items_ref);
+    dst->items_ref =
+        (c_cdd_strdup(src->items_ref, &_ast_strdup_42), _ast_strdup_42);
     if (!dst->items_ref)
       return ENOMEM;
   }
   dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->format) {
-    dst->format = c_cdd_strdup(src->format);
+    dst->format = (c_cdd_strdup(src->format, &_ast_strdup_43), _ast_strdup_43);
     if (!dst->format)
       return ENOMEM;
   }
   if (src->items_format) {
-    dst->items_format = c_cdd_strdup(src->items_format);
+    dst->items_format =
+        (c_cdd_strdup(src->items_format, &_ast_strdup_44), _ast_strdup_44);
     if (!dst->items_format)
       return ENOMEM;
   }
@@ -758,10 +881,11 @@ static int init_media_type_from_response(struct OpenAPI_MediaType *mt,
                                          const char *name,
                                          const struct OpenAPI_Response *resp,
                                          int is_item_schema) {
+  char *_ast_strdup_45 = NULL;
   if (!mt || !name || !resp)
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
-  mt->name = c_cdd_strdup(name);
+  mt->name = (c_cdd_strdup(name, &_ast_strdup_45), _ast_strdup_45);
   if (!mt->name)
     return ENOMEM;
   if (schema_ref_has_data_basic(&resp->schema)) {
@@ -840,10 +964,11 @@ static int init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
                                              const char *name,
                                              const struct OpenAPI_Operation *op,
                                              int is_item_schema) {
+  char *_ast_strdup_46 = NULL;
   if (!mt || !name || !op)
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
-  mt->name = c_cdd_strdup(name);
+  mt->name = (c_cdd_strdup(name, &_ast_strdup_46), _ast_strdup_46);
   if (!mt->name)
     return ENOMEM;
   if (schema_ref_has_data_basic(&op->req_body)) {
@@ -904,32 +1029,40 @@ static int add_request_body_media_type(struct OpenAPI_Operation *op,
 static int set_querystring_schema_from_type_map(
     struct OpenAPI_Parameter *param,
     const struct OpenApiTypeMapping *type_map) {
+  char *_ast_strdup_47 = NULL;
+  char *_ast_strdup_48 = NULL;
+  char *_ast_strdup_49 = NULL;
+  char *_ast_strdup_50 = NULL;
+  char *_ast_strdup_51 = NULL;
   if (!param || !type_map)
     return 0;
   if (type_map->ref_name) {
     param->schema_set = 1;
     param->schema.is_array = (type_map->kind == OA_TYPE_ARRAY);
-    param->schema.ref_name = c_cdd_strdup(type_map->ref_name);
+    param->schema.ref_name =
+        (c_cdd_strdup(type_map->ref_name, &_ast_strdup_47), _ast_strdup_47);
     if (!param->schema.ref_name)
       return ENOMEM;
     return 0;
   }
   if (type_map->kind == OA_TYPE_ARRAY) {
     param->is_array = 1;
-    param->type = c_cdd_strdup("array");
+    param->type = (c_cdd_strdup("array", &_ast_strdup_48), _ast_strdup_48);
     if (!param->type)
       return ENOMEM;
     if (type_map->oa_type) {
-      param->items_type = c_cdd_strdup(type_map->oa_type);
+      param->items_type =
+          (c_cdd_strdup(type_map->oa_type, &_ast_strdup_49), _ast_strdup_49);
       if (!param->items_type)
         return ENOMEM;
     }
     return 0;
   }
   if (type_map->oa_type) {
-    param->type = c_cdd_strdup(type_map->oa_type);
+    param->type =
+        (c_cdd_strdup(type_map->oa_type, &_ast_strdup_50), _ast_strdup_50);
   } else {
-    param->type = c_cdd_strdup("string");
+    param->type = (c_cdd_strdup("string", &_ast_strdup_51), _ast_strdup_51);
   }
   return param->type ? 0 : ENOMEM;
 }
@@ -947,6 +1080,10 @@ static int oa_type_is_primitive(const char *type) {
 static int apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
                                       const struct OpenApiTypeMapping *map,
                                       const char *override_format) {
+  char *_ast_strdup_52 = NULL;
+  char *_ast_strdup_53 = NULL;
+  char *_ast_strdup_54 = NULL;
+  char *_ast_strdup_55 = NULL;
   const char *fmt;
   if (!schema || !map)
     return 0;
@@ -960,24 +1097,26 @@ static int apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
   if (map->kind == OA_TYPE_ARRAY) {
     schema->is_array = 1;
     if (!schema->inline_type) {
-      schema->inline_type = c_cdd_strdup(map->oa_type);
+      schema->inline_type =
+          (c_cdd_strdup(map->oa_type, &_ast_strdup_52), _ast_strdup_52);
       if (!schema->inline_type)
         return ENOMEM;
     }
     if (schema->items_format)
       free(schema->items_format);
-    schema->items_format = c_cdd_strdup(fmt);
+    schema->items_format = (c_cdd_strdup(fmt, &_ast_strdup_53), _ast_strdup_53);
     if (!schema->items_format)
       return ENOMEM;
   } else {
     if (!schema->inline_type) {
-      schema->inline_type = c_cdd_strdup(map->oa_type);
+      schema->inline_type =
+          (c_cdd_strdup(map->oa_type, &_ast_strdup_54), _ast_strdup_54);
       if (!schema->inline_type)
         return ENOMEM;
     }
     if (schema->format)
       free(schema->format);
-    schema->format = c_cdd_strdup(fmt);
+    schema->format = (c_cdd_strdup(fmt, &_ast_strdup_55), _ast_strdup_55);
     if (!schema->format)
       return ENOMEM;
   }
@@ -1009,27 +1148,46 @@ static int is_struct_pointer(const char *type, int *is_double_ptr) {
   return 1;
 }
 
-static enum OpenAPI_Style doc_style_to_openapi(enum DocParamStyle style) {
+static int doc_style_to_openapi(enum DocParamStyle style,
+                                enum OpenAPI_Style *_out_val) {
   switch (style) {
-  case DOC_PARAM_STYLE_FORM:
-    return OA_STYLE_FORM;
-  case DOC_PARAM_STYLE_SIMPLE:
-    return OA_STYLE_SIMPLE;
-  case DOC_PARAM_STYLE_MATRIX:
-    return OA_STYLE_MATRIX;
-  case DOC_PARAM_STYLE_LABEL:
-    return OA_STYLE_LABEL;
-  case DOC_PARAM_STYLE_SPACE_DELIMITED:
-    return OA_STYLE_SPACE_DELIMITED;
-  case DOC_PARAM_STYLE_PIPE_DELIMITED:
-    return OA_STYLE_PIPE_DELIMITED;
-  case DOC_PARAM_STYLE_DEEP_OBJECT:
-    return OA_STYLE_DEEP_OBJECT;
-  case DOC_PARAM_STYLE_COOKIE:
-    return OA_STYLE_COOKIE;
+  case DOC_PARAM_STYLE_FORM: {
+    *_out_val = OA_STYLE_FORM;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_SIMPLE: {
+    *_out_val = OA_STYLE_SIMPLE;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_MATRIX: {
+    *_out_val = OA_STYLE_MATRIX;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_LABEL: {
+    *_out_val = OA_STYLE_LABEL;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_SPACE_DELIMITED: {
+    *_out_val = OA_STYLE_SPACE_DELIMITED;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_PIPE_DELIMITED: {
+    *_out_val = OA_STYLE_PIPE_DELIMITED;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_DEEP_OBJECT: {
+    *_out_val = OA_STYLE_DEEP_OBJECT;
+    return 0;
+  }
+  case DOC_PARAM_STYLE_COOKIE: {
+    *_out_val = OA_STYLE_COOKIE;
+    return 0;
+  }
   case DOC_PARAM_STYLE_UNSET:
-  default:
-    return OA_STYLE_UNKNOWN;
+  default: {
+    *_out_val = OA_STYLE_UNKNOWN;
+    return 0;
+  }
   }
 }
 
@@ -1037,6 +1195,65 @@ static enum OpenAPI_Style doc_style_to_openapi(enum DocParamStyle style) {
 
 int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
                               struct OpenAPI_Operation *const out_op) {
+  struct DocParam *_ast_find_doc_param_2;
+  enum OpenAPI_Style _ast_doc_style_to_openapi_3;
+  struct OpenAPI_MediaType *_ast_find_media_type_4;
+  struct OpenAPI_MediaType *_ast_find_media_type_5;
+  enum OpenAPI_Style _ast_doc_style_to_openapi_6;
+  struct OpenAPI_Response *_ast_ensure_response_for_code_7;
+  struct OpenAPI_Response *_ast_ensure_response_for_code_8;
+  char *_ast_strdup_56 = NULL;
+  bool _ast_starts_with_57 = false;
+  bool _ast_starts_with_58 = false;
+  bool _ast_starts_with_59 = false;
+  char *_ast_strdup_60 = NULL;
+  char *_ast_strdup_61 = NULL;
+  char *_ast_strdup_62 = NULL;
+  char *_ast_strdup_63 = NULL;
+  char *_ast_strdup_64 = NULL;
+  char *_ast_strdup_65 = NULL;
+  char *_ast_strdup_66 = NULL;
+  char *_ast_strdup_67 = NULL;
+  char *_ast_strdup_68 = NULL;
+  char *_ast_strdup_69 = NULL;
+  char *_ast_strdup_70 = NULL;
+  char *_ast_strdup_71 = NULL;
+  char *_ast_strdup_72 = NULL;
+  char *_ast_strdup_73 = NULL;
+  char *_ast_strdup_74 = NULL;
+  char *_ast_strdup_75 = NULL;
+  char *_ast_strdup_76 = NULL;
+  char *_ast_strdup_77 = NULL;
+  char *_ast_strdup_78 = NULL;
+  char *_ast_strdup_79 = NULL;
+  char *_ast_strdup_80 = NULL;
+  char *_ast_strdup_81 = NULL;
+  char *_ast_strdup_82 = NULL;
+  char *_ast_strdup_83 = NULL;
+  char *_ast_strdup_84 = NULL;
+  char *_ast_strdup_85 = NULL;
+  char *_ast_strdup_86 = NULL;
+  char *_ast_strdup_87 = NULL;
+  char *_ast_strdup_88 = NULL;
+  char *_ast_strdup_89 = NULL;
+  char *_ast_strdup_90 = NULL;
+  char *_ast_strdup_91 = NULL;
+  char *_ast_strdup_92 = NULL;
+  char *_ast_strdup_93 = NULL;
+  char *_ast_strdup_94 = NULL;
+  char *_ast_strdup_95 = NULL;
+  char *_ast_strdup_96 = NULL;
+  char *_ast_strdup_97 = NULL;
+  char *_ast_strdup_98 = NULL;
+  char *_ast_strdup_99 = NULL;
+  char *_ast_strdup_100 = NULL;
+  bool _ast_iequal_101 = false;
+  char *_ast_strdup_102 = NULL;
+  bool _ast_iequal_103 = false;
+  char *_ast_strdup_104 = NULL;
+  char *_ast_strdup_105 = NULL;
+  char *_ast_strdup_106 = NULL;
+  char *_ast_strdup_107 = NULL;
   const struct C2OpenAPI_ParsedSig *sig = ctx->sig;
   const struct DocMetadata *doc = ctx->doc;
   size_t i;
@@ -1070,7 +1287,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     else {
       out_op->verb = OA_VERB_UNKNOWN;
       out_op->is_additional = 1;
-      out_op->method = c_cdd_strdup(doc->verb);
+      out_op->method =
+          (c_cdd_strdup(doc->verb, &_ast_strdup_56), _ast_strdup_56);
       if (!out_op->method)
         return ENOMEM;
     }
@@ -1082,13 +1300,19 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
        api_X_update  -> _update
        api_X_delete  -> _delete
     */
-    if (c_cdd_str_starts_with(ctx->func_name, "api_post_") ||
+    if ((c_cdd_str_starts_with(ctx->func_name, "api_post_",
+                               &_ast_starts_with_57),
+         _ast_starts_with_57) ||
         strstr(ctx->func_name, "_create"))
       out_op->verb = OA_VERB_POST;
-    else if (c_cdd_str_starts_with(ctx->func_name, "api_put_") ||
+    else if ((c_cdd_str_starts_with(ctx->func_name, "api_put_",
+                                    &_ast_starts_with_58),
+              _ast_starts_with_58) ||
              strstr(ctx->func_name, "_update"))
       out_op->verb = OA_VERB_PUT;
-    else if (c_cdd_str_starts_with(ctx->func_name, "api_delete_") ||
+    else if ((c_cdd_str_starts_with(ctx->func_name, "api_delete_",
+                                    &_ast_starts_with_59),
+              _ast_starts_with_59) ||
              strstr(ctx->func_name, "_delete"))
       out_op->verb = OA_VERB_DELETE;
     else
@@ -1096,19 +1320,23 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   }
 
   if (doc && doc->operation_id) {
-    out_op->operation_id = c_cdd_strdup(doc->operation_id);
+    out_op->operation_id =
+        (c_cdd_strdup(doc->operation_id, &_ast_strdup_60), _ast_strdup_60);
   } else {
-    out_op->operation_id = c_cdd_strdup(ctx->func_name);
+    out_op->operation_id =
+        (c_cdd_strdup(ctx->func_name, &_ast_strdup_61), _ast_strdup_61);
   }
   if (!out_op->operation_id)
     return ENOMEM;
   if (doc && doc->summary) {
-    out_op->summary = c_cdd_strdup(doc->summary);
+    out_op->summary =
+        (c_cdd_strdup(doc->summary, &_ast_strdup_62), _ast_strdup_62);
     if (!out_op->summary)
       return ENOMEM;
   }
   if (doc && doc->description) {
-    out_op->description = c_cdd_strdup(doc->description);
+    out_op->description =
+        (c_cdd_strdup(doc->description, &_ast_strdup_63), _ast_strdup_63);
     if (!out_op->description)
       return ENOMEM;
   }
@@ -1116,12 +1344,14 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     out_op->deprecated = doc->deprecated ? 1 : 0;
   }
   if (doc && doc->external_docs_url) {
-    out_op->external_docs.url = c_cdd_strdup(doc->external_docs_url);
+    out_op->external_docs.url =
+        (c_cdd_strdup(doc->external_docs_url, &_ast_strdup_64), _ast_strdup_64);
     if (!out_op->external_docs.url)
       return ENOMEM;
     if (doc->external_docs_description) {
       out_op->external_docs.description =
-          c_cdd_strdup(doc->external_docs_description);
+          (c_cdd_strdup(doc->external_docs_description, &_ast_strdup_65),
+           _ast_strdup_65);
       if (!out_op->external_docs.description)
         return ENOMEM;
     }
@@ -1133,7 +1363,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       return ENOMEM;
     out_op->n_tags = doc->n_tags;
     for (t = 0; t < doc->n_tags; ++t) {
-      out_op->tags[t] = c_cdd_strdup(doc->tags[t] ? doc->tags[t] : "");
+      out_op->tags[t] =
+          (c_cdd_strdup(doc->tags[t] ? doc->tags[t] : "", &_ast_strdup_66),
+           _ast_strdup_66);
       if (!out_op->tags[t])
         return ENOMEM;
     }
@@ -1156,7 +1388,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         return ENOMEM;
       set->n_requirements = 1;
       set->requirements[0].scheme =
-          c_cdd_strdup(src->scheme ? src->scheme : "");
+          (c_cdd_strdup(src->scheme ? src->scheme : "", &_ast_strdup_67),
+           _ast_strdup_67);
       if (!set->requirements[0].scheme)
         return ENOMEM;
       if (src->n_scopes > 0) {
@@ -1168,7 +1401,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         set->requirements[0].n_scopes = src->n_scopes;
         for (k = 0; k < src->n_scopes; ++k) {
           set->requirements[0].scopes[k] =
-              c_cdd_strdup(src->scopes[k] ? src->scopes[k] : "");
+              (c_cdd_strdup(src->scopes[k] ? src->scopes[k] : "",
+                            &_ast_strdup_68),
+               _ast_strdup_68);
           if (!set->requirements[0].scopes[k])
             return ENOMEM;
         }
@@ -1186,17 +1421,20 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     for (s = 0; s < doc->n_servers; ++s) {
       const struct DocServer *src = &doc->servers[s];
       if (src->url) {
-        out_op->servers[s].url = c_cdd_strdup(src->url);
+        out_op->servers[s].url =
+            (c_cdd_strdup(src->url, &_ast_strdup_69), _ast_strdup_69);
         if (!out_op->servers[s].url)
           return ENOMEM;
       }
       if (src->name) {
-        out_op->servers[s].name = c_cdd_strdup(src->name);
+        out_op->servers[s].name =
+            (c_cdd_strdup(src->name, &_ast_strdup_70), _ast_strdup_70);
         if (!out_op->servers[s].name)
           return ENOMEM;
       }
       if (src->description) {
-        out_op->servers[s].description = c_cdd_strdup(src->description);
+        out_op->servers[s].description =
+            (c_cdd_strdup(src->description, &_ast_strdup_71), _ast_strdup_71);
         if (!out_op->servers[s].description)
           return ENOMEM;
       }
@@ -1211,7 +1449,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   /* 1. Argument Iteration */
   for (i = 0; i < sig->n_args; ++i) {
     const struct C2OpenAPI_ParsedArg *arg = &sig->args[i];
-    const struct DocParam *dp = find_doc_param(doc, arg->name);
+    const struct DocParam *dp =
+        (find_doc_param(doc, arg->name, &_ast_find_doc_param_2),
+         _ast_find_doc_param_2);
     struct OpenAPI_Parameter curr_param;
     struct OpenApiTypeMapping type_map;
     int is_path = 0;
@@ -1287,8 +1527,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
 
       r = &out_op->responses[r_idx];
       memset(r, 0, sizeof(*r));
-      r->code = c_cdd_strdup("200"); /* Default success */
-      r->description = c_cdd_strdup("Success");
+      r->code = (c_cdd_strdup("200", &_ast_strdup_72),
+                 _ast_strdup_72); /* Default success */
+      r->description =
+          (c_cdd_strdup("Success", &_ast_strdup_73), _ast_strdup_73);
       if (!r->description) {
         c_mapping_free(&type_map);
         return ENOMEM;
@@ -1297,9 +1539,11 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       /* Map Schema */
       r->schema.is_array = (type_map.kind == OA_TYPE_ARRAY);
       if (type_map.ref_name) {
-        r->schema.ref_name = c_cdd_strdup(type_map.ref_name);
+        r->schema.ref_name =
+            (c_cdd_strdup(type_map.ref_name, &_ast_strdup_74), _ast_strdup_74);
       } else if (type_map.oa_type) {
-        r->schema.inline_type = c_cdd_strdup(type_map.oa_type);
+        r->schema.inline_type =
+            (c_cdd_strdup(type_map.oa_type, &_ast_strdup_75), _ast_strdup_75);
       }
       {
         int fmt_rc = apply_format_to_schema_ref(&r->schema, &type_map, NULL);
@@ -1315,13 +1559,16 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
 
     if (is_body) {
       /* Request Body Population */
-      out_op->req_body.content_type = c_cdd_strdup("application/json");
+      out_op->req_body.content_type =
+          (c_cdd_strdup("application/json", &_ast_strdup_76), _ast_strdup_76);
       out_op->req_body.is_array = (type_map.kind == OA_TYPE_ARRAY);
       /* Use ref_name if object, or type if primitive */
       if (type_map.ref_name) {
-        out_op->req_body.ref_name = c_cdd_strdup(type_map.ref_name);
+        out_op->req_body.ref_name =
+            (c_cdd_strdup(type_map.ref_name, &_ast_strdup_77), _ast_strdup_77);
       } else if (type_map.oa_type) {
-        out_op->req_body.inline_type = c_cdd_strdup(type_map.oa_type);
+        out_op->req_body.inline_type =
+            (c_cdd_strdup(type_map.oa_type, &_ast_strdup_78), _ast_strdup_78);
       }
       out_op->req_body_required = 1;
       out_op->req_body_required_set = 1;
@@ -1340,12 +1587,14 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
 
     /* --- Standard Parameter (Query/Path/Header/Cookie) --- */
 
-    curr_param.name = c_cdd_strdup(arg->name);
+    curr_param.name =
+        (c_cdd_strdup(arg->name, &_ast_strdup_79), _ast_strdup_79);
     curr_param.required = is_path; /* Path params always required */
     if (dp && dp->required)
       curr_param.required = 1;
     if (dp && dp->description) {
-      curr_param.description = c_cdd_strdup(dp->description);
+      curr_param.description =
+          (c_cdd_strdup(dp->description, &_ast_strdup_80), _ast_strdup_80);
       if (!curr_param.description) {
         c_mapping_free(&type_map);
         return ENOMEM;
@@ -1373,7 +1622,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     /* Map Types */
     if (is_querystring) {
       curr_param.content_type =
-          c_cdd_strdup("application/x-www-form-urlencoded");
+          (c_cdd_strdup("application/x-www-form-urlencoded", &_ast_strdup_81),
+           _ast_strdup_81);
       if (!curr_param.content_type) {
         c_mapping_free(&type_map);
         return ENOMEM;
@@ -1386,21 +1636,26 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       /* Logic for items_type: c_mapper stores item type in oa_type/ref_name
        * when kind=ARRAY */
       if (type_map.oa_type)
-        curr_param.items_type = c_cdd_strdup(type_map.oa_type);
+        curr_param.items_type =
+            (c_cdd_strdup(type_map.oa_type, &_ast_strdup_82), _ast_strdup_82);
       else if (type_map.ref_name)
-        curr_param.items_type = c_cdd_strdup(type_map.ref_name);
+        curr_param.items_type =
+            (c_cdd_strdup(type_map.ref_name, &_ast_strdup_83), _ast_strdup_83);
 
-      curr_param.type = c_cdd_strdup("array");
+      curr_param.type =
+          (c_cdd_strdup("array", &_ast_strdup_84), _ast_strdup_84);
     } else {
       /* Primitive / Object (if scalar param is allowed object??) usually string
        */
       /* Spec allows object parameters but they serialize weirdly. Assume string
        * representation unless primitive. */
       if (type_map.oa_type)
-        curr_param.type = c_cdd_strdup(type_map.oa_type);
+        curr_param.type =
+            (c_cdd_strdup(type_map.oa_type, &_ast_strdup_85), _ast_strdup_85);
       else
         curr_param.type =
-            c_cdd_strdup("string"); /* Fallback for complex types in params */
+            (c_cdd_strdup("string", &_ast_strdup_86),
+             _ast_strdup_86); /* Fallback for complex types in params */
     }
 
     {
@@ -1423,7 +1678,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       if (dp->content_type) {
         if (curr_param.content_type)
           free(curr_param.content_type);
-        curr_param.content_type = c_cdd_strdup(dp->content_type);
+        curr_param.content_type =
+            (c_cdd_strdup(dp->content_type, &_ast_strdup_87), _ast_strdup_87);
         if (!curr_param.content_type) {
           c_mapping_free(&type_map);
           return ENOMEM;
@@ -1431,7 +1687,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       }
       if (!curr_param.content_type) {
         if (dp->style_set) {
-          enum OpenAPI_Style style = doc_style_to_openapi(dp->style);
+          enum OpenAPI_Style style =
+              (doc_style_to_openapi(dp->style, &_ast_doc_style_to_openapi_3),
+               _ast_doc_style_to_openapi_3);
           if (style != OA_STYLE_UNKNOWN)
             curr_param.style = style;
         }
@@ -1492,7 +1750,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         if (rb_idx == 0) {
           if (out_op->req_body.content_type)
             free(out_op->req_body.content_type);
-          out_op->req_body.content_type = c_cdd_strdup(rb_content_type);
+          out_op->req_body.content_type =
+              (c_cdd_strdup(rb_content_type, &_ast_strdup_88), _ast_strdup_88);
           if (!out_op->req_body.content_type)
             return ENOMEM;
         }
@@ -1501,16 +1760,20 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
           return ENOMEM;
         if (rb->example) {
           struct OpenAPI_MediaType *mt =
-              find_media_type(out_op->req_body_media_types,
-                              out_op->n_req_body_media_types, rb_content_type);
+              (find_media_type(out_op->req_body_media_types,
+                               out_op->n_req_body_media_types, rb_content_type,
+                               &_ast_find_media_type_4),
+               _ast_find_media_type_4);
           if (mt && apply_example_to_media_type(mt, rb->example) != 0)
             return ENOMEM;
         }
 
         {
           struct OpenAPI_MediaType *mt =
-              find_media_type(out_op->req_body_media_types,
-                              out_op->n_req_body_media_types, rb_content_type);
+              (find_media_type(out_op->req_body_media_types,
+                               out_op->n_req_body_media_types, rb_content_type,
+                               &_ast_find_media_type_5),
+               _ast_find_media_type_5);
           if (mt && doc->n_encodings > 0) {
             size_t enc_i;
             for (enc_i = 0; enc_i < doc->n_encodings; ++enc_i) {
@@ -1519,11 +1782,16 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
               memset(&enc, 0, sizeof(enc));
 
               if (d_enc->name)
-                enc.name = c_cdd_strdup(d_enc->name);
+                enc.name = (c_cdd_strdup(d_enc->name, &_ast_strdup_89),
+                            _ast_strdup_89);
               if (d_enc->content_type)
-                enc.content_type = c_cdd_strdup(d_enc->content_type);
+                enc.content_type =
+                    (c_cdd_strdup(d_enc->content_type, &_ast_strdup_90),
+                     _ast_strdup_90);
               if (d_enc->style)
-                enc.style = doc_style_to_openapi(d_enc->style);
+                enc.style = (doc_style_to_openapi(d_enc->style,
+                                                  &_ast_doc_style_to_openapi_6),
+                             _ast_doc_style_to_openapi_6);
 
               enc.explode = d_enc->explode;
               enc.explode_set = d_enc->explode_set;
@@ -1562,7 +1830,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     }
     if (doc->request_body_description) {
       out_op->req_body_description =
-          c_cdd_strdup(doc->request_body_description);
+          (c_cdd_strdup(doc->request_body_description, &_ast_strdup_91),
+           _ast_strdup_91);
       if (!out_op->req_body_description)
         return ENOMEM;
     }
@@ -1574,7 +1843,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       if (out_op->req_body.content_type)
         free(out_op->req_body.content_type);
       out_op->req_body.content_type =
-          c_cdd_strdup(doc->request_body_content_type);
+          (c_cdd_strdup(doc->request_body_content_type, &_ast_strdup_92),
+           _ast_strdup_92);
       if (!out_op->req_body.content_type)
         return ENOMEM;
     }
@@ -1594,14 +1864,16 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
           exists = 1;
           if (!out_op->responses[k].summary && doc->returns[i].summary) {
             out_op->responses[k].summary =
-                c_cdd_strdup(doc->returns[i].summary);
+                (c_cdd_strdup(doc->returns[i].summary, &_ast_strdup_93),
+                 _ast_strdup_93);
             if (!out_op->responses[k].summary)
               return ENOMEM;
           }
           if (!out_op->responses[k].description &&
               doc->returns[i].description) {
             out_op->responses[k].description =
-                c_cdd_strdup(doc->returns[i].description);
+                (c_cdd_strdup(doc->returns[i].description, &_ast_strdup_94),
+                 _ast_strdup_94);
             if (!out_op->responses[k].description)
               return ENOMEM;
           }
@@ -1613,7 +1885,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
               return add_rc;
             if (!out_op->responses[k].content_type) {
               out_op->responses[k].content_type =
-                  c_cdd_strdup(doc->returns[i].content_type);
+                  (c_cdd_strdup(doc->returns[i].content_type, &_ast_strdup_95),
+                   _ast_strdup_95);
               if (!out_op->responses[k].content_type)
                 return ENOMEM;
             }
@@ -1639,14 +1912,18 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
         out_op->responses = new_resps;
         r = &out_op->responses[out_op->n_responses++];
         memset(r, 0, sizeof(*r));
-        r->code = c_cdd_strdup(doc->returns[i].code);
+        r->code = (c_cdd_strdup(doc->returns[i].code, &_ast_strdup_96),
+                   _ast_strdup_96);
         if (doc->returns[i].summary) {
-          r->summary = c_cdd_strdup(doc->returns[i].summary);
+          r->summary = (c_cdd_strdup(doc->returns[i].summary, &_ast_strdup_97),
+                        _ast_strdup_97);
           if (!r->summary)
             return ENOMEM;
         }
         if (doc->returns[i].description) {
-          r->description = c_cdd_strdup(doc->returns[i].description);
+          r->description =
+              (c_cdd_strdup(doc->returns[i].description, &_ast_strdup_98),
+               _ast_strdup_98);
           if (!r->description)
             return ENOMEM;
         }
@@ -1655,7 +1932,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
                                                doc->returns[i].item_schema);
           if (add_rc != 0)
             return add_rc;
-          r->content_type = c_cdd_strdup(doc->returns[i].content_type);
+          r->content_type =
+              (c_cdd_strdup(doc->returns[i].content_type, &_ast_strdup_99),
+               _ast_strdup_99);
           if (!r->content_type)
             return ENOMEM;
         }
@@ -1674,14 +1953,20 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   if (doc && doc->n_response_headers > 0) {
     for (i = 0; i < doc->n_response_headers; ++i) {
       struct OpenAPI_Response *resp =
-          ensure_response_for_code(out_op, doc->response_headers[i].code);
+          (ensure_response_for_code(out_op, doc->response_headers[i].code,
+                                    &_ast_ensure_response_for_code_7),
+           _ast_ensure_response_for_code_7);
       if (!resp)
         return ENOMEM;
       if (!resp->description) {
         resp->description =
-            c_cdd_strdup(c_cdd_str_iequal(doc->response_headers[i].code, "200")
-                             ? "Success"
-                             : "Response");
+            (c_cdd_strdup((c_cdd_str_iequal(doc->response_headers[i].code,
+                                            "200", &_ast_iequal_101),
+                           _ast_iequal_101)
+                              ? "Success"
+                              : "Response",
+                          &_ast_strdup_100),
+             _ast_strdup_100);
         if (!resp->description)
           return ENOMEM;
       }
@@ -1693,13 +1978,20 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   if (doc && doc->n_links > 0) {
     for (i = 0; i < doc->n_links; ++i) {
       struct OpenAPI_Response *resp =
-          ensure_response_for_code(out_op, doc->links[i].code);
+          (ensure_response_for_code(out_op, doc->links[i].code,
+                                    &_ast_ensure_response_for_code_8),
+           _ast_ensure_response_for_code_8);
       if (!resp)
         return ENOMEM;
       if (!resp->description) {
-        resp->description = c_cdd_strdup(
-            c_cdd_str_iequal(doc->links[i].code, "200") ? "Success"
-                                                        : "Response");
+        resp->description =
+            (c_cdd_strdup(
+                 (c_cdd_str_iequal(doc->links[i].code, "200", &_ast_iequal_103),
+                  _ast_iequal_103)
+                     ? "Success"
+                     : "Response",
+                 &_ast_strdup_102),
+             _ast_strdup_102);
         if (!resp->description)
           return ENOMEM;
       }
@@ -1717,10 +2009,11 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
     out_op->responses = new_resps;
     r = &out_op->responses[out_op->n_responses++];
     memset(r, 0, sizeof(*r));
-    r->code = c_cdd_strdup("200");
+    r->code = (c_cdd_strdup("200", &_ast_strdup_104), _ast_strdup_104);
     if (!r->code)
       return ENOMEM;
-    r->description = c_cdd_strdup("Success");
+    r->description =
+        (c_cdd_strdup("Success", &_ast_strdup_105), _ast_strdup_105);
     if (!r->description)
       return ENOMEM;
   }
@@ -1730,7 +2023,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   {
     /* Extract resource name if pattern matches prefix_Resource_... */
     if (ctx->func_name && out_op->n_tags == 0) {
-      char *dup_name = c_cdd_strdup(ctx->func_name);
+      char *dup_name =
+          (c_cdd_strdup(ctx->func_name, &_ast_strdup_106), _ast_strdup_106);
       char *token;
       char *ctx_ptr = NULL;
 /* assume snake case */
@@ -1747,7 +2041,8 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
       if (token) {
         out_op->tags = (char **)malloc(sizeof(char *));
         if (out_op->tags) {
-          out_op->tags[0] = c_cdd_strdup(token);
+          out_op->tags[0] =
+              (c_cdd_strdup(token, &_ast_strdup_107), _ast_strdup_107);
           if (out_op->tags[0]) {
             if (out_op->tags[0][0])
               out_op->tags[0][0] = (char)toupper(

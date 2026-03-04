@@ -29,7 +29,9 @@ TEST test_tokenize_pragma_op(void) {
 }
 
 TEST test_destringize_basic(void) {
-  char *res = c_cdd_destringize("\"simple\"");
+  char *_ast_destringize_0 = NULL;
+  char *res = (c_cdd_destringize("\"simple\"", &_ast_destringize_0),
+               _ast_destringize_0);
   ASSERT(res);
   ASSERT_STR_EQ("simple", res);
   free(res);
@@ -37,9 +39,11 @@ TEST test_destringize_basic(void) {
 }
 
 TEST test_destringize_escaped_quote(void) {
+  char *_ast_destringize_1 = NULL;
   /* "foo\"bar" -> foo"bar */
   const char *input = "\"foo\\\"bar\"";
-  char *res = c_cdd_destringize(input);
+  char *res =
+      (c_cdd_destringize(input, &_ast_destringize_1), _ast_destringize_1);
   ASSERT(res);
   ASSERT_STR_EQ("foo\"bar", res);
   free(res);
@@ -47,9 +51,11 @@ TEST test_destringize_escaped_quote(void) {
 }
 
 TEST test_destringize_escaped_backslash(void) {
+  char *_ast_destringize_2 = NULL;
   /* "path\\to" -> path\to */
   const char *input = "\"path\\\\to\"";
-  char *res = c_cdd_destringize(input);
+  char *res =
+      (c_cdd_destringize(input, &_ast_destringize_2), _ast_destringize_2);
   ASSERT(res);
   ASSERT_STR_EQ("path\\to", res);
   free(res);
@@ -57,8 +63,10 @@ TEST test_destringize_escaped_backslash(void) {
 }
 
 TEST test_destringize_wide_literal(void) {
+  char *_ast_destringize_3 = NULL;
   /* L"wide" -> wide */
-  char *res = c_cdd_destringize("L\"wide\"");
+  char *res =
+      (c_cdd_destringize("L\"wide\"", &_ast_destringize_3), _ast_destringize_3);
   ASSERT(res);
   ASSERT_STR_EQ("wide", res);
   free(res);
@@ -66,6 +74,7 @@ TEST test_destringize_wide_literal(void) {
 }
 
 TEST test_destringize_mixed(void) {
+  char *_ast_destringize_4 = NULL;
   /* "a\\\"b" -> a\"b */
   /* The tokenizer produces the literal including quotes and internal escapes.
    */
@@ -95,7 +104,8 @@ TEST test_destringize_mixed(void) {
      Result: a\"b
   */
   const char *input = "\"a\\\\\\\"b\""; /* C string: "a\\\"b" */
-  char *res = c_cdd_destringize(input);
+  char *res =
+      (c_cdd_destringize(input, &_ast_destringize_4), _ast_destringize_4);
 
   ASSERT(res);
   ASSERT_STR_EQ("a\\\"b", res); /* C String comparison: a\"b */
@@ -104,10 +114,16 @@ TEST test_destringize_mixed(void) {
 }
 
 TEST test_destringize_invalids(void) {
-  ASSERT_EQ(NULL, c_cdd_destringize(NULL));
-  ASSERT_EQ(NULL, c_cdd_destringize("unquoted"));
+  char *_ast_destringize_5 = NULL;
+  char *_ast_destringize_6 = NULL;
+  char *_ast_destringize_7 = NULL;
   ASSERT_EQ(NULL,
-            c_cdd_destringize("'c'")); /* Char literal not supported by this */
+            (c_cdd_destringize(NULL, &_ast_destringize_5), _ast_destringize_5));
+  ASSERT_EQ(NULL, (c_cdd_destringize("unquoted", &_ast_destringize_6),
+                   _ast_destringize_6));
+  ASSERT_EQ(NULL,
+            (c_cdd_destringize("'c'", &_ast_destringize_7),
+             _ast_destringize_7)); /* Char literal not supported by this */
   PASS();
 }
 

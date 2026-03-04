@@ -1,5 +1,5 @@
 /**
- * @file codegen_json.h
+ * @file json.h
  * @brief JSON Serialization Generator.
  *
  * Provides functionality to generate C functions that convert Structs to JSON

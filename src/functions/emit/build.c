@@ -1,5 +1,5 @@
 /**
- * @file codegen_build.c
+ * @file build.c
  * @brief Implementation of the Abstract Build System Generator.
  *
  * Provides concrete implementations for supported build systems (currently
@@ -14,6 +14,7 @@
 
 #include "functions/emit/build.h"
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \

@@ -1,5 +1,5 @@
 /**
- * @file codegen_json.c
+ * @file json.c
  * @brief Implementation of JSON generation logic.
  *
  * Emits C code.
@@ -20,6 +20,7 @@
 #include "functions/parse/str.h" /* for string helpers */
 
 /* Terser error checking */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -29,6 +30,9 @@
 int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
                               const struct StructFields *const sf,
                               const struct CodegenJsonConfig *const config) {
+  char *_ast_get_type_from_ref_0;
+  char *_ast_get_type_from_ref_1;
+  char *_ast_get_type_from_ref_2;
   size_t i;
   bool iter_needed = false;
   bool rc_needed = false;
@@ -97,7 +101,9 @@ int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
       CHECK_IO(fprintf(fp, "  if (obj->%s) {\n", n));
       CHECK_IO(fprintf(fp, "    char *s = NULL;\n"));
       CHECK_IO(fprintf(fp, "    rc = %s_to_json(obj->%s, &s);\n",
-                       get_type_from_ref(r), n));
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_0),
+                        _ast_get_type_from_ref_0),
+                       n));
       CHECK_IO(fprintf(fp, "    if (rc) return rc;\n"));
       CHECK_IO(
           fprintf(fp, "    jasprintf(json, \"\\\"%s\\\": %%s\", s);\n", n));
@@ -108,7 +114,9 @@ int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
       CHECK_IO(fprintf(
           fp,
           "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if (rc) return rc;\n",
-          get_type_from_ref(r), n));
+          (get_type_from_ref(r, &_ast_get_type_from_ref_1),
+           _ast_get_type_from_ref_1),
+          n));
       CHECK_IO(fprintf(
           fp,
           "    jasprintf(json, \"\\\"%s\\\": \\\"%%s\\\"\", s); free(s); }\n",
@@ -127,7 +135,9 @@ int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
         CHECK_IO(fprintf(fp,
                          "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
                          "if (rc) return rc;\n",
-                         get_type_from_ref(r), n));
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_2),
+                          _ast_get_type_from_ref_2),
+                         n));
         CHECK_IO(
             fprintf(fp, "      jasprintf(json, \"%%s\", s); free(s); }\n"));
       }
@@ -182,6 +192,10 @@ int write_struct_from_jsonObject_func(
     FILE *const fp, const char *const struct_name,
     const struct StructFields *const sf,
     const struct CodegenJsonConfig *const config) {
+  char *_ast_get_type_from_ref_3;
+  char *_ast_get_type_from_ref_4;
+  char *_ast_get_type_from_ref_5;
+  char *_ast_get_type_from_ref_6;
   size_t i;
   bool iter_needed = false;
   bool rc_needed = false;
@@ -373,7 +387,9 @@ int write_struct_from_jsonObject_func(
                        n));
       CHECK_IO(fprintf(fp, "    if (sub) {\n"));
       CHECK_IO(fprintf(fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n",
-                       get_type_from_ref(r), n));
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_3),
+                        _ast_get_type_from_ref_3),
+                       n));
       CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
                        struct_name));
       CHECK_IO(fprintf(fp, "    }\n  }\n"));
@@ -384,7 +400,9 @@ int write_struct_from_jsonObject_func(
           n));
       CHECK_IO(fprintf(fp, "    if (s) {\n"));
       CHECK_IO(fprintf(fp, "      rc = %s_from_str(s, &ret->%s);\n",
-                       get_type_from_ref(r), n));
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_4),
+                        _ast_get_type_from_ref_4),
+                       n));
       CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
                        struct_name));
       CHECK_IO(fprintf(fp, "    }\n  }\n"));
@@ -412,13 +430,17 @@ int write_struct_from_jsonObject_func(
         /* Object array */
         CHECK_IO(fprintf(
             fp, "      ret->%s = calloc(ret->n_%s, sizeof(struct %s*));\n", n,
-            n, get_type_from_ref(r)));
+            n,
+            (get_type_from_ref(r, &_ast_get_type_from_ref_5),
+             _ast_get_type_from_ref_5)));
         CHECK_IO(fprintf(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
         CHECK_IO(fprintf(
             fp,
             "        rc = %s_from_jsonObject(json_array_get_object(arr, i), "
             "&ret->%s[i]);\n",
-            get_type_from_ref(r), n));
+            (get_type_from_ref(r, &_ast_get_type_from_ref_6),
+             _ast_get_type_from_ref_6),
+            n));
         CHECK_IO(fprintf(fp, "        if(rc) { %s_cleanup(ret); return rc; }\n",
                          struct_name));
         CHECK_IO(fprintf(fp, "      }\n"));

@@ -1,5 +1,5 @@
 /**
- * @file codegen_url.c
+ * @file url.c
  * @brief Implementation of URL interpolator generation.
  *
  * Updated to include `codegen_url_write_query_params` which handles the
@@ -16,6 +16,7 @@
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -26,8 +27,12 @@
 #define strdup _strdup
 #endif
 
+/** @brief UrlSegment structure */
 struct UrlSegment {
+  /** @brief is_var */
+  /** @brief is_var */
   int is_var;
+  /** @brief text */
   char *text;
 };
 
@@ -50,22 +55,29 @@ static int param_is_object_kv(const struct OpenAPI_Parameter *p) {
   return !is_primitive_type(p->type);
 }
 
-static size_t media_type_base_len(const char *media_type) {
+static int media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;
-  if (!media_type)
+  if (!media_type) {
+    *_out_val = 0;
     return 0;
+  }
   while (media_type[i] && media_type[i] != ';')
     ++i;
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 static int media_type_ieq(const char *media_type, const char *expected) {
+  size_t _ast_media_type_base_len_0;
   size_t i;
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+         _ast_media_type_base_len_0);
   exp_len = strlen(expected);
   if (len != exp_len)
     return 0;
@@ -83,12 +95,14 @@ static int media_type_ieq(const char *media_type, const char *expected) {
 }
 
 static int media_type_is_json(const char *media_type) {
+  size_t _ast_media_type_base_len_1;
   size_t len;
   if (!media_type)
     return 0;
   if (media_type_ieq(media_type, "application/json"))
     return 1;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+         _ast_media_type_base_len_1);
   if (len < 5)
     return 0;
   {
@@ -141,102 +155,170 @@ static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   return p->schema.ref_name != NULL;
 }
 
-static const char *
-querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
+                                      char **_out_val) {
   const char *type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
-  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     type = p->schema.inline_type;
   else if (p->type)
     type = p->type;
-  if (!type)
-    return NULL;
+  if (!type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
-      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
-    return type;
-  return NULL;
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
+    *_out_val = type;
+    return 0;
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
+                                       char **_out_val) {
   const char *item_type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
-        p->is_array))
-    return NULL;
+        p->is_array)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     item_type = p->schema.inline_type;
   else if (p->items_type)
     item_type = p->items_type;
-  if (!item_type)
-    return NULL;
+  if (!item_type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
-      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
-    return item_type;
-  return NULL;
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
+    *_out_val = item_type;
+    return 0;
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
+                                      char **_out_val) {
   const char *item_type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
-        p->is_array))
-    return NULL;
+        p->is_array)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     item_type = p->schema.inline_type;
   else if (p->items_type)
     item_type = p->items_type;
-  if (!item_type)
-    return NULL;
+  if (!item_type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
-      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
-    return NULL;
-  if (strcmp(item_type, "object") == 0)
-    return NULL;
-  return item_type;
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (strcmp(item_type, "object") == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
+  {
+    *_out_val = item_type;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
+                                     char **_out_val) {
   const char *type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!p->content_type)
-    return NULL;
-  if (media_type_is_json(p->content_type))
-    return NULL;
-  if (media_type_is_form(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!p->content_type) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (media_type_is_form(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     type = p->schema.inline_type;
   else if (p->type)
     type = p->type;
-  if (!type)
-    return "string";
+  if (!type) {
+    *_out_val = "string";
+    return 0;
+  }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
-      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
-    return type;
-  return "string";
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
+    *_out_val = type;
+    return 0;
+  }
+  {
+    *_out_val = "string";
+    return 0;
+  }
 }
 
 static int write_query_json_param(FILE *const fp,
@@ -1239,17 +1321,22 @@ static int write_joined_query_array_encoded_delim(
   return 0;
 }
 
-static const struct OpenAPI_Parameter *
-find_param(const char *name, const struct OpenAPI_Parameter *params,
-           size_t n_params) {
+static int find_param(const char *name, const struct OpenAPI_Parameter *params,
+                      size_t n_params, struct OpenAPI_Parameter **_out_val) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     if (params[i].name && strcmp(params[i].name, name) == 0 &&
         params[i].in == OA_PARAM_IN_PATH) {
-      return &params[i];
+      {
+        *_out_val = &params[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int parse_segments(const char *tmpl, struct UrlSegment **out_segments,
@@ -1339,6 +1426,10 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
                               const struct OpenAPI_Parameter *params,
                               size_t n_params,
                               const struct CodegenUrlConfig *const config) {
+  struct OpenAPI_Parameter *_ast_find_param_2;
+  struct OpenAPI_Parameter *_ast_find_param_3;
+  struct OpenAPI_Parameter *_ast_find_param_4;
+  struct OpenAPI_Parameter *_ast_find_param_5;
   struct UrlSegment *segs = NULL;
   size_t n_segs = 0;
   size_t i;
@@ -1359,7 +1450,8 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p =
-          find_param(segs[i].text, params, n_params);
+          (find_param(segs[i].text, params, n_params, &_ast_find_param_2),
+           _ast_find_param_2);
       if (p) {
         const char *name = p->name ? p->name : segs[i].text;
         enum OpenAPI_Style style =
@@ -1460,7 +1552,8 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p =
-          find_param(segs[i].text, params, n_params);
+          (find_param(segs[i].text, params, n_params, &_ast_find_param_3),
+           _ast_find_param_3);
       if (p && p->name) {
         CHECK_IO(fprintf(fp, ", path_%s", p->name));
       } else {
@@ -1473,7 +1566,8 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p =
-          find_param(segs[i].text, params, n_params);
+          (find_param(segs[i].text, params, n_params, &_ast_find_param_4),
+           _ast_find_param_4);
       if (p && p->name) {
         CHECK_IO(fprintf(fp, "    free(path_%s);\n", p->name));
       }
@@ -1484,7 +1578,8 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
   for (i = 0; i < n_segs; ++i) {
     if (segs[i].is_var) {
       const struct OpenAPI_Parameter *p =
-          find_param(segs[i].text, params, n_params);
+          (find_param(segs[i].text, params, n_params, &_ast_find_param_5),
+           _ast_find_param_5);
       if (p && p->name) {
         CHECK_IO(fprintf(fp, "  free(path_%s);\n", p->name));
       }
@@ -1501,6 +1596,10 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
 int codegen_url_write_query_params(FILE *const fp,
                                    const struct OpenAPI_Operation *op,
                                    int qp_tracking) {
+  char *_ast_querystring_param_json_array_item_type_6;
+  char *_ast_querystring_param_json_array_item_ref_7;
+  char *_ast_querystring_param_json_primitive_type_8;
+  char *_ast_querystring_param_raw_primitive_type_9;
   size_t i;
   int has_query = 0;
   const struct OpenAPI_Parameter *querystring_param = NULL;
@@ -1519,11 +1618,17 @@ int codegen_url_write_query_params(FILE *const fp,
     const char *qs_name =
         querystring_param->name ? querystring_param->name : "querystring";
     const char *qs_json_item =
-        querystring_param_json_array_item_type(querystring_param);
+        (querystring_param_json_array_item_type(
+             querystring_param, &_ast_querystring_param_json_array_item_type_6),
+         _ast_querystring_param_json_array_item_type_6);
     const char *qs_json_obj =
-        querystring_param_json_array_item_ref(querystring_param);
+        (querystring_param_json_array_item_ref(
+             querystring_param, &_ast_querystring_param_json_array_item_ref_7),
+         _ast_querystring_param_json_array_item_ref_7);
     const char *qs_json_prim =
-        querystring_param_json_primitive_type(querystring_param);
+        (querystring_param_json_primitive_type(
+             querystring_param, &_ast_querystring_param_json_primitive_type_8),
+         _ast_querystring_param_json_primitive_type_8);
     if (querystring_param_is_form_object(querystring_param)) {
       CHECK_IO(fprintf(fp, "  /* Querystring Parameter (form object): %s */\n",
                        qs_name));
@@ -1783,7 +1888,9 @@ int codegen_url_write_query_params(FILE *const fp,
     }
     {
       const char *qs_raw =
-          querystring_param_raw_primitive_type(querystring_param);
+          (querystring_param_raw_primitive_type(
+               querystring_param, &_ast_querystring_param_raw_primitive_type_9),
+           _ast_querystring_param_raw_primitive_type_9);
       if (qs_raw) {
         CHECK_IO(
             fprintf(fp, "  /* Querystring Parameter (raw): %s */\n", qs_name));

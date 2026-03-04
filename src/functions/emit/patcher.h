@@ -1,5 +1,5 @@
 /**
- * @file text_patcher.h
+ * @file patcher.h
  * @brief Generic engine for applying text substitutions to token streams.
  *
  * Provides functionality to queue a list of replacements (patches) targeting

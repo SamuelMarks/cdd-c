@@ -136,8 +136,9 @@ static int is_storage_specifier(const struct Token *tok) {
  * @param close Kind of closing token.
  * @return Index of the matching closing token, or tokens->size if not found.
  */
-static size_t find_balanced_end(const struct TokenList *tokens, size_t start,
-                                enum TokenKind open, enum TokenKind close) {
+static int find_balanced_end(const struct TokenList *tokens, size_t start,
+                             enum TokenKind open, enum TokenKind close,
+                             size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -150,9 +151,14 @@ static size_t find_balanced_end(const struct TokenList *tokens, size_t start,
     i++;
   }
 
-  if (depth == 0)
-    return i - 1; /* Return index of the closer */
-  return tokens->size;
+  if (depth == 0) {
+    *_out_val = i - 1;
+    return 0;
+  } /* Return index of the closer */
+  {
+    *_out_val = tokens->size;
+    return 0;
+  }
 }
 
 /**
@@ -220,6 +226,8 @@ static int has_meaningful_tokens(const struct TokenList *tokens, size_t start,
 }
 
 int rewrite_signature(const struct TokenList *tokens, char **out_code) {
+  size_t _ast_find_balanced_end_0;
+  size_t _ast_find_balanced_end_1;
   struct ParsedSig sig;
   size_t i = 0;
   size_t lparen_idx = 0;
@@ -244,7 +252,9 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
     if (i + 1 < tokens->size && tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
       /* Found [[ */
       size_t end_attr =
-          find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET);
+          (find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET,
+                             &_ast_find_balanced_end_0),
+           _ast_find_balanced_end_0);
 
       if (end_attr < tokens->size && end_attr > i) {
         attr_end_idx = end_attr + 1; /* Past the closing ] */
@@ -353,8 +363,9 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
 
   /* 5. Extract Arguments */
   {
-    size_t rparen =
-        find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN);
+    size_t rparen = (find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN,
+                                       TOKEN_RPAREN, &_ast_find_balanced_end_1),
+                     _ast_find_balanced_end_1);
     if (rparen >= tokens->size) {
       rc = EINVAL;
       goto cleanup;

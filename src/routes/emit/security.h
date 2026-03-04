@@ -1,5 +1,5 @@
 /**
- * @file codegen_security.h
+ * @file security.h
  * @brief Security Logic Generator for API Clients.
  *
  * Provides functionality to generate C code that applies authentication

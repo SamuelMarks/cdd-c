@@ -1,5 +1,5 @@
 /**
- * @file project_audit.h
+ * @file audit.h
  * @brief Analysis and auditing for C projects.
  * Provides functionality to walk directories, scan files, and report on memory
  * allocation safety with detailed traces.
@@ -78,9 +78,11 @@ extern C_CDD_EXPORT int audit_project(const char *root_path,
  * Caller must free the returned string.
  *
  * @param[in] stats The statistics.
+ * @param[out] out_json Pointer to store the result
  * @return Allocated string containing JSON, or NULL on error.
  */
-extern C_CDD_EXPORT char *audit_print_json(const struct AuditStats *stats);
+extern C_CDD_EXPORT int audit_print_json(const struct AuditStats *stats,
+                                         char **out_json);
 
 #ifdef __cplusplus
 }

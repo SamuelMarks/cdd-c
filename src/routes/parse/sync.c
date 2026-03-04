@@ -1,5 +1,5 @@
 /**
- * @file refactor_api_sync.c
+ * @file sync.c
  * @brief Implementation of API Synchronization.
  *
  * Updates implementation bodies to match OpenApi specs.
@@ -26,6 +26,7 @@
 #include "routes/emit/url.h"
 #include "routes/parse/sync.h"
 
+/** @brief CALL_AND_CHECK definition */
 #define CALL_AND_CHECK(x)                                                      \
   do {                                                                         \
     if ((x) != 0)                                                              \
@@ -37,15 +38,18 @@
 /**
  * @brief Generate signature string.
  */
-static char *generate_expected_sig(const struct OpenAPI_Operation *op,
-                                   const struct ApiSyncConfig *cfg) {
+static int generate_expected_sig(const struct OpenAPI_Operation *op,
+                                 const struct ApiSyncConfig *cfg,
+                                 char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
   struct CodegenSigConfig sig_cfg;
 
-  if (!tmp)
-    return NULL;
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   memset(&sig_cfg, 0, sizeof(sig_cfg));
   sig_cfg.prefix = cfg->func_prefix;
@@ -53,7 +57,10 @@ static char *generate_expected_sig(const struct OpenAPI_Operation *op,
 
   if (codegen_client_write_signature(tmp, op, &sig_cfg) != 0) {
     fclose(tmp);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -72,23 +79,32 @@ static char *generate_expected_sig(const struct OpenAPI_Operation *op,
     c_cdd_str_trim_trailing_whitespace(buf);
   }
   fclose(tmp);
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /**
  * @brief Generate Query parameters block.
  */
-static char *generate_expected_query(const struct OpenAPI_Operation *op) {
+static int generate_expected_query(const struct OpenAPI_Operation *op,
+                                   char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
 
-  if (!tmp)
-    return NULL;
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   if (codegen_url_write_query_params(tmp, op, 0) != 0) {
     fclose(tmp);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -101,7 +117,10 @@ static char *generate_expected_query(const struct OpenAPI_Operation *op) {
     buf[sz] = '\0';
   }
   fclose(tmp);
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /**
@@ -109,10 +128,13 @@ static char *generate_expected_query(const struct OpenAPI_Operation *op) {
  * Since we don't have access to codegen_client_body static functions, iterate
  * here.
  */
-static char *generate_expected_header_line(const struct OpenAPI_Parameter *p) {
+static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
+                                         char **_out_val) {
   char *buf = malloc(512);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   if (strcmp(p->type, "string") == 0) {
     sprintf(buf,
@@ -131,22 +153,28 @@ static char *generate_expected_header_line(const struct OpenAPI_Parameter *p) {
     sprintf(buf, "  /* Header Parameter: %s (Type unhandled in sync) */\n",
             p->name);
   }
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /**
  * @brief Generate URL builder.
  */
-static char *generate_expected_url(const char *path,
-                                   const struct OpenAPI_Operation *op,
-                                   const struct ApiSyncConfig *cfg) {
+static int generate_expected_url(const char *path,
+                                 const struct OpenAPI_Operation *op,
+                                 const struct ApiSyncConfig *cfg,
+                                 char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
   struct CodegenUrlConfig url_cfg;
 
-  if (!tmp)
-    return NULL;
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   memset(&url_cfg, 0, sizeof(url_cfg));
   url_cfg.out_variable = cfg->url_var_name ? cfg->url_var_name : "url";
@@ -154,7 +182,10 @@ static char *generate_expected_url(const char *path,
   if (codegen_url_write_builder(tmp, path, op->parameters, op->n_parameters,
                                 &url_cfg) != 0) {
     fclose(tmp);
-    return NULL;
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -167,14 +198,18 @@ static char *generate_expected_url(const char *path,
     buf[sz] = '\0';
   }
   fclose(tmp);
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /* --- Parsing Utils --- */
 
-static struct CstNode *find_function_node(struct CstNodeList *cst,
-                                          struct TokenList *tokens,
-                                          const char *func_name) {
+static int find_function_node(struct CstNodeList *cst, struct TokenList *tokens,
+                              const char *func_name,
+                              struct CstNode **_out_val) {
+  bool _ast_token_matches_string_0;
   size_t i;
   for (i = 0; i < cst->size; ++i) {
     if (cst->nodes[i].kind == CST_NODE_FUNCTION) {
@@ -188,19 +223,26 @@ static struct CstNode *find_function_node(struct CstNodeList *cst,
                    tokens->tokens[id_idx].kind == TOKEN_WHITESPACE)
               id_idx--;
             if (tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER &&
-                token_matches_string(&tokens->tokens[id_idx], func_name))
-              return node;
+                (token_matches_string(&tokens->tokens[id_idx], func_name,
+                                      &_ast_token_matches_string_0),
+                 _ast_token_matches_string_0)) {
+              *_out_val = node;
+              return 0;
+            }
           }
           break;
         }
       }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static char *extract_current_sig(struct TokenList *tokens, struct CstNode *node,
-                                 size_t *out_end_idx) {
+static int extract_current_sig(struct TokenList *tokens, struct CstNode *node,
+                               size_t *out_end_idx, char **_out_val) {
   size_t i;
   size_t start = node->start_token;
   size_t args_end = 0;
@@ -239,9 +281,15 @@ static char *extract_current_sig(struct TokenList *tokens, struct CstNode *node,
     *p = '\0';
     if (out_end_idx)
       *out_end_idx = args_end + 1;
-    return buf;
+    {
+      *_out_val = buf;
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 /* --- Applying updates --- */
@@ -249,6 +297,9 @@ static char *extract_current_sig(struct TokenList *tokens, struct CstNode *node,
 static void apply_query_sync(const struct OpenAPI_Operation *op,
                              struct TokenList *tokens, struct CstNode *node,
                              struct PatchList *patches) {
+  bool _ast_token_matches_string_1;
+  bool _ast_token_matches_string_2;
+  char *_ast_generate_expected_query_3;
   /* Locate "url_query_init" -> "url_query_build" */
   size_t k;
   size_t init_idx = 0;
@@ -267,11 +318,15 @@ static void apply_query_sync(const struct OpenAPI_Operation *op,
   for (k = body_start; k < node->end_token; k++) {
     if (tokens->tokens[k].kind == TOKEN_IDENTIFIER) {
       if (!init_idx &&
-          token_matches_string(&tokens->tokens[k], "url_query_init")) {
+          (token_matches_string(&tokens->tokens[k], "url_query_init",
+                                &_ast_token_matches_string_1),
+           _ast_token_matches_string_1)) {
         init_idx = k;
       }
       if (!build_idx &&
-          token_matches_string(&tokens->tokens[k], "url_query_build")) {
+          (token_matches_string(&tokens->tokens[k], "url_query_build",
+                                &_ast_token_matches_string_2),
+           _ast_token_matches_string_2)) {
         build_idx = k;
       }
     }
@@ -298,7 +353,9 @@ static void apply_query_sync(const struct OpenAPI_Operation *op,
     end_stmt++; /* Include semi */
 
     {
-      char *new_blk = generate_expected_query(op);
+      char *new_blk =
+          (generate_expected_query(op, &_ast_generate_expected_query_3),
+           _ast_generate_expected_query_3);
       if (new_blk) {
         patch_list_add(patches, start_stmt, end_stmt, new_blk);
       }
@@ -316,6 +373,8 @@ static void apply_query_sync(const struct OpenAPI_Operation *op,
 static void apply_header_sync(const struct OpenAPI_Operation *op,
                               struct TokenList *tokens, struct CstNode *node,
                               struct PatchList *patches) {
+  bool _ast_token_matches_string_4;
+  char *_ast_generate_expected_header_line_5;
   size_t i, k;
   /*
      Heuristic: Look for "Header Parameter: name" comment.
@@ -339,7 +398,9 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
       for (k = node->start_token; k < node->end_token; ++k) {
         if (tokens->tokens[k].kind == TOKEN_COMMENT) {
           /* Tokenizer usually returns comment content with delimiters */
-          if (token_matches_string(&tokens->tokens[k], comment_text)) {
+          if ((token_matches_string(&tokens->tokens[k], comment_text,
+                                    &_ast_token_matches_string_4),
+               _ast_token_matches_string_4)) {
             found_idx = k;
             break;
           }
@@ -378,7 +439,10 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
         }
 
         if (entered) {
-          char *new_hdr = generate_expected_header_line(&op->parameters[i]);
+          char *new_hdr =
+              (generate_expected_header_line(
+                   &op->parameters[i], &_ast_generate_expected_header_line_5),
+               _ast_generate_expected_header_line_5);
           if (new_hdr) {
             patch_list_add(patches, found_idx, end_logic, new_hdr);
           }
@@ -392,6 +456,13 @@ static int apply_updates(const char *filename, const char *content,
                          struct TokenList *tokens, struct CstNodeList *cst,
                          const struct OpenAPI_Spec *spec,
                          const struct ApiSyncConfig *cfg) {
+  struct CstNode *_ast_find_function_node_6;
+  char *_ast_generate_expected_sig_7;
+  char *_ast_extract_current_sig_8;
+  bool _ast_token_matches_string_9;
+  bool _ast_token_matches_string_10;
+  bool _ast_token_matches_string_11;
+  char *_ast_generate_expected_url_12;
   struct PatchList patches;
   size_t i, j;
   int rc = 0;
@@ -418,17 +489,27 @@ static int apply_updates(const char *filename, const char *content,
               op->operation_id);
 #endif
 
-      node = find_function_node(cst, tokens, func_name);
+      node = (find_function_node(cst, tokens, func_name,
+                                 &_ast_find_function_node_6),
+              _ast_find_function_node_6);
       if (node) {
         /* 1. Sync Signature */
-        char *expected_sig = generate_expected_sig(op, cfg);
+        char *expected_sig =
+            (generate_expected_sig(op, cfg, &_ast_generate_expected_sig_7),
+             _ast_generate_expected_sig_7);
         size_t sig_end_idx = 0;
-        char *actual_sig = extract_current_sig(tokens, node, &sig_end_idx);
+        char *actual_sig = (extract_current_sig(tokens, node, &sig_end_idx,
+                                                &_ast_extract_current_sig_8),
+                            _ast_extract_current_sig_8);
 
         if (expected_sig && actual_sig) {
           if (strcmp(expected_sig, actual_sig) != 0) {
-            patch_list_add(&patches, node->start_token, sig_end_idx,
-                           c_cdd_strdup(expected_sig));
+            {
+              char *_ast_strdup_0 = NULL;
+              c_cdd_strdup(expected_sig, &_ast_strdup_0);
+              patch_list_add(&patches, node->start_token, sig_end_idx,
+                             _ast_strdup_0);
+            }
           }
         }
         free(expected_sig);
@@ -459,8 +540,12 @@ static int apply_updates(const char *filename, const char *content,
 
             for (k = body_start; k < node->end_token; ++k) {
               if (tokens->tokens[k].kind == TOKEN_IDENTIFIER &&
-                  (token_matches_string(&tokens->tokens[k], "asprintf") ||
-                   token_matches_string(&tokens->tokens[k], "snprintf"))) {
+                  ((token_matches_string(&tokens->tokens[k], "asprintf",
+                                         &_ast_token_matches_string_9),
+                    _ast_token_matches_string_9) ||
+                   (token_matches_string(&tokens->tokens[k], "snprintf",
+                                         &_ast_token_matches_string_10),
+                    _ast_token_matches_string_10))) {
                 asprintf_idx = k;
                 while (k < node->end_token &&
                        tokens->tokens[k].kind != TOKEN_SEMICOLON)
@@ -474,13 +559,18 @@ static int apply_updates(const char *filename, const char *content,
               int matches_var = 0;
               size_t m;
               for (m = asprintf_idx; m < stmt_end_idx; ++m) {
-                if (token_matches_string(&tokens->tokens[m], var)) {
+                if ((token_matches_string(&tokens->tokens[m], var,
+                                          &_ast_token_matches_string_11),
+                     _ast_token_matches_string_11)) {
                   matches_var = 1;
                   break;
                 }
               }
               if (matches_var) {
-                char *new_block = generate_expected_url(p->route, op, cfg);
+                char *new_block =
+                    (generate_expected_url(p->route, op, cfg,
+                                           &_ast_generate_expected_url_12),
+                     _ast_generate_expected_url_12);
                 if (new_block) {
                   patch_list_add(&patches, asprintf_idx, stmt_end_idx,
                                  new_block);

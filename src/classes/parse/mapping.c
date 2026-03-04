@@ -1,5 +1,5 @@
 /**
- * @file c_mapping.c
+ * @file mapping.c
  * @brief Implementation of C to OpenAPI type mapping.
  *
  * @author Samuel Marks
@@ -34,12 +34,14 @@ void c_mapping_free(struct OpenApiTypeMapping *const out) {
 
 static int set_primitive(struct OpenApiTypeMapping *out, const char *type,
                          const char *fmt) {
+  char *_ast_strdup_0 = NULL;
+  char *_ast_strdup_1 = NULL;
   out->kind = OA_TYPE_PRIMITIVE;
-  out->oa_type = c_cdd_strdup(type);
+  out->oa_type = (c_cdd_strdup(type, &_ast_strdup_0), _ast_strdup_0);
   if (!out->oa_type)
     return ENOMEM;
   if (fmt) {
-    out->oa_format = c_cdd_strdup(fmt);
+    out->oa_format = (c_cdd_strdup(fmt, &_ast_strdup_1), _ast_strdup_1);
     if (!out->oa_format) {
       free(out->oa_type);
       out->oa_type = NULL;
@@ -50,18 +52,19 @@ static int set_primitive(struct OpenApiTypeMapping *out, const char *type,
 }
 
 static int set_ref(struct OpenApiTypeMapping *out, const char *ref) {
+  char *_ast_strdup_2 = NULL;
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
      The ref_name holds the target. */
-  out->ref_name = c_cdd_strdup(ref);
+  out->ref_name = (c_cdd_strdup(ref, &_ast_strdup_2), _ast_strdup_2);
   if (!out->ref_name)
     return ENOMEM;
   return 0;
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static const char *skip_qualifiers(const char *type) {
+static int skip_qualifiers(const char *type, char **_out_val) {
   const char *p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
@@ -81,14 +84,20 @@ static const char *skip_qualifiers(const char *type) {
        start. */
     break;
   }
-  return p;
+  {
+    *_out_val = p;
+    return 0;
+  }
 }
 
-static char *clean_type_str(const char *in) {
-  char *buf = c_cdd_strdup(in);
+static int clean_type_str(const char *in, char **_out_val) {
+  char *_ast_strdup_3 = NULL;
+  char *buf = (c_cdd_strdup(in, &_ast_strdup_3), _ast_strdup_3);
   char *p;
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   /* Remove pointer asterisk */
   p = strchr(buf, '*');
@@ -96,13 +105,23 @@ static char *clean_type_str(const char *in) {
     *p = '\0';
 
   c_cdd_str_trim_trailing_whitespace(buf);
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 int c_mapping_map_type(const char *const c_type_in, const char *const decl_name,
                        struct OpenApiTypeMapping *const out) {
+  char *_ast_skip_qualifiers_0;
+  char *_ast_clean_type_str_1;
+  bool _ast_starts_with_4 = false;
+  bool _ast_starts_with_5 = false;
+  char *_ast_strdup_6 = NULL;
+  char *_ast_strdup_7 = NULL;
   char *clean = NULL;
-  const char *c_type = skip_qualifiers(c_type_in);
+  const char *c_type = (skip_qualifiers(c_type_in, &_ast_skip_qualifiers_0),
+                        _ast_skip_qualifiers_0);
   int is_ptr = 0;
   int is_array = 0;
   int rc = 0;
@@ -156,9 +175,12 @@ int c_mapping_map_type(const char *const c_type_in, const char *const decl_name,
       out->kind = OA_TYPE_UNKNOWN;
   }
   /* Structs / Enums */
-  else if (c_cdd_str_starts_with(c_type, "struct ") ||
-           c_cdd_str_starts_with(c_type, "enum ")) {
-    clean = clean_type_str(c_type);
+  else if ((c_cdd_str_starts_with(c_type, "struct ", &_ast_starts_with_4),
+            _ast_starts_with_4) ||
+           (c_cdd_str_starts_with(c_type, "enum ", &_ast_starts_with_5),
+            _ast_starts_with_5)) {
+    clean =
+        (clean_type_str(c_type, &_ast_clean_type_str_1), _ast_clean_type_str_1);
     if (!clean)
       return ENOMEM;
 
@@ -188,8 +210,14 @@ int c_mapping_map_type(const char *const c_type_in, const char *const decl_name,
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
   if (is_array) {
     /* It's an array of the resolved type */
-    char *inner_ref = out->ref_name ? c_cdd_strdup(out->ref_name) : NULL;
-    char *inner_type = out->oa_type ? c_cdd_strdup(out->oa_type) : NULL;
+    char *inner_ref =
+        out->ref_name
+            ? (c_cdd_strdup(out->ref_name, &_ast_strdup_6), _ast_strdup_6)
+            : NULL;
+    char *inner_type =
+        out->oa_type
+            ? (c_cdd_strdup(out->oa_type, &_ast_strdup_7), _ast_strdup_7)
+            : NULL;
     /* Move current mapping to "items" logic? */
     /* The OpenApiTypeMapping struct is flat. We need to indicate it's an Array
        OF X. */

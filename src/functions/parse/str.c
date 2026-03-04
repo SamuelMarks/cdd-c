@@ -1,5 +1,5 @@
 /**
- * @file str_utils.c
+ * @file str.c
  * @brief Implementation of shared string utilities.
  *
  * @author Samuel Marks
@@ -20,63 +20,91 @@
 
 #include "functions/parse/str.h"
 
-char *c_cdd_strdup(const char *const s) {
-  if (s == NULL)
-    return NULL;
-#ifdef _WIN32
-  return _strdup(s);
-#else
-  return strdup(s);
-#endif
-}
-
-bool c_cdd_str_starts_with(const char *const str, const char *const prefix) {
-  size_t i;
-  if (str == NULL || prefix == NULL)
-    return false;
-  for (i = 0; prefix[i] != '\0'; i++) {
-    if (str[i] != prefix[i])
-      return false;
+int c_cdd_strdup(const char *const s, char **out_s) {
+  if (s == NULL) {
+    *out_s = NULL;
+    return 0;
   }
-  return true;
+#ifdef _WIN32
+  *out_s = _strdup(s);
+#else
+  *out_s = strdup(s);
+#endif
+  return *out_s ? 0 : 12;
 }
 
-bool c_cdd_str_equal(const char *a, const char *b) {
-  if (a == b)
-    return true; /* Handles both NULL case */
-  if (a == NULL || b == NULL)
-    return false; /* One is NULL, other is not */
-  return strcmp(a, b) == 0;
+int c_cdd_str_starts_with(const char *const str, const char *const prefix,
+                          bool *out_b) {
+  size_t i;
+  if (str == NULL || prefix == NULL) {
+    *out_b = false;
+    return 0;
+  }
+  for (i = 0; prefix[i] != '\0'; i++) {
+    if (str[i] != prefix[i]) {
+      *out_b = false;
+      return 0;
+    }
+  }
+  *out_b = true;
+  return 0;
 }
 
-bool c_cdd_str_iequal(const char *a, const char *b) {
-  if (a == b)
-    return true; /* Handles both NULL case */
-  if (a == NULL || b == NULL)
-    return false; /* One is NULL, other is not */
+int c_cdd_str_equal(const char *a, const char *b, bool *out_b) {
+  if (a == b) {
+    *out_b = true;
+    return 0;
+  }
+  if (a == NULL || b == NULL) {
+    *out_b = false;
+    return 0;
+  }
+  *out_b = (strcmp(a, b) == 0);
+  return 0;
+}
+
+int c_cdd_str_iequal(const char *a, const char *b, bool *out_b) {
+  if (a == b) {
+    *out_b = true;
+    return 0;
+  }
+  if (a == NULL || b == NULL) {
+    *out_b = false;
+    return 0;
+  }
   while (*a && *b) {
-    if (tolower((unsigned char)*a) != tolower((unsigned char)*b))
-      return false;
+    if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
+      *out_b = false;
+      return 0;
+    }
     ++a;
     ++b;
   }
-  return *a == '\0' && *b == '\0';
+  *out_b = (*a == '\0' && *b == '\0');
+  return 0;
 }
 
-const char *c_cdd_str_after_last(const char *const str, const int delimiter) {
+int c_cdd_str_after_last(const char *const str, const int delimiter,
+                         const char **out_s) {
   const char *last_occurrence;
-  if (str == NULL)
-    return "";
+  if (str == NULL) {
+    *out_s = "";
+    return 0;
+  }
   last_occurrence = strrchr(str, delimiter);
-  return last_occurrence ? last_occurrence + 1 : str;
+  *out_s = last_occurrence ? last_occurrence + 1 : str;
+  return 0;
 }
 
-bool c_cdd_ref_is_type(const char *const ref, const char *const type) {
-  const char *extracted;
-  if (ref == NULL || type == NULL)
-    return false;
-  extracted = c_cdd_str_after_last(ref, '/');
-  return strcmp(extracted, type) == 0;
+int c_cdd_ref_is_type(const char *const ref, const char *const type,
+                      bool *out_b) {
+  const char *extracted = NULL;
+  if (ref == NULL || type == NULL) {
+    *out_b = false;
+    return 0;
+  }
+  c_cdd_str_after_last(ref, '/', &extracted);
+  return c_cdd_str_equal(extracted, type, out_b);
 }
 
 void c_cdd_str_trim_trailing_whitespace(char *const str) {
@@ -95,34 +123,38 @@ void c_cdd_str_trim_trailing_whitespace(char *const str) {
   }
 }
 
-char *c_cdd_destringize(const char *const quoted) {
+int c_cdd_destringize(const char *const quoted, char **out_s) {
   size_t len, i, j;
   char *out;
   const char *inner;
 
-  if (!quoted)
-    return NULL;
-
-  len = strlen(quoted);
-  if (len < 2)
-    return NULL; /* Malformed literal */
-
-  /* Simple check for "..." structure */
-  /* Handles optional prefix L"..." */
-  if (quoted[0] == 'L' && (len > 2 && quoted[1] == '"')) {
-    inner = quoted + 2;
-    len -= 3; /* L, ", and trailing " */
-  } else if (quoted[0] == '"') {
-    inner = quoted + 1;
-    len -= 2; /* ", and trailing " */
-  } else {
-    return NULL; /* Not a standard double-quoted string literal */
+  if (!quoted) {
+    *out_s = NULL;
+    return 0;
   }
 
-  /* Allocation bound: destringized length <= inner length */
+  len = strlen(quoted);
+  if (len < 2) {
+    *out_s = NULL;
+    return 0;
+  }
+
+  if (quoted[0] == 'L' && (len > 2 && quoted[1] == '"')) {
+    inner = quoted + 2;
+    len -= 3;
+  } else if (quoted[0] == '"') {
+    inner = quoted + 1;
+    len -= 2;
+  } else {
+    *out_s = NULL;
+    return 0;
+  }
+
   out = (char *)malloc(len + 1);
-  if (!out)
-    return NULL;
+  if (!out) {
+    *out_s = NULL;
+    return 0;
+  }
 
   for (i = 0, j = 0; i < len; i++) {
     if (inner[i] == '\\') {
@@ -134,22 +166,16 @@ char *c_cdd_destringize(const char *const quoted) {
           out[j++] = '\\';
           i++;
         } else {
-          /* Copy other escapes literally as per spec phase logic? */
-          /* 6.10.9: "replacing each escape sequence \" by a double-quote, and
-           * replacing each escape sequence \\ by a single backslash" */
-          /* It does not mention other escapes. They should remain literally in
-           * the output token stream? */
-          /* Standard says: The result is a sequence of preprocessing tokens. */
-          /* Here we just perform the specified mapping. */
           out[j++] = inner[i];
         }
       } else {
-        out[j++] = inner[i]; /* Trailing backslash? */
+        out[j++] = inner[i];
       }
     } else {
       out[j++] = inner[i];
     }
   }
   out[j] = '\0';
-  return out;
+  *out_s = out;
+  return 0;
 }

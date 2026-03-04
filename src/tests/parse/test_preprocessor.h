@@ -19,9 +19,15 @@
 #endif
 
 /* Helpers */
+/** \brief mock */
 struct TestPPCtx {
+  /** @brief count */
+  /** @brief count */
   int count;
+  /** @brief last_params */
+  /** @brief last_found[256] */
   char last_found[256];
+  /** @brief last_params */
   struct EmbedParams last_params; /* captured */
 };
 
@@ -55,7 +61,7 @@ static int mock_cb(const struct IncludeInfo *info, void *user_data) {
 
 /* --- Expression Evaluator Tests --- */
 
-static long eval(const char *expr, struct PreprocessorContext *ctx) {
+static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
@@ -65,37 +71,115 @@ static long eval(const char *expr, struct PreprocessorContext *ctx) {
   free_token_list(tl);
   if (rc != 0)
     return -999;
-  return res;
+  if (out)
+    *out = res;
+  return 0;
 }
 
 TEST test_pp_eval_arithmetic(void) {
-  ASSERT_EQ(2, eval("1 + 1", NULL));
-  ASSERT_EQ(7, eval("1 + 2 * 3", NULL));   /* Precedence */
-  ASSERT_EQ(9, eval("(1 + 2) * 3", NULL)); /* Parens */
-  ASSERT_EQ(1, eval("5 / 5", NULL));
-  ASSERT_EQ(0, eval("1 - 1", NULL));
-  ASSERT_EQ(-1, eval("1 - 2", NULL));
-  ASSERT_EQ(1, eval("5 % 2", NULL));
+  {
+    long out = 0;
+    eval("1 + 1", NULL, &out);
+    ASSERT_EQ(2, out);
+  }
+  {
+    long out = 0;
+    eval("1 + 2 * 3", NULL, &out);
+    ASSERT_EQ(7, out);
+  } /* Precedence */
+  {
+    long out = 0;
+    eval("(1 + 2) * 3", NULL, &out);
+    ASSERT_EQ(9, out);
+  } /* Parens */
+  {
+    long out = 0;
+    eval("5 / 5", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("1 - 1", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
+  {
+    long out = 0;
+    eval("1 - 2", NULL, &out);
+    ASSERT_EQ(-1, out);
+  }
+  {
+    long out = 0;
+    eval("5 % 2", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
   PASS();
 }
 
 TEST test_pp_eval_logical(void) {
-  ASSERT_EQ(1, eval("1 && 1", NULL));
-  ASSERT_EQ(0, eval("1 && 0", NULL));
-  ASSERT_EQ(1, eval("1 || 0", NULL));
-  ASSERT_EQ(0, eval("0 || 0", NULL));
-  ASSERT_EQ(1, eval("!0", NULL));
-  ASSERT_EQ(0, eval("!1", NULL));
+  {
+    long out = 0;
+    eval("1 && 1", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("1 && 0", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
+  {
+    long out = 0;
+    eval("1 || 0", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("0 || 0", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
+  {
+    long out = 0;
+    eval("!0", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("!1", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
   PASS();
 }
 
 TEST test_pp_eval_comparison(void) {
-  ASSERT_EQ(1, eval("1 == 1", NULL));
-  ASSERT_EQ(0, eval("1 == 2", NULL));
-  ASSERT_EQ(1, eval("1 != 2", NULL));
-  ASSERT_EQ(1, eval("2 > 1", NULL));
-  ASSERT_EQ(0, eval("1 > 2", NULL));
-  ASSERT_EQ(1, eval("1 <= 1", NULL));
+  {
+    long out = 0;
+    eval("1 == 1", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("1 == 2", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
+  {
+    long out = 0;
+    eval("1 != 2", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("2 > 1", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("1 > 2", NULL, &out);
+    ASSERT_EQ(0, out);
+  }
+  {
+    long out = 0;
+    eval("1 <= 1", NULL, &out);
+    ASSERT_EQ(1, out);
+  }
   PASS();
 }
 
@@ -104,9 +188,21 @@ TEST test_pp_eval_defined(void) {
   pp_context_init(&ctx);
   pp_add_macro(&ctx, "FOO", NULL);
 
-  ASSERT_EQ(1, eval("defined FOO", &ctx));
-  ASSERT_EQ(1, eval("defined(FOO)", &ctx));
-  ASSERT_EQ(0, eval("defined BAR", &ctx));
+  {
+    long out = 0;
+    eval("defined FOO", &ctx, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("defined(FOO)", &ctx, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("defined BAR", &ctx, &out);
+    ASSERT_EQ(0, out);
+  }
   PASS();
   pp_context_free(&ctx);
 }
@@ -117,7 +213,11 @@ TEST test_pp_eval_macros_as_values(void) {
   pp_add_macro(&ctx, "ONE", "1");
   pp_add_macro(&ctx, "TWO", "2");
 
-  ASSERT_EQ(3, eval("ONE + TWO", &ctx));
+  {
+    long out = 0;
+    eval("ONE + TWO", &ctx, &out);
+    ASSERT_EQ(3, out);
+  }
 
   pp_context_free(&ctx);
   PASS();
@@ -140,8 +240,16 @@ TEST test_pp_has_include(void) {
   pp_context_init(&ctx);
   pp_add_search_path(&ctx, root);
 
-  ASSERT_EQ(1, eval("__has_include(\"heading.h\")", &ctx));
-  ASSERT_EQ(0, eval("__has_include(\"missing.h\")", &ctx));
+  {
+    long out = 0;
+    eval("__has_include(\"heading.h\")", &ctx, &out);
+    ASSERT_EQ(1, out);
+  }
+  {
+    long out = 0;
+    eval("__has_include(\"missing.h\")", &ctx, &out);
+    ASSERT_EQ(0, out);
+  }
 
   pp_context_free(&ctx);
   remove(h);

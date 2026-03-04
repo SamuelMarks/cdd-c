@@ -33,19 +33,36 @@
 #endif
 
 /* Mock Pet and ApiError struct (normally generated) */
+/** \brief mock */
 struct Pet {
+  /** @brief id */
+  /** @brief id */
   int id;
+  /** @brief tag */
+  /** @brief name */
   char *name;
+  /** @brief tag */
   char *tag;
 };
 
+/** @brief type */
+
+/** @brief title */
 /* Minimal ApiError for reference impl */
 struct ApiError {
+  /** @brief detail */
+  /** @brief type */
   char *type;
+  /** @brief raw_body */
+  /** @brief title */
   char *title;
+  /** @brief status */
   int status;
+  /** @brief detail */
   char *detail;
+  /** @brief instance */
   char *instance;
+  /** @brief raw_body */
   char *raw_body;
 };
 
@@ -181,7 +198,7 @@ TEST test_runtime_execution_with_mock_server(void) {
   char base_url[64];
   int rc;
 
-  server = mock_server_init();
+  mock_server_init(&server);
   if (mock_server_start(server) != 0) {
     mock_server_destroy(server);
     SKIPm("Mock server start failed (sockets unavailable?)");

@@ -1,5 +1,5 @@
 /**
- * @file numeric_parser.c
+ * @file numeric.c
  * @brief Implementation of C numeric literal parsing.
  *
  * Implements a state-machine-like scanner to differentiate between integers
@@ -79,7 +79,8 @@ static int parse_int_suffixes(const char *str, struct IntegerInfo *info) {
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
  */
-static uint64_t parse_binary_str(const char *str, char **endptr) {
+static int parse_binary_str(const char *str, char **endptr,
+                            uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;
   while (*p == '0' || *p == '1') {
@@ -93,10 +94,14 @@ static uint64_t parse_binary_str(const char *str, char **endptr) {
   }
   if (endptr)
     *endptr = (char *)p;
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
 int parse_numeric_literal(const char *str, struct NumericValue *out) {
+  uint64_t _ast_parse_binary_str_0;
   int is_hex = 0;
   int is_bin = 0;
   int is_oct = 0;
@@ -209,7 +214,8 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
     errno = 0;
 
     if (is_bin) {
-      val = parse_binary_str(start_digits, &end_ptr);
+      val = (parse_binary_str(start_digits, &end_ptr, &_ast_parse_binary_str_0),
+             _ast_parse_binary_str_0);
       out->data.integer.base = 2;
     } else {
       /* Handle hex/oct/dec via strtoull */

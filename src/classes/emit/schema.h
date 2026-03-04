@@ -1,5 +1,5 @@
 /**
- * @file c2openapi_schema.h
+ * @file schema.h
  * @brief Schema Registry Integration.
  *
  * Implements logic to register C types detected in source code into the

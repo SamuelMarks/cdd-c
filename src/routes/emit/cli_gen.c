@@ -1,3 +1,8 @@
+/**
+ * @file cli_gen.c
+ * @brief Implementation of CLI wrapper generation.
+ */
+
 #include "cli_gen.h"
 #include <stdio.h>
 #include <stdlib.h>

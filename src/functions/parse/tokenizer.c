@@ -200,259 +200,554 @@ static int token_list_add(struct TokenList *const tl, const enum TokenKind kind,
   return 0;
 }
 
-static bool span_equals_str(const az_span span, const char *str) {
+static int span_equals_str(const az_span span, const char *str,
+                           bool *_out_val) {
 
-  return az_span_is_content_equal(span, az_span_create_from_str((char *)str));
+  {
+    *_out_val =
+        az_span_is_content_equal(span, az_span_create_from_str((char *)str));
+    return 0;
+  }
 }
 
 /* Helper to classify keywords */
 
-enum TokenKind identify_keyword_or_id(const uint8_t *start, size_t len) {
+int identify_keyword_or_id(const uint8_t *start, size_t len,
+                           enum TokenKind *_out_val) {
+  bool _ast_span_equals_str_0;
+  bool _ast_span_equals_str_1;
+  bool _ast_span_equals_str_2;
+  bool _ast_span_equals_str_3;
+  bool _ast_span_equals_str_4;
+  bool _ast_span_equals_str_5;
+  bool _ast_span_equals_str_6;
+  bool _ast_span_equals_str_7;
+  bool _ast_span_equals_str_8;
+  bool _ast_span_equals_str_9;
+  bool _ast_span_equals_str_10;
+  bool _ast_span_equals_str_11;
+  bool _ast_span_equals_str_12;
+  bool _ast_span_equals_str_13;
+  bool _ast_span_equals_str_14;
+  bool _ast_span_equals_str_15;
+  bool _ast_span_equals_str_16;
+  bool _ast_span_equals_str_17;
+  bool _ast_span_equals_str_18;
+  bool _ast_span_equals_str_19;
+  bool _ast_span_equals_str_20;
+  bool _ast_span_equals_str_21;
+  bool _ast_span_equals_str_22;
+  bool _ast_span_equals_str_23;
+  bool _ast_span_equals_str_24;
+  bool _ast_span_equals_str_25;
+  bool _ast_span_equals_str_26;
+  bool _ast_span_equals_str_27;
+  bool _ast_span_equals_str_28;
+  bool _ast_span_equals_str_29;
+  bool _ast_span_equals_str_30;
+  bool _ast_span_equals_str_31;
+  bool _ast_span_equals_str_32;
+  bool _ast_span_equals_str_33;
+  bool _ast_span_equals_str_34;
+  bool _ast_span_equals_str_35;
+  bool _ast_span_equals_str_36;
+  bool _ast_span_equals_str_37;
+  bool _ast_span_equals_str_38;
+  bool _ast_span_equals_str_39;
+  bool _ast_span_equals_str_40;
+  bool _ast_span_equals_str_41;
+  bool _ast_span_equals_str_42;
+  bool _ast_span_equals_str_43;
+  bool _ast_span_equals_str_44;
+  bool _ast_span_equals_str_45;
+  bool _ast_span_equals_str_46;
+  bool _ast_span_equals_str_47;
+  bool _ast_span_equals_str_48;
+  bool _ast_span_equals_str_49;
+  bool _ast_span_equals_str_50;
+  bool _ast_span_equals_str_51;
+  bool _ast_span_equals_str_52;
+  bool _ast_span_equals_str_53;
+  bool _ast_span_equals_str_54;
+  bool _ast_span_equals_str_55;
+  bool _ast_span_equals_str_56;
 
   az_span s = az_span_create((uint8_t *)start, (int32_t)len);
 
   /* C89/C90/C99/C11/C23 Keywords */
 
-  if (span_equals_str(s, "auto"))
+  if ((span_equals_str(s, "auto", &_ast_span_equals_str_0),
+       _ast_span_equals_str_0))
+
+  {
+    *_out_val = TOKEN_KEYWORD_AUTO;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_AUTO;
+  if ((span_equals_str(s, "break", &_ast_span_equals_str_1),
+       _ast_span_equals_str_1))
+
+  {
+    *_out_val = TOKEN_KEYWORD_BREAK;
+    return 0;
+  }
 
-  if (span_equals_str(s, "break"))
+  if ((span_equals_str(s, "case", &_ast_span_equals_str_2),
+       _ast_span_equals_str_2))
+
+  {
+    *_out_val = TOKEN_KEYWORD_CASE;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_BREAK;
+  if ((span_equals_str(s, "char", &_ast_span_equals_str_3),
+       _ast_span_equals_str_3))
+
+  {
+    *_out_val = TOKEN_KEYWORD_CHAR;
+    return 0;
+  }
 
-  if (span_equals_str(s, "case"))
+  if ((span_equals_str(s, "const", &_ast_span_equals_str_4),
+       _ast_span_equals_str_4))
+
+  {
+    *_out_val = TOKEN_KEYWORD_CONST;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_CASE;
+  if ((span_equals_str(s, "continue", &_ast_span_equals_str_5),
+       _ast_span_equals_str_5))
+
+  {
+    *_out_val = TOKEN_KEYWORD_CONTINUE;
+    return 0;
+  }
 
-  if (span_equals_str(s, "char"))
+  if ((span_equals_str(s, "default", &_ast_span_equals_str_6),
+       _ast_span_equals_str_6))
+
+  {
+    *_out_val = TOKEN_KEYWORD_DEFAULT;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_CHAR;
+  if ((span_equals_str(s, "do", &_ast_span_equals_str_7),
+       _ast_span_equals_str_7))
+
+  {
+    *_out_val = TOKEN_KEYWORD_DO;
+    return 0;
+  }
 
-  if (span_equals_str(s, "const"))
+  if ((span_equals_str(s, "double", &_ast_span_equals_str_8),
+       _ast_span_equals_str_8))
+
+  {
+    *_out_val = TOKEN_KEYWORD_DOUBLE;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_CONST;
+  if ((span_equals_str(s, "else", &_ast_span_equals_str_9),
+       _ast_span_equals_str_9))
+
+  {
+    *_out_val = TOKEN_KEYWORD_ELSE;
+    return 0;
+  }
 
-  if (span_equals_str(s, "continue"))
+  if ((span_equals_str(s, "enum", &_ast_span_equals_str_10),
+       _ast_span_equals_str_10))
+
+  {
+    *_out_val = TOKEN_KEYWORD_ENUM;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_CONTINUE;
+  if ((span_equals_str(s, "extern", &_ast_span_equals_str_11),
+       _ast_span_equals_str_11))
+
+  {
+    *_out_val = TOKEN_KEYWORD_EXTERN;
+    return 0;
+  }
 
-  if (span_equals_str(s, "default"))
+  if ((span_equals_str(s, "float", &_ast_span_equals_str_12),
+       _ast_span_equals_str_12))
+
+  {
+    *_out_val = TOKEN_KEYWORD_FLOAT;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_DEFAULT;
+  if ((span_equals_str(s, "for", &_ast_span_equals_str_13),
+       _ast_span_equals_str_13))
+
+  {
+    *_out_val = TOKEN_KEYWORD_FOR;
+    return 0;
+  }
 
-  if (span_equals_str(s, "do"))
+  if ((span_equals_str(s, "goto", &_ast_span_equals_str_14),
+       _ast_span_equals_str_14))
+
+  {
+    *_out_val = TOKEN_KEYWORD_GOTO;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_DO;
+  if ((span_equals_str(s, "if", &_ast_span_equals_str_15),
+       _ast_span_equals_str_15))
+
+  {
+    *_out_val = TOKEN_KEYWORD_IF;
+    return 0;
+  }
 
-  if (span_equals_str(s, "double"))
+  if ((span_equals_str(s, "inline", &_ast_span_equals_str_16),
+       _ast_span_equals_str_16))
+
+  {
+    *_out_val = TOKEN_KEYWORD_INLINE;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_DOUBLE;
+  if ((span_equals_str(s, "int", &_ast_span_equals_str_17),
+       _ast_span_equals_str_17))
+
+  {
+    *_out_val = TOKEN_KEYWORD_INT;
+    return 0;
+  }
 
-  if (span_equals_str(s, "else"))
+  if ((span_equals_str(s, "long", &_ast_span_equals_str_18),
+       _ast_span_equals_str_18))
+
+  {
+    *_out_val = TOKEN_KEYWORD_LONG;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_ELSE;
+  if ((span_equals_str(s, "register", &_ast_span_equals_str_19),
+       _ast_span_equals_str_19))
+
+  {
+    *_out_val = TOKEN_KEYWORD_REGISTER;
+    return 0;
+  }
 
-  if (span_equals_str(s, "enum"))
+  if ((span_equals_str(s, "restrict", &_ast_span_equals_str_20),
+       _ast_span_equals_str_20))
+
+  {
+    *_out_val = TOKEN_KEYWORD_RESTRICT;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_ENUM;
+  if ((span_equals_str(s, "return", &_ast_span_equals_str_21),
+       _ast_span_equals_str_21))
+
+  {
+    *_out_val = TOKEN_KEYWORD_RETURN;
+    return 0;
+  }
 
-  if (span_equals_str(s, "extern"))
+  if ((span_equals_str(s, "short", &_ast_span_equals_str_22),
+       _ast_span_equals_str_22))
+
+  {
+    *_out_val = TOKEN_KEYWORD_SHORT;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_EXTERN;
+  if ((span_equals_str(s, "signed", &_ast_span_equals_str_23),
+       _ast_span_equals_str_23))
+
+  {
+    *_out_val = TOKEN_KEYWORD_SIGNED;
+    return 0;
+  }
 
-  if (span_equals_str(s, "float"))
+  if ((span_equals_str(s, "sizeof", &_ast_span_equals_str_24),
+       _ast_span_equals_str_24))
+
+  {
+    *_out_val = TOKEN_KEYWORD_SIZEOF;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_FLOAT;
+  if ((span_equals_str(s, "static", &_ast_span_equals_str_25),
+       _ast_span_equals_str_25))
+
+  {
+    *_out_val = TOKEN_KEYWORD_STATIC;
+    return 0;
+  }
 
-  if (span_equals_str(s, "for"))
+  if ((span_equals_str(s, "struct", &_ast_span_equals_str_26),
+       _ast_span_equals_str_26))
+
+  {
+    *_out_val = TOKEN_KEYWORD_STRUCT;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_FOR;
+  if ((span_equals_str(s, "switch", &_ast_span_equals_str_27),
+       _ast_span_equals_str_27))
+
+  {
+    *_out_val = TOKEN_KEYWORD_SWITCH;
+    return 0;
+  }
 
-  if (span_equals_str(s, "goto"))
+  if ((span_equals_str(s, "typedef", &_ast_span_equals_str_28),
+       _ast_span_equals_str_28))
+
+  {
+    *_out_val = TOKEN_KEYWORD_TYPEDEF;
+    return 0;
+  }
 
-    return TOKEN_KEYWORD_GOTO;
+  if ((span_equals_str(s, "union", &_ast_span_equals_str_29),
+       _ast_span_equals_str_29))
+
+  {
+    *_out_val = TOKEN_KEYWORD_UNION;
+    return 0;
+  }
 
-  if (span_equals_str(s, "if"))
-
-    return TOKEN_KEYWORD_IF;
-
-  if (span_equals_str(s, "inline"))
-
-    return TOKEN_KEYWORD_INLINE;
-
-  if (span_equals_str(s, "int"))
-
-    return TOKEN_KEYWORD_INT;
-
-  if (span_equals_str(s, "long"))
-
-    return TOKEN_KEYWORD_LONG;
-
-  if (span_equals_str(s, "register"))
-
-    return TOKEN_KEYWORD_REGISTER;
-
-  if (span_equals_str(s, "restrict"))
-
-    return TOKEN_KEYWORD_RESTRICT;
-
-  if (span_equals_str(s, "return"))
-
-    return TOKEN_KEYWORD_RETURN;
-
-  if (span_equals_str(s, "short"))
-
-    return TOKEN_KEYWORD_SHORT;
-
-  if (span_equals_str(s, "signed"))
-
-    return TOKEN_KEYWORD_SIGNED;
-
-  if (span_equals_str(s, "sizeof"))
-
-    return TOKEN_KEYWORD_SIZEOF;
-
-  if (span_equals_str(s, "static"))
-
-    return TOKEN_KEYWORD_STATIC;
-
-  if (span_equals_str(s, "struct"))
-
-    return TOKEN_KEYWORD_STRUCT;
-
-  if (span_equals_str(s, "switch"))
-
-    return TOKEN_KEYWORD_SWITCH;
-
-  if (span_equals_str(s, "typedef"))
-
-    return TOKEN_KEYWORD_TYPEDEF;
-
-  if (span_equals_str(s, "union"))
-
-    return TOKEN_KEYWORD_UNION;
-
-  if (span_equals_str(s, "unsigned"))
-
-    return TOKEN_KEYWORD_UNSIGNED;
-
-  if (span_equals_str(s, "void"))
-
-    return TOKEN_KEYWORD_VOID;
-
-  if (span_equals_str(s, "volatile"))
-
-    return TOKEN_KEYWORD_VOLATILE;
-
-  if (span_equals_str(s, "while"))
-
-    return TOKEN_KEYWORD_WHILE;
-
-  if (span_equals_str(s, "_Alignas"))
-
-    return TOKEN_KEYWORD_ALIGNAS;
-
-  if (span_equals_str(s, "_Alignof"))
-
-    return TOKEN_KEYWORD_ALIGNOF;
-
-  if (span_equals_str(s, "_Atomic"))
-
-    return TOKEN_KEYWORD_ATOMIC;
-
-  if (span_equals_str(s, "_Bool"))
-
-    return TOKEN_KEYWORD_BOOL;
-
-  if (span_equals_str(s, "_Complex"))
-
-    return TOKEN_KEYWORD_COMPLEX;
-
-  if (span_equals_str(s, "_Imaginary"))
-
-    return TOKEN_KEYWORD_IMAGINARY;
-
-  if (span_equals_str(s, "_Noreturn"))
-
-    return TOKEN_KEYWORD_NORETURN;
-
-  if (span_equals_str(s, "_Static_assert"))
-
-    return TOKEN_KEYWORD_STATIC_ASSERT;
-
-  if (span_equals_str(s, "_Thread_local"))
-
-    return TOKEN_KEYWORD_THREAD_LOCAL;
+  if ((span_equals_str(s, "unsigned", &_ast_span_equals_str_30),
+       _ast_span_equals_str_30))
+
+  {
+    *_out_val = TOKEN_KEYWORD_UNSIGNED;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "void", &_ast_span_equals_str_31),
+       _ast_span_equals_str_31))
+
+  {
+    *_out_val = TOKEN_KEYWORD_VOID;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "volatile", &_ast_span_equals_str_32),
+       _ast_span_equals_str_32))
+
+  {
+    *_out_val = TOKEN_KEYWORD_VOLATILE;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "while", &_ast_span_equals_str_33),
+       _ast_span_equals_str_33))
+
+  {
+    *_out_val = TOKEN_KEYWORD_WHILE;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Alignas", &_ast_span_equals_str_34),
+       _ast_span_equals_str_34))
+
+  {
+    *_out_val = TOKEN_KEYWORD_ALIGNAS;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Alignof", &_ast_span_equals_str_35),
+       _ast_span_equals_str_35))
+
+  {
+    *_out_val = TOKEN_KEYWORD_ALIGNOF;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Atomic", &_ast_span_equals_str_36),
+       _ast_span_equals_str_36))
+
+  {
+    *_out_val = TOKEN_KEYWORD_ATOMIC;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Bool", &_ast_span_equals_str_37),
+       _ast_span_equals_str_37))
+
+  {
+    *_out_val = TOKEN_KEYWORD_BOOL;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Complex", &_ast_span_equals_str_38),
+       _ast_span_equals_str_38))
+
+  {
+    *_out_val = TOKEN_KEYWORD_COMPLEX;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Imaginary", &_ast_span_equals_str_39),
+       _ast_span_equals_str_39))
+
+  {
+    *_out_val = TOKEN_KEYWORD_IMAGINARY;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Noreturn", &_ast_span_equals_str_40),
+       _ast_span_equals_str_40))
+
+  {
+    *_out_val = TOKEN_KEYWORD_NORETURN;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Static_assert", &_ast_span_equals_str_41),
+       _ast_span_equals_str_41))
+
+  {
+    *_out_val = TOKEN_KEYWORD_STATIC_ASSERT;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "_Thread_local", &_ast_span_equals_str_42),
+       _ast_span_equals_str_42))
+
+  {
+    *_out_val = TOKEN_KEYWORD_THREAD_LOCAL;
+    return 0;
+  }
 
   /* Extensions found in common headers */
 
-  if (span_equals_str(s, "__inline"))
+  if ((span_equals_str(s, "__inline", &_ast_span_equals_str_43),
+       _ast_span_equals_str_43))
 
-    return TOKEN_KEYWORD_INLINE;
+  {
+    *_out_val = TOKEN_KEYWORD_INLINE;
+    return 0;
+  }
 
-  if (span_equals_str(s, "__restrict"))
+  if ((span_equals_str(s, "__restrict", &_ast_span_equals_str_44),
+       _ast_span_equals_str_44))
 
-    return TOKEN_KEYWORD_RESTRICT;
+  {
+    *_out_val = TOKEN_KEYWORD_RESTRICT;
+    return 0;
+  }
 
   /* C23 standard keywords */
 
-  if (span_equals_str(s, "alignas"))
+  if ((span_equals_str(s, "alignas", &_ast_span_equals_str_45),
+       _ast_span_equals_str_45))
 
-    return TOKEN_KEYWORD_ALIGNAS;
+  {
+    *_out_val = TOKEN_KEYWORD_ALIGNAS;
+    return 0;
+  }
 
-  if (span_equals_str(s, "alignof"))
+  if ((span_equals_str(s, "alignof", &_ast_span_equals_str_46),
+       _ast_span_equals_str_46))
 
-    return TOKEN_KEYWORD_ALIGNOF;
+  {
+    *_out_val = TOKEN_KEYWORD_ALIGNOF;
+    return 0;
+  }
 
-  if (span_equals_str(s, "bool"))
+  if ((span_equals_str(s, "bool", &_ast_span_equals_str_47),
+       _ast_span_equals_str_47))
 
-    return TOKEN_KEYWORD_BOOL;
+  {
+    *_out_val = TOKEN_KEYWORD_BOOL;
+    return 0;
+  }
 
-  if (span_equals_str(s, "constexpr"))
+  if ((span_equals_str(s, "constexpr", &_ast_span_equals_str_48),
+       _ast_span_equals_str_48))
 
-    return TOKEN_KEYWORD_CONSTEXPR;
+  {
+    *_out_val = TOKEN_KEYWORD_CONSTEXPR;
+    return 0;
+  }
 
-  if (span_equals_str(s, "false"))
+  if ((span_equals_str(s, "false", &_ast_span_equals_str_49),
+       _ast_span_equals_str_49))
 
-    return TOKEN_KEYWORD_FALSE;
+  {
+    *_out_val = TOKEN_KEYWORD_FALSE;
+    return 0;
+  }
 
-  if (span_equals_str(s, "nullptr"))
+  if ((span_equals_str(s, "nullptr", &_ast_span_equals_str_50),
+       _ast_span_equals_str_50))
 
-    return TOKEN_KEYWORD_NULLPTR;
+  {
+    *_out_val = TOKEN_KEYWORD_NULLPTR;
+    return 0;
+  }
 
-  if (span_equals_str(s, "static_assert"))
+  if ((span_equals_str(s, "static_assert", &_ast_span_equals_str_51),
+       _ast_span_equals_str_51))
 
-    return TOKEN_KEYWORD_STATIC_ASSERT;
+  {
+    *_out_val = TOKEN_KEYWORD_STATIC_ASSERT;
+    return 0;
+  }
 
-  if (span_equals_str(s, "thread_local"))
+  if ((span_equals_str(s, "thread_local", &_ast_span_equals_str_52),
+       _ast_span_equals_str_52))
 
-    return TOKEN_KEYWORD_THREAD_LOCAL;
+  {
+    *_out_val = TOKEN_KEYWORD_THREAD_LOCAL;
+    return 0;
+  }
 
-  if (span_equals_str(s, "true"))
+  if ((span_equals_str(s, "true", &_ast_span_equals_str_53),
+       _ast_span_equals_str_53))
 
-    return TOKEN_KEYWORD_TRUE;
+  {
+    *_out_val = TOKEN_KEYWORD_TRUE;
+    return 0;
+  }
 
-  if (span_equals_str(s, "typeof"))
+  if ((span_equals_str(s, "typeof", &_ast_span_equals_str_54),
+       _ast_span_equals_str_54))
 
-    return TOKEN_KEYWORD_TYPEOF;
+  {
+    *_out_val = TOKEN_KEYWORD_TYPEOF;
+    return 0;
+  }
 
-  if (span_equals_str(s, "embed"))
+  if ((span_equals_str(s, "embed", &_ast_span_equals_str_55),
+       _ast_span_equals_str_55))
 
-    return TOKEN_KEYWORD_EMBED;
+  {
+    *_out_val = TOKEN_KEYWORD_EMBED;
+    return 0;
+  }
 
-  if (span_equals_str(s, "_Pragma"))
+  if ((span_equals_str(s, "_Pragma", &_ast_span_equals_str_56),
+       _ast_span_equals_str_56))
 
-    return TOKEN_KEYWORD_PRAGMA_OP;
+  {
+    *_out_val = TOKEN_KEYWORD_PRAGMA_OP;
+    return 0;
+  }
 
-  return TOKEN_IDENTIFIER;
+  {
+    *_out_val = TOKEN_IDENTIFIER;
+    return 0;
+  }
 }
 
 /* --- Main Public API --- */
 
-size_t token_find_next(const struct TokenList *const list, size_t start_idx,
+int token_find_next(const struct TokenList *const list, size_t start_idx,
 
-                       size_t end_idx, const enum TokenKind kind) {
+                    size_t end_idx, const enum TokenKind kind,
+                    size_t *_out_val) {
 
   size_t i;
 
@@ -462,10 +757,16 @@ size_t token_find_next(const struct TokenList *const list, size_t start_idx,
 
     if (list->tokens[i].kind == kind)
 
-      return i;
+    {
+      *_out_val = i;
+      return 0;
+    }
   }
 
-  return limit;
+  {
+    *_out_val = limit;
+    return 0;
+  }
 }
 
 void free_token_list(struct TokenList *const tl) {
@@ -484,9 +785,9 @@ void free_token_list(struct TokenList *const tl) {
   free(tl);
 }
 
-bool token_matches_string(const struct Token *const tok,
+int token_matches_string(const struct Token *const tok,
 
-                          const char *const match) {
+                         const char *const match, bool *_out_val) {
 
   size_t m_len;
 
@@ -496,7 +797,10 @@ bool token_matches_string(const struct Token *const tok,
 
   if (!tok || !match)
 
-    return false;
+  {
+    *_out_val = false;
+    return 0;
+  }
 
   m_len = strlen(match);
 
@@ -516,17 +820,28 @@ bool token_matches_string(const struct Token *const tok,
 
     if (c != match[i_match])
 
-      return false;
+    {
+      *_out_val = false;
+      return 0;
+    }
 
     i_tok += adv;
 
     i_match++;
   }
 
-  return (i_tok >= tok->length && i_match == m_len);
+  {
+    *_out_val = (i_tok >= tok->length && i_match == m_len);
+    return 0;
+  }
 }
 
 int tokenize(const az_span source, struct TokenList **const out) {
+  enum TokenKind _ast_identify_keyword_or_id_57;
+  bool _ast_token_matches_string_58;
+  bool _ast_token_matches_string_59;
+  bool _ast_token_matches_string_60;
+  bool _ast_token_matches_string_61;
 
   struct TokenList *list = NULL;
 
@@ -698,7 +1013,9 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
         /* Check raw text for common keywords */
 
-        k = identify_keyword_or_id(base + start, id_len);
+        k = (identify_keyword_or_id(base + start, id_len,
+                                    &_ast_identify_keyword_or_id_57),
+             _ast_identify_keyword_or_id_57);
 
         /* If still ID, check strict logic for spliced keywords if needed */
 
@@ -710,19 +1027,27 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
           /* Add checks for spliced keywords if necessary */
 
-          if (token_matches_string(&tmp_tok, "int"))
+          if ((token_matches_string(&tmp_tok, "int",
+                                    &_ast_token_matches_string_58),
+               _ast_token_matches_string_58))
 
             k = TOKEN_KEYWORD_INT;
 
-          else if (token_matches_string(&tmp_tok, "return"))
+          else if ((token_matches_string(&tmp_tok, "return",
+                                         &_ast_token_matches_string_59),
+                    _ast_token_matches_string_59))
 
             k = TOKEN_KEYWORD_RETURN;
 
-          else if (token_matches_string(&tmp_tok, "switch"))
+          else if ((token_matches_string(&tmp_tok, "switch",
+                                         &_ast_token_matches_string_60),
+                    _ast_token_matches_string_60))
 
             k = TOKEN_KEYWORD_SWITCH;
 
-          else if (token_matches_string(&tmp_tok, "if"))
+          else if ((token_matches_string(&tmp_tok, "if",
+                                         &_ast_token_matches_string_61),
+                    _ast_token_matches_string_61))
 
             k = TOKEN_KEYWORD_IF;
         }

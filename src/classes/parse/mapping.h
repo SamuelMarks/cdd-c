@@ -1,5 +1,5 @@
 /**
- * @file c_mapping.h
+ * @file mapping.h
  * @brief Reusable type mapper for converting C types to OpenAPI Schemas.
  *
  * Provides a centralized registry rule set for translating:

@@ -1,3 +1,4 @@
+#include "functions/parse/str.h"
 /**
  * @file fs.c
  * @brief Implementation of filesystem utilities.
@@ -110,19 +111,13 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t buf_cap,
  * if we were wrapping it, but here we just blindly use strdup.
  * Caller checks for NULL return.
  */
-static char *c_cdd_strdup(const char *s) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  return _strdup(s);
-#else
-  return strdup(s);
-#endif
-}
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define c_stat_func _stat
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
 #define c_stat_func stat
+/** @brief IS_DIR definition */
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
@@ -136,6 +131,7 @@ int fs_is_directory(const char *path) {
 }
 
 int get_basename(const char *path, char **out) {
+  char *_ast_strdup_0 = NULL;
   const char *start_p, *p;
   size_t len;
   char *ret;
@@ -144,7 +140,7 @@ int get_basename(const char *path, char **out) {
     return EINVAL;
 
   if (!path || !*path) {
-    *out = c_cdd_strdup(".");
+    *out = (c_cdd_strdup(".", &_ast_strdup_0), _ast_strdup_0);
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -183,6 +179,9 @@ int get_basename(const char *path, char **out) {
 }
 
 int get_dirname(const char *path, char **out) {
+  char *_ast_strdup_1 = NULL;
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
   const char *p;
   size_t len;
   char *ret;
@@ -191,7 +190,7 @@ int get_dirname(const char *path, char **out) {
     return EINVAL;
 
   if (!path || !*path) {
-    *out = c_cdd_strdup(".");
+    *out = (c_cdd_strdup(".", &_ast_strdup_1), _ast_strdup_1);
     return *out == NULL ? ENOMEM : 0;
   }
 
@@ -213,7 +212,7 @@ int get_dirname(const char *path, char **out) {
       len = 1; /* Root */
     } else {
       /* No separator found, e.g. "foo" -> "." */
-      *out = c_cdd_strdup(".");
+      *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
       return *out ? 0 : ENOMEM;
     }
   } else {
@@ -228,7 +227,7 @@ int get_dirname(const char *path, char **out) {
   }
 
   if (len == 0) {
-    *out = c_cdd_strdup(".");
+    *out = (c_cdd_strdup(".", &_ast_strdup_3), _ast_strdup_3);
     return *out ? 0 : ENOMEM;
   }
 
@@ -244,24 +243,40 @@ int get_dirname(const char *path, char **out) {
 
 enum { READ_CHUNK_SIZE = 4096 };
 
-enum FopenError fopen_error_from(int fopen_error) {
+int fopen_error_from(int fopen_error, enum FopenError *_out_val) {
   switch (fopen_error) {
-  case 0:
-    return FOPEN_OK;
-  case EINVAL:
-    return FOPEN_INVALID_PARAMETER;
-  case EMFILE:
-    return FOPEN_TOO_MANY_OPEN_FILES;
-  case ENOMEM:
-    return FOPEN_OUT_OF_MEMORY;
-  case ENOENT:
-    return FOPEN_FILE_NOT_FOUND;
-  case EACCES:
-    return FOPEN_PERMISSION_DENIED;
-  case ERANGE:
-    return FOPEN_FILENAME_TOO_LONG;
-  default:
-    return FOPEN_UNKNOWN_ERROR;
+  case 0: {
+    *_out_val = FOPEN_OK;
+    return 0;
+  }
+  case EINVAL: {
+    *_out_val = FOPEN_INVALID_PARAMETER;
+    return 0;
+  }
+  case EMFILE: {
+    *_out_val = FOPEN_TOO_MANY_OPEN_FILES;
+    return 0;
+  }
+  case ENOMEM: {
+    *_out_val = FOPEN_OUT_OF_MEMORY;
+    return 0;
+  }
+  case ENOENT: {
+    *_out_val = FOPEN_FILE_NOT_FOUND;
+    return 0;
+  }
+  case EACCES: {
+    *_out_val = FOPEN_PERMISSION_DENIED;
+    return 0;
+  }
+  case ERANGE: {
+    *_out_val = FOPEN_FILENAME_TOO_LONG;
+    return 0;
+  }
+  default: {
+    *_out_val = FOPEN_UNKNOWN_ERROR;
+    return 0;
+  }
   }
 }
 
@@ -448,6 +463,7 @@ out_error:
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
 #define c_stat_func stat
+/** @brief IS_DIR definition */
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
@@ -478,6 +494,7 @@ static int maybe_mkdir(const char *const path) {
 }
 
 int makedirs(const char *path) {
+  char *_ast_strdup_4 = NULL;
   char *dup_path, *p;
   int rc = 0;
 
@@ -499,7 +516,7 @@ int makedirs(const char *path) {
     return 0;
 #endif
 
-  dup_path = c_cdd_strdup(path);
+  dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
   if (dup_path == NULL)
     return ENOMEM;
 
@@ -536,6 +553,7 @@ int makedir(const char *path) {
 }
 
 int tempdir(char **out_path) {
+  char *_ast_strdup_5 = NULL;
   char pathname[L_tmpnam + 1];
   char *ptr;
   const char *env;
@@ -549,7 +567,7 @@ int tempdir(char **out_path) {
   if (!env || *env == '\0')
     env = getenv("TEMP");
   if (env && *env != '\0') {
-    *out_path = c_cdd_strdup(env);
+    *out_path = (c_cdd_strdup(env, &_ast_strdup_5), _ast_strdup_5);
     return *out_path ? 0 : ENOMEM;
   }
 

@@ -42,6 +42,7 @@
 
 #else
 
+/** @brief PATH_SEP_CHAR definition */
 #define PATH_SEP_CHAR '/'
 
 #include <sys/errno.h>
@@ -50,7 +51,7 @@
 
 /* Standard IO / FS helpers */
 
-static char *join_path(const char *dir, const char *file) {
+static int join_path(const char *dir, const char *file, char **_out_val) {
 
   char *out;
 
@@ -58,7 +59,10 @@ static char *join_path(const char *dir, const char *file) {
 
   if (!dir || !file)
 
-    return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 
   len = strlen(dir) + strlen(file) + 2;
 
@@ -66,7 +70,10 @@ static char *join_path(const char *dir, const char *file) {
 
   if (!out)
 
-    return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 
@@ -78,7 +85,10 @@ static char *join_path(const char *dir, const char *file) {
 
 #endif
 
-  return out;
+  {
+    *_out_val = out;
+    return 0;
+  }
 }
 
 static int file_exists(const char *path) {
@@ -133,19 +143,25 @@ static void free_macro_def(struct MacroDef *def) {
   }
 }
 
-static char *token_to_string(const struct Token *t) {
+static int token_to_string(const struct Token *t, char **_out_val) {
 
   char *s = malloc(t->length + 1);
 
   if (!s)
 
-    return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 
   memcpy(s, t->start, t->length);
 
   s[t->length] = '\0';
 
-  return s;
+  {
+    *_out_val = s;
+    return 0;
+  }
 }
 
 static int add_macro_internal(struct PreprocessorContext *ctx,
@@ -178,11 +194,13 @@ static int add_macro_internal(struct PreprocessorContext *ctx,
  * @brief Helper to resolve include paths.
  */
 
-static char *resolve_path(const struct PreprocessorContext *ctx,
+static int resolve_path(const struct PreprocessorContext *ctx,
 
-                          const char *current_dir, const char *include_path,
+                        const char *current_dir, const char *include_path,
 
-                          int is_system) {
+                        int is_system, char **_out_val) {
+  char *_ast_join_path_0;
+  char *_ast_join_path_1;
 
   size_t i;
 
@@ -190,13 +208,17 @@ static char *resolve_path(const struct PreprocessorContext *ctx,
 
   if (!is_system && current_dir) {
 
-    candidate = join_path(current_dir, include_path);
+    candidate = (join_path(current_dir, include_path, &_ast_join_path_0),
+                 _ast_join_path_0);
 
     if (candidate) {
 
       if (file_exists(candidate)) {
 
-        return candidate;
+        {
+          *_out_val = candidate;
+          return 0;
+        }
       }
 
       free(candidate);
@@ -207,13 +229,18 @@ static char *resolve_path(const struct PreprocessorContext *ctx,
 
     for (i = 0; i < ctx->size; ++i) {
 
-      candidate = join_path(ctx->search_paths[i], include_path);
+      candidate =
+          (join_path(ctx->search_paths[i], include_path, &_ast_join_path_1),
+           _ast_join_path_1);
 
       if (candidate) {
 
         if (file_exists(candidate)) {
 
-          return candidate;
+          {
+            *_out_val = candidate;
+            return 0;
+          }
         }
 
         free(candidate);
@@ -221,12 +248,16 @@ static char *resolve_path(const struct PreprocessorContext *ctx,
     }
   }
 
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static char *reconstruct_path(const struct TokenList *tokens, size_t start,
+static int reconstruct_path(const struct TokenList *tokens, size_t start,
 
-                              size_t end) {
+                            size_t end, char **_out_val) {
+  char *_ast_strdup_0 = NULL;
 
   size_t len = 0;
 
@@ -236,7 +267,10 @@ static char *reconstruct_path(const struct TokenList *tokens, size_t start,
 
   if (start >= end)
 
-    return c_cdd_strdup("");
+  {
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
+    return 0;
+  }
 
   for (i = start; i < end; ++i) {
 
@@ -247,7 +281,10 @@ static char *reconstruct_path(const struct TokenList *tokens, size_t start,
 
   if (!buf)
 
-    return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 
   p = buf;
 
@@ -262,7 +299,10 @@ static char *reconstruct_path(const struct TokenList *tokens, size_t start,
 
   *p = '\0';
 
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /* --- Public API Implementation --- */
@@ -306,6 +346,7 @@ void pp_context_free(struct PreprocessorContext *ctx) {
 }
 
 int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
+  char *_ast_strdup_1 = NULL;
 
   char *copy;
 
@@ -315,7 +356,7 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 
     return EINVAL;
 
-  copy = c_cdd_strdup(path);
+  copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
   if (!copy)
 
@@ -347,6 +388,8 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
                  const char *value) {
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
 
   struct MacroDef def;
 
@@ -356,7 +399,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   memset(&def, 0, sizeof(def));
 
-  def.name = c_cdd_strdup(name);
+  def.name = (c_cdd_strdup(name, &_ast_strdup_2), _ast_strdup_2);
 
   if (!def.name)
 
@@ -364,7 +407,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 
   if (value) {
 
-    def.value = c_cdd_strdup(value);
+    def.value = (c_cdd_strdup(value, &_ast_strdup_3), _ast_strdup_3);
 
     if (!def.value) {
 
@@ -387,6 +430,9 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
 }
 
 int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
+  bool _ast_token_matches_string_2;
+  char *_ast_token_to_string_3;
+  char *_ast_token_to_string_4;
 
   char *content = NULL;
 
@@ -431,7 +477,9 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
 
       if (next < tokens->size &&
 
-          token_matches_string(&tokens->tokens[next], "define")) {
+          (token_matches_string(&tokens->tokens[next], "define",
+                                &_ast_token_matches_string_2),
+           _ast_token_matches_string_2)) {
 
         size_t name_idx = next + 1;
 
@@ -449,7 +497,9 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
 
           memset(&def, 0, sizeof(def));
 
-          def.name = token_to_string(&tokens->tokens[name_idx]);
+          def.name = (token_to_string(&tokens->tokens[name_idx],
+                                      &_ast_token_to_string_3),
+                      _ast_token_to_string_3);
 
           if (name_idx + 1 < tokens->size &&
 
@@ -485,7 +535,9 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
 
                 } else if (tokens->tokens[curr].kind == TOKEN_IDENTIFIER) {
 
-                  char *argName = token_to_string(&tokens->tokens[curr]);
+                  char *argName = (token_to_string(&tokens->tokens[curr],
+                                                   &_ast_token_to_string_4),
+                                   _ast_token_to_string_4);
 
                   char **new_args = (char **)realloc(
 
@@ -583,44 +635,56 @@ void pp_embed_params_free(struct EmbedParams *params) {
 
 /* Parser State */
 
+/** @brief ExprState structure */
 struct ExprState {
 
+  /** @brief tokens */
+  /** @brief tokens */
   const struct TokenList *tokens;
 
+  /** @brief pos */
+
+  /** @brief pos */
   size_t pos;
 
+  /** @brief ctx */
+  /** @brief end */
   size_t end;
 
+  /** @brief error */
+
+  /** @brief ctx */
   const struct PreprocessorContext *ctx;
 
+  /** @brief error */
   int error;
 };
 
 /* Forward Declarations for Recursive Descent */
 
-static long parse_expr(struct ExprState *s);
+static int parse_expr(struct ExprState *s, long *_out_val);
 
-static long parse_logic_or(struct ExprState *s);
+static int parse_logic_or(struct ExprState *s, long *_out_val);
 
-static long parse_logic_and(struct ExprState *s);
+static int parse_logic_and(struct ExprState *s, long *_out_val);
 
-static long parse_equality(struct ExprState *s);
+static int parse_equality(struct ExprState *s, long *_out_val);
 
-static long parse_relational(struct ExprState *s);
+static int parse_relational(struct ExprState *s, long *_out_val);
 
-static long parse_shift(struct ExprState *s);
+static int parse_shift(struct ExprState *s, long *_out_val);
 
-static long parse_additive(struct ExprState *s);
+static int parse_additive(struct ExprState *s, long *_out_val);
 
-static long parse_multiplicative(struct ExprState *s);
+static int parse_multiplicative(struct ExprState *s, long *_out_val);
 
-static long parse_unary(struct ExprState *s);
+static int parse_unary(struct ExprState *s, long *_out_val);
 
-static long parse_primary(struct ExprState *s);
+static int parse_primary(struct ExprState *s, long *_out_val);
 
 /* Helper: skip whitespace */
 
-static void skip_ws(struct ExprState *s) {
+static int skip_ws(struct ExprState *s, size_t *_out_val) {
 
   while (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_WHITESPACE)
 
@@ -629,23 +693,30 @@ static void skip_ws(struct ExprState *s) {
 
 /* Helper: Check current token kind */
 
-static bool match(struct ExprState *s, enum TokenKind kind) {
+static int match(struct ExprState *s, enum TokenKind kind, bool *_out_val) {
+  size_t _ast_skip_ws_5;
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_5), _ast_skip_ws_5);
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == kind) {
 
     s->pos++;
 
-    return true;
+    {
+      *_out_val = true;
+      return 0;
+    }
   }
 
-  return false;
+  {
+    *_out_val = false;
+    return 0;
+  }
 }
 
 /* Helper: Peek current token kind */
 
-static enum TokenKind peek(struct ExprState *s) {
+static int peek(struct ExprState *s, enum TokenKind *_out_val) {
 
   size_t p = s->pos;
 
@@ -655,29 +726,47 @@ static enum TokenKind peek(struct ExprState *s) {
 
   if (p >= s->end)
 
-    return TOKEN_UNKNOWN;
+  {
+    *_out_val = TOKEN_UNKNOWN;
+    return 0;
+  }
 
-  return s->tokens->tokens[p].kind;
+  {
+    *_out_val = s->tokens->tokens[p].kind;
+    return 0;
+  }
 }
 
-static bool is_defined_macro(const struct PreprocessorContext *ctx,
+static int is_defined_macro(const struct PreprocessorContext *ctx,
 
-                             const struct Token *tok) {
+                            const struct Token *tok, bool *_out_val) {
+  bool _ast_token_matches_string_6;
 
   size_t i;
 
   if (!ctx)
 
-    return false;
+  {
+    *_out_val = false;
+    return 0;
+  }
 
   for (i = 0; i < ctx->macro_count; ++i) {
 
-    if (token_matches_string(tok, ctx->macros[i].name))
+    if ((token_matches_string(tok, ctx->macros[i].name,
+                              &_ast_token_matches_string_6),
+         _ast_token_matches_string_6))
 
-      return true;
+    {
+      *_out_val = true;
+      return 0;
+    }
   }
 
-  return false;
+  {
+    *_out_val = false;
+    return 0;
+  }
 }
 
 /**
@@ -688,7 +777,14 @@ static bool is_defined_macro(const struct PreprocessorContext *ctx,
  * otherwise.
  */
 
-static long handle_has_include_embed(struct ExprState *s) {
+static int handle_has_include_embed(struct ExprState *s, long *_out_val) {
+  size_t _ast_skip_ws_7;
+  bool _ast_match_8;
+  size_t _ast_skip_ws_9;
+  char *_ast_reconstruct_path_10;
+  size_t _ast_skip_ws_11;
+  bool _ast_match_12;
+  char *_ast_resolve_path_13;
 
   int is_header = false;
 
@@ -700,22 +796,28 @@ static long handle_has_include_embed(struct ExprState *s) {
 
   /* Expect '(' */
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_7), _ast_skip_ws_7);
 
-  if (!match(s, TOKEN_LPAREN)) {
+  if (!(match(s, TOKEN_LPAREN, &_ast_match_8), _ast_match_8)) {
 
     s->error = 1;
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_9), _ast_skip_ws_9);
 
   if (s->pos >= s->end) {
 
     s->error = 1;
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
   /* Parse Header Name */
@@ -751,7 +853,9 @@ static long handle_has_include_embed(struct ExprState *s) {
 
     if (end_p < s->end) {
 
-      path = reconstruct_path(s->tokens, start_p, end_p);
+      path = (reconstruct_path(s->tokens, start_p, end_p,
+                               &_ast_reconstruct_path_10),
+              _ast_reconstruct_path_10);
 
       s->pos = end_p + 1; /* Skip closing '>' */
 
@@ -761,14 +865,20 @@ static long handle_has_include_embed(struct ExprState *s) {
 
       s->error = 1;
 
-      return 0;
+      {
+        *_out_val = 0;
+        return 0;
+      }
     }
 
   } else {
 
     s->error = 1;
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
   /* Consume remaining parameters until RPAREN */
@@ -783,9 +893,9 @@ static long handle_has_include_embed(struct ExprState *s) {
     s->pos++;
   }
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_11), _ast_skip_ws_11);
 
-  if (!match(s, TOKEN_RPAREN)) {
+  if (!(match(s, TOKEN_RPAREN, &_ast_match_12), _ast_match_12)) {
 
     s->error = 1;
 
@@ -793,14 +903,18 @@ static long handle_has_include_embed(struct ExprState *s) {
 
       free(path);
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
   if (path) {
 
-    resolved = resolve_path(s->ctx, s->ctx ? s->ctx->current_file_dir : NULL,
+    resolved = (resolve_path(s->ctx, s->ctx ? s->ctx->current_file_dir : NULL,
 
-                            path, is_header);
+                             path, is_header, &_ast_resolve_path_13),
+                _ast_resolve_path_13);
 
     result = (resolved != NULL);
 
@@ -809,54 +923,77 @@ static long handle_has_include_embed(struct ExprState *s) {
     free(path);
   }
 
-  return result;
+  {
+    *_out_val = result;
+    return 0;
+  }
 }
 
 /**
  * @brief Handle __has_c_attribute logic.
  */
 
-static long handle_has_c_attribute(struct ExprState *s) {
+static int handle_has_c_attribute(struct ExprState *s, long *_out_val) {
+  size_t _ast_skip_ws_14;
+  bool _ast_match_15;
+  size_t _ast_skip_ws_16;
+  char *_ast_token_to_string_17;
+  enum TokenKind _ast_identify_keyword_or_id_18;
+  char *_ast_token_to_string_19;
+  size_t _ast_skip_ws_20;
+  size_t _ast_skip_ws_21;
+  char *_ast_token_to_string_22;
+  size_t _ast_skip_ws_23;
+  bool _ast_match_24;
 
   long result = 0;
 
   char *attr_name = NULL;
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_14), _ast_skip_ws_14);
 
-  if (!match(s, TOKEN_LPAREN)) {
+  if (!(match(s, TOKEN_LPAREN, &_ast_match_15), _ast_match_15)) {
 
     s->error = 1;
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_16), _ast_skip_ws_16);
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
-    attr_name = token_to_string(&s->tokens->tokens[s->pos]);
+    attr_name =
+        (token_to_string(&s->tokens->tokens[s->pos], &_ast_token_to_string_17),
+         _ast_token_to_string_17);
 
     s->pos++;
 
   } else if (s->pos < s->end &&
 
-             identify_keyword_or_id(s->tokens->tokens[s->pos].start,
+             (identify_keyword_or_id(s->tokens->tokens[s->pos].start,
 
-                                    s->tokens->tokens[s->pos].length) !=
+                                     s->tokens->tokens[s->pos].length,
+                                     &_ast_identify_keyword_or_id_18),
+              _ast_identify_keyword_or_id_18) !=
 
                  TOKEN_IDENTIFIER) {
 
     /* Handle keywords treated as attributes */
 
-    attr_name = token_to_string(&s->tokens->tokens[s->pos]);
+    attr_name =
+        (token_to_string(&s->tokens->tokens[s->pos], &_ast_token_to_string_19),
+         _ast_token_to_string_19);
 
     s->pos++;
   }
 
   /* Support scoping `::` */
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_20), _ast_skip_ws_20);
 
   if (s->pos + 1 < s->end && s->tokens->tokens[s->pos].kind == TOKEN_COLON &&
 
@@ -868,13 +1005,15 @@ static long handle_has_c_attribute(struct ExprState *s) {
 
     s->pos += 2; /* Skip :: */
 
-    skip_ws(s);
+    (skip_ws(s, &_ast_skip_ws_21), _ast_skip_ws_21);
 
     if (s->pos < s->end &&
 
         (s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER)) {
 
-      name = token_to_string(&s->tokens->tokens[s->pos]);
+      name = (token_to_string(&s->tokens->tokens[s->pos],
+                              &_ast_token_to_string_22),
+              _ast_token_to_string_22);
 
       s->pos++;
     }
@@ -929,41 +1068,64 @@ static long handle_has_c_attribute(struct ExprState *s) {
     free(attr_name);
   }
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_23), _ast_skip_ws_23);
 
-  if (!match(s, TOKEN_RPAREN)) {
+  if (!(match(s, TOKEN_RPAREN, &_ast_match_24), _ast_match_24)) {
 
     s->error = 1;
   }
 
-  return result;
+  {
+    *_out_val = result;
+    return 0;
+  }
 }
 
-static long parse_primary(struct ExprState *s) {
+static int parse_primary(struct ExprState *s, long *_out_val) {
+  size_t _ast_skip_ws_25;
+  bool _ast_match_26;
+  long _ast_parse_expr_27;
+  bool _ast_match_28;
+  char *_ast_token_to_string_29;
+  bool _ast_token_matches_string_30;
+  long _ast_handle_has_include_embed_31;
+  bool _ast_token_matches_string_32;
+  long _ast_handle_has_include_embed_33;
+  bool _ast_token_matches_string_34;
+  long _ast_handle_has_c_attribute_35;
+  bool _ast_token_matches_string_36;
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_25), _ast_skip_ws_25);
 
   if (s->pos >= s->end) {
 
     s->error = 1;
 
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
 
-  if (match(s, TOKEN_LPAREN)) {
+  if ((match(s, TOKEN_LPAREN, &_ast_match_26), _ast_match_26)) {
 
-    long val = parse_expr(s);
+    long val = (parse_expr(s, &_ast_parse_expr_27), _ast_parse_expr_27);
 
-    if (!match(s, TOKEN_RPAREN))
+    if (!(match(s, TOKEN_RPAREN, &_ast_match_28), _ast_match_28))
 
       s->error = 1;
 
-    return val;
+    {
+      *_out_val = val;
+      return 0;
+    }
   }
 
   if (s->tokens->tokens[s->pos].kind == TOKEN_NUMBER_LITERAL) {
 
-    char *txt = token_to_string(&s->tokens->tokens[s->pos]);
+    char *txt =
+        (token_to_string(&s->tokens->tokens[s->pos], &_ast_token_to_string_29),
+         _ast_token_to_string_29);
 
     long val = 0;
 
@@ -987,7 +1149,10 @@ static long parse_primary(struct ExprState *s) {
 
     s->pos++;
 
-    return val;
+    {
+      *_out_val = val;
+      return 0;
+    }
   }
 
   if (s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER ||
@@ -996,25 +1161,45 @@ static long parse_primary(struct ExprState *s) {
 
     const struct Token *tok = &s->tokens->tokens[s->pos];
 
-    if (token_matches_string(tok, "__has_include")) {
+    if ((token_matches_string(tok, "__has_include",
+                              &_ast_token_matches_string_30),
+         _ast_token_matches_string_30)) {
 
       s->pos++;
 
-      return handle_has_include_embed(s);
+      {
+        *_out_val =
+            (handle_has_include_embed(s, &_ast_handle_has_include_embed_31),
+             _ast_handle_has_include_embed_31);
+        return 0;
+      }
     }
 
-    if (token_matches_string(tok, "__has_embed")) {
+    if ((token_matches_string(tok, "__has_embed",
+                              &_ast_token_matches_string_32),
+         _ast_token_matches_string_32)) {
 
       s->pos++;
 
-      return handle_has_include_embed(s);
+      {
+        *_out_val =
+            (handle_has_include_embed(s, &_ast_handle_has_include_embed_33),
+             _ast_handle_has_include_embed_33);
+        return 0;
+      }
     }
 
-    if (token_matches_string(tok, "__has_c_attribute")) {
+    if ((token_matches_string(tok, "__has_c_attribute",
+                              &_ast_token_matches_string_34),
+         _ast_token_matches_string_34)) {
 
       s->pos++;
 
-      return handle_has_c_attribute(s);
+      {
+        *_out_val = (handle_has_c_attribute(s, &_ast_handle_has_c_attribute_35),
+                     _ast_handle_has_c_attribute_35);
+        return 0;
+      }
     }
 
     /* Macro value lookup */
@@ -1031,7 +1216,9 @@ static long parse_primary(struct ExprState *s) {
 
           if (!s->ctx->macros[i].is_function_like && s->ctx->macros[i].value &&
 
-              token_matches_string(tok, s->ctx->macros[i].name)) {
+              (token_matches_string(tok, s->ctx->macros[i].name,
+                                    &_ast_token_matches_string_36),
+               _ast_token_matches_string_36)) {
 
             char *endptr;
 
@@ -1044,42 +1231,78 @@ static long parse_primary(struct ExprState *s) {
 
       s->pos++;
 
-      return val;
+      {
+        *_out_val = val;
+        return 0;
+      }
     }
   }
 
   s->pos++;
 
-  return 0;
+  {
+    *_out_val = 0;
+    return 0;
+  }
 }
 
-static long parse_unary(struct ExprState *s) {
+static int parse_unary(struct ExprState *s, long *_out_val) {
+  size_t _ast_skip_ws_37;
+  bool _ast_match_38;
+  long _ast_parse_unary_39;
+  bool _ast_match_40;
+  long _ast_parse_unary_41;
+  bool _ast_match_42;
+  long _ast_parse_unary_43;
+  bool _ast_match_44;
+  long _ast_parse_unary_45;
+  bool _ast_token_matches_string_46;
+  size_t _ast_skip_ws_47;
+  bool _ast_match_48;
+  size_t _ast_skip_ws_49;
+  bool _ast_is_defined_macro_50;
+  bool _ast_match_51;
+  long _ast_parse_primary_52;
 
-  skip_ws(s);
+  (skip_ws(s, &_ast_skip_ws_37), _ast_skip_ws_37);
 
-  if (match(s, TOKEN_BANG)) {
+  if ((match(s, TOKEN_BANG, &_ast_match_38), _ast_match_38)) {
 
-    return !parse_unary(s);
+    {
+      *_out_val = !(parse_unary(s, &_ast_parse_unary_39), _ast_parse_unary_39);
+      return 0;
+    }
   }
 
-  if (match(s, TOKEN_TILDE)) {
+  if ((match(s, TOKEN_TILDE, &_ast_match_40), _ast_match_40)) {
 
-    return ~parse_unary(s);
+    {
+      *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
+      return 0;
+    }
   }
 
-  if (match(s, TOKEN_MINUS)) {
+  if ((match(s, TOKEN_MINUS, &_ast_match_42), _ast_match_42)) {
 
-    return -parse_unary(s);
+    {
+      *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
+      return 0;
+    }
   }
 
-  if (match(s, TOKEN_PLUS)) {
+  if ((match(s, TOKEN_PLUS, &_ast_match_44), _ast_match_44)) {
 
-    return +parse_unary(s);
+    {
+      *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
+      return 0;
+    }
   }
 
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER &&
 
-      token_matches_string(&s->tokens->tokens[s->pos], "defined")) {
+      (token_matches_string(&s->tokens->tokens[s->pos], "defined",
+                            &_ast_token_matches_string_46),
+       _ast_token_matches_string_46)) {
 
     bool has_paren = false;
 
@@ -1087,17 +1310,19 @@ static long parse_unary(struct ExprState *s) {
 
     s->pos++;
 
-    skip_ws(s);
+    (skip_ws(s, &_ast_skip_ws_47), _ast_skip_ws_47);
 
-    if (match(s, TOKEN_LPAREN))
+    if ((match(s, TOKEN_LPAREN, &_ast_match_48), _ast_match_48))
 
       has_paren = true;
 
-    skip_ws(s);
+    (skip_ws(s, &_ast_skip_ws_49), _ast_skip_ws_49);
 
     if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
-      if (is_defined_macro(s->ctx, &s->tokens->tokens[s->pos])) {
+      if ((is_defined_macro(s->ctx, &s->tokens->tokens[s->pos],
+                            &_ast_is_defined_macro_50),
+           _ast_is_defined_macro_50)) {
 
         result = 1;
       }
@@ -1111,30 +1336,45 @@ static long parse_unary(struct ExprState *s) {
 
     if (has_paren) {
 
-      if (!match(s, TOKEN_RPAREN))
+      if (!(match(s, TOKEN_RPAREN, &_ast_match_51), _ast_match_51))
 
         s->error = 1;
     }
 
-    return result;
+    {
+      *_out_val = result;
+      return 0;
+    }
   }
 
-  return parse_primary(s);
+  {
+    *_out_val =
+        (parse_primary(s, &_ast_parse_primary_52), _ast_parse_primary_52);
+    return 0;
+  }
 }
 
-static long parse_multiplicative(struct ExprState *s) {
+static int parse_multiplicative(struct ExprState *s, long *_out_val) {
+  long _ast_parse_unary_53;
+  bool _ast_match_54;
+  long _ast_parse_unary_55;
+  bool _ast_match_56;
+  long _ast_parse_unary_57;
+  bool _ast_match_58;
+  long _ast_parse_unary_59;
 
-  long val = parse_unary(s);
+  long val = (parse_unary(s, &_ast_parse_unary_53), _ast_parse_unary_53);
 
   while (s->pos < s->end && !s->error) {
 
-    if (match(s, TOKEN_STAR)) {
+    if ((match(s, TOKEN_STAR, &_ast_match_54), _ast_match_54)) {
 
-      val *= parse_unary(s);
+      val *= (parse_unary(s, &_ast_parse_unary_55), _ast_parse_unary_55);
 
-    } else if (match(s, TOKEN_SLASH)) {
+    } else if ((match(s, TOKEN_SLASH, &_ast_match_56), _ast_match_56)) {
 
-      long divisor = parse_unary(s);
+      long divisor =
+          (parse_unary(s, &_ast_parse_unary_57), _ast_parse_unary_57);
 
       if (divisor == 0)
 
@@ -1144,9 +1384,10 @@ static long parse_multiplicative(struct ExprState *s) {
 
         val /= divisor;
 
-    } else if (match(s, TOKEN_PERCENT)) {
+    } else if ((match(s, TOKEN_PERCENT, &_ast_match_58), _ast_match_58)) {
 
-      long divisor = parse_unary(s);
+      long divisor =
+          (parse_unary(s, &_ast_parse_unary_59), _ast_parse_unary_59);
 
       if (divisor == 0)
 
@@ -1162,22 +1403,33 @@ static long parse_multiplicative(struct ExprState *s) {
     }
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_additive(struct ExprState *s) {
+static int parse_additive(struct ExprState *s, long *_out_val) {
+  long _ast_parse_multiplicative_60;
+  bool _ast_match_61;
+  long _ast_parse_multiplicative_62;
+  bool _ast_match_63;
+  long _ast_parse_multiplicative_64;
 
-  long val = parse_multiplicative(s);
+  long val = (parse_multiplicative(s, &_ast_parse_multiplicative_60),
+              _ast_parse_multiplicative_60);
 
   while (s->pos < s->end && !s->error) {
 
-    if (match(s, TOKEN_PLUS)) {
+    if ((match(s, TOKEN_PLUS, &_ast_match_61), _ast_match_61)) {
 
-      val += parse_multiplicative(s);
+      val += (parse_multiplicative(s, &_ast_parse_multiplicative_62),
+              _ast_parse_multiplicative_62);
 
-    } else if (match(s, TOKEN_MINUS)) {
+    } else if ((match(s, TOKEN_MINUS, &_ast_match_63), _ast_match_63)) {
 
-      val -= parse_multiplicative(s);
+      val -= (parse_multiplicative(s, &_ast_parse_multiplicative_64),
+              _ast_parse_multiplicative_64);
 
     } else {
 
@@ -1185,22 +1437,33 @@ static long parse_additive(struct ExprState *s) {
     }
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_shift(struct ExprState *s) {
+static int parse_shift(struct ExprState *s, long *_out_val) {
+  long _ast_parse_additive_65;
+  bool _ast_match_66;
+  long _ast_parse_additive_67;
+  bool _ast_match_68;
+  long _ast_parse_additive_69;
 
-  long val = parse_additive(s);
+  long val =
+      (parse_additive(s, &_ast_parse_additive_65), _ast_parse_additive_65);
 
   while (s->pos < s->end && !s->error) {
 
-    if (match(s, TOKEN_LSHIFT)) {
+    if ((match(s, TOKEN_LSHIFT, &_ast_match_66), _ast_match_66)) {
 
-      val <<= parse_additive(s);
+      val <<=
+          (parse_additive(s, &_ast_parse_additive_67), _ast_parse_additive_67);
 
-    } else if (match(s, TOKEN_RSHIFT)) {
+    } else if ((match(s, TOKEN_RSHIFT, &_ast_match_68), _ast_match_68)) {
 
-      val >>= parse_additive(s);
+      val >>=
+          (parse_additive(s, &_ast_parse_additive_69), _ast_parse_additive_69);
 
     } else {
 
@@ -1208,40 +1471,55 @@ static long parse_shift(struct ExprState *s) {
     }
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_relational(struct ExprState *s) {
+static int parse_relational(struct ExprState *s, long *_out_val) {
+  long _ast_parse_shift_70;
+  enum TokenKind _ast_peek_71;
+  bool _ast_match_72;
+  long _ast_parse_shift_73;
+  bool _ast_match_74;
+  long _ast_parse_shift_75;
+  bool _ast_match_76;
+  long _ast_parse_shift_77;
+  bool _ast_match_78;
+  long _ast_parse_shift_79;
 
-  long val = parse_shift(s);
+  long val = (parse_shift(s, &_ast_parse_shift_70), _ast_parse_shift_70);
 
   while (s->pos < s->end && !s->error) {
 
-    enum TokenKind k = peek(s);
+    enum TokenKind k = (peek(s, &_ast_peek_71), _ast_peek_71);
 
     if (k == TOKEN_LEQ) {
 
-      match(s, k);
+      (match(s, k, &_ast_match_72), _ast_match_72);
 
-      val = (val <= parse_shift(s));
+      val =
+          (val <= (parse_shift(s, &_ast_parse_shift_73), _ast_parse_shift_73));
 
     } else if (k == TOKEN_GEQ) {
 
-      match(s, k);
+      (match(s, k, &_ast_match_74), _ast_match_74);
 
-      val = (val >= parse_shift(s));
+      val =
+          (val >= (parse_shift(s, &_ast_parse_shift_75), _ast_parse_shift_75));
 
     } else if (k == TOKEN_LESS) {
 
-      match(s, k);
+      (match(s, k, &_ast_match_76), _ast_match_76);
 
-      val = (val < parse_shift(s));
+      val = (val < (parse_shift(s, &_ast_parse_shift_77), _ast_parse_shift_77));
 
     } else if (k == TOKEN_GREATER) {
 
-      match(s, k);
+      (match(s, k, &_ast_match_78), _ast_match_78);
 
-      val = (val > parse_shift(s));
+      val = (val > (parse_shift(s, &_ast_parse_shift_79), _ast_parse_shift_79));
 
     } else {
 
@@ -1249,22 +1527,33 @@ static long parse_relational(struct ExprState *s) {
     }
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_equality(struct ExprState *s) {
+static int parse_equality(struct ExprState *s, long *_out_val) {
+  long _ast_parse_relational_80;
+  bool _ast_match_81;
+  long _ast_parse_relational_82;
+  bool _ast_match_83;
+  long _ast_parse_relational_84;
 
-  long val = parse_relational(s);
+  long val = (parse_relational(s, &_ast_parse_relational_80),
+              _ast_parse_relational_80);
 
   while (s->pos < s->end && !s->error) {
 
-    if (match(s, TOKEN_EQ)) {
+    if ((match(s, TOKEN_EQ, &_ast_match_81), _ast_match_81)) {
 
-      val = (val == parse_relational(s));
+      val = (val == (parse_relational(s, &_ast_parse_relational_82),
+                     _ast_parse_relational_82));
 
-    } else if (match(s, TOKEN_NEQ)) {
+    } else if ((match(s, TOKEN_NEQ, &_ast_match_83), _ast_match_83)) {
 
-      val = (val != parse_relational(s));
+      val = (val != (parse_relational(s, &_ast_parse_relational_84),
+                     _ast_parse_relational_84));
 
     } else {
 
@@ -1272,44 +1561,71 @@ static long parse_equality(struct ExprState *s) {
     }
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_logic_and(struct ExprState *s) {
+static int parse_logic_and(struct ExprState *s, long *_out_val) {
+  long _ast_parse_equality_85;
+  bool _ast_match_86;
+  long _ast_parse_equality_87;
 
-  long val = parse_equality(s);
+  long val =
+      (parse_equality(s, &_ast_parse_equality_85), _ast_parse_equality_85);
 
-  while (match(s, TOKEN_LOGICAL_AND)) {
+  while ((match(s, TOKEN_LOGICAL_AND, &_ast_match_86), _ast_match_86)) {
 
-    long rhs = parse_equality(s);
+    long rhs =
+        (parse_equality(s, &_ast_parse_equality_87), _ast_parse_equality_87);
 
     val = (val && rhs);
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_logic_or(struct ExprState *s) {
+static int parse_logic_or(struct ExprState *s, long *_out_val) {
+  long _ast_parse_logic_and_88;
+  bool _ast_match_89;
+  long _ast_parse_logic_and_90;
 
-  long val = parse_logic_and(s);
+  long val =
+      (parse_logic_and(s, &_ast_parse_logic_and_88), _ast_parse_logic_and_88);
 
-  while (match(s, TOKEN_LOGICAL_OR)) {
+  while ((match(s, TOKEN_LOGICAL_OR, &_ast_match_89), _ast_match_89)) {
 
-    long rhs = parse_logic_and(s);
+    long rhs =
+        (parse_logic_and(s, &_ast_parse_logic_and_90), _ast_parse_logic_and_90);
 
     val = (val || rhs);
   }
 
-  return val;
+  {
+    *_out_val = val;
+    return 0;
+  }
 }
 
-static long parse_expr(struct ExprState *s) { return parse_logic_or(s); }
+static int parse_expr(struct ExprState *s, long *_out_val) {
+  long _ast_parse_logic_or_91;
+  {
+    *_out_val =
+        (parse_logic_or(s, &_ast_parse_logic_or_91), _ast_parse_logic_or_91);
+    return 0;
+  }
+}
 
 int pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
 
                        size_t end_idx, const struct PreprocessorContext *ctx,
 
                        long *result) {
+  long _ast_parse_expr_92;
 
   struct ExprState s;
 
@@ -1327,7 +1643,7 @@ int pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
 
   s.error = 0;
 
-  *result = parse_expr(&s);
+  *result = (parse_expr(&s, &_ast_parse_expr_92), _ast_parse_expr_92);
 
   if (s.error)
 
@@ -1343,6 +1659,13 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
                               size_t end, struct PreprocessorContext *ctx,
 
                               struct EmbedParams *out_params) {
+  enum TokenKind _ast_identify_keyword_or_id_93;
+  char *_ast_token_to_string_94;
+  enum TokenKind _ast_identify_keyword_or_id_95;
+  char *_ast_token_to_string_96;
+  char *_ast_reconstruct_path_97;
+  char *_ast_reconstruct_path_98;
+  char *_ast_reconstruct_path_99;
 
   size_t i = start;
 
@@ -1366,14 +1689,17 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
     if (tokens->tokens[i].kind != TOKEN_IDENTIFIER &&
 
-        identify_keyword_or_id(tokens->tokens[i].start,
+        (identify_keyword_or_id(tokens->tokens[i].start,
 
-                               tokens->tokens[i].length) != TOKEN_IDENTIFIER) {
+                                tokens->tokens[i].length,
+                                &_ast_identify_keyword_or_id_93),
+         _ast_identify_keyword_or_id_93) != TOKEN_IDENTIFIER) {
 
       /* Try identify and accept as ID if keyword-like */
     }
 
-    name = token_to_string(&tokens->tokens[i]);
+    name = (token_to_string(&tokens->tokens[i], &_ast_token_to_string_94),
+            _ast_token_to_string_94);
 
     if (!name)
 
@@ -1405,13 +1731,16 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
       if (i < end && (tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
 
-                      identify_keyword_or_id(tokens->tokens[i].start,
+                      (identify_keyword_or_id(tokens->tokens[i].start,
 
-                                             tokens->tokens[i].length) !=
+                                              tokens->tokens[i].length,
+                                              &_ast_identify_keyword_or_id_95),
+                       _ast_identify_keyword_or_id_95) !=
 
                           TOKEN_IDENTIFIER)) {
 
-        name = token_to_string(&tokens->tokens[i]);
+        name = (token_to_string(&tokens->tokens[i], &_ast_token_to_string_96),
+                _ast_token_to_string_96);
 
         i++;
 
@@ -1500,17 +1829,23 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
       } else if (strcmp(name, "prefix") == 0 && !scope) {
 
-        out_params->prefix = reconstruct_path(tokens, open_idx + 1, close_idx);
+        out_params->prefix = (reconstruct_path(tokens, open_idx + 1, close_idx,
+                                               &_ast_reconstruct_path_97),
+                              _ast_reconstruct_path_97);
 
       } else if (strcmp(name, "suffix") == 0 && !scope) {
 
-        out_params->suffix = reconstruct_path(tokens, open_idx + 1, close_idx);
+        out_params->suffix = (reconstruct_path(tokens, open_idx + 1, close_idx,
+                                               &_ast_reconstruct_path_98),
+                              _ast_reconstruct_path_98);
 
       } else if (strcmp(name, "if_empty") == 0 && !scope) {
 
         out_params->if_empty =
 
-            reconstruct_path(tokens, open_idx + 1, close_idx);
+            (reconstruct_path(tokens, open_idx + 1, close_idx,
+                              &_ast_reconstruct_path_99),
+             _ast_reconstruct_path_99);
 
       } else {
 
@@ -1532,12 +1867,17 @@ static int parse_embed_params(const struct TokenList *tokens, size_t start,
 
 /* --- Include Scanning & Conditional Logic --- */
 
+/** @brief CondState definition */
 enum CondState { COND_ACTIVE, COND_SKIPPING, COND_SATISFIED, COND_ELSE_SEEN };
+
+/** @brief top */
 
 struct ConditionalStack {
 
+  /** @brief states[32] */
   enum CondState states[32];
 
+  /** @brief top */
   int top;
 };
 
@@ -1557,16 +1897,23 @@ static void stack_pop(struct ConditionalStack *st) {
   }
 }
 
-static enum CondState stack_peek(const struct ConditionalStack *st) {
+static int stack_peek(const struct ConditionalStack *st,
+                      enum CondState *_out_val) {
 
   if (st->top >= 0)
 
-    return st->states[st->top];
+  {
+    *_out_val = st->states[st->top];
+    return 0;
+  }
 
-  return COND_ACTIVE;
+  {
+    *_out_val = COND_ACTIVE;
+    return 0;
+  }
 }
 
-static bool is_enabled(const struct ConditionalStack *st) {
+static int is_enabled(const struct ConditionalStack *st, bool *_out_val) {
 
   int i;
 
@@ -1574,10 +1921,16 @@ static bool is_enabled(const struct ConditionalStack *st) {
 
     if (st->states[i] == COND_SKIPPING || st->states[i] == COND_SATISFIED)
 
-      return false;
+    {
+      *_out_val = false;
+      return 0;
+    }
   }
 
-  return true;
+  {
+    *_out_val = true;
+    return 0;
+  }
 }
 
 int pp_scan_includes(const char *const filename,
@@ -1585,6 +1938,25 @@ int pp_scan_includes(const char *const filename,
                      struct PreprocessorContext *ctx, pp_visitor_cb cb,
 
                      void *user_data) {
+  bool _ast_token_matches_string_100;
+  bool _ast_token_matches_string_101;
+  bool _ast_token_matches_string_102;
+  bool _ast_is_enabled_103;
+  bool _ast_is_defined_macro_104;
+  bool _ast_token_matches_string_105;
+  bool _ast_is_enabled_106;
+  bool _ast_token_matches_string_107;
+  enum CondState _ast_stack_peek_108;
+  bool _ast_is_enabled_109;
+  bool _ast_token_matches_string_110;
+  enum CondState _ast_stack_peek_111;
+  bool _ast_is_enabled_112;
+  bool _ast_token_matches_string_113;
+  bool _ast_is_enabled_114;
+  bool _ast_token_matches_string_115;
+  bool _ast_token_matches_string_116;
+  char *_ast_reconstruct_path_117;
+  char *_ast_resolve_path_118;
 
   char *content = NULL;
 
@@ -1695,13 +2067,19 @@ int pp_scan_includes(const char *const filename,
 
         /* --- Conditionals --- */
 
-        if (token_matches_string(cmd, "ifdef") ||
+        if ((token_matches_string(cmd, "ifdef", &_ast_token_matches_string_100),
+             _ast_token_matches_string_100) ||
 
-            token_matches_string(cmd, "ifndef")) {
+            (token_matches_string(cmd, "ifndef",
+                                  &_ast_token_matches_string_101),
+             _ast_token_matches_string_101)) {
 
-          bool inverse = token_matches_string(cmd, "ifndef");
+          bool inverse = (token_matches_string(cmd, "ifndef",
+                                               &_ast_token_matches_string_102),
+                          _ast_token_matches_string_102);
 
-          bool enabled = is_enabled(&stack);
+          bool enabled =
+              (is_enabled(&stack, &_ast_is_enabled_103), _ast_is_enabled_103);
 
           bool condition_met = false;
 
@@ -1721,7 +2099,9 @@ int pp_scan_includes(const char *const filename,
 
                 tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
 
-              bool defined = is_defined_macro(ctx, &tokens->tokens[id_idx]);
+              bool defined = (is_defined_macro(ctx, &tokens->tokens[id_idx],
+                                               &_ast_is_defined_macro_104),
+                              _ast_is_defined_macro_104);
 
               condition_met = inverse ? !defined : defined;
             }
@@ -1740,9 +2120,12 @@ int pp_scan_includes(const char *const filename,
             stack_push(&stack, COND_SATISFIED);
           }
 
-        } else if (token_matches_string(cmd, "if")) {
+        } else if ((token_matches_string(cmd, "if",
+                                         &_ast_token_matches_string_105),
+                    _ast_token_matches_string_105)) {
 
-          bool enabled = is_enabled(&stack);
+          bool enabled =
+              (is_enabled(&stack, &_ast_is_enabled_106), _ast_is_enabled_106);
 
           bool condition_met = false;
 
@@ -1772,15 +2155,19 @@ int pp_scan_includes(const char *const filename,
             stack_push(&stack, COND_SATISFIED);
           }
 
-        } else if (token_matches_string(cmd, "elif")) {
+        } else if ((token_matches_string(cmd, "elif",
+                                         &_ast_token_matches_string_107),
+                    _ast_token_matches_string_107)) {
 
-          enum CondState current = stack_peek(&stack);
+          enum CondState current =
+              (stack_peek(&stack, &_ast_stack_peek_108), _ast_stack_peek_108);
 
           bool parent_enabled;
 
           stack_pop(&stack);
 
-          parent_enabled = is_enabled(&stack);
+          parent_enabled =
+              (is_enabled(&stack, &_ast_is_enabled_109), _ast_is_enabled_109);
 
           stack_push(&stack, current);
 
@@ -1812,15 +2199,19 @@ int pp_scan_includes(const char *const filename,
             }
           }
 
-        } else if (token_matches_string(cmd, "else")) {
+        } else if ((token_matches_string(cmd, "else",
+                                         &_ast_token_matches_string_110),
+                    _ast_token_matches_string_110)) {
 
-          enum CondState current = stack_peek(&stack);
+          enum CondState current =
+              (stack_peek(&stack, &_ast_stack_peek_111), _ast_stack_peek_111);
 
           bool parent_enabled;
 
           stack_pop(&stack);
 
-          parent_enabled = is_enabled(&stack);
+          parent_enabled =
+              (is_enabled(&stack, &_ast_is_enabled_112), _ast_is_enabled_112);
 
           stack_push(&stack, current);
 
@@ -1839,7 +2230,9 @@ int pp_scan_includes(const char *const filename,
             stack_push(&stack, COND_ACTIVE);
           }
 
-        } else if (token_matches_string(cmd, "endif")) {
+        } else if ((token_matches_string(cmd, "endif",
+                                         &_ast_token_matches_string_113),
+                    _ast_token_matches_string_113)) {
 
           directive_handled = 1;
 
@@ -1848,13 +2241,20 @@ int pp_scan_includes(const char *const filename,
 
         /* --- Includes & Embeds --- */
 
-        if (!directive_handled && is_enabled(&stack)) {
+        if (!directive_handled &&
+            (is_enabled(&stack, &_ast_is_enabled_114), _ast_is_enabled_114)) {
 
-          int input_is_embed = token_matches_string(cmd, "embed") ||
+          int input_is_embed =
+              (token_matches_string(cmd, "embed",
+                                    &_ast_token_matches_string_115),
+               _ast_token_matches_string_115) ||
 
-                               tokens->tokens[next].kind == TOKEN_KEYWORD_EMBED;
+              tokens->tokens[next].kind == TOKEN_KEYWORD_EMBED;
 
-          int input_is_include = token_matches_string(cmd, "include") != 0;
+          int input_is_include =
+              (token_matches_string(cmd, "include",
+                                    &_ast_token_matches_string_116),
+               _ast_token_matches_string_116) != 0;
 
           if (input_is_embed || input_is_include) {
 
@@ -1911,7 +2311,9 @@ int pp_scan_includes(const char *const filename,
 
                 if (end_arg < eol) {
 
-                  raw_path = reconstruct_path(tokens, path_start + 1, end_arg);
+                  raw_path = (reconstruct_path(tokens, path_start + 1, end_arg,
+                                               &_ast_reconstruct_path_117),
+                              _ast_reconstruct_path_117);
 
                   is_sys = 1;
 
@@ -1921,7 +2323,9 @@ int pp_scan_includes(const char *const filename,
 
               if (raw_path) {
 
-                resolved = resolve_path(ctx, dir_name, raw_path, is_sys);
+                resolved = (resolve_path(ctx, dir_name, raw_path, is_sys,
+                                         &_ast_resolve_path_118),
+                            _ast_resolve_path_118);
 
                 if (resolved) {
 

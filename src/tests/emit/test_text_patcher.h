@@ -25,6 +25,7 @@ static struct TokenList *setup_patch_tokens(const char *code) {
 }
 
 TEST test_patch_init_free(void) {
+  char *_ast_strdup_0 = NULL;
   struct PatchList pl;
   int rc = patch_list_init(&pl);
   ASSERT_EQ(0, rc);
@@ -32,7 +33,8 @@ TEST test_patch_init_free(void) {
   ASSERT_EQ(0, pl.size);
 
   /* Add one to test free logic */
-  patch_list_add(&pl, 0, 1, c_cdd_strdup("test"));
+  patch_list_add(&pl, 0, 1,
+                 (c_cdd_strdup("test", &_ast_strdup_0), _ast_strdup_0));
 
   patch_list_free(&pl);
   ASSERT_EQ(0, pl.size);
@@ -41,6 +43,7 @@ TEST test_patch_init_free(void) {
 }
 
 TEST test_patch_basic_replacement(void) {
+  char *_ast_strdup_1 = NULL;
   /* Input: int x = 5; */
   /* Tokens: [int] [ ] [x] [ ] [=] [ ] [5] [;] */
   /* Indices: 0     1   2   3   4   5   6   7 */
@@ -58,7 +61,8 @@ TEST test_patch_basic_replacement(void) {
   /* Let's verify token indices first to be robust */
   ASSERT(tl->tokens[6].kind == TOKEN_NUMBER_LITERAL);
 
-  rc = patch_list_add(&pl, 6, 7, c_cdd_strdup("10"));
+  rc = patch_list_add(&pl, 6, 7,
+                      (c_cdd_strdup("10", &_ast_strdup_1), _ast_strdup_1));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -72,6 +76,7 @@ TEST test_patch_basic_replacement(void) {
 }
 
 TEST test_patch_insertion(void) {
+  char *_ast_strdup_2 = NULL;
   /* Input: void f(){} */
   /* Tokens: [void] [ ] [f] [(] [)] [{] [}] */
   /* Indices: 0     1   2   3   4   5   6 */
@@ -90,7 +95,8 @@ TEST test_patch_insertion(void) {
   ASSERT(tl->tokens[5].kind == TOKEN_LBRACE);
   ASSERT(tl->tokens[6].kind == TOKEN_RBRACE);
 
-  rc = patch_list_add(&pl, 5, 7, c_cdd_strdup("{ int x; }"));
+  rc = patch_list_add(
+      &pl, 5, 7, (c_cdd_strdup("{ int x; }", &_ast_strdup_2), _ast_strdup_2));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -104,6 +110,7 @@ TEST test_patch_insertion(void) {
 }
 
 TEST test_patch_deletion(void) {
+  char *_ast_strdup_3 = NULL;
   /* Input: int x; */
   /* Tokens: [int] [ ] [x] [;] */
   const char *code = "int x;";
@@ -116,7 +123,8 @@ TEST test_patch_deletion(void) {
   patch_list_init(&pl);
 
   /* Delete "int " tokens [0, 2) */
-  rc = patch_list_add(&pl, 0, 2, c_cdd_strdup(""));
+  rc = patch_list_add(&pl, 0, 2,
+                      (c_cdd_strdup("", &_ast_strdup_3), _ast_strdup_3));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);
@@ -130,6 +138,8 @@ TEST test_patch_deletion(void) {
 }
 
 TEST test_patch_multiple_disjoint(void) {
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
   /* Input: A B C */
   const char *code = "A B C";
   struct TokenList *tl = setup_patch_tokens(code);
@@ -141,10 +151,14 @@ TEST test_patch_multiple_disjoint(void) {
   patch_list_init(&pl);
 
   /* Replace A -> X */
-  rc = patch_list_add(&pl, 0, 1, c_cdd_strdup("X")); /* A at 0 */
+  rc = patch_list_add(
+      &pl, 0, 1,
+      (c_cdd_strdup("X", &_ast_strdup_4), _ast_strdup_4)); /* A at 0 */
   /* Replace C -> Z */
   /* [A] [ ] [B] [ ] [C] -> 0 1 2 3 4 */
-  rc = patch_list_add(&pl, 4, 5, c_cdd_strdup("Z")); /* C at 4 */
+  rc = patch_list_add(
+      &pl, 4, 5,
+      (c_cdd_strdup("Z", &_ast_strdup_5), _ast_strdup_5)); /* C at 4 */
 
   rc = patch_list_apply(&pl, tl, &result);
   ASSERT_EQ(0, rc);
@@ -157,6 +171,8 @@ TEST test_patch_multiple_disjoint(void) {
 }
 
 TEST test_patch_overlap_behavior(void) {
+  char *_ast_strdup_6 = NULL;
+  char *_ast_strdup_7 = NULL;
   /* Input: A */
   const char *code = "A";
   struct TokenList *tl = setup_patch_tokens(code);
@@ -169,10 +185,12 @@ TEST test_patch_overlap_behavior(void) {
   patch_list_init(&pl);
 
   /* Replace A -> X */
-  rc = patch_list_add(&pl, 0, 1, c_cdd_strdup("X"));
+  rc = patch_list_add(&pl, 0, 1,
+                      (c_cdd_strdup("X", &_ast_strdup_6), _ast_strdup_6));
   /* Replace A -> Y (Same range) -> Should be skipped or overwrite?
    * Implementation skips overlaps */
-  rc = patch_list_add(&pl, 0, 1, c_cdd_strdup("Y"));
+  rc = patch_list_add(&pl, 0, 1,
+                      (c_cdd_strdup("Y", &_ast_strdup_7), _ast_strdup_7));
 
   rc = patch_list_apply(&pl, tl, &result);
   ASSERT_EQ(0, rc);
@@ -195,6 +213,7 @@ TEST test_patch_overlap_behavior(void) {
 }
 
 TEST test_patch_append_end(void) {
+  char *_ast_strdup_8 = NULL;
   const char *code = "End";
   struct TokenList *tl = setup_patch_tokens(code);
   struct PatchList pl;
@@ -205,7 +224,8 @@ TEST test_patch_append_end(void) {
   patch_list_init(&pl);
 
   /* Append after end. Token list size is 1. Insert at index 1 (end) */
-  rc = patch_list_add(&pl, 1, 1, c_cdd_strdup(" appended"));
+  rc = patch_list_add(
+      &pl, 1, 1, (c_cdd_strdup(" appended", &_ast_strdup_8), _ast_strdup_8));
   ASSERT_EQ(0, rc);
 
   rc = patch_list_apply(&pl, tl, &result);

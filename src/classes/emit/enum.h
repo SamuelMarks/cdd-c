@@ -1,5 +1,5 @@
 /**
- * @file codegen_enum.h
+ * @file enum.h
  * @brief Enum code generation module.
  *
  * Provides functionality to extract enum definitions from C code and generate:

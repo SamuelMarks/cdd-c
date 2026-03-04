@@ -58,6 +58,7 @@ int allocation_site_list_add(struct AllocationSiteList *const list,
                              const int checked, const int used_before,
                              const int is_ret,
                              const struct AllocatorSpec *spec) {
+  char *_ast_strdup_0 = NULL;
   if (!list)
     return EINVAL;
 
@@ -78,7 +79,8 @@ int allocation_site_list_add(struct AllocationSiteList *const list,
   list->sites[list->size].spec = spec;
 
   if (var_name) {
-    list->sites[list->size].var_name = c_cdd_strdup(var_name);
+    list->sites[list->size].var_name =
+        (c_cdd_strdup(var_name, &_ast_strdup_0), _ast_strdup_0);
     if (!list->sites[list->size].var_name)
       return ENOMEM;
   } else {
@@ -89,11 +91,13 @@ int allocation_site_list_add(struct AllocationSiteList *const list,
   return 0;
 }
 
-static char *get_assigned_var(const struct TokenList *tokens,
-                              size_t assign_idx) {
+static int get_assigned_var(const struct TokenList *tokens, size_t assign_idx,
+                            char **_out_val) {
   size_t i = assign_idx;
-  if (assign_idx == 0)
-    return NULL;
+  if (assign_idx == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
   i--;
 
   while (i > 0 && tokens->tokens[i].kind == TOKEN_WHITESPACE)
@@ -102,13 +106,21 @@ static char *get_assigned_var(const struct TokenList *tokens,
   if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
     const struct Token *tok = &tokens->tokens[i];
     char *name = (char *)malloc(tok->length + 1);
-    if (!name)
-      return NULL;
+    if (!name) {
+      *_out_val = NULL;
+      return 0;
+    }
     memcpy(name, tok->start, tok->length);
     name[tok->length] = '\0';
-    return name;
+    {
+      *_out_val = name;
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int is_inside_condition(const struct TokenList *tokens, size_t idx) {
@@ -172,6 +184,7 @@ static int is_dereference_use(const struct TokenList *tokens, size_t i) {
 int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
                const char *const var_name, const struct AllocatorSpec *spec,
                int *used_before_check) {
+  bool _ast_token_matches_string_0;
   size_t i = alloc_idx;
   *used_before_check = 0;
 
@@ -193,7 +206,8 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
     }
 
     if (tok->kind == TOKEN_IDENTIFIER) {
-      if (token_matches_string(tok, var_name)) {
+      if ((token_matches_string(tok, var_name, &_ast_token_matches_string_0),
+           _ast_token_matches_string_0)) {
         if (is_inside_condition(tokens, i))
           return 1;
         if (spec->check_style == CHECK_PTR_NULL &&
@@ -210,6 +224,8 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
 
 int find_allocations(const struct TokenList *const tokens,
                      struct AllocationSiteList *const out) {
+  bool _ast_token_matches_string_1;
+  char *_ast_get_assigned_var_2;
   size_t i;
   int rc;
 
@@ -228,7 +244,9 @@ int find_allocations(const struct TokenList *const tokens,
       const struct AllocatorSpec *spec = ALLOCATOR_SPECS;
 
       while (spec->name != NULL) {
-        if (token_matches_string(tok, spec->name)) {
+        if ((token_matches_string(tok, spec->name,
+                                  &_ast_token_matches_string_1),
+             _ast_token_matches_string_1)) {
           char *var_name = NULL;
           int is_return = 0;
 
@@ -265,7 +283,9 @@ int find_allocations(const struct TokenList *const tokens,
                 break;
               }
               if (tokens->tokens[prev].kind == TOKEN_ASSIGN) {
-                var_name = get_assigned_var(tokens, prev);
+                var_name =
+                    (get_assigned_var(tokens, prev, &_ast_get_assigned_var_2),
+                     _ast_get_assigned_var_2);
                 break;
               }
             }

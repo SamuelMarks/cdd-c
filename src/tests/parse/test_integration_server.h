@@ -35,7 +35,8 @@
 /* --- Mock Server Lifecycle Test --- */
 
 TEST test_mock_server_lifecycle(void) {
-  MockServerPtr server = mock_server_init();
+  MockServerPtr server = NULL;
+  mock_server_init(&server);
   ASSERT(server != NULL);
 
   if (mock_server_start(server) != 0) {
@@ -74,6 +75,8 @@ static void verify_request_content(struct MockServerRequest *req,
 /* --- Curl Integration --- */
 
 TEST test_curl_transport_integration(void) {
+  char *_ast_strdup_0 = NULL;
+  char *_ast_strdup_1 = NULL;
   MockServerPtr server;
   struct HttpClient client;
   struct HttpRequest req;
@@ -83,10 +86,10 @@ TEST test_curl_transport_integration(void) {
   char url[128];
   int rc;
 
-  SKIPm("Hangs in this environment");
+  /* SKIPm("Hangs in this environment"); */
 
   /* 1. Start Server */
-  server = mock_server_init();
+  mock_server_init(&server);
   ASSERT(server);
   if (mock_server_start(server) != 0) {
     mock_server_destroy(server);
@@ -111,10 +114,10 @@ TEST test_curl_transport_integration(void) {
 #else
   sprintf(url, "http://127.0.0.1:%d/api/curl", port);
 #endif
-  req.url = c_cdd_strdup(url);
+  req.url = (c_cdd_strdup(url, &_ast_strdup_0), _ast_strdup_0);
 
   http_headers_add(&req.headers, "X-Client", "CDD-Curl");
-  req.body = c_cdd_strdup("payload");
+  req.body = (c_cdd_strdup("payload", &_ast_strdup_1), _ast_strdup_1);
   req.body_len = 7;
 
   /* 4. Send (Non-blocking from server perspective, but client blocks) */
@@ -160,6 +163,8 @@ TEST test_curl_transport_integration(void) {
 /* --- WinHTTP Integration --- */
 
 TEST test_winhttp_transport_integration(void) {
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
 #ifdef _WIN32
   MockServerPtr server;
   struct HttpClient client;
@@ -171,7 +176,7 @@ TEST test_winhttp_transport_integration(void) {
   int rc;
 
   /* 1. Start Server */
-  server = mock_server_init();
+  mock_server_init(&server);
   ASSERT(server);
   if (mock_server_start(server) != 0) {
     mock_server_destroy(server);
@@ -192,10 +197,10 @@ TEST test_winhttp_transport_integration(void) {
   req.method = HTTP_PUT;
 
   sprintf_s(url, sizeof(url), "http://127.0.0.1:%d/api/win", port);
-  req.url = c_cdd_strdup(url);
+  req.url = (c_cdd_strdup(url, &_ast_strdup_2), _ast_strdup_2);
 
   http_headers_add(&req.headers, "X-Client", "CDD-Win");
-  req.body = c_cdd_strdup("data");
+  req.body = (c_cdd_strdup("data", &_ast_strdup_3), _ast_strdup_3);
   req.body_len = 4;
 
   /* 4. Send */

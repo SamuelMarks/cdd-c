@@ -1,5 +1,5 @@
 /**
- * @file codegen_types.h
+ * @file types.h
  * @brief Generator for Advanced Types: Tagged Unions and Root Arrays.
  *
  * Handles polymorphism (oneOf) via discriminated unions and direct array types.

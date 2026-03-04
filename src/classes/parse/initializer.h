@@ -1,5 +1,5 @@
 /**
- * @file initializer_parser.h
+ * @file initializer.h
  * @brief Parser for C Initializer lists (Brace-enclosed lists).
  *
  * Handles parsing of standard and designated initializers used in variable
@@ -41,9 +41,12 @@ struct InitList;
  */
 struct InitValue {
   enum InitKind kind; /**< Type of value */
+  /** @brief union data */
   union {
     char *scalar;              /**< Text of expression if SCALAR */
     struct InitList *compound; /**< Nested list if COMPOUND */
+    /** @brief data */
+    /** @brief data variant */
   } data;
 };
 

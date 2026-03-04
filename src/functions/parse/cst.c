@@ -1,5 +1,5 @@
 /**
- * @file cst_parser.c
+ * @file cst.c
  * @brief Implementation of the Concrete Syntax Tree logic.
  *
  * Implements recursive descent parsing to group tokens into semantic blocks.
@@ -26,21 +26,28 @@
 /**
  * @brief Helper to skip whitespace tokens.
  */
-static size_t skip_ws(const struct TokenList *const tokens, size_t i,
-                      size_t limit) {
+static int skip_ws(const struct TokenList *const tokens, size_t i, size_t limit,
+                   size_t *_out_val) {
   while (i < limit && tokens->tokens[i].kind == TOKEN_WHITESPACE)
     i++;
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 /**
  * @brief Helper to skip whitespace tokens backwards.
  */
-static size_t skip_ws_back(const struct TokenList *const tokens, size_t i) {
+static int skip_ws_back(const struct TokenList *const tokens, size_t i,
+                        size_t *_out_val) {
   if (i == 0) {
     /* If index 0 is valid and not whitespace, return it. If whitespace,
        we can't go back further, but logic checking kind will see whitespace. */
-    return 0;
+    {
+      *_out_val = 0;
+      return 0;
+    }
   }
   i--;
   while (i > 0 && tokens->tokens[i].kind == TOKEN_WHITESPACE)
@@ -49,7 +56,10 @@ static size_t skip_ws_back(const struct TokenList *const tokens, size_t i) {
   /* Check if we stopped at 0 and 0 is whitespace */
   /* If i==0 and it is whitespace, we effectively return a pointer to
    * whitespace. */
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 /**
@@ -120,6 +130,7 @@ static int is_type_start(const struct Token *tok) {
 static int match_function_definition(const struct TokenList *const tokens,
                                      size_t start_idx, size_t limit,
                                      size_t *end_idx_out) {
+  size_t _ast_skip_ws_0;
   size_t k = start_idx;
   int paren_depth;
   int brace_depth;
@@ -173,7 +184,7 @@ static int match_function_definition(const struct TokenList *const tokens,
   if (k >= limit)
     return 0;
 
-  k = skip_ws(tokens, k, limit);
+  k = (skip_ws(tokens, k, limit, &_ast_skip_ws_0), _ast_skip_ws_0);
   if (k >= limit || tokens->tokens[k].kind != TOKEN_LBRACE)
     return 0;
 
@@ -197,8 +208,9 @@ static int match_function_definition(const struct TokenList *const tokens,
 /**
  * @brief Consume a balanced parenthesized block `( ... )`.
  */
-static size_t consume_balanced_parens(const struct TokenList *const tokens,
-                                      size_t start, size_t limit) {
+static int consume_balanced_parens(const struct TokenList *const tokens,
+                                   size_t start, size_t limit,
+                                   size_t *_out_val) {
   size_t i = start;
   int depth = 0;
 
@@ -206,7 +218,10 @@ static size_t consume_balanced_parens(const struct TokenList *const tokens,
     depth = 1;
     i++;
   } else {
-    return start;
+    {
+      *_out_val = start;
+      return 0;
+    }
   }
 
   while (i < limit && depth > 0) {
@@ -218,14 +233,17 @@ static size_t consume_balanced_parens(const struct TokenList *const tokens,
     i++;
   }
 
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 /**
  * @brief Consume a C23 attribute block `[[ ... ]]`.
  */
-static size_t consume_attributes(const struct TokenList *const tokens,
-                                 size_t start, size_t limit) {
+static int consume_attributes(const struct TokenList *const tokens,
+                              size_t start, size_t limit, size_t *_out_val) {
   size_t i = start + 2;
   int depth = 2;
 
@@ -238,25 +256,35 @@ static size_t consume_attributes(const struct TokenList *const tokens,
     i++;
   }
 
-  if (depth == 0)
-    return i;
-  return start;
+  if (depth == 0) {
+    *_out_val = i;
+    return 0;
+  }
+  {
+    *_out_val = start;
+    return 0;
+  }
 }
 
 /**
  * @brief Consume a static assertion declaration.
  */
-static size_t consume_static_assert(const struct TokenList *const tokens,
-                                    size_t start, size_t limit) {
+static int consume_static_assert(const struct TokenList *const tokens,
+                                 size_t start, size_t limit, size_t *_out_val) {
+  size_t _ast_skip_ws_1;
+  size_t _ast_skip_ws_2;
   size_t i = start + 1;
   int paren_depth = 0;
 
-  i = skip_ws(tokens, i, limit);
+  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_1), _ast_skip_ws_1);
   if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
     paren_depth = 1;
     i++;
   } else {
-    return start;
+    {
+      *_out_val = start;
+      return 0;
+    }
   }
 
   while (i < limit && paren_depth > 0) {
@@ -267,31 +295,50 @@ static size_t consume_static_assert(const struct TokenList *const tokens,
     i++;
   }
 
-  if (paren_depth != 0)
-    return start;
-
-  i = skip_ws(tokens, i, limit);
-  if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
-    return i + 1;
+  if (paren_depth != 0) {
+    *_out_val = start;
+    return 0;
   }
-  return start;
+
+  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_2), _ast_skip_ws_2);
+  if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+    {
+      *_out_val = i + 1;
+      return 0;
+    }
+  }
+  {
+    *_out_val = start;
+    return 0;
+  }
 }
 
 /**
  * @brief Consume a _Generic selection `_Generic ( ... )`.
  */
-static size_t consume_generic_selection(const struct TokenList *const tokens,
-                                        size_t start, size_t limit) {
+static int consume_generic_selection(const struct TokenList *const tokens,
+                                     size_t start, size_t limit,
+                                     size_t *_out_val) {
+  size_t _ast_skip_ws_3;
+  size_t _ast_consume_balanced_parens_4;
   /* _Generic ( assignment-expression , generic-assoc-list ) */
   /* The generic-assoc-list is inside parens. */
   /* We just need to consume the balanced parens after _Generic. */
   size_t i = start + 1;
 
-  i = skip_ws(tokens, i, limit);
+  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_3), _ast_skip_ws_3);
   if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
-    return consume_balanced_parens(tokens, i, limit);
+    {
+      *_out_val = (consume_balanced_parens(tokens, i, limit,
+                                           &_ast_consume_balanced_parens_4),
+                   _ast_consume_balanced_parens_4);
+      return 0;
+    }
   }
-  return start;
+  {
+    *_out_val = start;
+    return 0;
+  }
 }
 
 /**
@@ -300,13 +347,16 @@ static size_t consume_generic_selection(const struct TokenList *const tokens,
  */
 static int is_expression_brace(const struct TokenList *const tokens,
                                size_t brace_idx) {
+  size_t _ast_skip_ws_back_5;
+  size_t _ast_skip_ws_back_6;
   size_t prev;
   enum TokenKind pk;
 
   if (brace_idx == 0)
     return 0;
 
-  prev = skip_ws_back(tokens, brace_idx);
+  prev = (skip_ws_back(tokens, brace_idx, &_ast_skip_ws_back_5),
+          _ast_skip_ws_back_5);
 
   pk = tokens->tokens[prev].kind;
 
@@ -328,7 +378,8 @@ static int is_expression_brace(const struct TokenList *const tokens,
     }
 
     if (depth == 0) {
-      size_t before_paren = skip_ws_back(tokens, k);
+      size_t before_paren =
+          (skip_ws_back(tokens, k, &_ast_skip_ws_back_6), _ast_skip_ws_back_6);
       enum TokenKind bpk = tokens->tokens[before_paren].kind;
 
       if (bpk == TOKEN_KEYWORD_IF || bpk == TOKEN_KEYWORD_WHILE ||
@@ -346,8 +397,9 @@ static int is_expression_brace(const struct TokenList *const tokens,
 /**
  * @brief Consume a brace-enclosed block, respecting nesting.
  */
-static size_t consume_balanced_braces(const struct TokenList *const tokens,
-                                      size_t start, size_t limit) {
+static int consume_balanced_braces(const struct TokenList *const tokens,
+                                   size_t start, size_t limit,
+                                   size_t *_out_val) {
   size_t i = start;
   int depth = 0;
 
@@ -355,7 +407,10 @@ static size_t consume_balanced_braces(const struct TokenList *const tokens,
     depth = 1;
     i++;
   } else {
-    return start;
+    {
+      *_out_val = start;
+      return 0;
+    }
   }
 
   while (i < limit && depth > 0) {
@@ -367,7 +422,10 @@ static size_t consume_balanced_braces(const struct TokenList *const tokens,
     i++;
   }
 
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 /**
@@ -375,6 +433,17 @@ static size_t consume_balanced_braces(const struct TokenList *const tokens,
  */
 static int parse_recursive(const struct TokenList *const tokens, size_t start,
                            size_t end, struct CstNodeList *const out) {
+  size_t _ast_consume_attributes_7;
+  size_t _ast_consume_static_assert_8;
+  bool _ast_token_matches_string_9;
+  bool _ast_token_matches_string_10;
+  size_t _ast_consume_generic_selection_11;
+  size_t _ast_skip_ws_back_12;
+  size_t _ast_consume_balanced_braces_13;
+  size_t _ast_skip_ws_14;
+  size_t _ast_consume_balanced_braces_15;
+  size_t _ast_skip_ws_back_16;
+  bool _ast_token_matches_string_17;
   size_t i = start;
   int rc;
 
@@ -389,7 +458,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
     /* C23 Attributes */
     if (tok->kind == TOKEN_LBRACKET && i + 1 < end &&
         tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
-      size_t attr_end = consume_attributes(tokens, i, end);
+      size_t attr_end =
+          (consume_attributes(tokens, i, end, &_ast_consume_attributes_7),
+           _ast_consume_attributes_7);
       if (attr_end > i) {
         const struct Token *last = &tokens->tokens[attr_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -404,7 +475,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
 
     /* Static Assert */
     if (tok->kind == TOKEN_KEYWORD_STATIC_ASSERT) {
-      size_t sa_end = consume_static_assert(tokens, i, end);
+      size_t sa_end =
+          (consume_static_assert(tokens, i, end, &_ast_consume_static_assert_8),
+           _ast_consume_static_assert_8);
       if (sa_end > i) {
         const struct Token *last = &tokens->tokens[sa_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -427,14 +500,19 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
        Assumed: If `tokenize` doesn't emit `TOKEN_KEYWORD_GENERIC`, it emits
        `TOKEN_IDENTIFIER`. We check text. */
     if ((tok->kind == TOKEN_IDENTIFIER &&
-         token_matches_string(tok, "_Generic")) ||
+         (token_matches_string(tok, "_Generic", &_ast_token_matches_string_9),
+          _ast_token_matches_string_9)) ||
         (tok->kind == TOKEN_IDENTIFIER &&
-         token_matches_string(
-             tok,
-             "generic_selection" /* Fallback? No spec only says _Generic */))) {
+         (token_matches_string(
+              tok,
+              "generic_selection" /* Fallback? No spec only says _Generic */,
+              &_ast_token_matches_string_10),
+          _ast_token_matches_string_10))) {
       /* Actually tokenizer update might be needed for strict correctness,
          but here we can sniff identifier text. */
-      size_t gen_end = consume_generic_selection(tokens, i, end);
+      size_t gen_end = (consume_generic_selection(
+                            tokens, i, end, &_ast_consume_generic_selection_11),
+                        _ast_consume_generic_selection_11);
       if (gen_end > i) {
         const struct Token *last = &tokens->tokens[gen_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -471,7 +549,8 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
       /* E.g. (struct S){...} */
       int is_literal = 0;
       {
-        size_t prev = skip_ws_back(tokens, i);
+        size_t prev = (skip_ws_back(tokens, i, &_ast_skip_ws_back_12),
+                       _ast_skip_ws_back_12);
         if (prev < i && tokens->tokens[prev].kind == TOKEN_LPAREN) {
           is_literal = 1; /* Fall through to CST_NODE_OTHER handling */
         }
@@ -488,7 +567,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
             break;
           if (tokens->tokens[k].kind == TOKEN_LBRACE) {
             body_start_idx = k + 1;
-            block_end = consume_balanced_braces(tokens, k, end);
+            block_end = (consume_balanced_braces(
+                             tokens, k, end, &_ast_consume_balanced_braces_13),
+                         _ast_consume_balanced_braces_13);
             found_block = (block_end > k);
             break;
           }
@@ -499,7 +580,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
           enum CstNodeKind nk;
           size_t byte_len;
           const struct Token *last;
-          size_t next_probe = skip_ws(tokens, block_end, end);
+          size_t next_probe =
+              (skip_ws(tokens, block_end, end, &_ast_skip_ws_14),
+               _ast_skip_ws_14);
 
           if (next_probe < end &&
               tokens->tokens[next_probe].kind == TOKEN_SEMICOLON) {
@@ -605,7 +688,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
 
         if (kind == TOKEN_LBRACE) {
           if (is_expression_brace(tokens, j)) {
-            j = consume_balanced_braces(tokens, j, end);
+            j = (consume_balanced_braces(tokens, j, end,
+                                         &_ast_consume_balanced_braces_15),
+                 _ast_consume_balanced_braces_15);
             continue;
           } else {
             break;
@@ -616,7 +701,8 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
             kind == TOKEN_KEYWORD_UNION) {
           /* Detect if this keyword is part of a Cast or Compound Literal
              (check if preceded by LPAREN) to avoid breaking statement */
-          size_t prev = skip_ws_back(tokens, j);
+          size_t prev = (skip_ws_back(tokens, j, &_ast_skip_ws_back_16),
+                         _ast_skip_ws_back_16);
 
           if (prev < j && prev >= i &&
               tokens->tokens[prev].kind == TOKEN_LPAREN) {
@@ -632,7 +718,9 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
         }
         /* Check match for _Generic identifier explicitly to break loop */
         if (kind == TOKEN_IDENTIFIER &&
-            token_matches_string(&tokens->tokens[j], "_Generic")) {
+            (token_matches_string(&tokens->tokens[j], "_Generic",
+                                  &_ast_token_matches_string_17),
+             _ast_token_matches_string_17)) {
           break;
         }
 
@@ -680,16 +768,24 @@ void free_cst_node_list(struct CstNodeList *const list) {
   list->capacity = 0;
 }
 
-struct CstNode *cst_find_first(struct CstNodeList *const list,
-                               const enum CstNodeKind kind) {
+int cst_find_first(struct CstNodeList *const list, const enum CstNodeKind kind,
+                   struct CstNode **_out_val) {
   size_t i;
-  if (!list)
-    return NULL;
+  if (!list) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   for (i = 0; i < list->size; i++) {
     if (list->nodes[i].kind == kind) {
-      return &list->nodes[i];
+      {
+        *_out_val = &list->nodes[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }

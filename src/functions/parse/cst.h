@@ -1,5 +1,5 @@
 /**
- * @file cst_parser.h
+ * @file cst.h
  * @brief Concrete Syntax Tree (CST) Parser.
  *
  * Groups linear tokens into semantic blocks (Functions, Structs, Enums).
@@ -111,14 +111,17 @@ extern C_CDD_EXPORT int cst_list_add(struct CstNodeList *list,
 extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *list);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Find the first node of a specific kind in the list.
  *
  * @param[in] list The list to search.
  * @param[in] kind The kind to search for.
  * @return Pointer to the found node, or NULL if not found.
  */
-extern C_CDD_EXPORT struct CstNode *cst_find_first(struct CstNodeList *list,
-                                                   enum CstNodeKind kind);
+extern C_CDD_EXPORT int cst_find_first(struct CstNodeList *list,
+                                       enum CstNodeKind kind,
+                                       struct CstNode **_out_val);
 
 #ifdef __cplusplus
 }

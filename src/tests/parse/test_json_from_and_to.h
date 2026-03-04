@@ -40,7 +40,7 @@ TEST test_HazE_to_json_and_from_json(void) {
   ASSERT_EQ(0, rc);
   ASSERT(haz_out != NULL);
 
-  ASSERT(HazE_eq(&haz, haz_out));
+  ASSERT(HazE_eq(&haz, haz_out) == 0);
 
   HazE_cleanup(haz_out);
   free(json_str);
@@ -63,7 +63,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   ASSERT_EQ(0, rc);
   ASSERT(foo_out != NULL);
 
-  ASSERT(FooE_eq(&foo, foo_out));
+  ASSERT(FooE_eq(&foo, foo_out) == 0);
 
   FooE_cleanup(foo_out);
   free(json_str);
@@ -88,7 +88,7 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   ASSERT_EQ(0, rc);
   ASSERT(foo_out != NULL);
 
-  ASSERT(FooE_eq(&foo_in, foo_out));
+  ASSERT(FooE_eq(&foo_in, foo_out) == 0);
 
   FooE_cleanup(foo_out);
   free(json_str);

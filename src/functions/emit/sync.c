@@ -1,5 +1,5 @@
 /**
- * @file sync_code.c
+ * @file sync.c
  * @brief Implementation of code synchronization command.
  *
  * Uses the C Inspector to parse headers and implementation files,
@@ -110,6 +110,8 @@ int sync_code_main(int argc, char **argv) {
 
 int patch_header_from_source(const char *const header_path,
                              const char *const refactored_source) {
+  bool _ast_token_matches_string_0;
+  char *_ast_strdup_0 = NULL;
   struct FuncSigList sigs;
   struct PatchList patches;
   struct TokenList *hdr_tokens = NULL;
@@ -151,7 +153,9 @@ int patch_header_from_source(const char *const header_path,
 
     for (k = 0; k < hdr_tokens->size; ++k) {
       if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER &&
-          token_matches_string(&hdr_tokens->tokens[k], func_name)) {
+          (token_matches_string(&hdr_tokens->tokens[k], func_name,
+                                &_ast_token_matches_string_0),
+           _ast_token_matches_string_0)) {
 
         /* Look ahead for LPAREN */
         size_t next = k + 1;
@@ -187,7 +191,8 @@ int patch_header_from_source(const char *const header_path,
             asprintf(&replacement, "%s", sigs.items[i].sig);
 #else
             /* Simple fallback wrapper */
-            replacement = c_cdd_strdup(sigs.items[i].sig);
+            replacement = (c_cdd_strdup(sigs.items[i].sig, &_ast_strdup_0),
+                           _ast_strdup_0);
 #endif
             /* Note: signatures from extractor don't have semicolon, but we kept
              * semicolon token in Header */

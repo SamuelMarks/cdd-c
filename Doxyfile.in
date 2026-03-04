@@ -1,0 +1,10 @@
+PROJECT_NAME           = "@PROJECT_NAME@"
+PROJECT_NUMBER         = "@PROJECT_VERSION@"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = @CMAKE_SOURCE_DIR@/src
+RECURSIVE              = YES
+EXTRACT_ALL            = NO
+EXCLUDE                = @CMAKE_SOURCE_DIR@/src/tests @CMAKE_SOURCE_DIR@/src/mocks
+WARNINGS               = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO

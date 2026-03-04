@@ -20,31 +20,64 @@
 #pragma comment(lib, "wininet.lib")
 #else
 /* Stub definitions for non-Windows linting/compilation checks */
+/** @brief HINTERNET typedef */
 typedef void *HINTERNET;
+/** @brief DWORD definition */
 typedef unsigned long DWORD;
+/** @brief WORD definition */
 typedef unsigned short WORD; /* INTERNET_PORT is usually WORD or int */
+/** @brief wchar_t typedef */
 typedef int wchar_t;
+/** @brief INTERNET_DEFAULT_HTTP_PORT definition */
 #define INTERNET_DEFAULT_HTTP_PORT 80
+/** @brief INTERNET_DEFAULT_HTTPS_PORT definition */
 #define INTERNET_DEFAULT_HTTPS_PORT 443
+/** @brief INTERNET_SCHEME_HTTP definition */
 #define INTERNET_SCHEME_HTTP 1
+/** @brief INTERNET_SCHEME_HTTPS definition */
 #define INTERNET_SCHEME_HTTPS 2
+/** @brief URL_COMPONENTSW structure */
 typedef struct {
+  /** @brief dwStructSize */
+  /** @brief dwStructSize */
   DWORD dwStructSize;
+  /** @brief dwSchemeLength */
+  /** @brief lpszScheme */
   wchar_t *lpszScheme;
+  /** @brief lpszHostName */
+  /** @brief dwSchemeLength */
   DWORD dwSchemeLength;
+  /** @brief nPort */
+  /** @brief nScheme */
   int nScheme;
+  /** @brief dwUserNameLength */
+  /** @brief lpszHostName */
   wchar_t *lpszHostName;
+  /** @brief dwPasswordLength */
+  /** @brief dwHostNameLength */
   DWORD dwHostNameLength;
+  /** @brief dwUrlPathLength */
+  /** @brief nPort */
   int nPort;
+  /** @brief dwExtraInfoLength */
+  /** @brief lpszUserName */
   wchar_t *lpszUserName;
+  /** @brief dwUserNameLength */
   DWORD dwUserNameLength;
+  /** @brief lpszPassword */
   wchar_t *lpszPassword;
+  /** @brief dwPasswordLength */
   DWORD dwPasswordLength;
+  /** @brief lpszUrlPath */
   wchar_t *lpszUrlPath;
+  /** @brief dwUrlPathLength */
   DWORD dwUrlPathLength;
+  /** @brief lpszExtraInfo */
   wchar_t *lpszExtraInfo;
+  /** @brief dwExtraInfoLength */
   DWORD dwExtraInfoLength;
 } URL_COMPONENTSW;
+/** @brief URL_COMPONENTS definition */
 typedef URL_COMPONENTSW URL_COMPONENTS;
 #endif
 
@@ -52,6 +85,7 @@ typedef URL_COMPONENTSW URL_COMPONENTS;
 #include "functions/parse/http_wininet.h"
 #include "functions/parse/str.h"
 
+/** @brief CHECK_EINVAL definition */
 #define CHECK_EINVAL(x)                                                        \
   do {                                                                         \
     if (!(x))                                                                  \
@@ -83,30 +117,41 @@ static void safe_close_handle(HINTERNET *h) {
 /**
  * @brief Convert HttpMethod enum to wide string verb.
  */
-static const wchar_t *method_to_wide(enum HttpMethod method) {
+static int method_to_wide(enum HttpMethod method, const wchar_t **out) {
   switch (method) {
   case HTTP_GET:
-    return L"GET";
+    *out = L"GET";
+    return 0;
   case HTTP_POST:
-    return L"POST";
+    *out = L"POST";
+    return 0;
   case HTTP_PUT:
-    return L"PUT";
+    *out = L"PUT";
+    return 0;
   case HTTP_DELETE:
-    return L"DELETE";
+    *out = L"DELETE";
+    return 0;
   case HTTP_HEAD:
-    return L"HEAD";
+    *out = L"HEAD";
+    return 0;
   case HTTP_PATCH:
-    return L"PATCH";
+    *out = L"PATCH";
+    return 0;
   case HTTP_OPTIONS:
-    return L"OPTIONS";
+    *out = L"OPTIONS";
+    return 0;
   case HTTP_TRACE:
-    return L"TRACE";
+    *out = L"TRACE";
+    return 0;
   case HTTP_QUERY:
-    return L"QUERY";
+    *out = L"QUERY";
+    return 0;
   case HTTP_CONNECT:
-    return L"CONNECT";
+    *out = L"CONNECT";
+    return 0;
   default:
-    return L"GET";
+    *out = L"GET";
+    return 0;
   }
 }
 
@@ -341,9 +386,10 @@ int http_wininet_send(struct HttpTransportContext *const ctx,
     dwFlags |= ctx->security_flags; /* Apply ignore-cert flags here */
   }
 
-  hRequest =
-      HttpOpenRequestW(hConnect, method_to_wide(req->method),
-                       urlComp.lpszUrlPath, NULL, NULL, NULL, dwFlags, 0);
+  const wchar_t *wmethod = NULL;
+  method_to_wide(req->method, &wmethod);
+  hRequest = HttpOpenRequestW(hConnect, wmethod, urlComp.lpszUrlPath, NULL,
+                              NULL, NULL, dwFlags, 0);
   if (!hRequest) {
     rc = EIO;
     goto cleanup;

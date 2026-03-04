@@ -1,5 +1,5 @@
 /**
- * @file codegen_security.c
+ * @file security.c
  * @brief Implementation of Security Code Generation.
  *
  * Scans an OpenAPI Operation for `security` requirements and matches them

@@ -38,11 +38,13 @@ set(Header_Files
         "functions/parse/http_curl.h"
         "functions/parse/http_types.h"
         "functions/parse/http_winhttp.h"
+        "functions/parse/http_wininet.h"
         "classes/parse/initializer.h"
         "classes/parse/numeric.h"
         "routes/emit/aggregator.h"
         "routes/emit/client_gen.h"
         "routes/emit/cli_gen.h"
+        "routes/emit/server_gen.h"
         "openapi/parse/openapi.h"
         "openapi/emit/openapi.h"
         "functions/parse/preprocessor.h"
@@ -91,11 +93,13 @@ set(Source_Files
         "functions/emit/build_system.c"
         "functions/parse/http_types.c"
         "functions/parse/http_winhttp.c"
+        "functions/parse/http_wininet.c"
         "classes/parse/initializer.c"
         "classes/parse/numeric.c"
         "routes/emit/aggregator.c"
         "routes/emit/client_gen.c"
         "routes/emit/cli_gen.c"
+        "routes/emit/server_gen.c"
         "openapi/parse/openapi.c"
         "openapi/emit/openapi.c"
         "functions/parse/preprocessor.c"
@@ -114,6 +118,7 @@ set(Source_Files
         "routes/parse/url.c"
         "functions/parse/str.c"
         "functions/parse/transport.c"
+        "functions/parse/main.c"
 )
 
 # Platform specific source selection to avoid duplicate symbols
@@ -300,7 +305,7 @@ set_target_properties("${LIBRARY_NAME}" PROPERTIES LINKER_LANGUAGE C)
 
 set(EXEC_NAME "cdd-c")
 
-set(Cli_Source_Files "functions/parse/main.c")
+set(Cli_Source_Files "bin_cdd.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")

@@ -16,6 +16,7 @@
 
 #include "simple_json.h"
 
+/** \brief func */
 int quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
@@ -38,13 +39,22 @@ int quote_or_null(const char *const s, char **s1) {
   return 0;
 }
 
-bool c_str_eq(const char *const s0, const char *const s1) {
-  return (s0 == NULL && s1 == NULL) ||
-         (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0);
+/** \brief func */
+int c_str_eq(const char *const s0, const char *const s1) {
+  return ((s0 == NULL && s1 == NULL) ||
+          (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
+             ? 0
+             : 1;
 }
 
-enum Tank Tank_default(void) { return Tank_BIG; }
+/** \brief func */
+int Tank_default(enum Tank *out) {
+  if (out)
+    *out = Tank_BIG;
+  return 0;
+}
 
+/** \brief func */
 int Tank_to_str(const enum Tank tank, char **const str) {
   if (str == NULL)
     return EINVAL;
@@ -66,6 +76,7 @@ int Tank_to_str(const enum Tank tank, char **const str) {
   return 0;
 }
 
+/** \brief func */
 int Tank_from_str(const char *str, enum Tank *val) {
   if (val == NULL)
     return EINVAL;
@@ -82,6 +93,7 @@ int Tank_from_str(const char *str, enum Tank *val) {
   return 0;
 }
 
+/** \brief func */
 void HazE_cleanup(struct HazE *const haz_e) {
   if (haz_e == NULL)
     return;
@@ -90,13 +102,14 @@ void HazE_cleanup(struct HazE *const haz_e) {
   free(haz_e);
 }
 
+/** \brief func */
 int HazE_default(struct HazE **haz_e) {
   if (haz_e == NULL)
     return EINVAL;
   *haz_e = malloc(sizeof(**haz_e));
   if (*haz_e == NULL)
     return ENOMEM;
-  (*haz_e)->tank = Tank_default();
+  Tank_default(&(*haz_e)->tank);
   (*haz_e)->bzr = NULL;
   return 0;
 }
@@ -127,6 +140,7 @@ int HazE_deepcopy(const struct HazE *const haz_e_original,
   return 0;
 }
 
+/** \brief func */
 int HazE_display(const struct HazE *const haz_e, FILE *fh) {
   char *s = NULL;
   int rc = HazE_to_json(haz_e, &s);
@@ -139,6 +153,7 @@ int HazE_display(const struct HazE *const haz_e, FILE *fh) {
   return rc;
 }
 
+/** \brief func */
 int HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   int rc;
   if (haz_e == NULL) {
@@ -165,16 +180,18 @@ int HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-bool HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
+/** \brief func */
+int HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
   if (haz_e0 == NULL || haz_e1 == NULL)
-    return haz_e0 == haz_e1;
+    return haz_e0 == haz_e1 ? 0 : 1;
 
   if (haz_e0->tank != haz_e1->tank)
-    return false;
+    return 1;
 
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
 
+/** \brief func */
 int HazE_to_json(const struct HazE *const haz_e, char **json) {
   char *tank_str = NULL;
   int rc = 0;
@@ -264,6 +281,7 @@ int HazE_from_jsonObject(const JSON_Object *const jsonObject,
   return 0;
 }
 
+/** \brief func */
 int HazE_from_json(const char *const json, struct HazE **haz_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;
@@ -286,6 +304,7 @@ int HazE_from_json(const char *const json, struct HazE **haz_e) {
   return rc;
 }
 
+/** \brief func */
 void FooE_cleanup(struct FooE *const foo_e) {
   if (foo_e == NULL)
     return;
@@ -294,6 +313,7 @@ void FooE_cleanup(struct FooE *const foo_e) {
   free(foo_e);
 }
 
+/** \brief func */
 int FooE_default(struct FooE **foo_e) {
   int rc;
   if (foo_e == NULL)
@@ -348,6 +368,7 @@ int FooE_deepcopy(const struct FooE *const foo_e_original,
   return 0;
 }
 
+/** \brief func */
 int FooE_display(const struct FooE *foo_e, FILE *fh) {
   char *s = NULL;
   int rc = FooE_to_json(foo_e, &s);
@@ -360,6 +381,7 @@ int FooE_display(const struct FooE *foo_e, FILE *fh) {
   return rc;
 }
 
+/** \brief func */
 int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   int rc;
   if (foo_e == NULL) {
@@ -392,14 +414,19 @@ int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-bool FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
+/** \brief func */
+int FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
   if (foo_e0 == NULL || foo_e1 == NULL)
-    return foo_e0 == foo_e1;
+    return foo_e0 == foo_e1 ? 0 : 1;
 
-  return (foo_e0->can == foo_e1->can && c_str_eq(foo_e0->bar, foo_e1->bar) &&
-          HazE_eq(foo_e0->haz, foo_e1->haz));
+  return (foo_e0->can == foo_e1->can &&
+          c_str_eq(foo_e0->bar, foo_e1->bar) == 0 &&
+          HazE_eq(foo_e0->haz, foo_e1->haz) == 0)
+             ? 0
+             : 1;
 }
 
+/** \brief func */
 int FooE_to_json(const struct FooE *const foo_e, char **const json) {
   char *haz_e_json = NULL;
   int rc = 0;
@@ -486,6 +513,7 @@ int FooE_from_jsonObject(const JSON_Object *const jsonObject,
   return rc;
 }
 
+/** \brief func */
 int FooE_from_json(const char *const json, struct FooE **const foo_e) {
   JSON_Value *root = NULL;
   const JSON_Object *jsonObject = NULL;

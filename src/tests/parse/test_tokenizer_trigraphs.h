@@ -121,6 +121,7 @@ TEST test_splice_does_not_create_trigraph(void) {
 }
 
 TEST test_matches_string_with_splice(void) {
+  bool _ast_token_matches_string_0;
 
   struct TokenList *tl = tokenize_string("RE\\\nTURN");
 
@@ -142,7 +143,9 @@ TEST test_matches_string_with_splice(void) {
 
      But token_matches_string should handle semantic match. */
 
-  ASSERT(token_matches_string(&tl->tokens[0], "RETURN"));
+  ASSERT((token_matches_string(&tl->tokens[0], "RETURN",
+                               &_ast_token_matches_string_0),
+          _ast_token_matches_string_0));
 
   free_token_list(tl);
 

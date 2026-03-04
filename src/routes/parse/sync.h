@@ -1,5 +1,5 @@
 /**
- * @file refactor_api_sync.h
+ * @file sync.h
  * @brief API Synchronization Engine.
  *
  * Scans C implementation files to find functions corresponding to OpenAPI

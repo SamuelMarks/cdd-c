@@ -1,5 +1,5 @@
 /**
- * @file generate_build_system.c
+ * @file build_system.c
  * @brief Implementation of build system scaffolding.
  *
  * writes CMakeLists.txt files with logic to selectively link against
@@ -22,6 +22,7 @@
 #endif
 
 /* Helper macro for I/O checking */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \

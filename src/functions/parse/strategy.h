@@ -1,5 +1,5 @@
 /**
- * @file strategy_safety.h
+ * @file strategy.h
  * @brief Safety Injection Strategies for C code refactoring.
  *
  * Defines policies for injecting error handling checks into existing code.

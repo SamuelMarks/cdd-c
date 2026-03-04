@@ -1,5 +1,5 @@
 /**
- * @file codegen_build.h
+ * @file build.h
  * @brief Abstract interface for Build System Generation.
  *
  * Defines the contract for generating compilation scaffolding (Makefiles,

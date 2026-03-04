@@ -331,6 +331,8 @@ extern C_CDD_EXPORT int tokenize(az_span source, struct TokenList **out);
 extern C_CDD_EXPORT void free_token_list(struct TokenList *tl);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Check if a token's content matches a C string exactly.
  *
  * Performs a binary-safe comparison. Handles spliced tokens:
@@ -342,11 +344,13 @@ extern C_CDD_EXPORT void free_token_list(struct TokenList *tl);
  * @return true if token content equals `match`, false otherwise.
  */
 
-extern C_CDD_EXPORT bool token_matches_string(const struct Token *tok,
+extern C_CDD_EXPORT int token_matches_string(const struct Token *tok,
 
-                                              const char *match);
+                                             const char *match, bool *_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Helper to locate a specific token kind in a range.
  *
  * Scans the token list from `start_idx` up to `end_idx` looking for the
@@ -360,13 +364,15 @@ extern C_CDD_EXPORT bool token_matches_string(const struct Token *tok,
  * not found.
  */
 
-extern C_CDD_EXPORT size_t token_find_next(const struct TokenList *list,
+extern C_CDD_EXPORT int token_find_next(const struct TokenList *list,
 
-                                           size_t start_idx, size_t end_idx,
+                                        size_t start_idx, size_t end_idx,
 
-                                           enum TokenKind kind);
+                                        enum TokenKind kind, size_t *_out_val);
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Identify if a token text corresponds to a known keyword or identifier.
  *
  * @param start Start of the token.
@@ -374,9 +380,10 @@ extern C_CDD_EXPORT size_t token_find_next(const struct TokenList *list,
  * @return The detected TokenKind (keyword kind or TOKEN_IDENTIFIER).
  */
 
-extern C_CDD_EXPORT enum TokenKind identify_keyword_or_id(const uint8_t *start,
+extern C_CDD_EXPORT int identify_keyword_or_id(const uint8_t *start,
 
-                                                          size_t len);
+                                               size_t len,
+                                               enum TokenKind *_out_val);
 
 #ifdef __cplusplus
 }

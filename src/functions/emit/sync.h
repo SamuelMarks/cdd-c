@@ -1,5 +1,5 @@
 /**
- * @file sync_code.h
+ * @file sync.h
  * @brief Logic for synchronizing C implementation files with header
  * declarations, and patching headers to match refactored implementations.
  * @author Samuel Marks

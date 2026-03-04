@@ -1,5 +1,5 @@
 /**
- * @file refactor_engine.c
+ * @file refactor.c
  * @brief Implementation of refactoring orchestration.
  * @author Samuel Marks
  */

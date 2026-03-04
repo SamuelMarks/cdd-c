@@ -22,6 +22,7 @@
 
 /* Helper: Build a request to localhost on a port likely to be closed */
 static int setup_request(struct HttpRequest *req, int port) {
+  char *_ast_strdup_0 = NULL;
   int rc;
   char url[64];
 
@@ -35,7 +36,7 @@ static int setup_request(struct HttpRequest *req, int port) {
   sprintf(url, "http://127.0.0.1:%d/test", port);
 #endif
 
-  req->url = c_cdd_strdup(url);
+  req->url = (c_cdd_strdup(url, &_ast_strdup_0), _ast_strdup_0);
   return 0;
 }
 

@@ -1,5 +1,5 @@
 /**
- * @file openapi_client_gen.h
+ * @file client_gen.h
  * @brief Orchestrator for generating C API Client libraries from OpenAPI specs.
  *
  * Drives the generation of Header and Implementation files.

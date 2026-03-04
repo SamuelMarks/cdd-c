@@ -141,19 +141,29 @@ struct HttpClient {
 
 /* --- Lifecycle Management --- */
 
+/** @brief http_headers_init definition */
 extern C_CDD_EXPORT int http_headers_init(struct HttpHeaders *headers);
+/** @brief http_headers_free definition */
 extern C_CDD_EXPORT void http_headers_free(struct HttpHeaders *headers);
+/** @brief http_headers_add definition */
 extern C_CDD_EXPORT int http_headers_add(struct HttpHeaders *headers,
                                          const char *key, const char *value);
 
+/** @brief http_config_init definition */
 extern C_CDD_EXPORT int http_config_init(struct HttpConfig *config);
+/** @brief http_config_free definition */
 extern C_CDD_EXPORT void http_config_free(struct HttpConfig *config);
 
+/** @brief http_client_init definition */
 extern C_CDD_EXPORT int http_client_init(struct HttpClient *client);
+/** @brief http_client_free definition */
 extern C_CDD_EXPORT void http_client_free(struct HttpClient *client);
 
+/** @brief http_request_init definition */
 extern C_CDD_EXPORT int http_request_init(struct HttpRequest *req);
+/** @brief http_request_free definition */
 extern C_CDD_EXPORT void http_request_free(struct HttpRequest *req);
+/** @brief http_request_set_auth_bearer definition */
 extern C_CDD_EXPORT int http_request_set_auth_bearer(struct HttpRequest *req,
                                                      const char *token);
 /**
@@ -168,9 +178,12 @@ extern C_CDD_EXPORT int http_request_set_auth_bearer(struct HttpRequest *req,
 extern C_CDD_EXPORT int http_request_set_auth_basic(struct HttpRequest *req,
                                                     const char *token);
 
+/** @brief http_response_init definition */
 extern C_CDD_EXPORT int http_response_init(struct HttpResponse *res);
+/** @brief http_response_free definition */
 extern C_CDD_EXPORT void http_response_free(struct HttpResponse *res);
 extern C_CDD_EXPORT int
+/** @brief http_response_save_to_file definition */
 http_response_save_to_file(const struct HttpResponse *res, const char *path);
 
 /* --- Multipart Management --- */

@@ -1,5 +1,5 @@
 /**
- * @file codegen_client_sig.c
+ * @file client_sig.c
  * @brief Implementation of Client Signature Generation.
  *
  * Updated to support Grouped naming convention (Resource_Prefix_OpId).
@@ -15,24 +15,38 @@
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 
+/** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return EIO;                                                              \
   } while (0)
 
-static const char *map_type_to_c_arg(const char *oa_type) {
-  if (!oa_type)
-    return "const void *";
-  if (strcmp(oa_type, "integer") == 0)
-    return "int ";
-  if (strcmp(oa_type, "string") == 0)
-    return "const char *";
-  if (strcmp(oa_type, "boolean") == 0)
-    return "int ";
-  if (strcmp(oa_type, "number") == 0)
-    return "double ";
-  return "const void *";
+static int map_type_to_c_arg(const char *oa_type, char **_out_val) {
+  if (!oa_type) {
+    *_out_val = "const void *";
+    return 0;
+  }
+  if (strcmp(oa_type, "integer") == 0) {
+    *_out_val = "int ";
+    return 0;
+  }
+  if (strcmp(oa_type, "string") == 0) {
+    *_out_val = "const char *";
+    return 0;
+  }
+  if (strcmp(oa_type, "boolean") == 0) {
+    *_out_val = "int ";
+    return 0;
+  }
+  if (strcmp(oa_type, "number") == 0) {
+    *_out_val = "double ";
+    return 0;
+  }
+  {
+    *_out_val = "const void *";
+    return 0;
+  }
 }
 
 static int is_primitive_type(const char *oa_type) {
@@ -55,22 +69,29 @@ static int param_is_object_kv(const struct OpenAPI_Parameter *p) {
          p->in == OA_PARAM_IN_HEADER || p->in == OA_PARAM_IN_COOKIE;
 }
 
-static size_t media_type_base_len(const char *media_type) {
+static int media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;
-  if (!media_type)
+  if (!media_type) {
+    *_out_val = 0;
     return 0;
+  }
   while (media_type[i] && media_type[i] != ';')
     ++i;
-  return i;
+  {
+    *_out_val = i;
+    return 0;
+  }
 }
 
 static int media_type_has_prefix(const char *media_type, const char *prefix) {
+  size_t _ast_media_type_base_len_0;
   size_t i;
   size_t len;
   size_t pre_len;
   if (!media_type || !prefix)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+         _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
     return 0;
@@ -88,13 +109,15 @@ static int media_type_has_prefix(const char *media_type, const char *prefix) {
 }
 
 static int media_type_has_suffix(const char *media_type, const char *suffix) {
+  size_t _ast_media_type_base_len_1;
   size_t i;
   size_t len;
   size_t suf_len;
   size_t start;
   if (!media_type || !suffix)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+         _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
   if (len < suf_len)
     return 0;
@@ -113,12 +136,14 @@ static int media_type_has_suffix(const char *media_type, const char *suffix) {
 }
 
 static int media_type_ieq(const char *media_type, const char *expected) {
+  size_t _ast_media_type_base_len_2;
   size_t i;
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
     return 0;
-  len = media_type_base_len(media_type);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
+         _ast_media_type_base_len_2);
   exp_len = strlen(expected);
   if (len != exp_len)
     return 0;
@@ -159,17 +184,24 @@ static int media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
-static const struct OpenAPI_MediaType *
-find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                const char *name) {
+static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           struct OpenAPI_MediaType **_out_val) {
   size_t i;
-  if (!mts || !name)
-    return NULL;
-  for (i = 0; i < n; ++i) {
-    if (mts[i].name && strcmp(mts[i].name, name) == 0)
-      return &mts[i];
+  if (!mts || !name) {
+    *_out_val = NULL;
+    return 0;
   }
-  return NULL;
+  for (i = 0; i < n; ++i) {
+    if (mts[i].name && strcmp(mts[i].name, name) == 0) {
+      *_out_val = &mts[i];
+      return 0;
+    }
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int media_type_is_textual(const char *media_type) {
@@ -228,116 +260,197 @@ static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   return p->schema.ref_name != NULL;
 }
 
-static const char *
-querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
+                                      char **_out_val) {
   const char *type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
-  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     type = p->schema.inline_type;
   else if (p->type)
     type = p->type;
-  if (!type)
-    return NULL;
+  if (!type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
-      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
-    return type;
-  return NULL;
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
+    *_out_val = type;
+    return 0;
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
+                                       char **_out_val) {
   const char *item_type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
-        p->is_array))
-    return NULL;
+        p->is_array)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     item_type = p->schema.inline_type;
   else if (p->items_type)
     item_type = p->items_type;
-  if (!item_type)
-    return NULL;
+  if (!item_type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
-      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
-    return item_type;
-  return NULL;
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
+    *_out_val = item_type;
+    return 0;
+  }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
+                                      char **_out_val) {
   const char *item_type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!media_type_is_json(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (!(p->schema.is_array || (p->type && strcmp(p->type, "array") == 0) ||
-        p->is_array))
-    return NULL;
+        p->is_array)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     item_type = p->schema.inline_type;
   else if (p->items_type)
     item_type = p->items_type;
-  if (!item_type)
-    return NULL;
+  if (!item_type) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (strcmp(item_type, "string") == 0 || strcmp(item_type, "integer") == 0 ||
-      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0)
-    return NULL;
-  if (strcmp(item_type, "object") == 0)
-    return NULL;
-  return item_type;
+      strcmp(item_type, "number") == 0 || strcmp(item_type, "boolean") == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (strcmp(item_type, "object") == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
+  {
+    *_out_val = item_type;
+    return 0;
+  }
 }
 
-static const char *
-querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p) {
+static int
+querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
+                                     char **_out_val) {
   const char *type = NULL;
-  if (!p)
-    return NULL;
-  if (p->in != OA_PARAM_IN_QUERYSTRING)
-    return NULL;
-  if (!p->content_type)
-    return NULL;
-  if (media_type_is_json(p->content_type))
-    return NULL;
-  if (media_type_is_form(p->content_type))
-    return NULL;
+  if (!p) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (p->in != OA_PARAM_IN_QUERYSTRING) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (!p->content_type) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (media_type_is_json(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
+  if (media_type_is_form(p->content_type)) {
+    *_out_val = NULL;
+    return 0;
+  }
   if (p->schema.inline_type)
     type = p->schema.inline_type;
   else if (p->type)
     type = p->type;
-  if (!type)
-    return "string";
+  if (!type) {
+    *_out_val = "string";
+    return 0;
+  }
   if (strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
-      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0)
-    return type;
-  return "string";
+      strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0) {
+    *_out_val = type;
+    return 0;
+  }
+  {
+    *_out_val = "string";
+    return 0;
+  }
 }
 
-static const char *map_array_item_type(const char *oa_type) {
-  if (!oa_type)
-    return "const void *";
-  if (strcmp(oa_type, "integer") == 0)
-    return "const int *";
-  if (strcmp(oa_type, "boolean") == 0)
-    return "const int *";
-  if (strcmp(oa_type, "string") == 0)
-    return "const char **"; /* Array of strings */
-  if (strcmp(oa_type, "number") == 0)
-    return "const double *";
-  return "const void *";
+static int map_array_item_type(const char *oa_type, char **_out_val) {
+  if (!oa_type) {
+    *_out_val = "const void *";
+    return 0;
+  }
+  if (strcmp(oa_type, "integer") == 0) {
+    *_out_val = "const int *";
+    return 0;
+  }
+  if (strcmp(oa_type, "boolean") == 0) {
+    *_out_val = "const int *";
+    return 0;
+  }
+  if (strcmp(oa_type, "string") == 0) {
+    *_out_val = "const char **";
+    return 0;
+  } /* Array of strings */
+  if (strcmp(oa_type, "number") == 0) {
+    *_out_val = "const double *";
+    return 0;
+  }
+  {
+    *_out_val = "const void *";
+    return 0;
+  }
 }
 
 static void sanitize_ident(char *out, size_t outsz, const char *in) {
@@ -382,37 +495,65 @@ static void multipart_header_param_name(char *out, size_t outsz,
 }
 
 static int header_name_is_content_type(const char *name) {
+  bool _ast_iequal_0 = false;
   if (!name)
     return 0;
-  return c_cdd_str_iequal(name, "Content-Type") != 0;
+  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
+          _ast_iequal_0) != 0;
 }
 
-static const char *map_type_to_c_out(const char *oa_type) {
-  if (!oa_type)
-    return "void *";
-  if (strcmp(oa_type, "integer") == 0)
-    return "int *";
-  if (strcmp(oa_type, "boolean") == 0)
-    return "int *";
-  if (strcmp(oa_type, "string") == 0)
-    return "char **";
-  if (strcmp(oa_type, "number") == 0)
-    return "double *";
-  return "void *";
+static int map_type_to_c_out(const char *oa_type, char **_out_val) {
+  if (!oa_type) {
+    *_out_val = "void *";
+    return 0;
+  }
+  if (strcmp(oa_type, "integer") == 0) {
+    *_out_val = "int *";
+    return 0;
+  }
+  if (strcmp(oa_type, "boolean") == 0) {
+    *_out_val = "int *";
+    return 0;
+  }
+  if (strcmp(oa_type, "string") == 0) {
+    *_out_val = "char **";
+    return 0;
+  }
+  if (strcmp(oa_type, "number") == 0) {
+    *_out_val = "double *";
+    return 0;
+  }
+  {
+    *_out_val = "void *";
+    return 0;
+  }
 }
 
-static const char *map_array_item_type_out(const char *oa_type) {
-  if (!oa_type)
-    return "void **";
-  if (strcmp(oa_type, "integer") == 0)
-    return "int **";
-  if (strcmp(oa_type, "boolean") == 0)
-    return "int **";
-  if (strcmp(oa_type, "string") == 0)
-    return "char ***";
-  if (strcmp(oa_type, "number") == 0)
-    return "double **";
-  return "void **";
+static int map_array_item_type_out(const char *oa_type, char **_out_val) {
+  if (!oa_type) {
+    *_out_val = "void **";
+    return 0;
+  }
+  if (strcmp(oa_type, "integer") == 0) {
+    *_out_val = "int **";
+    return 0;
+  }
+  if (strcmp(oa_type, "boolean") == 0) {
+    *_out_val = "int **";
+    return 0;
+  }
+  if (strcmp(oa_type, "string") == 0) {
+    *_out_val = "char ***";
+    return 0;
+  }
+  if (strcmp(oa_type, "number") == 0) {
+    *_out_val = "double **";
+    return 0;
+  }
+  {
+    *_out_val = "void **";
+    return 0;
+  }
 }
 
 static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
@@ -425,12 +566,14 @@ static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   return 0;
 }
 
-static const struct OpenAPI_Response *
-get_success_response(const struct OpenAPI_Operation *op) {
+static int get_success_response(const struct OpenAPI_Operation *op,
+                                struct OpenAPI_Response **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
-  if (!op)
-    return NULL;
+  if (!op) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < op->n_responses; ++i) {
     const struct OpenAPI_Response *resp = &op->responses[i];
     const char *c = resp->code;
@@ -440,16 +583,26 @@ get_success_response(const struct OpenAPI_Operation *op) {
       default_resp = resp;
       continue;
     }
-    if (strlen(c) == 3 && c[0] == '2' && c[1] == 'X' && c[2] == 'X')
-      return resp;
-    if (c[0] == '2')
-      return resp;
+    if (strlen(c) == 3 && c[0] == '2' && c[1] == 'X' && c[2] == 'X') {
+      *_out_val = resp;
+      return 0;
+    }
+    if (c[0] == '2') {
+      *_out_val = resp;
+      return 0;
+    }
   }
-  return default_resp;
+  {
+    *_out_val = default_resp;
+    return 0;
+  }
 }
 
 static int response_is_binary_success(const struct OpenAPI_Operation *op) {
-  const struct OpenAPI_Response *resp = get_success_response(op);
+  struct OpenAPI_Response *_ast_get_success_response_3;
+  const struct OpenAPI_Response *resp =
+      (get_success_response(op, &_ast_get_success_response_3),
+       _ast_get_success_response_3);
   if (!resp || !resp->content_type)
     return 0;
   if (!media_type_is_binary(resp->content_type))
@@ -457,8 +610,8 @@ static int response_is_binary_success(const struct OpenAPI_Operation *op) {
   return 1;
 }
 
-static const struct OpenAPI_SchemaRef *
-get_success_schema(const struct OpenAPI_Operation *op) {
+static int get_success_schema(const struct OpenAPI_Operation *op,
+                              struct OpenAPI_SchemaRef **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
   for (i = 0; i < op->n_responses; ++i) {
@@ -471,25 +624,53 @@ get_success_schema(const struct OpenAPI_Operation *op) {
     }
     if (strlen(c) == 3 && c[1] == 'X' && c[2] == 'X' && c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema))
-        return &op->responses[i].schema;
+          schema_has_inline(&op->responses[i].schema)) {
+        *_out_val = &op->responses[i].schema;
+        return 0;
+      }
       continue;
     }
     if (c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema))
-        return &op->responses[i].schema;
+          schema_has_inline(&op->responses[i].schema)) {
+        *_out_val = &op->responses[i].schema;
+        return 0;
+      }
     }
   }
   if (default_resp && (default_resp->schema.ref_name ||
-                       schema_has_inline(&default_resp->schema)))
-    return &default_resp->schema;
-  return &op->req_body;
+                       schema_has_inline(&default_resp->schema))) {
+    *_out_val = &default_resp->schema;
+    return 0;
+  }
+  {
+    *_out_val = &op->req_body;
+    return 0;
+  }
 }
 
 int codegen_client_write_signature(
     FILE *const fp, const struct OpenAPI_Operation *const op,
     const struct CodegenSigConfig *const config) {
+  char *_ast_querystring_param_json_array_item_type_4;
+  char *_ast_querystring_param_json_array_item_ref_5;
+  char *_ast_querystring_param_json_primitive_type_6;
+  char *_ast_querystring_param_raw_primitive_type_7;
+  char *_ast_map_array_item_type_8;
+  char *_ast_map_type_to_c_arg_9;
+  char *_ast_map_type_to_c_arg_10;
+  char *_ast_map_array_item_type_11;
+  char *_ast_map_type_to_c_arg_12;
+  char *_ast_map_array_item_type_13;
+  char *_ast_map_type_to_c_arg_14;
+  char *_ast_map_array_item_type_15;
+  char *_ast_map_type_to_c_arg_16;
+  struct OpenAPI_MediaType *_ast_find_media_type_17;
+  char *_ast_map_array_item_type_18;
+  char *_ast_map_type_to_c_arg_19;
+  struct OpenAPI_SchemaRef *_ast_get_success_schema_20;
+  char *_ast_map_array_item_type_out_21;
+  char *_ast_map_type_to_c_out_22;
   const char *ctx_type =
       (config && config->ctx_type) ? config->ctx_type : "struct HttpClient *";
   const char *prefix = (config && config->prefix) ? config->prefix : "";
@@ -514,10 +695,22 @@ int codegen_client_write_signature(
   for (i = 0; i < op->n_parameters; ++i) {
     const struct OpenAPI_Parameter *p = &op->parameters[i];
     if (p->in == OA_PARAM_IN_QUERYSTRING) {
-      const char *qs_json_item = querystring_param_json_array_item_type(p);
-      const char *qs_json_obj = querystring_param_json_array_item_ref(p);
-      const char *qs_json_prim = querystring_param_json_primitive_type(p);
-      const char *qs_raw = querystring_param_raw_primitive_type(p);
+      const char *qs_json_item =
+          (querystring_param_json_array_item_type(
+               p, &_ast_querystring_param_json_array_item_type_4),
+           _ast_querystring_param_json_array_item_type_4);
+      const char *qs_json_obj =
+          (querystring_param_json_array_item_ref(
+               p, &_ast_querystring_param_json_array_item_ref_5),
+           _ast_querystring_param_json_array_item_ref_5);
+      const char *qs_json_prim =
+          (querystring_param_json_primitive_type(
+               p, &_ast_querystring_param_json_primitive_type_6),
+           _ast_querystring_param_json_primitive_type_6);
+      const char *qs_raw =
+          (querystring_param_raw_primitive_type(
+               p, &_ast_querystring_param_raw_primitive_type_7),
+           _ast_querystring_param_raw_primitive_type_7);
       if (querystring_param_is_form_object(p)) {
         CHECK_IO(fprintf(fp, ", const struct OpenAPI_KV *%s, size_t %s_len",
                          p->name, p->name));
@@ -528,14 +721,20 @@ int codegen_client_write_signature(
         CHECK_IO(fprintf(fp, ", const struct %s **%s, size_t %s_len",
                          qs_json_obj, p->name, p->name));
       } else if (qs_json_item) {
-        const char *c_type = map_array_item_type(qs_json_item);
+        const char *c_type =
+            (map_array_item_type(qs_json_item, &_ast_map_array_item_type_8),
+             _ast_map_array_item_type_8);
         CHECK_IO(
             fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
       } else if (qs_json_prim) {
-        const char *c_type = map_type_to_c_arg(qs_json_prim);
+        const char *c_type =
+            (map_type_to_c_arg(qs_json_prim, &_ast_map_type_to_c_arg_9),
+             _ast_map_type_to_c_arg_9);
         CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       } else if (qs_raw) {
-        const char *c_type = map_type_to_c_arg(qs_raw);
+        const char *c_type =
+            (map_type_to_c_arg(qs_raw, &_ast_map_type_to_c_arg_10),
+             _ast_map_type_to_c_arg_10);
         CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       } else {
         CHECK_IO(fprintf(fp, ", const char *%s", p->name));
@@ -552,7 +751,9 @@ int codegen_client_write_signature(
         const char *item_type =
             p->items_type ? p->items_type : p->schema.inline_type;
         if (item_type && is_primitive_type(item_type)) {
-          const char *c_type = map_array_item_type(item_type);
+          const char *c_type =
+              (map_array_item_type(item_type, &_ast_map_array_item_type_11),
+               _ast_map_array_item_type_11);
           CHECK_IO(
               fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
         } else if (item_type && strcmp(item_type, "object") != 0) {
@@ -569,7 +770,9 @@ int codegen_client_write_signature(
                          p->name, p->name));
       } else {
         const char *prim = p->type ? p->type : p->schema.inline_type;
-        const char *c_type = map_type_to_c_arg(prim ? prim : "string");
+        const char *c_type = (map_type_to_c_arg(prim ? prim : "string",
+                                                &_ast_map_type_to_c_arg_12),
+                              _ast_map_type_to_c_arg_12);
         CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
       }
       continue;
@@ -579,10 +782,14 @@ int codegen_client_write_signature(
                        p->name, p->name));
     } else if (p->is_array) {
       /* Emit pointer + length */
-      const char *c_type = map_array_item_type(p->items_type);
+      const char *c_type =
+          (map_array_item_type(p->items_type, &_ast_map_array_item_type_13),
+           _ast_map_array_item_type_13);
       CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, p->name, p->name));
     } else {
-      const char *c_type = map_type_to_c_arg(p->type);
+      const char *c_type =
+          (map_type_to_c_arg(p->type, &_ast_map_type_to_c_arg_14),
+           _ast_map_type_to_c_arg_14);
       CHECK_IO(fprintf(fp, ", %s%s", c_type, p->name));
     }
   }
@@ -615,10 +822,14 @@ int codegen_client_write_signature(
               (op->req_body.is_array && op->req_body.inline_type))) {
     if (op->req_body.is_array) {
       const char *item_type = op->req_body.inline_type;
-      const char *c_type = map_array_item_type(item_type);
+      const char *c_type =
+          (map_array_item_type(item_type, &_ast_map_array_item_type_15),
+           _ast_map_array_item_type_15);
       CHECK_IO(fprintf(fp, ", %sbody, size_t body_len", c_type));
     } else {
-      const char *c_type = map_type_to_c_arg(op->req_body.inline_type);
+      const char *c_type = (map_type_to_c_arg(op->req_body.inline_type,
+                                              &_ast_map_type_to_c_arg_16),
+                            _ast_map_type_to_c_arg_16);
       CHECK_IO(fprintf(fp, ", %sreq_body", c_type));
     }
   }
@@ -627,8 +838,9 @@ int codegen_client_write_signature(
   if (op->req_body.content_type &&
       media_type_is_multipart_form(op->req_body.content_type)) {
     const struct OpenAPI_MediaType *mt =
-        find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                        "multipart/form-data");
+        (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                         "multipart/form-data", &_ast_find_media_type_17),
+         _ast_find_media_type_17);
     if (mt && mt->encoding && mt->n_encoding > 0) {
       size_t e;
       for (e = 0; e < mt->n_encoding; ++e) {
@@ -651,14 +863,18 @@ int codegen_client_write_signature(
           if (hdr_is_array) {
             const char *item_type =
                 hdr->items_type ? hdr->items_type : "string";
-            const char *c_type = map_array_item_type(item_type);
+            const char *c_type =
+                (map_array_item_type(item_type, &_ast_map_array_item_type_18),
+                 _ast_map_array_item_type_18);
             CHECK_IO(fprintf(fp, ", %s%s, size_t %s_len", c_type, param_name,
                              param_name));
           } else if (strcmp(hdr_type, "object") == 0) {
             CHECK_IO(fprintf(fp, ", const struct OpenAPI_KV *%s, size_t %s_len",
                              param_name, param_name));
           } else {
-            const char *c_type = map_type_to_c_arg(hdr_type);
+            const char *c_type =
+                (map_type_to_c_arg(hdr_type, &_ast_map_type_to_c_arg_19),
+                 _ast_map_type_to_c_arg_19);
             CHECK_IO(fprintf(fp, ", %s%s", c_type, param_name));
           }
         }
@@ -668,7 +884,8 @@ int codegen_client_write_signature(
 
   /* 3. Success Output */
   success_is_binary = response_is_binary_success(op);
-  success_schema = get_success_schema(op);
+  success_schema = (get_success_schema(op, &_ast_get_success_schema_20),
+                    _ast_get_success_schema_20);
   if (success_is_binary)
     success_schema = NULL;
   if (success_schema &&
@@ -686,13 +903,17 @@ int codegen_client_write_signature(
         }
       } else if (success_schema->inline_type) {
         const char *out_type =
-            map_array_item_type_out(success_schema->inline_type);
+            (map_array_item_type_out(success_schema->inline_type,
+                                     &_ast_map_array_item_type_out_21),
+             _ast_map_array_item_type_out_21);
         CHECK_IO(fprintf(fp, ", %sout, size_t *out_len", out_type));
       }
     } else if (success_schema->ref_name) {
       CHECK_IO(fprintf(fp, ", struct %s **out", success_schema->ref_name));
     } else if (success_schema->inline_type) {
-      const char *out_type = map_type_to_c_out(success_schema->inline_type);
+      const char *out_type = (map_type_to_c_out(success_schema->inline_type,
+                                                &_ast_map_type_to_c_out_22),
+                              _ast_map_type_to_c_out_22);
       CHECK_IO(fprintf(fp, ", %sout", out_type));
     }
   } else if (success_is_binary) {

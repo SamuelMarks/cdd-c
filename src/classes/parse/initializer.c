@@ -1,5 +1,5 @@
 /**
- * @file initializer_parser.c
+ * @file initializer.c
  * @brief Implementation of the recursive descent initializer parser.
  *
  * @author Samuel Marks
@@ -19,8 +19,8 @@
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
  */
-static char *join_tokens_skipping_ws(const struct TokenList *tokens,
-                                     size_t start, size_t end) {
+static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
+                                   size_t end, char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -34,8 +34,10 @@ static char *join_tokens_skipping_ws(const struct TokenList *tokens,
   }
 
   buf = (char *)malloc(len + 1);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   p = buf;
   for (i = start; i < end; ++i) {
@@ -47,7 +49,10 @@ static char *join_tokens_skipping_ws(const struct TokenList *tokens,
     }
   }
   *p = '\0';
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /* --- List Management --- */
@@ -113,11 +118,14 @@ static int init_list_add(struct InitList *const list, char *desig,
 
 /* --- Parsing Logic --- */
 
-static size_t skip_ws(const struct TokenList *tokens, size_t idx,
-                      size_t limit) {
+static int skip_ws(const struct TokenList *tokens, size_t idx, size_t limit,
+                   size_t *_out_val) {
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
     idx++;
-  return idx;
+  {
+    *_out_val = idx;
+    return 0;
+  }
 }
 
 static int is_designator_start(enum TokenKind k) {
@@ -130,6 +138,7 @@ static int is_designator_start(enum TokenKind k) {
  */
 static int parse_designator(const struct TokenList *tokens, size_t start,
                             size_t limit, char **out_str, size_t *out_next) {
+  char *_ast_join_tokens_skipping_ws_0;
   size_t i = start;
   size_t end_desig;
 
@@ -151,7 +160,9 @@ static int parse_designator(const struct TokenList *tokens, size_t start,
   end_desig = i;     /* Exclusive of = */
   *out_next = i + 1; /* Skip = */
 
-  *out_str = join_tokens_skipping_ws(tokens, start, end_desig);
+  *out_str = (join_tokens_skipping_ws(tokens, start, end_desig,
+                                      &_ast_join_tokens_skipping_ws_0),
+              _ast_join_tokens_skipping_ws_0);
   if (!*out_str)
     return ENOMEM;
 
@@ -165,6 +176,7 @@ static int parse_designator(const struct TokenList *tokens, size_t start,
 static int parse_expression_str(const struct TokenList *tokens, size_t start,
                                 size_t limit, char **out_str,
                                 size_t *out_next) {
+  char *_ast_join_tokens_skipping_ws_1;
   size_t i = start;
   int depth_paren = 0;
   int depth_brace = 0; /* Should be 0 for scalar, but compound literals
@@ -200,7 +212,9 @@ static int parse_expression_str(const struct TokenList *tokens, size_t start,
     return EINVAL;
   }
 
-  *out_str = join_tokens_skipping_ws(tokens, start, i);
+  *out_str = (join_tokens_skipping_ws(tokens, start, i,
+                                      &_ast_join_tokens_skipping_ws_1),
+              _ast_join_tokens_skipping_ws_1);
   if (!*out_str)
     return ENOMEM;
 
@@ -210,13 +224,17 @@ static int parse_expression_str(const struct TokenList *tokens, size_t start,
 
 int parse_initializer(const struct TokenList *tokens, size_t start_idx,
                       size_t end_idx, struct InitList *out, size_t *consumed) {
+  size_t _ast_skip_ws_2;
+  size_t _ast_skip_ws_3;
+  size_t _ast_skip_ws_4;
+  size_t _ast_skip_ws_5;
   size_t i;
   int rc = 0;
 
   if (!tokens || !out)
     return EINVAL;
 
-  i = skip_ws(tokens, start_idx, end_idx);
+  i = (skip_ws(tokens, start_idx, end_idx, &_ast_skip_ws_2), _ast_skip_ws_2);
 
   /* Expect opening brace */
   if (i >= end_idx || tokens->tokens[i].kind != TOKEN_LBRACE) {
@@ -228,7 +246,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
     char *desig_str = NULL;
     struct InitValue *val_obj = NULL;
 
-    i = skip_ws(tokens, i, end_idx);
+    i = (skip_ws(tokens, i, end_idx, &_ast_skip_ws_3), _ast_skip_ws_3);
 
     if (i >= end_idx)
       break;
@@ -250,7 +268,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
       i = next_after_desig;
     }
 
-    i = skip_ws(tokens, i, end_idx);
+    i = (skip_ws(tokens, i, end_idx, &_ast_skip_ws_4), _ast_skip_ws_4);
 
     /* Allocate Value Object */
     val_obj = (struct InitValue *)calloc(1, sizeof(struct InitValue));
@@ -318,7 +336,7 @@ int parse_initializer(const struct TokenList *tokens, size_t start_idx,
       goto error;
     }
 
-    i = skip_ws(tokens, i, end_idx);
+    i = (skip_ws(tokens, i, end_idx, &_ast_skip_ws_5), _ast_skip_ws_5);
 
     /* Consume comma if present */
     if (i < end_idx && tokens->tokens[i].kind == TOKEN_COMMA) {

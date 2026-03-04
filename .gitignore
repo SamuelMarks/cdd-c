@@ -1,3 +1,4 @@
+patch_*
 vcpkg
 *build*/
 .idea
@@ -32,3 +33,18 @@ Testing
 
 # Compiler commands
 compile_commands.json
+
+# Python script scratchpads
+*.py
+!scripts/**/*.py
+
+# Build/coverage artifacts
+build_cmake/
+build_cov/
+build_wasm/
+test_build_dir/
+out/
+reports/
+*.log
+*.html
+docs/html/

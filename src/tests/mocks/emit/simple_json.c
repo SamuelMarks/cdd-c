@@ -38,12 +38,18 @@ int quote_or_null(const char *const s, char **s1) {
   return 0;
 }
 
-bool c_str_eq(const char *const s0, const char *const s1) {
-  return (s0 == NULL && s1 == NULL) ||
-         (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0);
+int c_str_eq(const char *const s0, const char *const s1) {
+  return ((s0 == NULL && s1 == NULL) ||
+          (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
+             ? 0
+             : 1;
 }
 
-enum Tank Tank_default(void) { return Tank_BIG; }
+int Tank_default(enum Tank *out) {
+  if (out)
+    *out = Tank_BIG;
+  return 0;
+}
 
 int Tank_to_str(const enum Tank tank, char **const str) {
   if (str == NULL)
@@ -96,7 +102,7 @@ int HazE_default(struct HazE **haz_e) {
   *haz_e = malloc(sizeof(**haz_e));
   if (*haz_e == NULL)
     return ENOMEM;
-  (*haz_e)->tank = Tank_default();
+  Tank_default(&(*haz_e)->tank);
   (*haz_e)->bzr = NULL;
   return 0;
 }
@@ -165,12 +171,12 @@ int HazE_debug(const struct HazE *const haz_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-bool HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
+int HazE_eq(const struct HazE *const haz_e0, const struct HazE *const haz_e1) {
   if (haz_e0 == NULL || haz_e1 == NULL)
-    return haz_e0 == haz_e1;
+    return haz_e0 == haz_e1 ? 0 : 1;
 
   if (haz_e0->tank != haz_e1->tank)
-    return false;
+    return 1;
 
   return c_str_eq(haz_e0->bzr, haz_e1->bzr);
 }
@@ -392,12 +398,15 @@ int FooE_debug(const struct FooE *const foo_e, FILE *fh) {
   return rc < 0 ? rc : 0;
 }
 
-bool FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
+int FooE_eq(const struct FooE *const foo_e0, const struct FooE *const foo_e1) {
   if (foo_e0 == NULL || foo_e1 == NULL)
-    return foo_e0 == foo_e1;
+    return foo_e0 == foo_e1 ? 0 : 1;
 
-  return (foo_e0->can == foo_e1->can && c_str_eq(foo_e0->bar, foo_e1->bar) &&
-          HazE_eq(foo_e0->haz, foo_e1->haz));
+  return (foo_e0->can == foo_e1->can &&
+          c_str_eq(foo_e0->bar, foo_e1->bar) == 0 &&
+          HazE_eq(foo_e0->haz, foo_e1->haz) == 0)
+             ? 0
+             : 1;
 }
 
 int FooE_to_json(const struct FooE *const foo_e, char **const json) {

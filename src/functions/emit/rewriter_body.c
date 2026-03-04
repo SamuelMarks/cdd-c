@@ -17,69 +17,102 @@
 
 /* --- Implementation Helpers --- */
 
-static const struct RefactoredFunction *
-find_refactored_func(const struct RefactoredFunction *funcs, size_t func_count,
-                     const char *name) {
+static int find_refactored_func(const struct RefactoredFunction *funcs,
+                                size_t func_count, const char *name,
+                                struct RefactoredFunction **_out_val) {
   size_t i;
-  if (!funcs || !name)
-    return NULL;
+  if (!funcs || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < func_count; ++i) {
     if (strcmp(funcs[i].name, name) == 0) {
-      return &funcs[i];
+      {
+        *_out_val = &funcs[i];
+        return 0;
+      }
     }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
-static char *extract_token_text(const struct Token *tok) {
+static int extract_token_text(const struct Token *tok, char **_out_val) {
   char *s = malloc(tok->length + 1);
-  if (!s)
-    return NULL;
+  if (!s) {
+    *_out_val = NULL;
+    return 0;
+  }
   memcpy(s, tok->start, tok->length);
   s[tok->length] = '\0';
-  return s;
+  {
+    *_out_val = s;
+    return 0;
+  }
 }
 
-static size_t find_semicolon(const struct TokenList *tokens, size_t start) {
+static int find_semicolon(const struct TokenList *tokens, size_t start,
+                          size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
-    if (tokens->tokens[i].kind == TOKEN_SEMICOLON)
-      return i;
+    if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+      *_out_val = i;
+      return 0;
+    }
     if (tokens->tokens[i].kind == TOKEN_LBRACE ||
-        tokens->tokens[i].kind == TOKEN_RBRACE)
-      return tokens->size;
+        tokens->tokens[i].kind == TOKEN_RBRACE) {
+      *_out_val = tokens->size;
+      return 0;
+    }
   }
-  return tokens->size;
+  {
+    *_out_val = tokens->size;
+    return 0;
+  }
 }
 
-static size_t find_stmt_start(const struct TokenList *tokens, size_t pos) {
+static int find_stmt_start(const struct TokenList *tokens, size_t pos,
+                           size_t *_out_val) {
   size_t i = pos;
   while (i > 0) {
     if (tokens->tokens[i - 1].kind == TOKEN_SEMICOLON ||
         tokens->tokens[i - 1].kind == TOKEN_LBRACE ||
         tokens->tokens[i - 1].kind == TOKEN_RBRACE) {
-      return i;
+      {
+        *_out_val = i;
+        return 0;
+      }
     }
     i--;
   }
-  return 0;
+  {
+    *_out_val = 0;
+    return 0;
+  }
 }
 
-static char *join_tokens_range(const struct TokenList *tokens, size_t start,
-                               size_t end) {
+static int join_tokens_range(const struct TokenList *tokens, size_t start,
+                             size_t end, char **_out_val) {
+  char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
   char *buf, *p;
 
-  if (start >= end)
-    return c_cdd_strdup("");
+  if (start >= end) {
+    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
+    return 0;
+  }
 
   for (i = start; i < end; ++i)
     len += tokens->tokens[i].length;
 
   buf = malloc(len + 1);
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   p = buf;
   for (i = start; i < end; ++i) {
@@ -87,7 +120,10 @@ static char *join_tokens_range(const struct TokenList *tokens, size_t start,
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  return buf;
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 /* --- Core Logic --- */
@@ -96,6 +132,26 @@ int rewrite_body(const struct TokenList *const tokens,
                  const struct AllocationSiteList *const allocs,
                  const struct RefactoredFunction *funcs, size_t func_count,
                  const struct SignatureTransform *transform, char **out_code) {
+  char *_ast_extract_token_text_0;
+  struct RefactoredFunction *_ast_find_refactored_func_1;
+  char *_ast_extract_token_text_2;
+  size_t _ast_find_semicolon_3;
+  size_t _ast_find_semicolon_4;
+  size_t _ast_find_stmt_start_5;
+  char *_ast_join_tokens_range_6;
+  size_t _ast_find_semicolon_7;
+  char *_ast_join_tokens_range_8;
+  char *_ast_strdup_1 = NULL;
+  char *_ast_strdup_2 = NULL;
+  char *_ast_strdup_3 = NULL;
+  char *_ast_strdup_4 = NULL;
+  char *_ast_strdup_5 = NULL;
+  char *_ast_strdup_6 = NULL;
+  char *_ast_strdup_7 = NULL;
+  char *_ast_strdup_8 = NULL;
+  char *_ast_strdup_9 = NULL;
+  char *_ast_strdup_10 = NULL;
+  char *_ast_strdup_11 = NULL;
   struct PatchList patches;
   int rc;
   size_t i;
@@ -120,9 +176,13 @@ int rewrite_body(const struct TokenList *const tokens,
     for (i = 0; i < tokens->size; ++i) {
       if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
         const struct Token *id_tok = &tokens->tokens[i];
-        char *name_str = extract_token_text(id_tok);
+        char *name_str =
+            (extract_token_text(id_tok, &_ast_extract_token_text_0),
+             _ast_extract_token_text_0);
         const struct RefactoredFunction *rf =
-            find_refactored_func(funcs, func_count, name_str);
+            (find_refactored_func(funcs, func_count, name_str,
+                                  &_ast_find_refactored_func_1),
+             _ast_find_refactored_func_1);
         free(name_str);
 
         if (rf) {
@@ -197,7 +257,9 @@ int rewrite_body(const struct TokenList *const tokens,
                 while (n > lhs_start) {
                   n--;
                   if (tokens->tokens[n].kind == TOKEN_IDENTIFIER) {
-                    lhs_name = extract_token_text(&tokens->tokens[n]);
+                    lhs_name = (extract_token_text(&tokens->tokens[n],
+                                                   &_ast_extract_token_text_2),
+                                _ast_extract_token_text_2);
                     break;
                   }
                 }
@@ -207,10 +269,12 @@ int rewrite_body(const struct TokenList *const tokens,
 
                   if (is_decl) {
                     patch_list_add(&patches, eq_idx, eq_idx + 1,
-                                   c_cdd_strdup("; rc ="));
+                                   (c_cdd_strdup("; rc =", &_ast_strdup_1),
+                                    _ast_strdup_1));
                   } else {
-                    patch_list_add(&patches, lhs_start, eq_idx + 1,
-                                   c_cdd_strdup("rc ="));
+                    patch_list_add(
+                        &patches, lhs_start, eq_idx + 1,
+                        (c_cdd_strdup("rc =", &_ast_strdup_2), _ast_strdup_2));
                   }
 
                   /* Append arg */
@@ -241,10 +305,14 @@ int rewrite_body(const struct TokenList *const tokens,
                   }
 
                   /* Append check */
-                  semi = find_semicolon(tokens, rparen);
+                  semi =
+                      (find_semicolon(tokens, rparen, &_ast_find_semicolon_3),
+                       _ast_find_semicolon_3);
                   if (semi < tokens->size)
                     patch_list_add(&patches, semi + 1, semi + 1,
-                                   c_cdd_strdup(" if (rc != 0) return rc;"));
+                                   (c_cdd_strdup(" if (rc != 0) return rc;",
+                                                 &_ast_strdup_3),
+                                    _ast_strdup_3));
 
                   free(lhs_name);
                   injected_rc = 1;
@@ -257,11 +325,16 @@ int rewrite_body(const struct TokenList *const tokens,
                         tokens->tokens[prev].kind == TOKEN_RBRACE)) {
               /* Case 2: Statement */
               size_t semi;
-              patch_list_add(&patches, i, i, c_cdd_strdup("rc = "));
-              semi = find_semicolon(tokens, next);
+              patch_list_add(
+                  &patches, i, i,
+                  (c_cdd_strdup("rc = ", &_ast_strdup_4), _ast_strdup_4));
+              semi = (find_semicolon(tokens, next, &_ast_find_semicolon_4),
+                      _ast_find_semicolon_4);
               if (semi < tokens->size) {
-                patch_list_add(&patches, semi + 1, semi + 1,
-                               c_cdd_strdup(" if (rc != 0) return rc;"));
+                patch_list_add(
+                    &patches, semi + 1, semi + 1,
+                    (c_cdd_strdup(" if (rc != 0) return rc;", &_ast_strdup_5),
+                     _ast_strdup_5));
               }
               injected_rc = 1;
 
@@ -271,7 +344,9 @@ int rewrite_body(const struct TokenList *const tokens,
               char tmp_var[64];
               char *call_args = NULL;
               char *injection = NULL;
-              size_t stmt_start = find_stmt_start(tokens, i);
+              size_t stmt_start =
+                  (find_stmt_start(tokens, i, &_ast_find_stmt_start_5),
+                   _ast_find_stmt_start_5);
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
               sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
@@ -282,7 +357,9 @@ int rewrite_body(const struct TokenList *const tokens,
 #endif
 
               /* Extract original args */
-              call_args = join_tokens_range(tokens, lparen + 1, rparen);
+              call_args = (join_tokens_range(tokens, lparen + 1, rparen,
+                                             &_ast_join_tokens_range_6),
+                           _ast_join_tokens_range_6);
 
               /* Prepare injection */
 #ifdef HAVE_ASPRINTF
@@ -311,7 +388,9 @@ int rewrite_body(const struct TokenList *const tokens,
               patch_list_add(&patches, stmt_start, stmt_start, injection);
 
               /* Replace call with var */
-              patch_list_add(&patches, i, rparen + 1, c_cdd_strdup(tmp_var));
+              patch_list_add(
+                  &patches, i, rparen + 1,
+                  (c_cdd_strdup(tmp_var, &_ast_strdup_6), _ast_strdup_6));
 
               free(call_args);
               injected_rc = 1;
@@ -334,10 +413,13 @@ int rewrite_body(const struct TokenList *const tokens,
             next++;
           if (next < tokens->size &&
               tokens->tokens[next].kind == TOKEN_SEMICOLON) {
-            patch_list_add(&patches, i, next, c_cdd_strdup("return 0"));
+            patch_list_add(
+                &patches, i, next,
+                (c_cdd_strdup("return 0", &_ast_strdup_7), _ast_strdup_7));
           }
         } else if (transform->type == TRANSFORM_RET_PTR_TO_ARG) {
-          size_t semi = find_semicolon(tokens, i);
+          size_t semi = (find_semicolon(tokens, i, &_ast_find_semicolon_7),
+                         _ast_find_semicolon_7);
           if (semi < tokens->size) {
             /* Fix: Check for inline unchecked alloc in return statement */
             int contains_alloc = 0;
@@ -359,7 +441,9 @@ int rewrite_body(const struct TokenList *const tokens,
                * return 0; } */
               /* Extract expr between return (i) and semi (inclusive of nothing,
                * wait range excludes return kw) */
-              char *expr = join_tokens_range(tokens, i + 1, semi);
+              char *expr = (join_tokens_range(tokens, i + 1, semi,
+                                              &_ast_join_tokens_range_8),
+                            _ast_join_tokens_range_8);
               char *replacement = NULL;
 
 #ifdef HAVE_ASPRINTF
@@ -389,9 +473,12 @@ int rewrite_body(const struct TokenList *const tokens,
               free(expr);
             } else {
               /* Replace return val; -> *out = val; return 0; */
-              patch_list_add(&patches, i, i + 1, c_cdd_strdup("*out ="));
-              patch_list_add(&patches, semi, semi + 1,
-                             c_cdd_strdup("; return 0;"));
+              patch_list_add(
+                  &patches, i, i + 1,
+                  (c_cdd_strdup("*out =", &_ast_strdup_8), _ast_strdup_8));
+              patch_list_add(
+                  &patches, semi, semi + 1,
+                  (c_cdd_strdup("; return 0;", &_ast_strdup_9), _ast_strdup_9));
             }
           }
         }
@@ -418,7 +505,9 @@ int rewrite_body(const struct TokenList *const tokens,
             break;
         }
         if (!has_ret) {
-          patch_list_add(&patches, last, last, c_cdd_strdup(" return 0; "));
+          patch_list_add(
+              &patches, last, last,
+              (c_cdd_strdup(" return 0; ", &_ast_strdup_10), _ast_strdup_10));
         }
       }
     }
@@ -430,7 +519,9 @@ int rewrite_body(const struct TokenList *const tokens,
     while (k < tokens->size && tokens->tokens[k].kind != TOKEN_LBRACE)
       k++;
     if (k < tokens->size) {
-      patch_list_add(&patches, k + 1, k + 1, c_cdd_strdup("\n  int rc = 0;"));
+      patch_list_add(
+          &patches, k + 1, k + 1,
+          (c_cdd_strdup("\n  int rc = 0;", &_ast_strdup_11), _ast_strdup_11));
     }
   }
 

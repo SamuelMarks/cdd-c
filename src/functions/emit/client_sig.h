@@ -1,5 +1,5 @@
 /**
- * @file codegen_client_sig.h
+ * @file client_sig.h
  * @brief Logic for generating C Client Function Prototypes.
  *
  * Supports standard types and arrays (pointer + len).

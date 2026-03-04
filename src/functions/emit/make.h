@@ -1,5 +1,5 @@
 /**
- * @file codegen_make.h
+ * @file make.h
  * @brief Generating build scripts (CMakeLists) for the SDK.
  * @author Samuel Marks
  */
@@ -24,7 +24,9 @@ struct MakeConfig {
   const char *min_cmake_version; /**< Minimum CMake version (e.g. "3.10") */
 
   /* Additional source files to include in the build */
+  /** @brief extra_sources */
   char **extra_sources;
+  /** @brief extra_source_count */
   size_t extra_source_count;
 };
 

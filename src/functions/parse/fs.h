@@ -91,10 +91,14 @@ extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *ws, char *s,
 #include <sys/stat.h>
 #include <unistd.h>
 
+/** @brief c_stat definition */
 typedef struct stat c_stat;
 
+/** @brief PATH_SEP definition */
 #define PATH_SEP "/"
+/** @brief PATH_SEP_C definition */
 #define PATH_SEP_C '/'
+/** @brief delete_file definition */
 #define delete_file unlink
 
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
@@ -115,12 +119,15 @@ enum FopenError {
 };
 
 /**
+ * @param[out] _out_val Pointer to store the result
+ * @param[out] _out_val Pointer to store the result
  * @brief Helper to convert internal standard library errno to FopenError.
  *
  * @param[in] fopen_error The errno value representing an error.
  * @return The corresponding FopenError enum value.
  */
-extern C_CDD_EXPORT enum FopenError fopen_error_from(int fopen_error);
+extern C_CDD_EXPORT int fopen_error_from(int fopen_error,
+                                         enum FopenError *_out_val);
 
 /**
  * @brief Struct to hold a file handle and its associated filename.

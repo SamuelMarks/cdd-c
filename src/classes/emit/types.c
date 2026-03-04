@@ -1,5 +1,5 @@
 /**
- * @file codegen_types.c
+ * @file types.c
  * @brief Implementation of Advanced Types generation.
  *
  * @author Samuel Marks
@@ -14,6 +14,7 @@
 #include "functions/parse/str.h"
 
 /* Wrapper for fprintf to check errors tersely */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -25,6 +26,9 @@
 int write_union_to_json_func(FILE *const fp, const char *const union_name,
                              const struct StructFields *const sf,
                              const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_0;
+  char *_ast_get_type_from_ref_1;
+  char *_ast_get_type_from_ref_2;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -85,7 +89,9 @@ int write_union_to_json_func(FILE *const fp, const char *const union_name,
       CHECK_IO(fprintf(fp,
                        "      { char *s = NULL; rc = %s_to_str(obj->data.%s, "
                        "&s); if (rc != 0) return rc;\n",
-                       get_type_from_ref(ref), name));
+                       (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
+                        _ast_get_type_from_ref_0),
+                       name));
       CHECK_IO(fprintf(fp,
                        "        jasprintf(json, \"\\\"%%s\\\"\", s); free(s); "
                        "}\n"));
@@ -98,7 +104,9 @@ int write_union_to_json_func(FILE *const fp, const char *const union_name,
                        "        jasprintf(json, \"%%s\", sub);\n"
                        "        free(sub);\n"
                        "      }\n",
-                       get_type_from_ref(ref), name));
+                       (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
+                        _ast_get_type_from_ref_1),
+                       name));
     } else if (strcmp(type, "array") == 0) {
       CHECK_IO(fprintf(fp,
                        "      {\n"
@@ -139,7 +147,9 @@ int write_union_to_json_func(FILE *const fp, const char *const union_name,
                     "            jasprintf(json, \"%%s\", sub);\n"
                     "            free(sub);\n"
                     "          }\n",
-                    get_type_from_ref(ref), name, name));
+                    (get_type_from_ref(ref, &_ast_get_type_from_ref_2),
+                     _ast_get_type_from_ref_2),
+                    name, name));
       }
       CHECK_IO(fprintf(fp, "          if (!*json) return ENOMEM;\n"
                            "        }\n"
@@ -170,6 +180,8 @@ int write_union_from_jsonObject_func(
     FILE *const fp, const char *const union_name,
     const struct StructFields *const sf,
     const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_3;
+  char *_ast_get_type_from_ref_4;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -228,7 +240,9 @@ int write_union_from_jsonObject_func(
                        "        *out = ret;\n"
                        "        return 0;\n"
                        "      }\n",
-                       get_type_from_ref(ref), name));
+                       (get_type_from_ref(ref, &_ast_get_type_from_ref_3),
+                        _ast_get_type_from_ref_3),
+                       name));
     }
     CHECK_IO(fprintf(fp, "    }\n  }\n"));
   }
@@ -304,7 +318,9 @@ int write_union_from_jsonObject_func(
                      "&ret->data.%s);\n"
                      "      if (rc != 0) { free(ret); return rc; }\n"
                      "      break;\n",
-                     get_type_from_ref(ref), name));
+                     (get_type_from_ref(ref, &_ast_get_type_from_ref_4),
+                      _ast_get_type_from_ref_4),
+                     name));
   }
 
   CHECK_IO(fprintf(fp, "    default:\n"
@@ -712,6 +728,8 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
 int write_union_cleanup_func(FILE *const fp, const char *const union_name,
                              const struct StructFields *const sf,
                              const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_5;
+  char *_ast_get_type_from_ref_6;
   size_t i;
   int iter_needed = 0;
   if (!fp || !union_name || !sf)
@@ -740,8 +758,11 @@ int write_union_cleanup_func(FILE *const fp, const char *const union_name,
     if (strcmp(sf->fields[i].type, "string") == 0) {
       CHECK_IO(fprintf(fp, "      free((void*)obj->data.%s);\n", name));
     } else if (strcmp(sf->fields[i].type, "object") == 0) {
-      CHECK_IO(fprintf(fp, "      %s_cleanup(obj->data.%s);\n",
-                       get_type_from_ref(sf->fields[i].ref), name));
+      CHECK_IO(fprintf(
+          fp, "      %s_cleanup(obj->data.%s);\n",
+          (get_type_from_ref(sf->fields[i].ref, &_ast_get_type_from_ref_5),
+           _ast_get_type_from_ref_5),
+          name));
     } else if (strcmp(sf->fields[i].type, "array") == 0) {
       const char *r = sf->fields[i].ref;
       if (strcmp(r, "string") == 0 ||
@@ -757,7 +778,9 @@ int write_union_cleanup_func(FILE *const fp, const char *const union_name,
           CHECK_IO(fprintf(fp,
                            "        %s_cleanup(obj->data.%s.%s[i]);\n"
                            "        free(obj->data.%s.%s[i]);\n",
-                           get_type_from_ref(r), name, name, name, name));
+                           (get_type_from_ref(r, &_ast_get_type_from_ref_6),
+                            _ast_get_type_from_ref_6),
+                           name, name, name, name));
         }
         CHECK_IO(fprintf(fp, "      }\n"));
       }
@@ -779,6 +802,8 @@ int write_union_cleanup_func(FILE *const fp, const char *const union_name,
 int write_root_array_cleanup_func(
     FILE *const fp, const char *const name, const char *const item_type,
     const char *const item_ref, const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_7;
+  char *_ast_get_type_from_ref_8;
   if (!fp || !name || !item_type)
     return EINVAL;
 
@@ -810,8 +835,11 @@ int write_root_array_cleanup_func(
                      "  for(i=0; i<len; ++i) %s_cleanup(in[i]);\n"
                      "  free(in);\n"
                      "}\n",
-                     name, get_type_from_ref(item_ref),
-                     get_type_from_ref(item_ref)));
+                     name,
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_7),
+                      _ast_get_type_from_ref_7),
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_8),
+                      _ast_get_type_from_ref_8)));
   } else {
     /* Fallback generic void* */
     CHECK_IO(fprintf(
@@ -828,6 +856,8 @@ int write_root_array_cleanup_func(
 int write_root_array_to_json_func(
     FILE *const fp, const char *const name, const char *const item_type,
     const char *const item_ref, const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_9;
+  char *_ast_get_type_from_ref_10;
   if (!fp || !name || !item_type)
     return EINVAL;
 
@@ -846,7 +876,9 @@ int write_root_array_to_json_func(
     CHECK_IO(fprintf(fp,
                      "int %s_to_json(struct %s **const in, size_t len, char "
                      "**json_out) {\n",
-                     name, get_type_from_ref(item_ref)));
+                     name,
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_9),
+                      _ast_get_type_from_ref_9)));
   } else {
     CHECK_IO(fprintf(
         fp, "int %s_to_json(const void *in, size_t len, char **json_out) {\n",
@@ -875,7 +907,8 @@ int write_root_array_to_json_func(
                      "      jasprintf(json_out, \"%%s\", tmp);\n"
                      "      free(tmp);\n"
                      "    }\n",
-                     get_type_from_ref(item_ref)));
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_10),
+                      _ast_get_type_from_ref_10)));
   }
   CHECK_IO(fprintf(fp, "    if (!*json_out) return ENOMEM;\n  }\n"));
   CHECK_IO(fprintf(fp, "  jasprintf(json_out, \"]\");\n  if(!*json_out) "
@@ -890,6 +923,10 @@ int write_root_array_to_json_func(
 int write_root_array_from_json_func(
     FILE *const fp, const char *const name, const char *const item_type,
     const char *const item_ref, const struct CodegenTypesConfig *const config) {
+  char *_ast_get_type_from_ref_11;
+  char *_ast_get_type_from_ref_12;
+  char *_ast_get_type_from_ref_13;
+  char *_ast_get_type_from_ref_14;
   if (!fp || !name || !item_type)
     return EINVAL;
 
@@ -911,7 +948,9 @@ int write_root_array_from_json_func(
         fprintf(fp,
                 "int %s_from_json(const char *json, struct %s ***out, size_t "
                 "*len) {\n",
-                name, get_type_from_ref(item_ref)));
+                name,
+                (get_type_from_ref(item_ref, &_ast_get_type_from_ref_11),
+                 _ast_get_type_from_ref_11)));
   } else {
     /* Fallback */
     CHECK_IO(fprintf(fp,
@@ -941,7 +980,8 @@ int write_root_array_from_json_func(
     CHECK_IO(fprintf(fp, "  *out = calloc(count, sizeof(char*));\n"));
   } else if (strcmp(item_type, "object") == 0) {
     CHECK_IO(fprintf(fp, "  *out = calloc(count, sizeof(struct %s*));\n",
-                     get_type_from_ref(item_ref)));
+                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_12),
+                      _ast_get_type_from_ref_12)));
   }
 
   CHECK_IO(fprintf(fp, "  if (!*out) { json_value_free(val); return ENOMEM; }\n"
@@ -972,7 +1012,10 @@ int write_root_array_from_json_func(
         "      for(j=0; j<i; j++) %s_cleanup((*out)[j]);\n"
         "      free(*out); *out=NULL; json_value_free(val); return rc;\n"
         "    }\n",
-        get_type_from_ref(item_ref), get_type_from_ref(item_ref)));
+        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_13),
+         _ast_get_type_from_ref_13),
+        (get_type_from_ref(item_ref, &_ast_get_type_from_ref_14),
+         _ast_get_type_from_ref_14)));
   }
 
   CHECK_IO(fprintf(fp, "  }\n  json_value_free(val);\n  return 0;\n}\n"));
