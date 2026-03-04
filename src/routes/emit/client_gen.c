@@ -621,7 +621,13 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(
       fprintf(c, "    client->base_url = malloc(strlen(base_url) + 1);\n"));
   CHECK_IO(fprintf(c, "    if (!client->base_url) return 12; /* ENOMEM */\n"));
-  CHECK_IO(fprintf(c, "    strcpy(client->base_url, base_url);\n"));
+  CHECK_IO(fprintf(
+      c, "#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) || \\\n"
+         "    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__\n"
+         "    strcpy_s(client->base_url, strlen(base_url) + 1, base_url);\n"
+         "#else\n"
+         "    strcpy(client->base_url, base_url);\n"
+         "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
 
   /* Transport selection logic */
