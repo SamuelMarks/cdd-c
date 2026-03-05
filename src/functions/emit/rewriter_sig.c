@@ -503,8 +503,14 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
                      strlen(sig.ret_type) + 20;
         *out_code = malloc(len);
         if (sig.k_r_decls) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          sprintf_s(*out_code, len, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
+                  sig.name, new_args, k_r_suffix, sig.ret_type);
+#else
           sprintf(*out_code, "%s%sint %s(%s)%s %s *out;", prefix, sig.storage,
                   sig.name, new_args, k_r_suffix, sig.ret_type);
+#endif
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__

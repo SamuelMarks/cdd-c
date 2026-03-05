@@ -189,12 +189,20 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
 #else
     /* Fallback logic or assume HAVE_ASPRINTF is defined by build system */
     /* This sample assumes HAVE_ASPRINTF */
-    replacement = malloc(strlen(call_expr) + strlen(site->var_name) + 128);
+    size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
+    replacement = malloc(replacement_len);
     if (replacement) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+      sprintf_s(replacement, replacement_len,
+                "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                "_safe_tmp; }",
+                call_expr, DEFAULT_ERROR_CODE, site->var_name);
+#else
       sprintf(replacement,
               "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
               "_safe_tmp; }",
               call_expr, DEFAULT_ERROR_CODE, site->var_name);
+#endif
     } else {
       free(call_expr);
       return ENOMEM;
