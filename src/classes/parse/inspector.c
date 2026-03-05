@@ -120,7 +120,11 @@ int c_inspector_scan_file_types(const char *const filename,
 #if defined(_MSC_VER)
   fopen_s(&fp, filename, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, filename, "r");
+#else
   fp = fopen(filename, "r");
+#endif
 #endif
 #endif
   if (!fp)

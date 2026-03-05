@@ -515,13 +515,8 @@ int write_struct_default_func(FILE *const fp, const char *const struct_name,
             /* Emit as largest decimal constant suffix-aware?
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
-#if defined(_MSC_VER)
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %I64u;\n", n,
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %" NUM_FORMAT ";\n", n,
                              nv.data.integer.value));
-#else
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %" PRIu64 ";\n", n,
-                             nv.data.integer.value));
-#endif
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
