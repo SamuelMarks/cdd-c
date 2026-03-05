@@ -10,6 +10,7 @@
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/tokenizer.h"
+#include "functions/parse/str.h"
 
 #include <c89stringutils_string_extras.h>
 #include <ctype.h>

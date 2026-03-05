@@ -13,14 +13,21 @@
 #include "functions/parse/http_types.h"
 #include "functions/parse/str.h"
 
+#include <stdarg.h>
+
+static int sprintf_s_wrapper(char *buf, size_t start, size_t cap, const char *fmt, ...) {
+  int written;
+  va_list args;
+  va_start(args, fmt);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define sprintf_s_wrapper(buf, start, cap, ...)                                \
-  sprintf_s(buf + start, cap - start, __VA_ARGS__)
+  written = vsprintf_s(buf + start, cap - start, fmt, args);
 #else
-/** @brief sprintf_s_wrapper definition */
-#define sprintf_s_wrapper(buf, start, cap, ...)                                \
-  sprintf(buf + start, __VA_ARGS__)
+  (void)cap; /* Unused in C89 fallback */
+  written = vsprintf(buf + start, fmt, args);
 #endif
+  va_end(args);
+  return written;
+}
 
 /** @brief http_headers_init definition */
 int http_headers_init(struct HttpHeaders *const headers) {
