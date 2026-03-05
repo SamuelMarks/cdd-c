@@ -35,7 +35,6 @@ TEST test_write_enum_functions(void) {
 #endif
   if (!tmp_fh)
     FAILm("Failed to open file for writing");
-#endif
 
   ASSERT_EQ(0, write_enum_to_str_func(tmp_fh, "MyEnum", &em, NULL));
   ASSERT_EQ(0, write_enum_from_str_func(tmp_fh, "MyEnum", &em, NULL));
@@ -202,8 +201,7 @@ TEST test_trim_trailing(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(a, n, "foo   \t;");
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
   strcpy_s(a, sizeof(a), "foo   \t;");
 #else
   strcpy(a, "foo   \t;");

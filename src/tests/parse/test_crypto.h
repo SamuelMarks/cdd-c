@@ -28,7 +28,12 @@
 static void bin2hex(const unsigned char *bin, size_t len, char *out) {
   size_t i;
   for (i = 0; i < len; ++i) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    sprintf_s(out + (i * 2), 3, "%02x", bin[i]);
+#else
     sprintf(out + (i * 2), "%02x", bin[i]);
+#endif
   }
 }
 
