@@ -1,3 +1,7 @@
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define _CRT_RAND_S
+#endif
+
 #include "functions/parse/str.h"
 /**
  * @file fs.c
@@ -6,9 +10,6 @@
  * walking.
  * @author Samuel Marks
  */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define _CRT_RAND_S
-#endif
 
 #include <ctype.h>
 #include <errno.h>
