@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "win_compat_sym.h"
 
 #include "classes/emit/struct.h"
 #include "classes/parse/numeric.h"
