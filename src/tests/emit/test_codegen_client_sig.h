@@ -69,7 +69,7 @@ TEST test_sig_simple_get(void) {
 TEST test_sig_verify_apierror(void) {
   struct OpenAPI_Operation op = {0};
   char *code;
-  op.operation_id = "do";
+  op.operation_id = (char *)"do";
 
   code = gen_sig(&op, NULL);
   ASSERT(code);

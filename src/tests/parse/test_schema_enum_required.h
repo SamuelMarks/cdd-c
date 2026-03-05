@@ -85,8 +85,8 @@ TEST test_writer_enum_and_required(void) {
   char *json = NULL;
   int rc;
 
-  names[0] = "Color";
-  names[1] = "Car";
+  names[0] = (char *)"Color";
+  names[1] = (char *)"Car";
 
   struct_fields_init(&schemas[0]);
   schemas[0].is_enum = 1;

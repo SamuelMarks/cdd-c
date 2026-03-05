@@ -8,14 +8,17 @@
 #include "tests/emit/schema2tests.h"
 
 TEST test_jsonschema2tests_wrong_args(void) {
-  char *argv[] = {"program", NULL};
+  char arg0[] = "program";
+  char *argv[] = {arg0, NULL};
   const int rc = jsonschema2tests_main(1, argv);
   ASSERT_EQ(EXIT_FAILURE, rc);
   PASS();
 }
 
 TEST test_schema2tests_argc_error(void) {
-  char *argv[] = {"prog", "a.json"};
+  char arg0[] = "prog";
+  char arg1[] = "a.json";
+  char *argv[] = {arg0, arg1};
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(1, argv));
   PASS();
 }

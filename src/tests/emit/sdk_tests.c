@@ -57,7 +57,7 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
   /* Response Output decl */
   /* Find success response (2xx) to type output */
   {
-    char *res_type = "void";
+    const char *res_type = "void";
     int has_output = 0;
     size_t j;
     for (j = 0; j < op->n_responses; ++j) {
