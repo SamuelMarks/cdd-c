@@ -452,7 +452,7 @@ static void apply_header_sync(const struct OpenAPI_Operation *op,
   }
 }
 
-static int apply_updates(const char *filename, const char *content,
+static int apply_updates(const char *filename,
                          struct TokenList *tokens, struct CstNodeList *cst,
                          const struct OpenAPI_Spec *spec,
                          const struct ApiSyncConfig *cfg) {
@@ -591,15 +591,7 @@ static int apply_updates(const char *filename, const char *content,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     if (fopen_s(&f, filename, "w") == 0 && f) {
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, filename, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&f, filename, "w");
-#else
     f = fopen(filename, "w");
-#endif
-#endif
     if (f) {
 #endif
       fputs(result, f);
@@ -642,7 +634,7 @@ int api_sync_file(const char *const filename,
     return rc;
   }
 
-  rc = apply_updates(filename, content, tokens, &cst, spec, cfg);
+  rc = apply_updates(filename, tokens, &cst, spec, cfg);
 
   free_cst_node_list(&cst);
   free_token_list(tokens);
