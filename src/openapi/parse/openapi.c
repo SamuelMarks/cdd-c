@@ -11904,8 +11904,6 @@ static int component_callback_is_referenced_in_ops(
   size_t i, j;
   if (!ops || !spec || !name)
     return 0;
-  (void)j;
-  return 0;
   for (i = 0; i < n_ops; ++i) {
     const struct OpenAPI_Operation *op = &ops[i];
     for (j = 0; j < op->n_callbacks; ++j) {
