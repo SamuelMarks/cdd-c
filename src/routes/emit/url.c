@@ -158,7 +158,7 @@ static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
 
 static int
 querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
-                                      char **_out_val) {
+                                      const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -197,7 +197,7 @@ querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
-                                       char **_out_val) {
+                                       const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -237,7 +237,7 @@ querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
-                                      char **_out_val) {
+                                      const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -281,7 +281,7 @@ querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 
 static int
 querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
-                                     char **_out_val) {
+                                     const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -1630,10 +1630,10 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
 int codegen_url_write_query_params(FILE *const fp,
                                    const struct OpenAPI_Operation *op,
                                    int qp_tracking) {
-  char *_ast_querystring_param_json_array_item_type_6;
-  char *_ast_querystring_param_json_array_item_ref_7;
-  char *_ast_querystring_param_json_primitive_type_8;
-  char *_ast_querystring_param_raw_primitive_type_9;
+  const char *_ast_querystring_param_json_array_item_type_6;
+  const char *_ast_querystring_param_json_array_item_ref_7;
+  const char *_ast_querystring_param_json_primitive_type_8;
+  const char *_ast_querystring_param_raw_primitive_type_9;
   size_t i;
   int has_query = 0;
   const struct OpenAPI_Parameter *querystring_param = NULL;
