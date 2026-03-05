@@ -301,15 +301,7 @@ int fs_write_to_file(const char *const path, const char *const content) {
   if (fopen_s(&f, path, "w") != 0)
     f = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "w");
-#else
   f = fopen(path, "w");
-#endif
-#endif
 #endif
 
   if (!f)
@@ -346,11 +338,7 @@ int read_to_file(const char *path, const char *mode, char **out_data,
 #if defined(_MSC_VER)
   fopen_s(&f, path, mode);
 #else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, mode);
-#else
   f = fopen(path, mode);
-#endif
 #endif
   if (f == NULL)
     return errno;
@@ -704,11 +692,7 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #if defined(_MSC_VER)
       fopen_s(&file->fh, tmpfilename, mode);
 #else
-#if defined(_MSC_VER)
-      fopen_s(&file->fh, tmpfilename, mode);
-#else
       file->fh = fopen(tmpfilename, mode);
-#endif
 #endif
       if (!file->fh) {
         free(tmpfilename);

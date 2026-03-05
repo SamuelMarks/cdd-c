@@ -187,11 +187,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "hello   ");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "hello   ");
-#else
   strcpy(buf, "hello   ");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("hello", buf);
@@ -201,11 +197,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "foo\t\n ");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "foo\t\n ");
-#else
   strcpy(buf, "foo\t\n ");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("foo", buf);
@@ -215,11 +207,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "bar");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "bar");
-#else
   strcpy(buf, "bar");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("bar", buf);
@@ -229,11 +217,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "");
-#else
   strcpy(buf, "");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("", buf);
@@ -243,11 +227,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "   ");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "   ");
-#else
   strcpy(buf, "   ");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("", buf);
@@ -257,11 +237,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(buf, sizeof(buf), "a b c  ");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(buf, sizeof(buf), "a b c  ");
-#else
   strcpy(buf, "a b c  ");
-#endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("a b c", buf);

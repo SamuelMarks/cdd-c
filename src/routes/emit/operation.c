@@ -17,13 +17,6 @@
 #include "functions/parse/str.h"
 #include "routes/emit/operation.h"
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define strcasecmp _stricmp
-#endif
-#else
-#include <strings.h>
-#endif
 
 /* --- Helpers --- */
 
@@ -1274,23 +1267,23 @@ int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
   if (doc && doc->verb) {
     /* Map string verb to enum */
     /* Only basic check here, loader does robust parsing */
-    if (strcasecmp(doc->verb, "GET") == 0)
+    if (c_cdd_stricmp(doc->verb, "GET") == 0)
       out_op->verb = OA_VERB_GET;
-    else if (strcasecmp(doc->verb, "POST") == 0)
+    else if (c_cdd_stricmp(doc->verb, "POST") == 0)
       out_op->verb = OA_VERB_POST;
-    else if (strcasecmp(doc->verb, "PUT") == 0)
+    else if (c_cdd_stricmp(doc->verb, "PUT") == 0)
       out_op->verb = OA_VERB_PUT;
-    else if (strcasecmp(doc->verb, "DELETE") == 0)
+    else if (c_cdd_stricmp(doc->verb, "DELETE") == 0)
       out_op->verb = OA_VERB_DELETE;
-    else if (strcasecmp(doc->verb, "PATCH") == 0)
+    else if (c_cdd_stricmp(doc->verb, "PATCH") == 0)
       out_op->verb = OA_VERB_PATCH;
-    else if (strcasecmp(doc->verb, "HEAD") == 0)
+    else if (c_cdd_stricmp(doc->verb, "HEAD") == 0)
       out_op->verb = OA_VERB_HEAD;
-    else if (strcasecmp(doc->verb, "OPTIONS") == 0)
+    else if (c_cdd_stricmp(doc->verb, "OPTIONS") == 0)
       out_op->verb = OA_VERB_OPTIONS;
-    else if (strcasecmp(doc->verb, "TRACE") == 0)
+    else if (c_cdd_stricmp(doc->verb, "TRACE") == 0)
       out_op->verb = OA_VERB_TRACE;
-    else if (strcasecmp(doc->verb, "QUERY") == 0)
+    else if (c_cdd_stricmp(doc->verb, "QUERY") == 0)
       out_op->verb = OA_VERB_QUERY;
     else {
       out_op->verb = OA_VERB_UNKNOWN;

@@ -179,3 +179,15 @@ int c_cdd_destringize(const char *const quoted, char **out_s) {
   *out_s = out;
   return 0;
 }
+
+int c_cdd_stricmp(const char *a, const char *b) {
+  if (a == b) return 0;
+  if (!a || !b) return a ? 1 : -1;
+  while (*a && *b) {
+    int diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+    if (diff != 0) return diff;
+    ++a;
+    ++b;
+  }
+  return tolower((unsigned char)*a) - tolower((unsigned char)*b);
+}

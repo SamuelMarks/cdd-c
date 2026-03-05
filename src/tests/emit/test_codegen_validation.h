@@ -192,11 +192,7 @@ TEST test_string_simple_pattern_prefix(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(f->pattern, sizeof(f->pattern), "^prefix");
-#else
   strcpy(f->pattern, "^prefix");
-#endif
 #endif
 
   code = gen_parse_code("SPat", &sf);
@@ -222,11 +218,7 @@ TEST test_string_simple_pattern_suffix(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(f->pattern, sizeof(f->pattern), "suffix$");
-#else
   strcpy(f->pattern, "suffix$");
-#endif
 #endif
 
   code = gen_parse_code("SSuf", &sf);
@@ -252,11 +244,7 @@ TEST test_string_simple_pattern_exact(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(f->pattern, sizeof(f->pattern), "^exact$");
-#else
   strcpy(f->pattern, "^exact$");
-#endif
 #endif
 
   code = gen_parse_code("SExact", &sf);
@@ -282,11 +270,7 @@ TEST test_string_simple_pattern_contains(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   strcpy_s(f->pattern, sizeof(f->pattern), "sub");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(f->pattern, sizeof(f->pattern), "sub");
-#else
   strcpy(f->pattern, "sub");
-#endif
 #endif
 
   code = gen_parse_code("SSub", &sf);

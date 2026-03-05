@@ -173,15 +173,7 @@ int generate_cmake_project(const char *const output_path,
   if (fopen_s(&fp, full_path, "w") != 0)
     fp = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
   fp = fopen(full_path, "w");
-#endif
-#endif
 #endif
 
   if (!fp) {

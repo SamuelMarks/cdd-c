@@ -19,10 +19,8 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
-#define strcasecmp _stricmp
 #endif
 #else
-#include <strings.h>
 #endif
 
 #include <curl/curl.h>
