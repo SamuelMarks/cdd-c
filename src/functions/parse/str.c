@@ -15,7 +15,7 @@
 #endif
 #else
 /* Linux/Unix */
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 #include "functions/parse/str.h"

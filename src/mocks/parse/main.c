@@ -4,7 +4,7 @@
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #else
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 #include "../emit/simple_json.h"

@@ -45,7 +45,7 @@
 /** @brief PATH_SEP_CHAR definition */
 #define PATH_SEP_CHAR '/'
 
-#include <sys/errno.h>
+#include <errno.h>
 
 #endif
 

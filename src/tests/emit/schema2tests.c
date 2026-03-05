@@ -26,7 +26,7 @@
 #define strdup _strdup
 #endif
 #else
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 /* Helper macros for error checking */

@@ -14,6 +14,14 @@
 #include "docstrings/parse/doc.h"
 #include "functions/parse/str.h"
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strcasecmp _stricmp
+#endif
+#else
+#include <strings.h>
+#endif
+
 /* --- Helpers --- */
 
 /**
