@@ -81,7 +81,7 @@ static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
   }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
-      *_out_val = &mts[i];
+      *_out_val = (struct OpenAPI_MediaType *) &mts[i];
       return 0;
     }
   }
