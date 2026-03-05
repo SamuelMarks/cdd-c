@@ -6,6 +6,9 @@
  * walking.
  * @author Samuel Marks
  */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define _CRT_RAND_S
+#endif
 
 #include <ctype.h>
 #include <errno.h>
@@ -17,7 +20,6 @@
 #include "functions/str_includes.h"
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define _CRT_RAND_S
 #define WIN32_LEAN_AND_MEAN
 #include "c_cddConfig.h"
 /* clang-format off */
@@ -33,7 +35,8 @@
 #include <winerror.h>
 /* strtok_s is defined as a macro for strtok_r in fs.h if needed, or by system
  * headers */
-#define mkdir _mkdir
+
+/* <windows_utils> */
 #ifndef strdup
 #define strdup _strdup
 #endif
@@ -118,7 +121,7 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t buf_cap,
  */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define c_stat_func _stat
+#define c_stat_func _stat32
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
 #define c_stat_func stat
@@ -472,7 +475,7 @@ out_error:
 }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define c_stat_func _stat
+#define c_stat_func _stat32
 #define IS_DIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #else
 #define c_stat_func stat

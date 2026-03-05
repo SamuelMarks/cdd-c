@@ -125,7 +125,7 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
 
   /* 1. Import the Key */
   /* CAPI requires keys to be imported via blobs. We build a PLAINTEXTKEYBLOB */
-  blobSize = sizeof(BLOBHEADER) + sizeof(DWORD) + key_len;
+  blobSize = (DWORD)(sizeof(BLOBHEADER) + sizeof(DWORD) + key_len);
   pBlob = (struct PlainTextKeyBlob *)malloc(blobSize);
   if (!pBlob) {
     rc = ENOMEM;

@@ -783,10 +783,10 @@ static int emit_operation(FILE *hfile, FILE *cfile,
                           const struct OpenAPI_Spec *spec,
                           const struct OpenApiClientConfig *config,
                           const char *prefix) {
-  const char *_ast_sanitize_tag_6;
+  char *_ast_sanitize_tag_6;
   struct OpenAPI_Server *_ast_select_operation_server_7;
   char *_ast_render_server_url_default_8;
-  const char *_ast_build_base_url_literal_9;
+  char *_ast_build_base_url_literal_9;
   struct OpenAPI_Operation effective_op;
   struct OpenAPI_Parameter *effective_params = NULL;
   size_t effective_count = 0;
