@@ -2148,7 +2148,7 @@ static int parse_schema_type(const JSON_Object *const schema,
 
   type = json_object_get_string(schema, "type");
   if (type) {
-    *_out_val = type;
+    *_out_val = (void *)(type);
     return 0;
   }
 
@@ -2178,7 +2178,7 @@ static int parse_schema_type(const JSON_Object *const schema,
   }
 
   {
-    *_out_val = chosen;
+    *_out_val = (void *)(chosen);
     return 0;
   }
 }
@@ -3567,7 +3567,7 @@ static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
       return 0;
     }
     {
-      *_out_val = name;
+      *_out_val = (void *)(name);
       return 0;
     }
   }
@@ -3594,7 +3594,7 @@ static int ref_name_from_prefix(const struct OpenAPI_Spec *spec,
     return 0;
   }
   {
-    *_out_val = name;
+    *_out_val = (void *)(name);
     return 0;
   }
 }
@@ -9363,7 +9363,7 @@ static int find_media_object_by_name(const JSON_Object *content,
   {
     const JSON_Object *exact = json_object_get_object(content, media_name);
     if (exact) {
-      *_out_val = exact;
+      *_out_val = (void *)(exact);
       return 0;
     }
   }
@@ -11427,7 +11427,7 @@ static int find_path_param(const struct OpenAPI_Parameter *params, size_t n,
     if (!params[i].name)
       continue;
     if (strcmp(params[i].name, name) == 0) {
-      *_out_val = &params[i];
+      *_out_val = (void *)(&params[i]);
       return 0;
     }
   }
@@ -12591,7 +12591,7 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
     {
-      *_out_val = found;
+      *_out_val = (void *)(found);
       return 0;
     }
   }

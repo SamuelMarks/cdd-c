@@ -88,7 +88,11 @@ TEST test_sync_code_too_many_defs(void) {
   ASSERT_EQ(0, fopen_s(&f, filename, "w, ccs=UTF-8"));
   ASSERT(f);
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, filename, "w");
+#else
   f = fopen(filename, "w");
+#endif
   ASSERT(f);
 #endif
   for (i = 0; i < 70; i++)

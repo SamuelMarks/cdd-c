@@ -594,7 +594,11 @@ static int apply_updates(const char *filename, const char *content,
 #if defined(_MSC_VER)
     fopen_s(&f, filename, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, filename, "w");
+#else
     f = fopen(filename, "w");
+#endif
 #endif
     if (f) {
 #endif

@@ -624,7 +624,11 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__\n"
          "    strcpy_s(client->base_url, strlen(base_url) + 1, base_url);\n"
          "#else\n"
+         "#if defined(_MSC_VER)\n"
+         "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
+         "#else\n"
          "    strcpy(client->base_url, base_url);\n"
+         "#endif\n"
          "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
 
@@ -972,8 +976,16 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
   if (fopen_s(&cfile, c_name, "w") != 0)
     cfile = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&hfile, h_name, "w");
+#else
   hfile = fopen(h_name, "w");
+#endif
+#if defined(_MSC_VER)
+  fopen_s(&cfile, c_name, "w");
+#else
   cfile = fopen(c_name, "w");
+#endif
 #endif
 
   if (!hfile || !cfile) {
