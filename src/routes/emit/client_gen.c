@@ -674,43 +674,43 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 static int verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
-    *_out_val = "GET";
+    *_out_val = (char *)"GET";
     return 0;
   }
   case OA_VERB_POST: {
-    *_out_val = "POST";
+    *_out_val = (char *)"POST";
     return 0;
   }
   case OA_VERB_PUT: {
-    *_out_val = "PUT";
+    *_out_val = (char *)"PUT";
     return 0;
   }
   case OA_VERB_DELETE: {
-    *_out_val = "DELETE";
+    *_out_val = (char *)"DELETE";
     return 0;
   }
   case OA_VERB_PATCH: {
-    *_out_val = "PATCH";
+    *_out_val = (char *)"PATCH";
     return 0;
   }
   case OA_VERB_HEAD: {
-    *_out_val = "HEAD";
+    *_out_val = (char *)"HEAD";
     return 0;
   }
   case OA_VERB_OPTIONS: {
-    *_out_val = "OPTIONS";
+    *_out_val = (char *)"OPTIONS";
     return 0;
   }
   case OA_VERB_TRACE: {
-    *_out_val = "TRACE";
+    *_out_val = (char *)"TRACE";
     return 0;
   }
   case OA_VERB_QUERY: {
-    *_out_val = "QUERY";
+    *_out_val = (char *)"QUERY";
     return 0;
   }
   default: {
-    *_out_val = "UNKNOWN";
+    *_out_val = (char *)"UNKNOWN";
     return 0;
   }
   }
@@ -731,7 +731,7 @@ static int write_docblock(FILE *fp, const struct OpenAPI_Path *path,
 
   if (path && path->route) {
     CHECK_IO(fprintf(fp, " * @route %s %s\n",
-                     (verb_to_string(op->verb, &_ast_verb_to_string_5),
+                     (verb_to_string(op->verb, (char **)&_ast_verb_to_string_5),
                       _ast_verb_to_string_5),
                      path->route));
   }
