@@ -644,7 +644,7 @@ static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
 }
 
 static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
-                              size_t buf_len, char **_out_val) {
+                              size_t buf_len, const char **_out_val) {
   if (!kv) {
     *_out_val = NULL;
     return 0;
@@ -688,7 +688,7 @@ static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
 int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
                          const char *delim, int allow_reserved,
                          char **_out_val) {
-  char *_ast_kv_value_to_string_18;
+  const char *_ast_kv_value_to_string_18;
   size_t i;
   char *buf = NULL;
   size_t len = 0;
