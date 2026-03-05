@@ -32,7 +32,6 @@ TEST test_refactor_context_lifecycle(void) {
 
 TEST test_apply_refactoring_to_string_basic(void) {
   struct RefactorContext ctx;
-  char *out = NULL;
   int rc;
   const char *src = "void my_func() { char *p = malloc(1); }";
 
@@ -49,7 +48,6 @@ TEST test_apply_refactoring_to_string_basic(void) {
 }
 
 TEST test_apply_refactoring_to_string_errors(void) {
-  char *out = NULL;
 
   /* Bad syntax: Unclosed comment fails tokenization only if strictly checked,
    * but a dangling quote works */

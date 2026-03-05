@@ -16,7 +16,11 @@
 #endif
 
 TEST test_server_json_rpc_bind_fail(void) {
+  #if defined(_WIN32)
+  SOCKET server_fd;
+#else
   int server_fd;
+#endif
   struct sockaddr_in addr;
   char *argv[] = {"server_json_rpc_main", "--port", "12346"};
   int argc = 3;
