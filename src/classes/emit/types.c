@@ -12,6 +12,7 @@
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "classes/emit/types.h"
 #include "functions/parse/str.h"
+#include "win_compat_sym.h"
 
 /* Wrapper for fprintf to check errors tersely */
 /** @brief CHECK_IO macro */
@@ -272,8 +273,8 @@ int write_union_from_jsonObject_func(
       }
       CHECK_IO(fprintf(fp,
                        ") { match_count++; if (match_idx < 0) match_idx = "
-                       "%lu; }\n",
-                       (unsigned long)i));
+                       "%" SIZE_T_FMT "; }\n",
+                       (size_t)i));
     } else if (meta && meta->n_property_names > 0) {
       CHECK_IO(fprintf(fp, "    if ("));
       for (k = 0; k < meta->n_property_names; ++k) {
@@ -287,13 +288,14 @@ int write_union_from_jsonObject_func(
       }
       CHECK_IO(fprintf(fp,
                        ") { match_count++; if (match_idx < 0) match_idx = "
-                       "%lu; }\n",
-                       (unsigned long)i));
+                       "%" SIZE_T_FMT "; }\n",
+                       (size_t)i));
     } else {
-      CHECK_IO(fprintf(fp,
-                       "    if (json_object_get_count(jsonObject) > 0) { "
-                       "match_count++; if (match_idx < 0) match_idx = %lu; }\n",
-                       (unsigned long)i));
+      CHECK_IO(fprintf(
+          fp,
+          "    if (json_object_get_count(jsonObject) > 0) { "
+          "match_count++; if (match_idx < 0) match_idx = %" SIZE_T_FMT "; }\n",
+          (size_t)i));
     }
   }
 
@@ -311,7 +313,7 @@ int write_union_from_jsonObject_func(
     const char *ref = sf->fields[i].ref;
     if (strcmp(type, "object") != 0)
       continue;
-    CHECK_IO(fprintf(fp, "    case %lu:\n", (unsigned long)i));
+    CHECK_IO(fprintf(fp, "    case %" SIZE_T_FMT ":\n", (size_t)i));
     CHECK_IO(fprintf(fp, "      ret->tag = %s_%s;\n", union_name, name));
     CHECK_IO(fprintf(fp,
                      "      rc = %s_from_jsonObject(jsonObject, "

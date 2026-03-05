@@ -15,3 +15,10 @@
 #endif
 
 #endif /* C_CDD_WIN_COMPAT_SYM_H */
+#if defined(_MSC_VER)
+#define SIZE_T_FMT "Iu"
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define SIZE_T_FMT "zu"
+#else
+#define SIZE_T_FMT "lu"
+#endif

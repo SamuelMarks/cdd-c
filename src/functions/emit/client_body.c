@@ -21,6 +21,7 @@
 #include "openapi/parse/openapi.h"
 #include "routes/emit/security.h"
 #include "routes/emit/url.h"
+#include "win_compat_sym.h"
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -1644,8 +1645,9 @@ static int write_form_urlencoded_body(FILE *fp,
           } else if (obj_style == OA_STYLE_FORM && !obj_explode) {
             size_t pf_idx;
             CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
-            CHECK_IO(fprintf(fp, "    struct OpenAPI_KV kvs[%lu];\n",
-                             (unsigned long)obj_sf->size));
+            CHECK_IO(fprintf(fp,
+                             "    struct OpenAPI_KV kvs[%" SIZE_T_FMT "];\n",
+                             (size_t)obj_sf->size));
             CHECK_IO(fprintf(fp, "    size_t kv_len = 0;\n"));
             for (pf_idx = 0; pf_idx < obj_sf->size; ++pf_idx) {
               const struct StructField *pf = &obj_sf->fields[pf_idx];
@@ -1769,8 +1771,9 @@ static int write_form_urlencoded_body(FILE *fp,
             const char *delim =
                 (obj_style == OA_STYLE_SPACE_DELIMITED) ? "%20" : "%7C";
             CHECK_IO(fprintf(fp, "  if (req_body->%s) {\n", f->name));
-            CHECK_IO(fprintf(fp, "    struct OpenAPI_KV kvs[%lu];\n",
-                             (unsigned long)obj_sf->size));
+            CHECK_IO(fprintf(fp,
+                             "    struct OpenAPI_KV kvs[%" SIZE_T_FMT "];\n",
+                             (size_t)obj_sf->size));
             CHECK_IO(fprintf(fp, "    size_t kv_len = 0;\n"));
             for (pf_idx = 0; pf_idx < obj_sf->size; ++pf_idx) {
               const struct StructField *pf = &obj_sf->fields[pf_idx];
