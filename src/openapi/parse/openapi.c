@@ -2173,7 +2173,7 @@ static int parse_schema_type(const JSON_Object *const schema,
   }
 
   if (!chosen && out_nullable && *out_nullable) {
-    *_out_val = "null";
+    *_out_val = (char *)"null";
     return 0;
   }
 
@@ -12591,7 +12591,7 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
     if (resolved.resolved_ref)
       free(resolved.resolved_ref);
     {
-      *_out_val = (struct OpenAPI_Schema *)(found);
+      *_out_val = (struct StructFields *)(found);
       return 0;
     }
   }
