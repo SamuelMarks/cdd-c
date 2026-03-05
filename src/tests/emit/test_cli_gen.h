@@ -34,11 +34,7 @@ TEST test_cli_gen_basic(void) {
   if (fopen_s(&f, "test_cli_cli.c", "r") != 0)
     f = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&f, "test_cli_cli.c", "r");
-#else
   f = fopen("test_cli_cli.c", "r");
-#endif
 #endif
   ASSERT(f != NULL);
   if (f)

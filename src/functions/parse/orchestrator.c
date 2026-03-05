@@ -34,10 +34,8 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
-#define strcasecmp _stricmp
 #endif
 #else
-#include <strings.h>
 #include <errno.h>
 #endif
 
@@ -711,7 +709,7 @@ struct FixWalkContext {
 
 static int is_c_source(const char *path) {
   const char *dot = strrchr(path, '.');
-  return (dot && strcasecmp(dot, ".c") == 0);
+  return (dot && c_cdd_stricmp(dot, ".c") == 0);
 }
 
 static int fix_file_callback(const char *path, void *user_data) {
@@ -748,15 +746,7 @@ static int fix_file_callback(const char *path, void *user_data) {
     if (fopen_s(&f, out_path, "w") != 0)
       f = NULL;
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, out_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&f, out_path, "w");
-#else
     f = fopen(out_path, "w");
-#endif
-#endif
 #endif
     if (f) {
       fputs(result, f);

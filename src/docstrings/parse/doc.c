@@ -14,13 +14,6 @@
 #include "docstrings/parse/doc.h"
 #include "functions/parse/str.h"
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#define strcasecmp _stricmp
-#endif
-#else
-#include <strings.h>
-#endif
 
 /* --- Helpers --- */
 
@@ -216,13 +209,13 @@ static int parse_tags_line(const char *line, const char *end,
 static int parse_bool_text(const char *s, int *out) {
   if (!s || !out)
     return 0;
-  if (strcasecmp(s, "true") == 0 || strcmp(s, "1") == 0 ||
-      strcasecmp(s, "yes") == 0) {
+  if (c_cdd_stricmp(s, "true") == 0 || strcmp(s, "1") == 0 ||
+      c_cdd_stricmp(s, "yes") == 0) {
     *out = 1;
     return 1;
   }
-  if (strcasecmp(s, "false") == 0 || strcmp(s, "0") == 0 ||
-      strcasecmp(s, "no") == 0) {
+  if (c_cdd_stricmp(s, "false") == 0 || strcmp(s, "0") == 0 ||
+      c_cdd_stricmp(s, "no") == 0) {
     *out = 0;
     return 1;
   }
@@ -324,35 +317,35 @@ static int parse_tag_meta_line(const char *line, const char *end,
 static int parse_style_text(const char *s, enum DocParamStyle *out) {
   if (!s || !out)
     return 0;
-  if (strcasecmp(s, "form") == 0) {
+  if (c_cdd_stricmp(s, "form") == 0) {
     *out = DOC_PARAM_STYLE_FORM;
     return 1;
   }
-  if (strcasecmp(s, "simple") == 0) {
+  if (c_cdd_stricmp(s, "simple") == 0) {
     *out = DOC_PARAM_STYLE_SIMPLE;
     return 1;
   }
-  if (strcasecmp(s, "matrix") == 0) {
+  if (c_cdd_stricmp(s, "matrix") == 0) {
     *out = DOC_PARAM_STYLE_MATRIX;
     return 1;
   }
-  if (strcasecmp(s, "label") == 0) {
+  if (c_cdd_stricmp(s, "label") == 0) {
     *out = DOC_PARAM_STYLE_LABEL;
     return 1;
   }
-  if (strcasecmp(s, "spaceDelimited") == 0) {
+  if (c_cdd_stricmp(s, "spaceDelimited") == 0) {
     *out = DOC_PARAM_STYLE_SPACE_DELIMITED;
     return 1;
   }
-  if (strcasecmp(s, "pipeDelimited") == 0) {
+  if (c_cdd_stricmp(s, "pipeDelimited") == 0) {
     *out = DOC_PARAM_STYLE_PIPE_DELIMITED;
     return 1;
   }
-  if (strcasecmp(s, "deepObject") == 0) {
+  if (c_cdd_stricmp(s, "deepObject") == 0) {
     *out = DOC_PARAM_STYLE_DEEP_OBJECT;
     return 1;
   }
-  if (strcasecmp(s, "cookie") == 0) {
+  if (c_cdd_stricmp(s, "cookie") == 0) {
     *out = DOC_PARAM_STYLE_COOKIE;
     return 1;
   }

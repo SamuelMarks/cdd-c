@@ -86,6 +86,15 @@ extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
  * @return true if strings match case-insensitively or both are NULL, false
  * otherwise.
  */
+/**
+ * @brief Compare strings case-insensitively like stricmp/strcasecmp.
+ *
+ * @param[in] a First string.
+ * @param[in] b Second string.
+ * @return 0 if equal, non-zero otherwise.
+ */
+extern C_CDD_EXPORT int c_cdd_stricmp(const char *a, const char *b);
+
 extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
                                          bool *out_b);
 

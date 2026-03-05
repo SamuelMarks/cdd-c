@@ -292,15 +292,7 @@ static int generate_header(const char *prefix, const char *basename,
   if (fopen_s(&fp, fname, "w") != 0)
     fp = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
   fp = fopen(fname, "w");
-#endif
-#endif
 #endif
   if (!fp)
     return errno;
@@ -416,15 +408,7 @@ static int generate_source(const char *prefix, const char *basename,
   if (fopen_s(&fp, fname, "w") != 0)
     fp = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
   fp = fopen(fname, "w");
-#endif
-#endif
 #endif
   if (!fp)
     return errno;

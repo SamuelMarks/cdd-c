@@ -20,10 +20,8 @@
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
-#define strcasecmp _stricmp
 #endif
 #else
-#include <strings.h>
 #endif
 
 void audit_stats_init(struct AuditStats *const stats) {
@@ -120,7 +118,7 @@ static int is_c_source(const char *path) {
   const char *dot = strrchr(path, '.');
   if (!dot)
     return 0;
-  return (strcasecmp(dot, ".c") == 0);
+  return (c_cdd_stricmp(dot, ".c") == 0);
 }
 
 /**

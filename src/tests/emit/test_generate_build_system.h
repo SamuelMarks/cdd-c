@@ -79,11 +79,7 @@ TEST test_gen_build_system_cli_args(void) {
     if (fopen_s(&f, "test_build_dir/CMakeLists.txt", "r") != 0)
       f = NULL;
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, "test_build_dir/CMakeLists.txt", "r");
-#else
     f = fopen("test_build_dir/CMakeLists.txt", "r");
-#endif
 #endif
     ASSERT(f != NULL);
     fclose(f);
