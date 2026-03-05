@@ -14,6 +14,7 @@
 #include "functions/parse/str.h"
 #include "functions/parse/strategy.h"
 #include "functions/parse/tokenizer.h"
+#include "win_compat_sym.h"
 
 /* --- Implementation Helpers --- */
 
@@ -349,11 +350,11 @@ int rewrite_body(const struct TokenList *const tokens,
                    _ast_find_stmt_start_5);
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%lu",
-                        (unsigned long)(tmp_var_counter++));
+              sprintf_s(tmp_var, sizeof(tmp_var), "_tmp_cdd_%" SIZE_T_FMT "",
+                        (size_t)(tmp_var_counter++));
 #else
-              sprintf(tmp_var, "_tmp_cdd_%lu",
-                      (unsigned long)(tmp_var_counter++));
+              sprintf(tmp_var, "_tmp_cdd_%" SIZE_T_FMT "",
+                      (size_t)(tmp_var_counter++));
 #endif
 
               /* Extract original args */

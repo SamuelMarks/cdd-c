@@ -15,6 +15,7 @@
 
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
+#include "win_compat_sym.h"
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -808,21 +809,21 @@ static int write_query_object_param(FILE *const fp,
           "      {\n"
           "        size_t key_len = strlen(key_enc);\n"
           "        size_t val_len = strlen(val_enc);\n"
-          "        size_t extra = key_len + val_len + %lu + "
-          "(joined_len ? %lu : 0);\n"
+          "        size_t extra = key_len + val_len + %" SIZE_T_FMT " + "
+          "(joined_len ? %" SIZE_T_FMT " : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
           "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; "
           "goto cleanup; }\n"
           "        joined = tmp;\n"
           "        if (joined_len) {\n"
-          "          memcpy(joined + joined_len, \"%s\", %lu);\n"
-          "          joined_len += %lu;\n"
+          "          memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
+          "          joined_len += %" SIZE_T_FMT ";\n"
           "        }\n"
           "        memcpy(joined + joined_len, key_enc, key_len);\n"
           "        joined_len += key_len;\n"
-          "        memcpy(joined + joined_len, \"%s\", %lu);\n"
-          "        joined_len += %lu;\n"
+          "        memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
+          "        joined_len += %" SIZE_T_FMT ";\n"
           "        memcpy(joined + joined_len, val_enc, val_len);\n"
           "        joined_len += val_len;\n"
           "        joined[joined_len] = '\\0';\n"
@@ -1002,15 +1003,18 @@ static int write_path_object_serialization(FILE *const fp,
         fp,
         "        size_t key_len = strlen(key_enc);\n"
         "        size_t val_len = strlen(val_enc);\n"
-        "        size_t extra = key_len + val_len + 1 + (first ? %lu : %lu);\n"
+        "        size_t extra = key_len + val_len + 1 + (first ? %" SIZE_T_FMT
+        " : %" SIZE_T_FMT ");\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; goto "
         "cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (first && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
-        "        if (!first && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
+        "        if (first && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (!first && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, key_enc, key_len);\n"
         "        path_len += key_len;\n"
         "        path_%s[path_len++] = '=';\n"
@@ -1025,20 +1029,23 @@ static int write_path_object_serialization(FILE *const fp,
         fp,
         "        size_t key_len = strlen(key_enc);\n"
         "        size_t val_len = strlen(val_enc);\n"
-        "        size_t extra = key_len + val_len + 1 + (first ? %lu : %lu) + "
-        "%lu;\n"
+        "        size_t extra = key_len + val_len + 1 + (first ? %" SIZE_T_FMT
+        " : %" SIZE_T_FMT ") + "
+        "%" SIZE_T_FMT ";\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; goto "
         "cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (first && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
-        "        if (!first && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
+        "        if (first && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (!first && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, key_enc, key_len);\n"
         "        path_len += key_len;\n"
-        "        memcpy(path_%s + path_len, \"%s\", %lu);\n"
-        "        path_len += %lu;\n"
+        "        memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT ");\n"
+        "        path_len += %" SIZE_T_FMT ";\n"
         "        memcpy(path_%s + path_len, val_enc, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n",
@@ -1116,15 +1123,18 @@ static int write_path_array_serialization(FILE *const fp,
     CHECK_IO(fprintf(
         fp,
         "      {\n"
-        "        size_t extra = val_len + (i > 0 ? %lu : 0) + (i == 0 ? %lu : "
+        "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT
+        " : 0) + (i == 0 ? %" SIZE_T_FMT " : "
         "0);\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (i == 0 && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
-        "        if (i > 0 && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
+        "        if (i == 0 && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (i > 0 && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, enc, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n"
@@ -1137,15 +1147,18 @@ static int write_path_array_serialization(FILE *const fp,
     CHECK_IO(fprintf(
         fp,
         "      {\n"
-        "        size_t extra = val_len + (i > 0 ? %lu : 0) + (i == 0 ? %lu : "
+        "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT
+        " : 0) + (i == 0 ? %" SIZE_T_FMT " : "
         "0);\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (i == 0 && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
-        "        if (i > 0 && %lu) { memcpy(path_%s + path_len, \"%s\", %lu); "
-        "path_len += %lu; }\n"
+        "        if (i == 0 && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (i > 0 && %" SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
+        "path_len += %" SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, raw, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n"
@@ -1300,13 +1313,13 @@ static int write_joined_query_array_encoded_delim(
   CHECK_IO(fprintf(
       fp,
       "      {\n"
-      "        size_t extra = val_len + (i > 0 ? %lu : 0);\n"
+      "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT " : 0);\n"
       "        char *tmp = (char *)realloc(joined, joined_len + extra + 1);\n"
       "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
       "        joined = tmp;\n"
       "        if (i > 0) {\n"
-      "          memcpy(joined + joined_len, \"%s\", %lu);\n"
-      "          joined_len += %lu;\n"
+      "          memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
+      "          joined_len += %" SIZE_T_FMT ";\n"
       "        }\n"
       "        memcpy(joined + joined_len, enc, val_len);\n"
       "        joined_len += val_len;\n"
@@ -1327,7 +1340,8 @@ static int write_joined_query_array_encoded_delim(
 }
 
 static int find_param(const char *name, const struct OpenAPI_Parameter *params,
-                      size_t n_params, struct OpenAPI_Parameter **_out_val) {
+                      size_t n_params,
+                      const struct OpenAPI_Parameter **_out_val) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     if (params[i].name && strcmp(params[i].name, name) == 0 &&
@@ -1431,10 +1445,10 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
                               const struct OpenAPI_Parameter *params,
                               size_t n_params,
                               const struct CodegenUrlConfig *const config) {
-  struct OpenAPI_Parameter *_ast_find_param_2;
-  struct OpenAPI_Parameter *_ast_find_param_3;
-  struct OpenAPI_Parameter *_ast_find_param_4;
-  struct OpenAPI_Parameter *_ast_find_param_5;
+  const struct OpenAPI_Parameter *_ast_find_param_2;
+  const struct OpenAPI_Parameter *_ast_find_param_3;
+  const struct OpenAPI_Parameter *_ast_find_param_4;
+  const struct OpenAPI_Parameter *_ast_find_param_5;
   struct UrlSegment *segs = NULL;
   size_t n_segs = 0;
   size_t i;
