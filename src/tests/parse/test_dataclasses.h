@@ -9,7 +9,7 @@
 #define strdup _strdup
 #endif
 #else
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 #include "cdd_test_helpers/cdd_helpers.h"

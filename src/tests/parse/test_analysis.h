@@ -17,7 +17,7 @@
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 
-#include <sys/errno.h>
+#include <errno.h>
 
 static struct TokenList *setup_analysis_tokens(const char *code) {
   struct TokenList *tl = NULL;

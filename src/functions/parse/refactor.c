@@ -18,7 +18,7 @@
 #define strdup _strdup
 #endif
 #else
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 int refactor_context_init(struct RefactorContext *const ctx) {

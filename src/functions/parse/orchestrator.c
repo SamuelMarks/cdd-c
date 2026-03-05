@@ -38,7 +38,7 @@
 #endif
 #else
 #include <strings.h>
-#include <sys/errno.h>
+#include <errno.h>
 #endif
 
 /* --- Graph Data Structures --- */
