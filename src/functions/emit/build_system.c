@@ -88,11 +88,22 @@ static int write_cmake_content(FILE *fp, const char *project_name,
                    "target_link_libraries(%s PRIVATE c_str_span "
                    "c_str_span_compiler_flags)\n\n",
                    project_name));
-  CHECK_IO(fprintf(fp, "if (WIN32)\n"));
+  CHECK_IO(fprintf(fp, "if(WIN32)\n"));
   CHECK_IO(fprintf(fp, "    # Windows: Link WinHTTP\n"));
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE winhttp)\n",
                    project_name));
-  CHECK_IO(fprintf(fp, "else ()\n"));
+  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
+  CHECK_IO(fprintf(fp, "    # Android: Link log\n"));
+  CHECK_IO(fprintf(fp, "    find_library(log-lib log)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${log-lib})\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
+  CHECK_IO(fprintf(fp, "    # Apple: Link CFNetwork and CommonCrypto\n"));
+  CHECK_IO(fprintf(fp, "    find_library(COREFOUNDATION_LIBRARY CoreFoundation)\n"));
+  CHECK_IO(fprintf(fp, "    find_library(CFNETWORK_LIBRARY CFNetwork)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})\n",
+                   project_name));
+  CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(fp, "    # Unix/Linux: Link Curl\n"));
   CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE CURL::libcurl)\n",

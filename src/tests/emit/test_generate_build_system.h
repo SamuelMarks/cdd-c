@@ -34,10 +34,16 @@ TEST test_gen_cmake_basic(void) {
 
   ASSERT(strstr(content, "project(MyLib C)"));
   /* Verify Logic for WinHTTP on Windows */
-  ASSERT(strstr(content, "if (WIN32)"));
+  ASSERT(strstr(content, "if(WIN32)"));
   ASSERT(strstr(content, "target_link_libraries(MyLib PRIVATE winhttp)"));
+  /* Verify Logic for Android */
+  ASSERT(strstr(content, "elseif(ANDROID)"));
+  ASSERT(strstr(content, "find_library(log-lib log)"));
+  /* Verify Logic for Apple */
+  ASSERT(strstr(content, "elseif(APPLE)"));
+  ASSERT(strstr(content, "find_library(CFNETWORK_LIBRARY CFNetwork)"));
   /* Verify Logic for Curl on Unix */
-  ASSERT(strstr(content, "else ()"));
+  ASSERT(strstr(content, "else()"));
   ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
   ASSERT(strstr(content, "target_link_libraries(MyLib PRIVATE CURL::libcurl)"));
 
@@ -66,7 +72,10 @@ TEST test_gen_cmake_with_tests(void) {
 }
 
 TEST test_gen_build_system_cli_args(void) {
-  char *argv[] = {"cmake", "test_build_dir", "CLIProj"};
+  char arg0[] = "cmake";
+  char arg1[] = "test_build_dir";
+  char arg2[] = "CLIProj";
+  char *argv[] = {arg0, arg1, arg2};
   int rc;
 
   rc = generate_build_system_main(3, argv);
@@ -93,8 +102,14 @@ TEST test_gen_build_system_cli_args(void) {
 }
 
 TEST test_gen_build_system_bad_args(void) {
-  char *argv_short[] = {"cmake", "."};
-  char *argv_bad[] = {"ninja", ".", "Name"};
+  char arg0_short[] = "cmake";
+  char arg1_short[] = ".";
+  char *argv_short[] = {arg0_short, arg1_short};
+
+  char arg0_bad[] = "ninja";
+  char arg1_bad[] = ".";
+  char arg2_bad[] = "Name";
+  char *argv_bad[] = {arg0_bad, arg1_bad, arg2_bad};
 
   /* Missing name */
   ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(2, argv_short));

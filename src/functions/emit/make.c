@@ -55,6 +55,10 @@ int codegen_make_generate(FILE *const fp,
       fp,
       "    list(APPEND SOURCES \"http_winhttp.c\" \"crypto_wincrypt.c\")\n"));
   CHECK_IO(fprintf(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
+  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
+  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"http_android.c\" \"crypto_openssl.c\")\n"));
+  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
+  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"http_apple.c\" \"crypto_apple.c\")\n"));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(
       fp, "    list(APPEND SOURCES \"http_curl.c\" \"crypto_openssl.c\")\n"));

@@ -37,6 +37,8 @@
 #include "emit/test_generate_build_system.h"
 #include "emit/test_http_curl.h"
 #include "emit/test_http_types.h"
+#include "emit/test_http_android.h"
+#include "emit/test_http_apple.h"
 #include "emit/test_http_winhttp.h"
 #include "emit/test_http_wininet.h"
 #include "emit/test_openapi_client_gen.h"
@@ -124,6 +126,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(generate_build_system_suite);
   RUN_SUITE(http_types_suite);
   RUN_SUITE(http_curl_suite);
+  RUN_SUITE(http_android_suite);
+  RUN_SUITE(http_apple_suite);
   RUN_SUITE(http_winhttp_suite);
   RUN_SUITE(http_wininet_suite);
   RUN_SUITE(initializer_parser_suite);

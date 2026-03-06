@@ -74,8 +74,19 @@ static int generate_cmake(FILE *const fp,
   CHECK_IO(fprintf(fp, "    # Windows: Use native WinInet\n"));
   CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE wininet)\n",
                    config->target_name));
-  CHECK_IO(fprintf(fp,
-                   "    target_compile_definitions(%s PRIVATE USE_WININET)\n",
+  CHECK_IO(fprintf(
+                   fp, "    target_compile_definitions(%s PRIVATE USE_WININET)\n",
+                   config->target_name));
+  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
+  CHECK_IO(fprintf(fp, "    # Android: Use native JNI\n"));
+  CHECK_IO(fprintf(fp, "    find_library(log-lib log)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${log-lib})\n",
+                   config->target_name));
+  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
+  CHECK_IO(fprintf(fp, "    # Apple: Use CFNetwork and CommonCrypto\n"));
+  CHECK_IO(fprintf(fp, "    find_library(COREFOUNDATION_LIBRARY CoreFoundation)\n"));
+  CHECK_IO(fprintf(fp, "    find_library(CFNETWORK_LIBRARY CFNetwork)\n"));
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})\n",
                    config->target_name));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(fp, "    # POSIX/Default: Use libcurl\n"));

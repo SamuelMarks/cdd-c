@@ -809,6 +809,8 @@ static int write_source_preamble(FILE *fp, const char *header_name) {
   CHECK_IO(fprintf(fp, "#include \"http_wininet.h\"\n"));
   CHECK_IO(fprintf(fp, "#elif defined(USE_WINHTTP)\n"));
   CHECK_IO(fprintf(fp, "#include \"http_winhttp.h\"\n"));
+  CHECK_IO(fprintf(fp, "#elif defined(__APPLE__)\n"));
+  CHECK_IO(fprintf(fp, "#include \"http_apple.h\"\n"));
   CHECK_IO(fprintf(fp, "#else\n"));
   CHECK_IO(fprintf(fp, "#include \"http_curl.h\"\n"));
   CHECK_IO(fprintf(fp, "#endif\n\n"));
@@ -1109,6 +1111,9 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(
       fprintf(c, "  rc = http_winhttp_context_init(&client->transport);\n"));
   CHECK_IO(fprintf(c, "  client->send = http_winhttp_send;\n"));
+  CHECK_IO(fprintf(c, "#elif defined(__APPLE__)\n"));
+  CHECK_IO(fprintf(c, "  rc = http_apple_context_init(&client->transport);\n"));
+  CHECK_IO(fprintf(c, "  client->send = http_apple_send;\n"));
   CHECK_IO(fprintf(c, "#else /* Default to Libcurl */\n"));
   CHECK_IO(fprintf(c, "  rc = http_curl_context_init(&client->transport);\n"));
   CHECK_IO(fprintf(c, "  client->send = http_curl_send;\n"));
@@ -1123,6 +1128,8 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
   CHECK_IO(fprintf(c, "  http_wininet_context_free(client->transport);\n"));
   CHECK_IO(fprintf(c, "#elif defined(USE_WINHTTP)\n"));
   CHECK_IO(fprintf(c, "  http_winhttp_context_free(client->transport);\n"));
+  CHECK_IO(fprintf(c, "#elif defined(__APPLE__)\n"));
+  CHECK_IO(fprintf(c, "  http_apple_context_free(client->transport);\n"));
   CHECK_IO(fprintf(c, "#else\n"));
   CHECK_IO(fprintf(c, "  http_curl_context_free(client->transport);\n"));
   CHECK_IO(fprintf(c, "#endif\n"));
