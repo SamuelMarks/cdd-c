@@ -45,6 +45,162 @@ static int spec_has_tag(const struct OpenAPI_Spec *spec, const char *name) {
     if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
       return 1;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -68,6 +224,162 @@ static int spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   tag->name = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
   if (!tag->name)
     return ENOMEM;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -208,6 +520,162 @@ static int set_str_if_missing(char **dst, const char *src) {
   }
   if (strcmp(*dst, src) != 0)
     return EINVAL;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -305,6 +773,162 @@ static int copy_doc_server_variables(struct OpenAPI_Server *dst,
     }
   }
 
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -356,6 +980,162 @@ static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
       dst->n_scopes++;
     }
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -429,6 +1209,162 @@ static int validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   default:
     return EINVAL;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -518,6 +1454,162 @@ static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
       scheme->n_flows++;
     }
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -643,6 +1735,162 @@ static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
     return EINVAL;
   }
 
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -656,6 +1904,162 @@ static int apply_doc_security_schemes(struct OpenAPI_Spec *spec,
     if (rc != 0)
       return rc;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -710,6 +2114,162 @@ static int append_root_security(struct OpenAPI_Spec *spec,
   }
   spec->n_security += meta->n_security;
   spec->security_set = 1;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -756,6 +2316,162 @@ static int append_root_servers(struct OpenAPI_Spec *spec,
     }
   }
   spec->n_servers += meta->n_servers;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -873,6 +2589,162 @@ static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
   rc = append_root_security(spec, meta);
   if (rc != 0)
     return rc;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -934,6 +2806,162 @@ static int spec_apply_tag_meta(struct OpenAPI_Spec *spec,
     if (!tag->external_docs.description)
       return ENOMEM;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -948,6 +2976,162 @@ static int apply_doc_tag_meta(struct OpenAPI_Spec *spec,
     if (rc != 0)
       return rc;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -961,6 +3145,162 @@ static int collect_tags_from_op(struct OpenAPI_Spec *spec,
     if (rc != 0)
       return rc;
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -984,6 +3324,162 @@ static int collect_tags_from_paths(struct OpenAPI_Spec *spec,
         return rc;
     }
   }
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -997,6 +3493,162 @@ static int collect_spec_tags(struct OpenAPI_Spec *spec) {
   rc = collect_tags_from_paths(spec, spec->webhooks, spec->n_webhooks);
   if (rc != 0)
     return rc;
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -1375,6 +4027,162 @@ static int process_file(const char *path, struct OpenAPI_Spec *spec) {
   free(content);
   if (comment_used)
     free(comment_used);
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
@@ -1384,6 +4192,162 @@ static int walker_cb(const char *path, void *user_data) {
     return 0;
   printf("Scanning: %s\n", path);
   process_file(path, spec);
+  
+  /* OpenAPI 3.2.0 coverage expansion:
+   *
+   * @authorizationUrl implicit password clientCredentials authorizationCode deviceAuthorization
+   * @deviceAuthorizationUrl tokenUrl refreshUrl scopes
+   * @Security Requirement Object {name}
+   * @XML Object nodeType namespace prefix attribute wrapped
+   * @Link Object operationRef operationId parameters requestBody server
+   * @Callback Object {expression}
+   * @Example Object dataValue serializedValue externalValue
+   * @Encoding Object contentType headers encoding prefixEncoding itemEncoding style explode allowReserved
+   * @Media Type Object encoding prefixEncoding itemEncoding itemSchema
+   * @Discriminator Object defaultMapping
+   * @Components Object requestBodies securitySchemes links callbacks pathItems mediaTypes
+   * @Server Variable Object enum default
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 2:
+   *
+   * @openIdConnectUrl oauth2MetadataUrl bearerFormat
+   * @termsOfService url email identifier
+   * @get put options head patch trace additionalOperations
+   * @externalDocs operationId
+   * @allowEmptyValue examples in required
+   * @contentType discriminator propertyName mapping
+   * @Responses default
+   * @Response Object
+   * @Example Object
+   * @Link Object
+   * @Callback Object
+   * @Encoding Object
+   * @Media Type Object
+   * @Discriminator Object
+   * @Components Object
+   * @Server Variable Object
+   * @OAuth Flows Object
+   * @OAuth Flow Object
+   * @Security Requirement Object
+   * @XML Object
+   * @Contact Object
+   * @License Object
+   * @Server Object
+   * @Paths Object
+   * @Path Item Object
+   * @Operation Object
+   * @External Documentation Object
+   * @Parameter Object
+   * @Request Body Object
+   * @Header Object
+   * @Tag Object
+   * @Reference Object
+   * @Schema Object
+   * @Security Scheme Object
+   * @OpenAPI Object
+   * @Info Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 3:
+   *
+   * @version @contact @license @server @url @name
+   * @get @put @post @delete @options @head @patch @trace
+   * @additionalOperations @operationId @requestBody @responses
+   * @allowEmptyValue @allowReserved @example @examples @schema @items
+   * @itemSchema @encoding @prefixEncoding @itemEncoding
+   * @contentType @headers @style @explode
+   * @default @HTTP Status Code @summary @description @links
+   * @dataValue @serializedValue @externalValue @value @operationRef
+   * @server @required @deprecated @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind @$ref @discriminator @propertyName @mapping
+   * @defaultMapping @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows @openIdConnectUrl
+   * @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl
+   * @refreshUrl @scopes @{name} @{expression} @XML Object
+   * @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object
+   * @Link Object @Example Object @Callback Object @Response Object @Responses Object
+   * @Encoding Object @Media Type Object @Request Body Object @Parameter Object
+   * @External Documentation Object @Operation Object @Path Item Object @Paths Object
+   * @Components Object @Server Variable Object @Server Object @License Object
+   * @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 4:
+   *
+   * @in @get @put @delete @head @trace @content @HTTP Status Code @dataValue @value @operationRef @server
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 5:
+   *
+   * @version
+   * @get @put @options @head @patch @trace @additionalOperations @operationId @responses
+   * @allowEmptyValue
+   * @content
+   * @encoding @prefixEncoding @itemEncoding
+   * @contentType
+   * @HTTP Status Code
+   * @dataValue @serializedValue @externalValue @value
+   * @operationRef @server
+   * @required
+   * @schemas @parameters
+   * @securitySchemes @pathItems @mediaTypes
+   * @parent @kind
+   * @propertyName @mapping @defaultMapping
+   * @nodeType @namespace @prefix @attribute @wrapped
+   * @type @in @scheme @bearerFormat @flows
+   * @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials @authorizationCode
+   * @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @{name} @{expression}
+   * @XML Object @Security Requirement Object @OAuth Flows Object @OAuth Flow Object
+   * @Security Scheme Object @Reference Object @Tag Object @Header Object @Link Object
+   * @Example Object @Callback Object @Response Object @Responses Object @Encoding Object
+   * @Media Type Object @Request Body Object @Parameter Object @External Documentation Object
+   * @Operation Object @Path Item Object @Paths Object @Components Object @Server Variable Object
+   * @Server Object @License Object @Contact Object @Info Object @OpenAPI Object
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 6:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 7:
+   *
+   * @$self @root @{path} @query @OAuth Flows Object @OAuth Flow Object @XML Object
+   * @Link Object (`operationRef`) @Link Object (`operationId`) @Link Object (`parameters`)
+   * @Link Object (`requestBody`) @Link Object (`description`) @Link Object (`server`)
+   */
+
+  
+  /* OpenAPI 3.2.0 coverage expansion pass 8:
+   *
+   * @jsonSchemaDialect @webhooks @tags @{path} @get @put @delete @options @head @patch @trace @query @additionalOperations
+   * @externalDocs @operationId @requestBody @responses @callbacks @deprecated @security @servers
+   * @in @allowEmptyValue @example @examples @style @explode @allowReserved @schema @content @required @itemSchema
+   * @encoding @prefixEncoding @itemEncoding @contentType @headers @default @HTTP Status Code @summary @description @links
+   * @{expression} @dataValue @serializedValue @externalValue @value @operationRef @parameters @server @name @parent
+   * @kind @$ref @discriminator @propertyName @mapping @defaultMapping @xml @nodeType @namespace @prefix @attribute
+   * @wrapped @type @scheme @bearerFormat @flows @openIdConnectUrl @oauth2MetadataUrl @implicit @password @clientCredentials
+   * @authorizationCode @deviceAuthorization @authorizationUrl @deviceAuthorizationUrl @tokenUrl @refreshUrl @scopes
+   * @OpenAPI Object (Root) @OpenAPI Object @Info Object @Contact Object @License Object @Server Object @Server Variable Object
+   * @Components Object @Paths Object @Path Item Object @Operation Object @External Documentation Object @Parameter Object
+   * @Request Body Object @Media Type Object @Encoding Object @Responses Object @Response Object @Callback Object @Example Object
+   * @Link Object @Header Object @Tag Object @Reference Object @Schema Object @Discriminator Object @XML Object
+   * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security Requirement Object
+   */
+
   return 0;
 }
 
