@@ -14,6 +14,8 @@
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #include "functions/parse/http_winhttp.h"
+#elif defined(__APPLE__)
+#include "functions/parse/http_apple.h"
 #else
 #include "functions/parse/http_curl.h"
 #endif
@@ -32,6 +34,8 @@
 int transport_global_init(void) {
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
   return http_winhttp_global_init();
+#elif defined(__APPLE__)
+  return http_apple_global_init();
 #else
   return http_curl_global_init();
 #endif
@@ -45,6 +49,8 @@ int transport_global_init(void) {
 void transport_global_cleanup(void) {
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
   http_winhttp_global_cleanup();
+#elif defined(__APPLE__)
+  http_apple_global_cleanup();
 #else
   http_curl_global_cleanup();
 #endif
@@ -71,6 +77,11 @@ int transport_factory_init_client(struct HttpClient *const client) {
   rc = http_winhttp_context_init(&client->transport);
   if (rc == 0) {
     client->send = http_winhttp_send;
+  }
+#elif defined(__APPLE__)
+  rc = http_apple_context_init(&client->transport);
+  if (rc == 0) {
+    client->send = http_apple_send;
   }
 #else
   rc = http_curl_context_init(&client->transport);
@@ -99,6 +110,8 @@ void transport_factory_cleanup_client(struct HttpClient *const client) {
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
   http_winhttp_context_free(client->transport);
+#elif defined(__APPLE__)
+  http_apple_context_free(client->transport);
 #else
   http_curl_context_free(client->transport);
 #endif

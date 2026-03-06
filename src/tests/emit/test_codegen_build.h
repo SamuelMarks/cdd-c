@@ -73,6 +73,10 @@ TEST test_cbuild_basic_output(void) {
   /* Backend logic check */
   ASSERT(strstr(
       content, "target_compile_definitions(petstore_lib PRIVATE USE_WININET)"));
+  ASSERT(strstr(content, "elseif(ANDROID)"));
+  ASSERT(strstr(content, "find_library(log-lib log)"));
+  ASSERT(strstr(content, "elseif(APPLE)"));
+  ASSERT(strstr(content, "find_library(CFNETWORK_LIBRARY CFNetwork)"));
   ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
   ASSERT(strstr(content,
                 "target_link_libraries(petstore_lib PRIVATE CURL::libcurl)"));

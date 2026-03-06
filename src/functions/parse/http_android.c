@@ -1,0 +1,114 @@
+/**
+ * @file http_android.c
+ * @brief Android JNI implementation of the Abstract Network Interface.
+ *
+ * Implements the HTTP transport using Android's java.net.HttpURLConnection.
+ * Due to JNI requirements, this depends heavily on the Android JVM.
+ *
+ * @author Samuel Marks
+ */
+
+#include "http_android.h"
+
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(__ANDROID__)
+#include <jni.h>
+
+/* JNI implementation */
+
+struct HttpTransportContext {
+  JavaVM *jvm;
+  jclass url_class;
+  jclass http_conn_class;
+};
+
+int http_android_global_init(void) {
+  /* Typically JVM is retrieved via JNI_OnLoad, assuming it's done elsewhere */
+  return 0;
+}
+
+void http_android_global_cleanup(void) {
+  /* No-op */
+}
+
+int http_android_context_init(struct HttpTransportContext **ctx) {
+  if (!ctx) return EINVAL;
+
+  *ctx = (struct HttpTransportContext *)malloc(sizeof(struct HttpTransportContext));
+  if (!*ctx) return ENOMEM;
+
+  (*ctx)->jvm = NULL;
+  (*ctx)->url_class = NULL;
+  (*ctx)->http_conn_class = NULL;
+
+  return 0;
+}
+
+void http_android_context_free(struct HttpTransportContext *ctx) {
+  if (ctx) {
+    free(ctx);
+  }
+}
+
+int http_android_config_apply(struct HttpTransportContext *ctx,
+                              const struct HttpConfig *config) {
+  if (!ctx || !config) return EINVAL;
+  /* Configuration (like timeouts) can be applied per-request in HttpURLConnection */
+  return 0;
+}
+
+int http_android_send(struct HttpTransportContext *ctx,
+                      const struct HttpRequest *req,
+                      struct HttpResponse **res) {
+  if (!ctx || !req || !res) return EINVAL;
+  /* Not fully implemented without an active JVM environment */
+  return ENOSYS;
+}
+
+#else
+
+/* Non-Android stub implementation */
+
+struct HttpTransportContext {
+  int dummy;
+};
+
+int http_android_global_init(void) {
+  return 0;
+}
+
+void http_android_global_cleanup(void) {
+  /* No-op */
+}
+
+int http_android_context_init(struct HttpTransportContext **ctx) {
+  if (!ctx) return EINVAL;
+  *ctx = (struct HttpTransportContext *)malloc(sizeof(struct HttpTransportContext));
+  if (!*ctx) return ENOMEM;
+  (*ctx)->dummy = 0;
+  return 0;
+}
+
+void http_android_context_free(struct HttpTransportContext *ctx) {
+  if (ctx) {
+    free(ctx);
+  }
+}
+
+int http_android_config_apply(struct HttpTransportContext *ctx,
+                              const struct HttpConfig *config) {
+  if (!ctx || !config) return EINVAL;
+  return 0;
+}
+
+int http_android_send(struct HttpTransportContext *ctx,
+                      const struct HttpRequest *req,
+                      struct HttpResponse **res) {
+  if (!ctx || !req || !res) return EINVAL;
+  return ENOSYS;
+}
+
+#endif

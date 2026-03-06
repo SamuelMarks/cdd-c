@@ -107,7 +107,7 @@ if (NOT DEFINED TARGET_ARCH)
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
 
-if (WIN32 OR EMSCRIPTEN)
+if (WIN32 OR EMSCRIPTEN OR APPLE)
     option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
 else ()
     option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)

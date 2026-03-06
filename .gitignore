@@ -48,3 +48,12 @@ reports/
 *.log
 *.html
 docs/html/
+
+# Additional scratch files and artifacts
+cmake-build-*
+*.o
+*.a
+*log.txt
+patch.cmake
+/test_*.c
+/test_*.o

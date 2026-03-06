@@ -56,6 +56,8 @@ set(Header_Files
         "parse/test_fs.h" 
         "emit/test_http_curl.h"
         "emit/test_http_types.h"
+        "emit/test_http_android.h"
+        "emit/test_http_apple.h"
         "emit/test_http_winhttp.h"
         "emit/test_http_wininet.h"
         "parse/test_json_from_and_to.h" 

@@ -639,6 +639,8 @@ TEST test_gen_transport_selection(void) {
   ASSERT(strstr(content, "#include \"http_wininet.h\"") != NULL);
   ASSERT(strstr(content, "#elif defined(USE_WINHTTP)") != NULL);
   ASSERT(strstr(content, "#include \"http_winhttp.h\"") != NULL);
+  ASSERT(strstr(content, "#elif defined(__APPLE__)") != NULL);
+  ASSERT(strstr(content, "#include \"http_apple.h\"") != NULL);
   ASSERT(strstr(content, "#else") != NULL);
   ASSERT(strstr(content, "#include \"http_curl.h\"") != NULL);
 
@@ -646,10 +648,12 @@ TEST test_gen_transport_selection(void) {
   ASSERT(strstr(content, "rc = http_wininet_context_init") != NULL);
   ASSERT(strstr(content, "client->send = http_wininet_send") != NULL);
   ASSERT(strstr(content, "rc = http_curl_context_init") != NULL);
+  ASSERT(strstr(content, "rc = http_apple_context_init") != NULL);
 
   /* Verify macros are present in _cleanup function */
   ASSERT(strstr(content, "http_wininet_context_free") != NULL);
   ASSERT(strstr(content, "http_curl_context_free") != NULL);
+  ASSERT(strstr(content, "http_apple_context_free") != NULL);
 
   free(content);
   remove("gen_transport.h");

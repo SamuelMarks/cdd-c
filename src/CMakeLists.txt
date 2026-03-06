@@ -37,6 +37,8 @@ set(Header_Files
         "functions/emit/build_system.h"
         "functions/parse/http_curl.h"
         "functions/parse/http_types.h"
+        "functions/parse/http_android.h"
+        "functions/parse/http_apple.h"
         "functions/parse/http_winhttp.h"
         "functions/parse/http_wininet.h"
         "classes/parse/initializer.h"
@@ -92,6 +94,8 @@ set(Source_Files
         "functions/parse/fs.c"
         "functions/emit/build_system.c"
         "functions/parse/http_types.c"
+        "functions/parse/http_android.c"
+        "functions/parse/http_apple.c"
         "functions/parse/http_winhttp.c"
         "functions/parse/http_wininet.c"
         "classes/parse/initializer.c"
@@ -124,6 +128,10 @@ set(Source_Files
 # Platform specific source selection to avoid duplicate symbols
 if (WIN32)
     list(APPEND Source_Files "functions/parse/crypto_wincrypt.c")
+elseif (APPLE)
+    if(NOT HTTP_ONLY)
+        list(APPEND Source_Files "functions/parse/crypto_apple.c")
+    endif()
 else ()
     if(NOT HTTP_ONLY)
         list(APPEND Source_Files "functions/parse/crypto_openssl.c")
@@ -188,6 +196,8 @@ if (WIN32)
         target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
     endif()
     endif (C_CDD_USE_LIBCURL)
+elseif (APPLE)
+    # Apple uses CommonCrypto, no OpenSSL needed
 else ()
     if (NOT HTTP_ONLY)
         if(TARGET OpenSSL::SSL)
@@ -350,3 +360,9 @@ install(EXPORT "${LIBRARY_NAME}Targets" DESTINATION "${CMAKE_INSTALL_DATADIR}/${
 
 install(FILES ${Header_Files} "${_export_file}"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+if (APPLE)
+    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+    find_library(CFNETWORK_LIBRARY CFNetwork)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
+endif()
