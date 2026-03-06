@@ -91,7 +91,11 @@ TEST test_sync_code_too_many_defs(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, filename, "w");
+#else
   f = fopen(filename, "w");
+#endif
 #endif
   ASSERT(f);
 #endif

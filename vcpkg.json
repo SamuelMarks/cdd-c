@@ -7,6 +7,8 @@
   "dependencies": [
     "c-str-span",
     "c89stringutils",
+    "civetweb",
+    "libpq",
     {
       "name": "curl",
       "platform": "!windows"

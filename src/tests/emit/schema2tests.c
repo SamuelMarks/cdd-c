@@ -270,7 +270,11 @@ int jsonschema2tests_main(int argc, char **argv) {
 #if defined(_MSC_VER)
       fopen_s(&f, output_file, "w");
 #else
+#if defined(_MSC_VER)
+      fopen_s(&f, output_file, "w");
+#else
       f = fopen(output_file, "w");
+#endif
 #endif
       if (!f) {
         fprintf(stderr, "Failed to open output file: %s\n", output_file);
@@ -476,7 +480,11 @@ int jsonschema2tests_main(int argc, char **argv) {
 #if defined(_MSC_VER)
         fopen_s(&f0, p, "w");
 #else
+#if defined(_MSC_VER)
+        fopen_s(&f0, p, "w");
+#else
         f0 = fopen(p, "w");
+#endif
 #endif
         if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);

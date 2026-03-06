@@ -746,7 +746,11 @@ static int fix_file_callback(const char *path, void *user_data) {
     if (fopen_s(&f, out_path, "w") != 0)
       f = NULL;
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, out_path, "w");
+#else
     f = fopen(out_path, "w");
+#endif
 #endif
     if (f) {
       fputs(result, f);
