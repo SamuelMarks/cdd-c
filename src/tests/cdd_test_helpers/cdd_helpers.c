@@ -34,7 +34,11 @@ int write_to_file(const char *const filename, const char *const contents) {
 #if defined(_MSC_VER)
   fopen_s(&fh, filename, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fh, filename, "w");
+#else
   fh = fopen(filename, "w");
+#endif
 #endif
   if (fh == NULL) {
     fprintf(stderr, "Failed to open for writing %s\n", filename);

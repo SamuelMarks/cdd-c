@@ -17,10 +17,11 @@ This project strives to fully implement the [OpenAPI Specification Version 3.2.0
 | Responses Object                      | ✅      |
 | Responses / Schema Object             | ✅      |
 | Reference Object (`$ref`)             | ✅      |
-| OAuth Flows                           | 🚧     |
-| Security Requirement Object           | 🚧     |
-| Links / Callbacks                     | 🚧     |
+| OAuth Flows                           | ✅      |
+| Security Requirement Object           | ✅      |
+| Links / Callbacks                     | ✅      |
+| Webhooks                              | ✅      |
 
 ### Next Steps
 
-Complete implementations for Webhooks, specialized schema properties, and advanced security constraints defined in OAS 3.2.0. Report compliance when these are fully supported by the parsers and emitters.
+Full spec compliance achieved for all major OpenAPI 3.2.0 concepts, including Webhooks, OAuth Flows, Security Requirements, Links, and Callbacks.

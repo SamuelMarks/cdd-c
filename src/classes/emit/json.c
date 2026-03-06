@@ -345,7 +345,11 @@ int write_struct_from_jsonObject_func(
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
             strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
+#if defined(_MSC_VER)
+            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+#else
             strncpy(pat, f->pattern + 1, pl);
+#endif
 #endif
             pat[pl] = 0;
             CHECK_IO(fprintf(fp,
@@ -366,7 +370,11 @@ int write_struct_from_jsonObject_func(
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
             strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
+#if defined(_MSC_VER)
+            strncpy_s(pat, pl + 1, f->pattern, pl);
+#else
             strncpy(pat, f->pattern, pl);
+#endif
 #endif
             pat[pl] = 0;
             CHECK_IO(

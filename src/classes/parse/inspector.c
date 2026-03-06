@@ -117,7 +117,11 @@ int c_inspector_scan_file_types(const char *const filename,
   if (fopen_s(&fp, filename, "r") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, filename, "r");
+#else
   fp = fopen(filename, "r");
+#endif
 #endif
   if (!fp)
     return errno ? errno : ENOENT;

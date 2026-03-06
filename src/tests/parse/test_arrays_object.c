@@ -98,7 +98,11 @@ TEST test_code2schema_obj_array_detection(void) {
   if (fopen_s(&f, json_out_file, "r") != 0)
     f = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, json_out_file, "r");
+#else
   f = fopen(json_out_file, "r");
+#endif
 #endif
   ASSERT(f);
   fseek(f, 0, SEEK_END);

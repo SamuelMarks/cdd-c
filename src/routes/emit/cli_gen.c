@@ -20,7 +20,11 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   if (fopen_s(&fp, path, "w") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, path, "w");
+#else
   fp = fopen(path, "w");
+#endif
 #endif
   if (!fp)
     return -1;
@@ -54,6 +58,9 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
     for (j = 0; j < spec->paths[i].n_operations; j++) {
       const char *opId = spec->paths[i].operations[j].operation_id;
       if (opId) {
+        fprintf(fp, "  /* \n");
+        fprintf(fp, "   * @brief %s CLI handler\n", spec->paths[i].operations[j].summary ? spec->paths[i].operations[j].summary : opId);
+        fprintf(fp, "   */\n");
         fprintf(fp, "  if (strcmp(argv[1], \"%s\") == 0) {\n", opId);
         fprintf(fp, "    printf(\"Calling %s...\\n\");\n", opId);
         fprintf(fp, "    /* api_%s(...); */\n", opId);
