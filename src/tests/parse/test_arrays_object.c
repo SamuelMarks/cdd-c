@@ -19,6 +19,7 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
+#pragma warning(disable: 4551)
 
 TEST test_generated_obj_array_logic(void) {
   /*
@@ -108,7 +109,7 @@ TEST test_code2schema_obj_array_detection(void) {
   fseek(f, 0, SEEK_END);
   len = ftell(f);
   rewind(f);
-  json_content = malloc(len + 1);
+  json_content = (char *)malloc(len + 1);
   fread(json_content, 1, len, f);
   json_content[len] = 0;
   fclose(f);

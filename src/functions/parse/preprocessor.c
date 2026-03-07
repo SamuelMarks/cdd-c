@@ -111,7 +111,11 @@ static int file_exists(const char *path) {
 #if defined(_MSC_VER)
   fopen_s(&f, path, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "r");
+#else
   f = fopen(path, "r");
+#endif
 #endif
 #endif
 
@@ -1940,7 +1944,7 @@ static int is_enabled(const struct ConditionalStack *st, bool *_out_val) {
   }
 }
 
-int pp_scan_includes(const char *const filename,
+int pp_scan_includes(const char *filename,
 
                      struct PreprocessorContext *ctx, pp_visitor_cb cb,
 

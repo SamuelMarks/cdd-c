@@ -59,8 +59,8 @@ static char *gen_query_code(const struct OpenAPI_Operation *op) {
 }
 
 TEST test_query_gen_scalar(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -84,8 +84,8 @@ TEST test_query_gen_scalar(void) {
 }
 
 TEST test_query_gen_scalar_number(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -108,8 +108,8 @@ TEST test_query_gen_scalar_number(void) {
 }
 
 TEST test_query_gen_array_explode_int(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -139,8 +139,8 @@ TEST test_query_gen_array_explode_int(void) {
 }
 
 TEST test_query_gen_array_explode_number(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -168,8 +168,8 @@ TEST test_query_gen_array_explode_number(void) {
 }
 
 TEST test_query_gen_array_explode_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -196,8 +196,8 @@ TEST test_query_gen_array_explode_string(void) {
 }
 
 TEST test_query_gen_array_form_default_explode(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -226,8 +226,8 @@ TEST test_query_gen_array_form_default_explode(void) {
 }
 
 TEST test_query_gen_querystring(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -251,8 +251,8 @@ TEST test_query_gen_querystring(void) {
 }
 
 TEST test_query_gen_querystring_form_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -279,8 +279,8 @@ TEST test_query_gen_querystring_form_object(void) {
 }
 
 TEST test_query_gen_querystring_json_ref(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -307,8 +307,8 @@ TEST test_query_gen_querystring_json_ref(void) {
 }
 
 TEST test_query_gen_querystring_json_primitive(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -335,8 +335,8 @@ TEST test_query_gen_querystring_json_primitive(void) {
 }
 
 TEST test_query_gen_querystring_json_array(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -364,8 +364,8 @@ TEST test_query_gen_querystring_json_array(void) {
 }
 
 TEST test_query_gen_querystring_json_array_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -394,8 +394,8 @@ TEST test_query_gen_querystring_json_array_object(void) {
 }
 
 TEST test_query_gen_querystring_raw_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -422,8 +422,8 @@ TEST test_query_gen_querystring_raw_string(void) {
 }
 
 TEST test_query_gen_querystring_raw_integer(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -450,8 +450,8 @@ TEST test_query_gen_querystring_raw_integer(void) {
 }
 
 TEST test_query_gen_array_form_explode_false(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -480,8 +480,8 @@ TEST test_query_gen_array_form_explode_false(void) {
 }
 
 TEST test_query_gen_array_space_delimited(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -509,8 +509,8 @@ TEST test_query_gen_array_space_delimited(void) {
 }
 
 TEST test_query_gen_array_pipe_delimited(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -538,8 +538,8 @@ TEST test_query_gen_array_pipe_delimited(void) {
 }
 
 TEST test_query_gen_scalar_allow_reserved(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -564,8 +564,8 @@ TEST test_query_gen_scalar_allow_reserved(void) {
 }
 
 TEST test_query_gen_array_explode_allow_reserved(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -594,8 +594,8 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
 }
 
 TEST test_query_gen_object_form_explode(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -622,8 +622,8 @@ TEST test_query_gen_object_form_explode(void) {
 }
 
 TEST test_query_gen_object_form_explode_false(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -652,8 +652,8 @@ TEST test_query_gen_object_form_explode_false(void) {
 }
 
 TEST test_query_gen_object_deep_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -678,8 +678,8 @@ TEST test_query_gen_object_deep_object(void) {
 }
 
 TEST test_query_gen_object_space_delimited(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -704,8 +704,8 @@ TEST test_query_gen_object_space_delimited(void) {
 }
 
 TEST test_query_gen_object_pipe_delimited(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -730,8 +730,8 @@ TEST test_query_gen_object_pipe_delimited(void) {
 }
 
 TEST test_query_gen_object_space_delimited_allow_reserved(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -760,8 +760,8 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
 }
 
 TEST test_query_gen_array_space_delimited_allow_reserved(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));
@@ -791,7 +791,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
 }
 
 TEST test_path_matrix_param_string(void) {
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&param, 0, sizeof(param));
@@ -811,7 +811,7 @@ TEST test_path_matrix_param_string(void) {
 }
 
 TEST test_path_label_array_explode(void) {
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&param, 0, sizeof(param));
@@ -833,7 +833,7 @@ TEST test_path_label_array_explode(void) {
 }
 
 TEST test_path_matrix_object_explode_false(void) {
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&param, 0, sizeof(param));
@@ -855,7 +855,7 @@ TEST test_path_matrix_object_explode_false(void) {
 }
 
 TEST test_path_simple_param_number(void) {
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&param, 0, sizeof(param));
@@ -874,8 +874,8 @@ TEST test_path_simple_param_number(void) {
 }
 
 TEST test_query_gen_json_content_ref(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *code;
 
   memset(&op, 0, sizeof(op));

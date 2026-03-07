@@ -136,9 +136,9 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
   return 0;
 }
 
-int codegen_sdk_tests_generate(FILE *const fp,
-                               const struct OpenAPI_Spec *const spec,
-                               const struct SdkTestsConfig *const config) {
+int codegen_sdk_tests_generate(FILE *fp,
+                               const struct OpenAPI_Spec *spec,
+                               const struct SdkTestsConfig *config) {
   size_t i, j;
 
   if (!fp || !spec || !config || !config->client_header ||
@@ -153,7 +153,8 @@ int codegen_sdk_tests_generate(FILE *const fp,
                    "#include \"%s\"\n\n",
                    config->client_header));
 
-  CHECK_IO(fprintf(fp, "GREATEST_MAIN_DEFS();\n\n"));
+  CHECK_IO(fprintf(fp, "GREATEST_MAIN_DEFS();\n"
+"#pragma warning(disable: 4551)\n\n"));
 
   /* Iterate Operations */
   for (i = 0; i < spec->n_paths; ++i) {

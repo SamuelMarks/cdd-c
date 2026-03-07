@@ -19,7 +19,7 @@
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
                                struct OpenAPI_Operation *op) {
   static struct OpenAPI_Path path;
-  static struct OpenAPI_Response resp;
+  static struct OpenAPI_Response resp = {0};
 
   openapi_spec_init(spec);
 
@@ -43,7 +43,7 @@ static void setup_minimal_spec(struct OpenAPI_Spec *spec,
 
 TEST test_gen_client_basic(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_client_test";
   char *h_file = "gen_client_test.h";
@@ -77,7 +77,7 @@ TEST test_gen_client_basic(void) {
 
 TEST test_gen_client_operation_server_override(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenAPI_Server op_server;
   struct OpenApiClientConfig config;
   const char *base = "gen_client_op_server";
@@ -112,7 +112,7 @@ TEST test_gen_client_operation_server_override(void) {
 
 TEST test_gen_client_text_plain_request_body(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_client_text_plain_req";
   char *h_file = "gen_client_text_plain_req.h";
@@ -145,7 +145,7 @@ TEST test_gen_client_text_plain_request_body(void) {
 
 TEST test_gen_client_octet_stream_request_body(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_client_octet_req";
   char *h_file = "gen_client_octet_req.h";
@@ -178,7 +178,7 @@ TEST test_gen_client_octet_stream_request_body(void) {
 
 TEST test_gen_client_octet_stream_response_body(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_client_octet_resp";
   char *h_file = "gen_client_octet_resp.h";
@@ -209,7 +209,7 @@ TEST test_gen_client_octet_stream_response_body(void) {
 
 TEST test_gen_client_default_base_url_from_server(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Server server;
   struct OpenAPI_ServerVariable var;
@@ -253,7 +253,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
 TEST test_gen_client_default_base_url_no_servers(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_client_default_url_none";
   char *h_file = "gen_client_default_url_none.h";
@@ -283,8 +283,8 @@ TEST test_gen_client_default_base_url_no_servers(void) {
 
 TEST test_gen_client_additional_operation(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Path path;
   const char *base = "gen_additional_op";
@@ -336,7 +336,7 @@ TEST test_gen_client_additional_operation(void) {
 
 TEST test_gen_client_op_params_only(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "gen_op_params";
@@ -373,7 +373,7 @@ TEST test_gen_client_op_params_only(void) {
 
 TEST test_gen_client_querystring_param(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
   const char *base = "gen_querystring_param";
@@ -409,7 +409,7 @@ TEST test_gen_client_querystring_param(void) {
 
 TEST test_gen_client_path_level_params(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
   const char *base = "gen_path_params";
@@ -449,7 +449,7 @@ TEST test_gen_client_path_level_params(void) {
 
 TEST test_gen_client_path_param_override(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
   struct OpenAPI_Parameter op_param;
@@ -494,7 +494,7 @@ TEST test_gen_client_path_param_override(void) {
 
 TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_group_ns_test";
   char *h_file = "gen_group_ns_test.h";
@@ -532,7 +532,7 @@ TEST test_gen_client_grouped_tags_namespace(void) {
 TEST test_gen_client_namespace_only(void) {
   /* Case: Namespace present, but no tags on operation */
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   const char *base = "gen_ns_only_test";
   char *h_file = "gen_ns_only_test.h";
@@ -581,7 +581,7 @@ TEST test_gen_client_error_nulls(void) {
 
 TEST test_gen_client_file_error(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
 
   setup_minimal_spec(&spec, &op);
@@ -593,7 +593,7 @@ TEST test_gen_client_file_error(void) {
 
 TEST test_gen_client_defaults(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
   char *content;
   size_t sz;
@@ -622,7 +622,7 @@ TEST test_gen_client_defaults(void) {
 
 TEST test_gen_transport_selection(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
   char *content;
   size_t sz;

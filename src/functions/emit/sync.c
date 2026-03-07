@@ -59,7 +59,11 @@ int sync_code_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&out, impl_filename, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&out, impl_filename, "w");
+#else
   out = fopen(impl_filename, "w");
+#endif
 #endif
 #endif
   if (!out) {
@@ -112,8 +116,8 @@ int sync_code_main(int argc, char **argv) {
   return 0;
 }
 
-int patch_header_from_source(const char *const header_path,
-                             const char *const refactored_source) {
+int patch_header_from_source(const char *header_path,
+                             const char *refactored_source) {
   bool _ast_token_matches_string_0;
   char *_ast_strdup_0 = NULL;
   struct FuncSigList sigs;
@@ -230,7 +234,11 @@ int patch_header_from_source(const char *const header_path,
 #if defined(_MSC_VER)
     fopen_s(&fp, header_path, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&fp, header_path, "w");
+#else
     fp = fopen(header_path, "w");
+#endif
 #endif
 #endif
     if (fp) {

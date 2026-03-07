@@ -15,7 +15,7 @@
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */
-static const char *const DEFAULT_ERROR_CODE = "ENOMEM";
+static const char *DEFAULT_ERROR_CODE = "ENOMEM";
 
 /* Internal helpers */
 
@@ -76,10 +76,10 @@ static int range_to_string(const struct TokenList *tokens, size_t start,
 
 /* --- Realloc Strategy --- */
 
-int strategy_rewrite_realloc(const struct TokenList *const tokens,
-                             const struct AllocationSite *const site,
+int strategy_rewrite_realloc(const struct TokenList *tokens,
+                             const struct AllocationSite *site,
                              const size_t semi_idx,
-                             struct PatchList *const patches) {
+                             struct PatchList *patches) {
   size_t _ast_find_next_token_idx_0;
   bool _ast_token_matches_string_1;
   char *_ast_range_to_string_2;
@@ -189,23 +189,25 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
 #else
     /* Fallback logic or assume HAVE_ASPRINTF is defined by build system */
     /* This sample assumes HAVE_ASPRINTF */
-    size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
-    replacement = malloc(replacement_len);
-    if (replacement) {
+    {
+      size_t replacement_len = strlen(call_expr) + strlen(site->var_name) + 128;
+      replacement = (char *)malloc(replacement_len);
+      if (replacement) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      sprintf_s(replacement, replacement_len,
+        sprintf_s(replacement, replacement_len,
+                  "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
+                  "_safe_tmp; }",
+                  call_expr, DEFAULT_ERROR_CODE, site->var_name);
+#else
+        sprintf(replacement,
                 "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
                 "_safe_tmp; }",
                 call_expr, DEFAULT_ERROR_CODE, site->var_name);
-#else
-      sprintf(replacement,
-              "{ void *_safe_tmp = %s; if (!_safe_tmp) return %s; %s = "
-              "_safe_tmp; }",
-              call_expr, DEFAULT_ERROR_CODE, site->var_name);
 #endif
-    } else {
-      free(call_expr);
-      return ENOMEM;
+      } else {
+        free(call_expr);
+        return ENOMEM;
+      }
     }
 #endif
     free(call_expr);
@@ -220,9 +222,9 @@ int strategy_rewrite_realloc(const struct TokenList *const tokens,
 
 /* --- General Safety Injection --- */
 
-int strategy_inject_safety_checks(const struct TokenList *const tokens,
-                                  const struct AllocationSiteList *const allocs,
-                                  struct PatchList *const patches) {
+int strategy_inject_safety_checks(const struct TokenList *tokens,
+                                  const struct AllocationSiteList *allocs,
+                                  struct PatchList *patches) {
   size_t _ast_find_next_token_idx_3;
   size_t i;
   if (!tokens || !allocs || !patches)

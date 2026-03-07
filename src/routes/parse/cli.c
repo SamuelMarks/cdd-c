@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../win_compat_sym.h"
+
 #include "classes/emit/schema.h" /* For Type Registry */
 #include "classes/parse/inspector.h"
 #include "docstrings/parse/doc.h"

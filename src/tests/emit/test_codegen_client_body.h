@@ -43,8 +43,8 @@ static char *gen_body(const struct OpenAPI_Operation *op,
 }
 
 TEST test_body_basic_get(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -72,8 +72,8 @@ TEST test_body_basic_get(void) {
 }
 
 TEST test_body_base_url_override(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -95,8 +95,8 @@ TEST test_body_base_url_override(void) {
 }
 
 TEST test_body_options_verb(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -118,8 +118,8 @@ TEST test_body_options_verb(void) {
 }
 
 TEST test_body_trace_verb(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -141,8 +141,8 @@ TEST test_body_trace_verb(void) {
 }
 
 TEST test_body_query_verb(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -164,8 +164,8 @@ TEST test_body_query_verb(void) {
 }
 
 TEST test_body_additional_connect_method(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -189,9 +189,9 @@ TEST test_body_additional_connect_method(void) {
 }
 
 TEST test_body_querystring_param(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -221,8 +221,8 @@ TEST test_body_querystring_param(void) {
 }
 
 TEST test_body_inline_response_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -246,8 +246,8 @@ TEST test_body_inline_response_string(void) {
 }
 
 TEST test_body_inline_response_array_number(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -272,8 +272,8 @@ TEST test_body_inline_response_array_number(void) {
 }
 
 TEST test_body_inline_request_body_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -299,8 +299,8 @@ TEST test_body_inline_request_body_string(void) {
 }
 
 TEST test_body_inline_request_body_string_json_params(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -325,8 +325,8 @@ TEST test_body_inline_request_body_string_json_params(void) {
 }
 
 TEST test_body_inline_request_body_array(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -352,7 +352,7 @@ TEST test_body_inline_request_body_array(void) {
 }
 
 TEST test_body_textual_request_body_xml(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -374,7 +374,7 @@ TEST test_body_textual_request_body_xml(void) {
 }
 
 TEST test_body_binary_request_body_pdf(void) {
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -396,9 +396,9 @@ TEST test_body_binary_request_body_pdf(void) {
 }
 
 TEST test_body_header_array_param(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -432,9 +432,9 @@ TEST test_body_header_array_param(void) {
 }
 
 TEST test_body_header_object_param(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -470,9 +470,9 @@ TEST test_body_header_object_param(void) {
 }
 
 TEST test_body_header_json_param_ref(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -507,9 +507,9 @@ TEST test_body_header_json_param_ref(void) {
 }
 
 TEST test_body_header_number_param(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -541,9 +541,9 @@ TEST test_body_header_number_param(void) {
 }
 
 TEST test_body_cookie_param(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -575,9 +575,9 @@ TEST test_body_cookie_param(void) {
 }
 
 TEST test_body_cookie_param_number_array(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -614,9 +614,9 @@ TEST test_body_cookie_param_number_array(void) {
 }
 
 TEST test_body_cookie_param_array_explode_false(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -653,9 +653,9 @@ TEST test_body_cookie_param_array_explode_false(void) {
 }
 
 TEST test_body_cookie_param_object_form(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -689,9 +689,9 @@ TEST test_body_cookie_param_object_form(void) {
 }
 
 TEST test_body_cookie_param_string_allow_reserved(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -726,8 +726,8 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
 }
 
 TEST test_body_security_query_api_key(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme scheme;
   char *code;
@@ -759,8 +759,8 @@ TEST test_body_security_query_api_key(void) {
 }
 
 TEST test_body_security_cookie_api_key(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme scheme;
   char *code;
@@ -792,8 +792,8 @@ TEST test_body_security_cookie_api_key(void) {
 }
 
 TEST test_body_form_urlencoded(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *schema_name = "FormData";
   char *code;
@@ -836,8 +836,8 @@ TEST test_body_form_urlencoded(void) {
 }
 
 TEST test_body_form_urlencoded_with_params(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *schema_name = "FormData";
   char *code;
@@ -877,8 +877,8 @@ TEST test_body_form_urlencoded_with_params(void) {
 }
 
 TEST test_body_form_urlencoded_object_fields(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *schema_name = "FormData";
   char *code;
@@ -919,8 +919,8 @@ TEST test_body_form_urlencoded_object_fields(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -982,8 +982,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -1046,8 +1046,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_deep_object(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -1109,8 +1109,8 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
 }
 
 TEST test_body_multipart_primitives_and_arrays(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *schema_name = "Upload";
   char *code;
@@ -1163,8 +1163,8 @@ TEST test_body_multipart_primitives_and_arrays(void) {
 }
 
 TEST test_body_multipart_object_fields(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *schema_name = "FormData";
   char *code;
@@ -1208,8 +1208,8 @@ TEST test_body_multipart_object_fields(void) {
 }
 
 TEST test_body_multipart_encoding_content_type(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -1260,8 +1260,8 @@ TEST test_body_multipart_encoding_content_type(void) {
 }
 
 TEST test_body_multipart_encoding_content_type_list(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -1312,8 +1312,8 @@ TEST test_body_multipart_encoding_content_type_list(void) {
 }
 
 TEST test_body_multipart_encoding_headers(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
@@ -1377,8 +1377,8 @@ TEST test_body_multipart_encoding_headers(void) {
 }
 
 TEST test_body_response_range_success(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1402,8 +1402,8 @@ TEST test_body_response_range_success(void) {
 }
 
 TEST test_body_default_response_success(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1427,8 +1427,8 @@ TEST test_body_default_response_success(void) {
 }
 
 TEST test_body_text_plain_response_string(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1453,8 +1453,8 @@ TEST test_body_text_plain_response_string(void) {
 }
 
 TEST test_body_text_plain_response_range(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1479,8 +1479,8 @@ TEST test_body_text_plain_response_range(void) {
 }
 
 TEST test_body_text_plain_response_default(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1505,8 +1505,8 @@ TEST test_body_text_plain_response_default(void) {
 }
 
 TEST test_body_textual_response_xml(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 
@@ -1531,8 +1531,8 @@ TEST test_body_textual_response_xml(void) {
 }
 
 TEST test_body_binary_response_pdf(void) {
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   char *code;
 

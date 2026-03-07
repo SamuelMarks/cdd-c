@@ -14,15 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 #include "c_cddConfig.h"
 /* clang-format off */
-/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include "win_compat_sym.h"
-#include <windef.h>
-
-#include <winbase.h>
-
+#include <windows.h>
 #include <winhttp.h>
 /* clang-format on */
 #else
@@ -33,8 +29,6 @@ typedef void *HINTERNET;
 typedef int BOOL;
 /** @brief DWORD definition */
 typedef unsigned long DWORD;
-/** @brief wchar_t definition */
-typedef int wchar_t;
 /** @brief LPVOID definition */
 typedef void *LPVOID;
 /** @brief FALSE definition */
@@ -47,7 +41,7 @@ typedef void *LPVOID;
 #include "functions/parse/http_winhttp.h"
 #include "functions/parse/str.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 #pragma comment(lib, "winhttp.lib")
 #endif
 
@@ -62,7 +56,7 @@ struct HttpTransportContext {
    unchanged logic is same, but providing full file content below for
    correctness) ... */
 
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 static int method_to_wide(enum HttpMethod method, const wchar_t **out) {
   switch (method) {
   case HTTP_GET:
@@ -159,7 +153,7 @@ int http_winhttp_global_init(void) { return 0; }
 void http_winhttp_global_cleanup(void) {}
 
 int http_winhttp_context_init(struct HttpTransportContext **const ctx) {
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   HINTERNET hSession;
   if (!ctx)
     return EINVAL;
@@ -180,12 +174,16 @@ int http_winhttp_context_init(struct HttpTransportContext **const ctx) {
   return 0;
 #else
   (void)ctx;
+#ifdef ENOTSUP
   return ENOTSUP;
+#else
+  return EINVAL;
+#endif
 #endif
 }
 
-void http_winhttp_context_free(struct HttpTransportContext *const ctx) {
-#ifdef _WIN32
+void http_winhttp_context_free(struct HttpTransportContext *ctx) {
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   if (ctx) {
     if (ctx->hSession)
       WinHttpCloseHandle(ctx->hSession);
@@ -196,9 +194,9 @@ void http_winhttp_context_free(struct HttpTransportContext *const ctx) {
 #endif
 }
 
-int http_winhttp_config_apply(struct HttpTransportContext *const ctx,
-                              const struct HttpConfig *const config) {
-#ifdef _WIN32
+int http_winhttp_config_apply(struct HttpTransportContext *ctx,
+                              const struct HttpConfig *config) {
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   DWORD dwTimeout;
   if (!ctx || !ctx->hSession || !config)
     return EINVAL;
@@ -250,7 +248,11 @@ int http_winhttp_config_apply(struct HttpTransportContext *const ctx,
 #else
   (void)ctx;
   (void)config;
+#ifdef ENOTSUP
   return ENOTSUP;
+#else
+  return EINVAL;
+#endif
 #endif
 }
 
@@ -261,10 +263,10 @@ int http_winhttp_config_apply(struct HttpTransportContext *const ctx,
     goto cleanup;                                                              \
   } while (0)
 
-int http_winhttp_send(struct HttpTransportContext *const ctx,
-                      const struct HttpRequest *const req,
+int http_winhttp_send(struct HttpTransportContext *ctx,
+                      const struct HttpRequest *req,
                       struct HttpResponse **const res) {
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   HINTERNET hConnect = NULL, hRequest = NULL;
   URL_COMPONENTS urlComp;
   wchar_t *wUrl = NULL;
@@ -272,6 +274,7 @@ int http_winhttp_send(struct HttpTransportContext *const ctx,
   wchar_t *hostName = NULL;
   wchar_t *urlPath = NULL;
   int rc = 0;
+  const wchar_t *wmethod = NULL;
   size_t wLen = 0;
   DWORD dwStatusCode = 0;
   DWORD dwSize = sizeof(dwStatusCode);
@@ -322,7 +325,7 @@ int http_winhttp_send(struct HttpTransportContext *const ctx,
   if (!hConnect)
     CLEANUP_AND_RET(EIO);
 
-  const wchar_t *wmethod = NULL;
+  
   method_to_wide(req->method, &wmethod);
   hRequest = WinHttpOpenRequest(
       hConnect, wmethod, urlComp.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
@@ -424,6 +427,10 @@ cleanup:
   (void)ctx;
   (void)req;
   (void)res;
+#ifdef ENOTSUP
   return ENOTSUP;
+#else
+  return EINVAL;
+#endif
 #endif
 }

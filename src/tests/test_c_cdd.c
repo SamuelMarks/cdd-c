@@ -35,7 +35,9 @@
 #include "emit/test_codegen_url.h"
 #include "emit/test_codegen_validation.h"
 #include "emit/test_generate_build_system.h"
+#ifdef C_CDD_USE_LIBCURL
 #include "emit/test_http_curl.h"
+#endif
 #include "emit/test_http_types.h"
 #include "emit/test_http_android.h"
 #include "emit/test_http_apple.h"
@@ -125,7 +127,9 @@ int main(int argc, char **argv) {
   RUN_SUITE(fs_suite);
   RUN_SUITE(generate_build_system_suite);
   RUN_SUITE(http_types_suite);
+#ifdef C_CDD_USE_LIBCURL
   RUN_SUITE(http_curl_suite);
+#endif
   RUN_SUITE(http_android_suite);
   RUN_SUITE(http_apple_suite);
   RUN_SUITE(http_winhttp_suite);

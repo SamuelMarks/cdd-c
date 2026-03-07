@@ -13,6 +13,7 @@
 #include "functions/parse/fs.h"
 
 GREATEST_MAIN_DEFS();
+#pragma warning(disable: 4551)
 
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"
@@ -48,7 +49,7 @@ TEST test_lift_anonymous_struct(void) {
     fseek(f, 0, SEEK_END);
     sz = ftell(f);
     rewind(f);
-    content = malloc(sz + 1);
+    content = (char *)malloc(sz + 1);
     fread(content, 1, sz, f);
     content[sz] = 0;
     fclose(f);

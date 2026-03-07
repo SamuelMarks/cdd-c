@@ -24,7 +24,7 @@ int write_to_file(const char *const filename, const char *const contents) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
     errno_t err;
-    err = fopen_s(&fh, filename, "w, ccs=UTF-8");
+    err = fopen_s(&fh, filename, "w");
     if (err != 0 || fh == NULL) {
       fprintf(stderr, "Failed to open for writing %s\n", filename);
       return EXIT_FAILURE;

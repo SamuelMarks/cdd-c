@@ -27,7 +27,7 @@ static char *generate_def_code(const char *struct_name,
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 

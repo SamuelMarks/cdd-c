@@ -129,8 +129,8 @@ static int join_tokens_range(const struct TokenList *tokens, size_t start,
 
 /* --- Core Logic --- */
 
-int rewrite_body(const struct TokenList *const tokens,
-                 const struct AllocationSiteList *const allocs,
+int rewrite_body(const struct TokenList *tokens,
+                 const struct AllocationSiteList *allocs,
                  const struct RefactoredFunction *funcs, size_t func_count,
                  const struct SignatureTransform *transform, char **out_code) {
   char *_ast_extract_token_text_0;

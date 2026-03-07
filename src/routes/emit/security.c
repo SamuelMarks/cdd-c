@@ -207,9 +207,9 @@ int codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   return 0;
 }
 
-int codegen_security_write_apply(FILE *const fp,
-                                 const struct OpenAPI_Operation *const op,
-                                 const struct OpenAPI_Spec *const spec) {
+int codegen_security_write_apply(FILE *fp,
+                                 const struct OpenAPI_Operation *op,
+                                 const struct OpenAPI_Spec *spec) {
   size_t i;
   int has_security = 0;
   const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;

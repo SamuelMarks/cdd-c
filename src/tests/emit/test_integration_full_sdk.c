@@ -72,7 +72,7 @@ static int Pet_from_json(const char *json, struct Pet **out) {
     return 1;
   *out = calloc(1, sizeof(struct Pet));
   json_value_free(root);
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 /* Reference Implementation with new signature */
@@ -242,6 +242,7 @@ TEST test_runtime_execution_with_mock_server(void) {
 }
 
 GREATEST_MAIN_DEFS();
+#pragma warning(disable: 4551)
 
 SUITE(full_sdk_integration_suite) {
   RUN_TEST(test_generator_output_correctness);

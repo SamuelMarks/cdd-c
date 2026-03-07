@@ -37,7 +37,7 @@ static int setup_request(struct HttpRequest *req, int port) {
 #endif
 
   req->url = (c_cdd_strdup(url, &_ast_strdup_0), _ast_strdup_0);
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 TEST test_curl_global_lifecycle(void) {

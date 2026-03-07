@@ -26,7 +26,7 @@ TEST test_write_enum_functions(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    errno_t err = fopen_s(&tmp_fh, "tmp_enum_func.c", "w, ccs=UTF-8");
+    errno_t err = fopen_s(&tmp_fh, "tmp_enum_func.c", "w");
     if (err != 0 || tmp_fh == NULL)
       FAILm("Failed to open file for writing");
   }
@@ -160,7 +160,7 @@ TEST test_write_struct_functions(void) {
 
 TEST test_struct_fields_overflow(void) {
   struct StructFields sf;
-  uint8_t i;
+  unsigned char i;
   enum { n = 32 };
   ASSERT_EQ(0, struct_fields_init(&sf));
   for (i = 0; i < 200; ++i) {
@@ -181,7 +181,7 @@ TEST test_struct_fields_overflow(void) {
 
 TEST test_enum_members_overflow(void) {
   struct EnumMembers em;
-  uint8_t i;
+  unsigned char i;
   enum { n = 32 };
   ASSERT_EQ(0, enum_members_init(&em));
   for (i = 0; i < 200; ++i) {

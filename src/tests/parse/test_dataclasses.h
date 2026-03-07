@@ -50,7 +50,7 @@ int Node_deepcopy(const struct Node *src, struct Node **dest) {
     return 0;
   }
 
-  *dest = malloc(sizeof(**dest));
+  *dest = (struct Node *)malloc(sizeof(**dest));
   if (*dest == NULL)
     return ENOMEM;
   memset(*dest, 0, sizeof(**dest));
@@ -67,7 +67,7 @@ int Node_deepcopy(const struct Node *src, struct Node **dest) {
   } else {
     (*dest)->next = NULL;
   }
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 int Node_eq(const struct Node *a, const struct Node *b) {
@@ -81,8 +81,8 @@ int Node_eq(const struct Node *a, const struct Node *b) {
 /* --- Tests --- */
 
 TEST test_recursive_cleanup(void) {
-  struct Node *head = malloc(sizeof(struct Node));
-  struct Node *next = malloc(sizeof(struct Node));
+  struct Node * head = (struct Node *)malloc(sizeof(struct Node));
+  struct Node * next = (struct Node *)malloc(sizeof(struct Node));
   ASSERT(head && next);
 
   head->value = 1;
@@ -96,8 +96,8 @@ TEST test_recursive_cleanup(void) {
 }
 
 TEST test_recursive_deepcopy(void) {
-  struct Node *head = malloc(sizeof(struct Node));
-  struct Node *next = malloc(sizeof(struct Node));
+  struct Node * head = (struct Node *)malloc(sizeof(struct Node));
+  struct Node * next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
 
@@ -122,8 +122,8 @@ TEST test_recursive_deepcopy(void) {
 }
 
 TEST test_recursive_eq(void) {
-  struct Node *n1 = malloc(sizeof(struct Node));
-  struct Node *n2 = malloc(sizeof(struct Node));
+  struct Node * n1 = (struct Node *)malloc(sizeof(struct Node));
+  struct Node * n2 = (struct Node *)malloc(sizeof(struct Node));
   struct Node n1_next, n2_next;
 
   n1->value = 1;
@@ -367,7 +367,7 @@ TEST test_display_fail(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r, ccs=UTF-8");
+    const errno_t err = fopen_s(&fh, tmp_fname, "r");
     if (err != 0 || fh == NULL) {
       FAILm("Failed to read file");
     }
@@ -451,7 +451,7 @@ TEST test_Tank_to_str_from_str(void) {
   free(str);
   str = NULL;
 
-  rc = Tank_to_str(-42, &str);
+  rc = Tank_to_str((enum Tank)-42, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("UNKNOWN", str);
   free(str);
@@ -544,7 +544,7 @@ TEST test_debug_fail(void) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r, ccs=UTF-8");
+    const errno_t err = fopen_s(&fh, tmp_fname, "r");
     if (err != 0 || fh == NULL) {
       FAILm("Failed to read file");
     }

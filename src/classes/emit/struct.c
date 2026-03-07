@@ -1,4 +1,3 @@
-#include <inttypes.h>
 /**
  * @file struct.c
  * @brief Implementation of struct lifecycle generation.
@@ -49,7 +48,7 @@ static void free_string_array(char **arr, size_t n) {
   free(arr);
 }
 
-int get_type_from_ref(const char *const ref, char **_out_val) {
+int get_type_from_ref(const char *ref, char **_out_val) {
   const char *_ast_after_last_0 = NULL;
   if (ref == NULL) {
     *_out_val = (char *)"";
@@ -62,7 +61,7 @@ int get_type_from_ref(const char *const ref, char **_out_val) {
   }
 }
 
-int struct_fields_init(struct StructFields *const sf) {
+int struct_fields_init(struct StructFields *sf) {
   if (!sf)
     return EINVAL;
   sf->size = 0;
@@ -84,7 +83,7 @@ int struct_fields_init(struct StructFields *const sf) {
   return 0;
 }
 
-void struct_fields_free(struct StructFields *const sf) {
+void struct_fields_free(struct StructFields *sf) {
   if (sf && sf->fields) {
     size_t i;
     for (i = 0; i < sf->size; ++i) {
@@ -150,10 +149,10 @@ void struct_fields_free(struct StructFields *const sf) {
   }
 }
 
-int struct_fields_add(struct StructFields *const sf, const char *const name,
-                      const char *const type, const char *const ref,
-                      const char *const default_val,
-                      const char *const bit_width) {
+int struct_fields_add(struct StructFields *sf, const char *name,
+                      const char *type, const char *ref,
+                      const char *default_val,
+                      const char *bit_width) {
   struct StructField *f;
   if (!sf || !name || !type)
     return EINVAL;
@@ -238,8 +237,8 @@ int struct_fields_add(struct StructFields *const sf, const char *const name,
   return 0;
 }
 
-int struct_fields_get(const struct StructFields *const sf,
-                      const char *const name, struct StructField **_out_val) {
+int struct_fields_get(const struct StructFields *sf,
+                      const char *name, struct StructField **_out_val) {
   size_t i;
   if (!sf || !name) {
     *_out_val = NULL;
@@ -259,9 +258,9 @@ int struct_fields_get(const struct StructFields *const sf,
 
 /* --- Generation Implementing --- */
 
-int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
-                              const struct StructFields *const sf,
-                              const struct CodegenStructConfig *const config) {
+int write_struct_cleanup_func(FILE *fp, const char *struct_name,
+                              const struct StructFields *sf,
+                              const struct CodegenStructConfig *config) {
   char *_ast_get_type_from_ref_0;
   char *_ast_get_type_from_ref_1;
   size_t i;
@@ -279,7 +278,7 @@ int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
   CHECK_IO(fprintf(fp,
-                   "void %s_cleanup(struct %s *const obj) {\n"
+                   "void %s_cleanup(struct %s *obj) {\n"
                    "  if (!obj) return;\n",
                    struct_name, struct_name));
 
@@ -327,9 +326,9 @@ int write_struct_cleanup_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_deepcopy_func(FILE *const fp, const char *const struct_name,
-                               const struct StructFields *const sf,
-                               const struct CodegenStructConfig *const config) {
+int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
+                               const struct StructFields *sf,
+                               const struct CodegenStructConfig *config) {
   if (!fp || !struct_name || !sf)
     return EINVAL;
 
@@ -373,9 +372,9 @@ int write_struct_deepcopy_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_eq_func(FILE *const fp, const char *const struct_name,
-                         const struct StructFields *const sf,
-                         const struct CodegenStructConfig *const config) {
+int write_struct_eq_func(FILE *fp, const char *struct_name,
+                         const struct StructFields *sf,
+                         const struct CodegenStructConfig *config) {
   char *_ast_get_type_from_ref_2;
   size_t i;
   int iter_needed = 0;
@@ -443,9 +442,9 @@ int write_struct_eq_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_default_func(FILE *const fp, const char *const struct_name,
-                              const struct StructFields *const sf,
-                              const struct CodegenStructConfig *const config) {
+int write_struct_default_func(FILE *fp, const char *struct_name,
+                              const struct StructFields *sf,
+                              const struct CodegenStructConfig *config) {
   char *_ast_get_type_from_ref_3;
   size_t i;
   int rc_needed = 0;
@@ -537,9 +536,9 @@ int write_struct_default_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_debug_func(FILE *const fp, const char *const struct_name,
-                            const struct StructFields *const sf,
-                            const struct CodegenStructConfig *const config) {
+int write_struct_debug_func(FILE *fp, const char *struct_name,
+                            const struct StructFields *sf,
+                            const struct CodegenStructConfig *config) {
   if (!fp || !struct_name || !sf)
     return EINVAL;
 
@@ -559,9 +558,9 @@ int write_struct_debug_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_display_func(FILE *const fp, const char *const struct_name,
-                              const struct StructFields *const sf,
-                              const struct CodegenStructConfig *const config) {
+int write_struct_display_func(FILE *fp, const char *struct_name,
+                              const struct StructFields *sf,
+                              const struct CodegenStructConfig *config) {
   if (!fp || !struct_name || !sf)
     return EINVAL;
 

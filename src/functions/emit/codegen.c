@@ -12,7 +12,7 @@
 
 #include "functions/emit/codegen.h"
 
-int write_forward_decl(FILE *const fp, const char *const struct_name) {
+int write_forward_decl(FILE *fp, const char *struct_name) {
   if (!fp || !struct_name) {
     return EINVAL;
   }

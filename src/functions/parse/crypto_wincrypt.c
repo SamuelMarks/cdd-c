@@ -120,6 +120,14 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac)
     return EINVAL;
 
+  /* CAPI CryptImportKey fails with 0-length keys, and also small keys might trigger NTE_BAD_LEN. 
+     HMAC pads keys with 0s to the block size (64 for SHA256), so we can just use 64 zero bytes. */
+  if (key_len == 0) {
+    static const unsigned char zero_pad[16] = {0};
+    key = zero_pad;
+    key_len = 16;
+  }
+
   if (acquire_context(&hProv) != 0)
     return EIO;
 

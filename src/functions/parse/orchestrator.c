@@ -331,7 +331,7 @@ static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
 
 /* --- Main Orchestrator --- */
 
-int orchestrate_fix(const char *const source_code, char **const out_code) {
+int orchestrate_fix(const char *source_code, char **const out_code) {
   size_t _ast_find_token_in_range_3;
   char *_ast_extract_func_name_4;
   char *_ast_join_tokens_str_5;
@@ -749,7 +749,11 @@ static int fix_file_callback(const char *path, void *user_data) {
 #if defined(_MSC_VER)
     fopen_s(&f, out_path, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, out_path, "w");
+#else
     f = fopen(out_path, "w");
+#endif
 #endif
 #endif
     if (f) {

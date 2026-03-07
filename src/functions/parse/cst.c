@@ -26,7 +26,7 @@
 /**
  * @brief Helper to skip whitespace tokens.
  */
-static int skip_ws(const struct TokenList *const tokens, size_t i, size_t limit,
+static int skip_ws(const struct TokenList *tokens, size_t i, size_t limit,
                    size_t *_out_val) {
   while (i < limit && tokens->tokens[i].kind == TOKEN_WHITESPACE)
     i++;
@@ -39,7 +39,7 @@ static int skip_ws(const struct TokenList *const tokens, size_t i, size_t limit,
 /**
  * @brief Helper to skip whitespace tokens backwards.
  */
-static int skip_ws_back(const struct TokenList *const tokens, size_t i,
+static int skip_ws_back(const struct TokenList *tokens, size_t i,
                         size_t *_out_val) {
   if (i == 0) {
     /* If index 0 is valid and not whitespace, return it. If whitespace,
@@ -65,8 +65,8 @@ static int skip_ws_back(const struct TokenList *const tokens, size_t i,
 /**
  * @brief Add a node to the CST list.
  */
-int cst_list_add(struct CstNodeList *const list, const enum CstNodeKind kind,
-                 const uint8_t *const start, const size_t length,
+int cst_list_add(struct CstNodeList *list, const enum CstNodeKind kind,
+                 const uint8_t *start, const size_t length,
                  const size_t start_tok, const size_t end_tok) {
   struct CstNode *new_arr;
   if (!list)
@@ -127,7 +127,7 @@ static int is_type_start(const struct Token *tok) {
 /**
  * @brief Heuristic to detect function definitions.
  */
-static int match_function_definition(const struct TokenList *const tokens,
+static int match_function_definition(const struct TokenList *tokens,
                                      size_t start_idx, size_t limit,
                                      size_t *end_idx_out) {
   size_t _ast_skip_ws_0;
@@ -208,7 +208,7 @@ static int match_function_definition(const struct TokenList *const tokens,
 /**
  * @brief Consume a balanced parenthesized block `( ... )`.
  */
-static int consume_balanced_parens(const struct TokenList *const tokens,
+static int consume_balanced_parens(const struct TokenList *tokens,
                                    size_t start, size_t limit,
                                    size_t *_out_val) {
   size_t i = start;
@@ -242,7 +242,7 @@ static int consume_balanced_parens(const struct TokenList *const tokens,
 /**
  * @brief Consume a C23 attribute block `[[ ... ]]`.
  */
-static int consume_attributes(const struct TokenList *const tokens,
+static int consume_attributes(const struct TokenList *tokens,
                               size_t start, size_t limit, size_t *_out_val) {
   size_t i = start + 2;
   int depth = 2;
@@ -269,7 +269,7 @@ static int consume_attributes(const struct TokenList *const tokens,
 /**
  * @brief Consume a static assertion declaration.
  */
-static int consume_static_assert(const struct TokenList *const tokens,
+static int consume_static_assert(const struct TokenList *tokens,
                                  size_t start, size_t limit, size_t *_out_val) {
   size_t _ast_skip_ws_1;
   size_t _ast_skip_ws_2;
@@ -316,7 +316,7 @@ static int consume_static_assert(const struct TokenList *const tokens,
 /**
  * @brief Consume a _Generic selection `_Generic ( ... )`.
  */
-static int consume_generic_selection(const struct TokenList *const tokens,
+static int consume_generic_selection(const struct TokenList *tokens,
                                      size_t start, size_t limit,
                                      size_t *_out_val) {
   size_t _ast_skip_ws_3;
@@ -345,7 +345,7 @@ static int consume_generic_selection(const struct TokenList *const tokens,
  * @brief Identify if the LBRACE at `brace_idx` signifies an expression/init
  * list.
  */
-static int is_expression_brace(const struct TokenList *const tokens,
+static int is_expression_brace(const struct TokenList *tokens,
                                size_t brace_idx) {
   size_t _ast_skip_ws_back_5;
   size_t _ast_skip_ws_back_6;
@@ -397,7 +397,7 @@ static int is_expression_brace(const struct TokenList *const tokens,
 /**
  * @brief Consume a brace-enclosed block, respecting nesting.
  */
-static int consume_balanced_braces(const struct TokenList *const tokens,
+static int consume_balanced_braces(const struct TokenList *tokens,
                                    size_t start, size_t limit,
                                    size_t *_out_val) {
   size_t i = start;
@@ -431,8 +431,8 @@ static int consume_balanced_braces(const struct TokenList *const tokens,
 /**
  * @brief Recursive Parser core logic.
  */
-static int parse_recursive(const struct TokenList *const tokens, size_t start,
-                           size_t end, struct CstNodeList *const out) {
+static int parse_recursive(const struct TokenList *tokens, size_t start,
+                           size_t end, struct CstNodeList *out) {
   size_t _ast_consume_attributes_7;
   size_t _ast_consume_static_assert_8;
   bool _ast_token_matches_string_9;
@@ -744,8 +744,8 @@ static int parse_recursive(const struct TokenList *const tokens, size_t start,
   return 0;
 }
 
-int parse_tokens(const struct TokenList *const tokens,
-                 struct CstNodeList *const out) {
+int parse_tokens(const struct TokenList *tokens,
+                 struct CstNodeList *out) {
   if (!tokens || !out)
     return EINVAL;
 
@@ -757,7 +757,7 @@ int parse_tokens(const struct TokenList *const tokens,
   return parse_recursive(tokens, 0, tokens->size, out);
 }
 
-void free_cst_node_list(struct CstNodeList *const list) {
+void free_cst_node_list(struct CstNodeList *list) {
   if (!list)
     return;
   if (list->nodes) {
@@ -768,7 +768,7 @@ void free_cst_node_list(struct CstNodeList *const list) {
   list->capacity = 0;
 }
 
-int cst_find_first(struct CstNodeList *const list, const enum CstNodeKind kind,
+int cst_find_first(struct CstNodeList *list, const enum CstNodeKind kind,
                    struct CstNode **_out_val) {
   size_t i;
   if (!list) {

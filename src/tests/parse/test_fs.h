@@ -61,7 +61,7 @@ static int mock_walk_cb(const char *path, void *user_data) {
   int *count = (int *)user_data;
   (*count)++;
   (void)path;
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 TEST test_walk_directory(void) {

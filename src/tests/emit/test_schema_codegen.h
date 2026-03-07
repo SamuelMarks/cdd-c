@@ -167,7 +167,7 @@ TEST test_codegen_config_json_guards(void) {
 
   rewind(tmp);
 
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 
@@ -241,7 +241,7 @@ TEST test_union_config_json_guards(void) {
 
   rewind(tmp);
 
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 
@@ -455,7 +455,7 @@ TEST test_codegen_config_utils_guards(void) {
 
   rewind(tmp);
 
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
 
   fread(content, 1, sz, tmp);
 

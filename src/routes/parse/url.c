@@ -318,7 +318,7 @@ int url_encode_form_allow_reserved(const char *str, char **_out_val) {
   }
 }
 
-int url_query_init(struct UrlQueryParams *const qp) {
+int url_query_init(struct UrlQueryParams *qp) {
   if (!qp)
     return EINVAL;
   qp->params = NULL;
@@ -327,7 +327,7 @@ int url_query_init(struct UrlQueryParams *const qp) {
   return 0;
 }
 
-void url_query_free(struct UrlQueryParams *const qp) {
+void url_query_free(struct UrlQueryParams *qp) {
   size_t i;
   if (!qp)
     return;
@@ -345,8 +345,8 @@ void url_query_free(struct UrlQueryParams *const qp) {
   qp->capacity = 0;
 }
 
-int url_query_add(struct UrlQueryParams *const qp, const char *const key,
-                  const char *const value) {
+int url_query_add(struct UrlQueryParams *qp, const char *key,
+                  const char *value) {
   char *_ast_strdup_0 = NULL;
   char *_ast_strdup_1 = NULL;
   if (!qp || !key || !value)
@@ -379,8 +379,8 @@ int url_query_add(struct UrlQueryParams *const qp, const char *const key,
   return 0;
 }
 
-int url_query_add_encoded(struct UrlQueryParams *const qp,
-                          const char *const key, const char *const value) {
+int url_query_add_encoded(struct UrlQueryParams *qp,
+                          const char *key, const char *value) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   if (!qp || !key || !value)
@@ -413,7 +413,7 @@ int url_query_add_encoded(struct UrlQueryParams *const qp,
   return 0;
 }
 
-int url_query_build(const struct UrlQueryParams *const qp, char **out_str) {
+int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   char *_ast_url_encode_10;
   char *_ast_url_encode_11;
   char *_ast_url_encode_12;
@@ -524,7 +524,7 @@ int url_query_build(const struct UrlQueryParams *const qp, char **out_str) {
   return 0;
 }
 
-int url_query_build_form(const struct UrlQueryParams *const qp,
+int url_query_build_form(const struct UrlQueryParams *qp,
                          char **out_str) {
   char *_ast_url_encode_form_14;
   char *_ast_url_encode_form_15;

@@ -1098,7 +1098,6 @@ static int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
          "#else\n"
          "    strcpy(client->base_url, base_url);\n"
-         "#endif\n"
          "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
 
@@ -1752,8 +1751,8 @@ cleanup:
   return rc;
 }
 
-int openapi_client_generate(const struct OpenAPI_Spec *const spec,
-                            const struct OpenApiClientConfig *const config) {
+int openapi_client_generate(const struct OpenAPI_Spec *spec,
+                            const struct OpenApiClientConfig *config) {
   char *_ast_generate_guard_10;
   char *_ast_derive_model_header_11;
   FILE *hfile = NULL, *cfile = NULL;
@@ -1797,12 +1796,20 @@ int openapi_client_generate(const struct OpenAPI_Spec *const spec,
 #if defined(_MSC_VER)
   fopen_s(&hfile, h_name, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&hfile, h_name, "w");
+#else
   hfile = fopen(h_name, "w");
+#endif
 #endif
 #if defined(_MSC_VER)
   fopen_s(&cfile, c_name, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&cfile, c_name, "w");
+#else
   cfile = fopen(c_name, "w");
+#endif
 #endif
 #endif
 

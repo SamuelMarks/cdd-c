@@ -57,7 +57,7 @@ static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
 
 /* --- List Management --- */
 
-int init_list_init(struct InitList *const list) {
+int init_list_init(struct InitList *list) {
   if (!list)
     return EINVAL;
   list->items = NULL;
@@ -68,7 +68,7 @@ int init_list_init(struct InitList *const list) {
 
 static void init_value_free(struct InitValue *val);
 
-void init_list_free(struct InitList *const list) {
+void init_list_free(struct InitList *list) {
   size_t i;
   if (!list)
     return;
@@ -88,7 +88,7 @@ void init_list_free(struct InitList *const list) {
   list->capacity = 0;
 }
 
-static void init_value_free(struct InitValue *const val) {
+static void init_value_free(struct InitValue *val) {
   if (!val)
     return;
   if (val->kind == INIT_KIND_SCALAR && val->data.scalar) {
@@ -99,7 +99,7 @@ static void init_value_free(struct InitValue *const val) {
   }
 }
 
-static int init_list_add(struct InitList *const list, char *desig,
+static int init_list_add(struct InitList *list, char *desig,
                          struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;

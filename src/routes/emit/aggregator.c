@@ -92,9 +92,9 @@ static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
   return 0;
 }
 
-int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
-                                     const char *const route,
-                                     struct OpenAPI_Operation *const op) {
+int openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
+                                     const char *route,
+                                     struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_0;
   struct OpenAPI_Path *target_path;
   int rc;
@@ -134,8 +134,8 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *const spec,
 }
 
 int openapi_aggregator_add_webhook_operation(
-    struct OpenAPI_Spec *const spec, const char *const route,
-    struct OpenAPI_Operation *const op) {
+    struct OpenAPI_Spec *spec, const char *route,
+    struct OpenAPI_Operation *op) {
   struct OpenAPI_Path *_ast_find_path_in_list_1;
   struct OpenAPI_Path *target_path;
   int rc;

@@ -1194,8 +1194,8 @@ static int doc_style_to_openapi(enum DocParamStyle style,
 
 /* --- Core Logic --- */
 
-int c2openapi_build_operation(const struct OpBuilderContext *const ctx,
-                              struct OpenAPI_Operation *const out_op) {
+int c2openapi_build_operation(const struct OpBuilderContext *ctx,
+                              struct OpenAPI_Operation *out_op) {
   struct DocParam *_ast_find_doc_param_2;
   enum OpenAPI_Style _ast_doc_style_to_openapi_3;
   struct OpenAPI_MediaType *_ast_find_media_type_4;

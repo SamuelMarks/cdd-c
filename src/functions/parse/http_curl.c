@@ -152,7 +152,7 @@ int http_curl_context_init(struct HttpTransportContext **const ctx) {
   return 0;
 }
 
-void http_curl_context_free(struct HttpTransportContext *const ctx) {
+void http_curl_context_free(struct HttpTransportContext *ctx) {
   if (ctx) {
     if (ctx->curl)
       curl_easy_cleanup(ctx->curl);
@@ -160,8 +160,8 @@ void http_curl_context_free(struct HttpTransportContext *const ctx) {
   }
 }
 
-int http_curl_config_apply(struct HttpTransportContext *const ctx,
-                           const struct HttpConfig *const config) {
+int http_curl_config_apply(struct HttpTransportContext *ctx,
+                           const struct HttpConfig *config) {
   if (!ctx || !ctx->curl || !config)
     return EINVAL;
 
@@ -197,8 +197,8 @@ int http_curl_config_apply(struct HttpTransportContext *const ctx,
   return 0;
 }
 
-int http_curl_send(struct HttpTransportContext *const ctx,
-                   const struct HttpRequest *const req,
+int http_curl_send(struct HttpTransportContext *ctx,
+                   const struct HttpRequest *req,
                    struct HttpResponse **const res) {
   char *_ast_format_header_0;
   CURLcode res_code;

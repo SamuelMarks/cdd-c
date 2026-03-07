@@ -24,9 +24,9 @@
 
 /* --- Union Implementation --- */
 
-int write_union_to_json_func(FILE *const fp, const char *const union_name,
-                             const struct StructFields *const sf,
-                             const struct CodegenTypesConfig *const config) {
+int write_union_to_json_func(FILE *fp, const char *union_name,
+                             const struct StructFields *sf,
+                             const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_0;
   char *_ast_get_type_from_ref_1;
   char *_ast_get_type_from_ref_2;
@@ -54,7 +54,7 @@ int write_union_to_json_func(FILE *const fp, const char *const union_name,
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->json_guard));
 
   CHECK_IO(fprintf(
-      fp, "int %s_to_json(const struct %s *const obj, char **const json) {\n",
+      fp, "int %s_to_json(const struct %s *obj, char **const json) {\n",
       union_name, union_name));
 
   if (needs_nested_rc)
@@ -178,9 +178,9 @@ int write_union_to_json_func(FILE *const fp, const char *const union_name,
 }
 
 int write_union_from_jsonObject_func(
-    FILE *const fp, const char *const union_name,
-    const struct StructFields *const sf,
-    const struct CodegenTypesConfig *const config) {
+    FILE *fp, const char *union_name,
+    const struct StructFields *sf,
+    const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_3;
   char *_ast_get_type_from_ref_4;
   size_t i;
@@ -198,7 +198,7 @@ int write_union_from_jsonObject_func(
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->json_guard));
 
   CHECK_IO(fprintf(fp,
-                   "int %s_from_jsonObject(const JSON_Object *const "
+                   "int %s_from_jsonObject(const JSON_Object *"
                    "jsonObject, struct %s **const out) {\n",
                    union_name, union_name));
 
@@ -339,9 +339,9 @@ int write_union_from_jsonObject_func(
   return 0;
 }
 
-int write_union_from_json_func(FILE *const fp, const char *const union_name,
-                               const struct StructFields *const sf,
-                               const struct CodegenTypesConfig *const config) {
+int write_union_from_json_func(FILE *fp, const char *union_name,
+                               const struct StructFields *sf,
+                               const struct CodegenTypesConfig *config) {
   size_t i;
   int has_object = 0;
   int string_count = 0;
@@ -432,7 +432,7 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->json_guard));
 
   CHECK_IO(fprintf(fp,
-                   "int %s_from_json(const char *const json, struct %s **const "
+                   "int %s_from_json(const char *json, struct %s **const "
                    "out) {\n",
                    union_name, union_name));
 
@@ -727,9 +727,9 @@ int write_union_from_json_func(FILE *const fp, const char *const union_name,
   return 0;
 }
 
-int write_union_cleanup_func(FILE *const fp, const char *const union_name,
-                             const struct StructFields *const sf,
-                             const struct CodegenTypesConfig *const config) {
+int write_union_cleanup_func(FILE *fp, const char *union_name,
+                             const struct StructFields *sf,
+                             const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_5;
   char *_ast_get_type_from_ref_6;
   size_t i;
@@ -747,7 +747,7 @@ int write_union_cleanup_func(FILE *const fp, const char *const union_name,
   if (config && config->utils_guard)
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->utils_guard));
 
-  CHECK_IO(fprintf(fp, "void %s_cleanup(struct %s *const obj) {\n", union_name,
+  CHECK_IO(fprintf(fp, "void %s_cleanup(struct %s *obj) {\n", union_name,
                    union_name));
   CHECK_IO(fprintf(fp, "  if (!obj) return;\n"));
   if (iter_needed)
@@ -802,8 +802,8 @@ int write_union_cleanup_func(FILE *const fp, const char *const union_name,
 /* --- Root Array Implementation --- */
 
 int write_root_array_cleanup_func(
-    FILE *const fp, const char *const name, const char *const item_type,
-    const char *const item_ref, const struct CodegenTypesConfig *const config) {
+    FILE *fp, const char *name, const char *item_type,
+    const char *item_ref, const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_7;
   char *_ast_get_type_from_ref_8;
   if (!fp || !name || !item_type)
@@ -856,8 +856,8 @@ int write_root_array_cleanup_func(
 }
 
 int write_root_array_to_json_func(
-    FILE *const fp, const char *const name, const char *const item_type,
-    const char *const item_ref, const struct CodegenTypesConfig *const config) {
+    FILE *fp, const char *name, const char *item_type,
+    const char *item_ref, const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_9;
   char *_ast_get_type_from_ref_10;
   if (!fp || !name || !item_type)
@@ -923,8 +923,8 @@ int write_root_array_to_json_func(
 }
 
 int write_root_array_from_json_func(
-    FILE *const fp, const char *const name, const char *const item_type,
-    const char *const item_ref, const struct CodegenTypesConfig *const config) {
+    FILE *fp, const char *name, const char *item_type,
+    const char *item_ref, const struct CodegenTypesConfig *config) {
   char *_ast_get_type_from_ref_11;
   char *_ast_get_type_from_ref_12;
   char *_ast_get_type_from_ref_13;

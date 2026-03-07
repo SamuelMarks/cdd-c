@@ -17,9 +17,9 @@ TEST test_cli_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
-  spec.paths = calloc(1, sizeof(struct OpenAPI_Path));
+  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
   spec.paths[0].n_operations = 1;
-  spec.paths[0].operations = calloc(1, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations = (struct OpenAPI_Operation *)calloc(1, sizeof(struct OpenAPI_Operation));
   spec.paths[0].operations[0].operation_id = "doSomething";
   spec.paths[0].operations[0].summary = "Does a thing";
 

@@ -9,6 +9,8 @@
 #include "classes/parse/code2schema.h"
 
 TEST test_schema_constraints_roundtrip(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
   struct StructField *_ast_struct_fields_get_0;
   struct StructField *_ast_struct_fields_get_1;
   struct StructField *_ast_struct_fields_get_2;
@@ -29,9 +31,9 @@ TEST test_schema_constraints_roundtrip(void) {
       "\"enabled\":{\"type\":\"boolean\",\"default\":true}"
       "}}";
 
-  JSON_Value *val = json_parse_string(schema);
+  val = json_parse_string(schema);
   ASSERT(val != NULL);
-  JSON_Object *obj = json_value_get_object(val);
+  obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
   struct StructFields sf;
@@ -98,48 +100,60 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    JSON_Value *schemas_val;
+    JSON_Object *schemas_obj;
+    JSON_Object *test_obj;
+    JSON_Object *props;
+    JSON_Object *score_prop;
+    schemas_val = json_value_init_object();
+    schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Test", &sf));
 
-    JSON_Object *test_obj = json_object_get_object(schemas_obj, "Test");
+    test_obj = json_object_get_object(schemas_obj, "Test");
     ASSERT(test_obj != NULL);
-    JSON_Object *props = json_object_get_object(test_obj, "properties");
+    props = json_object_get_object(test_obj, "properties");
     ASSERT(props != NULL);
 
-    JSON_Object *score_prop = json_object_get_object(props, "score");
+    score_prop = json_object_get_object(props, "score");
     ASSERT(score_prop != NULL);
     ASSERT(json_object_has_value(score_prop, "exclusiveMinimum"));
     ASSERT(json_object_has_value(score_prop, "exclusiveMaximum"));
     {
-      double ex_min = json_object_get_number(score_prop, "exclusiveMinimum");
-      double ex_max = json_object_get_number(score_prop, "exclusiveMaximum");
+      double ex_min;
+      double ex_max;
+      ex_min = json_object_get_number(score_prop, "exclusiveMinimum");
+      ex_max = json_object_get_number(score_prop, "exclusiveMaximum");
       ASSERT(ex_min > 3.4 && ex_min < 3.6);
       ASSERT(ex_max > 9.2 && ex_max < 9.3);
     }
+    JSON_Object *age_prop;
+    JSON_Object *name_prop;
+    JSON_Object *enabled_prop;
+    JSON_Object *tags_prop;
     {
-      double def_num = json_object_get_number(score_prop, "default");
+      double def_num;
+      def_num = json_object_get_number(score_prop, "default");
       ASSERT(def_num > 0.49 && def_num < 0.51);
     }
 
-    JSON_Object *age_prop = json_object_get_object(props, "age");
+    age_prop = json_object_get_object(props, "age");
     ASSERT(age_prop != NULL);
     ASSERT_EQ(18, (int)json_object_get_number(age_prop, "minimum"));
     ASSERT_EQ(65, (int)json_object_get_number(age_prop, "exclusiveMaximum"));
     ASSERT_EQ(21, (int)json_object_get_number(age_prop, "default"));
 
-    JSON_Object *name_prop = json_object_get_object(props, "name");
+    name_prop = json_object_get_object(props, "name");
     ASSERT(name_prop != NULL);
     ASSERT_EQ(2, (int)json_object_get_number(name_prop, "minLength"));
     ASSERT_EQ(10, (int)json_object_get_number(name_prop, "maxLength"));
     ASSERT_STR_EQ("^[A-Z]+$", json_object_get_string(name_prop, "pattern"));
     ASSERT_STR_EQ("Bob", json_object_get_string(name_prop, "default"));
 
-    JSON_Object *enabled_prop = json_object_get_object(props, "enabled");
+    enabled_prop = json_object_get_object(props, "enabled");
     ASSERT(enabled_prop != NULL);
     ASSERT_EQ(1, json_object_get_boolean(enabled_prop, "default"));
 
-    JSON_Object *tags_prop = json_object_get_object(props, "tags");
+    tags_prop = json_object_get_object(props, "tags");
     ASSERT(tags_prop != NULL);
     ASSERT_EQ(1, (int)json_object_get_number(tags_prop, "minItems"));
     ASSERT_EQ(3, (int)json_object_get_number(tags_prop, "maxItems"));
@@ -155,6 +169,8 @@ TEST test_schema_constraints_roundtrip(void) {
 }
 
 TEST test_schema_annotations_roundtrip(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
   struct StructField *_ast_struct_fields_get_5;
   struct StructField *_ast_struct_fields_get_6;
   struct StructField *_ast_struct_fields_get_7;
@@ -167,9 +183,9 @@ TEST test_schema_annotations_roundtrip(void) {
                        "\"deprecated\":true}"
                        "}}";
 
-  JSON_Value *val = json_parse_string(schema);
+  val = json_parse_string(schema);
   ASSERT(val != NULL);
-  JSON_Object *obj = json_value_get_object(val);
+  obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
   struct StructFields sf;
@@ -209,16 +225,21 @@ TEST test_schema_annotations_roundtrip(void) {
   }
 
   {
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    JSON_Value *schemas_val;
+    JSON_Object *schemas_obj;
+    JSON_Object *annot;
+    JSON_Object *props;
+    schemas_val = json_value_init_object();
+    schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Annotated", &sf));
 
-    JSON_Object *annot = json_object_get_object(schemas_obj, "Annotated");
-    JSON_Object *props = json_object_get_object(annot, "properties");
+    annot = json_object_get_object(schemas_obj, "Annotated");
+    props = json_object_get_object(annot, "properties");
     ASSERT(props != NULL);
 
     {
-      JSON_Object *id_prop = json_object_get_object(props, "id");
+      JSON_Object *id_prop;
+      id_prop = json_object_get_object(props, "id");
       ASSERT(id_prop != NULL);
       ASSERT_STR_EQ("uuid", json_object_get_string(id_prop, "format"));
       ASSERT_STR_EQ("User ID", json_object_get_string(id_prop, "description"));
@@ -227,7 +248,8 @@ TEST test_schema_annotations_roundtrip(void) {
     }
 
     {
-      JSON_Object *secret_prop = json_object_get_object(props, "secret");
+      JSON_Object *secret_prop;
+      secret_prop = json_object_get_object(props, "secret");
       ASSERT(secret_prop != NULL);
       ASSERT_STR_EQ("Secret",
                     json_object_get_string(secret_prop, "description"));
@@ -235,7 +257,8 @@ TEST test_schema_annotations_roundtrip(void) {
     }
 
     {
-      JSON_Object *readme_prop = json_object_get_object(props, "readme");
+      JSON_Object *readme_prop;
+      readme_prop = json_object_get_object(props, "readme");
       ASSERT(readme_prop != NULL);
       ASSERT_EQ(1, json_object_get_boolean(readme_prop, "readOnly"));
       ASSERT_EQ(1, json_object_get_boolean(readme_prop, "deprecated"));
@@ -251,6 +274,8 @@ TEST test_schema_annotations_roundtrip(void) {
 }
 
 TEST test_schema_allof_merge(void) {
+  JSON_Value *root_val;
+  JSON_Value *schema_val;
   struct StructField *_ast_struct_fields_get_8;
   struct StructField *_ast_struct_fields_get_9;
   struct StructField *_ast_struct_fields_get_10;
@@ -272,14 +297,16 @@ TEST test_schema_allof_merge(void) {
                        "}"
                        "}";
 
-  JSON_Value *root_val = json_parse_string(schemas);
-  JSON_Value *schema_val = json_parse_string(schema);
+  root_val = json_parse_string(schemas);
+  schema_val = json_parse_string(schema);
   ASSERT(root_val != NULL);
   ASSERT(schema_val != NULL);
 
   {
-    JSON_Object *root_obj = json_value_get_object(root_val);
-    JSON_Object *schema_obj = json_value_get_object(schema_val);
+    JSON_Object *root_obj;
+    JSON_Object *schema_obj;
+    root_obj = json_value_get_object(root_val);
+    schema_obj = json_value_get_object(schema_val);
     struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, root_obj));
@@ -325,6 +352,7 @@ TEST test_schema_allof_merge(void) {
 }
 
 TEST test_schema_anyof_first_object(void) {
+  JSON_Value *schema_val;
   struct StructField *_ast_struct_fields_get_11;
   struct StructField *_ast_struct_fields_get_12;
   const char *schema =
@@ -335,11 +363,12 @@ TEST test_schema_anyof_first_object(void) {
       "]"
       "}";
 
-  JSON_Value *schema_val = json_parse_string(schema);
+  schema_val = json_parse_string(schema);
   ASSERT(schema_val != NULL);
 
   {
-    JSON_Object *schema_obj = json_value_get_object(schema_val);
+    JSON_Object *schema_obj;
+    schema_obj = json_value_get_object(schema_val);
     struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
@@ -357,6 +386,7 @@ TEST test_schema_anyof_first_object(void) {
 }
 
 TEST test_schema_oneof_first_object(void) {
+  JSON_Value *schema_val;
   struct StructField *_ast_struct_fields_get_13;
   struct StructField *_ast_struct_fields_get_14;
   const char *schema =
@@ -367,11 +397,12 @@ TEST test_schema_oneof_first_object(void) {
       "]"
       "}";
 
-  JSON_Value *schema_val = json_parse_string(schema);
+  schema_val = json_parse_string(schema);
   ASSERT(schema_val != NULL);
 
   {
-    JSON_Object *schema_obj = json_value_get_object(schema_val);
+    JSON_Object *schema_obj;
+    schema_obj = json_value_get_object(schema_val);
     struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
@@ -389,6 +420,8 @@ TEST test_schema_oneof_first_object(void) {
 }
 
 TEST test_schema_keyword_passthrough(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
   const char *schema =
       "{"
       "\"type\":\"object\","
@@ -413,9 +446,9 @@ TEST test_schema_keyword_passthrough(void) {
       "}"
       "}";
 
-  JSON_Value *val = json_parse_string(schema);
+  val = json_parse_string(schema);
   ASSERT(val != NULL);
-  JSON_Object *obj = json_value_get_object(val);
+  obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
   struct StructFields sf;
@@ -423,28 +456,34 @@ TEST test_schema_keyword_passthrough(void) {
   ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
 
   {
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    JSON_Value *schemas_val;
+    JSON_Object *schemas_obj;
+    JSON_Object *spec;
+    schemas_val = json_value_init_object();
+    schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Spec", &sf));
 
-    JSON_Object *spec = json_object_get_object(schemas_obj, "Spec");
+    spec = json_object_get_object(schemas_obj, "Spec");
     ASSERT(spec != NULL);
     ASSERT(json_object_has_value(spec, "additionalProperties"));
     ASSERT_EQ(0, json_object_get_boolean(spec, "additionalProperties"));
 
     {
+      JSON_Object *pat_schema;
       JSON_Object *pattern_props =
           json_object_get_object(spec, "patternProperties");
       ASSERT(pattern_props != NULL);
-      JSON_Object *pat_schema = json_object_get_object(pattern_props, "^x-");
+      pat_schema = json_object_get_object(pattern_props, "^x-");
       ASSERT(pat_schema != NULL);
       ASSERT_STR_EQ("string", json_object_get_string(pat_schema, "type"));
     }
 
     {
-      JSON_Object *defs = json_object_get_object(spec, "$defs");
+      JSON_Object *defs;
+      JSON_Object *extra;
+      defs = json_object_get_object(spec, "$defs");
       ASSERT(defs != NULL);
-      JSON_Object *extra = json_object_get_object(defs, "Extra");
+      extra = json_object_get_object(defs, "Extra");
       ASSERT(extra != NULL);
       ASSERT_STR_EQ("string", json_object_get_string(extra, "type"));
     }
@@ -455,13 +494,18 @@ TEST test_schema_keyword_passthrough(void) {
     ASSERT(json_object_get_object(spec, "else") != NULL);
 
     {
-      JSON_Object *props = json_object_get_object(spec, "properties");
+      JSON_Object *props;
+      JSON_Object *name_prop;
+      JSON_Object *meta_prop;
+      JSON_Object *tags_prop;
+      props = json_object_get_object(spec, "properties");
       ASSERT(props != NULL);
 
-      JSON_Object *name_prop = json_object_get_object(props, "name");
+      name_prop = json_object_get_object(props, "name");
       ASSERT(name_prop != NULL);
       {
-        JSON_Array *enum_arr = json_object_get_array(name_prop, "enum");
+        JSON_Array *enum_arr;
+        enum_arr = json_object_get_array(name_prop, "enum");
         ASSERT(enum_arr != NULL);
         ASSERT_EQ(2, (int)json_array_get_count(enum_arr));
         ASSERT_STR_EQ("A", json_array_get_string(enum_arr, 0));
@@ -469,7 +513,7 @@ TEST test_schema_keyword_passthrough(void) {
       }
       ASSERT_STR_EQ("Name", json_object_get_string(name_prop, "title"));
 
-      JSON_Object *meta_prop = json_object_get_object(props, "meta");
+      meta_prop = json_object_get_object(props, "meta");
       ASSERT(meta_prop != NULL);
       {
         JSON_Object *meta_additional =
@@ -479,10 +523,11 @@ TEST test_schema_keyword_passthrough(void) {
                       json_object_get_string(meta_additional, "type"));
       }
 
-      JSON_Object *tags_prop = json_object_get_object(props, "tags");
+      tags_prop = json_object_get_object(props, "tags");
       ASSERT(tags_prop != NULL);
       {
-        JSON_Object *items = json_object_get_object(tags_prop, "items");
+        JSON_Object *items;
+        items = json_object_get_object(tags_prop, "items");
         ASSERT(items != NULL);
         ASSERT_STR_EQ("^[a-z]+$", json_object_get_string(items, "pattern"));
       }
@@ -498,6 +543,7 @@ TEST test_schema_keyword_passthrough(void) {
 }
 
 TEST test_schema_allof_keyword_merge(void) {
+  JSON_Value *schema_val;
   const char *schema = "{"
                        "\"allOf\":["
                        "{"
@@ -517,21 +563,28 @@ TEST test_schema_allof_keyword_merge(void) {
                        "]"
                        "}";
 
-  JSON_Value *schema_val = json_parse_string(schema);
+  schema_val = json_parse_string(schema);
   ASSERT(schema_val != NULL);
 
   {
-    JSON_Object *schema_obj = json_value_get_object(schema_val);
+    JSON_Object *schema_obj;
+    JSON_Value *schemas_val;
+    JSON_Object *schemas_obj;
+    schema_obj = json_value_get_object(schema_val);
     struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
 
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    schemas_val = json_value_init_object();
+    schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Merged", &sf));
 
     {
-      JSON_Object *merged = json_object_get_object(schemas_obj, "Merged");
+      JSON_Object *merged;
+      JSON_Object *pat_schema;
+      JSON_Object *props;
+      JSON_Object *id_prop;
+      merged = json_object_get_object(schemas_obj, "Merged");
       ASSERT(merged != NULL);
       ASSERT(json_object_has_value(merged, "additionalProperties"));
       ASSERT_EQ(0, json_object_get_boolean(merged, "additionalProperties"));
@@ -539,13 +592,13 @@ TEST test_schema_allof_keyword_merge(void) {
       JSON_Object *pattern_props =
           json_object_get_object(merged, "patternProperties");
       ASSERT(pattern_props != NULL);
-      JSON_Object *pat_schema = json_object_get_object(pattern_props, "^x-");
+      pat_schema = json_object_get_object(pattern_props, "^x-");
       ASSERT(pat_schema != NULL);
       ASSERT_STR_EQ("string", json_object_get_string(pat_schema, "type"));
 
-      JSON_Object *props = json_object_get_object(merged, "properties");
+      props = json_object_get_object(merged, "properties");
       ASSERT(props != NULL);
-      JSON_Object *id_prop = json_object_get_object(props, "id");
+      id_prop = json_object_get_object(props, "id");
       ASSERT(id_prop != NULL);
       ASSERT(json_object_has_value(id_prop, "x-alpha"));
       ASSERT_EQ(1, json_object_get_boolean(id_prop, "x-alpha"));
@@ -562,6 +615,8 @@ TEST test_schema_allof_keyword_merge(void) {
 }
 
 TEST test_schema_type_union_roundtrip(void) {
+  JSON_Value *val;
+  JSON_Object *obj;
   struct StructField *_ast_struct_fields_get_15;
   struct StructField *_ast_struct_fields_get_16;
   struct StructField *_ast_struct_fields_get_17;
@@ -575,9 +630,9 @@ TEST test_schema_type_union_roundtrip(void) {
       "}"
       "}";
 
-  JSON_Value *val = json_parse_string(schema);
+  val = json_parse_string(schema);
   ASSERT(val != NULL);
-  JSON_Object *obj = json_value_get_object(val);
+  obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
   struct StructFields sf;
@@ -617,19 +672,25 @@ TEST test_schema_type_union_roundtrip(void) {
   }
 
   {
-    JSON_Value *schemas_val = json_value_init_object();
-    JSON_Object *schemas_obj = json_value_get_object(schemas_val);
+    JSON_Value *schemas_val;
+    JSON_Object *schemas_obj;
+    JSON_Object *union_obj;
+    JSON_Object *props;
+    schemas_val = json_value_init_object();
+    schemas_obj = json_value_get_object(schemas_val);
     ASSERT_EQ(0, write_struct_to_json_schema(schemas_obj, "Union", &sf));
 
-    JSON_Object *union_obj = json_object_get_object(schemas_obj, "Union");
+    union_obj = json_object_get_object(schemas_obj, "Union");
     ASSERT(union_obj != NULL);
-    JSON_Object *props = json_object_get_object(union_obj, "properties");
+    props = json_object_get_object(union_obj, "properties");
     ASSERT(props != NULL);
 
     {
-      JSON_Object *name_prop = json_object_get_object(props, "name");
+      JSON_Object *name_prop;
+      JSON_Array *type_arr;
+      name_prop = json_object_get_object(props, "name");
       ASSERT(name_prop != NULL);
-      JSON_Array *type_arr = json_object_get_array(name_prop, "type");
+      type_arr = json_object_get_array(name_prop, "type");
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
@@ -637,9 +698,11 @@ TEST test_schema_type_union_roundtrip(void) {
     }
 
     {
-      JSON_Object *age_prop = json_object_get_object(props, "age");
+      JSON_Object *age_prop;
+      JSON_Array *type_arr;
+      age_prop = json_object_get_object(props, "age");
       ASSERT(age_prop != NULL);
-      JSON_Array *type_arr = json_object_get_array(age_prop, "type");
+      type_arr = json_object_get_array(age_prop, "type");
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("integer", json_array_get_string(type_arr, 0));
@@ -647,11 +710,14 @@ TEST test_schema_type_union_roundtrip(void) {
     }
 
     {
-      JSON_Object *tags_prop = json_object_get_object(props, "tags");
+      JSON_Object *tags_prop;
+      JSON_Object *items;
+      JSON_Array *type_arr;
+      tags_prop = json_object_get_object(props, "tags");
       ASSERT(tags_prop != NULL);
-      JSON_Object *items = json_object_get_object(tags_prop, "items");
+      items = json_object_get_object(tags_prop, "items");
       ASSERT(items != NULL);
-      JSON_Array *type_arr = json_object_get_array(items, "type");
+      type_arr = json_object_get_array(items, "type");
       ASSERT(type_arr != NULL);
       ASSERT_EQ(2, (int)json_array_get_count(type_arr));
       ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));

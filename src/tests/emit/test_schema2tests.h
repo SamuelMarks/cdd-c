@@ -42,7 +42,7 @@ TEST test_schema2tests_success(void) {
   int rc_main;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  errno_t err = fopen_s(&f, "min_schema.json", "w, ccs=UTF-8");
+  errno_t err = fopen_s(&f, "min_schema.json", "w");
   if (err != 0 || f == NULL) {
     fprintf(stderr, "Failed to open header file %s\n", "min_schema.json");
     FAIL();

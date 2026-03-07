@@ -10,7 +10,7 @@ TEST test_simple_cleanup_and_null(void) {
   Foo_cleanup(NULL);
 
   {
-    struct Haz *hz = malloc(sizeof(*hz));
+    struct Haz * hz = (struct Haz *)malloc(sizeof(*hz));
     if (hz) {
       hz->bzr = "hello";
       Haz_cleanup(hz);
@@ -18,11 +18,11 @@ TEST test_simple_cleanup_and_null(void) {
   }
 
   {
-    struct Foo *foo = calloc(sizeof(*foo), 1);
+    struct Foo *foo = (struct Foo *)calloc(sizeof(*foo), 1);
     if (foo) {
       foo->bar = NULL;
       foo->can = 0;
-      foo->haz = calloc(sizeof(*foo->haz), 1);
+      foo->haz = (struct Haz *)calloc(sizeof(*foo->haz), 1);
       if (foo->haz)
         Foo_cleanup(foo); /* This will free haz and foo */
       else
@@ -34,7 +34,7 @@ TEST test_simple_cleanup_and_null(void) {
 }
 
 TEST test_foo_cleanup_with_null_haz(void) {
-  struct Foo *foo = calloc(sizeof(*foo), 1);
+  struct Foo *foo = (struct Foo *)calloc(sizeof(*foo), 1);
   if (foo) {
     foo->bar = NULL;
     foo->can = 0;

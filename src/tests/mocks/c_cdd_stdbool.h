@@ -19,8 +19,10 @@
 
 #include <stdlib.h>
 
+#ifndef __cplusplus
 typedef size_t bool;
 #define true 1
 #define false (!true)
+#endif
 
 #endif /* !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) */

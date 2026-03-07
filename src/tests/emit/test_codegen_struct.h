@@ -42,7 +42,7 @@ TEST test_cleanup_generation(void) {
   content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
-  ASSERT(strstr(content, "void User_cleanup(struct User *const obj)"));
+  ASSERT(strstr(content, "void User_cleanup(struct User *obj)"));
   ASSERT(strstr(content, "if (!obj) return;"));
   ASSERT(strstr(content, "if (obj->name) free((void*)obj->name);"));
   ASSERT(strstr(content, "free(obj);"));
@@ -101,7 +101,11 @@ TEST test_deepcopy_generation(void) {
 
   ASSERT(strstr(content, "memcpy(*dest, src, sizeof(struct User));"));
   ASSERT(strstr(content, "if (src->name) {"));
+#if defined(_MSC_VER)
+  ASSERT(strstr(content, "(*dest)->name = _strdup(src->name);"));
+#else
   ASSERT(strstr(content, "(*dest)->name = strdup(src->name);"));
+#endif
 
   free(content);
   struct_fields_free(&sf);

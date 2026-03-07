@@ -16,6 +16,7 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
+#pragma warning(disable: 4551)
 
 TEST test_write_union_to_json(void) {
   struct StructFields sf;
@@ -34,7 +35,7 @@ TEST test_write_union_to_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = malloc(sz + 1);
+  content = (char *)malloc(sz + 1);
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -69,7 +70,7 @@ TEST test_write_union_from_json_object(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = malloc(sz + 1);
+  content = (char *)malloc(sz + 1);
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -102,7 +103,7 @@ TEST test_write_union_from_json(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = malloc(sz + 1);
+  content = (char *)malloc(sz + 1);
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 
@@ -133,7 +134,7 @@ TEST test_write_union_cleanup(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = malloc(sz + 1);
+  content = (char *)malloc(sz + 1);
   fread(content, 1, sz, tmp);
   content[sz] = 0;
 

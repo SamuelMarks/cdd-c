@@ -12,6 +12,9 @@
 #define _ARM_
 #endif
 #include <string.h>
+#if _MSC_VER < 1900
+#define snprintf _snprintf
+#endif
 #endif
 
 #if defined(_MSC_VER)
