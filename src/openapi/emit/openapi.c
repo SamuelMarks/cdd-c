@@ -302,7 +302,7 @@ static int xml_node_type_to_str(enum OpenAPI_XmlNodeType t, char **_out_val) {
   }
 }
 
-static int header_name_is_content_type(const char *const name) {
+static int header_name_is_content_type(const char *name) {
   bool _ast_iequal_0 = false;
   if (!name)
     return 0;
@@ -3180,7 +3180,7 @@ static int write_components(JSON_Object *root_obj,
   return 0;
 }
 
-int openapi_write_spec_to_json(const struct OpenAPI_Spec *const spec,
+int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
                                char **json_out) {
   char *_ast_strdup_4 = NULL;
   JSON_Value *root_val;

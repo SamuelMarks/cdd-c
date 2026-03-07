@@ -13,7 +13,7 @@ TEST test_orchestrator_simple_propagation(void) {
      B calls A.
      Refactor: A -> int, B -> int.
   */
-  const char *input = "void A() { char *p = malloc(1); *p=0; }\n"
+  const char *input = "void A() { char * p = (char *)malloc(1); *p=0; }\n"
                       "void B() { A(); }";
 
   char *out = NULL;

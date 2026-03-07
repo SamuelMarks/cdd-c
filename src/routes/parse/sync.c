@@ -139,7 +139,7 @@ static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
   if (strcmp(p->type, "string") == 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    sprintf_s(buf, buf_size,
+    sprintf_s(buf, 512,
 #else
     sprintf(buf,
 #endif
@@ -150,7 +150,7 @@ static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
   } else if (strcmp(p->type, "integer") == 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    sprintf_s(buf, buf_size,
+    sprintf_s(buf, 512,
 #else
     sprintf(buf,
 #endif
@@ -162,7 +162,7 @@ static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
   } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    sprintf_s(buf, buf_size, "  /* Header Parameter: %s (Type unhandled in sync) */\n",
+    sprintf_s(buf, 512, "  /* Header Parameter: %s (Type unhandled in sync) */\n",
             p->name);
 #else
     sprintf(buf, "  /* Header Parameter: %s (Type unhandled in sync) */\n",
@@ -613,7 +613,11 @@ static int apply_updates(const char *filename,
 #if defined(_MSC_VER)
     fopen_s(&f, filename, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, filename, "w");
+#else
     f = fopen(filename, "w");
+#endif
 #endif
 #endif
     if (f) {
@@ -629,9 +633,9 @@ static int apply_updates(const char *filename,
   return rc;
 }
 
-int api_sync_file(const char *const filename,
-                  const struct OpenAPI_Spec *const spec,
-                  const struct ApiSyncConfig *const config) {
+int api_sync_file(const char *filename,
+                  const struct OpenAPI_Spec *spec,
+                  const struct ApiSyncConfig *config) {
   char *content = NULL;
   size_t sz = 0;
   struct TokenList *tokens = NULL;

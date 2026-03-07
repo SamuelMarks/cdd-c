@@ -54,23 +54,23 @@
   } while (0)
 
 /* Write Header Guard Start */
-static int print_header_guard(FILE *const hfile, const char *const basename) {
+static int print_header_guard(FILE *hfile, const char *basename) {
   CHECK_IO(fprintf(hfile, "#ifndef %s_H\n", basename));
   CHECK_IO(fprintf(hfile, "#define %s_H\n\n", basename));
   return 0;
 }
 
 /* Write Header Guard End */
-static int print_header_guard_end(FILE *const hfile,
-                                  const char *const basename) {
+static int print_header_guard_end(FILE *hfile,
+                                  const char *basename) {
   CHECK_IO(fprintf(hfile, "#endif /* !%s_H */\n", basename));
   return 0;
 }
 
-static int print_enum_declaration(FILE *const hfile,
-                                  const char *const enum_name,
-                                  const struct StructFields *const sf,
-                                  const struct CodegenConfig *const config) {
+static int print_enum_declaration(FILE *hfile,
+                                  const char *enum_name,
+                                  const struct StructFields *sf,
+                                  const struct CodegenConfig *config) {
   size_t i;
   if (!hfile || !enum_name || !sf)
     return EINVAL;
@@ -100,10 +100,10 @@ static int print_enum_declaration(FILE *const hfile,
   return 0;
 }
 
-static int print_union_declaration(FILE *const hfile,
-                                   const char *const union_name,
-                                   const struct StructFields *const sf,
-                                   const struct CodegenConfig *const config) {
+static int print_union_declaration(FILE *hfile,
+                                   const char *union_name,
+                                   const struct StructFields *sf,
+                                   const struct CodegenConfig *config) {
   char *_ast_get_type_from_ref_0;
   char *_ast_get_type_from_ref_1;
   char *_ast_get_type_from_ref_2;
@@ -189,10 +189,10 @@ static int print_union_declaration(FILE *const hfile,
   return 0;
 }
 
-static int print_struct_declaration(FILE *const hfile,
-                                    const char *const struct_name,
-                                    const struct StructFields *const sf,
-                                    const struct CodegenConfig *const config) {
+static int print_struct_declaration(FILE *hfile,
+                                    const char *struct_name,
+                                    const struct StructFields *sf,
+                                    const struct CodegenConfig *config) {
   char *_ast_get_type_from_ref_3;
   char *_ast_get_type_from_ref_4;
   char *_ast_get_type_from_ref_5;
@@ -295,7 +295,11 @@ static int generate_header(const char *prefix, const char *basename,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, fname, "w");
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
 #endif
   if (!fp)
@@ -415,7 +419,11 @@ static int generate_source(const char *prefix, const char *basename,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, fname, "w");
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
 #endif
   if (!fp)

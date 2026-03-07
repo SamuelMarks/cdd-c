@@ -120,11 +120,11 @@ TEST test_wininet_stubs(void) {
 
   ASSERT_EQ(ENOTSUP, http_wininet_config_apply(NULL, &cfg));
   ASSERT_EQ(ENOTSUP, http_wininet_send(NULL, &req, &res));
-#else
-  SKIPm("WinINET is supported on this platform");
-#endif
   PASS();
-}
+  #else
+  SKIPm("WinInet is supported on this platform");
+  #endif
+  }
 
 SUITE(http_wininet_suite) {
   RUN_TEST(test_wininet_stubs);

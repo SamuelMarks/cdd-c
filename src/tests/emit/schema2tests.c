@@ -260,7 +260,7 @@ int jsonschema2tests_main(int argc, char **argv) {
     {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      errno_t err = fopen_s(&f, output_file, "w, ccs=UTF-8");
+      errno_t err = fopen_s(&f, output_file, "w");
       if (err != 0 || f == NULL) {
         fprintf(stderr, "Failed to open output file %s\n", output_file);
         json_value_free(root_val);
@@ -470,7 +470,7 @@ int jsonschema2tests_main(int argc, char **argv) {
         FILE *f0;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-        errno_t err = fopen_s(&f0, p, "w, ccs=UTF-8");
+        errno_t err = fopen_s(&f0, p, "w");
         if (err != 0 || f0 == NULL) {
           fprintf(stderr, "Failed to open output file %s\n", p);
           free(p);
@@ -499,7 +499,8 @@ int jsonschema2tests_main(int argc, char **argv) {
             fprintf(f0,
                     "#include <greatest.h>\n"
                     "#include \"%s\"\n\n"
-                    "GREATEST_MAIN_DEFS();\n\n"
+                    "GREATEST_MAIN_DEFS();\n"
+"#pragma warning(disable: 4551)\n\n"
                     "int main(int argc, char **argv) {\n"
                     "  GREATEST_MAIN_BEGIN();\n"
                     "  RUN_SUITE(enums_suite);\n"

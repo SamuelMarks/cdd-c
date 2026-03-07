@@ -28,7 +28,7 @@ static char *generate_eq_code(const char *struct_name,
   rewind(tmp);
 
   if (sz > 0) {
-    content = calloc(1, sz + 1);
+    content = (char *)calloc(1, sz + 1);
     fread(content, 1, sz, tmp);
   } else {
     content = strdup("");

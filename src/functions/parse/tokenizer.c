@@ -164,7 +164,7 @@ static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 
 /* --- Token List Setup --- */
 
-static int token_list_add(struct TokenList *const tl, const enum TokenKind kind,
+static int token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
                           const uint8_t *start, const size_t length) {
 
@@ -744,7 +744,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
 /* --- Main Public API --- */
 
-int token_find_next(const struct TokenList *const list, size_t start_idx,
+int token_find_next(const struct TokenList *list, size_t start_idx,
 
                     size_t end_idx, const enum TokenKind kind,
                     size_t *_out_val) {
@@ -769,7 +769,7 @@ int token_find_next(const struct TokenList *const list, size_t start_idx,
   }
 }
 
-void free_token_list(struct TokenList *const tl) {
+void free_token_list(struct TokenList *tl) {
 
   if (!tl)
 
@@ -785,9 +785,9 @@ void free_token_list(struct TokenList *const tl) {
   free(tl);
 }
 
-int token_matches_string(const struct Token *const tok,
+int token_matches_string(const struct Token *tok,
 
-                         const char *const match, bool *_out_val) {
+                         const char *match, bool *_out_val) {
 
   size_t m_len;
 

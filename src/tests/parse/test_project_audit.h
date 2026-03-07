@@ -41,8 +41,8 @@ TEST test_audit_single_file(void) {
   /* Line 1: checked calloc */
   /* Line 2: unchecked malloc */
   write_to_file(f_unchecked,
-                "void f() { char *q = calloc(1,1); if (!q) return; \n"
-                " char *p = malloc(1); *p = 0; }");
+                "void f() { char * q = (char *)calloc(1,1); if (!q) return; \n"
+                " char * p = (char *)malloc(1); *p = 0; }");
 
   audit_stats_init(&stats);
   rc = audit_project(root, &stats);
@@ -81,7 +81,7 @@ TEST test_audit_ignored_files(void) {
 
   asprintf(&f_h, "%s%signored.h", root, PATH_SEP);
   /* Header file logic currently ignored by audit_project default filter */
-  write_to_file(f_h, "void f() { char *p = malloc(1); }");
+  write_to_file(f_h, "void f() { char * p = (char *)malloc(1); }");
 
   audit_stats_init(&stats);
   audit_project(root, &stats);
@@ -150,7 +150,7 @@ TEST test_audit_json_output(void) {
   /* Manually inject a violation to test JSON serialization mechanics
    * independent of FS */
   /* Replicating add_violation logic manually or assume init is clean */
-  stats.violations.items = malloc(2 * sizeof(struct AuditViolation));
+  stats.violations.items = (struct AuditViolation *)malloc(2 * sizeof(struct AuditViolation));
   stats.violations.capacity = 2;
   stats.violations.size = 2;
   stats.violations.items[0].file_path = strdup("test.c");

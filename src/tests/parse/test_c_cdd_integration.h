@@ -29,7 +29,7 @@
 TEST test_integration_full_pipeline(void) {
   const char *raw_source = "#include <stdlib.h>\n"
                            "void foo(void) {\n"
-                           "  char *p = malloc(100);\n"
+                           "  char * p = (char *)malloc(100);\n"
                            "  *p = 0;\n"
                            "}\n";
 
@@ -79,7 +79,7 @@ TEST test_integration_full_pipeline(void) {
 TEST test_integration_fix_file_io(void) {
   const char *in_file = "integ_in.c";
   const char *out_file = "integ_out.c";
-  const char *content = "void f() { int *x = malloc(4); }";
+  const char *content = "void f() { int * x = (int *)malloc(4); }";
   char *read_back = NULL;
   size_t sz;
   int rc;
@@ -136,11 +136,11 @@ TEST test_integration_recursive_fix(void) {
     /* File in root */
     asprintf(&f1, "%s%sa.c", root, PATH_SEP);
     /* Must provide variable 'p' for safety check to attach to */
-    write_to_file(f1, "void a() { void *p = malloc(1); }");
+    write_to_file(f1, "void a() { void * p = (void *)malloc(1); }");
 
     /* File in sub */
     asprintf(&f2, "%s%sb.c", sub, PATH_SEP);
-    write_to_file(f2, "void b() { void *p = malloc(1); }");
+    write_to_file(f2, "void b() { void * p = (void *)malloc(1); }");
 
     /* Call fix */
     {
@@ -183,7 +183,7 @@ TEST test_integration_recursive_fix(void) {
 TEST test_integration_fix_file_in_place(void) {
   const char *in_file = "inplace.c";
   /* Must provide variable 'p' for safety check to attach to */
-  const char *content = "void f() { void *p = malloc(1); }";
+  const char *content = "void f() { void * p = (void *)malloc(1); }";
   char *read_back = NULL;
   size_t sz;
   int rc;

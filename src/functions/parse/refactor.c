@@ -21,7 +21,7 @@
 #include <errno.h>
 #endif
 
-int refactor_context_init(struct RefactorContext *const ctx) {
+int refactor_context_init(struct RefactorContext *ctx) {
   if (!ctx)
     return EINVAL;
   ctx->funcs = NULL;
@@ -29,7 +29,7 @@ int refactor_context_init(struct RefactorContext *const ctx) {
   return 0;
 }
 
-void refactor_context_free(struct RefactorContext *const ctx) {
+void refactor_context_free(struct RefactorContext *ctx) {
   /* Note: func names and return types are shallow copies/refs in this design,
      owned by the caller (usually orchestrator). We only free the array. */
   if (!ctx)
@@ -41,10 +41,10 @@ void refactor_context_free(struct RefactorContext *const ctx) {
   ctx->func_count = 0;
 }
 
-int refactor_context_add_function(struct RefactorContext *const ctx,
-                                  const char *const name,
+int refactor_context_add_function(struct RefactorContext *ctx,
+                                  const char *name,
                                   const enum RefactorType type,
-                                  const char *const return_type) {
+                                  const char *return_type) {
   struct RefactoredFunction *new_alloc;
   if (!ctx || !name)
     return EINVAL;
@@ -63,8 +63,8 @@ int refactor_context_add_function(struct RefactorContext *const ctx,
   return 0;
 }
 
-int apply_refactoring_to_string(const struct RefactorContext *const ctx,
-                                const char *const source_code,
+int apply_refactoring_to_string(const struct RefactorContext *ctx,
+                                const char *source_code,
                                 char **const out_code) {
   struct TokenList *tokens = NULL;
   struct AllocationSiteList allocs = {0};

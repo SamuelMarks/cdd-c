@@ -29,7 +29,7 @@ static void free_string_array(char **arr, size_t n) {
   free(arr);
 }
 
-static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+static int copy_string_array(char ***dst, size_t *dst_count, char **src,
                              size_t src_count) {
   char *_ast_strdup_0 = NULL;
   size_t i;
@@ -169,8 +169,8 @@ static int copy_struct_fields(const struct StructFields *src,
 
 /* --- Core Logic --- */
 
-int c2openapi_register_types(struct OpenAPI_Spec *const spec,
-                             const struct TypeDefList *const types) {
+int c2openapi_register_types(struct OpenAPI_Spec *spec,
+                             const struct TypeDefList *types) {
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
   size_t i;

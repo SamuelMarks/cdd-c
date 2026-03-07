@@ -42,7 +42,7 @@ static int parse_any_field(const JSON_Object *obj, const char *key,
 static int parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
                            size_t *out_count);
 static int collect_schema_extras(const JSON_Object *obj,
-                                 const char *const *skip_keys,
+                                 const char **skip_keys,
                                  size_t skip_count, char **out_json);
 static int collect_extensions(const JSON_Object *obj, char **out_json);
 static int url_has_query_or_fragment(const char *url);
@@ -141,7 +141,7 @@ static int parse_schema_constraints(const JSON_Object *schema,
 static int parse_string_enum_array(const JSON_Array *arr, char ***out,
                                    size_t *out_count);
 static void free_string_array(char **arr, size_t n);
-static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+static int copy_string_array(char ***dst, size_t *dst_count, char **src,
                              size_t src_count);
 static int media_type_is_json(const char *name);
 static int parse_example_object(const JSON_Object *ex_obj, const char *name,
@@ -346,7 +346,7 @@ static void free_servers_array(struct OpenAPI_Server *servers,
 
 /* --- Lifecycle Implementation --- */
 
-void openapi_spec_init(struct OpenAPI_Spec *const spec) {
+void openapi_spec_init(struct OpenAPI_Spec *spec) {
   if (spec) {
     memset(spec, 0, sizeof(struct OpenAPI_Spec));
     spec->openapi_version = NULL;
@@ -1106,7 +1106,7 @@ static void free_operation(struct OpenAPI_Operation *op) {
   }
 }
 
-void openapi_spec_free(struct OpenAPI_Spec *const spec) {
+void openapi_spec_free(struct OpenAPI_Spec *spec) {
   size_t i, j;
   (void)j;
   if (!spec)
@@ -1473,7 +1473,7 @@ void openapi_spec_free(struct OpenAPI_Spec *const spec) {
 
 /* --- Parsing Helpers --- */
 
-static int parse_verb(const char *const v, enum OpenAPI_Verb *_out_val) {
+static int parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
   if (strcmp(v, "get") == 0) {
     *_out_val = OA_VERB_GET;
     return 0;
@@ -1516,7 +1516,7 @@ static int parse_verb(const char *const v, enum OpenAPI_Verb *_out_val) {
   }
 }
 
-static int is_fixed_operation_method(const char *const method) {
+static int is_fixed_operation_method(const char *method) {
   bool _ast_iequal_0 = false;
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
@@ -1541,7 +1541,7 @@ static int is_fixed_operation_method(const char *const method) {
          (c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8);
 }
 
-static int parse_param_in(const char *const in,
+static int parse_param_in(const char *in,
                           enum OpenAPI_ParamIn *_out_val) {
   if (strcmp(in, "path") == 0) {
     *_out_val = OA_PARAM_IN_PATH;
@@ -1569,7 +1569,7 @@ static int parse_param_in(const char *const in,
   }
 }
 
-static int parse_param_style(const char *const s,
+static int parse_param_style(const char *s,
                              enum OpenAPI_Style *_out_val) {
   if (!s) {
     *_out_val = OA_STYLE_UNKNOWN;
@@ -1613,14 +1613,14 @@ static int parse_param_style(const char *const s,
   }
 }
 
-static int param_type_is_primitive(const char *const type) {
+static int param_type_is_primitive(const char *type) {
   if (!type)
     return 0;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
 
-static int param_type_is_object_like(const struct OpenAPI_Parameter *const p) {
+static int param_type_is_object_like(const struct OpenAPI_Parameter *p) {
   if (!p || !p->type)
     return 0;
   if (strcmp(p->type, "array") == 0)
@@ -1628,7 +1628,7 @@ static int param_type_is_object_like(const struct OpenAPI_Parameter *const p) {
   return !param_type_is_primitive(p->type);
 }
 
-static int validate_parameter_style(const struct OpenAPI_Parameter *const p,
+static int validate_parameter_style(const struct OpenAPI_Parameter *p,
                                     const int has_content) {
   enum OpenAPI_Style style;
   if (!p)
@@ -1674,7 +1674,7 @@ static int validate_parameter_style(const struct OpenAPI_Parameter *const p,
   return 0;
 }
 
-static int component_key_is_valid(const char *const name) {
+static int component_key_is_valid(const char *name) {
   size_t i;
   if (!name || !*name)
     return 0;
@@ -1686,7 +1686,7 @@ static int component_key_is_valid(const char *const name) {
   return 1;
 }
 
-static int validate_component_key_map(const JSON_Object *const obj) {
+static int validate_component_key_map(const JSON_Object *obj) {
   size_t i, count;
   if (!obj)
     return 0;
@@ -1699,7 +1699,7 @@ static int validate_component_key_map(const JSON_Object *const obj) {
   return 0;
 }
 
-static int header_name_is_content_type(const char *const name) {
+static int header_name_is_content_type(const char *name) {
   bool _ast_iequal_9 = false;
   if (!name)
     return 0;
@@ -1721,7 +1721,7 @@ static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
           _ast_iequal_12);
 }
 
-static int parse_security_type(const char *const type,
+static int parse_security_type(const char *type,
                                enum OpenAPI_SecurityType *_out_val) {
   if (!type) {
     *_out_val = OA_SEC_UNKNOWN;
@@ -1753,7 +1753,7 @@ static int parse_security_type(const char *const type,
   }
 }
 
-static int parse_security_in(const char *const in,
+static int parse_security_in(const char *in,
                              enum OpenAPI_SecurityIn *_out_val) {
   if (!in) {
     *_out_val = OA_SEC_IN_UNKNOWN;
@@ -1777,7 +1777,7 @@ static int parse_security_in(const char *const in,
   }
 }
 
-static int parse_oauth_flow_type(const char *const flow,
+static int parse_oauth_flow_type(const char *flow,
                                  enum OpenAPI_OAuthFlowType *_out_val) {
   if (!flow) {
     *_out_val = OA_OAUTH_FLOW_UNKNOWN;
@@ -1809,7 +1809,7 @@ static int parse_oauth_flow_type(const char *const flow,
   }
 }
 
-static int parse_xml_node_type(const char *const node_type,
+static int parse_xml_node_type(const char *node_type,
                                enum OpenAPI_XmlNodeType *_out_val) {
   if (!node_type) {
     *_out_val = OA_XML_NODE_UNSET;
@@ -1841,8 +1841,8 @@ static int parse_xml_node_type(const char *const node_type,
   }
 }
 
-static int parse_any_value(const JSON_Value *const val,
-                           struct OpenAPI_Any *const out) {
+static int parse_any_value(const JSON_Value *val,
+                           struct OpenAPI_Any *out) {
   char *_ast_strdup_13 = NULL;
   char *_ast_strdup_14 = NULL;
   JSON_Value_Type t;
@@ -1892,8 +1892,8 @@ static int parse_any_value(const JSON_Value *const val,
   return 0;
 }
 
-static int parse_any_field(const JSON_Object *const obj, const char *const key,
-                           struct OpenAPI_Any *const out, int *const out_set) {
+static int parse_any_field(const JSON_Object *obj, const char *key,
+                           struct OpenAPI_Any *out, int *out_set) {
   const JSON_Value *val;
   if (!obj || !key || !out || !out_set)
     return 0;
@@ -1911,9 +1911,9 @@ static int parse_any_field(const JSON_Object *const obj, const char *const key,
   return 0;
 }
 
-static int parse_any_array(const JSON_Array *const arr,
+static int parse_any_array(const JSON_Array *arr,
                            struct OpenAPI_Any **const out,
-                           size_t *const out_count) {
+                           size_t *out_count) {
   size_t i, count;
 
   if (!out || !out_count)
@@ -1948,7 +1948,7 @@ static int parse_any_array(const JSON_Array *const arr,
   return 0;
 }
 
-static int key_in_list(const char *key, const char *const *list, size_t count) {
+static int key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
   if (!key || !list)
     return 0;
@@ -1985,7 +1985,7 @@ static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
 }
 
 static int collect_schema_extras(const JSON_Object *obj,
-                                 const char *const *skip_keys,
+                                 const char **skip_keys,
                                  size_t skip_count, char **out_json) {
   JSON_Value *_ast_clone_json_value_0;
   char *_ast_strdup_15 = NULL;
@@ -2132,8 +2132,8 @@ static int object_has_example_and_examples(const JSON_Object *obj) {
   return 0;
 }
 
-static int parse_schema_type(const JSON_Object *const schema,
-                             int *const out_nullable, char **_out_val) {
+static int parse_schema_type(const JSON_Object *schema,
+                             int *out_nullable, char **_out_val) {
   const char *type;
   const JSON_Array *types;
   size_t i, count;
@@ -2184,8 +2184,8 @@ static int parse_schema_type(const JSON_Object *const schema,
 }
 
 static int
-parse_schema_constraints(const JSON_Object *const schema,
-                         struct SchemaConstraintTarget *const target) {
+parse_schema_constraints(const JSON_Object *schema,
+                         struct SchemaConstraintTarget *target) {
   char *_ast_strdup_17 = NULL;
   if (!schema || !target)
     return 0;
@@ -2284,7 +2284,7 @@ parse_schema_constraints(const JSON_Object *const schema,
   return 0;
 }
 
-static int parse_string_enum_array(const JSON_Array *const arr, char ***out,
+static int parse_string_enum_array(const JSON_Array *arr, char ***out,
                                    size_t *out_count) {
   char *_ast_strdup_18 = NULL;
   size_t i, count;
@@ -2340,7 +2340,7 @@ static void free_string_array(char **arr, size_t n) {
   free(arr);
 }
 
-static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+static int copy_string_array(char ***dst, size_t *dst_count, char **src,
                              size_t src_count) {
   char *_ast_strdup_19 = NULL;
   size_t i;
@@ -2526,10 +2526,10 @@ static int find_component_example(const struct OpenAPI_Spec *spec,
   }
 }
 
-static int parse_example_object(const JSON_Object *const ex_obj,
-                                const char *const name,
-                                struct OpenAPI_Example *const out,
-                                const struct OpenAPI_Spec *const spec,
+static int parse_example_object(const JSON_Object *ex_obj,
+                                const char *name,
+                                struct OpenAPI_Example *out,
+                                const struct OpenAPI_Spec *spec,
                                 const int resolve_refs) {
   struct OpenAPI_Example *_ast_find_component_example_5;
   char *_ast_strdup_28 = NULL;
@@ -2625,10 +2625,10 @@ static int parse_example_object(const JSON_Object *const ex_obj,
   return 0;
 }
 
-static int parse_examples_object(const JSON_Object *const examples,
+static int parse_examples_object(const JSON_Object *examples,
                                  struct OpenAPI_Example **out,
                                  size_t *out_count,
-                                 const struct OpenAPI_Spec *const spec,
+                                 const struct OpenAPI_Spec *spec,
                                  const int resolve_refs) {
   size_t count, i;
 
@@ -2667,12 +2667,12 @@ static int parse_examples_object(const JSON_Object *const examples,
   return 0;
 }
 
-static int parse_media_examples(const JSON_Object *const media_obj,
-                                struct OpenAPI_Any *const example,
-                                int *const example_set,
+static int parse_media_examples(const JSON_Object *media_obj,
+                                struct OpenAPI_Any *example,
+                                int *example_set,
                                 struct OpenAPI_Example **examples,
-                                size_t *const n_examples,
-                                const struct OpenAPI_Spec *const spec,
+                                size_t *n_examples,
+                                const struct OpenAPI_Spec *spec,
                                 const int resolve_refs) {
   const JSON_Object *examples_obj;
 
@@ -2689,7 +2689,7 @@ static int parse_media_examples(const JSON_Object *const media_obj,
   return parse_any_field(media_obj, "example", example, example_set);
 }
 
-static int parse_oauth_scopes(const JSON_Object *const scopes_obj,
+static int parse_oauth_scopes(const JSON_Object *scopes_obj,
                               struct OpenAPI_OAuthScope **out,
                               size_t *out_count) {
   char *_ast_strdup_34 = NULL;
@@ -2727,8 +2727,8 @@ static int parse_oauth_scopes(const JSON_Object *const scopes_obj,
   return 0;
 }
 
-static int parse_oauth_flows(const JSON_Object *const flows_obj,
-                             struct OpenAPI_SecurityScheme *const out) {
+static int parse_oauth_flows(const JSON_Object *flows_obj,
+                             struct OpenAPI_SecurityScheme *out) {
   enum OpenAPI_OAuthFlowType _ast_parse_oauth_flow_type_6;
   char *_ast_strdup_36 = NULL;
   char *_ast_strdup_37 = NULL;
@@ -5641,8 +5641,8 @@ static int copy_path_fields(struct OpenAPI_Path *dst,
   return 0;
 }
 
-static int parse_info(const JSON_Object *const root_obj,
-                      struct OpenAPI_Spec *const out) {
+static int parse_info(const JSON_Object *root_obj,
+                      struct OpenAPI_Spec *out) {
   char *_ast_strdup_146 = NULL;
   char *_ast_strdup_147 = NULL;
   char *_ast_strdup_148 = NULL;
@@ -5774,8 +5774,8 @@ static int parse_info(const JSON_Object *const root_obj,
   return 0;
 }
 
-static int parse_external_docs(const JSON_Object *const obj,
-                               struct OpenAPI_ExternalDocs *const out) {
+static int parse_external_docs(const JSON_Object *obj,
+                               struct OpenAPI_ExternalDocs *out) {
   char *_ast_strdup_157 = NULL;
   char *_ast_strdup_158 = NULL;
   const char *desc;
@@ -5805,8 +5805,8 @@ static int parse_external_docs(const JSON_Object *const obj,
   return 0;
 }
 
-static int parse_discriminator_object(const JSON_Object *const obj,
-                                      struct OpenAPI_Discriminator *const out) {
+static int parse_discriminator_object(const JSON_Object *obj,
+                                      struct OpenAPI_Discriminator *out) {
   char *_ast_strdup_159 = NULL;
   char *_ast_strdup_160 = NULL;
   char *_ast_strdup_161 = NULL;
@@ -5883,8 +5883,8 @@ static int parse_discriminator_object(const JSON_Object *const obj,
   return 0;
 }
 
-static int parse_xml_object(const JSON_Object *const obj,
-                            struct OpenAPI_Xml *const out) {
+static int parse_xml_object(const JSON_Object *obj,
+                            struct OpenAPI_Xml *out) {
   enum OpenAPI_XmlNodeType _ast_parse_xml_node_type_40;
   char *_ast_strdup_163 = NULL;
   char *_ast_strdup_164 = NULL;
@@ -5945,8 +5945,8 @@ static int parse_xml_object(const JSON_Object *const obj,
   return 0;
 }
 
-static int parse_tags(const JSON_Object *const root_obj,
-                      struct OpenAPI_Spec *const out) {
+static int parse_tags(const JSON_Object *root_obj,
+                      struct OpenAPI_Spec *out) {
   char *_ast_strdup_166 = NULL;
   char *_ast_strdup_167 = NULL;
   char *_ast_strdup_168 = NULL;
@@ -6188,8 +6188,8 @@ oom:
   return ENOMEM;
 }
 
-static int parse_server_object(const JSON_Object *const srv_obj,
-                               struct OpenAPI_Server *const out_srv) {
+static int parse_server_object(const JSON_Object *srv_obj,
+                               struct OpenAPI_Server *out_srv) {
   char *_ast_strdup_171 = NULL;
   char *_ast_strdup_172 = NULL;
   char *_ast_strdup_173 = NULL;
@@ -6318,8 +6318,8 @@ static int parse_server_object(const JSON_Object *const srv_obj,
   return 0;
 }
 
-static int parse_servers_array(const JSON_Object *const parent,
-                               const char *const key,
+static int parse_servers_array(const JSON_Object *parent,
+                               const char *key,
                                struct OpenAPI_Server **out_servers,
                                size_t *out_count) {
   const JSON_Array *servers;
@@ -6376,7 +6376,7 @@ static int parse_servers_array(const JSON_Object *const parent,
 }
 
 static int
-parse_security_requirements(const JSON_Array *const arr,
+parse_security_requirements(const JSON_Array *arr,
                             struct OpenAPI_SecurityRequirementSet **out,
                             size_t *out_count) {
   char *_ast_strdup_178 = NULL;
@@ -6494,8 +6494,8 @@ fail:
   return rc;
 }
 
-static int parse_security_field(const JSON_Object *const obj,
-                                const char *const key,
+static int parse_security_field(const JSON_Object *obj,
+                                const char *key,
                                 struct OpenAPI_SecurityRequirementSet **out,
                                 size_t *out_count, int *out_set) {
   const JSON_Array *arr;
@@ -6575,7 +6575,7 @@ static int schema_has_composition(const JSON_Object *schema_obj) {
          json_object_get_array(schema_obj, "oneOf");
 }
 
-static const char *const k_schema_skip_keys[] = {"$ref",
+static const char *k_schema_skip_keys[] = {"$ref",
                                                  "$dynamicRef",
                                                  "$anchor",
                                                  "$dynamicAnchor",
@@ -6618,7 +6618,7 @@ static const char *const k_schema_skip_keys[] = {"$ref",
                                                  "readOnly",
                                                  "writeOnly"};
 
-static const char *const k_items_skip_keys[] = {"$ref",
+static const char *k_items_skip_keys[] = {"$ref",
                                                 "$dynamicRef",
                                                 "$anchor",
                                                 "$dynamicAnchor",
@@ -6702,9 +6702,9 @@ static int parse_schema_ref_ptr(const JSON_Object *obj,
   return 0;
 }
 
-static int parse_schema_ref(const JSON_Object *const schema,
-                            struct OpenAPI_SchemaRef *const out,
-                            const struct OpenAPI_Spec *const spec) {
+static int parse_schema_ref(const JSON_Object *schema,
+                            struct OpenAPI_SchemaRef *out,
+                            const struct OpenAPI_Spec *spec) {
   char *_ast_parse_schema_type_41;
   struct ResolvedRefTarget _ast_resolve_ref_target_42;
   char *_ast_ref_name_from_prefix_43;
@@ -7288,8 +7288,8 @@ static int parse_schema_ref(const JSON_Object *const schema,
 }
 
 static int
-apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
-                          const struct OpenAPI_SchemaRef *const schema_ref) {
+apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
+                          const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_192 = NULL;
   char *_ast_strdup_193 = NULL;
   char *_ast_strdup_194 = NULL;
@@ -7347,8 +7347,8 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *const out_param,
 }
 
 static int
-apply_schema_ref_to_header(struct OpenAPI_Header *const out_hdr,
-                           const struct OpenAPI_SchemaRef *const schema_ref) {
+apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
+                           const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_197 = NULL;
   char *_ast_strdup_198 = NULL;
   char *_ast_strdup_199 = NULL;
@@ -7807,14 +7807,14 @@ static int build_inline_param_name(const char *param_name, char **_out_val) {
   }
 }
 
-static int parse_servers(const JSON_Object *const root_obj,
-                         struct OpenAPI_Spec *const out) {
+static int parse_servers(const JSON_Object *root_obj,
+                         struct OpenAPI_Spec *out) {
   return parse_servers_array(root_obj, "servers", &out->servers,
                              &out->n_servers);
 }
 
-static int parse_security_schemes(const JSON_Object *const components,
-                                  struct OpenAPI_Spec *const out) {
+static int parse_security_schemes(const JSON_Object *components,
+                                  struct OpenAPI_Spec *out) {
   enum OpenAPI_SecurityType _ast_parse_security_type_51;
   enum OpenAPI_SecurityIn _ast_parse_security_in_52;
   char *_ast_strdup_209 = NULL;
@@ -7958,9 +7958,9 @@ static int parse_security_schemes(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_header_object(const JSON_Object *const hdr_obj,
-                               struct OpenAPI_Header *const out_hdr,
-                               const struct OpenAPI_Spec *const spec,
+static int parse_header_object(const JSON_Object *hdr_obj,
+                               struct OpenAPI_Header *out_hdr,
+                               const struct OpenAPI_Spec *spec,
                                const int resolve_refs) {
   struct OpenAPI_Header *_ast_find_component_header_53;
   enum OpenAPI_Style _ast_parse_param_style_54;
@@ -8231,7 +8231,7 @@ static int parse_header_object(const JSON_Object *const hdr_obj,
   return 0;
 }
 
-static int parse_link_parameters(const JSON_Object *const params_obj,
+static int parse_link_parameters(const JSON_Object *params_obj,
                                  struct OpenAPI_LinkParam **out_params,
                                  size_t *out_count) {
   char *_ast_strdup_222 = NULL;
@@ -8271,9 +8271,9 @@ static int parse_link_parameters(const JSON_Object *const params_obj,
   return 0;
 }
 
-static int parse_link_object(const JSON_Object *const link_obj,
-                             struct OpenAPI_Link *const out_link,
-                             const struct OpenAPI_Spec *const spec,
+static int parse_link_object(const JSON_Object *link_obj,
+                             struct OpenAPI_Link *out_link,
+                             const struct OpenAPI_Spec *spec,
                              const int resolve_refs) {
   struct OpenAPI_Link *_ast_find_component_link_56;
   char *_ast_strdup_223 = NULL;
@@ -8401,10 +8401,10 @@ static int parse_link_object(const JSON_Object *const link_obj,
   return 0;
 }
 
-static int parse_links_object(const JSON_Object *const links,
+static int parse_links_object(const JSON_Object *links,
                               struct OpenAPI_Link **out_links,
                               size_t *out_count,
-                              const struct OpenAPI_Spec *const spec,
+                              const struct OpenAPI_Spec *spec,
                               const int resolve_refs) {
   char *_ast_strdup_230 = NULL;
   size_t i, count;
@@ -8449,10 +8449,10 @@ static int parse_links_object(const JSON_Object *const links,
   return 0;
 }
 
-static int parse_headers_object(const JSON_Object *const headers,
+static int parse_headers_object(const JSON_Object *headers,
                                 struct OpenAPI_Header **out_headers,
                                 size_t *out_count,
-                                const struct OpenAPI_Spec *const spec,
+                                const struct OpenAPI_Spec *spec,
                                 const int resolve_refs,
                                 const int ignore_content_type) {
   char *_ast_strdup_231 = NULL;
@@ -8511,9 +8511,9 @@ static int parse_headers_object(const JSON_Object *const headers,
   return 0;
 }
 
-static int parse_encoding_object(const JSON_Object *const enc_obj,
-                                 struct OpenAPI_Encoding *const out,
-                                 const struct OpenAPI_Spec *const spec,
+static int parse_encoding_object(const JSON_Object *enc_obj,
+                                 struct OpenAPI_Encoding *out,
+                                 const struct OpenAPI_Spec *spec,
                                  const int resolve_refs) {
   enum OpenAPI_Style _ast_parse_param_style_57;
   char *_ast_strdup_232 = NULL;
@@ -8619,9 +8619,9 @@ static int parse_encoding_object(const JSON_Object *const enc_obj,
   return 0;
 }
 
-static int parse_encoding_map(const JSON_Object *const enc_obj,
+static int parse_encoding_map(const JSON_Object *enc_obj,
                               struct OpenAPI_Encoding **out, size_t *out_count,
-                              const struct OpenAPI_Spec *const spec,
+                              const struct OpenAPI_Spec *spec,
                               const int resolve_refs) {
   char *_ast_strdup_233 = NULL;
   size_t i, count, valid = 0;
@@ -8668,10 +8668,10 @@ static int parse_encoding_map(const JSON_Object *const enc_obj,
   return 0;
 }
 
-static int parse_encoding_array(const JSON_Array *const enc_arr,
+static int parse_encoding_array(const JSON_Array *enc_arr,
                                 struct OpenAPI_Encoding **out,
                                 size_t *out_count,
-                                const struct OpenAPI_Spec *const spec,
+                                const struct OpenAPI_Spec *spec,
                                 const int resolve_refs) {
   size_t i, count, valid = 0;
   if (!out || !out_count)
@@ -8712,9 +8712,9 @@ static int parse_encoding_array(const JSON_Array *const enc_arr,
   return 0;
 }
 
-static int parse_parameter_object(const JSON_Object *const p_obj,
-                                  struct OpenAPI_Parameter *const out_param,
-                                  const struct OpenAPI_Spec *const spec,
+static int parse_parameter_object(const JSON_Object *p_obj,
+                                  struct OpenAPI_Parameter *out_param,
+                                  const struct OpenAPI_Spec *spec,
                                   const int resolve_refs) {
   struct OpenAPI_Parameter *_ast_find_component_parameter_58;
   enum OpenAPI_ParamIn _ast_parse_param_in_59;
@@ -9074,9 +9074,9 @@ static int parse_parameter_object(const JSON_Object *const p_obj,
   return 0;
 }
 
-static int parse_media_type_object(const JSON_Object *const media_obj,
-                                   struct OpenAPI_MediaType *const out,
-                                   const struct OpenAPI_Spec *const spec,
+static int parse_media_type_object(const JSON_Object *media_obj,
+                                   struct OpenAPI_MediaType *out,
+                                   const struct OpenAPI_Spec *spec,
                                    const int resolve_refs) {
   struct OpenAPI_MediaType *_ast_find_component_media_type_63;
   char *_ast_strdup_241 = NULL;
@@ -9385,10 +9385,10 @@ static int find_media_object_by_name(const JSON_Object *content,
   }
 }
 
-static int parse_content_object(const JSON_Object *const content,
+static int parse_content_object(const JSON_Object *content,
                                 struct OpenAPI_MediaType **out,
                                 size_t *out_count,
-                                const struct OpenAPI_Spec *const spec,
+                                const struct OpenAPI_Spec *spec,
                                 const int resolve_refs) {
   char *_ast_strdup_242 = NULL;
   size_t i, count, valid = 0;
@@ -9435,17 +9435,17 @@ static int parse_content_object(const JSON_Object *const content,
   return 0;
 }
 
-static int param_key_equals(const struct OpenAPI_Parameter *const a,
-                            const struct OpenAPI_Parameter *const b) {
+static int param_key_equals(const struct OpenAPI_Parameter *a,
+                            const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
     return 0;
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
 }
 
-static int parse_parameters_array(const JSON_Array *const arr,
+static int parse_parameters_array(const JSON_Array *arr,
                                   struct OpenAPI_Parameter **out_params,
                                   size_t *out_count,
-                                  const struct OpenAPI_Spec *const spec) {
+                                  const struct OpenAPI_Spec *spec) {
   size_t i, count, valid = 0;
   if (!out_params || !out_count)
     return 0;
@@ -9506,11 +9506,11 @@ static int parse_parameters_array(const JSON_Array *const arr,
   return 0;
 }
 
-static int parse_request_body_object(const JSON_Object *const rb_obj,
-                                     struct OpenAPI_RequestBody *const out_rb,
-                                     const struct OpenAPI_Spec *const spec,
+static int parse_request_body_object(const JSON_Object *rb_obj,
+                                     struct OpenAPI_RequestBody *out_rb,
+                                     const struct OpenAPI_Spec *spec,
                                      const int resolve_refs,
-                                     const char *const op_id) {
+                                     const char *op_id) {
   struct OpenAPI_RequestBody *_ast_find_component_request_body_68;
   JSON_Object *_ast_find_media_object_by_name_69;
   char *_ast_build_inline_request_name_70;
@@ -9822,12 +9822,12 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
   return 0;
 }
 
-static int parse_response_object(const JSON_Object *const resp_obj,
-                                 struct OpenAPI_Response *const out_resp,
-                                 const struct OpenAPI_Spec *const spec,
+static int parse_response_object(const JSON_Object *resp_obj,
+                                 struct OpenAPI_Response *out_resp,
+                                 const struct OpenAPI_Spec *spec,
                                  const int resolve_refs,
-                                 const char *const op_id,
-                                 const char *const resp_code) {
+                                 const char *op_id,
+                                 const char *resp_code) {
   struct OpenAPI_Response *_ast_find_component_response_73;
   JSON_Object *_ast_find_media_object_by_name_74;
   char *_ast_build_inline_response_name_75;
@@ -10161,9 +10161,9 @@ static int parse_responses(const JSON_Object *responses,
   return 0;
 }
 
-static int parse_callback_object(const JSON_Object *const cb_obj,
-                                 struct OpenAPI_Callback *const out_cb,
-                                 const struct OpenAPI_Spec *const spec,
+static int parse_callback_object(const JSON_Object *cb_obj,
+                                 struct OpenAPI_Callback *out_cb,
+                                 const struct OpenAPI_Spec *spec,
                                  const int resolve_refs) {
   struct OpenAPI_Callback *_ast_find_component_callback_78;
   char *_ast_strdup_258 = NULL;
@@ -10224,10 +10224,10 @@ static int parse_callback_object(const JSON_Object *const cb_obj,
                             resolve_refs);
 }
 
-static int parse_callbacks_object(const JSON_Object *const callbacks,
+static int parse_callbacks_object(const JSON_Object *callbacks,
                                   struct OpenAPI_Callback **out_callbacks,
                                   size_t *out_count,
-                                  const struct OpenAPI_Spec *const spec,
+                                  const struct OpenAPI_Spec *spec,
                                   const int resolve_refs) {
   char *_ast_strdup_261 = NULL;
   size_t i, count;
@@ -10272,12 +10272,12 @@ static int parse_callbacks_object(const JSON_Object *const callbacks,
   return 0;
 }
 
-static int parse_operation(const char *const verb_str,
-                           const JSON_Object *const op_obj,
-                           struct OpenAPI_Operation *const out_op,
-                           const struct OpenAPI_Spec *const spec,
+static int parse_operation(const char *verb_str,
+                           const JSON_Object *op_obj,
+                           struct OpenAPI_Operation *out_op,
+                           const struct OpenAPI_Spec *spec,
                            const int is_additional,
-                           const char *const route_hint) {
+                           const char *route_hint) {
   enum OpenAPI_Verb _ast_parse_verb_79;
   char *_ast_strdup_262 = NULL;
   char *_ast_strdup_263 = NULL;
@@ -10466,8 +10466,8 @@ static int parse_operation(const char *const verb_str,
   return 0;
 }
 
-static int parse_component_parameters(const JSON_Object *const components,
-                                      struct OpenAPI_Spec *const out) {
+static int parse_component_parameters(const JSON_Object *components,
+                                      struct OpenAPI_Spec *out) {
   char *_ast_strdup_270 = NULL;
   const JSON_Object *params;
   size_t count, i;
@@ -10518,8 +10518,8 @@ static int parse_component_parameters(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_responses(const JSON_Object *const components,
-                                     struct OpenAPI_Spec *const out) {
+static int parse_component_responses(const JSON_Object *components,
+                                     struct OpenAPI_Spec *out) {
   char *_ast_strdup_271 = NULL;
   const JSON_Object *responses;
   size_t count, i;
@@ -10570,8 +10570,8 @@ static int parse_component_responses(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_headers(const JSON_Object *const components,
-                                   struct OpenAPI_Spec *const out) {
+static int parse_component_headers(const JSON_Object *components,
+                                   struct OpenAPI_Spec *out) {
   char *_ast_strdup_272 = NULL;
   const JSON_Object *headers;
   size_t count, i;
@@ -10622,8 +10622,8 @@ static int parse_component_headers(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_request_bodies(const JSON_Object *const components,
-                                          struct OpenAPI_Spec *const out) {
+static int parse_component_request_bodies(const JSON_Object *components,
+                                          struct OpenAPI_Spec *out) {
   char *_ast_strdup_273 = NULL;
   const JSON_Object *bodies;
   size_t count, i;
@@ -10674,8 +10674,8 @@ static int parse_component_request_bodies(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_media_types(const JSON_Object *const components,
-                                       struct OpenAPI_Spec *const out) {
+static int parse_component_media_types(const JSON_Object *components,
+                                       struct OpenAPI_Spec *out) {
   char *_ast_strdup_274 = NULL;
   char *_ast_strdup_275 = NULL;
   const JSON_Object *media_types;
@@ -10731,8 +10731,8 @@ static int parse_component_media_types(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_examples(const JSON_Object *const components,
-                                    struct OpenAPI_Spec *const out) {
+static int parse_component_examples(const JSON_Object *components,
+                                    struct OpenAPI_Spec *out) {
   char *_ast_strdup_276 = NULL;
   const JSON_Object *examples;
   size_t count, i;
@@ -10783,8 +10783,8 @@ static int parse_component_examples(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_links(const JSON_Object *const components,
-                                 struct OpenAPI_Spec *const out) {
+static int parse_component_links(const JSON_Object *components,
+                                 struct OpenAPI_Spec *out) {
   char *_ast_strdup_277 = NULL;
   const JSON_Object *links;
   size_t count, i;
@@ -10833,8 +10833,8 @@ static int parse_component_links(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_callbacks(const JSON_Object *const components,
-                                     struct OpenAPI_Spec *const out) {
+static int parse_component_callbacks(const JSON_Object *components,
+                                     struct OpenAPI_Spec *out) {
   char *_ast_strdup_278 = NULL;
   const JSON_Object *callbacks;
   size_t count, i;
@@ -10883,8 +10883,8 @@ static int parse_component_callbacks(const JSON_Object *const components,
   return 0;
 }
 
-static int parse_component_path_items(const JSON_Object *const components,
-                                      struct OpenAPI_Spec *const out) {
+static int parse_component_path_items(const JSON_Object *components,
+                                      struct OpenAPI_Spec *out) {
   char *_ast_strdup_279 = NULL;
   const JSON_Object *path_items;
   size_t i;
@@ -11101,9 +11101,9 @@ static int parse_components(const JSON_Object *components,
   return 0;
 }
 
-static int parse_additional_operations(const JSON_Object *const path_obj,
-                                       struct OpenAPI_Path *const path,
-                                       const struct OpenAPI_Spec *const spec) {
+static int parse_additional_operations(const JSON_Object *path_obj,
+                                       struct OpenAPI_Path *path,
+                                       const struct OpenAPI_Spec *spec) {
   const JSON_Object *add_ops;
   size_t count, i;
 
@@ -11141,10 +11141,10 @@ static int parse_additional_operations(const JSON_Object *const path_obj,
   return 0;
 }
 
-static int parse_paths_object(const JSON_Object *const paths_obj,
+static int parse_paths_object(const JSON_Object *paths_obj,
                               struct OpenAPI_Path **out_paths,
                               size_t *out_count,
-                              const struct OpenAPI_Spec *const spec,
+                              const struct OpenAPI_Spec *spec,
                               int require_leading_slash, int resolve_refs) {
   struct OpenAPI_Path *_ast_find_component_path_item_80;
   char *_ast_strdup_286 = NULL;
@@ -12085,7 +12085,7 @@ cleanup:
 }
 
 static int openapi_load_from_json_internal(
-    const JSON_Value *const root, struct OpenAPI_Spec *const out,
+    const JSON_Value *root, struct OpenAPI_Spec *out,
     const char *retrieval_uri, struct OpenAPI_DocRegistry *registry) {
   char *_ast_compute_document_uri_89;
   char *_ast_compute_document_uri_90;
@@ -12357,14 +12357,14 @@ static int openapi_load_from_json_internal(
   return 0;
 }
 
-int openapi_load_from_json(const JSON_Value *const root,
-                           struct OpenAPI_Spec *const out) {
+int openapi_load_from_json(const JSON_Value *root,
+                           struct OpenAPI_Spec *out) {
   return openapi_load_from_json_internal(root, out, NULL, NULL);
 }
 
-int openapi_load_from_json_with_context(const JSON_Value *const root,
+int openapi_load_from_json_with_context(const JSON_Value *root,
                                         const char *retrieval_uri,
-                                        struct OpenAPI_Spec *const out,
+                                        struct OpenAPI_Spec *out,
                                         struct OpenAPI_DocRegistry *registry) {
   return openapi_load_from_json_internal(root, out, retrieval_uri, registry);
 }

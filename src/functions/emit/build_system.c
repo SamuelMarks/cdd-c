@@ -148,8 +148,8 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   return 0;
 }
 
-int generate_cmake_project(const char *const output_path,
-                           const char *const project_name, int has_tests) {
+int generate_cmake_project(const char *output_path,
+                           const char *project_name, int has_tests) {
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
@@ -187,7 +187,11 @@ int generate_cmake_project(const char *const output_path,
 #if defined(_MSC_VER)
   fopen_s(&fp, full_path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, full_path, "w");
+#else
   fp = fopen(full_path, "w");
+#endif
 #endif
 #endif
 

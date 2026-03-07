@@ -20,8 +20,11 @@
 #include "functions/parse/fs.h"
 #include "functions/str_includes.h"
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include "c_cddConfig.h"
 /* clang-format off */
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
@@ -32,7 +35,9 @@
 /* clang-format on */
 
 #include <direct.h>
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
 #include <fileapi.h>
+#endif
 #include <winerror.h>
 /* strtok_s is defined as a macro for strtok_r in fs.h if needed, or by system
  * headers */
@@ -45,7 +50,11 @@
 #ifdef PATHCCH_LIB
 #include <pathcch.h>
 #endif /* !PATHCCH_LIB */
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#include <shlobj.h>
+#else
 #include <shlobj_core.h>
+#endif
 #else /* Not MSVC */
 #include <dirent.h>
 #include <fcntl.h>
@@ -57,13 +66,13 @@
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#include <inttypes.h>
+/* Windows specific logic or typedefs if needed */
 #endif
 
 /* <windows_utils> */
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-int ascii_to_wide(const char *const s, wchar_t *ws, const size_t buf_cap,
+#if defined(_WIN32)
+int ascii_to_wide(const char *s, wchar_t *ws, const size_t buf_cap,
                   size_t *out_len) {
   int result;
   if (s == NULL || ws == NULL || buf_cap == 0 || out_len == NULL) {
@@ -87,7 +96,7 @@ int ascii_to_wide(const char *const s, wchar_t *ws, const size_t buf_cap,
   return 0;
 }
 
-int wide_to_ascii(const wchar_t *const ws, char *s, const size_t buf_cap,
+int wide_to_ascii(const wchar_t *ws, char *s, const size_t buf_cap,
                   size_t *out_len) {
   int result;
   if (ws == NULL || s == NULL || buf_cap == 0 || out_len == NULL) {
@@ -111,7 +120,7 @@ int wide_to_ascii(const wchar_t *const ws, char *s, const size_t buf_cap,
   *out_len = (size_t)result - 1;
   return 0;
 }
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* defined(_WIN32) */
 /* </windows_utils> */
 
 /**
@@ -289,7 +298,7 @@ int fopen_error_from(int fopen_error, enum FopenError *_out_val) {
   }
 }
 
-int fs_write_to_file(const char *const path, const char *const content) {
+int fs_write_to_file(const char *path, const char *content) {
   FILE *f;
   int rc = 0;
 
@@ -304,7 +313,11 @@ int fs_write_to_file(const char *const path, const char *const content) {
 #if defined(_MSC_VER)
   fopen_s(&f, path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "w");
+#else
   f = fopen(path, "w");
+#endif
 #endif
 #endif
 
@@ -345,7 +358,11 @@ int read_to_file(const char *path, const char *mode, char **out_data,
 #if defined(_MSC_VER)
   fopen_s(&f, path, mode);
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, mode);
+#else
   f = fopen(path, mode);
+#endif
 #endif
 #endif
   if (f == NULL)
@@ -488,14 +505,14 @@ out_error:
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
-static int maybe_mkdir(const char *const path) {
+static int maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
 #if defined(_MSC_VER)
   res = _mkdir(path);
 #else
-  res = mkdir(path, 0777);
+  res = _mkdir(path);
 #endif
 
   if (res == 0)
@@ -541,7 +558,15 @@ int makedirs(const char *path) {
   if (dup_path == NULL)
     return ENOMEM;
 
-  for (p = dup_path; *p; ++p) {
+  p = dup_path;
+#if defined(_WIN32)
+  if (strlen(dup_path) >= 2 && dup_path[1] == ':') {
+    p += 2;
+    if (*p == '/' || *p == '\\') p++;
+  }
+#endif
+
+  for (; *p; ++p) {
     if (*p == '/' || *p == '\\') {
       if (p == dup_path)
         continue;
@@ -567,7 +592,7 @@ int makedir(const char *path) {
   if (_mkdir(path) == 0)
     return 0;
 #else
-  if (mkdir(path, 0777) == 0)
+  if (_mkdir(path) == 0)
     return 0;
 #endif
   return errno;
@@ -575,8 +600,6 @@ int makedir(const char *path) {
 
 int tempdir(char **out_path) {
   char *_ast_strdup_5 = NULL;
-  char pathname[L_tmpnam + 1];
-  char *ptr;
   const char *env;
 
   if (!out_path)
@@ -592,15 +615,29 @@ int tempdir(char **out_path) {
     return *out_path ? 0 : ENOMEM;
   }
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_WIN32)
   {
-    errno_t err = tmpnam_s(pathname, L_tmpnam_s);
-    if (err)
-      return (int)err;
-    ptr = pathname;
+    DWORD len; len = GetTempPathA(0, NULL);
+    if (len == 0) return EIO;
+    *out_path = malloc(len + 1);
+    if (!*out_path) return ENOMEM;
+    if (GetTempPathA(len + 1, *out_path) == 0) {
+      free(*out_path);
+      *out_path = NULL;
+      return EIO;
+    }
+    c_cdd_str_trim_trailing_whitespace(*out_path);
+    /* Remove trailing backslash if it exists, as dirname does */
+    len = (DWORD)strlen(*out_path);
+    if (len > 0 && ((*out_path)[len - 1] == '\\' || (*out_path)[len - 1] == '/')) {
+      (*out_path)[len - 1] = '\0';
+    }
+    return 0;
   }
 #else
+  {
+    char pathname[L_tmpnam + 1];
+    char *ptr;
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -611,10 +648,9 @@ int tempdir(char **out_path) {
 #endif /* defined(__GNUC__) || defined(__clang__) */
   if (ptr == NULL)
     return errno ? errno : EIO;
-#endif
-
-  /* get_dirname allocates now, assuming tempfile names are paths */
   return get_dirname(ptr, out_path);
+  }
+#endif
 }
 
 void FilenameAndPtr_cleanup(struct FilenameAndPtr *file) {
@@ -642,7 +678,7 @@ void FilenameAndPtr_delete_and_cleanup(struct FilenameAndPtr *file) {
 
 int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
                             const char *mode, struct FilenameAndPtr *file) {
-  uint8_t i;
+  unsigned char i;
   char *tmpdir_path = NULL;
   char *tmpfilename = NULL;
   int rc;
@@ -703,7 +739,11 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #if defined(_MSC_VER)
       fopen_s(&file->fh, tmpfilename, mode);
 #else
+#if defined(_MSC_VER)
+      fopen_s(&file->fh, tmpfilename, mode);
+#else
       file->fh = fopen(tmpfilename, mode);
+#endif
 #endif
 #endif
       if (!file->fh) {
@@ -813,7 +853,7 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
         continue;
       }
 
-      if (asprintf(&full_path, "%s/%s", path, entry->d_name) == -1) {
+      if (asprintf(&full_path, "%s%c%s", path, PATH_SEP_C, entry->d_name) == -1) {
         closedir(d);
         return ENOMEM;
       }

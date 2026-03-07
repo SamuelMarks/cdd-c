@@ -18,15 +18,15 @@
 TEST test_gen_sdk_test_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   struct SdkTestsConfig config;
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
   if (!tmp)
-    return -1;
+    return (enum greatest_test_res)-1;
 
   /* Setup Spec */
   memset(&spec, 0, sizeof(spec));
@@ -61,7 +61,7 @@ TEST test_gen_sdk_test_basic(void) {
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
 
   /* Preamble check */

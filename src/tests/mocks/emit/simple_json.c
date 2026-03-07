@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -467,7 +468,7 @@ int FooE_from_jsonObject(const JSON_Object *const jsonObject,
   if (jsonObject == NULL || foo_e == NULL)
     return EINVAL;
 
-  new_foo = calloc(sizeof(*new_foo), 1);
+  new_foo = (struct FooE *)calloc(sizeof(*new_foo), 1);
   if (new_foo == NULL)
     return ENOMEM;
 

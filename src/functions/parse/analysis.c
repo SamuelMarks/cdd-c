@@ -25,7 +25,7 @@ static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"_mkdir", ALLOC_STYLE_RETURN_PTR, CHECK_INT_NONZERO, 0},
     {NULL, ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0}};
 
-int allocation_site_list_init(struct AllocationSiteList *const list) {
+int allocation_site_list_init(struct AllocationSiteList *list) {
   if (!list)
     return EINVAL;
   list->size = 0;
@@ -37,7 +37,7 @@ int allocation_site_list_init(struct AllocationSiteList *const list) {
   return 0;
 }
 
-void allocation_site_list_free(struct AllocationSiteList *const list) {
+void allocation_site_list_free(struct AllocationSiteList *list) {
   size_t i;
   if (!list)
     return;
@@ -53,10 +53,10 @@ void allocation_site_list_free(struct AllocationSiteList *const list) {
   list->capacity = 0;
 }
 
-int allocation_site_list_add(struct AllocationSiteList *const list,
-                             const size_t index, const char *var_name,
-                             const int checked, const int used_before,
-                             const int is_ret,
+int allocation_site_list_add(struct AllocationSiteList *list,
+                             size_t index, const char *var_name,
+                             int checked, int used_before,
+                             int is_ret,
                              const struct AllocatorSpec *spec) {
   char *_ast_strdup_0 = NULL;
   if (!list)
@@ -181,8 +181,8 @@ static int is_dereference_use(const struct TokenList *tokens, size_t i) {
   return 0;
 }
 
-int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
-               const char *const var_name, const struct AllocatorSpec *spec,
+int is_checked(const struct TokenList *tokens, size_t alloc_idx,
+               const char *var_name, const struct AllocatorSpec *spec,
                int *used_before_check) {
   bool _ast_token_matches_string_0;
   size_t i = alloc_idx;
@@ -222,8 +222,8 @@ int is_checked(const struct TokenList *const tokens, const size_t alloc_idx,
   return 0;
 }
 
-int find_allocations(const struct TokenList *const tokens,
-                     struct AllocationSiteList *const out) {
+int find_allocations(const struct TokenList *tokens,
+                     struct AllocationSiteList *out) {
   bool _ast_token_matches_string_1;
   char *_ast_get_assigned_var_2;
   size_t i;

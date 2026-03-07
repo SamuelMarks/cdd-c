@@ -322,8 +322,8 @@ querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
   }
 }
 
-static int write_query_json_param(FILE *const fp,
-                                  const struct OpenAPI_Parameter *const p) {
+static int write_query_json_param(FILE *fp,
+                                  const struct OpenAPI_Parameter *p) {
   const char *name;
   const char *type;
 
@@ -568,8 +568,8 @@ static int write_query_json_param(FILE *const fp,
   return 0;
 }
 
-static int write_query_object_param(FILE *const fp,
-                                    const struct OpenAPI_Parameter *const p) {
+static int write_query_object_param(FILE *fp,
+                                    const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
   int explode;
@@ -906,7 +906,7 @@ static int write_query_object_param(FILE *const fp,
   return 0;
 }
 
-static int write_path_object_serialization(FILE *const fp,
+static int write_path_object_serialization(FILE *fp,
                                            const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
@@ -1068,7 +1068,7 @@ static int write_path_object_serialization(FILE *const fp,
   return 0;
 }
 
-static int write_path_array_serialization(FILE *const fp,
+static int write_path_array_serialization(FILE *fp,
                                           const struct OpenAPI_Parameter *p,
                                           const char *prefix,
                                           const char *delim) {
@@ -1177,8 +1177,8 @@ static int write_path_array_serialization(FILE *const fp,
   return 0;
 }
 
-static int write_joined_query_array(FILE *const fp,
-                                    const struct OpenAPI_Parameter *const p,
+static int write_joined_query_array(FILE *fp,
+                                    const struct OpenAPI_Parameter *p,
                                     const char delim, const char *encode_fn,
                                     const int add_encoded) {
   const char *name;
@@ -1269,8 +1269,8 @@ static int write_joined_query_array(FILE *const fp,
 }
 
 static int write_joined_query_array_encoded_delim(
-    FILE *const fp, const struct OpenAPI_Parameter *const p,
-    const char *const delim_enc, const char *const encode_fn) {
+    FILE *fp, const struct OpenAPI_Parameter *p,
+    const char *delim_enc, const char *encode_fn) {
   const char *name;
   const char *item_type;
   size_t delim_len;
@@ -1441,10 +1441,10 @@ static int parse_segments(const char *tmpl, struct UrlSegment **out_segments,
   return 0;
 }
 
-int codegen_url_write_builder(FILE *const fp, const char *const path_template,
+int codegen_url_write_builder(FILE *fp, const char *path_template,
                               const struct OpenAPI_Parameter *params,
                               size_t n_params,
-                              const struct CodegenUrlConfig *const config) {
+                              const struct CodegenUrlConfig *config) {
   const struct OpenAPI_Parameter *_ast_find_param_2;
   const struct OpenAPI_Parameter *_ast_find_param_3;
   const struct OpenAPI_Parameter *_ast_find_param_4;
@@ -1627,7 +1627,7 @@ int codegen_url_write_builder(FILE *const fp, const char *const path_template,
   return 0;
 }
 
-int codegen_url_write_query_params(FILE *const fp,
+int codegen_url_write_query_params(FILE *fp,
                                    const struct OpenAPI_Operation *op,
                                    int qp_tracking) {
   const char *_ast_querystring_param_json_array_item_type_6;

@@ -32,7 +32,11 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
   fopen_s(&fp, path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, path, "w");
+#else
   fp = fopen(path, "w");
+#endif
 #endif
 #endif
 
@@ -163,7 +167,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
         
         /* Responses & Headers & Links */
         if (op->n_responses > 0) {
-           fprintf(fp, "    /* Expected Responses: %lu */\n", op->n_responses);
+           fprintf(fp, "    /* Expected Responses: %lu */\n", (unsigned long)op->n_responses);
            if (op->responses[0].headers) {
                fprintf(fp, "    /* Checking response headers */\n");
            }

@@ -157,10 +157,10 @@ TEST test_winhttp_stubs(void) {
 
   ASSERT_EQ(ENOTSUP, http_winhttp_config_apply(NULL, &cfg));
   ASSERT_EQ(ENOTSUP, http_winhttp_send(NULL, &req, &res));
+  PASS();
 #else
   SKIPm("WinHTTP is supported on this platform");
 #endif
-  PASS();
 }
 
 SUITE(http_winhttp_suite) {

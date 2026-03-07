@@ -10,6 +10,11 @@
 
 #include "functions/emit/make.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
+
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
@@ -17,8 +22,8 @@
       return EIO;                                                              \
   } while (0)
 
-int codegen_make_generate(FILE *const fp,
-                          const struct MakeConfig *const config) {
+int codegen_make_generate(FILE *fp,
+                          const struct MakeConfig *config) {
   size_t i;
 
   if (!fp || !config || !config->project_name)

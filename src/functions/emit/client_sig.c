@@ -14,6 +14,12 @@
 
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
+#include "win_compat_sym.h"
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -650,8 +656,8 @@ static int get_success_schema(const struct OpenAPI_Operation *op,
 }
 
 int codegen_client_write_signature(
-    FILE *const fp, const struct OpenAPI_Operation *const op,
-    const struct CodegenSigConfig *const config) {
+    FILE *fp, const struct OpenAPI_Operation *op,
+    const struct CodegenSigConfig *config) {
   const char *_ast_querystring_param_json_array_item_type_4;
   const char *_ast_querystring_param_json_array_item_ref_5;
   const char *_ast_querystring_param_json_primitive_type_6;

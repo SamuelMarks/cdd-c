@@ -15,7 +15,7 @@
 #include "functions/emit/patcher.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
 
-int patch_list_init(struct PatchList *const list) {
+int patch_list_init(struct PatchList *list) {
   if (!list)
     return EINVAL;
   list->size = 0;
@@ -26,7 +26,7 @@ int patch_list_init(struct PatchList *const list) {
   return 0;
 }
 
-void patch_list_free(struct PatchList *const list) {
+void patch_list_free(struct PatchList *list) {
   size_t i;
   if (!list)
     return;
@@ -43,7 +43,7 @@ void patch_list_free(struct PatchList *const list) {
   list->capacity = 0;
 }
 
-int patch_list_add(struct PatchList *const list, const size_t start_idx,
+int patch_list_add(struct PatchList *list, const size_t start_idx,
                    const size_t end_idx, char *text) {
   if (!list || !text) {
     if (text)
@@ -86,14 +86,14 @@ static int compare_patches(const void *a, const void *b) {
   return 0;
 }
 
-void patch_list_sort(struct PatchList *const list) {
+void patch_list_sort(struct PatchList *list) {
   if (list && list->patches && list->size > 1) {
     qsort(list->patches, list->size, sizeof(struct Patch), compare_patches);
   }
 }
 
-int patch_list_apply(struct PatchList *const list,
-                     const struct TokenList *const tokens, char **out_code) {
+int patch_list_apply(struct PatchList *list,
+                     const struct TokenList *tokens, char **out_code) {
   char *output = NULL;
   size_t current_token = 0;
   size_t patch_idx = 0;

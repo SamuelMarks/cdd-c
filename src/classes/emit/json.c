@@ -20,6 +20,11 @@
 #include "functions/parse/str.h" /* for string helpers */
 #include "win_compat_sym.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
+
 /* Terser error checking */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
@@ -28,9 +33,9 @@
       return EIO;                                                              \
   } while (0)
 
-int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
-                              const struct StructFields *const sf,
-                              const struct CodegenJsonConfig *const config) {
+int write_struct_to_json_func(FILE *fp, const char *struct_name,
+                              const struct StructFields *sf,
+                              const struct CodegenJsonConfig *config) {
   char *_ast_get_type_from_ref_0;
   char *_ast_get_type_from_ref_1;
   char *_ast_get_type_from_ref_2;
@@ -56,7 +61,7 @@ int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
     CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
 
   CHECK_IO(fprintf(
-      fp, "int %s_to_json(const struct %s *const obj, char **const json) {\n",
+      fp, "int %s_to_json(const struct %s *obj, char **const json) {\n",
       struct_name, struct_name));
 
   /* Variables decl */
@@ -163,8 +168,8 @@ int write_struct_to_json_func(FILE *const fp, const char *const struct_name,
   return 0;
 }
 
-int write_struct_from_json_func(FILE *const fp, const char *const struct_name,
-                                const struct CodegenJsonConfig *const config) {
+int write_struct_from_json_func(FILE *fp, const char *struct_name,
+                                const struct CodegenJsonConfig *config) {
   if (!fp || !struct_name)
     return EINVAL;
 
@@ -173,7 +178,7 @@ int write_struct_from_json_func(FILE *const fp, const char *const struct_name,
 
   CHECK_IO(fprintf(
       fp,
-      "int %s_from_json(const char *const json_str, struct %s **const out) {\n"
+      "int %s_from_json(const char *json_str, struct %s **const out) {\n"
       "  JSON_Value *val = json_parse_string(json_str);\n"
       "  int rc = 0;\n"
       "  if (!val) return EINVAL;\n"
@@ -190,9 +195,9 @@ int write_struct_from_json_func(FILE *const fp, const char *const struct_name,
 }
 
 int write_struct_from_jsonObject_func(
-    FILE *const fp, const char *const struct_name,
-    const struct StructFields *const sf,
-    const struct CodegenJsonConfig *const config) {
+    FILE *fp, const char *struct_name,
+    const struct StructFields *sf,
+    const struct CodegenJsonConfig *config) {
   char *_ast_get_type_from_ref_3;
   char *_ast_get_type_from_ref_4;
   char *_ast_get_type_from_ref_5;
@@ -229,7 +234,7 @@ int write_struct_from_jsonObject_func(
 
   CHECK_IO(
       fprintf(fp,
-              "int %s_from_jsonObject(const JSON_Object *const jsonObject, "
+              "int %s_from_jsonObject(const JSON_Object *jsonObject, "
               "struct %s **const out) {\n",
               struct_name, struct_name));
 
@@ -348,7 +353,11 @@ int write_struct_from_jsonObject_func(
 #if defined(_MSC_VER)
             strncpy_s(pat, pl + 1, f->pattern + 1, pl);
 #else
+#if defined(_MSC_VER)
+            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+#else
             strncpy(pat, f->pattern + 1, pl);
+#endif
 #endif
 #endif
             pat[pl] = 0;
@@ -373,7 +382,11 @@ int write_struct_from_jsonObject_func(
 #if defined(_MSC_VER)
             strncpy_s(pat, pl + 1, f->pattern, pl);
 #else
+#if defined(_MSC_VER)
+            strncpy_s(pat, pl + 1, f->pattern, pl);
+#else
             strncpy(pat, f->pattern, pl);
+#endif
 #endif
 #endif
             pat[pl] = 0;

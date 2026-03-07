@@ -182,6 +182,7 @@ if (C_CDD_USE_LIBCURL)
         endif()
     endif()
     target_link_libraries("${LIBRARY_NAME}" PRIVATE CURL::libcurl)
+    target_compile_definitions("${LIBRARY_NAME}" PUBLIC C_CDD_USE_LIBCURL)
 endif ()
 
 if (WIN32)
@@ -360,6 +361,10 @@ install(EXPORT "${LIBRARY_NAME}Targets" DESTINATION "${CMAKE_INSTALL_DATADIR}/${
 
 install(FILES ${Header_Files} "${_export_file}"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+if (WIN32 AND MINGW)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE ws2_32 winhttp wininet crypt32 advapi32 secur32 bcrypt)
+endif()
 
 if (APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)

@@ -13,14 +13,14 @@
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
 
-void c_mapping_init(struct OpenApiTypeMapping *const out) {
+void c_mapping_init(struct OpenApiTypeMapping *out) {
   if (out) {
     memset(out, 0, sizeof(*out));
     out->kind = OA_TYPE_UNKNOWN;
   }
 }
 
-void c_mapping_free(struct OpenApiTypeMapping *const out) {
+void c_mapping_free(struct OpenApiTypeMapping *out) {
   if (out) {
     if (out->oa_type)
       free(out->oa_type);
@@ -111,8 +111,8 @@ static int clean_type_str(const char *in, char **_out_val) {
   }
 }
 
-int c_mapping_map_type(const char *const c_type_in, const char *const decl_name,
-                       struct OpenApiTypeMapping *const out) {
+int c_mapping_map_type(const char *c_type_in, const char *decl_name,
+                       struct OpenApiTypeMapping *out) {
   const char *_ast_skip_qualifiers_0;
   char *_ast_clean_type_str_1;
   bool _ast_starts_with_4 = false;

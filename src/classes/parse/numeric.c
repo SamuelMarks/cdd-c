@@ -18,6 +18,18 @@
 
 #include "classes/parse/numeric.h"
 
+#ifndef UINT64_MAX
+#if defined(_UI64_MAX)
+#define UINT64_MAX _UI64_MAX
+#else
+#define UINT64_MAX ((uint64_t)-1)
+#endif
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#define strtoull _strtoui64
+#endif
+
 /**
  * @brief Parse integer type suffixes (u, l, ll).
  *

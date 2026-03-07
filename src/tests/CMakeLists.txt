@@ -161,3 +161,11 @@ target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
+
+if(MSVC)
+  
+endif()
+
+if(MSVC)
+  
+endif()

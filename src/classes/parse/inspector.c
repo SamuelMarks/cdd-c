@@ -26,7 +26,7 @@
 
 /* --- Type Definitions Logic --- */
 
-int type_def_list_init(struct TypeDefList *const list) {
+int type_def_list_init(struct TypeDefList *list) {
   if (!list)
     return EINVAL;
   list->size = 0;
@@ -35,7 +35,7 @@ int type_def_list_init(struct TypeDefList *const list) {
   return 0;
 }
 
-void type_def_list_free(struct TypeDefList *const list) {
+void type_def_list_free(struct TypeDefList *list) {
   size_t i;
   if (!list)
     return;
@@ -62,9 +62,9 @@ void type_def_list_free(struct TypeDefList *const list) {
   list->capacity = 0;
 }
 
-static int add_type_def(struct TypeDefList *const list,
+static int add_type_def(struct TypeDefList *list,
                         const enum TypeDefinitionKind kind,
-                        const char *const name, void *details) {
+                        const char *name, void *details) {
   char *_ast_strdup_0 = NULL;
   struct TypeDefinition *item;
 
@@ -93,8 +93,8 @@ static int add_type_def(struct TypeDefList *const list,
   return 0;
 }
 
-int c_inspector_scan_file_types(const char *const filename,
-                                struct TypeDefList *const out) {
+int c_inspector_scan_file_types(const char *filename,
+                                struct TypeDefList *out) {
   bool _ast_starts_with_1 = false;
   bool _ast_starts_with_2 = false;
   bool _ast_starts_with_3 = false;
@@ -120,7 +120,11 @@ int c_inspector_scan_file_types(const char *const filename,
 #if defined(_MSC_VER)
   fopen_s(&fp, filename, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, filename, "r");
+#else
   fp = fopen(filename, "r");
+#endif
 #endif
 #endif
   if (!fp)
@@ -336,7 +340,7 @@ int c_inspector_scan_file_types(const char *const filename,
 
 /* --- Function Signature Logic --- */
 
-int func_sig_list_init(struct FuncSigList *const list) {
+int func_sig_list_init(struct FuncSigList *list) {
   if (!list)
     return EINVAL;
   list->size = 0;
@@ -345,7 +349,7 @@ int func_sig_list_init(struct FuncSigList *const list) {
   return 0;
 }
 
-void func_sig_list_free(struct FuncSigList *const list) {
+void func_sig_list_free(struct FuncSigList *list) {
   size_t i;
   if (!list)
     return;
@@ -394,8 +398,8 @@ static int extract_span_text(const struct TokenList *tokens, size_t start,
   }
 }
 
-int c_inspector_extract_signatures(const char *const source_code,
-                                   struct FuncSigList *const out) {
+int c_inspector_extract_signatures(const char *source_code,
+                                   struct FuncSigList *out) {
   char *_ast_extract_span_text_0;
   char *_ast_extract_span_text_1;
   struct TokenList *tl = NULL;

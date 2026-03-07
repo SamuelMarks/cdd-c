@@ -26,7 +26,7 @@ static char *gen_parse_code(const char *name, struct StructFields *sf) {
   sz = ftell(tmp);
   rewind(tmp);
 
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   if (sz > 0)
     fread(content, 1, sz, tmp);
 

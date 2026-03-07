@@ -65,7 +65,7 @@ static int mock_cb(const struct IncludeInfo *info, void *user_data) {
     else
       ctx->last_params.suffix = NULL;
   }
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 /* --- Expression Evaluator Tests --- */
@@ -82,7 +82,7 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
     return -999;
   if (out)
     *out = res;
-  return 0;
+  return (enum greatest_test_res)0;
 }
 
 TEST test_pp_eval_arithmetic(void) {
@@ -212,8 +212,8 @@ TEST test_pp_eval_defined(void) {
     eval("defined BAR", &ctx, &out);
     ASSERT_EQ(0, out);
   }
-  PASS();
   pp_context_free(&ctx);
+  PASS();
 }
 
 TEST test_pp_eval_macros_as_values(void) {

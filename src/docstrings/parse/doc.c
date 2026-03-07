@@ -946,14 +946,14 @@ static int parse_link_line(const char *line, const char *end,
 
 /* --- Core Logic --- */
 
-int doc_metadata_init(struct DocMetadata *const meta) {
+int doc_metadata_init(struct DocMetadata *meta) {
   if (!meta)
     return EINVAL;
   memset(meta, 0, sizeof(*meta));
   return 0;
 }
 
-void doc_metadata_free(struct DocMetadata *const meta) {
+void doc_metadata_free(struct DocMetadata *meta) {
   size_t i;
   if (!meta)
     return;
@@ -2431,7 +2431,7 @@ static int parse_route_line(const char *line, const char *end,
   return 0;
 }
 
-int doc_parse_block(const char *const comment, struct DocMetadata *const out) {
+int doc_parse_block(const char *comment, struct DocMetadata *out) {
   char *_ast_extract_rest_114;
   char *_ast_extract_rest_115;
   char *_ast_extract_rest_116;

@@ -64,7 +64,7 @@ int str_starts_with(const char *str, const char *prefix, bool *_out_val) {
   }
 }
 
-static int key_in_list(const char *key, const char *const *list, size_t count) {
+static int key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
   if (!key || !list)
     return 0;
@@ -265,7 +265,7 @@ static void free_string_array(char **arr, size_t n) {
   free(arr);
 }
 
-static int copy_string_array(char ***dst, size_t *dst_count, char *const *src,
+static int copy_string_array(char ***dst, size_t *dst_count, char **src,
                              size_t src_count) {
   char *_ast_strdup_1 = NULL;
   size_t i;
@@ -671,7 +671,7 @@ static int parse_type_union_array(const JSON_Array *arr, char ***out_union,
 }
 
 static int collect_schema_extras(const JSON_Object *obj,
-                                 const char *const *skip_keys,
+                                 const char **skip_keys,
                                  size_t skip_count, char **out_json) {
   JSON_Value *_ast_clone_json_value_0;
   char *_ast_strdup_3 = NULL;
@@ -1166,10 +1166,10 @@ static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
   return 0;
 }
 
-static const char *const k_schema_skip_keys[] = {
+static const char *k_schema_skip_keys[] = {
     "type", "$ref", "properties", "required", "allOf", "anyOf", "oneOf"};
 
-static const char *const k_property_skip_keys[] = {"type",
+static const char *k_property_skip_keys[] = {"type",
                                                    "$ref",
                                                    "items",
                                                    "default",
@@ -1190,7 +1190,7 @@ static const char *const k_property_skip_keys[] = {"type",
                                                    "writeOnly",
                                                    "x-c-bitwidth"};
 
-static const char *const k_items_skip_keys[] = {"type", "$ref"};
+static const char *k_items_skip_keys[] = {"type", "$ref"};
 
 static int openapi_type_is_primitive(const char *type) {
   if (!type)
@@ -1295,7 +1295,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 #if defined(_MSC_VER)
     strncpy_s(name, 63 + 1, n, 63);
 #else
+#if defined(_MSC_VER)
+    strncpy_s(name, 63 + 1, n, 63);
+#else
     strncpy(name, n, 63);
+#endif
 #endif
 #endif
 
@@ -1319,7 +1323,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 #if defined(_MSC_VER)
   strncpy_s(type_raw, 63 + 1, buf, 63);
 #else
+#if defined(_MSC_VER)
+  strncpy_s(type_raw, 63 + 1, buf, 63);
+#else
   strncpy(type_raw, buf, 63);
+#endif
 #endif
 #endif
   /* Ensure we capture the pointer asterisk if it was on the type side */
@@ -5399,7 +5407,11 @@ int code2schema_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&fp, argv[0], "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, argv[0], "r");
+#else
   fp = fopen(argv[0], "r");
+#endif
 #endif
 #endif
 

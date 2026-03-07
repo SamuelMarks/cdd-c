@@ -15,12 +15,8 @@
 #ifdef _WIN32
 #include "c_cddConfig.h"
 /* clang-format off */
-/* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include "win_compat_sym.h"
-#include <windef.h>
-
-#include <winbase.h>
-
+#include <windows.h>
 #include <wininet.h>
 /* clang-format on */
 #pragma comment(lib, "wininet.lib")
@@ -256,7 +252,7 @@ int http_wininet_context_init(struct HttpTransportContext **const ctx) {
 #endif
 }
 
-void http_wininet_context_free(struct HttpTransportContext *const ctx) {
+void http_wininet_context_free(struct HttpTransportContext *ctx) {
 #ifdef _WIN32
   if (ctx) {
     if (ctx->hInternet)
@@ -268,8 +264,8 @@ void http_wininet_context_free(struct HttpTransportContext *const ctx) {
 #endif
 }
 
-int http_wininet_config_apply(struct HttpTransportContext *const ctx,
-                              const struct HttpConfig *const config) {
+int http_wininet_config_apply(struct HttpTransportContext *ctx,
+                              const struct HttpConfig *config) {
 #ifdef _WIN32
   DWORD timeout;
   CHECK_EINVAL(ctx);
@@ -308,8 +304,8 @@ int http_wininet_config_apply(struct HttpTransportContext *const ctx,
 #endif
 }
 
-int http_wininet_send(struct HttpTransportContext *const ctx,
-                      const struct HttpRequest *const req,
+int http_wininet_send(struct HttpTransportContext *ctx,
+                      const struct HttpRequest *req,
                       struct HttpResponse **const res) {
 #ifdef _WIN32
   HINTERNET hConnect = NULL;
@@ -321,9 +317,11 @@ int http_wininet_send(struct HttpTransportContext *const ctx,
   wchar_t *wHeaders = NULL;
   size_t wLen;
   int rc = 0;
+  const wchar_t *wmethod = NULL;
   DWORD dwFlags = INTERNET_FLAG_RELOAD | INTERNET_FLAG_NO_CACHE_WRITE;
   DWORD dwStatusCode = 0;
   DWORD dwSize = sizeof(dwStatusCode);
+  
 
   /* Body read logic */
   char *bodyBuf = NULL;
@@ -392,7 +390,6 @@ int http_wininet_send(struct HttpTransportContext *const ctx,
     dwFlags |= ctx->security_flags; /* Apply ignore-cert flags here */
   }
 
-  const wchar_t *wmethod = NULL;
   method_to_wide(req->method, &wmethod);
   hRequest = HttpOpenRequestW(hConnect, wmethod, urlComp.lpszUrlPath, NULL,
                               NULL, NULL, dwFlags, 0);

@@ -23,6 +23,11 @@
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
+
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
@@ -3025,11 +3030,11 @@ static int is_status_code_literal(const char *code) {
          code[2] >= '0' && code[2] <= '9';
 }
 
-int codegen_client_write_body(FILE *const fp,
-                              const struct OpenAPI_Operation *const op,
-                              const struct OpenAPI_Spec *const spec,
-                              const char *const path_template,
-                              const char *const base_url_expr) {
+int codegen_client_write_body(FILE *fp,
+                              const struct OpenAPI_Operation *op,
+                              const struct OpenAPI_Spec *spec,
+                              const char *path_template,
+                              const char *base_url_expr) {
   const char *_ast_verb_to_enum_str_16;
   const char *_ast_method_str_to_enum_str_17;
   int query_exists = 0;

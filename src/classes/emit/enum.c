@@ -12,6 +12,11 @@
 #include "classes/emit/enum.h"
 #include "functions/parse/str.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
+
 /* Wrapper for fprintf to check errors tersely */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
@@ -27,7 +32,7 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
-int enum_members_init(struct EnumMembers *const em) {
+int enum_members_init(struct EnumMembers *em) {
   if (!em)
     return EINVAL;
   em->size = 0;
@@ -38,7 +43,7 @@ int enum_members_init(struct EnumMembers *const em) {
   return 0;
 }
 
-void enum_members_free(struct EnumMembers *const em) {
+void enum_members_free(struct EnumMembers *em) {
   size_t i;
   if (!em)
     return;
@@ -54,7 +59,7 @@ void enum_members_free(struct EnumMembers *const em) {
   em->capacity = 0;
 }
 
-int enum_members_add(struct EnumMembers *const em, const char *const name) {
+int enum_members_add(struct EnumMembers *em, const char *name) {
   char *_ast_strdup_0 = NULL;
   if (!em || !name)
     return EINVAL;
@@ -74,9 +79,9 @@ int enum_members_add(struct EnumMembers *const em, const char *const name) {
   return 0;
 }
 
-int write_enum_to_str_func(FILE *const fp, const char *const enum_name,
-                           const struct EnumMembers *const em,
-                           const struct CodegenEnumConfig *const config) {
+int write_enum_to_str_func(FILE *fp, const char *enum_name,
+                           const struct EnumMembers *em,
+                           const struct CodegenEnumConfig *config) {
   size_t i;
   if (!fp || !enum_name || !em || !em->members)
     return EINVAL;
@@ -112,9 +117,9 @@ int write_enum_to_str_func(FILE *const fp, const char *const enum_name,
   return 0;
 }
 
-int write_enum_from_str_func(FILE *const fp, const char *const enum_name,
-                             const struct EnumMembers *const em,
-                             const struct CodegenEnumConfig *const config) {
+int write_enum_from_str_func(FILE *fp, const char *enum_name,
+                             const struct EnumMembers *em,
+                             const struct CodegenEnumConfig *config) {
   size_t i;
   if (!fp || !enum_name || !em || !em->members)
     return EINVAL;
@@ -124,7 +129,7 @@ int write_enum_from_str_func(FILE *const fp, const char *const enum_name,
   }
 
   CHECK_IO(fprintf(fp,
-                   "int %s_from_str(const char *const str, enum %s *val) {\n"
+                   "int %s_from_str(const char *str, enum %s *val) {\n"
                    "  if (val == NULL) return EINVAL;\n"
                    "  else if (str == NULL) *val = %s_UNKNOWN;\n",
                    enum_name, enum_name, enum_name));

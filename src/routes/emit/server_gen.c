@@ -32,7 +32,11 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
   fopen_s(&fp, path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, path, "w");
+#else
   fp = fopen(path, "w");
+#endif
 #endif
 #endif
 
@@ -103,13 +107,12 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
         }
         
         if (op->n_responses > 0) {
-            fprintf(fp, "    /* Responses configured: %zu */\n", op->n_responses);
+          fprintf(fp, "    /* Responses configured: %lu */\n", (unsigned long)op->n_responses);
         }
-        
+
         if (op->n_callbacks > 0) {
-            fprintf(fp, "    /* Callbacks configured: %zu */\n", op->n_callbacks);
-        }
-        
+          fprintf(fp, "    /* Callbacks configured: %lu */\n", (unsigned long)op->n_callbacks);
+        }        
         if (op->security) {
             fprintf(fp, "    /* Requires security scheme */\n");
         }

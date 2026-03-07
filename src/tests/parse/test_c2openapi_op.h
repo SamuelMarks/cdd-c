@@ -370,7 +370,7 @@ TEST test_build_simple_get(void) {
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   /* Setup Signature */
@@ -417,7 +417,7 @@ TEST test_build_param_format_from_mapping(void) {
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_get";
@@ -454,7 +454,7 @@ TEST test_build_param_format_override(void) {
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocParam *params = NULL;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_get";
@@ -495,7 +495,7 @@ TEST test_build_response_header_format(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct DocResponseHeader *headers = NULL;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_ping";
@@ -536,7 +536,7 @@ TEST test_build_default_response_when_missing(void) {
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_ping";
@@ -568,7 +568,7 @@ TEST test_build_operation_id_override(void) {
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_get";
@@ -603,7 +603,7 @@ TEST test_build_param_content_type(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   memset(params, 0, sizeof(params));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_search";
@@ -644,7 +644,7 @@ TEST test_build_param_example(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   memset(params, 0, sizeof(params));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_get";
@@ -685,7 +685,7 @@ TEST test_build_return_content_type(void) {
   struct DocMetadata doc;
   struct DocResponse returns[1];
   memset(returns, 0, sizeof(returns));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_status";
@@ -729,7 +729,7 @@ TEST test_build_response_example(void) {
   struct DocMetadata doc;
   struct DocResponse returns[1];
   memset(returns, 0, sizeof(returns));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_get";
@@ -774,7 +774,7 @@ TEST test_build_post_with_body(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   /* Sig */
@@ -818,7 +818,7 @@ TEST test_build_params_explicit(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
 
   /* Sig */
   sig.name = "list";
@@ -860,7 +860,7 @@ TEST test_build_param_style_flags(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "search";
@@ -913,7 +913,7 @@ TEST test_build_param_default_styles(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "get_item";
@@ -957,7 +957,7 @@ TEST test_build_reserved_header_param_ignored(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "get_item";
@@ -997,7 +997,7 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_list";
@@ -1051,7 +1051,7 @@ TEST test_build_params_querystring(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
 
   sig.name = "search";
   sig.n_args = 1;
@@ -1091,7 +1091,7 @@ TEST test_build_params_querystring_json_struct(void) {
   struct DocMetadata doc;
   struct DocParam dparams[1];
   memset(dparams, 0, sizeof(dparams));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
 
   sig.name = "search_query";
   sig.n_args = 1;
@@ -1128,7 +1128,7 @@ TEST test_build_custom_verb_additional(void) {
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "copy_user";
@@ -1161,7 +1161,7 @@ TEST test_build_response_multi_content(void) {
   struct DocMetadata doc;
   struct DocResponse resps[2];
   memset(resps, 0, sizeof(resps));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "get_report";
@@ -1204,7 +1204,7 @@ TEST test_build_response_headers(void) {
   memset(resps, 0, sizeof(resps));
   struct DocResponseHeader hdrs[1];
   memset(hdrs, 0, sizeof(hdrs));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "get_user";
@@ -1256,7 +1256,7 @@ TEST test_build_response_links(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
   struct DocLink links[1];
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "get_page";
@@ -1319,7 +1319,7 @@ TEST test_build_response_output_arg(void) {
   struct C2OpenAPI_ParsedSig sig;
   struct C2OpenAPI_ParsedArg args[1];
   memset(args, 0, sizeof(args));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
 
   sig.name = "get_obj";
   sig.n_args = 1;
@@ -1357,7 +1357,7 @@ TEST test_build_op_security_servers_request_body(void) {
   struct DocServer servers[1];
   struct DocServerVar server_vars[1];
   char *server_enum[] = {"prod", "staging"};
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_upload";
@@ -1441,7 +1441,7 @@ TEST test_build_op_param_deprecated(void) {
   struct DocMetadata doc;
   struct DocParam params[1];
   memset(params, 0, sizeof(params));
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_get_legacy";
@@ -1488,7 +1488,7 @@ TEST test_build_request_body_example(void) {
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_post";
@@ -1533,7 +1533,7 @@ TEST test_build_request_body_default_content_type(void) {
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[1];
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_user_post";
@@ -1573,7 +1573,7 @@ TEST test_build_op_request_body_multi_content(void) {
   memset(args, 0, sizeof(args));
   struct DocMetadata doc;
   struct DocRequestBody bodies[2];
-  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Operation op = {0}; memset(&op, 0, sizeof(op));
   int rc;
 
   sig.name = "api_upload_multi";

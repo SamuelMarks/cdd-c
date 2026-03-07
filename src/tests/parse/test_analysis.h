@@ -28,7 +28,7 @@ static struct TokenList *setup_analysis_tokens(const char *code) {
 TEST test_find_simple_unchecked_malloc(void) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
-  const char *code = "void f() { char *p = malloc(10); *p = 5; }";
+  const char *code = "void f() { char * p = (char *)malloc(10); *p = 5; }";
 
   tl = setup_analysis_tokens(code);
   ASSERT(tl);
@@ -53,7 +53,7 @@ TEST test_find_simple_unchecked_malloc(void) {
 TEST test_find_simple_checked_malloc(void) {
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
-  const char *code = "void f() { char *p = malloc(10); if (!p) return; }";
+  const char *code = "void f() { char * p = (char *)malloc(10); if (!p) return; }";
 
   tl = setup_analysis_tokens(code);
   ASSERT(tl);

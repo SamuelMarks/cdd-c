@@ -18,10 +18,15 @@ extern "C" {
 #include <c_cdd_export.h>
 
 /* Windows compatibility macros and types */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_WIN32)
 #define PATH_SEP "\\"
 #define PATH_SEP_C '\\'
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 typedef struct _stat32 c_stat;
+#else
+typedef struct stat c_stat;
+#endif
 
 #include <direct.h>
 #include <io.h>
@@ -94,7 +99,7 @@ typedef struct stat c_stat;
 /** @brief delete_file definition */
 #define delete_file unlink
 
-#endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+#endif /* defined(_WIN32) */
 
 /**
  * @brief Error codes mapping to standard errno values where applicable,

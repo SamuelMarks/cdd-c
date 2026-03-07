@@ -20,7 +20,7 @@
 
 #include "functions/parse/str.h"
 
-int c_cdd_strdup(const char *const s, char **out_s) {
+int c_cdd_strdup(const char *s, char **out_s) {
   if (s == NULL) {
     *out_s = NULL;
     return 0;
@@ -33,7 +33,7 @@ int c_cdd_strdup(const char *const s, char **out_s) {
   return *out_s ? 0 : 12;
 }
 
-int c_cdd_str_starts_with(const char *const str, const char *const prefix,
+int c_cdd_str_starts_with(const char *str, const char *prefix,
                           bool *out_b) {
   size_t i;
   if (str == NULL || prefix == NULL) {
@@ -84,7 +84,7 @@ int c_cdd_str_iequal(const char *a, const char *b, bool *out_b) {
   return 0;
 }
 
-int c_cdd_str_after_last(const char *const str, const int delimiter,
+int c_cdd_str_after_last(const char *str, const int delimiter,
                          const char **out_s) {
   const char *last_occurrence;
   if (str == NULL) {
@@ -96,7 +96,7 @@ int c_cdd_str_after_last(const char *const str, const int delimiter,
   return 0;
 }
 
-int c_cdd_ref_is_type(const char *const ref, const char *const type,
+int c_cdd_ref_is_type(const char *ref, const char *type,
                       bool *out_b) {
   const char *extracted = NULL;
   if (ref == NULL || type == NULL) {
@@ -107,7 +107,7 @@ int c_cdd_ref_is_type(const char *const ref, const char *const type,
   return c_cdd_str_equal(extracted, type, out_b);
 }
 
-void c_cdd_str_trim_trailing_whitespace(char *const str) {
+void c_cdd_str_trim_trailing_whitespace(char *str) {
   size_t len;
   if (str == NULL)
     return;
@@ -123,7 +123,7 @@ void c_cdd_str_trim_trailing_whitespace(char *const str) {
   }
 }
 
-int c_cdd_destringize(const char *const quoted, char **out_s) {
+int c_cdd_destringize(const char *quoted, char **out_s) {
   size_t len, i, j;
   char *out;
   const char *inner;

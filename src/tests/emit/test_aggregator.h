@@ -22,7 +22,7 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));
   /* Allocate something to test ownership transfer */
   if (id) {
-    op->operation_id = malloc(strlen(id) + 1);
+    op->operation_id = (char *)malloc(strlen(id) + 1);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     strcpy_s(op->operation_id, strlen(id) + 1, id);
@@ -38,7 +38,7 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
 
 TEST test_aggregator_add_new(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
 
   openapi_spec_init(&spec);
   dummy_op(&op, "op1");
@@ -105,7 +105,7 @@ TEST test_aggregator_distinct_paths(void) {
 
 TEST test_aggregator_add_additional_operation(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
 
   openapi_spec_init(&spec);
   dummy_op(&op, "copyUser");
@@ -129,7 +129,7 @@ TEST test_aggregator_add_additional_operation(void) {
 
 TEST test_aggregator_add_webhook(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
 
   openapi_spec_init(&spec);
   dummy_op(&op, "webhookOp");
@@ -150,7 +150,7 @@ TEST test_aggregator_add_webhook(void) {
 
 TEST test_aggregator_bad_args(void) {
   struct OpenAPI_Spec spec;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   openapi_spec_init(&spec);
   dummy_op(&op, "x");
 

@@ -25,7 +25,8 @@
 /* --- Helpers --- */
 
 static int load_spec_str2(const char *json_str, struct OpenAPI_Spec *spec) {
-  JSON_Value *dyn = json_parse_string(json_str);
+  JSON_Value *dyn;
+  dyn = json_parse_string(json_str);
   int rc;
   if (!dyn)
     return -1;
@@ -91,8 +92,10 @@ TEST test_writer_empty_spec(void) {
   ASSERT(json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *obj;
+    root = json_parse_string(json);
+    obj = json_value_get_object(root);
     ASSERT_STR_EQ("3.2.0", json_object_get_string(obj, "openapi"));
     ASSERT(json_object_has_value(obj, "info"));
     ASSERT(json_object_has_value(obj, "paths"));
@@ -106,7 +109,7 @@ TEST test_writer_empty_spec(void) {
 TEST test_writer_basic_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *json = NULL;
   int rc;
 
@@ -118,11 +121,14 @@ TEST test_writer_basic_operation(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
 
     ASSERT(op_obj != NULL);
     ASSERT_STR_EQ("testOp", json_object_get_string(op_obj, "operationId"));
@@ -186,12 +192,18 @@ TEST test_writer_root_metadata_and_tags(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *obj = json_value_get_object(root);
-    JSON_Object *ext = json_object_get_object(obj, "externalDocs");
-    JSON_Array *tag_arr = json_object_get_array(obj, "tags");
-    JSON_Object *tag0 = json_array_get_object(tag_arr, 0);
-    JSON_Object *tag_ext = json_object_get_object(tag0, "externalDocs");
+    JSON_Value *root;
+    JSON_Object *obj;
+    JSON_Object *ext;
+    JSON_Array *tag_arr;
+    JSON_Object *tag0;
+    JSON_Object *tag_ext;
+    root = json_parse_string(json);
+    obj = json_value_get_object(root);
+    ext = json_object_get_object(obj, "externalDocs");
+    tag_arr = json_object_get_array(obj, "tags");
+    tag0 = json_array_get_object(tag_arr, 0);
+    tag_ext = json_object_get_object(tag0, "externalDocs");
 
     ASSERT_STR_EQ("https://example.com/openapi.json",
                   json_object_get_string(obj, "$self"));
@@ -256,15 +268,22 @@ TEST test_writer_path_ref_and_servers(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Array *p_servers;
+    JSON_Object *p_srv0;
+    JSON_Object *op_obj;
+    JSON_Array *op_servers_arr;
+    JSON_Object *op_srv0;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Array *p_servers = json_object_get_array(p_item, "servers");
-    JSON_Object *p_srv0 = json_array_get_object(p_servers, 0);
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *op_servers_arr = json_object_get_array(op_obj, "servers");
-    JSON_Object *op_srv0 = json_array_get_object(op_servers_arr, 0);
+    p_item = json_object_get_object(paths, "/pets");
+    p_servers = json_object_get_array(p_item, "servers");
+    p_srv0 = json_array_get_object(p_servers, 0);
+    op_obj = json_object_get_object(p_item, "get");
+    op_servers_arr = json_object_get_array(op_obj, "servers");
+    op_srv0 = json_array_get_object(op_servers_arr, 0);
 
     ASSERT_STR_EQ("#/components/pathItems/Pets",
                   json_object_get_string(p_item, "$ref"));
@@ -307,11 +326,14 @@ TEST test_writer_webhooks(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *hook_item;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
     JSON_Object *hooks =
         json_object_get_object(json_value_get_object(root), "webhooks");
-    JSON_Object *hook_item = json_object_get_object(hooks, "petEvent");
-    JSON_Object *op_obj = json_object_get_object(hook_item, "post");
+    hook_item = json_object_get_object(hooks, "petEvent");
+    op_obj = json_object_get_object(hook_item, "post");
 
     ASSERT(op_obj != NULL);
     ASSERT_STR_EQ("onPetEvent", json_object_get_string(op_obj, "operationId"));
@@ -326,9 +348,9 @@ TEST test_writer_webhooks(void) {
 TEST test_writer_params_responses(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp = {0};
   char *json = NULL;
   int rc;
 
@@ -340,31 +362,41 @@ TEST test_writer_params_responses(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "get");
 
     /* Param Check */
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
       ASSERT_STR_EQ("p1", json_object_get_string(p_obj, "name"));
       ASSERT_STR_EQ("query", json_object_get_string(p_obj, "in"));
       {
-        JSON_Object *sch = json_object_get_object(p_obj, "schema");
+        JSON_Object *sch;
+        sch = json_object_get_object(p_obj, "schema");
         ASSERT_STR_EQ("string", json_object_get_string(sch, "type"));
       }
     }
 
     /* Response Check */
     {
-      JSON_Object *responses = json_object_get_object(op_obj, "responses");
-      JSON_Object *r200 = json_object_get_object(responses, "200");
-      JSON_Object *content = json_object_get_object(r200, "content");
-      JSON_Object *media = json_object_get_object(content, "application/json");
-      JSON_Object *schema = json_object_get_object(media, "schema");
+      JSON_Object *responses;
+      JSON_Object *r200;
+      JSON_Object *content;
+      JSON_Object *media;
+      JSON_Object *schema;
+      responses = json_object_get_object(op_obj, "responses");
+      r200 = json_object_get_object(responses, "200");
+      content = json_object_get_object(r200, "content");
+      media = json_object_get_object(content, "application/json");
+      schema = json_object_get_object(media, "schema");
 
       ASSERT_STR_EQ("#/components/schemas/TestModel",
                     json_object_get_string(schema, "$ref"));
@@ -380,8 +412,8 @@ TEST test_writer_params_responses(void) {
 TEST test_writer_parameter_metadata(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -398,14 +430,17 @@ TEST test_writer_parameter_metadata(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Array *oa_params;
+    JSON_Object *p_obj;
+    root = json_parse_string(json);
     JSON_Object *op_obj = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
-    JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+    oa_params = json_object_get_array(op_obj, "parameters");
+    p_obj = json_array_get_object(oa_params, 0);
 
     ASSERT_STR_EQ("Search term", json_object_get_string(p_obj, "description"));
     ASSERT_EQ(1, json_object_get_boolean(p_obj, "deprecated"));
@@ -420,8 +455,8 @@ TEST test_writer_parameter_metadata(void) {
 TEST test_writer_allow_empty_value(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -435,14 +470,17 @@ TEST test_writer_allow_empty_value(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Array *oa_params;
+    JSON_Object *p_obj;
+    root = json_parse_string(json);
     JSON_Object *op_obj = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
-    JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+    oa_params = json_object_get_array(op_obj, "parameters");
+    p_obj = json_array_get_object(oa_params, 0);
 
     ASSERT_EQ(1, json_object_get_boolean(p_obj, "allowEmptyValue"));
     json_value_free(root);
@@ -475,21 +513,26 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "post");
 
     {
-      JSON_Object *rb = json_object_get_object(op_obj, "requestBody");
+      JSON_Object *rb;
+      rb = json_object_get_object(op_obj, "requestBody");
       ASSERT_STR_EQ("Payload", json_object_get_string(rb, "description"));
       ASSERT_EQ(0, json_object_get_boolean(rb, "required"));
     }
 
     {
-      JSON_Object *responses = json_object_get_object(op_obj, "responses");
-      JSON_Object *r200 = json_object_get_object(responses, "200");
+      JSON_Object *responses;
+      JSON_Object *r200;
+      responses = json_object_get_object(op_obj, "responses");
+      r200 = json_object_get_object(responses, "200");
       ASSERT_STR_EQ("Created", json_object_get_string(r200, "description"));
     }
 
@@ -523,11 +566,14 @@ TEST test_writer_info_metadata(void) {
   ASSERT(json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *contact;
+    JSON_Object *license;
+    root = json_parse_string(json);
     JSON_Object *info =
         json_object_get_object(json_value_get_object(root), "info");
-    JSON_Object *contact = json_object_get_object(info, "contact");
-    JSON_Object *license = json_object_get_object(info, "license");
+    contact = json_object_get_object(info, "contact");
+    license = json_object_get_object(info, "license");
 
     ASSERT_STR_EQ("Example API", json_object_get_string(info, "title"));
     ASSERT_STR_EQ("Short", json_object_get_string(info, "summary"));
@@ -589,7 +635,7 @@ TEST test_writer_server_url_query_rejected(void) {
 TEST test_writer_operation_metadata(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *json = NULL;
   int rc;
 
@@ -604,7 +650,8 @@ TEST test_writer_operation_metadata(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    root = json_parse_string(json);
     JSON_Object *op_obj =
         json_object_get_object(json_value_get_object(root), "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
@@ -640,17 +687,22 @@ TEST test_writer_response_content_type(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "text/plain");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "text/plain");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT(schema != NULL);
     ASSERT_STR_EQ("#/components/schemas/Message",
@@ -679,17 +731,22 @@ TEST test_writer_inline_response_schema_primitive(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
     json_value_free(root);
@@ -717,18 +774,24 @@ TEST test_writer_inline_response_schema_array(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    items = json_object_get_object(schema, "items");
 
     ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("integer", json_object_get_string(items, "type"));
@@ -759,17 +822,22 @@ TEST test_writer_inline_schema_format_and_content(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("uuid", json_object_get_string(schema, "format"));
@@ -804,18 +872,24 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    items = json_object_get_object(schema, "items");
 
     ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("string", json_object_get_string(items, "type"));
@@ -867,20 +941,32 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
   ASSERT(json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *responses;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *ext;
+    JSON_Object *disc;
+    JSON_Object *mapping;
+    JSON_Object *xml;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(op_obj, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *ext = json_object_get_object(schema, "externalDocs");
-    JSON_Object *disc = json_object_get_object(schema, "discriminator");
-    JSON_Object *mapping = json_object_get_object(disc, "mapping");
-    JSON_Object *xml = json_object_get_object(schema, "xml");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(op_obj, "responses");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    ext = json_object_get_object(schema, "externalDocs");
+    disc = json_object_get_object(schema, "discriminator");
+    mapping = json_object_get_object(disc, "mapping");
+    xml = json_object_get_object(schema, "xml");
 
     ASSERT(ext != NULL);
     ASSERT_STR_EQ("https://example.com/schema-doc",
@@ -942,18 +1028,24 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Array *examples_arr;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Array *examples_arr = json_object_get_array(schema, "examples");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    examples_arr = json_object_get_array(schema, "examples");
 
     ASSERT_STR_EQ("fast", json_object_get_string(schema, "const"));
     ASSERT_STR_EQ("Mode", json_object_get_string(schema, "description"));
@@ -1004,12 +1096,18 @@ TEST test_writer_preserves_composed_component_schema(void) {
   ASSERT(out_json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(out_json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *comps = json_object_get_object(root_obj, "components");
-    JSON_Object *schemas = json_object_get_object(comps, "schemas");
-    JSON_Object *pet = json_object_get_object(schemas, "Pet");
-    JSON_Array *one_of = json_object_get_array(pet, "oneOf");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *comps;
+    JSON_Object *schemas;
+    JSON_Object *pet;
+    JSON_Array *one_of;
+    root = json_parse_string(out_json);
+    root_obj = json_value_get_object(root);
+    comps = json_object_get_object(root_obj, "components");
+    schemas = json_object_get_object(comps, "schemas");
+    pet = json_object_get_object(schemas, "Pet");
+    one_of = json_object_get_array(pet, "oneOf");
     ASSERT(one_of != NULL);
     ASSERT_EQ(2, json_array_get_count(one_of));
     json_value_free(root);
@@ -1068,10 +1166,14 @@ TEST test_writer_preserves_inline_composed_schema(void) {
   ASSERT(out_json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(out_json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *comps = json_object_get_object(root_obj, "components");
-    JSON_Object *schemas = json_object_get_object(comps, "schemas");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *comps;
+    JSON_Object *schemas;
+    root = json_parse_string(out_json);
+    root_obj = json_value_get_object(root);
+    comps = json_object_get_object(root_obj, "components");
+    schemas = json_object_get_object(comps, "schemas");
     JSON_Object *inline_schema =
         json_object_get_object(schemas, "Inline_GetPets_Response_200");
     JSON_Array *one_of =
@@ -1106,17 +1208,22 @@ TEST test_writer_schema_ref_summary_description(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *r200;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
         "get");
     responses = json_object_get_object(responses, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT_STR_EQ("#/components/schemas/Mode",
                   json_object_get_string(schema, "$ref"));
@@ -1170,7 +1277,8 @@ TEST test_writer_options_trace_verbs(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    root = json_parse_string(json);
     JSON_Object *verbs = json_object_get_object(
         json_object_get_object(json_value_get_object(root), "paths"), "/verbs");
     ASSERT(json_object_get_object(verbs, "options") != NULL);
@@ -1185,7 +1293,7 @@ TEST test_writer_options_trace_verbs(void) {
 TEST test_writer_query_and_external_docs(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   char *json = NULL;
   int rc;
 
@@ -1201,12 +1309,16 @@ TEST test_writer_query_and_external_docs(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *ext;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "query");
-    JSON_Object *ext = json_object_get_object(op_obj, "externalDocs");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "query");
+    ext = json_object_get_object(op_obj, "externalDocs");
 
     ASSERT(op_obj != NULL);
     ASSERT_STR_EQ("https://example.com/op", json_object_get_string(ext, "url"));
@@ -1222,8 +1334,8 @@ TEST test_writer_query_and_external_docs(void) {
 TEST test_writer_parameter_styles(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -1239,15 +1351,19 @@ TEST test_writer_parameter_styles(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "get");
 
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
       ASSERT_STR_EQ("form", json_object_get_string(p_obj, "style"));
       ASSERT_EQ(1, json_object_get_boolean(p_obj, "explode"));
     }
@@ -1260,8 +1376,8 @@ TEST test_writer_parameter_styles(void) {
 TEST test_writer_parameter_explode_false(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -1277,15 +1393,19 @@ TEST test_writer_parameter_explode_false(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "get");
 
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
       ASSERT(json_object_has_value(p_obj, "explode"));
       ASSERT_EQ(0, json_object_get_boolean(p_obj, "explode"));
     }
@@ -1299,8 +1419,8 @@ TEST test_writer_parameter_explode_false(void) {
 TEST test_writer_parameter_style_matrix(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -1314,15 +1434,19 @@ TEST test_writer_parameter_style_matrix(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "get");
 
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
       ASSERT_STR_EQ("matrix", json_object_get_string(p_obj, "style"));
     }
     json_value_free(root);
@@ -1359,17 +1483,24 @@ TEST test_writer_parameter_content_any(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/headers");
     op_obj = json_object_get_object(op_obj, "get");
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
-      JSON_Object *content = json_object_get_object(p_obj, "content");
-      JSON_Object *media = json_object_get_object(content, "text/plain");
-      JSON_Object *schema = json_object_get_object(media, "schema");
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      JSON_Object *content;
+      JSON_Object *media;
+      JSON_Object *schema;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
+      content = json_object_get_object(p_obj, "content");
+      media = json_object_get_object(content, "text/plain");
+      schema = json_object_get_object(media, "schema");
       ASSERT_STR_EQ("header", json_object_get_string(p_obj, "in"));
       ASSERT(json_object_get_object(p_obj, "schema") == NULL);
       ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
@@ -1439,18 +1570,26 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Array *params;
+    JSON_Object *p0;
+    JSON_Object *content;
+    JSON_Object *encoding;
+    JSON_Object *enc_id;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/content");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *params = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *content = json_object_get_object(p0, "content");
+    p_item = json_object_get_object(paths, "/content");
+    op_obj = json_object_get_object(p_item, "get");
+    params = json_object_get_array(op_obj, "parameters");
+    p0 = json_array_get_object(params, 0);
+    content = json_object_get_object(p0, "content");
     JSON_Object *media =
         json_object_get_object(content, "application/x-www-form-urlencoded");
-    JSON_Object *encoding = json_object_get_object(media, "encoding");
-    JSON_Object *enc_id = json_object_get_object(encoding, "id");
+    encoding = json_object_get_object(media, "encoding");
+    enc_id = json_object_get_object(encoding, "id");
 
     ASSERT(enc_id != NULL);
     ASSERT_STR_EQ("text/plain", json_object_get_string(enc_id, "contentType"));
@@ -1458,13 +1597,20 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
     ASSERT_EQ(1, json_object_get_boolean(enc_id, "explode"));
 
     {
-      JSON_Object *responses = json_object_get_object(op_obj, "responses");
-      JSON_Object *r200 = json_object_get_object(responses, "200");
-      JSON_Object *headers = json_object_get_object(r200, "headers");
-      JSON_Object *x_rate = json_object_get_object(headers, "X-Rate");
-      JSON_Object *h_content = json_object_get_object(x_rate, "content");
-      JSON_Object *h_media = json_object_get_object(h_content, "text/plain");
-      JSON_Object *schema = json_object_get_object(h_media, "schema");
+      JSON_Object *responses;
+      JSON_Object *r200;
+      JSON_Object *headers;
+      JSON_Object *x_rate;
+      JSON_Object *h_content;
+      JSON_Object *h_media;
+      JSON_Object *schema;
+      responses = json_object_get_object(op_obj, "responses");
+      r200 = json_object_get_object(responses, "200");
+      headers = json_object_get_object(r200, "headers");
+      x_rate = json_object_get_object(headers, "X-Rate");
+      h_content = json_object_get_object(x_rate, "content");
+      h_media = json_object_get_object(h_content, "text/plain");
+      schema = json_object_get_object(h_media, "schema");
       ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
     }
 
@@ -1478,8 +1624,8 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 TEST test_writer_parameter_examples_object(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Example ex;
   char *json = NULL;
   int rc;
@@ -1500,15 +1646,22 @@ TEST test_writer_parameter_examples_object(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Array *params;
+    JSON_Object *p0;
+    JSON_Object *examples;
+    JSON_Object *basic;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *params = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *examples = json_object_get_object(p0, "examples");
-    JSON_Object *basic = json_object_get_object(examples, "basic");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
+    params = json_object_get_array(op_obj, "parameters");
+    p0 = json_array_get_object(params, 0);
+    examples = json_object_get_object(p0, "examples");
+    basic = json_object_get_object(examples, "basic");
 
     ASSERT(basic != NULL);
     ASSERT_STR_EQ("hello", json_object_get_string(basic, "dataValue"));
@@ -1523,8 +1676,8 @@ TEST test_writer_parameter_examples_object(void) {
 TEST test_writer_parameter_examples_media(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -1541,15 +1694,22 @@ TEST test_writer_parameter_examples_media(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Array *params;
+    JSON_Object *p0;
+    JSON_Object *content;
+    JSON_Object *media;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *params = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *content = json_object_get_object(p0, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
+    params = json_object_get_array(op_obj, "parameters");
+    p0 = json_array_get_object(params, 0);
+    content = json_object_get_object(p0, "content");
+    media = json_object_get_object(content, "application/json");
 
     ASSERT_STR_EQ("hi", json_object_get_string(media, "example"));
 
@@ -1583,11 +1743,14 @@ TEST test_writer_component_examples(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *examples;
+    JSON_Object *ex_obj;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *examples = json_object_get_object(comps, "examples");
-    JSON_Object *ex_obj = json_object_get_object(examples, "ex1");
+    examples = json_object_get_object(comps, "examples");
+    ex_obj = json_object_get_object(examples, "ex1");
     ASSERT_STR_EQ("Example", json_object_get_string(ex_obj, "summary"));
     ASSERT_STR_EQ("v", json_object_get_string(ex_obj, "value"));
     json_value_free(root);
@@ -1629,14 +1792,20 @@ TEST test_writer_oauth2_flows(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *schemes;
+    JSON_Object *oauth;
+    JSON_Object *flows;
+    JSON_Object *password;
+    JSON_Object *scopes;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *schemes = json_object_get_object(comps, "securitySchemes");
-    JSON_Object *oauth = json_object_get_object(schemes, "oauth");
-    JSON_Object *flows = json_object_get_object(oauth, "flows");
-    JSON_Object *password = json_object_get_object(flows, "password");
-    JSON_Object *scopes = json_object_get_object(password, "scopes");
+    schemes = json_object_get_object(comps, "securitySchemes");
+    oauth = json_object_get_object(schemes, "oauth");
+    flows = json_object_get_object(oauth, "flows");
+    password = json_object_get_object(flows, "password");
+    scopes = json_object_get_object(password, "scopes");
 
     ASSERT_STR_EQ("https://token.example.com",
                   json_object_get_string(password, "tokenUrl"));
@@ -1669,11 +1838,15 @@ TEST test_writer_servers(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Array *srv_arr = json_object_get_array(root_obj, "servers");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Array *srv_arr;
+    JSON_Object *srv;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    srv_arr = json_object_get_array(root_obj, "servers");
     ASSERT_STR_EQ("3.1.2", json_object_get_string(root_obj, "openapi"));
-    JSON_Object *srv = json_array_get_object(srv_arr, 0);
+    srv = json_array_get_object(srv_arr, 0);
 
     ASSERT_STR_EQ("https://api.example.com",
                   json_object_get_string(srv, "url"));
@@ -1714,18 +1887,24 @@ TEST test_writer_querystring_param(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/search");
     op_obj = json_object_get_object(op_obj, "get");
     {
-      JSON_Array *oa_params = json_object_get_array(op_obj, "parameters");
-      JSON_Object *p_obj = json_array_get_object(oa_params, 0);
-      JSON_Object *content = json_object_get_object(p_obj, "content");
+      JSON_Array *oa_params;
+      JSON_Object *p_obj;
+      JSON_Object *content;
+      JSON_Object *schema;
+      oa_params = json_object_get_array(op_obj, "parameters");
+      p_obj = json_array_get_object(oa_params, 0);
+      content = json_object_get_object(p_obj, "content");
       JSON_Object *media =
           json_object_get_object(content, "application/x-www-form-urlencoded");
-      JSON_Object *schema = json_object_get_object(media, "schema");
+      schema = json_object_get_object(media, "schema");
       ASSERT_STR_EQ("querystring", json_object_get_string(p_obj, "in"));
       ASSERT(json_object_get_object(p_obj, "schema") == NULL);
       ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
@@ -1770,8 +1949,10 @@ TEST test_writer_ignores_reserved_header_params(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     JSON_Array *oa_params;
     JSON_Object *p_obj;
     op_obj = json_object_get_object(op_obj, "paths");
@@ -1824,8 +2005,10 @@ TEST test_writer_ignores_content_type_response_header(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     JSON_Object *resp_obj;
     JSON_Object *headers_obj;
     op_obj = json_object_get_object(op_obj, "paths");
@@ -1874,12 +2057,16 @@ TEST test_writer_path_level_parameters(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *item;
+    JSON_Array *oa_params;
+    JSON_Object *p_obj;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *item = json_object_get_object(paths, "/pets");
-    JSON_Array *oa_params = json_object_get_array(item, "parameters");
-    JSON_Object *p_obj = json_array_get_object(oa_params, 0);
+    item = json_object_get_object(paths, "/pets");
+    oa_params = json_object_get_array(item, "parameters");
+    p_obj = json_array_get_object(oa_params, 0);
 
     ASSERT_STR_EQ("Pets", json_object_get_string(item, "summary"));
     ASSERT_STR_EQ("All pets", json_object_get_string(item, "description"));
@@ -1923,13 +2110,20 @@ TEST test_writer_server_variables(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *obj = json_value_get_object(root);
-    JSON_Array *srv_arr = json_object_get_array(obj, "servers");
-    JSON_Object *srv_obj = json_array_get_object(srv_arr, 0);
-    JSON_Object *vars = json_object_get_object(srv_obj, "variables");
-    JSON_Object *env = json_object_get_object(vars, "env");
-    JSON_Array *enum_arr = json_object_get_array(env, "enum");
+    JSON_Value *root;
+    JSON_Object *obj;
+    JSON_Array *srv_arr;
+    JSON_Object *srv_obj;
+    JSON_Object *vars;
+    JSON_Object *env;
+    JSON_Array *enum_arr;
+    root = json_parse_string(json);
+    obj = json_value_get_object(root);
+    srv_arr = json_object_get_array(obj, "servers");
+    srv_obj = json_array_get_object(srv_arr, 0);
+    vars = json_object_get_object(srv_obj, "variables");
+    env = json_object_get_object(vars, "env");
+    enum_arr = json_object_get_array(env, "enum");
 
     ASSERT_STR_EQ("prod", json_object_get_string(env, "default"));
     ASSERT_STR_EQ("Environment", json_object_get_string(env, "description"));
@@ -1981,14 +2175,17 @@ TEST test_writer_security_schemes(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *secs;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *secs = json_object_get_object(comps, "securitySchemes");
+    secs = json_object_get_object(comps, "securitySchemes");
 
     /* Check Bearer */
     {
-      JSON_Object *b = json_object_get_object(secs, "bearerAuth");
+      JSON_Object *b;
+      b = json_object_get_object(secs, "bearerAuth");
       ASSERT(b != NULL);
       ASSERT_STR_EQ("http", json_object_get_string(b, "type"));
       ASSERT_STR_EQ("bearer", json_object_get_string(b, "scheme"));
@@ -1997,7 +2194,8 @@ TEST test_writer_security_schemes(void) {
 
     /* Check ApiKey */
     {
-      JSON_Object *k = json_object_get_object(secs, "apiKeyAuth");
+      JSON_Object *k;
+      k = json_object_get_object(secs, "apiKeyAuth");
       ASSERT(k != NULL);
       ASSERT_STR_EQ("apiKey", json_object_get_string(k, "type"));
       ASSERT_STR_EQ("header", json_object_get_string(k, "in"));
@@ -2006,7 +2204,8 @@ TEST test_writer_security_schemes(void) {
 
     /* Check MutualTLS */
     {
-      JSON_Object *m = json_object_get_object(secs, "mtlsAuth");
+      JSON_Object *m;
+      m = json_object_get_object(secs, "mtlsAuth");
       ASSERT(m != NULL);
       ASSERT_STR_EQ("mutualTLS", json_object_get_string(m, "type"));
       ASSERT_STR_EQ("mTLS only", json_object_get_string(m, "description"));
@@ -2021,7 +2220,7 @@ TEST test_writer_security_schemes(void) {
 TEST test_writer_security_requirements(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenAPI_SecurityRequirementSet root_set;
   struct OpenAPI_SecurityRequirement root_req;
   struct OpenAPI_SecurityRequirementSet op_set;
@@ -2057,21 +2256,28 @@ TEST test_writer_security_requirements(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Array *root_sec = json_object_get_array(root_obj, "security");
-    JSON_Object *root_req_obj = json_array_get_object(root_sec, 0);
-    JSON_Array *root_scopes = json_object_get_array(root_req_obj, "bearerAuth");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Array *root_sec;
+    JSON_Object *root_req_obj;
+    JSON_Array *root_scopes;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    root_sec = json_object_get_array(root_obj, "security");
+    root_req_obj = json_array_get_object(root_sec, 0);
+    root_scopes = json_object_get_array(root_req_obj, "bearerAuth");
 
     ASSERT(root_scopes != NULL);
 
     {
+      JSON_Array *op_sec;
+      JSON_Object *op_req_obj;
       JSON_Object *op_obj = json_object_get_object(
           json_object_get_object(json_object_get_object(root_obj, "paths"),
                                  "/test/route"),
           "get");
-      JSON_Array *op_sec = json_object_get_array(op_obj, "security");
-      JSON_Object *op_req_obj = json_array_get_object(op_sec, 0);
+      op_sec = json_object_get_array(op_obj, "security");
+      op_req_obj = json_array_get_object(op_sec, 0);
       ASSERT(json_object_get_array(op_req_obj, "ApiKeyAuth") != NULL);
     }
 
@@ -2085,7 +2291,7 @@ TEST test_writer_security_requirements(void) {
 TEST test_writer_multipart_schema(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
+  struct OpenAPI_Operation op = {0};
   struct OpenAPI_MultipartField parts[2];
   char *json = NULL;
   int rc;
@@ -2108,30 +2314,39 @@ TEST test_writer_multipart_schema(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *op_obj = json_value_get_object(root);
+    JSON_Value *root;
+    JSON_Object *op_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "post");
 
     {
-      JSON_Object *req = json_object_get_object(op_obj, "requestBody");
-      JSON_Object *cnt = json_object_get_object(req, "content");
-      JSON_Object *mp = json_object_get_object(cnt, "multipart/form-data");
-      JSON_Object *sch = json_object_get_object(mp, "schema");
-      JSON_Object *props = json_object_get_object(sch, "properties");
+      JSON_Object *req;
+      JSON_Object *cnt;
+      JSON_Object *mp;
+      JSON_Object *sch;
+      JSON_Object *props;
+      req = json_object_get_object(op_obj, "requestBody");
+      cnt = json_object_get_object(req, "content");
+      mp = json_object_get_object(cnt, "multipart/form-data");
+      sch = json_object_get_object(mp, "schema");
+      props = json_object_get_object(sch, "properties");
 
       ASSERT_STR_EQ("object", json_object_get_string(sch, "type"));
 
       /* Check File */
       {
-        JSON_Object *f = json_object_get_object(props, "file");
+        JSON_Object *f;
+        f = json_object_get_object(props, "file");
         ASSERT_STR_EQ("string", json_object_get_string(f, "type"));
         ASSERT_STR_EQ("binary", json_object_get_string(f, "format"));
       }
       /* Check Desc */
       {
-        JSON_Object *d = json_object_get_object(props, "desc");
+        JSON_Object *d;
+        d = json_object_get_object(props, "desc");
         ASSERT_STR_EQ("string", json_object_get_string(d, "type"));
       }
     }
@@ -2212,23 +2427,36 @@ TEST test_writer_components_and_response_headers(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *components = json_object_get_object(root_obj, "components");
-    JSON_Object *params = json_object_get_object(components, "parameters");
-    JSON_Object *hdrs = json_object_get_object(components, "headers");
-    JSON_Object *resps = json_object_get_object(components, "responses");
-    JSON_Object *paths = json_object_get_object(root_obj, "paths");
-    JSON_Object *item = json_object_get_object(paths, "/items");
-    JSON_Object *get = json_object_get_object(item, "get");
-    JSON_Array *params_arr = json_object_get_array(get, "parameters");
-    JSON_Object *p0 = json_array_get_object(params_arr, 0);
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *components;
+    JSON_Object *params;
+    JSON_Object *hdrs;
+    JSON_Object *resps;
+    JSON_Object *paths;
+    JSON_Object *item;
+    JSON_Object *get;
+    JSON_Array *params_arr;
+    JSON_Object *p0;
+    JSON_Object *resp200_hdrs;
+    JSON_Object *x_rate;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    components = json_object_get_object(root_obj, "components");
+    params = json_object_get_object(components, "parameters");
+    hdrs = json_object_get_object(components, "headers");
+    resps = json_object_get_object(components, "responses");
+    paths = json_object_get_object(root_obj, "paths");
+    item = json_object_get_object(paths, "/items");
+    get = json_object_get_object(item, "get");
+    params_arr = json_object_get_array(get, "parameters");
+    p0 = json_array_get_object(params_arr, 0);
     JSON_Object *resp200 =
         json_object_get_object(json_object_get_object(get, "responses"), "200");
     JSON_Object *resp404 =
         json_object_get_object(json_object_get_object(get, "responses"), "404");
-    JSON_Object *resp200_hdrs = json_object_get_object(resp200, "headers");
-    JSON_Object *x_rate = json_object_get_object(resp200_hdrs, "X-Rate");
+    resp200_hdrs = json_object_get_object(resp200, "headers");
+    x_rate = json_object_get_object(resp200_hdrs, "X-Rate");
 
     ASSERT(params != NULL);
     ASSERT(hdrs != NULL);
@@ -2289,18 +2517,30 @@ TEST test_writer_components_request_bodies(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *components = json_object_get_object(root_obj, "components");
-    JSON_Object *rbs = json_object_get_object(components, "requestBodies");
-    JSON_Object *create = json_object_get_object(rbs, "CreatePet");
-    JSON_Object *content = json_object_get_object(create, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *paths = json_object_get_object(root_obj, "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *post = json_object_get_object(p_item, "post");
-    JSON_Object *req = json_object_get_object(post, "requestBody");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *components;
+    JSON_Object *rbs;
+    JSON_Object *create;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *paths;
+    JSON_Object *p_item;
+    JSON_Object *post;
+    JSON_Object *req;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    components = json_object_get_object(root_obj, "components");
+    rbs = json_object_get_object(components, "requestBodies");
+    create = json_object_get_object(rbs, "CreatePet");
+    content = json_object_get_object(create, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    paths = json_object_get_object(root_obj, "paths");
+    p_item = json_object_get_object(paths, "/test/route");
+    post = json_object_get_object(p_item, "post");
+    req = json_object_get_object(post, "requestBody");
 
     ASSERT_STR_EQ("Create", json_object_get_string(create, "description"));
     ASSERT_EQ(1, json_object_get_boolean(create, "required"));
@@ -2337,13 +2577,18 @@ TEST test_writer_components_schemas(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *schemas;
+    JSON_Object *model;
+    JSON_Object *props;
+    JSON_Object *id_prop;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *schemas = json_object_get_object(comps, "schemas");
-    JSON_Object *model = json_object_get_object(schemas, "MyModel");
-    JSON_Object *props = json_object_get_object(model, "properties");
-    JSON_Object *id_prop = json_object_get_object(props, "id");
+    schemas = json_object_get_object(comps, "schemas");
+    model = json_object_get_object(schemas, "MyModel");
+    props = json_object_get_object(model, "properties");
+    id_prop = json_object_get_object(props, "id");
 
     ASSERT_STR_EQ("integer", json_object_get_string(id_prop, "type"));
 
@@ -2373,14 +2618,20 @@ TEST test_writer_components_schemas_raw(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *schemas;
+    JSON_Object *token;
+    JSON_Value *flag_val;
+    JSON_Object *nums;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *schemas = json_object_get_object(comps, "schemas");
-    JSON_Object *token = json_object_get_object(schemas, "Token");
-    JSON_Value *flag_val = json_object_get_value(schemas, "Flag");
-    JSON_Object *nums = json_object_get_object(schemas, "Nums");
-    JSON_Object *items = json_object_get_object(nums, "items");
+    schemas = json_object_get_object(comps, "schemas");
+    token = json_object_get_object(schemas, "Token");
+    flag_val = json_object_get_value(schemas, "Flag");
+    nums = json_object_get_object(schemas, "Nums");
+    items = json_object_get_object(nums, "items");
 
     ASSERT_STR_EQ("string", json_object_get_string(token, "type"));
     ASSERT_EQ(JSONBoolean, json_value_get_type(flag_val));
@@ -2413,16 +2664,24 @@ TEST test_writer_schema_ref_external(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *get;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *get = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(get, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(resp_obj, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    p_item = json_object_get_object(paths, "/test/route");
+    get = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(get, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    content = json_object_get_object(resp_obj, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT_STR_EQ("https://example.com/schemas/Pet",
                   json_object_get_string(schema, "$ref"));
@@ -2453,16 +2712,24 @@ TEST test_writer_schema_dynamic_ref_external(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *get;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *get = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(get, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(resp_obj, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
+    p_item = json_object_get_object(paths, "/test/route");
+    get = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(get, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    content = json_object_get_object(resp_obj, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
 
     ASSERT_STR_EQ("https://example.com/schemas/Pet",
                   json_object_get_string(schema, "$dynamicRef"));
@@ -2493,17 +2760,26 @@ TEST test_writer_schema_items_ref_external(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *get;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *get = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(get, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(resp_obj, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    p_item = json_object_get_object(paths, "/test/route");
+    get = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(get, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    content = json_object_get_object(resp_obj, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    items = json_object_get_object(schema, "items");
 
     ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("https://example.com/schemas/Pet",
@@ -2536,17 +2812,26 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *get;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *content;
+    JSON_Object *media;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *get = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(get, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(resp_obj, "content");
-    JSON_Object *media = json_object_get_object(content, "application/json");
-    JSON_Object *schema = json_object_get_object(media, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    p_item = json_object_get_object(paths, "/test/route");
+    get = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(get, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    content = json_object_get_object(resp_obj, "content");
+    media = json_object_get_object(content, "application/json");
+    schema = json_object_get_object(media, "schema");
+    items = json_object_get_object(schema, "items");
 
     ASSERT_STR_EQ("array", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("https://example.com/schemas/Pet",
@@ -2588,13 +2873,16 @@ TEST test_writer_additional_operations(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *copy_op;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/copy");
+    p_item = json_object_get_object(paths, "/copy");
     JSON_Object *add_ops =
         json_object_get_object(p_item, "additionalOperations");
-    JSON_Object *copy_op = json_object_get_object(add_ops, "COPY");
+    copy_op = json_object_get_object(add_ops, "COPY");
 
     ASSERT(copy_op != NULL);
     ASSERT_STR_EQ("copyItem", json_object_get_string(copy_op, "operationId"));
@@ -2646,19 +2934,30 @@ TEST test_writer_component_media_types_and_content_ref(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *obj = json_value_get_object(root);
-    JSON_Object *comps = json_object_get_object(obj, "components");
-    JSON_Object *media = json_object_get_object(comps, "mediaTypes");
+    JSON_Value *root;
+    JSON_Object *obj;
+    JSON_Object *comps;
+    JSON_Object *media;
+    JSON_Object *schema_obj;
+    JSON_Object *paths;
+    JSON_Object *p_item;
+    JSON_Object *get_op;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *content;
+    root = json_parse_string(json);
+    obj = json_value_get_object(root);
+    comps = json_object_get_object(obj, "components");
+    media = json_object_get_object(comps, "mediaTypes");
     JSON_Object *mt_obj =
         json_object_get_object(media, "application/vnd.acme+json");
-    JSON_Object *schema_obj = json_object_get_object(mt_obj, "schema");
-    JSON_Object *paths = json_object_get_object(obj, "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *get_op = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(get_op, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(resp_obj, "content");
+    schema_obj = json_object_get_object(mt_obj, "schema");
+    paths = json_object_get_object(obj, "paths");
+    p_item = json_object_get_object(paths, "/pets");
+    get_op = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(get_op, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    content = json_object_get_object(resp_obj, "content");
     JSON_Object *mt_content =
         json_object_get_object(content, "application/vnd.acme+json");
 
@@ -2704,14 +3003,20 @@ TEST test_writer_response_multiple_content(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *responses;
+    JSON_Object *r200;
+    JSON_Object *content;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Object *responses = json_object_get_object(op_obj, "responses");
-    JSON_Object *r200 = json_object_get_object(responses, "200");
-    JSON_Object *content = json_object_get_object(r200, "content");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
+    responses = json_object_get_object(op_obj, "responses");
+    r200 = json_object_get_object(responses, "200");
+    content = json_object_get_object(r200, "content");
 
     ASSERT(content != NULL);
     ASSERT(json_object_get_object(content, "application/json") != NULL);
@@ -2768,19 +3073,30 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *rb;
+    JSON_Object *content;
+    JSON_Object *mt;
+    JSON_Object *encoding;
+    JSON_Object *file_enc;
+    JSON_Object *headers;
+    JSON_Object *hdr;
+    JSON_Object *hdr_schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Object *rb = json_object_get_object(op_obj, "requestBody");
-    JSON_Object *content = json_object_get_object(rb, "content");
-    JSON_Object *mt = json_object_get_object(content, "multipart/form-data");
-    JSON_Object *encoding = json_object_get_object(mt, "encoding");
-    JSON_Object *file_enc = json_object_get_object(encoding, "file");
-    JSON_Object *headers = json_object_get_object(file_enc, "headers");
-    JSON_Object *hdr = json_object_get_object(headers, "X-Rate-Limit-Limit");
-    JSON_Object *hdr_schema = json_object_get_object(hdr, "schema");
+    p_item = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(p_item, "get");
+    rb = json_object_get_object(op_obj, "requestBody");
+    content = json_object_get_object(rb, "content");
+    mt = json_object_get_object(content, "multipart/form-data");
+    encoding = json_object_get_object(mt, "encoding");
+    file_enc = json_object_get_object(encoding, "file");
+    headers = json_object_get_object(file_enc, "headers");
+    hdr = json_object_get_object(headers, "X-Rate-Limit-Limit");
+    hdr_schema = json_object_get_object(hdr, "schema");
 
     ASSERT_STR_EQ("image/png", json_object_get_string(file_enc, "contentType"));
     ASSERT_EQ(1, json_object_get_boolean(file_enc, "explode"));
@@ -2843,20 +3159,32 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *media_types;
+    JSON_Object *mt;
+    JSON_Array *prefix_arr;
+    JSON_Object *prefix0;
+    JSON_Object *prefix1;
+    JSON_Object *prefix1_headers;
+    JSON_Object *prefix1_hdr;
+    JSON_Object *prefix1_schema;
+    JSON_Object *item_obj;
+    JSON_Object *item_encoding;
+    JSON_Object *meta_obj;
+    root = json_parse_string(json);
     JSON_Object *components =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *media_types = json_object_get_object(components, "mediaTypes");
-    JSON_Object *mt = json_object_get_object(media_types, "multipart/mixed");
-    JSON_Array *prefix_arr = json_object_get_array(mt, "prefixEncoding");
-    JSON_Object *prefix0 = json_array_get_object(prefix_arr, 0);
-    JSON_Object *prefix1 = json_array_get_object(prefix_arr, 1);
-    JSON_Object *prefix1_headers = json_object_get_object(prefix1, "headers");
-    JSON_Object *prefix1_hdr = json_object_get_object(prefix1_headers, "X-Pos");
-    JSON_Object *prefix1_schema = json_object_get_object(prefix1_hdr, "schema");
-    JSON_Object *item_obj = json_object_get_object(mt, "itemEncoding");
-    JSON_Object *item_encoding = json_object_get_object(item_obj, "encoding");
-    JSON_Object *meta_obj = json_object_get_object(item_encoding, "meta");
+    media_types = json_object_get_object(components, "mediaTypes");
+    mt = json_object_get_object(media_types, "multipart/mixed");
+    prefix_arr = json_object_get_array(mt, "prefixEncoding");
+    prefix0 = json_array_get_object(prefix_arr, 0);
+    prefix1 = json_array_get_object(prefix_arr, 1);
+    prefix1_headers = json_object_get_object(prefix1, "headers");
+    prefix1_hdr = json_object_get_object(prefix1_headers, "X-Pos");
+    prefix1_schema = json_object_get_object(prefix1_hdr, "schema");
+    item_obj = json_object_get_object(mt, "itemEncoding");
+    item_encoding = json_object_get_object(item_obj, "encoding");
+    meta_obj = json_object_get_object(item_encoding, "meta");
 
     ASSERT_EQ(2, json_array_get_count(prefix_arr));
     ASSERT_STR_EQ("application/json",
@@ -2908,12 +3236,18 @@ TEST test_writer_component_path_items(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *obj = json_value_get_object(root);
-    JSON_Object *comps = json_object_get_object(obj, "components");
-    JSON_Object *path_items = json_object_get_object(comps, "pathItems");
-    JSON_Object *pi_obj = json_object_get_object(path_items, "FooItem");
-    JSON_Object *get_op = json_object_get_object(pi_obj, "get");
+    JSON_Value *root;
+    JSON_Object *obj;
+    JSON_Object *comps;
+    JSON_Object *path_items;
+    JSON_Object *pi_obj;
+    JSON_Object *get_op;
+    root = json_parse_string(json);
+    obj = json_value_get_object(root);
+    comps = json_object_get_object(obj, "components");
+    path_items = json_object_get_object(comps, "pathItems");
+    pi_obj = json_object_get_object(path_items, "FooItem");
+    get_op = json_object_get_object(pi_obj, "get");
 
     ASSERT_STR_EQ("foo", json_object_get_string(pi_obj, "summary"));
     ASSERT_STR_EQ("getFoo", json_object_get_string(get_op, "operationId"));
@@ -2978,17 +3312,26 @@ TEST test_writer_response_links(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *resps;
+    JSON_Object *resp_obj;
+    JSON_Object *links;
+    JSON_Object *link_obj;
+    JSON_Object *params_obj;
+    JSON_Object *srv_obj;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Object *resps = json_object_get_object(op_obj, "responses");
-    JSON_Object *resp_obj = json_object_get_object(resps, "200");
-    JSON_Object *links = json_object_get_object(resp_obj, "links");
-    JSON_Object *link_obj = json_object_get_object(links, "next");
-    JSON_Object *params_obj = json_object_get_object(link_obj, "parameters");
-    JSON_Object *srv_obj = json_object_get_object(link_obj, "server");
+    p_item = json_object_get_object(paths, "/pets");
+    op_obj = json_object_get_object(p_item, "get");
+    resps = json_object_get_object(op_obj, "responses");
+    resp_obj = json_object_get_object(resps, "200");
+    links = json_object_get_object(resp_obj, "links");
+    link_obj = json_object_get_object(links, "next");
+    params_obj = json_object_get_object(link_obj, "parameters");
+    srv_obj = json_object_get_object(link_obj, "server");
 
     ASSERT_STR_EQ("listPets", json_object_get_string(link_obj, "operationId"));
     ASSERT_EQ(50, (int)json_object_get_number(params_obj, "limit"));
@@ -3051,16 +3394,22 @@ TEST test_writer_callbacks(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *cbs;
+    JSON_Object *cb_obj;
+    JSON_Object *cb_post;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Object *cbs = json_object_get_object(op_obj, "callbacks");
-    JSON_Object *cb_obj = json_object_get_object(cbs, "onEvent");
+    p_item = json_object_get_object(paths, "/pets");
+    op_obj = json_object_get_object(p_item, "get");
+    cbs = json_object_get_object(op_obj, "callbacks");
+    cb_obj = json_object_get_object(cbs, "onEvent");
     JSON_Object *cb_path_obj =
         json_object_get_object(cb_obj, "{$request.body#/url}");
-    JSON_Object *cb_post = json_object_get_object(cb_path_obj, "post");
+    cb_post = json_object_get_object(cb_path_obj, "post");
 
     ASSERT(cb_post != NULL);
     ASSERT_STR_EQ("cbPost", json_object_get_string(cb_post, "operationId"));
@@ -3118,17 +3467,26 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Array *params_arr;
+    JSON_Object *p0;
+    JSON_Object *p1;
+    JSON_Object *p0_schema;
+    JSON_Object *p1_schema;
+    JSON_Object *p1_items;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *params_arr = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p0 = json_array_get_object(params_arr, 0);
-    JSON_Object *p1 = json_array_get_object(params_arr, 1);
-    JSON_Object *p0_schema = json_object_get_object(p0, "schema");
-    JSON_Object *p1_schema = json_object_get_object(p1, "schema");
-    JSON_Object *p1_items = json_object_get_object(p1_schema, "items");
+    p_item = json_object_get_object(paths, "/pets");
+    op_obj = json_object_get_object(p_item, "get");
+    params_arr = json_object_get_array(op_obj, "parameters");
+    p0 = json_array_get_object(params_arr, 0);
+    p1 = json_array_get_object(params_arr, 1);
+    p0_schema = json_object_get_object(p0, "schema");
+    p1_schema = json_object_get_object(p1, "schema");
+    p1_items = json_object_get_object(p1_schema, "items");
 
     ASSERT_STR_EQ("#/components/schemas/Pet",
                   json_object_get_string(p0_schema, "$ref"));
@@ -3136,11 +3494,16 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
                   json_object_get_string(p1_items, "$ref"));
 
     {
-      JSON_Object *responses = json_object_get_object(op_obj, "responses");
-      JSON_Object *resp200 = json_object_get_object(responses, "200");
-      JSON_Object *headers = json_object_get_object(resp200, "headers");
-      JSON_Object *hdr_obj = json_object_get_object(headers, "X-Rate");
-      JSON_Object *hdr_schema = json_object_get_object(hdr_obj, "schema");
+      JSON_Object *responses;
+      JSON_Object *resp200;
+      JSON_Object *headers;
+      JSON_Object *hdr_obj;
+      JSON_Object *hdr_schema;
+      responses = json_object_get_object(op_obj, "responses");
+      resp200 = json_object_get_object(responses, "200");
+      headers = json_object_get_object(resp200, "headers");
+      hdr_obj = json_object_get_object(headers, "X-Rate");
+      hdr_schema = json_object_get_object(hdr_obj, "schema");
       ASSERT_STR_EQ("#/components/schemas/Rate",
                     json_object_get_string(hdr_schema, "$ref"));
     }
@@ -3192,14 +3555,20 @@ TEST test_writer_parameter_schema_format_and_content(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Array *params_arr;
+    JSON_Object *p_obj;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *op_obj = json_object_get_object(p_item, "get");
-    JSON_Array *params_arr = json_object_get_array(op_obj, "parameters");
-    JSON_Object *p_obj = json_array_get_object(params_arr, 0);
-    JSON_Object *schema = json_object_get_object(p_obj, "schema");
+    p_item = json_object_get_object(paths, "/pets");
+    op_obj = json_object_get_object(p_item, "get");
+    params_arr = json_object_get_array(op_obj, "parameters");
+    p_obj = json_array_get_object(params_arr, 0);
+    schema = json_object_get_object(p_obj, "schema");
 
     ASSERT_STR_EQ("string", json_object_get_string(schema, "type"));
     ASSERT_STR_EQ("uuid", json_object_get_string(schema, "format"));
@@ -3244,12 +3613,16 @@ TEST test_writer_request_body_ref_with_description(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *op_obj;
+    JSON_Object *rb;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/pets");
-    JSON_Object *op_obj = json_object_get_object(p_item, "post");
-    JSON_Object *rb = json_object_get_object(op_obj, "requestBody");
+    p_item = json_object_get_object(paths, "/pets");
+    op_obj = json_object_get_object(p_item, "post");
+    rb = json_object_get_object(op_obj, "requestBody");
 
     ASSERT_STR_EQ("#/components/requestBodies/CreatePet",
                   json_object_get_string(rb, "$ref"));
@@ -3284,11 +3657,14 @@ TEST test_writer_security_scheme_deprecated(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *schemes;
+    JSON_Object *old_key;
+    root = json_parse_string(json);
     JSON_Object *comps =
         json_object_get_object(json_value_get_object(root), "components");
-    JSON_Object *schemes = json_object_get_object(comps, "securitySchemes");
-    JSON_Object *old_key = json_object_get_object(schemes, "oldKey");
+    schemes = json_object_get_object(comps, "securitySchemes");
+    old_key = json_object_get_object(schemes, "oldKey");
     ASSERT_EQ(1, json_object_get_boolean(old_key, "deprecated"));
     json_value_free(root);
   }
@@ -3300,8 +3676,8 @@ TEST test_writer_security_scheme_deprecated(void) {
 TEST test_writer_schema_enum_default_nullable(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   struct OpenAPI_Any enum_vals[2];
@@ -3326,17 +3702,22 @@ TEST test_writer_schema_enum_default_nullable(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Array *enum_arr;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
     JSON_Array *type_arr =
         json_value_get_array(json_object_get_value(schema, "type"));
-    JSON_Array *enum_arr = json_object_get_array(schema, "enum");
+    enum_arr = json_object_get_array(schema, "enum");
     ASSERT(type_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(type_arr));
     ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
@@ -3356,8 +3737,8 @@ TEST test_writer_schema_enum_default_nullable(void) {
 TEST test_writer_schema_type_union(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   char *types[] = {"string", "integer", "null"};
@@ -3375,14 +3756,18 @@ TEST test_writer_schema_type_union(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
     JSON_Array *type_arr =
         json_value_get_array(json_object_get_value(schema, "type"));
     ASSERT(type_arr != NULL);
@@ -3400,8 +3785,8 @@ TEST test_writer_schema_type_union(void) {
 TEST test_writer_schema_array_items_enum_nullable(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   struct OpenAPI_Any enum_vals[2];
@@ -3424,18 +3809,24 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Object *items;
+    JSON_Array *enum_arr;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    items = json_object_get_object(schema, "items");
     JSON_Array *type_arr =
         json_value_get_array(json_object_get_value(items, "type"));
-    JSON_Array *enum_arr = json_object_get_array(items, "enum");
+    enum_arr = json_object_get_array(items, "enum");
     ASSERT(type_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(type_arr));
     ASSERT_STR_EQ("string", json_array_get_string(type_arr, 0));
@@ -3454,8 +3845,8 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
 TEST test_writer_schema_items_type_union(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   char *types[] = {"string", "integer"};
@@ -3473,15 +3864,20 @@ TEST test_writer_schema_items_type_union(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    items = json_object_get_object(schema, "items");
     JSON_Array *type_arr =
         json_value_get_array(json_object_get_value(items, "type"));
     ASSERT(type_arr != NULL);
@@ -3498,8 +3894,8 @@ TEST test_writer_schema_items_type_union(void) {
 TEST test_writer_schema_boolean(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -3514,14 +3910,18 @@ TEST test_writer_schema_boolean(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Value *schema_val;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Value *schema_val = json_object_get_value(p0, "schema");
+    p0 = json_array_get_object(params, 0);
+    schema_val = json_object_get_value(p0, "schema");
     ASSERT(schema_val != NULL);
     ASSERT_EQ(JSONBoolean, json_value_get_type(schema_val));
     ASSERT_EQ(1, json_value_get_boolean(schema_val));
@@ -3535,8 +3935,8 @@ TEST test_writer_schema_boolean(void) {
 TEST test_writer_schema_numeric_enum(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   struct OpenAPI_Any enum_vals[2];
@@ -3557,15 +3957,20 @@ TEST test_writer_schema_numeric_enum(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Array *enum_arr;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Array *enum_arr = json_object_get_array(schema, "enum");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    enum_arr = json_object_get_array(schema, "enum");
     ASSERT(enum_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(enum_arr));
     ASSERT_EQ(1.0, json_array_get_number(enum_arr, 0));
@@ -3580,8 +3985,8 @@ TEST test_writer_schema_numeric_enum(void) {
 TEST test_writer_schema_items_examples(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
   struct OpenAPI_Any item_examples[2];
@@ -3603,16 +4008,22 @@ TEST test_writer_schema_items_examples(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Object *items;
+    JSON_Array *examples;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
-    JSON_Array *examples = json_object_get_array(items, "examples");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    items = json_object_get_object(schema, "items");
+    examples = json_object_get_array(items, "examples");
     ASSERT(examples != NULL);
     ASSERT_EQ(2, json_array_get_count(examples));
     ASSERT_STR_EQ("a", json_array_get_string(examples, 0));
@@ -3627,8 +4038,8 @@ TEST test_writer_schema_items_examples(void) {
 TEST test_writer_schema_items_boolean(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -3644,15 +4055,20 @@ TEST test_writer_schema_items_boolean(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Value *items_val;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Value *items_val = json_object_get_value(schema, "items");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    items_val = json_object_get_value(schema, "items");
     ASSERT(items_val != NULL);
     ASSERT_EQ(JSONBoolean, json_value_get_type(items_val));
     ASSERT_EQ(0, json_value_get_boolean(items_val));
@@ -3666,8 +4082,8 @@ TEST test_writer_schema_items_boolean(void) {
 TEST test_writer_schema_example_and_numeric_constraints(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -3689,14 +4105,18 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
     ASSERT_EQ(1.0, json_object_get_number(schema, "minimum"));
     ASSERT_EQ(9.0, json_object_get_number(schema, "exclusiveMaximum"));
     ASSERT_EQ(2.5, json_object_get_number(schema, "example"));
@@ -3710,8 +4130,8 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
 TEST test_writer_schema_array_constraints_and_items_example(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 
@@ -3739,15 +4159,20 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
+    JSON_Value *root;
+    JSON_Object *p_item;
+    JSON_Object *p0;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(json);
     JSON_Object *paths =
         json_object_get_object(json_value_get_object(root), "paths");
-    JSON_Object *p_item = json_object_get_object(paths, "/test/route");
+    p_item = json_object_get_object(paths, "/test/route");
     JSON_Array *params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
-    JSON_Object *p0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(p0, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    p0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(p0, "schema");
+    items = json_object_get_object(schema, "items");
     ASSERT_EQ(1.0, json_object_get_number(schema, "minItems"));
     ASSERT_EQ(3.0, json_object_get_number(schema, "maxItems"));
     ASSERT_EQ(1, json_object_get_boolean(schema, "uniqueItems"));
@@ -3787,15 +4212,24 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
   ASSERT(out_json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(out_json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *paths = json_object_get_object(root_obj, "paths");
-    JSON_Object *path = json_object_get_object(paths, "/q");
-    JSON_Object *get = json_object_get_object(path, "get");
-    JSON_Array *params = json_object_get_array(get, "parameters");
-    JSON_Object *param0 = json_array_get_object(params, 0);
-    JSON_Object *schema = json_object_get_object(param0, "schema");
-    JSON_Object *items = json_object_get_object(schema, "items");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *paths;
+    JSON_Object *path;
+    JSON_Object *get;
+    JSON_Array *params;
+    JSON_Object *param0;
+    JSON_Object *schema;
+    JSON_Object *items;
+    root = json_parse_string(out_json);
+    root_obj = json_value_get_object(root);
+    paths = json_object_get_object(root_obj, "paths");
+    path = json_object_get_object(paths, "/q");
+    get = json_object_get_object(path, "get");
+    params = json_object_get_array(get, "parameters");
+    param0 = json_array_get_object(params, 0);
+    schema = json_object_get_object(param0, "schema");
+    items = json_object_get_object(schema, "items");
 
     ASSERT_EQ(1, json_object_get_boolean(schema, "x-top"));
     ASSERT_STR_EQ("x", json_object_get_string(items, "const"));
@@ -3823,9 +4257,9 @@ TEST test_writer_input_validation(void) {
 TEST test_writer_extensions_non_schema(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
-  struct OpenAPI_Response resp;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Callback cb;
   struct OpenAPI_Path cb_path;
   struct OpenAPI_Operation cb_op;
@@ -3836,7 +4270,7 @@ TEST test_writer_extensions_non_schema(void) {
   struct OpenAPI_SecurityRequirementSet sec_set;
   struct OpenAPI_OAuthFlow flow;
   struct OpenAPI_OAuthScope scope;
-  struct OpenAPI_RequestBody comp_rb;
+  struct OpenAPI_RequestBody comp_rb = {0};
   char *rb_names[1];
   char *json = NULL;
   int rc;
@@ -3933,34 +4367,60 @@ TEST test_writer_extensions_non_schema(void) {
   ASSERT_EQ(0, rc);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *info_obj = json_object_get_object(root_obj, "info");
-    JSON_Object *contact_obj = json_object_get_object(info_obj, "contact");
-    JSON_Object *license_obj = json_object_get_object(info_obj, "license");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *info_obj;
+    JSON_Object *contact_obj;
+    JSON_Object *license_obj;
+    JSON_Array *tags_arr;
+    JSON_Object *tag_obj;
+    JSON_Object *paths;
+    JSON_Object *path_obj;
+    JSON_Object *op_obj;
+    JSON_Object *rb_op_obj;
+    JSON_Array *params_arr;
+    JSON_Object *param_obj;
+    JSON_Object *responses;
+    JSON_Object *resp_obj;
+    JSON_Object *callbacks;
+    JSON_Object *cb_obj;
+    JSON_Object *components;
+    JSON_Object *sec;
+    JSON_Object *scheme_obj;
+    JSON_Object *flows;
+    JSON_Object *flow_obj;
+    JSON_Object *rbs;
+    JSON_Object *rb_obj;
+    JSON_Array *security_arr;
+    JSON_Object *security_obj;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    info_obj = json_object_get_object(root_obj, "info");
+    contact_obj = json_object_get_object(info_obj, "contact");
+    license_obj = json_object_get_object(info_obj, "license");
     JSON_Object *ext_docs_obj =
         json_object_get_object(root_obj, "externalDocs");
-    JSON_Array *tags_arr = json_object_get_array(root_obj, "tags");
-    JSON_Object *tag_obj = json_array_get_object(tags_arr, 0);
-    JSON_Object *paths = json_object_get_object(root_obj, "paths");
-    JSON_Object *path_obj = json_object_get_object(paths, "/test/route");
-    JSON_Object *op_obj = json_object_get_object(path_obj, "get");
-    JSON_Object *rb_op_obj = json_object_get_object(op_obj, "requestBody");
-    JSON_Array *params_arr = json_object_get_array(op_obj, "parameters");
-    JSON_Object *param_obj = json_array_get_object(params_arr, 0);
-    JSON_Object *responses = json_object_get_object(op_obj, "responses");
-    JSON_Object *resp_obj = json_object_get_object(responses, "200");
-    JSON_Object *callbacks = json_object_get_object(op_obj, "callbacks");
-    JSON_Object *cb_obj = json_object_get_object(callbacks, "onEvent");
-    JSON_Object *components = json_object_get_object(root_obj, "components");
-    JSON_Object *sec = json_object_get_object(components, "securitySchemes");
-    JSON_Object *scheme_obj = json_object_get_object(sec, "oauth");
-    JSON_Object *flows = json_object_get_object(scheme_obj, "flows");
-    JSON_Object *flow_obj = json_object_get_object(flows, "password");
-    JSON_Object *rbs = json_object_get_object(components, "requestBodies");
-    JSON_Object *rb_obj = json_object_get_object(rbs, "CompRB");
-    JSON_Array *security_arr = json_object_get_array(root_obj, "security");
-    JSON_Object *security_obj = json_array_get_object(security_arr, 0);
+    tags_arr = json_object_get_array(root_obj, "tags");
+    tag_obj = json_array_get_object(tags_arr, 0);
+    paths = json_object_get_object(root_obj, "paths");
+    path_obj = json_object_get_object(paths, "/test/route");
+    op_obj = json_object_get_object(path_obj, "get");
+    rb_op_obj = json_object_get_object(op_obj, "requestBody");
+    params_arr = json_object_get_array(op_obj, "parameters");
+    param_obj = json_array_get_object(params_arr, 0);
+    responses = json_object_get_object(op_obj, "responses");
+    resp_obj = json_object_get_object(responses, "200");
+    callbacks = json_object_get_object(op_obj, "callbacks");
+    cb_obj = json_object_get_object(callbacks, "onEvent");
+    components = json_object_get_object(root_obj, "components");
+    sec = json_object_get_object(components, "securitySchemes");
+    scheme_obj = json_object_get_object(sec, "oauth");
+    flows = json_object_get_object(scheme_obj, "flows");
+    flow_obj = json_object_get_object(flows, "password");
+    rbs = json_object_get_object(components, "requestBodies");
+    rb_obj = json_object_get_object(rbs, "CompRB");
+    security_arr = json_object_get_array(root_obj, "security");
+    security_obj = json_array_get_object(security_arr, 0);
 
     ASSERT_EQ(1, (int)json_object_get_number(root_obj, "x-root"));
     ASSERT_STR_EQ("info", json_object_get_string(info_obj, "x-info"));
@@ -4014,12 +4474,18 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
   ASSERT(json != NULL);
 
   {
-    JSON_Value *root = json_parse_string(json);
-    JSON_Object *root_obj = json_value_get_object(root);
-    JSON_Object *paths_obj = json_object_get_object(root_obj, "paths");
-    JSON_Object *hooks_obj = json_object_get_object(root_obj, "webhooks");
-    JSON_Object *comps_obj = json_object_get_object(root_obj, "components");
-    JSON_Object *path_item = json_object_get_object(paths_obj, "/test/route");
+    JSON_Value *root;
+    JSON_Object *root_obj;
+    JSON_Object *paths_obj;
+    JSON_Object *hooks_obj;
+    JSON_Object *comps_obj;
+    JSON_Object *path_item;
+    root = json_parse_string(json);
+    root_obj = json_value_get_object(root);
+    paths_obj = json_object_get_object(root_obj, "paths");
+    hooks_obj = json_object_get_object(root_obj, "webhooks");
+    comps_obj = json_object_get_object(root_obj, "components");
+    path_item = json_object_get_object(paths_obj, "/test/route");
 
     ASSERT_EQ(1, json_object_get_boolean(paths_obj, "x-paths"));
     ASSERT(path_item != NULL);
@@ -4039,8 +4505,8 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 TEST test_writer_methods_and_styles(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op;
-  struct OpenAPI_Parameter param;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
   char *json = NULL;
   int rc;
 

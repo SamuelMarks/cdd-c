@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,8 +23,8 @@ int main(void) {
   struct FooE foo_e = {"some_bar", 5, NULL};
   char *haz_e_json = NULL;
   char *foo_e_json = NULL;
-  struct HazE *haz_e0 = malloc(sizeof(*haz_e0));
-  struct FooE *foo_e0 = malloc(sizeof(*foo_e0));
+  struct HazE * haz_e0 = (struct HazE *)malloc(sizeof(*haz_e0));
+  struct FooE * foo_e0 = (struct FooE *)malloc(sizeof(*foo_e0));
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)

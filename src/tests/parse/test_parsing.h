@@ -18,7 +18,7 @@ TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_macros,
                   const size_t expected_whitespace) {
   struct TokenList *tokens = NULL;
-  struct CstNodeList *cst_nodes = calloc(1, sizeof *cst_nodes);
+  struct CstNodeList * cst_nodes = (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
   int rc = EXIT_SUCCESS;
 

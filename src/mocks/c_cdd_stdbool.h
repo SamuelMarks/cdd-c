@@ -8,7 +8,7 @@
  * @author Samuel Marks
  */
 
-#if !defined(_STDBOOL_H) && !defined(HAS_STDBOOL)
+#if !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) && !defined(__cplusplus)
 #define _STDBOOL_H
 
 #ifdef bool

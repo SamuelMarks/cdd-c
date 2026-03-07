@@ -111,7 +111,7 @@ TEST test_propagate_nested_hoisting(void) {
 
 TEST test_integration_safety_and_prop(void) {
   const char *input =
-      "void f() { char *p = malloc(10); if(!p) return; do_work(); }";
+      "void f() { char * p = (char *)malloc(10); if(!p) return; do_work(); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;

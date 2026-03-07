@@ -30,7 +30,7 @@ static int sprintf_s_wrapper(char *buf, size_t start, size_t cap, const char *fm
 }
 
 /** @brief http_headers_init definition */
-int http_headers_init(struct HttpHeaders *const headers) {
+int http_headers_init(struct HttpHeaders *headers) {
   if (!headers)
     return EINVAL;
   headers->headers = NULL;
@@ -40,7 +40,7 @@ int http_headers_init(struct HttpHeaders *const headers) {
 }
 
 /** @brief http_headers_free definition */
-void http_headers_free(struct HttpHeaders *const headers) {
+void http_headers_free(struct HttpHeaders *headers) {
   size_t i;
   if (!headers)
     return;
@@ -60,8 +60,8 @@ void http_headers_free(struct HttpHeaders *const headers) {
 }
 
 /** @brief http_headers_add definition */
-int http_headers_add(struct HttpHeaders *const headers, const char *const key,
-                     const char *const value) {
+int http_headers_add(struct HttpHeaders *headers, const char *key,
+                     const char *value) {
   char *_ast_strdup_0 = NULL;
   char *_ast_strdup_1 = NULL;
   if (!headers || !key || !value)
@@ -95,7 +95,7 @@ int http_headers_add(struct HttpHeaders *const headers, const char *const key,
 
 /* --- Multipart Implementation --- */
 
-int http_parts_init(struct HttpParts *const parts) {
+int http_parts_init(struct HttpParts *parts) {
   if (!parts)
     return EINVAL;
   parts->parts = NULL;
@@ -104,7 +104,7 @@ int http_parts_init(struct HttpParts *const parts) {
   return 0;
 }
 
-void http_parts_free(struct HttpParts *const parts) {
+void http_parts_free(struct HttpParts *parts) {
   size_t i;
   if (!parts)
     return;
@@ -129,10 +129,10 @@ void http_parts_free(struct HttpParts *const parts) {
   parts->capacity = 0;
 }
 
-int http_request_add_part(struct HttpRequest *const req, const char *const name,
-                          const char *const filename,
-                          const char *const content_type,
-                          const void *const data, size_t data_len) {
+int http_request_add_part(struct HttpRequest *req, const char *name,
+                          const char *filename,
+                          const char *content_type,
+                          const void *data, size_t data_len) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;
@@ -192,9 +192,9 @@ int http_request_add_part(struct HttpRequest *const req, const char *const name,
   return 0;
 }
 
-int http_request_add_part_header_last(struct HttpRequest *const req,
-                                      const char *const key,
-                                      const char *const value) {
+int http_request_add_part_header_last(struct HttpRequest *req,
+                                      const char *key,
+                                      const char *value) {
   struct HttpPart *part;
   if (!req || !key || !value)
     return EINVAL;
@@ -204,7 +204,7 @@ int http_request_add_part_header_last(struct HttpRequest *const req,
   return http_headers_add(&part->headers, key, value);
 }
 
-int http_request_flatten_parts(struct HttpRequest *const req) {
+int http_request_flatten_parts(struct HttpRequest *req) {
   char boundary[64];
   size_t i;
   size_t estimated_size = 0;
@@ -364,7 +364,7 @@ int http_request_flatten_parts(struct HttpRequest *const req) {
 }
 
 /** @brief http_config_init definition */
-int http_config_init(struct HttpConfig *const config) {
+int http_config_init(struct HttpConfig *config) {
   char *_ast_strdup_5 = NULL;
   if (!config)
     return EINVAL;
@@ -387,7 +387,7 @@ int http_config_init(struct HttpConfig *const config) {
 }
 
 /** @brief http_config_free definition */
-void http_config_free(struct HttpConfig *const config) {
+void http_config_free(struct HttpConfig *config) {
   if (!config)
     return;
   if (config->user_agent) {
@@ -401,7 +401,7 @@ void http_config_free(struct HttpConfig *const config) {
 }
 
 /** @brief http_client_init definition */
-int http_client_init(struct HttpClient *const client) {
+int http_client_init(struct HttpClient *client) {
   if (!client)
     return EINVAL;
 
@@ -410,7 +410,7 @@ int http_client_init(struct HttpClient *const client) {
 }
 
 /** @brief http_client_free definition */
-void http_client_free(struct HttpClient *const client) {
+void http_client_free(struct HttpClient *client) {
   if (!client)
     return;
 
@@ -423,7 +423,7 @@ void http_client_free(struct HttpClient *const client) {
 }
 
 /** @brief http_request_init definition */
-int http_request_init(struct HttpRequest *const req) {
+int http_request_init(struct HttpRequest *req) {
   if (!req)
     return EINVAL;
   req->url = NULL;
@@ -440,7 +440,7 @@ int http_request_init(struct HttpRequest *const req) {
 }
 
 /** @brief http_request_free definition */
-void http_request_free(struct HttpRequest *const req) {
+void http_request_free(struct HttpRequest *req) {
   if (!req)
     return;
   if (req->url) {
@@ -456,8 +456,8 @@ void http_request_free(struct HttpRequest *const req) {
 }
 
 /** @brief http_request_set_auth_bearer definition */
-int http_request_set_auth_bearer(struct HttpRequest *const req,
-                                 const char *const token) {
+int http_request_set_auth_bearer(struct HttpRequest *req,
+                                 const char *token) {
   char *val = NULL;
   int rc;
   size_t len;
@@ -482,8 +482,8 @@ int http_request_set_auth_bearer(struct HttpRequest *const req,
   return rc;
 }
 
-int http_request_set_auth_basic(struct HttpRequest *const req,
-                                const char *const token) {
+int http_request_set_auth_basic(struct HttpRequest *req,
+                                const char *token) {
   char *val = NULL;
   int rc;
   size_t len;
@@ -509,7 +509,7 @@ int http_request_set_auth_basic(struct HttpRequest *const req,
 }
 
 /** @brief http_response_init definition */
-int http_response_init(struct HttpResponse *const res) {
+int http_response_init(struct HttpResponse *res) {
   if (!res)
     return EINVAL;
   res->status_code = 0;
@@ -519,7 +519,7 @@ int http_response_init(struct HttpResponse *const res) {
 }
 
 /** @brief http_response_free definition */
-void http_response_free(struct HttpResponse *const res) {
+void http_response_free(struct HttpResponse *res) {
   if (!res)
     return;
   if (res->body) {
@@ -530,8 +530,8 @@ void http_response_free(struct HttpResponse *const res) {
 }
 
 /** @brief http_response_save_to_file definition */
-int http_response_save_to_file(const struct HttpResponse *const res,
-                               const char *const path) {
+int http_response_save_to_file(const struct HttpResponse *res,
+                               const char *path) {
   FILE *f = NULL;
   size_t written;
 
@@ -551,7 +551,11 @@ int http_response_save_to_file(const struct HttpResponse *const res,
 #if defined(_MSC_VER)
   fopen_s(&f, path, "wb");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "wb");
+#else
   f = fopen(path, "wb");
+#endif
 #endif
 #endif
   if (!f)

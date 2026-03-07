@@ -66,7 +66,7 @@ void transport_global_cleanup(void) {
  *                    Must be pre-allocated.
  * @return 0 on success, error code (EINVAL/ENOMEM/EIO) on failure.
  */
-int transport_factory_init_client(struct HttpClient *const client) {
+int transport_factory_init_client(struct HttpClient *client) {
   int rc;
 
   if (!client) {
@@ -103,7 +103,7 @@ int transport_factory_init_client(struct HttpClient *const client) {
  *
  * @param[in] client The client containing the transport handle.
  */
-void transport_factory_cleanup_client(struct HttpClient *const client) {
+void transport_factory_cleanup_client(struct HttpClient *client) {
   if (!client || !client->transport) {
     return;
   }

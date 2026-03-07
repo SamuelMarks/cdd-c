@@ -30,7 +30,7 @@ generate_ra_code(int (*fn)(FILE *, const char *, const char *, const char *,
     return NULL;
   }
   rewind(tmp);
-  content = calloc(1, sz + 1);
+  content = (char *)calloc(1, sz + 1);
   fread(content, 1, sz, tmp);
   fclose(tmp);
   return content;

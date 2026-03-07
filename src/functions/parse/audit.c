@@ -25,7 +25,7 @@
 #else
 #endif
 
-void audit_stats_init(struct AuditStats *const stats) {
+void audit_stats_init(struct AuditStats *stats) {
   if (stats) {
     stats->files_scanned = 0;
     stats->allocations_checked = 0;
@@ -37,7 +37,7 @@ void audit_stats_init(struct AuditStats *const stats) {
   }
 }
 
-void audit_stats_free(struct AuditStats *const stats) {
+void audit_stats_free(struct AuditStats *stats) {
   size_t i;
   if (!stats)
     return;
@@ -219,14 +219,14 @@ static int audit_file_callback(const char *path, void *user_data) {
   return 0;
 }
 
-int audit_project(const char *const root_path, struct AuditStats *const stats) {
+int audit_project(const char *root_path, struct AuditStats *stats) {
   if (!root_path || !stats)
     return EINVAL;
 
   return walk_directory(root_path, audit_file_callback, stats);
 }
 
-int audit_print_json(const struct AuditStats *const stats, char **out_json) {
+int audit_print_json(const struct AuditStats *stats, char **out_json) {
   JSON_Value *root_val = json_value_init_object();
   JSON_Object *root_obj;
   char *str = NULL;

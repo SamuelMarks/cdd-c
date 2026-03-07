@@ -3,10 +3,10 @@
 #include "simple.h"
 
 /** \brief func */
-void Haz_cleanup(struct Haz *const haz) { free(haz); }
+void Haz_cleanup(struct Haz *haz) { free(haz); }
 
 /** \brief func */
-void Foo_cleanup(struct Foo *const foo) {
+void Foo_cleanup(struct Foo *foo) {
   if (foo == NULL)
     return;
   Haz_cleanup(foo->haz);

@@ -14,6 +14,11 @@
 
 #include "functions/emit/build.h"
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4127) /* conditional expression is constant */
+#endif
+
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
@@ -34,8 +39,8 @@
  * @param[in] config Build configuration.
  * @return 0 on success, EIO/EINVAL on failure.
  */
-static int generate_cmake(FILE *const fp,
-                          const struct CodegenBuildConfig *const config) {
+static int generate_cmake(FILE *fp,
+                          const struct CodegenBuildConfig *config) {
   size_t i;
 
   if (!fp || !config || !config->project_name || !config->target_name) {
@@ -110,8 +115,8 @@ static int generate_cmake(FILE *const fp,
 
 /* --- Public Dispatcher --- */
 
-int codegen_build_generate(enum CodegenBuildSystem type, FILE *const fp,
-                           const struct CodegenBuildConfig *const config) {
+int codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
+                           const struct CodegenBuildConfig *config) {
   if (!fp || !config)
     return EINVAL;
 
@@ -122,6 +127,10 @@ int codegen_build_generate(enum CodegenBuildSystem type, FILE *const fp,
   case BUILD_SYS_MAKEFILE: /* Future extension */
   case BUILD_SYS_UNKNOWN:
   default:
+#ifdef ENOTSUP
     return ENOTSUP;
+#else
+    return EINVAL;
+#endif
   }
 }

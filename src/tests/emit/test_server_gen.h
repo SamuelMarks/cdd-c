@@ -17,11 +17,11 @@ TEST test_server_gen_basic(void) {
 
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
-  spec.paths = calloc(1, sizeof(struct OpenAPI_Path));
+  spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
   spec.paths[0].route = "/test/route";
 
   spec.paths[0].n_operations = 9;
-  spec.paths[0].operations = calloc(9, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations = (struct OpenAPI_Operation *)calloc(9, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
   spec.paths[0].operations[0].operation_id = "doGet";
@@ -48,7 +48,7 @@ TEST test_server_gen_basic(void) {
   spec.paths[0].operations[7].operation_id = "doTrace";
 
   spec.paths[0].operations[8].verb =
-      999; /* Unknown verb triggers default branch */
+      (enum OpenAPI_Verb)999; /* Unknown verb triggers default branch */
   spec.paths[0].operations[8].operation_id = "doUnknown";
 
   memset(&config, 0, sizeof(config));
