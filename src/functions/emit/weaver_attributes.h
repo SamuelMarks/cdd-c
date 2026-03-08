@@ -1,0 +1,22 @@
+#ifndef C_CDD_WEAVER_ATTRIBUTES_H
+#define C_CDD_WEAVER_ATTRIBUTES_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stddef.h>
+#include "c_cdd_export.h"
+#include "functions/emit/patcher.h"
+#include "functions/parse/cst.h"
+#include "functions/parse/tokenizer.h"
+
+extern C_CDD_EXPORT int weaver_translate_gcc_attributes(struct PatchList *patches,
+                                                        const struct TokenList *tokens,
+                                                        const struct CstNodeList *cst);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

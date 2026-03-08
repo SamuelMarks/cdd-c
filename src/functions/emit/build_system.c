@@ -190,7 +190,11 @@ int generate_cmake_project(const char *output_path,
 #if defined(_MSC_VER)
   fopen_s(&fp, full_path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, full_path, "w");
+#else
   fp = fopen(full_path, "w");
+#endif
 #endif
 #endif
 #endif

@@ -190,7 +190,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "hello   ");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "hello   ");
+#else
   strcpy(buf, "hello   ");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
@@ -204,7 +208,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "foo\t\n ");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "foo\t\n ");
+#else
   strcpy(buf, "foo\t\n ");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
@@ -218,7 +226,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "bar");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "bar");
+#else
   strcpy(buf, "bar");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
@@ -232,7 +244,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "");
+#else
   strcpy(buf, "");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
@@ -246,7 +262,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "   ");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "   ");
+#else
   strcpy(buf, "   ");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
@@ -260,7 +280,11 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #if defined(_MSC_VER)
   strcpy_s(buf, sizeof(buf), "a b c  ");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(buf, sizeof(buf), "a b c  ");
+#else
   strcpy(buf, "a b c  ");
+#endif
 #endif
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);

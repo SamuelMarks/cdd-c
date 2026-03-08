@@ -1,0 +1,93 @@
+/**
+ * @file vcpkg_integration.h
+ * @brief Vcpkg Integration Generator based on include analysis.
+ *
+ * Scans `#include` directives to identify required dependencies (e.g., `pthreads`, `zlib`)
+ * and generates a `vcpkg.json` manifest file.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_VCPKG_INTEGRATION_H
+#define C_CDD_VCPKG_INTEGRATION_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "c_cdd_export.h"
+
+/**
+ * @brief Represents an identified dependency for vcpkg.
+ */
+struct VcpkgDependency {
+  char *name; /**< The vcpkg port name (e.g., "pthreads") */
+};
+
+/**
+ * @brief Builder context for generating vcpkg.json manifests.
+ */
+struct VcpkgManifestBuilder {
+  char *project_name;
+  char *version_string;
+  char *description;
+  struct VcpkgDependency *deps;
+  size_t deps_count;
+  size_t deps_capacity;
+};
+
+/**
+ * @brief Initialize a vcpkg manifest builder.
+ */
+extern C_CDD_EXPORT int vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
+                                           const char *project_name,
+                                           const char *version_string,
+                                           const char *description);
+
+/**
+ * @brief Free resources associated with a vcpkg manifest builder.
+ */
+extern C_CDD_EXPORT void vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
+
+/**
+ * @brief Add a dependency to the manifest.
+ *
+ * Prevents duplicates.
+ *
+ * @param[in,out] builder The builder context.
+ * @param[in] dep_name The name of the vcpkg port (e.g., "pthreads").
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
+                                              const char *dep_name);
+
+/**
+ * @brief Analyze a source file's token stream for #include directives and map them to vcpkg dependencies.
+ *
+ * Currently implements a simple mapping logic:
+ * `<pthread.h>` -> `pthreads`
+ * `<dirent.h>` -> `dirent`
+ * `<zlib.h>` -> `zlib`
+ *
+ * @param[in,out] builder The builder context to append found dependencies.
+ * @param[in] file_content Null-terminated C source file content.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
+                                                  const char *file_content);
+
+/**
+ * @brief Generate the final vcpkg.json string.
+ *
+ * @param[in] builder The populated builder context.
+ * @param[out] out_json A newly allocated string containing the JSON structure.
+ * @return 0 on success, ENOMEM on failure.
+ */
+extern C_CDD_EXPORT int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
+                                               char **out_json);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_VCPKG_INTEGRATION_H */

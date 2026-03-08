@@ -1,0 +1,331 @@
+/**
+ * @file diff.c
+ * @brief Implementation of Unified Diff generator.
+ *
+ * @author Samuel Marks
+ */
+
+#include <errno.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "functions/emit/diff.h"
+
+struct DiffLine {
+  const char *text;
+  size_t len;
+};
+
+struct Block {
+  size_t patch_start_idx;
+  size_t patch_end_idx;
+  size_t old_start_line;
+  size_t old_end_line;
+};
+
+struct Op {
+  int type; /* 0: keep, 1: del, 2: ins */
+  struct DiffLine line;
+};
+
+static void split_lines(const char *str, size_t len,
+                        struct DiffLine **out_lines, size_t *out_count) {
+  size_t count = 0;
+  size_t i;
+  size_t line_idx = 0;
+  size_t start = 0;
+
+  for (i = 0; i < len; i++) {
+    if (str[i] == '
+')
+      count++;
+  }
+  if (len > 0 && str[len - 1] != '
+')
+    count++;
+
+  if (count == 0) {
+    *out_lines = NULL;
+    *out_count = 0;
+    return;
+  }
+
+  *out_lines = (struct DiffLine *)malloc(count * sizeof(struct DiffLine));
+  if (!*out_lines) {
+    *out_count = 0;
+    return;
+  }
+
+  *out_count = count;
+
+  for (i = 0; i < len; i++) {
+    if (str[i] == '
+') {
+      (*out_lines)[line_idx].text = str + start;
+      (*out_lines)[line_idx].len = (i - start) + 1;
+      line_idx++;
+      start = i + 1;
+    }
+  }
+  if (start < len) {
+    (*out_lines)[line_idx].text = str + start;
+    (*out_lines)[line_idx].len = len - start;
+  }
+}
+
+static int generate_block_new_text(const struct Block *b,
+                                     struct PatchList *list,
+                                     const struct TokenList *tokens,
+                                     const struct DiffLine *old_lines) {
+  const char *block_start_ptr = old_lines[b->old_start_line - 1].text;
+  const char *block_end_ptr = old_lines[b->old_end_line - 1].text +
+                              old_lines[b->old_end_line - 1].len;
+
+  size_t est_cap = (size_t)(block_end_ptr - block_start_ptr) + 1024;
+  char *res = (char *)malloc(est_cap);
+  size_t res_len = 0;
+  const char *cursor = block_start_ptr;
+  size_t p;
+
+  if (!res)
+    return NULL;
+
+  for (p = b->patch_start_idx; p < b->patch_end_idx; p++) {
+    struct Patch *patch = &list->patches[p];
+    const char *patch_start_ptr =
+        (const char *)tokens->tokens[patch->start_token_idx].start;
+    const char *patch_end_ptr;
+
+    if (patch->end_token_idx > patch->start_token_idx) {
+      patch_end_ptr =
+          (const char *)(tokens->tokens[patch->end_token_idx - 1].start +
+                         tokens->tokens[patch->end_token_idx - 1].length);
+    } else {
+      patch_end_ptr = patch_start_ptr;
+    }
+
+    if (patch_start_ptr > cursor) {
+      size_t unchanged_len = (size_t)(patch_start_ptr - cursor);
+      if (res_len + unchanged_len + strlen(patch->text) + 256 > est_cap) {
+        est_cap *= 2;
+        res = (char *)realloc(res, est_cap);
+      }
+      memcpy(res + res_len, cursor, unchanged_len);
+      res_len += unchanged_len;
+    }
+
+    if (patch->text) {
+      size_t ptext_len = strlen(patch->text);
+      if (res_len + ptext_len + 256 > est_cap) {
+        est_cap = res_len + ptext_len + 1024;
+        res = (char *)realloc(res, est_cap);
+      }
+      memcpy(res + res_len, patch->text, ptext_len);
+      res_len += ptext_len;
+    }
+
+    cursor = patch_end_ptr;
+  }
+
+  if (block_end_ptr > cursor) {
+    size_t rem = (size_t)(block_end_ptr - cursor);
+    if (res_len + rem + 1 > est_cap) {
+      res = (char *)realloc(res, res_len + rem + 1);
+    }
+    memcpy(res + res_len, cursor, rem);
+    res_len += rem;
+  }
+
+  res[res_len] = '\0';
+  return res;
+}
+
+static void append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
+                           const char *format, ...) {
+  va_list args;
+  int printed;
+  if (!*diff_str) {
+    *diff_cap = 1024;
+    *diff_str = (char *)malloc(*diff_cap);
+    (*diff_str)[0] = '\0';
+    *diff_len = 0;
+  }
+
+  va_start(args, format);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  printed = _vscprintf(format, args);
+#else
+  printed = vsnprintf(NULL, 0, format, args);
+#endif
+  va_end(args);
+
+  if (printed > 0) {
+    if (*diff_len + printed + 1 > *diff_cap) {
+      *diff_cap = *diff_len + printed + 1024;
+      *diff_str = (char *)realloc(*diff_str, *diff_cap);
+    }
+    va_start(args, format);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+    vsprintf_s(*diff_str + *diff_len, *diff_cap - *diff_len, format, args);
+#else
+    vsprintf(*diff_str + *diff_len, format, args);
+#endif
+    va_end(args);
+    *diff_len += printed;
+  }
+}
+
+int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
+                       const char *filename, char **out_diff) { struct DiffLine *old_lines = NULL;
+  size_t old_line_count = 0;
+  const char *orig_src;
+  size_t orig_len;
+  struct Block *blocks = NULL;
+  size_t block_count = 0;
+  size_t block_cap = 0;
+  char *diff_str = NULL;
+  size_t diff_len = 0;
+  size_t diff_cap = 0;
+  size_t p;
+  size_t current_line_delta = 0;
+
+  if (!list || !tokens || !out_diff)
+    return EINVAL;
+
+  if (list->size == 0) {
+    *out_diff = (char *)malloc(1);
+    if (*out_diff) (*out_diff)[0] = '\0';
+    return 0;
+  }
+
+  patch_list_sort(list);
+
+  if (tokens->size > 0) {
+    orig_src = (const char *)tokens->tokens[0].start;
+    orig_len = (size_t)((tokens->tokens[tokens->size - 1].start +
+                         tokens->tokens[tokens->size - 1].length) -
+                        (const uint8_t *)orig_src);
+    split_lines(orig_src, orig_len, &old_lines, &old_line_count);
+  } else {
+    *out_diff = (char *)malloc(1);
+    if (*out_diff) (*out_diff)[0] = '\0';
+    return 0;
+  }
+
+  /* Build blocks */
+  for (p = 0; p < list->size; p++) {
+    struct Patch *patch = &list->patches[p];
+    size_t p_start = tokens->tokens[patch->start_token_idx].line;
+    size_t p_end;
+    size_t ctx_start, ctx_end;
+
+
+
+    if (patch->end_token_idx > patch->start_token_idx) {
+      p_end = tokens->tokens[patch->end_token_idx - 1].line;
+    } else {
+      p_end = p_start;
+    }
+
+    ctx_start = (p_start > 3) ? p_start - 3 : 1;
+    ctx_end = (p_end + 3 <= old_line_count) ? p_end + 3 : old_line_count;
+
+    if (block_count > 0 && ctx_start <= blocks[block_count - 1].old_end_line) {
+      if (ctx_end > blocks[block_count - 1].old_end_line)
+        blocks[block_count - 1].old_end_line = ctx_end;
+      blocks[block_count - 1].patch_end_idx = p + 1;
+    } else {
+      if (block_count >= block_cap) {
+        block_cap = block_cap == 0 ? 4 : block_cap * 2;
+        blocks = (struct Block *)realloc(blocks, block_cap * sizeof(struct Block));
+      }
+      blocks[block_count].patch_start_idx = p;
+      blocks[block_count].patch_end_idx = p + 1;
+      blocks[block_count].old_start_line = ctx_start;
+      blocks[block_count].old_end_line = ctx_end;
+      block_count++;
+    }
+    }
+
+    append_to_diff(&diff_str, &diff_len, &diff_cap, "--- %s
++++ %s\\n", filename, filename);
+
+    for (p = 0; p < block_count; p++) {
+    struct Block *b = &blocks[p];
+    char *new_text;
+    struct DiffLine *new_lines = NULL;
+    size_t new_line_count = 0;
+    size_t i;
+    size_t min_mod_line, max_mod_line, keep_start_count, keep_end_count;
+
+    new_text = generate_block_new_text(b, list, tokens, old_lines);
+
+    if (!new_text) break;
+    split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
+
+    append_to_diff(&diff_str, &diff_len, &diff_cap,
+                   "@@ -%" SIZE_T_FMT ",%" SIZE_T_FMT " +%" SIZE_T_FMT ",%" SIZE_T_FMT " @@\\n", (size_t)b->old_start_line,
+                   (size_t)(b->old_end_line - b->old_start_line + 1),
+                   (size_t)(b->old_start_line + current_line_delta), (size_t)new_line_count);
+
+    min_mod_line = tokens->tokens[list->patches[b->patch_start_idx].start_token_idx].line;
+    if (list->patches[b->patch_end_idx - 1].end_token_idx > 0) {
+      max_mod_line = tokens->tokens[list->patches[b->patch_end_idx - 1].end_token_idx - 1].line;
+    } else {
+      max_mod_line = tokens->tokens[0].line;
+    }
+    if (max_mod_line < min_mod_line) max_mod_line = min_mod_line;
+
+    keep_start_count = (min_mod_line > b->old_start_line) ? min_mod_line - b->old_start_line : 0;
+    keep_end_count = (b->old_end_line > max_mod_line) ? b->old_end_line - max_mod_line : 0;
+
+    for (i = b->old_start_line; i < min_mod_line && i <= b->old_end_line; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s", (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
+') {
+        append_to_diff(&diff_str, &diff_len, &diff_cap, "
+\\ No newline at end of file\\n");
+      }
+    }
+
+    for (i = min_mod_line; i <= max_mod_line && i <= b->old_end_line; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s", (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
+') {
+        append_to_diff(&diff_str, &diff_len, &diff_cap, "
+\\ No newline at end of file\\n");
+      }
+    }
+
+    for (i = keep_start_count; i < new_line_count - keep_end_count; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s", (int)new_lines[i].len, new_lines[i].text);
+      if (new_lines[i].text[new_lines[i].len - 1] != '
+') {
+        append_to_diff(&diff_str, &diff_len, &diff_cap, "
+\\ No newline at end of file\\n");
+      }
+    }
+
+    for (i = b->old_end_line - keep_end_count + 1; i <= b->old_end_line; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s", (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
+') {
+        append_to_diff(&diff_str, &diff_len, &diff_cap, "
+\\ No newline at end of file\\n");
+      }
+    }
+
+    current_line_delta += new_line_count - (b->old_end_line - b->old_start_line + 1);
+
+    free(new_text);
+    if (new_lines) free(new_lines);
+  }
+
+  if (blocks) free(blocks);
+  if (old_lines) free(old_lines);
+
+  *out_diff = diff_str;
+  return 0;
+}

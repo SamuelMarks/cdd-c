@@ -16,12 +16,12 @@
 #include "functions/parse/tokenizer.h"
 
 /* Helper to setup a token list from a string */
-static struct TokenList *setup_patch_tokens(const char *code) {
+static int setup_patch_tokens(const char *code, struct TokenList * *_out_val) {
   struct TokenList *tl = NULL;
   int rc = tokenize(az_span_create_from_str((char *)code), &tl);
   if (rc != 0)
-    return NULL;
-  return tl;
+    { *_out_val = NULL; return 0; }
+  { *_out_val = tl; return 0; }
 }
 
 TEST test_patch_init_free(void) {
@@ -42,13 +42,13 @@ TEST test_patch_init_free(void) {
   PASS();
 }
 
-TEST test_patch_basic_replacement(void) {
+TEST test_patch_basic_replacement(void) { struct TokenList * _ast_setup_patch_tokens_0; 
   char *_ast_strdup_1 = NULL;
   /* Input: int x = 5; */
   /* Tokens: [int] [ ] [x] [ ] [=] [ ] [5] [;] */
   /* Indices: 0     1   2   3   4   5   6   7 */
   const char *code = "int x = 5;";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_0), _ast_setup_patch_tokens_0);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -75,13 +75,13 @@ TEST test_patch_basic_replacement(void) {
   PASS();
 }
 
-TEST test_patch_insertion(void) {
+TEST test_patch_insertion(void) { struct TokenList * _ast_setup_patch_tokens_1; 
   char *_ast_strdup_2 = NULL;
   /* Input: void f(){} */
   /* Tokens: [void] [ ] [f] [(] [)] [{] [}] */
   /* Indices: 0     1   2   3   4   5   6 */
   const char *code = "void f(){}";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_1), _ast_setup_patch_tokens_1);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -109,12 +109,12 @@ TEST test_patch_insertion(void) {
   PASS();
 }
 
-TEST test_patch_deletion(void) {
+TEST test_patch_deletion(void) { struct TokenList * _ast_setup_patch_tokens_2; 
   char *_ast_strdup_3 = NULL;
   /* Input: int x; */
   /* Tokens: [int] [ ] [x] [;] */
   const char *code = "int x;";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_2), _ast_setup_patch_tokens_2);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -137,12 +137,12 @@ TEST test_patch_deletion(void) {
   PASS();
 }
 
-TEST test_patch_multiple_disjoint(void) {
+TEST test_patch_multiple_disjoint(void) { struct TokenList * _ast_setup_patch_tokens_3; 
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
   /* Input: A B C */
   const char *code = "A B C";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_3), _ast_setup_patch_tokens_3);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -170,12 +170,12 @@ TEST test_patch_multiple_disjoint(void) {
   PASS();
 }
 
-TEST test_patch_overlap_behavior(void) {
+TEST test_patch_overlap_behavior(void) { struct TokenList * _ast_setup_patch_tokens_4; 
   char *_ast_strdup_6 = NULL;
   char *_ast_strdup_7 = NULL;
   /* Input: A */
   const char *code = "A";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_4), _ast_setup_patch_tokens_4);
   struct PatchList pl;
   char *result = NULL;
   int rc;
@@ -212,10 +212,10 @@ TEST test_patch_overlap_behavior(void) {
   PASS();
 }
 
-TEST test_patch_append_end(void) {
+TEST test_patch_append_end(void) { struct TokenList * _ast_setup_patch_tokens_5; 
   char *_ast_strdup_8 = NULL;
   const char *code = "End";
-  struct TokenList *tl = setup_patch_tokens(code);
+  struct TokenList *tl = (setup_patch_tokens(code, &_ast_setup_patch_tokens_5), _ast_setup_patch_tokens_5);
   struct PatchList pl;
   char *result = NULL;
   int rc;

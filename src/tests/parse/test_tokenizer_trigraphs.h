@@ -13,7 +13,7 @@
 
 /* Helper setup */
 
-static struct TokenList *tokenize_string(const char *s) {
+static int tokenize_string(const char *s, struct TokenList * *_out_val) {
 
   struct TokenList *tl = NULL;
 
@@ -21,16 +21,16 @@ static struct TokenList *tokenize_string(const char *s) {
 
   if (tokenize(span, &tl) != 0)
 
-    return NULL;
+    { *_out_val = NULL; return 0; }
 
-  return tl;
+  { *_out_val = tl; return 0; }
 }
 
-TEST test_trigraph_basic(void) {
+TEST test_trigraph_basic(void) { struct TokenList * _ast_tokenize_string_0; 
 
   /* ??= is # */
 
-  struct TokenList *tl = tokenize_string("?\?= include");
+  struct TokenList *tl = (tokenize_string("?\?= include", &_ast_tokenize_string_0), _ast_tokenize_string_0);
 
   ASSERT(tl);
 
@@ -43,11 +43,11 @@ TEST test_trigraph_basic(void) {
   PASS();
 }
 
-TEST test_splice_basic(void) {
+TEST test_splice_basic(void) { struct TokenList * _ast_tokenize_string_1; 
 
   /* i\nnt -> int */
 
-  struct TokenList *tl = tokenize_string("i\\\nnt x;");
+  struct TokenList *tl = (tokenize_string("i\\\nnt x;", &_ast_tokenize_string_1), _ast_tokenize_string_1);
 
   ASSERT(tl);
 
@@ -62,13 +62,13 @@ TEST test_splice_basic(void) {
   PASS();
 }
 
-TEST test_trigraph_splice_interaction(void) {
+TEST test_trigraph_splice_interaction(void) { struct TokenList * _ast_tokenize_string_2; 
 
   /* Edge case: ??/ is backslash. ??/ followed by newline is a splice. */
 
   /* i??/\nnt -> int */
 
-  struct TokenList *tl = tokenize_string("i?\?/\nnt x;");
+  struct TokenList *tl = (tokenize_string("i?\?/\nnt x;", &_ast_tokenize_string_2), _ast_tokenize_string_2);
 
   ASSERT(tl);
 
@@ -79,7 +79,7 @@ TEST test_trigraph_splice_interaction(void) {
   PASS();
 }
 
-TEST test_splice_does_not_create_trigraph(void) {
+TEST test_splice_does_not_create_trigraph(void) { struct TokenList * _ast_tokenize_string_3; 
 
   /* ?\n?=  -> ? ? = (Tokens) */
 
@@ -103,7 +103,7 @@ TEST test_splice_does_not_create_trigraph(void) {
 
   /* It is NOT a TOKEN_HASH */
 
-  struct TokenList *tl = tokenize_string("?\\\n?=");
+  struct TokenList *tl = (tokenize_string("?\\\n?=", &_ast_tokenize_string_3), _ast_tokenize_string_3);
 
   ASSERT(tl);
 
@@ -120,10 +120,10 @@ TEST test_splice_does_not_create_trigraph(void) {
   PASS();
 }
 
-TEST test_matches_string_with_splice(void) {
+TEST test_matches_string_with_splice(void) { struct TokenList * _ast_tokenize_string_4; 
   bool _ast_token_matches_string_0;
 
-  struct TokenList *tl = tokenize_string("RE\\\nTURN");
+  struct TokenList *tl = (tokenize_string("RE\\\nTURN", &_ast_tokenize_string_4), _ast_tokenize_string_4);
 
   ASSERT(tl);
 

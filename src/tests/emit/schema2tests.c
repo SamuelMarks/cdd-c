@@ -273,7 +273,11 @@ int jsonschema2tests_main(int argc, char **argv) {
 #if defined(_MSC_VER)
       fopen_s(&f, output_file, "w");
 #else
+#if defined(_MSC_VER)
+      fopen_s(&f, output_file, "w");
+#else
       f = fopen(output_file, "w");
+#endif
 #endif
 #endif
       if (!f) {
@@ -483,7 +487,11 @@ int jsonschema2tests_main(int argc, char **argv) {
 #if defined(_MSC_VER)
         fopen_s(&f0, p, "w");
 #else
+#if defined(_MSC_VER)
+        fopen_s(&f0, p, "w");
+#else
         f0 = fopen(p, "w");
+#endif
 #endif
 #endif
         if (!f0) {

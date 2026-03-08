@@ -9,18 +9,18 @@
 #include "functions/emit/codegen.h"
 
 /* Helper to generate code and return as string buffer */
-static char *generate_def_code(const char *struct_name,
-                               struct StructFields *sf) {
+static int generate_def_code(const char *struct_name,
+                               struct StructFields *sf, char * *_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
   if (!tmp)
-    return NULL;
+    { *_out_val = NULL; return 0; }
 
   if (write_struct_default_func(tmp, struct_name, sf, NULL) != 0) {
     fclose(tmp);
-    return NULL;
+    { *_out_val = NULL; return 0; }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -32,10 +32,10 @@ static char *generate_def_code(const char *struct_name,
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  return content;
+  { *_out_val = content; return 0; }
 }
 
-TEST test_default_primitive(void) {
+TEST test_default_primitive(void) { char * _ast_generate_def_code_0; 
   struct StructFields sf;
   char *code;
 
@@ -43,7 +43,7 @@ TEST test_default_primitive(void) {
   struct_fields_add(&sf, "x", "integer", NULL, "42", NULL);
   struct_fields_add(&sf, "flag", "boolean", NULL, "1", NULL);
 
-  code = generate_def_code("Prim", &sf);
+  code = (generate_def_code("Prim", &sf, &_ast_generate_def_code_0), _ast_generate_def_code_0);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "int Prim_default(struct Prim **out)"));
@@ -55,7 +55,7 @@ TEST test_default_primitive(void) {
   PASS();
 }
 
-TEST test_default_string(void) {
+TEST test_default_string(void) { char * _ast_generate_def_code_1; 
   struct StructFields sf;
   char *code;
 
@@ -63,7 +63,7 @@ TEST test_default_string(void) {
   /* JSON string defaults usually come quoted e.g. "\"foo\"" from parser */
   struct_fields_add(&sf, "s", "string", NULL, "\"hello\"", NULL);
 
-  code = generate_def_code("StrS", &sf);
+  code = (generate_def_code("StrS", &sf, &_ast_generate_def_code_1), _ast_generate_def_code_1);
   ASSERT(code != NULL);
 
   /* Platform-specific strdup selection is internal, check generic call or
@@ -82,14 +82,14 @@ TEST test_default_string(void) {
   PASS();
 }
 
-TEST test_default_enum(void) {
+TEST test_default_enum(void) { char * _ast_generate_def_code_2; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "e", "enum", "Color", "\"RED\"", NULL);
 
-  code = generate_def_code("EnumStruct", &sf);
+  code = (generate_def_code("EnumStruct", &sf, &_ast_generate_def_code_2), _ast_generate_def_code_2);
   ASSERT(code != NULL);
 
   /* Expect from_str call */
@@ -103,14 +103,14 @@ TEST test_default_enum(void) {
   PASS();
 }
 
-TEST test_default_no_defaults(void) {
+TEST test_default_no_defaults(void) { char * _ast_generate_def_code_3; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "x", "integer", NULL, NULL, NULL);
 
-  code = generate_def_code("NoDef", &sf);
+  code = (generate_def_code("NoDef", &sf, &_ast_generate_def_code_3), _ast_generate_def_code_3);
   ASSERT(code != NULL);
 
   /* Should just be calloc */
@@ -122,7 +122,7 @@ TEST test_default_no_defaults(void) {
   PASS();
 }
 
-TEST test_default_nullptr(void) {
+TEST test_default_nullptr(void) { char * _ast_generate_def_code_4; 
   struct StructFields sf;
   char *code;
 
@@ -131,7 +131,7 @@ TEST test_default_nullptr(void) {
                     NULL); /* treated as raw */
   struct_fields_add(&sf, "str_ptr", "string", NULL, "nullptr", NULL);
 
-  code = generate_def_code("PtrStruct", &sf);
+  code = (generate_def_code("PtrStruct", &sf, &_ast_generate_def_code_4), _ast_generate_def_code_4);
   ASSERT(code != NULL);
 
   /* Should map nullptr literal to NULL */
@@ -143,7 +143,7 @@ TEST test_default_nullptr(void) {
   PASS();
 }
 
-TEST test_default_binary_literal(void) {
+TEST test_default_binary_literal(void) { char * _ast_generate_def_code_5; 
   struct StructFields sf;
   char *code;
 
@@ -153,7 +153,7 @@ TEST test_default_binary_literal(void) {
   /* 0B11 -> 3 */
   struct_fields_add(&sf, "bin_cap", "integer", NULL, "0B11", NULL);
 
-  code = generate_def_code("BinStruct", &sf);
+  code = (generate_def_code("BinStruct", &sf, &_ast_generate_def_code_5), _ast_generate_def_code_5);
   ASSERT(code != NULL);
 
   /* Should emit decimal values for C89 compatibility */

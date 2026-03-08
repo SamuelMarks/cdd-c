@@ -37,6 +37,8 @@ enum CstNodeKind {
   CST_NODE_UNION,             /**< Union definition block */
   CST_NODE_FUNCTION,          /**< Function definition (signature + body) */
   CST_NODE_ATTRIBUTE,         /**< C23 Attribute block [[ ... ]] */
+  CST_NODE_GCC_ATTRIBUTE,     /**< GCC __attribute__((...)) */
+  CST_NODE_DECLSPEC,          /**< MSVC __declspec(...) */
   CST_NODE_STATIC_ASSERT,     /**< Static assertion declaration */
   CST_NODE_GENERIC_SELECTION, /**< C11 _Generic(expr, assoc-list) */
   CST_NODE_COMMENT,           /**< Comment block (preserved for rewriting) */

@@ -1,0 +1,40 @@
+/**
+ * @file diff.h
+ * @brief Simple Unified Diff generator for PatchLists.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_DIFF_H
+#define C_CDD_DIFF_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "c_cdd_export.h"
+#include "functions/emit/patcher.h"
+#include "functions/parse/tokenizer.h"
+
+/**
+ * @brief Generate a Unified Diff from a list of patches.
+ *
+ * Produces a standard unified diff format string (.patch) that can be applied
+ * using the `patch` utility.
+ *
+ * @param[in] list The patch list (will be sorted internally).
+ * @param[in] tokens The original token stream.
+ * @param[in] filename The name of the file to put in the diff header.
+ * @param[out] out_diff Pointer to a char* where the diff string will be stored.
+ * @return 0 on success, ENOMEM or EINVAL on error.
+ */
+extern C_CDD_EXPORT int patch_list_to_diff(struct PatchList *list,
+                                           const struct TokenList *tokens,
+                                           const char *filename,
+                                           char **out_diff);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_DIFF_H */

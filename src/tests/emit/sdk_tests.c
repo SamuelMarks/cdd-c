@@ -12,10 +12,7 @@
 #include "tests/emit/sdk_tests.h"
 
 #define CHECK_IO(x)                                                            \
-  do {                                                                         \
-    if ((x) < 0)                                                               \
-      return EIO;                                                              \
-  } while (0)
+  if ((x) < 0) { return EIO; } else (void)0
 
 /* --- Helper to write a test for a single operation --- */
 static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,

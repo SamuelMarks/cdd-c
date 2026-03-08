@@ -220,7 +220,7 @@ int http_wininet_global_init(void) { return 0; }
 
 void http_wininet_global_cleanup(void) {}
 
-int http_wininet_context_init(struct HttpTransportContext **const ctx) {
+int http_wininet_context_init(struct HttpTransportContext **ctx) {
 #ifdef _WIN32
   HINTERNET hInternet;
   DWORD flags = 0;
@@ -306,7 +306,7 @@ int http_wininet_config_apply(struct HttpTransportContext *ctx,
 
 int http_wininet_send(struct HttpTransportContext *ctx,
                       const struct HttpRequest *req,
-                      struct HttpResponse **const res) {
+                      struct HttpResponse **res) {
 #ifdef _WIN32
   HINTERNET hConnect = NULL;
   HINTERNET hRequest = NULL;

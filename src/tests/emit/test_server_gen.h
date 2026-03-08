@@ -65,7 +65,11 @@ TEST test_server_gen_basic(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "test_server_server.c", "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, "test_server_server.c", "r");
+#else
   f = fopen("test_server_server.c", "r");
+#endif
 #endif
 #endif
   ASSERT(f != NULL);

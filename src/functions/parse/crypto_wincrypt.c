@@ -20,12 +20,15 @@
 #endif
 /* clang-format off */
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
+#pragma warning(push)
+#pragma warning(disable: 4201 4214)
 #include "win_compat_sym.h"
 #include <windef.h>
 
 #include <winbase.h>
 
 #include <wincrypt.h>
+#pragma warning(pop)
 /* clang-format on */
 #endif
 

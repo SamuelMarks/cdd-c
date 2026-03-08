@@ -50,11 +50,14 @@
 #ifdef PATHCCH_LIB
 #include <pathcch.h>
 #endif /* !PATHCCH_LIB */
+#pragma warning(push)
+#pragma warning(disable: 4201)
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #include <shlobj.h>
 #else
 #include <shlobj_core.h>
 #endif
+#pragma warning(pop)
 #else /* Not MSVC */
 #include <dirent.h>
 #include <fcntl.h>
@@ -72,7 +75,7 @@
 /* <windows_utils> */
 
 #if defined(_WIN32)
-int ascii_to_wide(const char *s, wchar_t *ws, const size_t buf_cap,
+int ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap,
                   size_t *out_len) {
   int result;
   if (s == NULL || ws == NULL || buf_cap == 0 || out_len == NULL) {
@@ -96,7 +99,7 @@ int ascii_to_wide(const char *s, wchar_t *ws, const size_t buf_cap,
   return 0;
 }
 
-int wide_to_ascii(const wchar_t *ws, char *s, const size_t buf_cap,
+int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap,
                   size_t *out_len) {
   int result;
   if (ws == NULL || s == NULL || buf_cap == 0 || out_len == NULL) {
@@ -316,7 +319,11 @@ int fs_write_to_file(const char *path, const char *content) {
 #if defined(_MSC_VER)
   fopen_s(&f, path, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, "w");
+#else
   f = fopen(path, "w");
+#endif
 #endif
 #endif
 #endif
@@ -361,7 +368,11 @@ int read_to_file(const char *path, const char *mode, char **out_data,
 #if defined(_MSC_VER)
   fopen_s(&f, path, mode);
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, path, mode);
+#else
   f = fopen(path, mode);
+#endif
 #endif
 #endif
 #endif
@@ -742,7 +753,11 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 #if defined(_MSC_VER)
       fopen_s(&file->fh, tmpfilename, mode);
 #else
+#if defined(_MSC_VER)
+      fopen_s(&file->fh, tmpfilename, mode);
+#else
       file->fh = fopen(tmpfilename, mode);
+#endif
 #endif
 #endif
 #endif

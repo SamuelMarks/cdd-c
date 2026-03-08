@@ -152,7 +152,7 @@ static int headers_to_wide_block(const struct HttpHeaders *headers,
 int http_winhttp_global_init(void) { return 0; }
 void http_winhttp_global_cleanup(void) {}
 
-int http_winhttp_context_init(struct HttpTransportContext **const ctx) {
+int http_winhttp_context_init(struct HttpTransportContext **ctx) {
 #if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   HINTERNET hSession;
   if (!ctx)
@@ -265,7 +265,7 @@ int http_winhttp_config_apply(struct HttpTransportContext *ctx,
 
 int http_winhttp_send(struct HttpTransportContext *ctx,
                       const struct HttpRequest *req,
-                      struct HttpResponse **const res) {
+                      struct HttpResponse **res) {
 #if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
   HINTERNET hConnect = NULL, hRequest = NULL;
   URL_COMPONENTS urlComp;

@@ -102,7 +102,11 @@ TEST test_code2schema_obj_array_detection(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, json_out_file, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, json_out_file, "r");
+#else
   f = fopen(json_out_file, "r");
+#endif
 #endif
 #endif
   ASSERT(f);

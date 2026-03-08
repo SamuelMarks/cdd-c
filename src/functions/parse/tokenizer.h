@@ -159,6 +159,10 @@ enum TokenKind {
 
   TOKEN_KEYWORD_PRAGMA_OP, /**< '_Pragma' (C99 operator) */
 
+  TOKEN_KEYWORD_ATTRIBUTE, /**< '__attribute__' */
+
+  TOKEN_KEYWORD_DECLSPEC, /**< '__declspec' */
+
   /* --- Identifiers & Literals --- */
 
   TOKEN_IDENTIFIER, /**< Alphanumeric identifiers */

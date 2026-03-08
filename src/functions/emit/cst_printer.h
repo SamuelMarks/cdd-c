@@ -1,0 +1,34 @@
+/**
+ * @file cst_printer.h
+ * @brief Non-Destructive CST Printer.
+ */
+
+#ifndef C_CDD_CST_PRINTER_H
+#define C_CDD_CST_PRINTER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include <stdio.h>
+#include "c_cdd_export.h"
+#include "functions/parse/cst.h"
+
+/**
+ * @brief Accurately reconstruct unmodified code byte-for-byte from the token stream.
+ *
+ * Iterates through the raw token stream tracking exact original lengths
+ * (including spliced newlines and trigraphs hidden under the physical byte length).
+ * Prints it into the output FILE pointer.
+ *
+ * @param tokens The full parsed token list.
+ * @param out The FILE* to write the byte-for-byte reproduction to.
+ * @return 0 on success, non-zero otherwise.
+ */
+C_CDD_EXPORT int cst_print_tokens_exact(const struct TokenList *tokens, FILE *out);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_CST_PRINTER_H */

@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.11)
 
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
 
+if(MSVC AND MSVC_VERSION LESS 1600)
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/msvc")
+endif()
+
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
  
 if(MSVC)
@@ -45,7 +49,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wundef;-Wwrite-strings;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement;-fprofile-arcs;-ftest-coverage>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
@@ -83,7 +87,7 @@ else ()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wundef;-Wwrite-strings;-pedantic;-Wdeclaration-after-statement;-Werror=declaration-after-statement>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214>>"
     )
 endif ()
 
@@ -167,15 +171,23 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         GIT_REPOSITORY https://github.com/civetweb/civetweb.git
         GIT_TAG master
     )
-    set(CIVETWEB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(CIVETWEB_ENABLE_CXX OFF CACHE BOOL "" FORCE)
-    set(CIVETWEB_ALLOW_WARNINGS ON CACHE BOOL "" FORCE)
-    set(CIVETWEB_ENABLE_SERVER_EXECUTABLE OFF CACHE BOOL "" FORCE)
-    # Prevent strict C89 flags from ruining civetweb
-    set(CMAKE_C_STANDARD 99)
-    FetchContent_MakeAvailable(civetweb)
-    set(CMAKE_C_STANDARD 90)
-    include_directories(${civetweb_SOURCE_DIR}/include)
+    if(MSVC AND MSVC_VERSION LESS 1600)
+        FetchContent_GetProperties(civetweb)
+        if(NOT civetweb_POPULATED)
+            FetchContent_Populate(civetweb)
+        endif()
+        include_directories(${civetweb_SOURCE_DIR}/include)
+    else()
+        set(CIVETWEB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+        set(CIVETWEB_ENABLE_CXX OFF CACHE BOOL "" FORCE)
+        set(CIVETWEB_ALLOW_WARNINGS ON CACHE BOOL "" FORCE)
+        set(CIVETWEB_ENABLE_SERVER_EXECUTABLE OFF CACHE BOOL "" FORCE)
+        # Prevent strict C89 flags from ruining civetweb
+        set(CMAKE_C_STANDARD 99)
+        FetchContent_MakeAvailable(civetweb)
+        set(CMAKE_C_STANDARD 90)
+        include_directories(${civetweb_SOURCE_DIR}/include)
+    endif()
     if(TARGET parson AND NOT TARGET parson::parson)
         add_library(parson::parson ALIAS parson)
     endif()
@@ -215,7 +227,11 @@ enable_testing()
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)
 if (C_CDD_BUILD_TESTING)
-    add_subdirectory("src/tests")
+    if (MSVC AND MSVC_VERSION LESS 1900)
+        message(STATUS "Skipping tests on MSVC < 2015 due to C99 syntax incompatibilities")
+    else()
+        add_subdirectory("src/tests")
+    endif()
 endif (C_CDD_BUILD_TESTING)
 
 ###########
@@ -275,3 +291,4 @@ if (DOXYGEN_FOUND)
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
 endif()
+message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")

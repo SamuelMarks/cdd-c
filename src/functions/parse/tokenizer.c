@@ -212,8 +212,10 @@ static int span_equals_str(const az_span span, const char *str,
 
 /* Helper to classify keywords */
 
-int identify_keyword_or_id(const uint8_t *start, size_t len,
+int identify_keyword_or_id(const uint8_t *start, size_t length,
                            enum TokenKind *_out_val) {
+  bool _ast_attr = false;
+  bool _ast_declspec = false;
   bool _ast_span_equals_str_0;
   bool _ast_span_equals_str_1;
   bool _ast_span_equals_str_2;
@@ -272,7 +274,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
   bool _ast_span_equals_str_55;
   bool _ast_span_equals_str_56;
 
-  az_span s = az_span_create((uint8_t *)start, (int32_t)len);
+  az_span s = az_span_create((uint8_t *)start, (int32_t)length);
 
   /* C89/C90/C99/C11/C23 Keywords */
 
@@ -733,6 +735,16 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
 
   {
     *_out_val = TOKEN_KEYWORD_PRAGMA_OP;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "__attribute__", &_ast_attr), _ast_attr)) {
+    *_out_val = TOKEN_KEYWORD_ATTRIBUTE;
+    return 0;
+  }
+
+  if ((span_equals_str(s, "__declspec", &_ast_declspec), _ast_declspec)) {
+    *_out_val = TOKEN_KEYWORD_DECLSPEC;
     return 0;
   }
 

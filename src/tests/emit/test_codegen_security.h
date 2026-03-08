@@ -20,8 +20,8 @@
 #include "routes/emit/security.h"
 
 /* Helper to capture output */
-static char *gen_sec_code(const struct OpenAPI_Spec *spec,
-                          const struct OpenAPI_Operation *op_in) {
+static int gen_sec_code(const struct OpenAPI_Spec *spec,
+                          const struct OpenAPI_Operation *op_in, char * *_out_val) {
   FILE *tmp = tmpfile();
   struct OpenAPI_Operation op_local;
   const struct OpenAPI_Operation *op = op_in;
@@ -29,7 +29,7 @@ static char *gen_sec_code(const struct OpenAPI_Spec *spec,
   char *content;
 
   if (!tmp)
-    return NULL;
+    { *_out_val = NULL; return 0; }
 
   /* Op is unused currently but required by signature */
   if (!op) {
@@ -38,7 +38,7 @@ static char *gen_sec_code(const struct OpenAPI_Spec *spec,
   }
   if (codegen_security_write_apply(tmp, op, spec) != 0) {
     fclose(tmp);
-    return NULL;
+    { *_out_val = NULL; return 0; }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -50,10 +50,10 @@ static char *gen_sec_code(const struct OpenAPI_Spec *spec,
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  return content;
+  { *_out_val = content; return 0; }
 }
 
-TEST test_sec_bearer_token(void) {
+TEST test_sec_bearer_token(void) { char * _ast_gen_sec_code_0; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -68,7 +68,7 @@ TEST test_sec_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_0), _ast_gen_sec_code_0);
   ASSERT(code);
 
   /* Check context check */
@@ -83,7 +83,7 @@ TEST test_sec_bearer_token(void) {
   PASS();
 }
 
-TEST test_sec_oauth2_bearer_token(void) {
+TEST test_sec_oauth2_bearer_token(void) { char * _ast_gen_sec_code_1; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -97,7 +97,7 @@ TEST test_sec_oauth2_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_1), _ast_gen_sec_code_1);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
@@ -108,7 +108,7 @@ TEST test_sec_oauth2_bearer_token(void) {
   PASS();
 }
 
-TEST test_sec_openid_bearer_token(void) {
+TEST test_sec_openid_bearer_token(void) { char * _ast_gen_sec_code_2; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -122,7 +122,7 @@ TEST test_sec_openid_bearer_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_2), _ast_gen_sec_code_2);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
@@ -133,7 +133,7 @@ TEST test_sec_openid_bearer_token(void) {
   PASS();
 }
 
-TEST test_sec_basic_token(void) {
+TEST test_sec_basic_token(void) { char * _ast_gen_sec_code_3; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -148,7 +148,7 @@ TEST test_sec_basic_token(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_3), _ast_gen_sec_code_3);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (ctx->security.basic_token) {"));
@@ -159,7 +159,7 @@ TEST test_sec_basic_token(void) {
   PASS();
 }
 
-TEST test_sec_api_key_header(void) {
+TEST test_sec_api_key_header(void) { char * _ast_gen_sec_code_4; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -175,7 +175,7 @@ TEST test_sec_api_key_header(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_4), _ast_gen_sec_code_4);
   ASSERT(code);
 
   /* Check context check using scheme identifier name */
@@ -188,7 +188,7 @@ TEST test_sec_api_key_header(void) {
   PASS();
 }
 
-TEST test_sec_uri_requirement_matches_component(void) {
+TEST test_sec_uri_requirement_matches_component(void) { char * _ast_gen_sec_code_5; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   struct OpenAPI_SecurityRequirement req;
@@ -221,7 +221,7 @@ TEST test_sec_uri_requirement_matches_component(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_5), _ast_gen_sec_code_5);
   ASSERT(code);
 
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\"") != NULL);
@@ -230,7 +230,7 @@ TEST test_sec_uri_requirement_matches_component(void) {
   PASS();
 }
 
-TEST test_sec_api_key_query(void) {
+TEST test_sec_api_key_query(void) { char * _ast_gen_sec_code_6; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -246,7 +246,7 @@ TEST test_sec_api_key_query(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_6), _ast_gen_sec_code_6);
   ASSERT(code);
 
   ASSERT(strstr(code, "if (!qp_initialized)") != NULL);
@@ -257,7 +257,7 @@ TEST test_sec_api_key_query(void) {
   PASS();
 }
 
-TEST test_sec_api_key_cookie(void) {
+TEST test_sec_api_key_cookie(void) { char * _ast_gen_sec_code_7; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -273,7 +273,7 @@ TEST test_sec_api_key_cookie(void) {
   spec.security_schemes = &sch;
   spec.n_security_schemes = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_7), _ast_gen_sec_code_7);
   ASSERT(code);
 
   ASSERT(strstr(code, "cookie_str") != NULL);
@@ -283,7 +283,7 @@ TEST test_sec_api_key_cookie(void) {
   PASS();
 }
 
-TEST test_sec_multiple_schemes(void) {
+TEST test_sec_multiple_schemes(void) { char * _ast_gen_sec_code_8; 
   /* Test mixing Bearer and API Key */
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
@@ -304,7 +304,7 @@ TEST test_sec_multiple_schemes(void) {
   spec.security_schemes = schemes;
   spec.n_security_schemes = 2;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_8), _ast_gen_sec_code_8);
   ASSERT(code);
 
   ASSERT(strstr(code, "bearer_token"));
@@ -319,7 +319,7 @@ TEST test_sec_null_safety(void) {
   PASS();
 }
 
-TEST test_sec_security_requirements_filter(void) {
+TEST test_sec_security_requirements_filter(void) { char * _ast_gen_sec_code_9; 
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
   struct OpenAPI_SecurityRequirementSet set;
@@ -350,7 +350,7 @@ TEST test_sec_security_requirements_filter(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
-  code = gen_sec_code(&spec, NULL);
+  code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_9), _ast_gen_sec_code_9);
   ASSERT(code);
   ASSERT(strstr(code, "api_key_ApiKeyAuth"));
   ASSERT(!strstr(code, "bearer_token"));

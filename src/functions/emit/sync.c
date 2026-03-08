@@ -62,7 +62,11 @@ int sync_code_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&out, impl_filename, "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&out, impl_filename, "w");
+#else
   out = fopen(impl_filename, "w");
+#endif
 #endif
 #endif
 #endif
@@ -237,7 +241,11 @@ int patch_header_from_source(const char *header_path,
 #if defined(_MSC_VER)
     fopen_s(&fp, header_path, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&fp, header_path, "w");
+#else
     fp = fopen(header_path, "w");
+#endif
 #endif
 #endif
 #endif

@@ -379,7 +379,11 @@ TEST test_display_fail(void) {
 #if defined(_MSC_VER)
   fopen_s(&fh, tmp_fname, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fh, tmp_fname, "r");
+#else
   fh = fopen(tmp_fname, "r");
+#endif
 #endif
 #endif
   ASSERT(fh != NULL);
@@ -556,7 +560,11 @@ TEST test_debug_fail(void) {
 #if defined(_MSC_VER)
   fopen_s(&fh, tmp_fname, "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fh, tmp_fname, "r");
+#else
   fh = fopen(tmp_fname, "r");
+#endif
 #endif
 #endif
   ASSERT(fh != NULL);

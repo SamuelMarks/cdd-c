@@ -9,18 +9,18 @@
 #include "functions/emit/codegen.h"
 
 /* Helper to generate code and return as string buffer */
-static char *generate_eq_code(const char *struct_name,
-                              struct StructFields *sf) {
+static int generate_eq_code(const char *struct_name,
+                              struct StructFields *sf, char * *_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content = NULL;
 
   if (!tmp)
-    return NULL;
+    { *_out_val = NULL; return 0; }
 
   if (write_struct_eq_func(tmp, struct_name, sf, NULL) != 0) {
     fclose(tmp);
-    return NULL;
+    { *_out_val = NULL; return 0; }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -35,10 +35,10 @@ static char *generate_eq_code(const char *struct_name,
   }
 
   fclose(tmp);
-  return content;
+  { *_out_val = content; return 0; }
 }
 
-TEST test_eq_primitive(void) {
+TEST test_eq_primitive(void) { char * _ast_generate_eq_code_0; 
   struct StructFields sf;
   char *code;
 
@@ -46,7 +46,7 @@ TEST test_eq_primitive(void) {
   struct_fields_add(&sf, "ival", "integer", NULL, NULL, NULL);
   struct_fields_add(&sf, "dval", "number", NULL, NULL, NULL);
 
-  code = generate_eq_code("Prim", &sf);
+  code = (generate_eq_code("Prim", &sf, &_ast_generate_eq_code_0), _ast_generate_eq_code_0);
   ASSERT(code != NULL);
 
   /* Check signature */
@@ -66,14 +66,14 @@ TEST test_eq_primitive(void) {
   PASS();
 }
 
-TEST test_eq_string(void) {
+TEST test_eq_string(void) { char * _ast_generate_eq_code_1; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
 
-  code = generate_eq_code("StrS", &sf);
+  code = (generate_eq_code("StrS", &sf, &_ast_generate_eq_code_1), _ast_generate_eq_code_1);
   ASSERT(code != NULL);
 
   /* Check string logic */
@@ -87,14 +87,14 @@ TEST test_eq_string(void) {
   PASS();
 }
 
-TEST test_eq_recursive_object(void) {
+TEST test_eq_recursive_object(void) { char * _ast_generate_eq_code_2; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "child", "object", "Child", NULL, NULL);
 
-  code = generate_eq_code("Parent", &sf);
+  code = (generate_eq_code("Parent", &sf, &_ast_generate_eq_code_2), _ast_generate_eq_code_2);
   ASSERT(code != NULL);
 
   /* Should call Child_eq recursively */
@@ -105,14 +105,14 @@ TEST test_eq_recursive_object(void) {
   PASS();
 }
 
-TEST test_eq_array_primitive(void) {
+TEST test_eq_array_primitive(void) { char * _ast_generate_eq_code_3; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "nums", "array", "integer", NULL, NULL);
 
-  code = generate_eq_code("Arr", &sf);
+  code = (generate_eq_code("Arr", &sf, &_ast_generate_eq_code_3), _ast_generate_eq_code_3);
   ASSERT(code != NULL);
 
   /* Check length check */
@@ -127,14 +127,14 @@ TEST test_eq_array_primitive(void) {
   PASS();
 }
 
-TEST test_eq_array_string(void) {
+TEST test_eq_array_string(void) { char * _ast_generate_eq_code_4; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "strs", "array", "string", NULL, NULL);
 
-  code = generate_eq_code("ArrS", &sf);
+  code = (generate_eq_code("ArrS", &sf, &_ast_generate_eq_code_4), _ast_generate_eq_code_4);
   ASSERT(code != NULL);
 
   /* Check loop */
@@ -147,14 +147,14 @@ TEST test_eq_array_string(void) {
   PASS();
 }
 
-TEST test_eq_array_object(void) {
+TEST test_eq_array_object(void) { char * _ast_generate_eq_code_5; 
   struct StructFields sf;
   char *code;
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "items", "array", "Item", NULL, NULL);
 
-  code = generate_eq_code("Box", &sf);
+  code = (generate_eq_code("Box", &sf, &_ast_generate_eq_code_5), _ast_generate_eq_code_5);
   ASSERT(code != NULL);
 
   /* Check loop */

@@ -65,9 +65,9 @@ static int skip_ws_back(const struct TokenList *tokens, size_t i,
 /**
  * @brief Add a node to the CST list.
  */
-int cst_list_add(struct CstNodeList *list, const enum CstNodeKind kind,
-                 const uint8_t *start, const size_t length,
-                 const size_t start_tok, const size_t end_tok) {
+int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
+                 const uint8_t *start, size_t length,
+                 size_t start_tok, size_t end_tok) {
   struct CstNode *new_arr;
   if (!list)
     return EINVAL;
@@ -455,7 +455,51 @@ static int parse_recursive(const struct TokenList *tokens, size_t start,
       continue;
     }
 
-    /* C23 Attributes */
+    /* GCC Attributes */
+      if (tok->kind == TOKEN_KEYWORD_ATTRIBUTE) {
+        size_t attr_end = i + 1;
+        int depth = 0;
+        while (attr_end < end) {
+          if (tokens->tokens[attr_end].kind == TOKEN_LPAREN) depth++;
+          else if (tokens->tokens[attr_end].kind == TOKEN_RPAREN) {
+            depth--;
+            if (depth == 0) { attr_end++; break; }
+          }
+          attr_end++;
+        }
+        if (attr_end > i) {
+          const struct Token *last = &tokens->tokens[attr_end - 1];
+          size_t byte_len = (size_t)((last->start + last->length) - tok->start);
+          rc = cst_list_add(out, CST_NODE_GCC_ATTRIBUTE, tok->start, byte_len, i, attr_end);
+          if (rc != 0) return rc;
+          i = attr_end;
+          continue;
+        }
+      }
+
+      /* MSVC Declspec */
+      if (tok->kind == TOKEN_KEYWORD_DECLSPEC) {
+        size_t attr_end = i + 1;
+        int depth = 0;
+        while (attr_end < end) {
+          if (tokens->tokens[attr_end].kind == TOKEN_LPAREN) depth++;
+          else if (tokens->tokens[attr_end].kind == TOKEN_RPAREN) {
+            depth--;
+            if (depth == 0) { attr_end++; break; }
+          }
+          attr_end++;
+        }
+        if (attr_end > i) {
+          const struct Token *last = &tokens->tokens[attr_end - 1];
+          size_t byte_len = (size_t)((last->start + last->length) - tok->start);
+          rc = cst_list_add(out, CST_NODE_DECLSPEC, tok->start, byte_len, i, attr_end);
+          if (rc != 0) return rc;
+          i = attr_end;
+          continue;
+        }
+      }
+
+      /* C23 Attributes */
     if (tok->kind == TOKEN_LBRACKET && i + 1 < end &&
         tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
       size_t attr_end =
