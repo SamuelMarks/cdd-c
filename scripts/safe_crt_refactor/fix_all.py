@@ -61,7 +61,8 @@ def process_file(path):
         with open(path, "w") as f:
             f.write(new_content)
 
-for filepath in glob.glob("src/**/*.c", recursive=True):
-    process_file(filepath)
-for filepath in glob.glob("src/**/*.h", recursive=True):
-    process_file(filepath)
+
+import glob
+for f in glob.glob('src/**/*.c', recursive=True) + glob.glob('src/**/*.h', recursive=True):
+    if '/tests/' not in f.replace('\\', '/') and '/mocks/' not in f.replace('\\', '/'):
+        process_file(f)
