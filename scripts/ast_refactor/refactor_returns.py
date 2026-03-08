@@ -61,7 +61,8 @@ def get_functions_to_refactor(base_dir: str) -> dict:
     funcs_to_refactor = {}
 
     for filepath in glob.glob(f"{base_dir}/**/*.c", recursive=True) + glob.glob(f"{base_dir}/**/*.h", recursive=True):
-        if "tests/" in filepath or "mocks/" in filepath or "cdd_test_helpers/" in filepath:
+        filepath_unix = filepath.replace('\\', '/')
+        if "tests/" in filepath_unix or "mocks/" in filepath_unix or "cdd_test_helpers/" in filepath_unix:
             continue
         with open(filepath, "rb") as f:
             src = f.read()

@@ -114,26 +114,9 @@ int file_exists(const char *path) {
 #if defined(_MSC_VER)
   fopen_s(&f, path, "r");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "r");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "r");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "r");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, path, "r");
-#else
-  f = fopen(path, "r");
+f = fopen(path, "r");
 #endif
-#endif
-#endif
-#endif
-#endif
-
-  if (f) {
+if (f) {
 
     fclose(f);
 

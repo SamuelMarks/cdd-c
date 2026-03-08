@@ -43,8 +43,6 @@ int codegen_make_generate(FILE *fp,
   CHECK_IO(fprintf(fp, "set(SOURCES\n"));
   CHECK_IO(fprintf(fp, "    \"%s.c\"\n",
                    config->project_name)); /* Assumes lib matches proj */
-  CHECK_IO(fprintf(fp, "    \"transport_factory.c\"\n"));
-  CHECK_IO(fprintf(fp, "    \"http_types.c\"\n"));
   CHECK_IO(fprintf(fp, "    \"str_utils.c\"\n"));
   CHECK_IO(fprintf(fp, "    \"fs.c\"\n"));
 
@@ -61,15 +59,15 @@ int codegen_make_generate(FILE *fp,
   CHECK_IO(fprintf(fp, "if(WIN32)\n"));
   CHECK_IO(fprintf(
       fp,
-      "    list(APPEND SOURCES \"http_winhttp.c\" \"crypto_wincrypt.c\")\n"));
+      "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
   CHECK_IO(fprintf(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
   CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"http_android.c\" \"crypto_openssl.c\")\n"));
+  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
   CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"http_apple.c\" \"crypto_apple.c\")\n"));
+  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_apple.c\")\n"));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(
-      fp, "    list(APPEND SOURCES \"http_curl.c\" \"crypto_openssl.c\")\n"));
+      fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
   CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "    find_package(OpenSSL REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));

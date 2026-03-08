@@ -36,13 +36,7 @@
 #include "emit/test_codegen_validation.h"
 #include "emit/test_generate_build_system.h"
 #ifdef C_CDD_USE_LIBCURL
-#include "emit/test_http_curl.h"
 #endif
-#include "emit/test_http_types.h"
-#include "emit/test_http_android.h"
-#include "emit/test_http_apple.h"
-#include "emit/test_http_winhttp.h"
-#include "emit/test_http_wininet.h"
 #include "emit/test_openapi_client_gen.h"
 #include "emit/test_rewriter_body.h"
 #include "emit/test_rewriter_sig.h"
@@ -62,7 +56,6 @@
 #include "parse/test_flexible_array.h"
 #include "parse/test_fs.h"
 #include "parse/test_initializer_parser.h"
-#include "parse/test_integration_server.h"
 #include "parse/test_json_from_and_to.h"
 #include "parse/test_numeric_parser.h"
 #include "parse/test_openapi_loader.h"
@@ -80,7 +73,6 @@
 #include "parse/test_str_utils.h"
 #include "parse/test_tokenizer.h"
 #include "parse/test_tokenizer_trigraphs.h"
-#include "parse/test_transport_factory.h"
 
 /* New Suites */
 #include "emit/test_aggregator.h"
@@ -126,17 +118,10 @@ int main(int argc, char **argv) {
   RUN_SUITE(flexible_array_suite);
   RUN_SUITE(fs_suite);
   RUN_SUITE(generate_build_system_suite);
-  RUN_SUITE(http_types_suite);
 #ifdef C_CDD_USE_LIBCURL
-  RUN_SUITE(http_curl_suite);
 #endif
-  RUN_SUITE(http_android_suite);
-  RUN_SUITE(http_apple_suite);
-  RUN_SUITE(http_winhttp_suite);
-  RUN_SUITE(http_wininet_suite);
   RUN_SUITE(initializer_parser_suite);
   RUN_SUITE(integration_suite);
-  RUN_SUITE(integration_server_suite);
   RUN_SUITE(json_from_and_to_suite);
   RUN_SUITE(numeric_parser_suite);
   RUN_SUITE(openapi_client_gen_suite);
@@ -161,7 +146,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(text_patcher_suite);
   RUN_SUITE(tokenizer_suite);
   RUN_SUITE(tokenizer_trigraphs_suite);
-  RUN_SUITE(transport_factory_suite);
   RUN_SUITE(url_utils_suite);
 
   /* New Runners */

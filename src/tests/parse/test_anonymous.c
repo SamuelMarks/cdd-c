@@ -42,14 +42,9 @@ TEST test_lift_anonymous_struct(void) {
 #if defined(_MSC_VER)
     fopen_s(&f, "anon.json", "r");
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, "anon.json", "r");
-#else
-    f = fopen("anon.json", "r");
+f = fopen("anon.json", "r");
 #endif
-#endif
-#endif
-    ASSERT(f);
+ASSERT(f);
     fseek(f, 0, SEEK_END);
     sz = ftell(f);
     rewind(f);

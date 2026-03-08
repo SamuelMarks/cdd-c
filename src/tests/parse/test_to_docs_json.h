@@ -49,12 +49,7 @@ static void write_test_spec(void) {
 #if defined(_MSC_VER)
   fopen_s(&fp, TEMP_SPEC_FILE, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, TEMP_SPEC_FILE, "w");
-#else
   fp = fopen(TEMP_SPEC_FILE, "w");
-#endif
-#endif
 #endif
   if (fp) {
     fputs(spec, fp);

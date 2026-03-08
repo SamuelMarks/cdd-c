@@ -91,27 +91,23 @@ int write_cmake_content(FILE *fp, const char *project_name,
                    "target_link_libraries(%s PRIVATE c_str_span "
                    "c_str_span_compiler_flags)\n\n",
                    project_name));
-  CHECK_IO(fprintf(fp, "if(WIN32)\n"));
-  CHECK_IO(fprintf(fp, "    # Windows: Link WinHTTP\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE winhttp)\n",
-                   project_name));
-  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
-  CHECK_IO(fprintf(fp, "    # Android: Link log\n"));
-  CHECK_IO(fprintf(fp, "    find_library(log-lib log)\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${log-lib})\n",
-                   project_name));
-  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
-  CHECK_IO(fprintf(fp, "    # Apple: Link CFNetwork and CommonCrypto\n"));
-  CHECK_IO(fprintf(fp, "    find_library(COREFOUNDATION_LIBRARY CoreFoundation)\n"));
-  CHECK_IO(fprintf(fp, "    find_library(CFNETWORK_LIBRARY CFNetwork)\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})\n",
-                   project_name));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    # Unix/Linux: Link Curl\n"));
-  CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE CURL::libcurl)\n",
-                   project_name));
-  CHECK_IO(fprintf(fp, "endif ()\n\n"));
+
+  CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
+  CHECK_IO(fprintf(fp, "FetchContent_Declare(\n"));
+  CHECK_IO(fprintf(fp, "    c-abstract-http\n"));
+  CHECK_IO(fprintf(fp, "    GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git\n"));
+  CHECK_IO(fprintf(fp, "    GIT_TAG        master\n"));
+  CHECK_IO(fprintf(fp, ")\n"));
+  CHECK_IO(fprintf(fp, "FetchContent_MakeAvailable(c-abstract-http)\n\n"));
+
+  CHECK_IO(fprintf(fp, "FetchContent_Declare(\n"));
+  CHECK_IO(fprintf(fp, "    c-orm\n"));
+  CHECK_IO(fprintf(fp, "    GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git\n"));
+  CHECK_IO(fprintf(fp, "    GIT_TAG        master\n"));
+  CHECK_IO(fprintf(fp, ")\n"));
+  CHECK_IO(fprintf(fp, "FetchContent_MakeAvailable(c-orm)\n\n"));
+
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE c-abstract-http c-orm)\n\n", project_name));
 
   /* Include Directories */
   CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));
