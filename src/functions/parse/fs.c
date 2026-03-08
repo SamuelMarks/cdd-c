@@ -520,10 +520,10 @@ static int maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   res = _mkdir(path);
 #else
-  res = _mkdir(path);
+  res = mkdir(path, 0777);
 #endif
 
   if (res == 0)
@@ -599,11 +599,11 @@ int makedirs(const char *path) {
 int makedir(const char *path) {
   if (path == NULL || *path == '\0')
     return EINVAL;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_WIN32)
   if (_mkdir(path) == 0)
     return 0;
 #else
-  if (_mkdir(path) == 0)
+  if (mkdir(path, 0777) == 0)
     return 0;
 #endif
   return errno;
