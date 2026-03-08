@@ -27,6 +27,12 @@ TEST test_server_json_rpc_bind_fail(void) {
   int rc;
 
   /* Create a socket holding port 12346 */
+#if defined(_WIN32)
+  {
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+  }
+#endif
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;

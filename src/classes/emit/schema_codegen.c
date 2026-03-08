@@ -313,22 +313,9 @@ int generate_header(const char *prefix, const char *basename,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-  fp = fopen(fname, "w");
+fp = fopen(fname, "w");
 #endif
-#endif
-#endif
-#endif
-#endif
-  if (!fp)
+if (!fp)
     return errno;
 
   CHECK_RC(print_header_guard(fp, basename));
@@ -448,22 +435,9 @@ int generate_source(const char *prefix, const char *basename,
 #if defined(_MSC_VER)
   fopen_s(&fp, fname, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, fname, "w");
-#else
-  fp = fopen(fname, "w");
+fp = fopen(fname, "w");
 #endif
-#endif
-#endif
-#endif
-#endif
-  if (!fp)
+if (!fp)
     return errno;
 
   CHECK_IO(fprintf(fp,

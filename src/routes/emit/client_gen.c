@@ -644,7 +644,7 @@ int write_header_preamble(FILE *fp, const char *guard,
 
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
-  CHECK_IO(fprintf(fp, "#include \"http_types.h\"\n"));
+  CHECK_IO(fprintf(fp, "#include <c_abstract_http/http_types.h>\n"));
   CHECK_IO(fprintf(fp, "#include \"url_utils.h\"\n"));
   if (model_decl) {
     CHECK_IO(fprintf(fp, "#include \"%s\"\n", model_decl));
@@ -1148,7 +1148,11 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
          "#if defined(_MSC_VER)\n"
          "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
          "#else\n"
-         "    strcpy(client->base_url, base_url);\n"
+         "#if defined(_MSC_VER)
+    strcpy_s(client->base_url, sizeof(client->base_url), base_url);
+#else
+    strcpy(client->base_url, base_url);
+#endif\n"
          "#endif\n"
          "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
@@ -1860,32 +1864,14 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 #if defined(_MSC_VER)
   fopen_s(&hfile, h_name, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&hfile, h_name, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&hfile, h_name, "w");
-#else
-  hfile = fopen(h_name, "w");
-#endif
-#endif
+hfile = fopen(h_name, "w");
 #endif
 #if defined(_MSC_VER)
   fopen_s(&cfile, c_name, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&cfile, c_name, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&cfile, c_name, "w");
-#else
-  cfile = fopen(c_name, "w");
+cfile = fopen(c_name, "w");
 #endif
-#endif
-#endif
-#endif
-
-  if (!hfile || !cfile) {
+if (!hfile || !cfile) {
     rc = EIO;
     goto cleanup;
   }

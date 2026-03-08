@@ -123,29 +123,9 @@ int read_file_to_string(const char *filename, size_t *out_len, char * *_out_val)
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "rb");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&f, filename, "rb");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, filename, "rb");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, filename, "rb");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, filename, "rb");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&f, filename, "rb");
-#else
-  f = fopen(filename, "rb");
+f = fopen(filename, "rb");
 #endif
-#endif
-#endif
-#endif
-#endif
-#endif
-  if (!f) { *_out_val = NULL; return 0; }
+if (!f) { *_out_val = NULL; return 0; }
 #endif
 
   fseek(f, 0, SEEK_END);

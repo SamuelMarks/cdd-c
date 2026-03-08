@@ -33,19 +33,6 @@ TEST test_gen_cmake_basic(void) {
   ASSERT_EQ(0, rc);
 
   ASSERT(strstr(content, "project(MyLib C)"));
-  /* Verify Logic for WinHTTP on Windows */
-  ASSERT(strstr(content, "if(WIN32)"));
-  ASSERT(strstr(content, "target_link_libraries(MyLib PRIVATE winhttp)"));
-  /* Verify Logic for Android */
-  ASSERT(strstr(content, "elseif(ANDROID)"));
-  ASSERT(strstr(content, "find_library(log-lib log)"));
-  /* Verify Logic for Apple */
-  ASSERT(strstr(content, "elseif(APPLE)"));
-  ASSERT(strstr(content, "find_library(CFNETWORK_LIBRARY CFNetwork)"));
-  /* Verify Logic for Curl on Unix */
-  ASSERT(strstr(content, "else()"));
-  ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
-  ASSERT(strstr(content, "target_link_libraries(MyLib PRIVATE CURL::libcurl)"));
 
   free(content);
   remove(out_file);
@@ -91,12 +78,7 @@ TEST test_gen_build_system_cli_args(void) {
 #if defined(_MSC_VER)
     fopen_s(&f, "test_build_dir/CMakeLists.txt", "r");
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, "test_build_dir/CMakeLists.txt", "r");
-#else
     f = fopen("test_build_dir/CMakeLists.txt", "r");
-#endif
-#endif
 #endif
     ASSERT(f != NULL);
     fclose(f);

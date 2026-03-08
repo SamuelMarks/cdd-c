@@ -99,7 +99,11 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #if defined(_MSC_VER)
     strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
 #else
+#if defined(_MSC_VER)
+    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+#else
     strcpy(endif_str, "#endif\\n");
+#endif
 #endif
 #endif
 #endif

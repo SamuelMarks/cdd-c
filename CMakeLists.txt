@@ -8,15 +8,73 @@ endif()
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
  
+
+option(BUILD_SHARED_LIBS "Build shared library" OFF)
+option(C_CDD_USE_UNICODE "Build with UNICODE support" ON)
+option(C_CDD_USE_ANSI "Build with ANSI string support (disables UNICODE)" OFF)
+option(C_CDD_MULTI_THREADED "Multi-threaded support" ON)
+option(C_CDD_USE_LTO "Enable Link-Time Optimization" OFF)
+
+if(MSVC)
+    option(C_CDD_STATIC_CRT "Use static CRT (/MT, /MTd) instead of shared (/MD, /MDd)" OFF)
+    set(C_CDD_RUNTIME_CHECKS "" CACHE STRING "Runtime checks (/RTC1, /RTCs, /RTCu or empty)")
+    set_property(CACHE C_CDD_RUNTIME_CHECKS PROPERTY STRINGS "" "/RTC1" "/RTCs" "/RTCu")
+endif()
+
+if(C_CDD_USE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT error)
+    if(ipo_supported)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+    endif()
+endif()
+
 if(MSVC)
     # Enforce the same C runtime library for all targets to avoid CRT mismatches.
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "MSVC C runtime library" FORCE)
+    if(C_CDD_STATIC_CRT)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "MSVC C runtime library" FORCE)
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "MSVC C runtime library" FORCE)
+    endif()
+
+    if(CMAKE_VERSION VERSION_LESS "3.15")
+        foreach(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            if(C_CDD_STATIC_CRT)
+                if(${flag_var} MATCHES "/MD")
+                    string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+                endif()
+            else()
+                if(${flag_var} MATCHES "/MT")
+                    string(REGEX REPLACE "/MT" "/MD" ${flag_var} "${${flag_var}}")
+                endif()
+            endif()
+        endforeach()
+    endif()
 endif()
 
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
+
+if(C_CDD_USE_UNICODE)
+    target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE UNICODE _UNICODE)
+endif()
+
+if(C_CDD_MULTI_THREADED)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<NOT:$<COMPILE_LANG_AND_ID:C,CXX,MSVC>>:-pthread>")
+endif()
+
+if(MSVC)
+    if(NOT C_CDD_RUNTIME_CHECKS STREQUAL "")
+        target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "${C_CDD_RUNTIME_CHECKS}")
+    endif()
+endif()
+
 if(C_CDD_USE_ASAN)
     target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=address>")
     target_link_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>:-fsanitize=address>")

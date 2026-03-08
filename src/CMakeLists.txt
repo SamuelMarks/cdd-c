@@ -35,12 +35,6 @@ set(Header_Files
         "docstrings/parse/doc.h"
         "functions/parse/fs.h"
         "functions/emit/build_system.h"
-        "functions/parse/http_curl.h"
-        "functions/parse/http_types.h"
-        "functions/parse/http_android.h"
-        "functions/parse/http_apple.h"
-        "functions/parse/http_winhttp.h"
-        "functions/parse/http_wininet.h"
         "classes/parse/initializer.h"
         "classes/parse/numeric.h"
         "routes/emit/aggregator.h"
@@ -93,11 +87,6 @@ set(Source_Files
         "docstrings/parse/doc.c"
         "functions/parse/fs.c"
         "functions/emit/build_system.c"
-        "functions/parse/http_types.c"
-        "functions/parse/http_android.c"
-        "functions/parse/http_apple.c"
-        "functions/parse/http_winhttp.c"
-        "functions/parse/http_wininet.c"
         "classes/parse/initializer.c"
         "classes/parse/numeric.c"
         "routes/emit/aggregator.c"
@@ -121,7 +110,6 @@ set(Source_Files
         "functions/parse/tokenizer.c"
         "routes/parse/url.c"
         "functions/parse/str.c"
-        "functions/parse/transport.c"
         "functions/parse/main.c"
 )
 
@@ -141,7 +129,7 @@ endif ()
 
 
 if (C_CDD_USE_LIBCURL)
-    list(APPEND Source_Files "functions/parse/http_curl.c")
+    list(APPEND Source_Files)
 endif ()
 
 source_group("Source Files" FILES "${Source_Files}")

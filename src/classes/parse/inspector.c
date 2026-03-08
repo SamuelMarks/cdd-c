@@ -132,22 +132,9 @@ int c_inspector_scan_file_types(const char *filename,
 #if defined(_MSC_VER)
   fopen_s(&fp, filename, "r");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, filename, "r");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, filename, "r");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, filename, "r");
-#else
-  fp = fopen(filename, "r");
+fp = fopen(filename, "r");
 #endif
-#endif
-#endif
-#endif
-#endif
-  if (!fp)
+if (!fp)
     return errno ? errno : ENOENT;
 
   while (fgets(line, sizeof(line), fp)) {

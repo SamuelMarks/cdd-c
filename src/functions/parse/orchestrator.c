@@ -788,22 +788,9 @@ int fix_file_callback(const char *path, void *user_data) {
 #if defined(_MSC_VER)
     fopen_s(&f, out_path, "w");
 #else
-#if defined(_MSC_VER)
-    fopen_s(&f, out_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&f, out_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&f, out_path, "w");
-#else
-    f = fopen(out_path, "w");
+f = fopen(out_path, "w");
 #endif
-#endif
-#endif
-#endif
-#endif
-    if (f) {
+if (f) {
       fputs(result, f);
       fclose(f);
       printf("Fixed: %s\n", out_path);

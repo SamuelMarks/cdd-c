@@ -120,7 +120,11 @@ int generate_strcpy_patch(const struct TokenList *tokens, size_t call_start, siz
         "#if defined(_MSC_VER)
   strcpy_s(%s, sizeof(%s), %s);
 #else
+#if defined(_MSC_VER)
+  strcpy_s(%s, sizeof(%s), %s);
+#else
   strcpy(%s, %s);
+#endif
 #endif\n"
         "#endif", dest, dest, src, dest, src);
       add_patch(out, call_start, call_end, replacement);
@@ -140,13 +144,13 @@ int generate_fopen_patch(const struct TokenList *tokens, size_t call_start, size
 fopen_s(&f, path, mode);
 #else
 f = fopen(path, mode);
-#endif 
-     or#if defined(_MSC_VER)
+#endif
+or#if defined(_MSC_VER)
  fopen_s(&f, path, mode);
 #else
- f = fopen(path, mode);
-#endif 
-     Find the assignment target to rewrite it as fopen_s(&f, path, mode); 
+f = fopen(path, mode);
+#endif
+Find the assignment target to rewrite it as fopen_s(&f, path, mode); 
   */
   size_t lparen = 0, comma1 = 0, rparen = 0, i;
   char *path = NULL;
@@ -196,7 +200,8 @@ f = fopen(path, mode);
 fopen_s(&s, %s, %s);
 #else
 s = fopen(%s, %s);
-#endif\n"
+#endif
+\n"
         "#endif", dest, path, mode, dest, path, mode);
       add_patch(out, assign_idx - 1, call_end, replacement);
     }    
@@ -238,7 +243,11 @@ int generate_strncpy_patch(const struct TokenList *tokens, size_t call_start, si
         "#if defined(_MSC_VER)
   strncpy_s(%s, %s + 1, %s, %s);
 #else
+#if defined(_MSC_VER)
+  strncpy_s(%s, %s + 1, %s, %s);
+#else
   strncpy(%s, %s, %s);
+#endif
 #endif\n"
         "#endif", dest, dest, src, count, dest, src, count);
       add_patch(out, call_start, call_end, replacement);

@@ -22,7 +22,6 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #include "c_cddConfig.h"

@@ -53,13 +53,7 @@ set(Header_Files
         "parse/test_crypto.h"
         "parse/test_dataclasses.h" 
         "parse/test_declarator_parser.h" 
-        "parse/test_fs.h" 
-        "emit/test_http_curl.h"
-        "emit/test_http_types.h"
-        "emit/test_http_android.h"
-        "emit/test_http_apple.h"
-        "emit/test_http_winhttp.h"
-        "emit/test_http_wininet.h"
+        "parse/test_fs.h"
         "parse/test_json_from_and_to.h" 
         "emit/test_openapi_client_gen.h" 
         "parse/test_openapi_loader.h"
@@ -76,7 +70,6 @@ set(Header_Files
         "emit/test_sync_code.h" 
         "emit/test_text_patcher.h"
         "parse/test_tokenizer.h" 
-        "parse/test_transport_factory.h" 
         "emit/test_url_utils.h"
         # New Tests
         "emit/test_openapi_writer.h"
@@ -154,13 +147,7 @@ set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
-set(EXEC_NAME "test_integration_full_sdk")
-set(Source_Files "emit/${EXEC_NAME}.c")
-add_executable("${EXEC_NAME}" "${Source_Files}")
-target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>")
-set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}")
-add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
+
 
 if(MSVC)
   

@@ -62,22 +62,9 @@ int sync_code_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&out, impl_filename, "w");
 #else
-#if defined(_MSC_VER)
-  fopen_s(&out, impl_filename, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&out, impl_filename, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&out, impl_filename, "w");
-#else
-  out = fopen(impl_filename, "w");
+out = fopen(impl_filename, "w");
 #endif
-#endif
-#endif
-#endif
-#endif
-  if (!out) {
+if (!out) {
     type_def_list_free(&types);
     return errno ? errno : EIO;
   }
@@ -245,25 +232,9 @@ int patch_header_from_source(const char *header_path,
 #if defined(_MSC_VER)
     fopen_s(&fp, header_path, "w");
 #else
-#if defined(_MSC_VER)
-    fopen_s(&fp, header_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&fp, header_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&fp, header_path, "w");
-#else
-#if defined(_MSC_VER)
-    fopen_s(&fp, header_path, "w");
-#else
-    fp = fopen(header_path, "w");
+fp = fopen(header_path, "w");
 #endif
-#endif
-#endif
-#endif
-#endif
-    if (fp) {
+if (fp) {
 #endif
       fputs(new_header, fp);
       fclose(fp);

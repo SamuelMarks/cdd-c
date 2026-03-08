@@ -144,7 +144,7 @@ struct MockServer_ {
 
 /* --- Thread Routine --- */
 
-static int server_thread_func(THREAD_FUNC_ARG arg, THREAD_FUNC_RETURN *_out_val) {
+static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
   struct MockServer_ *s = (struct MockServer_ *)arg;
   const char *response = "HTTP/1.1 200 OK\r\n"
                          "Content-Type: text/plain\r\n"
