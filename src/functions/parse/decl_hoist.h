@@ -1,0 +1,64 @@
+/**
+ * @file decl_hoist.h
+ * @brief Analysis engine for identifying misplaced declarations (Mixed Code and Declarations).
+ *
+ * Scans a token stream block (e.g. function body) to identify variable declarations
+ * that appear after standard expression statements. In strict C89 (required by older MSVC),
+ * all declarations must appear at the top of a block before any other code.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_DECL_HOIST_H
+#define C_CDD_DECL_HOIST_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "c_cdd_export.h"
+#include "functions/parse/tokenizer.h"
+
+/**
+ * @brief Represents a declaration that needs hoisting.
+ */
+struct HoistSite {
+  size_t start_token_idx; /**< Inclusive start index of the declaration statement */
+  size_t end_token_idx;   /**< Exclusive end index of the declaration statement */
+  size_t target_block_idx; /**< The token index of the block's `{` where it should be hoisted */
+};
+
+/**
+ * @brief Collection of hoisting sites.
+ */
+struct HoistSiteList {
+  struct HoistSite *sites;
+  size_t count;
+  size_t capacity;
+};
+
+/**
+ * @brief Initialize a hoist site list.
+ */
+extern C_CDD_EXPORT void hoist_site_list_init(struct HoistSiteList *list);
+
+/**
+ * @brief Free resources associated with a hoist site list.
+ */
+extern C_CDD_EXPORT void hoist_site_list_free(struct HoistSiteList *list);
+
+/**
+ * @brief Scan a token stream to detect declarations mixed with code.
+ *
+ * @param[in] tokens The original token stream.
+ * @param[out] list The initialized list to populate.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int scan_for_mixed_declarations(const struct TokenList *tokens,
+                                                    struct HoistSiteList *list);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_DECL_HOIST_H */

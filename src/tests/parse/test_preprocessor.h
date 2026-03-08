@@ -42,7 +42,11 @@ static int mock_cb(const struct IncludeInfo *info, void *user_data) {
 #if defined(_MSC_VER)
   strncpy_s(ctx->last_found, 255 + 1, info->resolved_path, 255);
 #else
+#if defined(_MSC_VER)
+  strncpy_s(ctx->last_found, 255 + 1, info->resolved_path, 255);
+#else
   strncpy(ctx->last_found, info->resolved_path, 255);
+#endif
 #endif
 #endif
   ctx->last_found[255] = '\0';

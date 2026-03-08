@@ -344,18 +344,17 @@ static void reset_op(struct OpenAPI_Operation *op) {
   memset(op, 0, sizeof(*op));
 }
 
-static const struct OpenAPI_MediaType *
-find_response_media_type(const struct OpenAPI_Response *resp,
-                         const char *name) {
+static int find_response_media_type(const struct OpenAPI_Response *resp,
+                         const char *name, const struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   if (!resp || !name || !resp->content_media_types)
-    return NULL;
+    { *_out_val = NULL; return 0; }
   for (i = 0; i < resp->n_content_media_types; ++i) {
     const struct OpenAPI_MediaType *mt = &resp->content_media_types[i];
     if (mt->name && strcmp(mt->name, name) == 0)
-      return mt;
+      { *_out_val = mt; return 0; }
   }
-  return NULL;
+  { *_out_val = NULL; return 0; }
 }
 
 /* --- Tests --- */
@@ -1155,7 +1154,7 @@ TEST test_build_custom_verb_additional(void) {
   PASS();
 }
 
-TEST test_build_response_multi_content(void) {
+TEST test_build_response_multi_content(void) { struct OpenAPI_MediaType * _ast_find_response_media_type_0; struct OpenAPI_MediaType * _ast_find_response_media_type_1; 
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;
@@ -1189,8 +1188,8 @@ TEST test_build_response_multi_content(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, op.n_responses);
   ASSERT_EQ(2, op.responses[0].n_content_media_types);
-  ASSERT(find_response_media_type(&op.responses[0], "application/json"));
-  ASSERT(find_response_media_type(&op.responses[0], "text/plain"));
+  ASSERT((find_response_media_type(&op.responses[0], "application/json", &_ast_find_response_media_type_0), _ast_find_response_media_type_0));
+  ASSERT((find_response_media_type(&op.responses[0], "text/plain", &_ast_find_response_media_type_1), _ast_find_response_media_type_1));
 
   reset_op(&op);
   PASS();

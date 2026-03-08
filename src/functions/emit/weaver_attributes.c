@@ -1,0 +1,56 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "functions/emit/patcher.h"
+#include "functions/parse/cst.h"
+#include "functions/parse/str.h"
+#include "functions/parse/tokenizer.h"
+
+int weaver_translate_gcc_attributes(struct PatchList *patches,
+                                    const struct TokenList *tokens,
+                                    const struct CstNodeList *cst) {
+  size_t i;
+  if (!patches || !tokens || !cst) return EINVAL;
+
+  for (i = 0; i < cst->size; i++) {
+    const struct CstNode *node = &cst->nodes[i];
+    if (node->kind == CST_NODE_GCC_ATTRIBUTE) {
+      /* Extract text from tokens directly */
+      size_t len = node->length;
+      char *attr_text = (char *)malloc(len + 1);
+      if (!attr_text) return ENOMEM;
+      memcpy(attr_text, node->start, len);
+      attr_text[len] = '\0';
+
+      /* simple translations */
+      const char *replacement = NULL;
+      
+      if (strstr(attr_text, "packed")) {
+        /* This one is tricky, needs #pragma pack wrapping around the struct. 
+           We can just do a basic replacement for now, or flag it. */
+        /* To fully do packed, we need to know the struct scope. */
+      } else if (strstr(attr_text, "visibility") && strstr(attr_text, "default")) {
+        replacement = "#if defined(_MSC_VER)\n__declspec(dllexport)\n#else\n__attribute__((visibility(\"default\")))\n#endif\n";
+      } else if (strstr(attr_text, "unused")) {
+        /* Unused variables are usually handled by (void)var; but as an attribute it can be tricky. */
+      } else if (strstr(attr_text, "noreturn")) {
+        replacement = "#if defined(_MSC_VER)\n__declspec(noreturn)\n#else\n__attribute__((noreturn))\n#endif\n";
+      } else if (strstr(attr_text, "format") && strstr(attr_text, "printf")) {
+        replacement = "#if defined(_MSC_VER)\n_Printf_format_string_\n#else\n__attribute__((format(printf)))\n#endif\n";
+      }
+
+      if (replacement) {
+        int rc = patch_list_add(patches, node->start_token, node->end_token, tokens, replacement);
+        if (rc != 0) {
+          free(attr_text);
+          return rc;
+        }
+      }
+      free(attr_text);
+    }
+  }
+
+  return 0;
+}

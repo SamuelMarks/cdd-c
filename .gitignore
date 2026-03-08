@@ -57,3 +57,15 @@ cmake-build-*
 patch.cmake
 /test_*.c
 /test_*.o
+
+# Custom Ignores
+*_debug.txt
+out.txt
+pp.txt
+preprocessed.c
+pre*.bat
+test_20*.bat
+test_cmake/
+test_patch_repo/
+vcpkg_installed/
+_deps/

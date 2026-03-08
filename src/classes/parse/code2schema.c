@@ -1298,7 +1298,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 #if defined(_MSC_VER)
     strncpy_s(name, 63 + 1, n, 63);
 #else
+#if defined(_MSC_VER)
+    strncpy_s(name, 63 + 1, n, 63);
+#else
     strncpy(name, n, 63);
+#endif
 #endif
 #endif
 #endif
@@ -1326,7 +1330,11 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 #if defined(_MSC_VER)
   strncpy_s(type_raw, 63 + 1, buf, 63);
 #else
+#if defined(_MSC_VER)
+  strncpy_s(type_raw, 63 + 1, buf, 63);
+#else
   strncpy(type_raw, buf, 63);
+#endif
 #endif
 #endif
 #endif
@@ -5410,7 +5418,11 @@ int code2schema_main(int argc, char **argv) {
 #if defined(_MSC_VER)
   fopen_s(&fp, argv[0], "r");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, argv[0], "r");
+#else
   fp = fopen(argv[0], "r");
+#endif
 #endif
 #endif
 #endif

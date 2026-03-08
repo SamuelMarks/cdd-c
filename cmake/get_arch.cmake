@@ -21,14 +21,14 @@ macro (get_arch)
             endif ()
         elseif (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "i386" OR
                 CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "i686" OR
-                DEFINED CMAKE_GENERATOR_PLATFORM AND
-                CMAKE_GENERATOR_PLATFORM MATCHES "^[Ww][Ii][Nn]32$")
+                (DEFINED CMAKE_GENERATOR_PLATFORM AND
+                CMAKE_GENERATOR_PLATFORM MATCHES "^[Ww][Ii][Nn]32$"))
             set(TARGET_ARCH "X86")
         elseif (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR
                 CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64" OR
                 CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "amd64" OR
-                DEFINED CMAKE_GENERATOR_PLATFORM AND
-                CMAKE_GENERATOR_PLATFORM MATCHES "^[Xx]64$")
+                (DEFINED CMAKE_GENERATOR_PLATFORM AND
+                CMAKE_GENERATOR_PLATFORM MATCHES "^[Xx]64$"))
             set(TARGET_ARCH "AMD64")
         else ()
             set(TARGET_ARCH "ARM")

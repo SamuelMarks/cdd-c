@@ -1,0 +1,215 @@
+/**
+ * @file vla_analyzer.c
+ * @brief Implementation of VLA detection.
+ *
+ * @author Samuel Marks
+ */
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "functions/parse/vla_analyzer.h"
+
+static int c_cdd_strndup(const char *s, size_t n, char * *_out_val) {
+  char *d = (char *)malloc(n + 1);
+  if (!d) { *_out_val = NULL; return 0; }
+  memcpy(d, s, n);
+  d[n] = '\0';
+  { *_out_val = d; return 0; }
+}
+
+void vla_site_list_init(struct VLASiteList *list) {
+  if (!list) return;
+  list->sites = NULL;
+  list->count = 0;
+  list->capacity = 0;
+}
+
+void vla_site_list_free(struct VLASiteList *list) {
+  size_t i;
+  if (!list) return;
+  if (list->sites) {
+    for (i = 0; i < list->count; i++) {
+      if (list->sites[i].type_str) free(list->sites[i].type_str);
+      if (list->sites[i].var_name) free(list->sites[i].var_name);
+      if (list->sites[i].size_expr) free(list->sites[i].size_expr);
+    }
+    free(list->sites);
+  }
+  vla_site_list_init(list);
+}
+
+static int is_basic_type_keyword(enum TokenKind k) {
+  switch (k) {
+  case TOKEN_KEYWORD_INT:
+  case TOKEN_KEYWORD_CHAR:
+  case TOKEN_KEYWORD_SHORT:
+  case TOKEN_KEYWORD_LONG:
+  case TOKEN_KEYWORD_FLOAT:
+  case TOKEN_KEYWORD_DOUBLE:
+  case TOKEN_KEYWORD_SIGNED:
+  case TOKEN_KEYWORD_UNSIGNED:
+  case TOKEN_KEYWORD_VOID:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
+int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) { char * _ast_strndup_0; char * _ast_strndup_1; char * _ast_strndup_2;  char * ; char * ; char * ;  size_t i = 0;
+
+  if (!tokens || !list) return EINVAL;
+
+  while (i < tokens->size) {
+    size_t start_idx = i;
+    int is_type = 0;
+
+    /* Skip leading whitespace */
+    while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) {
+      i++;
+    }
+    if (i >= tokens->size) break;
+
+    start_idx = i;
+
+    /* 1. Identify type start (e.g. `int`, `struct S`, `char`) */
+    if (is_basic_type_keyword(tokens->tokens[i].kind)) {
+      is_type = 1;
+    } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
+               tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
+               tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM) {
+      is_type = 1;
+    } else if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+      /* Assume standard identifiers COULD be types if followed by another identifier or star */
+      size_t lookahead = i + 1;
+      while (lookahead < tokens->size && tokens->tokens[lookahead].kind == TOKEN_WHITESPACE) lookahead++;
+      if (lookahead < tokens->size && (tokens->tokens[lookahead].kind == TOKEN_IDENTIFIER || tokens->tokens[lookahead].kind == TOKEN_STAR)) {
+        is_type = 1;
+      }
+    }
+
+    if (is_type) {
+      size_t type_end_idx = i;
+      size_t var_name_idx = 0;
+      size_t size_expr_start = 0;
+      size_t size_expr_end = 0;
+      size_t saved_i = i;
+
+      /* Consume type modifiers */
+      while (i < tokens->size &&
+             (is_basic_type_keyword(tokens->tokens[i].kind) ||
+              tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
+              tokens->tokens[i].kind == TOKEN_WHITESPACE ||
+              tokens->tokens[i].kind == TOKEN_STAR ||
+              tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
+              tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
+              tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM ||
+              tokens->tokens[i].kind == TOKEN_KEYWORD_CONST)) {
+        
+        /* If we are on an identifier, look ahead to see if it's the variable name */
+        if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+          size_t look = i + 1;
+          while (look < tokens->size && tokens->tokens[look].kind == TOKEN_WHITESPACE) look++;
+          if (look < tokens->size && tokens->tokens[look].kind == TOKEN_LBRACKET) {
+            break; /* 'i' is exactly the variable name */
+          }
+        }
+        
+        if (tokens->tokens[i].kind != TOKEN_WHITESPACE) {
+          type_end_idx = i + 1;
+        }
+        i++;
+      }
+
+      /* 2. Identify variable name */
+      while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) i++;
+      if (i < tokens->size && tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+        var_name_idx = i;
+        i++;
+
+        /* 3. Identify array bracket `[` */
+        while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) i++;
+        if (i < tokens->size && tokens->tokens[i].kind == TOKEN_LBRACKET) {
+          i++;
+          size_expr_start = i;
+
+          /* 4. Read size expression until `]` */
+          while (i < tokens->size && tokens->tokens[i].kind != TOKEN_RBRACKET && tokens->tokens[i].kind != TOKEN_SEMICOLON && tokens->tokens[i].kind != TOKEN_LBRACE && tokens->tokens[i].kind != TOKEN_RBRACE) {
+            i++;
+          }
+          if (i < tokens->size && tokens->tokens[i].kind == TOKEN_RBRACKET) {
+            size_expr_end = i;
+            i++;
+
+            /* 5. Check if it ends with `;` to be a basic declaration */
+            while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) i++;
+            if (i < tokens->size && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+              /* It's an array declaration. Is it a VLA? Check if size expr is purely a literal number */
+              int is_vla = 1;
+              size_t expr_toks = 0;
+              size_t k;
+
+              for (k = size_expr_start; k < size_expr_end; k++) {
+                if (tokens->tokens[k].kind != TOKEN_WHITESPACE) {
+                  expr_toks++;
+                  if (expr_toks == 1 && tokens->tokens[k].kind == TOKEN_NUMBER_LITERAL) {
+                    /* Basic int literal check, could be more complex but enough for heuristic */
+                    is_vla = 0;
+                  } else if (expr_toks > 1) {
+                    is_vla = 1; /* Complex expression -> VLA */
+                  }
+                }
+              }
+
+              if (expr_toks == 0) is_vla = 0; /* `int arr[]` or `int arr[ ]` is incomplete, not VLA */
+
+              if (is_vla) {
+                if (list->count >= list->capacity) {
+                  list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
+                  list->sites = (struct VLASite *)realloc(list->sites, list->capacity * sizeof(struct VLASite));
+                }
+
+                {
+                  struct VLASite *s = &list->sites[list->count];
+                  s->start_token_idx = start_idx;
+                  s->end_token_idx = i + 1;
+
+                  /* Extract type string */
+                  {
+                    const char *t_start = (const char *)tokens->tokens[start_idx].start;
+                    /* type_end_idx points to the first token AFTER the type declaration */
+                    const char *t_end = (const char *)tokens->tokens[type_end_idx - 1].start + tokens->tokens[type_end_idx - 1].length;
+                    s->type_str = ((c_cdd_strndup(t_start, (size_t)(t_end - t_start), &, &_ast_strndup_0), _ast_strndup_0), );
+                  }
+
+                  /* Extract var name */
+                  s->var_name = ((c_cdd_strndup((const char *)tokens->tokens[var_name_idx].start, tokens->tokens[var_name_idx].length, &, &_ast_strndup_1), _ast_strndup_1), );
+
+                  /* Extract size expression */
+                  {
+                    const char *sz_start = (const char *)tokens->tokens[size_expr_start].start;
+                    const char *sz_end = (const char *)tokens->tokens[size_expr_end - 1].start + tokens->tokens[size_expr_end - 1].length;
+                    s->size_expr = ((c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start), &, &_ast_strndup_2), _ast_strndup_2), );
+                  }
+
+                  list->count++;
+                }
+              }
+              i++; /* Skip past semicolon */
+              continue; /* Success path */
+            }
+          }
+        }
+      }
+      /* If we matched a type but it wasn't a VLA declaration, restore and just step past the keyword */
+      i = saved_i + 1;
+    } else {
+      /* Not a type keyword, just skip 1 token */
+      i++;
+    }
+  }
+
+  return 0;
+}

@@ -1,0 +1,88 @@
+/**
+ * @file makefile_scraper.h
+ * @brief Simple Makefile / configure.ac Scraper to extract build properties.
+ *
+ * Scans legacy build scripts to extract source files, include directories (`-I`),
+ * and compile definitions (`-D`) to bootstrap modern CMakeLists.txt.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_MAKEFILE_SCRAPER_H
+#define C_CDD_MAKEFILE_SCRAPER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include <stddef.h>
+#include "c_cdd_export.h"
+
+/**
+ * @brief Extracted project build information.
+ */
+struct ExtractedBuildInfo {
+  char **source_files;    /**< Array of source files (e.g. .c) */
+  size_t source_files_n;  /**< Number of source files */
+  
+  char **include_dirs;    /**< Array of include directories (e.g. from -I) */
+  size_t include_dirs_n;  /**< Number of include directories */
+  
+  char **compile_defs;    /**< Array of definitions (e.g. from -D) */
+  size_t compile_defs_n;  /**< Number of compile definitions */
+};
+
+/**
+ * @brief Initialize a build info structure.
+ */
+extern C_CDD_EXPORT void build_info_init(struct ExtractedBuildInfo *info);
+
+/**
+ * @brief Free resources in a build info structure.
+ */
+extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
+
+/**
+ * @brief Scrape a Makefile for build properties.
+ *
+ * VERY basic heuristic scanner. Looks for lines containing `.c`, `-I`, and `-D`.
+ * It is not a full Make parser.
+ *
+ * @param[out] info The initialized info structure to populate.
+ * @param[in] makefile_content The raw text content of the Makefile.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int scrape_makefile(struct ExtractedBuildInfo *info,
+                                        const char *makefile_content);
+
+/**
+ * @brief Scrape a configure.ac for build properties.
+ *
+ * Looks for `AC_INIT` to extract project names (optional extension) and 
+ * common AC_SUBST definitions if present. Primarily focuses on extracting 
+ * source lists if defined in variables.
+ *
+ * @param[out] info The initialized info structure to populate.
+ * @param[in] configure_ac_content The raw text content.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int scrape_configure_ac(struct ExtractedBuildInfo *info,
+                                            const char *configure_ac_content);
+
+/**
+ * @brief Generate a modern CMakeLists.txt string from the extracted info.
+ *
+ * @param[in] info The populated info structure.
+ * @param[in] project_name The name of the project.
+ * @param[out] out_cmake Newly allocated string containing the CMake file contents.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int build_info_to_cmake(const struct ExtractedBuildInfo *info,
+                                            const char *project_name,
+                                            char **out_cmake);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_MAKEFILE_SCRAPER_H */

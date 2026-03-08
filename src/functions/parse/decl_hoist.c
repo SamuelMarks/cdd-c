@@ -1,0 +1,130 @@
+/**
+ * @file decl_hoist.c
+ * @brief Implementation of the declaration hoisting scanner.
+ *
+ * @author Samuel Marks
+ */
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "functions/parse/decl_hoist.h"
+
+void hoist_site_list_init(struct HoistSiteList *list) {
+  if (!list) return;
+  list->sites = NULL;
+  list->count = 0;
+  list->capacity = 0;
+}
+
+void hoist_site_list_free(struct HoistSiteList *list) {
+  if (!list) return;
+  if (list->sites) {
+    free(list->sites);
+  }
+  hoist_site_list_init(list);
+}
+
+static int is_basic_type_keyword(enum TokenKind k) {
+  switch (k) {
+  case TOKEN_KEYWORD_INT:
+  case TOKEN_KEYWORD_CHAR:
+  case TOKEN_KEYWORD_SHORT:
+  case TOKEN_KEYWORD_LONG:
+  case TOKEN_KEYWORD_FLOAT:
+  case TOKEN_KEYWORD_DOUBLE:
+  case TOKEN_KEYWORD_SIGNED:
+  case TOKEN_KEYWORD_UNSIGNED:
+  case TOKEN_KEYWORD_VOID:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
+int scan_for_mixed_declarations(const struct TokenList *tokens, struct HoistSiteList *list) {
+  size_t i = 0;
+  size_t current_block_start = 0;
+  int has_seen_statement_in_block = 0;
+  size_t depth = 0;
+
+  if (!tokens || !list) return EINVAL;
+
+  while (i < tokens->size) {
+    size_t stmt_start = i;
+    int is_decl = 0;
+
+    /* Skip leading whitespace for statement */
+    while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) {
+      i++;
+    }
+    if (i >= tokens->size) break;
+    stmt_start = i;
+
+    if (tokens->tokens[i].kind == TOKEN_LBRACE) {
+      depth++;
+      current_block_start = i;
+      has_seen_statement_in_block = 0;
+      i++;
+      continue;
+    } else if (tokens->tokens[i].kind == TOKEN_RBRACE) {
+      if (depth > 0) depth--;
+      i++;
+      continue;
+    }
+
+    /* Are we inside a block? */
+    if (depth > 0) {
+      /* Identify if this statement is a declaration */
+      if (is_basic_type_keyword(tokens->tokens[i].kind) ||
+          tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
+          tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
+          tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM) {
+        is_decl = 1;
+      } else if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
+        /* Typedef assumption */
+        size_t look = i + 1;
+        while (look < tokens->size && tokens->tokens[look].kind == TOKEN_WHITESPACE) look++;
+        if (look < tokens->size && (tokens->tokens[look].kind == TOKEN_IDENTIFIER || tokens->tokens[look].kind == TOKEN_STAR)) {
+          /* Exception for labels and macros, but simple heuristic: */
+          is_decl = 1;
+        }
+        /* Further disambiguation: if it's an assignment or function call, it's not a decl unless it was a type */
+        /* Let's be slightly conservative: if look is an identifier, assume declaration for now */
+      }
+
+      /* Scan to end of statement (semicolon) */
+      while (i < tokens->size && tokens->tokens[i].kind != TOKEN_SEMICOLON && tokens->tokens[i].kind != TOKEN_LBRACE && tokens->tokens[i].kind != TOKEN_RBRACE) {
+        /* Refine is_decl: if we see an assignment operator `=` without having seen a valid type/ident combo, it might just be an expression */
+        /* For this simplistic scanner, we rely on the initial keyword/identifier scan */
+        i++;
+      }
+
+      if (i < tokens->size && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
+        i++; /* Consume semicolon */
+        
+        if (is_decl) {
+          if (has_seen_statement_in_block) {
+            /* We found a mixed declaration! */
+            if (list->count >= list->capacity) {
+              list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
+              list->sites = (struct HoistSite *)realloc(list->sites, list->capacity * sizeof(struct HoistSite));
+            }
+            list->sites[list->count].start_token_idx = stmt_start;
+            list->sites[list->count].end_token_idx = i;
+            list->sites[list->count].target_block_idx = current_block_start;
+            list->count++;
+          }
+        } else {
+          has_seen_statement_in_block = 1;
+        }
+      }
+    } else {
+      /* Not inside a block, just skip token */
+      i++;
+    }
+  }
+
+  return 0;
+}

@@ -54,7 +54,11 @@ TEST test_schema2tests_success(void) {
 #if defined(_MSC_VER)
   fopen_s(&f, "min_schema.json", "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, "min_schema.json", "w");
+#else
   f = fopen("min_schema.json", "w");
+#endif
 #endif
 #endif
   ASSERT(f);
@@ -105,7 +109,11 @@ TEST test_schema2tests_output_file_open_fail(void) {
 #if defined(_MSC_VER)
     fopen_s(&f, out_dir_as_file, "w");
 #else
+#if defined(_MSC_VER)
+    fopen_s(&f, out_dir_as_file, "w");
+#else
     f = fopen(out_dir_as_file, "w");
+#endif
 #endif
 #endif
     ASSERT(f);

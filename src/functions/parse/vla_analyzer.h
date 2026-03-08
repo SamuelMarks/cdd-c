@@ -1,0 +1,68 @@
+/**
+ * @file vla_analyzer.h
+ * @brief Analysis engine for detecting Variable Length Arrays (VLAs).
+ *
+ * Scans a C syntax tree for standard VLA declarations and constructs a map
+ * to enable AST rewriting using `weaver_vla_to_alloca`.
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_VLA_ANALYZER_H
+#define C_CDD_VLA_ANALYZER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "c_cdd_export.h"
+#include "functions/parse/tokenizer.h"
+
+/**
+ * @brief Represents an identified VLA site in the token stream.
+ */
+struct VLASite {
+  size_t start_token_idx;
+  size_t end_token_idx;
+  char *type_str;
+  char *var_name;
+  char *size_expr;
+};
+
+/**
+ * @brief Collection of identified VLA sites.
+ */
+struct VLASiteList {
+  struct VLASite *sites;
+  size_t count;
+  size_t capacity;
+};
+
+/**
+ * @brief Initialize a VLA site list.
+ */
+extern C_CDD_EXPORT void vla_site_list_init(struct VLASiteList *list);
+
+/**
+ * @brief Free resources associated with a VLA site list.
+ */
+extern C_CDD_EXPORT void vla_site_list_free(struct VLASiteList *list);
+
+/**
+ * @brief Scan a token stream to detect VLAs.
+ *
+ * Scans for patterns like `type var[expr];` where `expr` is not a constant
+ * literal. Populates `list` with boundaries and strings.
+ *
+ * @param[in] tokens The original token stream.
+ * @param[out] list The initialized list to populate.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int scan_for_vlas(const struct TokenList *tokens,
+                                      struct VLASiteList *list);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_VLA_ANALYZER_H */

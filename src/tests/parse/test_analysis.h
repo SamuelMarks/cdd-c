@@ -19,18 +19,18 @@
 
 #include <errno.h>
 
-static struct TokenList *setup_analysis_tokens(const char *code) {
+static int setup_analysis_tokens(const char *code, struct TokenList * *_out_val) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)code), &tl);
-  return tl;
+  { *_out_val = tl; return 0; }
 }
 
-TEST test_find_simple_unchecked_malloc(void) {
+TEST test_find_simple_unchecked_malloc(void) { struct TokenList * _ast_setup_analysis_tokens_0; 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   const char *code = "void f() { char * p = (char *)malloc(10); *p = 5; }";
 
-  tl = setup_analysis_tokens(code);
+  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_0), _ast_setup_analysis_tokens_0);
   ASSERT(tl);
 
   if (find_allocations(tl, &sites) != 0) {
@@ -50,12 +50,12 @@ TEST test_find_simple_unchecked_malloc(void) {
   PASS();
 }
 
-TEST test_find_simple_checked_malloc(void) {
+TEST test_find_simple_checked_malloc(void) { struct TokenList * _ast_setup_analysis_tokens_1; 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   const char *code = "void f() { char * p = (char *)malloc(10); if (!p) return; }";
 
-  tl = setup_analysis_tokens(code);
+  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_1), _ast_setup_analysis_tokens_1);
   ASSERT(tl);
 
   find_allocations(tl, &sites);
@@ -69,13 +69,13 @@ TEST test_find_simple_checked_malloc(void) {
   PASS();
 }
 
-TEST test_alloc_inside_condition(void) {
+TEST test_alloc_inside_condition(void) { struct TokenList * _ast_setup_analysis_tokens_2; 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   /* 'if (p = malloc(10))' is considered checked logic */
   const char *code = "void f() { char *p; if (p = malloc(10)) { } }";
 
-  tl = setup_analysis_tokens(code);
+  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_2), _ast_setup_analysis_tokens_2);
   ASSERT(tl);
 
   find_allocations(tl, &sites);
@@ -88,12 +88,12 @@ TEST test_alloc_inside_condition(void) {
   PASS();
 }
 
-TEST test_find_return_alloc(void) {
+TEST test_find_return_alloc(void) { struct TokenList * _ast_setup_analysis_tokens_3; 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   const char *code = "char* f() { return strdup(\"foo\"); }";
 
-  tl = setup_analysis_tokens(code);
+  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_3), _ast_setup_analysis_tokens_3);
   ASSERT(tl);
 
   find_allocations(tl, &sites);
@@ -108,12 +108,12 @@ TEST test_find_return_alloc(void) {
   PASS();
 }
 
-TEST test_asprintf_unchecked(void) {
+TEST test_asprintf_unchecked(void) { struct TokenList * _ast_setup_analysis_tokens_4; 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};
   const char *code = "void f() { char *s; asprintf(&s, \"fmt\"); }";
 
-  tl = setup_analysis_tokens(code);
+  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_4), _ast_setup_analysis_tokens_4);
   ASSERT(tl);
 
   find_allocations(tl, &sites);

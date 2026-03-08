@@ -1,0 +1,67 @@
+/**
+ * @file desig_init.h
+ * @brief Analysis engine for detecting C99 Designated Initializers.
+ *
+ * Scans a token stream for structural initialization patterns containing
+ * designated dot-initializers (e.g. `{ .x = 1 }`) to facilitate rewriting
+ * for older compiler compatibility (e.g. strictly ordered initializers).
+ *
+ * @author Samuel Marks
+ */
+
+#ifndef C_CDD_DESIG_INIT_H
+#define C_CDD_DESIG_INIT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "c_cdd_export.h"
+#include "functions/parse/tokenizer.h"
+
+/**
+ * @brief Represents a detected designated initialization.
+ */
+struct DesigInitSite {
+  size_t start_token_idx; /**< Token index of the dot `.` */
+  size_t end_token_idx;   /**< Token index after the initializer value */
+  size_t brace_start_idx; /**< Token index of the enclosing `{` */
+  size_t brace_end_idx;   /**< Token index of the enclosing `}` */
+  char *field_name;       /**< Extracted field name (e.g. "x") */
+  char *value_expr;       /**< Extracted value expression (e.g. "1") */
+};
+
+/**
+ * @brief Collection of designated initialization sites.
+ */
+struct DesigInitList {
+  struct DesigInitSite *sites;
+  size_t count;
+  size_t capacity;
+};
+
+/**
+ * @brief Initialize a list of designated initializers.
+ */
+extern C_CDD_EXPORT void desig_init_list_init(struct DesigInitList *list);
+
+/**
+ * @brief Free resources associated with a designated initializer list.
+ */
+extern C_CDD_EXPORT void desig_init_list_free(struct DesigInitList *list);
+
+/**
+ * @brief Scan a token stream to detect C99 designated initializers.
+ *
+ * @param[in] tokens The original token stream.
+ * @param[out] list The initialized list to populate.
+ * @return 0 on success.
+ */
+extern C_CDD_EXPORT int scan_for_designated_initializers(const struct TokenList *tokens,
+                                                         struct DesigInitList *list);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_DESIG_INIT_H */

@@ -14,18 +14,18 @@
 #include "openapi/parse/openapi.h"
 #include "routes/emit/url.h"
 
-static char *gen_url_code(const char *tmpl,
+static int gen_url_code(const char *tmpl,
                           const struct OpenAPI_Parameter *params,
-                          size_t n_params) {
+                          size_t n_params, char * *_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
   if (!tmp)
-    return NULL;
+    { *_out_val = NULL; return 0; }
   if (codegen_url_write_builder(tmp, tmpl, params, n_params, NULL) != 0) {
     fclose(tmp);
-    return NULL;
+    { *_out_val = NULL; return 0; }
   }
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
@@ -34,19 +34,19 @@ static char *gen_url_code(const char *tmpl,
   if (sz > 0)
     fread(content, 1, sz, tmp);
   fclose(tmp);
-  return content;
+  { *_out_val = content; return 0; }
 }
 
-static char *gen_query_code(const struct OpenAPI_Operation *op) {
+static int gen_query_code(const struct OpenAPI_Operation *op, char * *_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
   if (!tmp)
-    return NULL;
+    { *_out_val = NULL; return 0; }
   if (codegen_url_write_query_params(tmp, op, 0) != 0) {
     fclose(tmp);
-    return NULL;
+    { *_out_val = NULL; return 0; }
   }
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
@@ -55,10 +55,10 @@ static char *gen_query_code(const struct OpenAPI_Operation *op) {
   if (sz > 0)
     fread(content, 1, sz, tmp);
   fclose(tmp);
-  return content;
+  { *_out_val = content; return 0; }
 }
 
-TEST test_query_gen_scalar(void) {
+TEST test_query_gen_scalar(void) { char * _ast_gen_query_code_0; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -74,7 +74,7 @@ TEST test_query_gen_scalar(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_0), _ast_gen_query_code_0);
   ASSERT(code);
   /* Check scalar integer logic */
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", page)") != NULL);
@@ -83,7 +83,7 @@ TEST test_query_gen_scalar(void) {
   PASS();
 }
 
-TEST test_query_gen_scalar_number(void) {
+TEST test_query_gen_scalar_number(void) { char * _ast_gen_query_code_1; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -99,7 +99,7 @@ TEST test_query_gen_scalar_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_1), _ast_gen_query_code_1);
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratio)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ratio\", num_buf)") != NULL);
@@ -107,7 +107,7 @@ TEST test_query_gen_scalar_number(void) {
   PASS();
 }
 
-TEST test_query_gen_array_explode_int(void) {
+TEST test_query_gen_array_explode_int(void) { char * _ast_gen_query_code_2; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -125,7 +125,7 @@ TEST test_query_gen_array_explode_int(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_2), _ast_gen_query_code_2);
   ASSERT(code);
 
   /* Loop */
@@ -138,7 +138,7 @@ TEST test_query_gen_array_explode_int(void) {
   PASS();
 }
 
-TEST test_query_gen_array_explode_number(void) {
+TEST test_query_gen_array_explode_number(void) { char * _ast_gen_query_code_3; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -156,7 +156,7 @@ TEST test_query_gen_array_explode_number(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_3), _ast_gen_query_code_3);
   ASSERT(code);
 
   ASSERT(strstr(code, "for(i=0; i < ratios_len; ++i)") != NULL);
@@ -167,7 +167,7 @@ TEST test_query_gen_array_explode_number(void) {
   PASS();
 }
 
-TEST test_query_gen_array_explode_string(void) {
+TEST test_query_gen_array_explode_string(void) { char * _ast_gen_query_code_4; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -185,7 +185,7 @@ TEST test_query_gen_array_explode_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_4), _ast_gen_query_code_4);
   ASSERT(code);
 
   ASSERT(strstr(code, "for(i=0; i < tags_len; ++i)") != NULL);
@@ -195,7 +195,7 @@ TEST test_query_gen_array_explode_string(void) {
   PASS();
 }
 
-TEST test_query_gen_array_form_default_explode(void) {
+TEST test_query_gen_array_form_default_explode(void) { char * _ast_gen_query_code_5; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -214,7 +214,7 @@ TEST test_query_gen_array_form_default_explode(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_5), _ast_gen_query_code_5);
   ASSERT(code);
 
   ASSERT(strstr(code, "for(i=0; i < tags_len; ++i)") != NULL);
@@ -225,7 +225,7 @@ TEST test_query_gen_array_form_default_explode(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring(void) {
+TEST test_query_gen_querystring(void) { char * _ast_gen_query_code_6; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -240,7 +240,7 @@ TEST test_query_gen_querystring(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_6), _ast_gen_query_code_6);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
@@ -250,7 +250,7 @@ TEST test_query_gen_querystring(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_form_object(void) {
+TEST test_query_gen_querystring_form_object(void) { char * _ast_gen_query_code_7; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -267,7 +267,7 @@ TEST test_query_gen_querystring_form_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_7), _ast_gen_query_code_7);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (form object)") != NULL);
@@ -278,7 +278,7 @@ TEST test_query_gen_querystring_form_object(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_json_ref(void) {
+TEST test_query_gen_querystring_json_ref(void) { char * _ast_gen_query_code_8; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -295,7 +295,7 @@ TEST test_query_gen_querystring_json_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_8), _ast_gen_query_code_8);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (json)") != NULL);
@@ -306,7 +306,7 @@ TEST test_query_gen_querystring_json_ref(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_json_primitive(void) {
+TEST test_query_gen_querystring_json_primitive(void) { char * _ast_gen_query_code_9; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -323,7 +323,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_9), _ast_gen_query_code_9);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (json primitive)") != NULL);
@@ -334,7 +334,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_json_array(void) {
+TEST test_query_gen_querystring_json_array(void) { char * _ast_gen_query_code_10; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -352,7 +352,7 @@ TEST test_query_gen_querystring_json_array(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_10), _ast_gen_query_code_10);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (json array)") != NULL);
@@ -363,7 +363,7 @@ TEST test_query_gen_querystring_json_array(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_json_array_object(void) {
+TEST test_query_gen_querystring_json_array_object(void) { char * _ast_gen_query_code_11; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -381,7 +381,7 @@ TEST test_query_gen_querystring_json_array_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_11), _ast_gen_query_code_11);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (json array objects)") != NULL);
@@ -393,7 +393,7 @@ TEST test_query_gen_querystring_json_array_object(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_raw_string(void) {
+TEST test_query_gen_querystring_raw_string(void) { char * _ast_gen_query_code_12; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -410,7 +410,7 @@ TEST test_query_gen_querystring_raw_string(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_12), _ast_gen_query_code_12);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
@@ -421,7 +421,7 @@ TEST test_query_gen_querystring_raw_string(void) {
   PASS();
 }
 
-TEST test_query_gen_querystring_raw_integer(void) {
+TEST test_query_gen_querystring_raw_integer(void) { char * _ast_gen_query_code_13; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -438,7 +438,7 @@ TEST test_query_gen_querystring_raw_integer(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_13), _ast_gen_query_code_13);
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
@@ -449,7 +449,7 @@ TEST test_query_gen_querystring_raw_integer(void) {
   PASS();
 }
 
-TEST test_query_gen_array_form_explode_false(void) {
+TEST test_query_gen_array_form_explode_false(void) { char * _ast_gen_query_code_14; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -469,7 +469,7 @@ TEST test_query_gen_array_form_explode_false(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_14), _ast_gen_query_code_14);
   ASSERT(code);
 
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
@@ -479,7 +479,7 @@ TEST test_query_gen_array_form_explode_false(void) {
   PASS();
 }
 
-TEST test_query_gen_array_space_delimited(void) {
+TEST test_query_gen_array_space_delimited(void) { char * _ast_gen_query_code_15; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -498,7 +498,7 @@ TEST test_query_gen_array_space_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_15), _ast_gen_query_code_15);
   ASSERT(code);
 
   ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
@@ -508,7 +508,7 @@ TEST test_query_gen_array_space_delimited(void) {
   PASS();
 }
 
-TEST test_query_gen_array_pipe_delimited(void) {
+TEST test_query_gen_array_pipe_delimited(void) { char * _ast_gen_query_code_16; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -527,7 +527,7 @@ TEST test_query_gen_array_pipe_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_16), _ast_gen_query_code_16);
   ASSERT(code);
 
   ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
@@ -537,7 +537,7 @@ TEST test_query_gen_array_pipe_delimited(void) {
   PASS();
 }
 
-TEST test_query_gen_scalar_allow_reserved(void) {
+TEST test_query_gen_scalar_allow_reserved(void) { char * _ast_gen_query_code_17; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -554,7 +554,7 @@ TEST test_query_gen_scalar_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_17), _ast_gen_query_code_17);
   ASSERT(code);
   ASSERT(strstr(code, "url_encode_allow_reserved") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", enc)") != NULL);
@@ -563,7 +563,7 @@ TEST test_query_gen_scalar_allow_reserved(void) {
   PASS();
 }
 
-TEST test_query_gen_array_explode_allow_reserved(void) {
+TEST test_query_gen_array_explode_allow_reserved(void) { char * _ast_gen_query_code_18; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -583,7 +583,7 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_18), _ast_gen_query_code_18);
   ASSERT(code);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(tags[i])") != NULL);
@@ -593,7 +593,7 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   PASS();
 }
 
-TEST test_query_gen_object_form_explode(void) {
+TEST test_query_gen_object_form_explode(void) { char * _ast_gen_query_code_19; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -610,7 +610,7 @@ TEST test_query_gen_object_form_explode(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_19), _ast_gen_query_code_19);
   ASSERT(code);
 
   ASSERT(strstr(code, "for(i=0; i < filter_len; ++i)") != NULL);
@@ -621,7 +621,7 @@ TEST test_query_gen_object_form_explode(void) {
   PASS();
 }
 
-TEST test_query_gen_object_form_explode_false(void) {
+TEST test_query_gen_object_form_explode_false(void) { char * _ast_gen_query_code_20; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -639,7 +639,7 @@ TEST test_query_gen_object_form_explode_false(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_20), _ast_gen_query_code_20);
   ASSERT(code);
 
   ASSERT(strstr(code, "key_enc = url_encode(kv_key)") != NULL);
@@ -651,7 +651,7 @@ TEST test_query_gen_object_form_explode_false(void) {
   PASS();
 }
 
-TEST test_query_gen_object_deep_object(void) {
+TEST test_query_gen_object_deep_object(void) { char * _ast_gen_query_code_21; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -667,7 +667,7 @@ TEST test_query_gen_object_deep_object(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_21), _ast_gen_query_code_21);
   ASSERT(code);
 
   ASSERT(strstr(code, "asprintf(&deep_key") != NULL);
@@ -677,7 +677,7 @@ TEST test_query_gen_object_deep_object(void) {
   PASS();
 }
 
-TEST test_query_gen_object_space_delimited(void) {
+TEST test_query_gen_object_space_delimited(void) { char * _ast_gen_query_code_22; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -693,7 +693,7 @@ TEST test_query_gen_object_space_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_22), _ast_gen_query_code_22);
   ASSERT(code);
 
   ASSERT(strstr(code, "joined[joined_len++] = ' '") != NULL);
@@ -703,7 +703,7 @@ TEST test_query_gen_object_space_delimited(void) {
   PASS();
 }
 
-TEST test_query_gen_object_pipe_delimited(void) {
+TEST test_query_gen_object_pipe_delimited(void) { char * _ast_gen_query_code_23; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -719,7 +719,7 @@ TEST test_query_gen_object_pipe_delimited(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_23), _ast_gen_query_code_23);
   ASSERT(code);
 
   ASSERT(strstr(code, "joined[joined_len++] = '|'") != NULL);
@@ -729,7 +729,7 @@ TEST test_query_gen_object_pipe_delimited(void) {
   PASS();
 }
 
-TEST test_query_gen_object_space_delimited_allow_reserved(void) {
+TEST test_query_gen_object_space_delimited_allow_reserved(void) { char * _ast_gen_query_code_24; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -747,7 +747,7 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_24), _ast_gen_query_code_24);
   ASSERT(code);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(kv_key)") != NULL);
@@ -759,7 +759,7 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   PASS();
 }
 
-TEST test_query_gen_array_space_delimited_allow_reserved(void) {
+TEST test_query_gen_array_space_delimited_allow_reserved(void) { char * _ast_gen_query_code_25; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -779,7 +779,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_25), _ast_gen_query_code_25);
   ASSERT(code);
 
   ASSERT(strstr(code, "url_encode_allow_reserved(raw)") != NULL);
@@ -790,7 +790,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   PASS();
 }
 
-TEST test_path_matrix_param_string(void) {
+TEST test_path_matrix_param_string(void) { char * _ast_gen_url_code_26; 
   struct OpenAPI_Parameter param = {0};
   char *code;
 
@@ -801,7 +801,7 @@ TEST test_path_matrix_param_string(void) {
   param.style = OA_STYLE_MATRIX;
   param.explode = 0;
 
-  code = gen_url_code("/pets/{id}", &param, 1);
+  code = (gen_url_code("/pets/{id}", &param, 1, &_ast_gen_url_code_26), _ast_gen_url_code_26);
   ASSERT(code);
   ASSERT(strstr(code, "path_id") != NULL);
   ASSERT(strstr(code, "\";id=%s\"") != NULL);
@@ -810,7 +810,7 @@ TEST test_path_matrix_param_string(void) {
   PASS();
 }
 
-TEST test_path_label_array_explode(void) {
+TEST test_path_label_array_explode(void) { char * _ast_gen_url_code_27; 
   struct OpenAPI_Parameter param = {0};
   char *code;
 
@@ -823,7 +823,7 @@ TEST test_path_label_array_explode(void) {
   param.style = OA_STYLE_LABEL;
   param.explode = 1;
 
-  code = gen_url_code("/tags/{tags}", &param, 1);
+  code = (gen_url_code("/tags/{tags}", &param, 1, &_ast_gen_url_code_27), _ast_gen_url_code_27);
   ASSERT(code);
   ASSERT(strstr(code, "path_tags") != NULL);
   ASSERT(strstr(code, "memcpy(path_tags + path_len, \".\", 1)") != NULL);
@@ -832,7 +832,7 @@ TEST test_path_label_array_explode(void) {
   PASS();
 }
 
-TEST test_path_matrix_object_explode_false(void) {
+TEST test_path_matrix_object_explode_false(void) { char * _ast_gen_url_code_28; 
   struct OpenAPI_Parameter param = {0};
   char *code;
 
@@ -844,7 +844,7 @@ TEST test_path_matrix_object_explode_false(void) {
   param.explode = 0;
   param.explode_set = 1;
 
-  code = gen_url_code("/pets/{color}", &param, 1);
+  code = (gen_url_code("/pets/{color}", &param, 1, &_ast_gen_url_code_28), _ast_gen_url_code_28);
   ASSERT(code);
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &color[i]") != NULL);
   ASSERT(strstr(code, "\";color=\"") != NULL);
@@ -854,7 +854,7 @@ TEST test_path_matrix_object_explode_false(void) {
   PASS();
 }
 
-TEST test_path_simple_param_number(void) {
+TEST test_path_simple_param_number(void) { char * _ast_gen_url_code_29; 
   struct OpenAPI_Parameter param = {0};
   char *code;
 
@@ -864,7 +864,7 @@ TEST test_path_simple_param_number(void) {
   param.type = "number";
   param.style = OA_STYLE_SIMPLE;
 
-  code = gen_url_code("/items/{id}", &param, 1);
+  code = (gen_url_code("/items/{id}", &param, 1, &_ast_gen_url_code_29), _ast_gen_url_code_29);
   ASSERT(code);
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", id)") != NULL);
   ASSERT(strstr(code, "asprintf(&path_id") != NULL);
@@ -873,7 +873,7 @@ TEST test_path_simple_param_number(void) {
   PASS();
 }
 
-TEST test_query_gen_json_content_ref(void) {
+TEST test_query_gen_json_content_ref(void) { char * _ast_gen_query_code_30; 
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -890,7 +890,7 @@ TEST test_query_gen_json_content_ref(void) {
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = gen_query_code(&op);
+  code = (gen_query_code(&op, &_ast_gen_query_code_30), _ast_gen_query_code_30);
   ASSERT(code);
   ASSERT(strstr(code, "Query Parameter (json): filter") != NULL);
   ASSERT(strstr(code, "Filter_to_json") != NULL);

@@ -1,0 +1,63 @@
+/**
+ * @file cli_parser.h
+ * @brief Parses C `getopt` loops into a CLI Intermediate Representation.
+ */
+
+#ifndef C_CDD_CLI_PARSER_H
+#define C_CDD_CLI_PARSER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include <stddef.h>
+#include "c_cdd_export.h"
+#include "functions/parse/cst.h"
+
+/**
+ * @brief Represents a single CLI option/flag.
+ */
+struct CliOption {
+  char short_flag;            /**< Single character flag (e.g. 'h'), 0 if none */
+  char *long_flag;            /**< Long string flag (e.g. "help"), NULL if none */
+  int has_arg;                /**< 0: no_argument, 1: required_argument, 2: optional_argument */
+  char *description;          /**< Extracted help description */
+  char *mapped_struct_field;  /**< Extracted variable assignment target */
+};
+
+/**
+ * @brief Represents a CLI Command (typically a `main` function).
+ */
+struct CliCommand {
+  char *name;                 /**< Name of the command */
+  struct CliOption *options;  /**< Array of detected options */
+  size_t n_options;           /**< Number of options */
+};
+
+/**
+ * @brief Initialize a CLI Command IR.
+ */
+C_CDD_EXPORT void cli_command_init(struct CliCommand *cmd);
+
+/**
+ * @brief Free resources associated with a CLI Command IR.
+ */
+C_CDD_EXPORT void cli_command_free(struct CliCommand *cmd);
+
+/**
+ * @brief Extract CLI command parameters from a CST containing a getopt loop.
+ *
+ * @param root The root CST node (e.g. function body of main).
+ * @param tokens The token list.
+ * @param cmd The output command.
+ * @return 0 on success, non-zero on failure.
+ */
+C_CDD_EXPORT int cst_extract_cli_command(const struct CstNodeList *nodes,
+                                         const struct TokenList *tokens,
+                                         struct CliCommand *cmd);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_CLI_PARSER_H */

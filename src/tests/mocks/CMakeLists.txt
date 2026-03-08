@@ -19,7 +19,7 @@ else ()
     find_package(c89stringutils CONFIG REQUIRED)
 endif ()
 endif()
-target_link_libraries("${LIBRARY_NAME}" PUBLIC "c89stringutils" "c89stringutils_compiler_flags")
+target_link_libraries("${LIBRARY_NAME}" PUBLIC "c89stringutils" "c89stringutils_compiler_flags" "${PROJECT_NAME}_compiler_flags")
 
 if(NOT TARGET parson)
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)

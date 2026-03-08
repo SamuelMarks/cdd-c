@@ -34,7 +34,11 @@ TEST test_write_enum_functions(void) {
 #if defined(_MSC_VER)
   fopen_s(&tmp_fh, "tmp_enum_func.c", "w");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&tmp_fh, "tmp_enum_func.c", "w");
+#else
   tmp_fh = fopen("tmp_enum_func.c", "w");
+#endif
 #endif
 #endif
   if (!tmp_fh)
@@ -211,7 +215,11 @@ TEST test_trim_trailing(void) {
 #if defined(_MSC_VER)
   strcpy_s(a, sizeof(a), "foo   \t;");
 #else
+#if defined(_MSC_VER)
+  strcpy_s(a, sizeof(a), "foo   \t;");
+#else
   strcpy(a, "foo   \t;");
+#endif
 #endif
 #endif
   trim_trailing(a);

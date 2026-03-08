@@ -1,0 +1,162 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "classes/emit/db_codegen.h"
+
+int db_codegen_struct_header(const struct DatabaseSchema *schema, FILE *out, const char *header_guard) {
+  size_t i, j;
+  if (!schema || !out || !header_guard)
+    return EINVAL;
+
+  fprintf(out, "#ifndef %s\n#define %s\n\n", header_guard, header_guard);
+  fprintf(out, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
+
+  for (i = 0; i < schema->n_tables; ++i) {
+    const struct DatabaseTable *table = &schema->tables[i];
+    fprintf(out, "/**\n * @brief Database model for table %s\n */\n", table->name);
+    fprintf(out, "struct %s {\n", table->name);
+    for (j = 0; j < table->n_columns; ++j) {
+      const struct DatabaseColumn *col = &table->columns[j];
+      const char *ctype = "void *";
+      switch (col->type) {
+        case DB_COL_TYPE_INTEGER: ctype = "int"; break;
+        case DB_COL_TYPE_VARCHAR: 
+        case DB_COL_TYPE_TEXT:    ctype = "char *"; break;
+        case DB_COL_TYPE_REAL:    ctype = "double"; break;
+        case DB_COL_TYPE_BLOB:    ctype = "unsigned char *"; break;
+        case DB_COL_TYPE_BOOLEAN: ctype = "int"; break; /* C89 safe */
+        case DB_COL_TYPE_DATE:
+        case DB_COL_TYPE_DATETIME: ctype = "char *"; break;
+        default: ctype = "int"; break;
+      }
+      fprintf(out, "  %s %s;\n", ctype, col->name);
+    }
+    fprintf(out, "};\n\n");
+  }
+
+  fprintf(out, "#ifdef __cplusplus\n}\n#endif\n\n");
+  fprintf(out, "#endif /* %s */\n", header_guard);
+  return 0;
+}
+
+int db_codegen_sql(const struct DatabaseSchema *schema, FILE *out, const char *dialect) {
+  size_t i, j;
+  int is_postgres = 0;
+  if (!schema || !out || !dialect)
+    return EINVAL;
+
+  if (strcmp(dialect, "postgres") == 0) {
+    is_postgres = 1;
+  }
+
+  for (i = 0; i < schema->n_tables; ++i) {
+    const struct DatabaseTable *table = &schema->tables[i];
+    fprintf(out, "CREATE TABLE IF NOT EXISTS %s (\n", table->name);
+    for (j = 0; j < table->n_columns; ++j) {
+      const struct DatabaseColumn *col = &table->columns[j];
+      const char *sql_type = "TEXT";
+      switch (col->type) {
+        case DB_COL_TYPE_INTEGER: sql_type = is_postgres ? "INTEGER" : "INTEGER"; break;
+        case DB_COL_TYPE_VARCHAR: sql_type = is_postgres ? "VARCHAR" : "TEXT"; break;
+        case DB_COL_TYPE_TEXT:    sql_type = "TEXT"; break;
+        case DB_COL_TYPE_REAL:    sql_type = is_postgres ? "DOUBLE PRECISION" : "REAL"; break;
+        case DB_COL_TYPE_BLOB:    sql_type = is_postgres ? "BYTEA" : "BLOB"; break;
+        case DB_COL_TYPE_BOOLEAN: sql_type = "BOOLEAN"; break;
+        case DB_COL_TYPE_DATE:    sql_type = "DATE"; break;
+        case DB_COL_TYPE_DATETIME:sql_type = is_postgres ? "TIMESTAMP" : "DATETIME"; break;
+        default: sql_type = "INTEGER"; break;
+      }
+      
+      fprintf(out, "  %s %s", col->name, sql_type);
+
+      if (col->is_primary_key) {
+        if (is_postgres && col->type == DB_COL_TYPE_INTEGER) {
+          /* In postgres, we often use SERIAL for PK, but if defined as INT PRIMARY KEY... */
+          fprintf(out, " PRIMARY KEY"); 
+        } else {
+          fprintf(out, " PRIMARY KEY");
+        }
+      }
+      if (!col->is_nullable && !col->is_primary_key) {
+        fprintf(out, " NOT NULL");
+      }
+      if (col->is_unique) {
+        fprintf(out, " UNIQUE");
+      }
+      if (j < table->n_columns - 1) {
+        fprintf(out, ",");
+      }
+      fprintf(out, "\n");
+    }
+    fprintf(out, ");\n\n");
+  }
+  return 0;
+}
+
+int db_codegen_crud_h(const struct DatabaseSchema *schema, FILE *out, const char *header_guard, const char *struct_header) {
+  size_t i;
+  if (!schema || !out || !header_guard || !struct_header)
+    return EINVAL;
+
+  fprintf(out, "#ifndef %s\n#define %s\n\n", header_guard, header_guard);
+  fprintf(out, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
+  fprintf(out, "#include \"%s\"\n\n", struct_header);
+
+  for (i = 0; i < schema->n_tables; ++i) {
+    const struct DatabaseTable *table = &schema->tables[i];
+    fprintf(out, "/* CRUD for %s */\n", table->name);
+    fprintf(out, "int %s_insert(const struct %s *item);\n", table->name, table->name);
+    fprintf(out, "int %s_get(int id, struct %s **out_item);\n", table->name, table->name);
+    fprintf(out, "int %s_update(const struct %s *item);\n", table->name, table->name);
+    fprintf(out, "int %s_delete(int id);\n\n", table->name);
+  }
+
+  fprintf(out, "#ifdef __cplusplus\n}\n#endif\n\n");
+  fprintf(out, "#endif /* %s */\n", header_guard);
+  return 0;
+}
+
+int db_codegen_crud_c(const struct DatabaseSchema *schema, FILE *out, const char *header_name, const char *dialect) {
+  size_t i;
+  if (!schema || !out || !header_name || !dialect)
+    return EINVAL;
+
+  fprintf(out, "#include <stdio.h>\n");
+  fprintf(out, "#include <stdlib.h>\n");
+  fprintf(out, "#include \"%s\"\n\n", header_name);
+
+  for (i = 0; i < schema->n_tables; ++i) {
+    const struct DatabaseTable *table = &schema->tables[i];
+    fprintf(out, "/* CRUD implementation for %s */\n\n", table->name);
+    
+    fprintf(out, "int %s_insert(const struct %s *item) {\n", table->name, table->name);
+    fprintf(out, "  /* TODO: Implement %s insert using %s */\n", table->name, dialect);
+    fprintf(out, "  if (!item) return 1;\n");
+    fprintf(out, "  return 0;\n");
+    fprintf(out, "}\n\n");
+
+    fprintf(out, "int %s_get(int id, struct %s **out_item) {\n", table->name, table->name);
+    fprintf(out, "  /* TODO: Implement %s get using %s */\n", table->name, dialect);
+    fprintf(out, "  if (!out_item) return 1;\n");
+    fprintf(out, "  *out_item = NULL;\n");
+    fprintf(out, "  (void)id;\n");
+    fprintf(out, "  return 0;\n");
+    fprintf(out, "}\n\n");
+
+    fprintf(out, "int %s_update(const struct %s *item) {\n", table->name, table->name);
+    fprintf(out, "  /* TODO: Implement %s update using %s */\n", table->name, dialect);
+    fprintf(out, "  if (!item) return 1;\n");
+    fprintf(out, "  return 0;\n");
+    fprintf(out, "}\n\n");
+
+    fprintf(out, "int %s_delete(int id) {\n", table->name);
+    fprintf(out, "  /* TODO: Implement %s delete using %s */\n", table->name, dialect);
+    fprintf(out, "  (void)id;\n");
+    fprintf(out, "  return 0;\n");
+    fprintf(out, "}\n\n");
+  }
+
+  return 0;
+}

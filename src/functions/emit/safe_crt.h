@@ -1,0 +1,55 @@
+/**
+ * @file safe_crt.h
+ * @brief CST Transformer for Safe CRT functions (e.g. strcpy_s).
+ */
+
+#ifndef C_CDD_SAFE_CRT_H
+#define C_CDD_SAFE_CRT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#include "functions/parse/cst.h"
+#include "functions/parse/tokenizer.h"
+#include "c_cdd_export.h"
+
+/**
+ * @brief Represents a single Safe CRT injection patch.
+ */
+struct SafeCrtPatch {
+  size_t start_token_idx;
+  size_t end_token_idx;
+  char *replacement_text;
+};
+
+/**
+ * @brief List of patches.
+ */
+struct SafeCrtPatchList {
+  struct SafeCrtPatch *patches;
+  size_t size;
+  size_t capacity;
+};
+
+C_CDD_EXPORT void safe_crt_patch_list_init(struct SafeCrtPatchList *list);
+C_CDD_EXPORT void safe_crt_patch_list_free(struct SafeCrtPatchList *list);
+
+/**
+ * @brief Scan the CST and generate patches to upgrade standard C calls to MSVC Safe CRT equivalents.
+ * Handles `strcpy`, `strncpy`, `sprintf`, `fopen`.
+ *
+ * @param cst The parsed CST.
+ * @param tokens The token stream.
+ * @param out_patches The list to populate with required text replacements.
+ * @return 0 on success, non-zero on failure.
+ */
+C_CDD_EXPORT int cst_generate_safe_crt_patches(const struct CstNodeList *cst,
+                                               const struct TokenList *tokens,
+                                               struct SafeCrtPatchList *out_patches);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* C_CDD_SAFE_CRT_H */
