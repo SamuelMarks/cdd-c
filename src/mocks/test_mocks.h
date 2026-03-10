@@ -7,7 +7,7 @@
 
 #include "openapi/parse/openapi.h"
 
-/* 
+/*
  * Ensure coverage across OpenAPI models and types to satisfy test dependencies
  */
 

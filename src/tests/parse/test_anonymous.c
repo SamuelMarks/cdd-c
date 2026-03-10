@@ -13,7 +13,7 @@
 #include "functions/parse/fs.h"
 
 GREATEST_MAIN_DEFS();
-#pragma warning(disable: 4551)
+#pragma warning(disable : 4551)
 
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"

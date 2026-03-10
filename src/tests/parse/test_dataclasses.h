@@ -81,8 +81,8 @@ int Node_eq(const struct Node *a, const struct Node *b) {
 /* --- Tests --- */
 
 TEST test_recursive_cleanup(void) {
-  struct Node * head = (struct Node *)malloc(sizeof(struct Node));
-  struct Node * next = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *head = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   ASSERT(head && next);
 
   head->value = 1;
@@ -96,8 +96,8 @@ TEST test_recursive_cleanup(void) {
 }
 
 TEST test_recursive_deepcopy(void) {
-  struct Node * head = (struct Node *)malloc(sizeof(struct Node));
-  struct Node * next = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *head = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
 
@@ -122,8 +122,8 @@ TEST test_recursive_deepcopy(void) {
 }
 
 TEST test_recursive_eq(void) {
-  struct Node * n1 = (struct Node *)malloc(sizeof(struct Node));
-  struct Node * n2 = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *n1 = (struct Node *)malloc(sizeof(struct Node));
+  struct Node *n2 = (struct Node *)malloc(sizeof(struct Node));
   struct Node n1_next, n2_next;
 
   n1->value = 1;
@@ -451,7 +451,7 @@ TEST test_Tank_to_str_from_str(void) {
   free(str);
   str = NULL;
 
-  rc = Tank_to_str((enum Tank)-42, &str);
+  rc = Tank_to_str((enum Tank) - 42, &str);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("UNKNOWN", str);
   free(str);

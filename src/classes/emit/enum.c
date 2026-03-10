@@ -14,7 +14,7 @@
 
 #if defined(_MSC_VER)
 #pragma warning(push)
-#pragma warning(disable: 4127) /* conditional expression is constant */
+#pragma warning(disable : 4127) /* conditional expression is constant */
 #endif
 
 /* Wrapper for fprintf to check errors tersely */

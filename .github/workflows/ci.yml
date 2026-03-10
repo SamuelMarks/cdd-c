@@ -1,0 +1,11 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    uses: SamuelMarks/c-ghactions/.github/workflows/c-cmake-ci.yml@master

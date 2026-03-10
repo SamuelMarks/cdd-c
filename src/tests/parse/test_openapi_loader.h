@@ -57,17 +57,26 @@ static int find_raw_schema_index(const struct OpenAPI_Spec *spec,
   return -1;
 }
 
-static int find_scheme(const struct OpenAPI_Spec *spec, const char *name, struct OpenAPI_SecurityScheme * *_out_val) {
+static int find_scheme(const struct OpenAPI_Spec *spec, const char *name,
+                       struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
-  if (!spec || !name)
-    { *_out_val = NULL; return 0; }
+  if (!spec || !name) {
+    *_out_val = NULL;
+    return 0;
+  }
   for (i = 0; i < spec->n_security_schemes; ++i) {
     if (spec->security_schemes[i].name &&
         strcmp(spec->security_schemes[i].name, name) == 0) {
-      { *_out_val = &spec->security_schemes[i]; return 0; }
+      {
+        *_out_val = &spec->security_schemes[i];
+        return 0;
+      }
     }
   }
-  { *_out_val = NULL; return 0; }
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
@@ -80,7 +89,7 @@ static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
   }
   for (i = 0; i < n; ++i) {
     if (mts[i].name && strcmp(mts[i].name, name) == 0) {
-      *_out_val = (struct OpenAPI_MediaType *) &mts[i];
+      *_out_val = (struct OpenAPI_MediaType *)&mts[i];
       return 0;
     }
   }
@@ -1217,7 +1226,10 @@ TEST test_load_security_requirements(void) {
   PASS();
 }
 
-TEST test_load_security_schemes(void) { struct OpenAPI_SecurityScheme * _ast_find_scheme_0; struct OpenAPI_SecurityScheme * _ast_find_scheme_1; struct OpenAPI_SecurityScheme * _ast_find_scheme_2; 
+TEST test_load_security_schemes(void) {
+  struct OpenAPI_SecurityScheme *_ast_find_scheme_0;
+  struct OpenAPI_SecurityScheme *_ast_find_scheme_1;
+  struct OpenAPI_SecurityScheme *_ast_find_scheme_2;
 
   const char *json =
       "{\"components\":{\"securitySchemes\":{\"bearerAuth\":{\"type\":\"http\","
@@ -1234,19 +1246,22 @@ TEST test_load_security_schemes(void) { struct OpenAPI_SecurityScheme * _ast_fin
   ASSERT_EQ(0, rc);
   ASSERT_EQ(3, spec.n_security_schemes);
 
-  bearer = (find_scheme(&spec, "bearerAuth", &_ast_find_scheme_0), _ast_find_scheme_0);
+  bearer = (find_scheme(&spec, "bearerAuth", &_ast_find_scheme_0),
+            _ast_find_scheme_0);
   ASSERT(bearer != NULL);
   ASSERT_EQ(OA_SEC_HTTP, bearer->type);
   ASSERT_STR_EQ("bearer", bearer->scheme);
   ASSERT_STR_EQ("JWT", bearer->bearer_format);
 
-  apikey = (find_scheme(&spec, "apiKeyAuth", &_ast_find_scheme_1), _ast_find_scheme_1);
+  apikey = (find_scheme(&spec, "apiKeyAuth", &_ast_find_scheme_1),
+            _ast_find_scheme_1);
   ASSERT(apikey != NULL);
   ASSERT_EQ(OA_SEC_APIKEY, apikey->type);
   ASSERT_EQ(OA_SEC_IN_HEADER, apikey->in);
   ASSERT_STR_EQ("X-Api-Key", apikey->key_name);
 
-  mtls = (find_scheme(&spec, "mtlsAuth", &_ast_find_scheme_2), _ast_find_scheme_2);
+  mtls =
+      (find_scheme(&spec, "mtlsAuth", &_ast_find_scheme_2), _ast_find_scheme_2);
   ASSERT(mtls != NULL);
   ASSERT_EQ(OA_SEC_MUTUALTLS, mtls->type);
   ASSERT_STR_EQ("mTLS only", mtls->description);
@@ -1255,7 +1270,8 @@ TEST test_load_security_schemes(void) { struct OpenAPI_SecurityScheme * _ast_fin
   PASS();
 }
 
-TEST test_load_security_scheme_deprecated(void) { struct OpenAPI_SecurityScheme * _ast_find_scheme_3; 
+TEST test_load_security_scheme_deprecated(void) {
+  struct OpenAPI_SecurityScheme *_ast_find_scheme_3;
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
                      "\"version\":\"1\"},\"components\":{\"securitySchemes\":{"
@@ -1268,7 +1284,8 @@ TEST test_load_security_scheme_deprecated(void) { struct OpenAPI_SecurityScheme 
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
-  old_key = (find_scheme(&spec, "oldKey", &_ast_find_scheme_3), _ast_find_scheme_3);
+  old_key =
+      (find_scheme(&spec, "oldKey", &_ast_find_scheme_3), _ast_find_scheme_3);
   ASSERT(old_key != NULL);
   ASSERT_EQ(1, old_key->deprecated_set);
   ASSERT_EQ(1, old_key->deprecated);
@@ -1277,7 +1294,8 @@ TEST test_load_security_scheme_deprecated(void) { struct OpenAPI_SecurityScheme 
   PASS();
 }
 
-TEST test_load_oauth2_flows(void) { struct OpenAPI_SecurityScheme * _ast_find_scheme_4; 
+TEST test_load_oauth2_flows(void) {
+  struct OpenAPI_SecurityScheme *_ast_find_scheme_4;
 
   const char *json = "{\"openapi\":\"3.2.0\",\"info\":{\"title\":\"t\","
                      "\"version\":\"1\"},\"components\":{\"securitySchemes\":{"
@@ -1294,7 +1312,8 @@ TEST test_load_oauth2_flows(void) { struct OpenAPI_SecurityScheme * _ast_find_sc
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
 
-  oauth = (find_scheme(&spec, "oauth", &_ast_find_scheme_4), _ast_find_scheme_4);
+  oauth =
+      (find_scheme(&spec, "oauth", &_ast_find_scheme_4), _ast_find_scheme_4);
   ASSERT(oauth != NULL);
   ASSERT_EQ(OA_SEC_OAUTH2, oauth->type);
   ASSERT_EQ(1, oauth->n_flows);

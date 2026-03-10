@@ -270,9 +270,9 @@ int jsonschema2tests_main(int argc, char **argv) {
 #if defined(_MSC_VER)
       fopen_s(&f, output_file, "w");
 #else
-f = fopen(output_file, "w");
+      f = fopen(output_file, "w");
 #endif
-if (!f) {
+      if (!f) {
         fprintf(stderr, "Failed to open output file: %s\n", output_file);
         json_value_free(root_val);
         return EXIT_FAILURE;
@@ -476,9 +476,9 @@ if (!f) {
 #if defined(_MSC_VER)
         fopen_s(&f0, p, "w");
 #else
-f0 = fopen(p, "w");
+        f0 = fopen(p, "w");
 #endif
-if (!f0) {
+        if (!f0) {
           fprintf(stderr, "Failed to open output file: %s\n", p);
           free(p);
           return EXIT_FAILURE;
@@ -492,9 +492,9 @@ if (!f0) {
                     "#include <greatest.h>\n"
                     "#include \"%s\"\n\n"
                     "GREATEST_MAIN_DEFS();\n"
-"#pragma warning(disable: 4551)\n\n"
+                    "#pragma warning(disable: 4551)\n\n"
                     ""
-"int main(int argc, char **argv) {\n"
+                    "int main(int argc, char **argv) {\n"
                     "  GREATEST_MAIN_BEGIN();\n"
                     "  RUN_SUITE(enums_suite);\n"
                     "  RUN_SUITE(structs_suite);\n"

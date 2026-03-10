@@ -35,7 +35,7 @@ TEST test_sync_signature_update(void) {
   const char *src_file = "sync_sig.c";
   const char *old_code = "#include \"client.h\"\n"
                          ""
-"int get_pet(struct HttpClient *ctx) {\n"
+                         "int get_pet(struct HttpClient *ctx) {\n"
                          "  return 0;\n"
                          "}\n";
   const char *spec_json =
@@ -67,7 +67,7 @@ TEST test_sync_url_logic_update(void) {
   const char *src_file = "sync_url.c";
   const char *old_code =
       ""
-"int get_pet(struct HttpClient *ctx, int id) {\n"
+      "int get_pet(struct HttpClient *ctx, int id) {\n"
       "  char *url;\n"
       "  asprintf(&url, \"%s/pets/oldpath\", ctx->base_url);\n"
       "  return 0;\n"
@@ -102,7 +102,7 @@ TEST test_sync_query_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = "sync_query.c";
   const char *old_code = ""
-"int list_pets(struct HttpClient *ctx) {\n"
+                         "int list_pets(struct HttpClient *ctx) {\n"
                          "  /* Old logic */\n"
                          "  rc = url_query_init(&qp);\n"
                          "  url_query_add(&qp, \"old\", \"val\");\n"
@@ -141,7 +141,7 @@ TEST test_sync_header_update(void) {
   /* SKIPm("fix me"); */
   const char *src_file = "sync_header.c";
   const char *old_code = ""
-"int op(struct HttpClient *ctx, const char *key) {\n"
+                         "int op(struct HttpClient *ctx, const char *key) {\n"
                          "  /* Header Parameter: key */\n"
                          "  if (key) { old_call(); }\n"
                          "  return 0;\n"

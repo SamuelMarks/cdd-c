@@ -20,7 +20,8 @@
  */
 int crypto_sha256(const void *data, size_t data_len,
                   unsigned char *out_digest) {
-  if (!data || !out_digest) return EINVAL;
+  if (!data || !out_digest)
+    return EINVAL;
   CC_SHA256(data, (CC_LONG)data_len, out_digest);
   return 0;
 }
@@ -30,7 +31,8 @@ int crypto_sha256(const void *data, size_t data_len,
  */
 int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
                        size_t data_len, unsigned char *out_mac) {
-  if (!key || !data || !out_mac) return EINVAL;
+  if (!key || !data || !out_mac)
+    return EINVAL;
   CCHmac(kCCHmacAlgSHA256, key, key_len, data, data_len, out_mac);
   return 0;
 }

@@ -16,7 +16,7 @@
 #endif
 
 TEST test_server_json_rpc_bind_fail(void) {
-  #if defined(_WIN32)
+#if defined(_WIN32)
   SOCKET server_fd;
 #else
   int server_fd;

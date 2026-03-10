@@ -4,7 +4,7 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
-#pragma warning(disable: 4551)
+#pragma warning(disable : 4551)
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();

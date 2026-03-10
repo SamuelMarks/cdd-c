@@ -73,7 +73,7 @@ TEST test_c2openapi_full_flow(void) {
       " * @param id The user ID\n"
       " */\n"
       ""
-"int api_get_user(int id, struct User **out) {\n"
+      "int api_get_user(int id, struct User **out) {\n"
       "  return 0;\n"
       "}\n"
       "\n"
@@ -82,7 +82,7 @@ TEST test_c2openapi_full_flow(void) {
       " * @summary Create a user\n"
       " */\n"
       ""
-"int api_create_user(struct User *u) {\n"
+      "int api_create_user(struct User *u) {\n"
       "  return 0;\n"
       "}\n"
       "\n"
@@ -91,7 +91,7 @@ TEST test_c2openapi_full_flow(void) {
       " * @summary User event webhook\n"
       " */\n"
       ""
-"int api_user_event(struct User *u) {\n"
+      "int api_user_event(struct User *u) {\n"
       "  return 0;\n"
       "}\n");
 
@@ -274,7 +274,7 @@ TEST test_c2openapi_with_base_spec(void) {
                         " * @param id [in:path] The user ID\n"
                         " */\n"
                         ""
-"int api_get_user(int id, struct User **out) {\n"
+                        "int api_get_user(int id, struct User **out) {\n"
                         "  return 0;\n"
                         "}\n");
 
@@ -385,7 +385,7 @@ TEST test_c2openapi_with_self_uri(void) {
                 " * @summary List users\n"
                 " */\n"
                 ""
-"int api_list_users(struct User **out) { return 0; }\n");
+                "int api_list_users(struct User **out) { return 0; }\n");
 
   {
     char *argv[5];
@@ -449,7 +449,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
               " * @summary Ping\n"
               " */\n"
               ""
-"int api_ping(void) { return 0; }\n");
+              "int api_ping(void) { return 0; }\n");
 
   {
     char *argv[3];

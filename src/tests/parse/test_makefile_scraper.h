@@ -15,11 +15,9 @@ TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
   const char *makefile = "CC=gcc
-CFLAGS=-I./include -DDEBUG=1
-SRCS=main.c util.c
-";
+      CFLAGS = -I./ include - DDEBUG = 1 SRCS = main.c util.c ";
 
-  build_info_init(&info);
+                                                build_info_init(&info);
   ASSERT_EQ(0, scrape_makefile(&info, makefile));
 
   ASSERT_EQ(2, info.source_files_n);
@@ -52,8 +50,6 @@ SRCS=main.c util.c
   PASS();
 }
 
-SUITE(makefile_scraper_suite) {
-  RUN_TEST(test_scrape_makefile_basic);
-}
+SUITE(makefile_scraper_suite) { RUN_TEST(test_scrape_makefile_basic); }
 
 #endif /* TEST_MAKEFILE_SCRAPER_H */

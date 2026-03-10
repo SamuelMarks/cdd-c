@@ -55,16 +55,13 @@ int sync_code_main(int argc, char **argv) {
   }
 
   /* 2. Open Output */
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#if defined(_MSC_VER)
   if (fopen_s(&out, impl_filename, "w") != 0)
     out = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&out, impl_filename, "w");
-#else
-out = fopen(impl_filename, "w");
+  out = fopen(impl_filename, "w");
 #endif
-if (!out) {
+  if (!out) {
     type_def_list_free(&types);
     return errno ? errno : EIO;
   }
@@ -226,16 +223,12 @@ int patch_header_from_source(const char *header_path,
   /* 5. Write Patch */
   if (new_header) {
     FILE *fp;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    if (fopen_s(&fp, header_path, "w") == 0 && fp) {
-#else
 #if defined(_MSC_VER)
     fopen_s(&fp, header_path, "w");
 #else
-fp = fopen(header_path, "w");
+    fp = fopen(header_path, "w");
 #endif
-if (fp) {
-#endif
+    if (fp) {
       fputs(new_header, fp);
       fclose(fp);
     } else {

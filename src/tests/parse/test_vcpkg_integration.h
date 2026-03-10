@@ -18,11 +18,12 @@ TEST test_vcpkg_builder_basic(void) {
 #ifndef _MSC_VER
 #include <pthread.h>
 #endif
-#include <zlib.h>
 #include \"local.h\"
-";
+#include <zlib.h>
+                    ";
 
-  ASSERT_EQ(0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
+      ASSERT_EQ(
+          0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
 
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
 
@@ -48,9 +49,9 @@ TEST test_vcpkg_builder_duplicate(void) {
 #ifndef _MSC_VER
 #include <pthread.h>
 #endif
-";
+                    ";
 
-  ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
+      ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
 
   ASSERT_EQ(1, builder.deps_count);

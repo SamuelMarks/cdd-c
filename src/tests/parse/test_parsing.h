@@ -18,7 +18,8 @@ TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_macros,
                   const size_t expected_whitespace) {
   struct TokenList *tokens = NULL;
-  struct CstNodeList * cst_nodes = (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
+  struct CstNodeList *cst_nodes =
+      (struct CstNodeList *)calloc(1, sizeof *cst_nodes);
   size_t s_count = 0, e_count = 0, u_count = 0, cm_count = 0, m_count = 0, i;
   int rc = EXIT_SUCCESS;
 
@@ -83,61 +84,71 @@ TEST test_precondition_failure(void) {
   PASS();
 }
 
-TEST test_parsing_struct(void) { TEST _ast_parsing_test_0; 
+TEST test_parsing_struct(void) {
+  TEST _ast_parsing_test_0;
   CHECK_CALL(parsing_test("Struct parsing",
                           AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
                           1, 0, 0, 0, 0, 1));
   PASS();
 }
 
-TEST test_parsing_enum(void) { TEST _ast_parsing_test_1; 
+TEST test_parsing_enum(void) {
+  TEST _ast_parsing_test_1;
   CHECK_CALL(parsing_test("Enum parsing",
                           AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"),
                           0, 1, 0, 0, 0, 1));
   PASS();
 }
 
-TEST test_parsing_union(void) { TEST _ast_parsing_test_2; 
+TEST test_parsing_union(void) {
+  TEST _ast_parsing_test_2;
   CHECK_CALL(parsing_test("Union parsing",
                           AZ_SPAN_FROM_STR("union Data { int i; float f; };"),
                           0, 0, 1, 0, 0, 1));
   PASS();
 }
 
-TEST test_parsing_comments(void) { TEST _ast_parsing_test_3; 
-  CHECK_CALL(parsing_test("Comments parsing",
+TEST test_parsing_comments(void) {
+  TEST _ast_parsing_test_3;
+  CHECK_CALL(parsing_test(
+      "Comments parsing",
       AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"), 0, 0, 0,
       2, 0, 3));
   PASS();
 }
 
-TEST test_parsing_macros(void) { TEST _ast_parsing_test_4; 
+TEST test_parsing_macros(void) {
+  TEST _ast_parsing_test_4;
   CHECK_CALL(parsing_test("Macros parsing",
                           AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0, 0, 0,
                           0, 1, 2));
   PASS();
 }
 
-TEST test_parsing_complex(void) { TEST _ast_parsing_test_5; 
-  CHECK_CALL(parsing_test("Complex parsing",
+TEST test_parsing_complex(void) {
+  TEST _ast_parsing_test_5;
+  CHECK_CALL(parsing_test(
+      "Complex parsing",
       AZ_SPAN_FROM_STR("/* block comment */\n"
                        "#include <stdio.h>\n"
                        "struct S { int a; union U { float f; int i; } u; };\n"
                        "enum E { X, Y, Z };\n"
                        "// single line comment\n"
                        ""
-"int main() { return 0; }\n"),
+                       "int main() { return 0; }\n"),
       1, 1, 1, 2, 1, 7));
   PASS();
 }
 
-TEST test_parsing_empty(void) { TEST _ast_parsing_test_6; 
+TEST test_parsing_empty(void) {
+  TEST _ast_parsing_test_6;
   CHECK_CALL(
       parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0));
   PASS();
 }
 
-TEST test_parsing_struct_with_anonymous_union(void) { TEST _ast_parsing_test_7; 
+TEST test_parsing_struct_with_anonymous_union(void) {
+  TEST _ast_parsing_test_7;
   CHECK_CALL(parsing_test("Struct with anonymous union",
                           AZ_SPAN_FROM_STR("struct S { union { int i; }; };"),
                           1, /* structs */
@@ -145,7 +156,7 @@ TEST test_parsing_struct_with_anonymous_union(void) { TEST _ast_parsing_test_7;
                           1, /* unions */
                           0, /* comments */
                           0, /* macros */
-                          2  /* whitespace */));
+                          2 /* whitespace */));
   PASS();
 }
 

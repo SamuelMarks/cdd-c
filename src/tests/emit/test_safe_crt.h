@@ -15,13 +15,12 @@
 #include "functions/parse/tokenizer.h"
 
 TEST test_safe_crt_strcpy(void) {
-  const char *src =
-      ""
-"void foo() {\n"
-      "  char dest[100];\n"
-      "  const char *src = \"hello\";\n"
-      "  strcpy(dest, src);\n"
-      "}\n";
+  const char *src = ""
+                    "void foo() {\n"
+                    "  char dest[100];\n"
+                    "  const char *src = \"hello\";\n"
+                    "  strcpy(dest, src);\n"
+                    "}\n";
 
   struct TokenList *tokens = NULL;
   struct CstNodeList *nodes = NULL;
@@ -42,8 +41,10 @@ TEST test_safe_crt_strcpy(void) {
   ASSERT_EQ(0, rc);
 
   ASSERT_EQ(1, patches.size);
-  if (strstr(patches.patches[0].replacement_text, "strcpy_s(dest, sizeof(dest),  src)") == NULL) {
-    printf("DEBUG: replacement_text=\n%s\n", patches.patches[0].replacement_text);
+  if (strstr(patches.patches[0].replacement_text,
+             "strcpy_s(dest, sizeof(dest),  src)") == NULL) {
+    printf("DEBUG: replacement_text=\n%s\n",
+           patches.patches[0].replacement_text);
     FAILm("Missing expected text");
   }
 
@@ -54,8 +55,6 @@ TEST test_safe_crt_strcpy(void) {
   PASS();
 }
 
-SUITE(safe_crt_suite) {
-  RUN_TEST(test_safe_crt_strcpy);
-}
+SUITE(safe_crt_suite) { RUN_TEST(test_safe_crt_strcpy); }
 
 #endif /* TEST_SAFE_CRT_H */

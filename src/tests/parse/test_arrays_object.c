@@ -19,7 +19,7 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
-#pragma warning(disable: 4551)
+#pragma warning(disable : 4551)
 
 TEST test_generated_obj_array_logic(void) {
   /*

@@ -9,8 +9,7 @@
 
 #include "../emit/simple_json.h"
 
-static const char *haz_e_mock0 =
-    "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
+static const char *haz_e_mock0 = "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
 static const char *foo_e_mock0 =
     "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
     "\"some_bzr\",\"tank\": \"SMALL\"}}";

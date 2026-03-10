@@ -127,13 +127,13 @@ TEST test_patch_header_basic(void) {
   */
   const char *h_path = "basic_patch.h";
   const char *src = ""
-"int foo() { return 0; }";
+                    "int foo() { return 0; }";
   char *content;
   size_t sz;
   int rc;
 
   write_to_file(h_path, ""
-"void foo();\n");
+                        "void foo();\n");
 
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);
@@ -156,7 +156,7 @@ TEST test_patch_header_ptr_arg(void) {
   */
   const char *h_path = "ptr_patch.h";
   const char *src = ""
-"int bar(int x, char **out) { *out=0;return 0; }";
+                    "int bar(int x, char **out) { *out=0;return 0; }";
   char *content;
   size_t sz;
   int rc;
@@ -188,13 +188,13 @@ TEST test_patch_header_ignore_others(void) {
   */
   const char *h_path = "ignore_others.h";
   const char *src = ""
-"int foo(void) { return 0; }";
+                    "int foo(void) { return 0; }";
   char *content;
   size_t sz;
   int rc;
 
   write_to_file(h_path, ""
-"void other();\nvoid foo();\n");
+                        "void other();\nvoid foo();\n");
 
   rc = patch_header_from_source(h_path, src);
   ASSERT_EQ(0, rc);

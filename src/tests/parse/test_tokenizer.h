@@ -9,16 +9,22 @@
 
 #include "functions/parse/tokenizer.h"
 
-static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok, char * *_out_val) {
+static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok,
+                         char **_out_val) {
   size_t copy_len;
-  if (buf_len == 0)
-    { *_out_val = NULL; return 0; }
+  if (buf_len == 0) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   copy_len = (tok->length < (buf_len - 1)) ? tok->length : (buf_len - 1);
   memcpy(buf, tok->start, copy_len);
   buf[copy_len] = '\0';
 
-  { *_out_val = buf; return 0; }
+  {
+    *_out_val = buf;
+    return 0;
+  }
 }
 
 TEST tokenize_all_tokens(void) {
@@ -86,7 +92,10 @@ TEST tokenize_all_tokens(void) {
 
 /* ... existing methods ... */
 
-TEST tokenize_c23_digit_separators(void) { char * _ast_token_to_cstr_0; char * _ast_token_to_cstr_1; char * _ast_token_to_cstr_2; 
+TEST tokenize_c23_digit_separators(void) {
+  char *_ast_token_to_cstr_0;
+  char *_ast_token_to_cstr_1;
+  char *_ast_token_to_cstr_2;
   /* Test 123'456 */
   const az_span code = AZ_SPAN_FROM_STR("123'456 0xAB'CD 0b10'10");
   struct TokenList *tl = NULL;
@@ -99,19 +108,26 @@ TEST tokenize_c23_digit_separators(void) { char * _ast_token_to_cstr_0; char * _
   ASSERT_EQ(5, tl->size); /* num WS num WS num */
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
-  ASSERT_STR_EQ("123'456", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0], &_ast_token_to_cstr_0), _ast_token_to_cstr_0));
+  ASSERT_STR_EQ("123'456", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0],
+                                          &_ast_token_to_cstr_0),
+                            _ast_token_to_cstr_0));
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[2].kind);
-  ASSERT_STR_EQ("0xAB'CD", (token_to_cstr(buf, sizeof(buf), &tl->tokens[2], &_ast_token_to_cstr_1), _ast_token_to_cstr_1));
+  ASSERT_STR_EQ("0xAB'CD", (token_to_cstr(buf, sizeof(buf), &tl->tokens[2],
+                                          &_ast_token_to_cstr_1),
+                            _ast_token_to_cstr_1));
 
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[4].kind);
-  ASSERT_STR_EQ("0b10'10", (token_to_cstr(buf, sizeof(buf), &tl->tokens[4], &_ast_token_to_cstr_2), _ast_token_to_cstr_2));
+  ASSERT_STR_EQ("0b10'10", (token_to_cstr(buf, sizeof(buf), &tl->tokens[4],
+                                          &_ast_token_to_cstr_2),
+                            _ast_token_to_cstr_2));
 
   free_token_list(tl);
   PASS();
 }
 
-TEST tokenize_digit_separator_edge_case(void) { char * _ast_token_to_cstr_3; 
+TEST tokenize_digit_separator_edge_case(void) {
+  char *_ast_token_to_cstr_3;
   /* Separator at end should NOT be included in number if not followed by digit
    */
   /* 123' -> 123 and ' (char literal start? or just punctuator?) */
@@ -130,7 +146,9 @@ TEST tokenize_digit_separator_edge_case(void) { char * _ast_token_to_cstr_3;
 
   /* 123 (num) */
   ASSERT_EQ(TOKEN_NUMBER_LITERAL, tl->tokens[0].kind);
-  ASSERT_STR_EQ("123", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0], &_ast_token_to_cstr_3), _ast_token_to_cstr_3));
+  ASSERT_STR_EQ("123", (token_to_cstr(buf, sizeof(buf), &tl->tokens[0],
+                                      &_ast_token_to_cstr_3),
+                        _ast_token_to_cstr_3));
 
   /* ' (char literal start, likely unterminated or just ' ) */
   /* Logic: c == '\'' -> consume until next ' */

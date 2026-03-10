@@ -9,17 +9,23 @@
 #include "functions/emit/codegen.h"
 
 /* Helper: generate code and return as buffer */
-static int gen_parse_code(const char *name, struct StructFields *sf, char * *_out_val) {
+static int gen_parse_code(const char *name, struct StructFields *sf,
+                          char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
-  if (!tmp)
-    { *_out_val = NULL; return 0; }
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   if (write_struct_from_jsonObject_func(tmp, name, sf, NULL) != 0) {
     fclose(tmp);
-    { *_out_val = NULL; return 0; }
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -31,10 +37,14 @@ static int gen_parse_code(const char *name, struct StructFields *sf, char * *_ou
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  { *_out_val = content; return 0; }
+  {
+    *_out_val = content;
+    return 0;
+  }
 }
 
-TEST test_int_min_validation(void) { char * _ast_gen_parse_code_0; 
+TEST test_int_min_validation(void) {
+  char *_ast_gen_parse_code_0;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -46,7 +56,8 @@ TEST test_int_min_validation(void) { char * _ast_gen_parse_code_0;
   f->has_min = 1;
   f->min_val = 10.0;
 
-  code = (gen_parse_code("SMin", &sf, &_ast_gen_parse_code_0), _ast_gen_parse_code_0);
+  code = (gen_parse_code("SMin", &sf, &_ast_gen_parse_code_0),
+          _ast_gen_parse_code_0);
   ASSERT(code != NULL);
 
   /* Check basic logic */
@@ -57,7 +68,8 @@ TEST test_int_min_validation(void) { char * _ast_gen_parse_code_0;
   PASS();
 }
 
-TEST test_int_exclusive_min(void) { char * _ast_gen_parse_code_1; 
+TEST test_int_exclusive_min(void) {
+  char *_ast_gen_parse_code_1;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -70,7 +82,8 @@ TEST test_int_exclusive_min(void) { char * _ast_gen_parse_code_1;
   f->min_val = 5.0;
   f->exclusive_min = 1;
 
-  code = (gen_parse_code("SExcMin", &sf, &_ast_gen_parse_code_1), _ast_gen_parse_code_1);
+  code = (gen_parse_code("SExcMin", &sf, &_ast_gen_parse_code_1),
+          _ast_gen_parse_code_1);
   ASSERT(code != NULL);
 
   /* Check exclusive */
@@ -81,7 +94,8 @@ TEST test_int_exclusive_min(void) { char * _ast_gen_parse_code_1;
   PASS();
 }
 
-TEST test_double_max_validation(void) { char * _ast_gen_parse_code_2; 
+TEST test_double_max_validation(void) {
+  char *_ast_gen_parse_code_2;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -93,7 +107,8 @@ TEST test_double_max_validation(void) { char * _ast_gen_parse_code_2;
   f->has_max = 1;
   f->max_val = 100.5;
 
-  code = (gen_parse_code("SMax", &sf, &_ast_gen_parse_code_2), _ast_gen_parse_code_2);
+  code = (gen_parse_code("SMax", &sf, &_ast_gen_parse_code_2),
+          _ast_gen_parse_code_2);
   ASSERT(code != NULL);
 
   /* Check logic */
@@ -104,7 +119,8 @@ TEST test_double_max_validation(void) { char * _ast_gen_parse_code_2;
   PASS();
 }
 
-TEST test_double_exclusive_max(void) { char * _ast_gen_parse_code_3; 
+TEST test_double_exclusive_max(void) {
+  char *_ast_gen_parse_code_3;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -117,7 +133,8 @@ TEST test_double_exclusive_max(void) { char * _ast_gen_parse_code_3;
   f->max_val = 0.0;
   f->exclusive_max = 1;
 
-  code = (gen_parse_code("SExcMax", &sf, &_ast_gen_parse_code_3), _ast_gen_parse_code_3);
+  code = (gen_parse_code("SExcMax", &sf, &_ast_gen_parse_code_3),
+          _ast_gen_parse_code_3);
   ASSERT(code != NULL);
 
   /* Check logic */
@@ -128,7 +145,8 @@ TEST test_double_exclusive_max(void) { char * _ast_gen_parse_code_3;
   PASS();
 }
 
-TEST test_min_and_max(void) { char * _ast_gen_parse_code_4; 
+TEST test_min_and_max(void) {
+  char *_ast_gen_parse_code_4;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -142,7 +160,8 @@ TEST test_min_and_max(void) { char * _ast_gen_parse_code_4;
   f->has_max = 1;
   f->max_val = 120;
 
-  code = (gen_parse_code("Person", &sf, &_ast_gen_parse_code_4), _ast_gen_parse_code_4);
+  code = (gen_parse_code("Person", &sf, &_ast_gen_parse_code_4),
+          _ast_gen_parse_code_4);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "if (tmp < 0.000000) { free(ret); return ERANGE; }"));
@@ -153,7 +172,8 @@ TEST test_min_and_max(void) { char * _ast_gen_parse_code_4;
   PASS();
 }
 
-TEST test_string_len_validation(void) { char * _ast_gen_parse_code_5; 
+TEST test_string_len_validation(void) {
+  char *_ast_gen_parse_code_5;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -167,7 +187,8 @@ TEST test_string_len_validation(void) { char * _ast_gen_parse_code_5;
   f->has_max_len = 1;
   f->max_len = 10;
 
-  code = (gen_parse_code("StrLen", &sf, &_ast_gen_parse_code_5), _ast_gen_parse_code_5);
+  code = (gen_parse_code("StrLen", &sf, &_ast_gen_parse_code_5),
+          _ast_gen_parse_code_5);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strlen(ret->s)"));
@@ -179,7 +200,8 @@ TEST test_string_len_validation(void) { char * _ast_gen_parse_code_5;
   PASS();
 }
 
-TEST test_string_simple_pattern_prefix(void) { char * _ast_gen_parse_code_6; 
+TEST test_string_simple_pattern_prefix(void) {
+  char *_ast_gen_parse_code_6;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -203,7 +225,8 @@ TEST test_string_simple_pattern_prefix(void) { char * _ast_gen_parse_code_6;
 #endif
 #endif
 
-  code = (gen_parse_code("SPat", &sf, &_ast_gen_parse_code_6), _ast_gen_parse_code_6);
+  code = (gen_parse_code("SPat", &sf, &_ast_gen_parse_code_6),
+          _ast_gen_parse_code_6);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strncmp(ret->p, \"prefix\", 6) != 0"));
@@ -213,7 +236,8 @@ TEST test_string_simple_pattern_prefix(void) { char * _ast_gen_parse_code_6;
   PASS();
 }
 
-TEST test_string_simple_pattern_suffix(void) { char * _ast_gen_parse_code_7; 
+TEST test_string_simple_pattern_suffix(void) {
+  char *_ast_gen_parse_code_7;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -237,7 +261,8 @@ TEST test_string_simple_pattern_suffix(void) { char * _ast_gen_parse_code_7;
 #endif
 #endif
 
-  code = (gen_parse_code("SSuf", &sf, &_ast_gen_parse_code_7), _ast_gen_parse_code_7);
+  code = (gen_parse_code("SSuf", &sf, &_ast_gen_parse_code_7),
+          _ast_gen_parse_code_7);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strcmp(ret->p + len - 6, \"suffix\")"));
@@ -247,7 +272,8 @@ TEST test_string_simple_pattern_suffix(void) { char * _ast_gen_parse_code_7;
   PASS();
 }
 
-TEST test_string_simple_pattern_exact(void) { char * _ast_gen_parse_code_8; 
+TEST test_string_simple_pattern_exact(void) {
+  char *_ast_gen_parse_code_8;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -271,7 +297,8 @@ TEST test_string_simple_pattern_exact(void) { char * _ast_gen_parse_code_8;
 #endif
 #endif
 
-  code = (gen_parse_code("SExact", &sf, &_ast_gen_parse_code_8), _ast_gen_parse_code_8);
+  code = (gen_parse_code("SExact", &sf, &_ast_gen_parse_code_8),
+          _ast_gen_parse_code_8);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strcmp(ret->p, \"exact\") != 0"));
@@ -281,7 +308,8 @@ TEST test_string_simple_pattern_exact(void) { char * _ast_gen_parse_code_8;
   PASS();
 }
 
-TEST test_string_simple_pattern_contains(void) { char * _ast_gen_parse_code_9; 
+TEST test_string_simple_pattern_contains(void) {
+  char *_ast_gen_parse_code_9;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -305,7 +333,8 @@ TEST test_string_simple_pattern_contains(void) { char * _ast_gen_parse_code_9;
 #endif
 #endif
 
-  code = (gen_parse_code("SSub", &sf, &_ast_gen_parse_code_9), _ast_gen_parse_code_9);
+  code = (gen_parse_code("SSub", &sf, &_ast_gen_parse_code_9),
+          _ast_gen_parse_code_9);
   ASSERT(code != NULL);
 
   ASSERT(strstr(code, "strstr(ret->p, \"sub\") == NULL"));

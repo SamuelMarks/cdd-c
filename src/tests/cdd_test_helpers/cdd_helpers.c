@@ -34,9 +34,9 @@ int write_to_file(const char *const filename, const char *const contents) {
 #if defined(_MSC_VER)
   fopen_s(&fh, filename, "w");
 #else
-fh = fopen(filename, "w");
+  fh = fopen(filename, "w");
 #endif
-if (fh == NULL) {
+  if (fh == NULL) {
     fprintf(stderr, "Failed to open for writing %s\n", filename);
     return EXIT_FAILURE;
   }

@@ -20,7 +20,7 @@
 
 /* Standard definitions for greatest library */
 GREATEST_MAIN_DEFS();
-#pragma warning(disable: 4551)
+#pragma warning(disable : 4551)
 
 /**
  * @brief Setup: Create a basic enum member list for testing.

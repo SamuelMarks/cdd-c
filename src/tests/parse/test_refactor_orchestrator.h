@@ -14,9 +14,9 @@ TEST test_orchestrator_simple_propagation(void) {
      Refactor: A -> int, B -> int.
   */
   const char *input = ""
-"void A() { char * p = (char *)malloc(1); *p=0; }\n"
+                      "void A() { char * p = (char *)malloc(1); *p=0; }\n"
                       ""
-"void B() { A(); }";
+                      "void B() { A(); }";
 
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
@@ -53,9 +53,9 @@ TEST test_orchestrator_propagation_ptr(void) {
   /* Fixed input to have space "char *A" to match expected "char * *out"
    * generation logic */
   const char *input = ""
-"char *A() { return strdup(\"x\"); }\n"
+                      "char *A() { return strdup(\"x\"); }\n"
                       ""
-"char *B() { char *x = A(); return x; }";
+                      "char *B() { char *x = A(); return x; }";
 
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
@@ -84,9 +84,9 @@ TEST test_orchestrator_main_stop(void) {
      main -> signature UNCHANGED, but body updates to check A.
   */
   const char *input = ""
-"void A() { malloc(1); }\n"
+                      "void A() { malloc(1); }\n"
                       ""
-"int main() { A(); return 0; }";
+                      "int main() { A(); return 0; }";
 
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
@@ -110,14 +110,14 @@ TEST test_orchestrator_main_stop(void) {
 
 TEST test_orchestrator_no_alloc(void) {
   const char *input = ""
-"void A() { int x=1; }";
+                      "void A() { int x=1; }";
   char *out = NULL;
   int rc = orchestrate_fix(input, &out);
   ASSERT_EQ(0, rc);
   /* Should remain mostly same (token reconstruction might normalize whitespace)
    */
   ASSERT(strstr(out, ""
-"void A() {") != NULL);
+                     "void A() {") != NULL);
   ASSERT(strstr(out, "int x=1;") != NULL);
   free(out);
   PASS();

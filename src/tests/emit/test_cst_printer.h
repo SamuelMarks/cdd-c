@@ -15,14 +15,13 @@
 #include "functions/parse/tokenizer.h"
 
 TEST test_cst_print_exact(void) {
-  const char *src =
-      "/* comment */\n"
-      ""
-"int main(void) {\n"
-      "  int a = 1; \\\n"
-      "  int b = 2;\n"
-      "  printf(\"hello\\n\");\n"
-      "}\n";
+  const char *src = "/* comment */\n"
+                    ""
+                    "int main(void) {\n"
+                    "  int a = 1; \\\n"
+                    "  int b = 2;\n"
+                    "  printf(\"hello\\n\");\n"
+                    "}\n";
 
   struct TokenList *tokens = NULL;
   char buffer[1024] = {0};
@@ -35,10 +34,12 @@ TEST test_cst_print_exact(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   rc = fopen_s(&f, "test_cst_print.txt", "wb+");
-  if (rc != 0) FAILm("Could not open file");
+  if (rc != 0)
+    FAILm("Could not open file");
 #else
   f = fopen("test_cst_print.txt", "wb+");
-  if (!f) FAILm("Could not open file");
+  if (!f)
+    FAILm("Could not open file");
 #endif
 
   rc = cst_print_tokens_exact(tokens, f);
@@ -55,8 +56,6 @@ TEST test_cst_print_exact(void) {
   PASS();
 }
 
-SUITE(cst_printer_suite) {
-  RUN_TEST(test_cst_print_exact);
-}
+SUITE(cst_printer_suite) { RUN_TEST(test_cst_print_exact); }
 
 #endif /* TEST_CST_PRINTER_H */
