@@ -21,15 +21,18 @@
 
 /* Helper to capture output */
 static int gen_sec_code(const struct OpenAPI_Spec *spec,
-                          const struct OpenAPI_Operation *op_in, char * *_out_val) {
+                        const struct OpenAPI_Operation *op_in,
+                        char **_out_val) {
   FILE *tmp = tmpfile();
   struct OpenAPI_Operation op_local;
   const struct OpenAPI_Operation *op = op_in;
   long sz;
   char *content;
 
-  if (!tmp)
-    { *_out_val = NULL; return 0; }
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   /* Op is unused currently but required by signature */
   if (!op) {
@@ -38,7 +41,10 @@ static int gen_sec_code(const struct OpenAPI_Spec *spec,
   }
   if (codegen_security_write_apply(tmp, op, spec) != 0) {
     fclose(tmp);
-    { *_out_val = NULL; return 0; }
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -50,10 +56,14 @@ static int gen_sec_code(const struct OpenAPI_Spec *spec,
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  { *_out_val = content; return 0; }
+  {
+    *_out_val = content;
+    return 0;
+  }
 }
 
-TEST test_sec_bearer_token(void) { char * _ast_gen_sec_code_0; 
+TEST test_sec_bearer_token(void) {
+  char *_ast_gen_sec_code_0;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -83,7 +93,8 @@ TEST test_sec_bearer_token(void) { char * _ast_gen_sec_code_0;
   PASS();
 }
 
-TEST test_sec_oauth2_bearer_token(void) { char * _ast_gen_sec_code_1; 
+TEST test_sec_oauth2_bearer_token(void) {
+  char *_ast_gen_sec_code_1;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -108,7 +119,8 @@ TEST test_sec_oauth2_bearer_token(void) { char * _ast_gen_sec_code_1;
   PASS();
 }
 
-TEST test_sec_openid_bearer_token(void) { char * _ast_gen_sec_code_2; 
+TEST test_sec_openid_bearer_token(void) {
+  char *_ast_gen_sec_code_2;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -133,7 +145,8 @@ TEST test_sec_openid_bearer_token(void) { char * _ast_gen_sec_code_2;
   PASS();
 }
 
-TEST test_sec_basic_token(void) { char * _ast_gen_sec_code_3; 
+TEST test_sec_basic_token(void) {
+  char *_ast_gen_sec_code_3;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -159,7 +172,8 @@ TEST test_sec_basic_token(void) { char * _ast_gen_sec_code_3;
   PASS();
 }
 
-TEST test_sec_api_key_header(void) { char * _ast_gen_sec_code_4; 
+TEST test_sec_api_key_header(void) {
+  char *_ast_gen_sec_code_4;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -188,7 +202,8 @@ TEST test_sec_api_key_header(void) { char * _ast_gen_sec_code_4;
   PASS();
 }
 
-TEST test_sec_uri_requirement_matches_component(void) { char * _ast_gen_sec_code_5; 
+TEST test_sec_uri_requirement_matches_component(void) {
+  char *_ast_gen_sec_code_5;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   struct OpenAPI_SecurityRequirement req;
@@ -230,7 +245,8 @@ TEST test_sec_uri_requirement_matches_component(void) { char * _ast_gen_sec_code
   PASS();
 }
 
-TEST test_sec_api_key_query(void) { char * _ast_gen_sec_code_6; 
+TEST test_sec_api_key_query(void) {
+  char *_ast_gen_sec_code_6;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -257,7 +273,8 @@ TEST test_sec_api_key_query(void) { char * _ast_gen_sec_code_6;
   PASS();
 }
 
-TEST test_sec_api_key_cookie(void) { char * _ast_gen_sec_code_7; 
+TEST test_sec_api_key_cookie(void) {
+  char *_ast_gen_sec_code_7;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -283,7 +300,8 @@ TEST test_sec_api_key_cookie(void) { char * _ast_gen_sec_code_7;
   PASS();
 }
 
-TEST test_sec_multiple_schemes(void) { char * _ast_gen_sec_code_8; 
+TEST test_sec_multiple_schemes(void) {
+  char *_ast_gen_sec_code_8;
   /* Test mixing Bearer and API Key */
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
@@ -319,7 +337,8 @@ TEST test_sec_null_safety(void) {
   PASS();
 }
 
-TEST test_sec_security_requirements_filter(void) { char * _ast_gen_sec_code_9; 
+TEST test_sec_security_requirements_filter(void) {
+  char *_ast_gen_sec_code_9;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
   struct OpenAPI_SecurityRequirementSet set;

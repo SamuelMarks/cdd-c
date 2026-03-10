@@ -10,7 +10,8 @@
  */
 int cst_print_tokens_exact(const struct TokenList *tokens, FILE *out) {
   size_t i;
-  if (!tokens || !out) return EINVAL;
+  if (!tokens || !out)
+    return EINVAL;
 
   for (i = 0; i < tokens->size; ++i) {
     const struct Token *t = &tokens->tokens[i];

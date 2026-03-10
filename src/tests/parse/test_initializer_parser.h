@@ -11,15 +11,20 @@
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
 
-static int tokenize_str(const char *s, struct TokenList * *_out_val) {
+static int tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)s), &tl);
-  { *_out_val = tl; return 0; }
+  {
+    *_out_val = tl;
+    return 0;
+  }
 }
 
-TEST test_init_simple_positional(void) { struct TokenList * _ast_tokenize_str_0; 
+TEST test_init_simple_positional(void) {
+  struct TokenList *_ast_tokenize_str_0;
   const char *code = "{ 1, 2, 3 }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_0), _ast_tokenize_str_0);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_0), _ast_tokenize_str_0);
   struct InitList list;
   size_t consumed = 0;
   int rc;
@@ -43,9 +48,11 @@ TEST test_init_simple_positional(void) { struct TokenList * _ast_tokenize_str_0;
   PASS();
 }
 
-TEST test_init_designated_fields(void) { struct TokenList * _ast_tokenize_str_1; 
+TEST test_init_designated_fields(void) {
+  struct TokenList *_ast_tokenize_str_1;
   const char *code = "{ .x = 10, .y = 20 }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_1), _ast_tokenize_str_1);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_1), _ast_tokenize_str_1);
   struct InitList list;
   int rc;
 
@@ -67,9 +74,11 @@ TEST test_init_designated_fields(void) { struct TokenList * _ast_tokenize_str_1;
   PASS();
 }
 
-TEST test_init_array_index(void) { struct TokenList * _ast_tokenize_str_2; 
+TEST test_init_array_index(void) {
+  struct TokenList *_ast_tokenize_str_2;
   const char *code = "{ [0] = 1, [5] = 2 }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_2), _ast_tokenize_str_2);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_2), _ast_tokenize_str_2);
   struct InitList list;
   int rc;
 
@@ -91,9 +100,11 @@ TEST test_init_array_index(void) { struct TokenList * _ast_tokenize_str_2;
   PASS();
 }
 
-TEST test_init_nested(void) { struct TokenList * _ast_tokenize_str_3; 
+TEST test_init_nested(void) {
+  struct TokenList *_ast_tokenize_str_3;
   const char *code = "{ .pt = { .x = 1, .y = 2 }, .flag = 1 }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_3), _ast_tokenize_str_3);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_3), _ast_tokenize_str_3);
   struct InitList list;
   int rc;
 
@@ -124,10 +135,12 @@ TEST test_init_nested(void) { struct TokenList * _ast_tokenize_str_3;
   PASS();
 }
 
-TEST test_init_mixed_expressions(void) { struct TokenList * _ast_tokenize_str_4; 
+TEST test_init_mixed_expressions(void) {
+  struct TokenList *_ast_tokenize_str_4;
   /* Test complex expressions */
   const char *code = "{ .a = 1 + 2, .b = func(x, y), .c = (int){ 0 } }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_4), _ast_tokenize_str_4);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_4), _ast_tokenize_str_4);
   struct InitList list;
   int rc;
 
@@ -172,9 +185,11 @@ TEST test_init_mixed_expressions(void) { struct TokenList * _ast_tokenize_str_4;
   PASS();
 }
 
-TEST test_init_trailing_comma(void) { struct TokenList * _ast_tokenize_str_5; 
+TEST test_init_trailing_comma(void) {
+  struct TokenList *_ast_tokenize_str_5;
   const char *code = "{ 1, }";
-  struct TokenList *tl = (tokenize_str(code, &_ast_tokenize_str_5), _ast_tokenize_str_5);
+  struct TokenList *tl =
+      (tokenize_str(code, &_ast_tokenize_str_5), _ast_tokenize_str_5);
   struct InitList list;
   int rc;
 
@@ -190,7 +205,9 @@ TEST test_init_trailing_comma(void) { struct TokenList * _ast_tokenize_str_5;
   PASS();
 }
 
-TEST test_init_errors(void) { struct TokenList * _ast_tokenize_str_6; struct TokenList * _ast_tokenize_str_7; 
+TEST test_init_errors(void) {
+  struct TokenList *_ast_tokenize_str_6;
+  struct TokenList *_ast_tokenize_str_7;
   struct TokenList *tl;
   struct InitList list;
 

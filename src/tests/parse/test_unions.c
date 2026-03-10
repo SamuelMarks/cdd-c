@@ -16,7 +16,7 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
-#pragma warning(disable: 4551)
+#pragma warning(disable : 4551)
 
 TEST test_write_union_to_json(void) {
   struct StructFields sf;

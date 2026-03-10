@@ -41,13 +41,9 @@ static void write_test_spec(void) {
       "  }\n"
       "}";
   FILE *fp = NULL;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#if defined(_MSC_VER)
   if (fopen_s(&fp, TEMP_SPEC_FILE, "w") != 0)
     fp = NULL;
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, TEMP_SPEC_FILE, "w");
 #else
   fp = fopen(TEMP_SPEC_FILE, "w");
 #endif

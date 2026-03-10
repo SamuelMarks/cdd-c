@@ -58,11 +58,15 @@ static void mutex_destroy(mutex_t *m) { DeleteCriticalSection(m); }
 static void mutex_lock(mutex_t *m) { EnterCriticalSection(m); }
 static void mutex_unlock(mutex_t *m) { LeaveCriticalSection(m); }
 
-
 #if defined(_MSC_VER) && _MSC_VER < 1600
 static void cond_init(HANDLE *c) { *c = CreateEvent(NULL, FALSE, FALSE, NULL); }
 static void cond_signal(HANDLE *c) { SetEvent(*c); }
-static int cond_wait(HANDLE *c, mutex_t *m) { LeaveCriticalSection(m); WaitForSingleObject(*c, INFINITE); EnterCriticalSection(m); return 0; }
+static int cond_wait(HANDLE *c, mutex_t *m) {
+  LeaveCriticalSection(m);
+  WaitForSingleObject(*c, INFINITE);
+  EnterCriticalSection(m);
+  return 0;
+}
 #else
 static void cond_init(cond_t *c) { InitializeConditionVariable(c); }
 static void cond_signal(cond_t *c) { WakeConditionVariable(c); }
@@ -70,7 +74,6 @@ static int cond_wait(cond_t *c, mutex_t *m) {
   return SleepConditionVariableCS(c, m, INFINITE) ? 0 : 1;
 }
 #endif
-
 
 static void close_socket(socket_t s) { closesocket(s); }
 
@@ -179,7 +182,8 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
       char buffer[4096];
       int bytes_read;
       sleep_ms(100); /* Wait for body packets (e.g. from WinHTTP) */
-      bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);      if (bytes_read > 0) {
+      bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+      if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
 
         mutex_lock(&s->lock);

@@ -16,18 +16,23 @@
 #include "openapi/parse/openapi.h"
 
 static int gen_body(const struct OpenAPI_Operation *op,
-                      const struct OpenAPI_Spec *spec, const char *tmpl,
-                      const char *base_url_expr, char * *_out_val) {
+                    const struct OpenAPI_Spec *spec, const char *tmpl,
+                    const char *base_url_expr, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *content;
 
-  if (!tmp)
-    { *_out_val = NULL; return 0; }
+  if (!tmp) {
+    *_out_val = NULL;
+    return 0;
+  }
 
   if (codegen_client_write_body(tmp, op, spec, tmpl, base_url_expr) != 0) {
     fclose(tmp);
-    { *_out_val = NULL; return 0; }
+    {
+      *_out_val = NULL;
+      return 0;
+    }
   }
 
   fseek(tmp, 0, SEEK_END);
@@ -39,10 +44,14 @@ static int gen_body(const struct OpenAPI_Operation *op,
     fread(content, 1, sz, tmp);
 
   fclose(tmp);
-  { *_out_val = content; return 0; }
+  {
+    *_out_val = content;
+    return 0;
+  }
 }
 
-TEST test_body_basic_get(void) { char * _ast_gen_body_0; 
+TEST test_body_basic_get(void) {
+  char *_ast_gen_body_0;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -71,7 +80,8 @@ TEST test_body_basic_get(void) { char * _ast_gen_body_0;
   PASS();
 }
 
-TEST test_body_base_url_override(void) { char * _ast_gen_body_1; 
+TEST test_body_base_url_override(void) {
+  char *_ast_gen_body_1;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -86,7 +96,9 @@ TEST test_body_base_url_override(void) { char * _ast_gen_body_1;
   op.responses = &resp;
   op.n_responses = 1;
 
-  code = (gen_body(&op, &spec, "/pets", "\"https://override.example.com\"", &_ast_gen_body_1), _ast_gen_body_1);
+  code = (gen_body(&op, &spec, "/pets", "\"https://override.example.com\"",
+                   &_ast_gen_body_1),
+          _ast_gen_body_1);
   ASSERT(code);
   ASSERT(strstr(code, "\"https://override.example.com\"") != NULL);
 
@@ -94,7 +106,8 @@ TEST test_body_base_url_override(void) { char * _ast_gen_body_1;
   PASS();
 }
 
-TEST test_body_options_verb(void) { char * _ast_gen_body_2; 
+TEST test_body_options_verb(void) {
+  char *_ast_gen_body_2;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -117,7 +130,8 @@ TEST test_body_options_verb(void) { char * _ast_gen_body_2;
   PASS();
 }
 
-TEST test_body_trace_verb(void) { char * _ast_gen_body_3; 
+TEST test_body_trace_verb(void) {
+  char *_ast_gen_body_3;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -140,7 +154,8 @@ TEST test_body_trace_verb(void) { char * _ast_gen_body_3;
   PASS();
 }
 
-TEST test_body_query_verb(void) { char * _ast_gen_body_4; 
+TEST test_body_query_verb(void) {
+  char *_ast_gen_body_4;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -163,7 +178,8 @@ TEST test_body_query_verb(void) { char * _ast_gen_body_4;
   PASS();
 }
 
-TEST test_body_additional_connect_method(void) { char * _ast_gen_body_5; 
+TEST test_body_additional_connect_method(void) {
+  char *_ast_gen_body_5;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -188,7 +204,8 @@ TEST test_body_additional_connect_method(void) { char * _ast_gen_body_5;
   PASS();
 }
 
-TEST test_body_querystring_param(void) { char * _ast_gen_body_6; 
+TEST test_body_querystring_param(void) {
+  char *_ast_gen_body_6;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -211,7 +228,8 @@ TEST test_body_querystring_param(void) { char * _ast_gen_body_6;
   op.parameters = &param;
   op.n_parameters = 1;
 
-  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6), _ast_gen_body_6);
+  code = (gen_body(&op, &spec, "/search", NULL, &_ast_gen_body_6),
+          _ast_gen_body_6);
   ASSERT(code);
   ASSERT(strstr(code, "Querystring Parameter") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
@@ -220,7 +238,8 @@ TEST test_body_querystring_param(void) { char * _ast_gen_body_6;
   PASS();
 }
 
-TEST test_body_inline_response_string(void) { char * _ast_gen_body_7; 
+TEST test_body_inline_response_string(void) {
+  char *_ast_gen_body_7;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -245,7 +264,8 @@ TEST test_body_inline_response_string(void) { char * _ast_gen_body_7;
   PASS();
 }
 
-TEST test_body_inline_response_array_number(void) { char * _ast_gen_body_8; 
+TEST test_body_inline_response_array_number(void) {
+  char *_ast_gen_body_8;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -271,7 +291,8 @@ TEST test_body_inline_response_array_number(void) { char * _ast_gen_body_8;
   PASS();
 }
 
-TEST test_body_inline_request_body_string(void) { char * _ast_gen_body_9; 
+TEST test_body_inline_request_body_string(void) {
+  char *_ast_gen_body_9;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -298,7 +319,8 @@ TEST test_body_inline_request_body_string(void) { char * _ast_gen_body_9;
   PASS();
 }
 
-TEST test_body_inline_request_body_string_json_params(void) { char * _ast_gen_body_10; 
+TEST test_body_inline_request_body_string_json_params(void) {
+  char *_ast_gen_body_10;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -324,7 +346,8 @@ TEST test_body_inline_request_body_string_json_params(void) { char * _ast_gen_bo
   PASS();
 }
 
-TEST test_body_inline_request_body_array(void) { char * _ast_gen_body_11; 
+TEST test_body_inline_request_body_array(void) {
+  char *_ast_gen_body_11;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -351,7 +374,8 @@ TEST test_body_inline_request_body_array(void) { char * _ast_gen_body_11;
   PASS();
 }
 
-TEST test_body_textual_request_body_xml(void) { char * _ast_gen_body_12; 
+TEST test_body_textual_request_body_xml(void) {
+  char *_ast_gen_body_12;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
   char *code;
@@ -363,7 +387,8 @@ TEST test_body_textual_request_body_xml(void) { char * _ast_gen_body_12;
   op.req_body.content_type = "application/xml";
   op.req_body.ref_name = "Pet";
 
-  code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12), _ast_gen_body_12);
+  code = (gen_body(&op, &spec, "/pets", NULL, &_ast_gen_body_12),
+          _ast_gen_body_12);
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)req_body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/xml\"") != NULL);
@@ -373,7 +398,8 @@ TEST test_body_textual_request_body_xml(void) { char * _ast_gen_body_12;
   PASS();
 }
 
-TEST test_body_binary_request_body_pdf(void) { char * _ast_gen_body_13; 
+TEST test_body_binary_request_body_pdf(void) {
+  char *_ast_gen_body_13;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
   char *code;
@@ -385,7 +411,8 @@ TEST test_body_binary_request_body_pdf(void) { char * _ast_gen_body_13;
   op.req_body.content_type = "application/pdf";
   op.req_body.ref_name = "Pet";
 
-  code = (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
+  code =
+      (gen_body(&op, &spec, "/pdf", NULL, &_ast_gen_body_13), _ast_gen_body_13);
   ASSERT(code);
   ASSERT(strstr(code, "req.body = (void *)body") != NULL);
   ASSERT(strstr(code, "\"Content-Type\", \"application/pdf\"") != NULL);
@@ -395,7 +422,8 @@ TEST test_body_binary_request_body_pdf(void) { char * _ast_gen_body_13;
   PASS();
 }
 
-TEST test_body_header_array_param(void) { char * _ast_gen_body_14; 
+TEST test_body_header_array_param(void) {
+  char *_ast_gen_body_14;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -431,7 +459,8 @@ TEST test_body_header_array_param(void) { char * _ast_gen_body_14;
   PASS();
 }
 
-TEST test_body_header_object_param(void) { char * _ast_gen_body_15; 
+TEST test_body_header_object_param(void) {
+  char *_ast_gen_body_15;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -469,7 +498,8 @@ TEST test_body_header_object_param(void) { char * _ast_gen_body_15;
   PASS();
 }
 
-TEST test_body_header_json_param_ref(void) { char * _ast_gen_body_16; 
+TEST test_body_header_json_param_ref(void) {
+  char *_ast_gen_body_16;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -506,7 +536,8 @@ TEST test_body_header_json_param_ref(void) { char * _ast_gen_body_16;
   PASS();
 }
 
-TEST test_body_header_number_param(void) { char * _ast_gen_body_17; 
+TEST test_body_header_number_param(void) {
+  char *_ast_gen_body_17;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -540,7 +571,8 @@ TEST test_body_header_number_param(void) { char * _ast_gen_body_17;
   PASS();
 }
 
-TEST test_body_cookie_param(void) { char * _ast_gen_body_18; 
+TEST test_body_cookie_param(void) {
+  char *_ast_gen_body_18;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -574,7 +606,8 @@ TEST test_body_cookie_param(void) { char * _ast_gen_body_18;
   PASS();
 }
 
-TEST test_body_cookie_param_number_array(void) { char * _ast_gen_body_19; 
+TEST test_body_cookie_param_number_array(void) {
+  char *_ast_gen_body_19;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -613,7 +646,8 @@ TEST test_body_cookie_param_number_array(void) { char * _ast_gen_body_19;
   PASS();
 }
 
-TEST test_body_cookie_param_array_explode_false(void) { char * _ast_gen_body_20; 
+TEST test_body_cookie_param_array_explode_false(void) {
+  char *_ast_gen_body_20;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -652,7 +686,8 @@ TEST test_body_cookie_param_array_explode_false(void) { char * _ast_gen_body_20;
   PASS();
 }
 
-TEST test_body_cookie_param_object_form(void) { char * _ast_gen_body_21; 
+TEST test_body_cookie_param_object_form(void) {
+  char *_ast_gen_body_21;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -688,7 +723,8 @@ TEST test_body_cookie_param_object_form(void) { char * _ast_gen_body_21;
   PASS();
 }
 
-TEST test_body_cookie_param_string_allow_reserved(void) { char * _ast_gen_body_22; 
+TEST test_body_cookie_param_string_allow_reserved(void) {
+  char *_ast_gen_body_22;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Parameter param = {0};
@@ -725,7 +761,8 @@ TEST test_body_cookie_param_string_allow_reserved(void) { char * _ast_gen_body_2
   PASS();
 }
 
-TEST test_body_security_query_api_key(void) { char * _ast_gen_body_23; 
+TEST test_body_security_query_api_key(void) {
+  char *_ast_gen_body_23;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -758,7 +795,8 @@ TEST test_body_security_query_api_key(void) { char * _ast_gen_body_23;
   PASS();
 }
 
-TEST test_body_security_cookie_api_key(void) { char * _ast_gen_body_24; 
+TEST test_body_security_cookie_api_key(void) {
+  char *_ast_gen_body_24;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -791,7 +829,8 @@ TEST test_body_security_cookie_api_key(void) { char * _ast_gen_body_24;
   PASS();
 }
 
-TEST test_body_form_urlencoded(void) { char * _ast_gen_body_25; 
+TEST test_body_form_urlencoded(void) {
+  char *_ast_gen_body_25;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -823,7 +862,8 @@ TEST test_body_form_urlencoded(void) { char * _ast_gen_body_25;
   op.req_body.ref_name = "FormData";
   op.req_body.content_type = "application/x-www-form-urlencoded";
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25), _ast_gen_body_25);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_25),
+          _ast_gen_body_25);
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
   ASSERT(strstr(code, "url_query_build_form(&form_qp, &form_body)") != NULL);
@@ -835,7 +875,8 @@ TEST test_body_form_urlencoded(void) { char * _ast_gen_body_25;
   PASS();
 }
 
-TEST test_body_form_urlencoded_with_params(void) { char * _ast_gen_body_26; 
+TEST test_body_form_urlencoded_with_params(void) {
+  char *_ast_gen_body_26;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -865,7 +906,8 @@ TEST test_body_form_urlencoded_with_params(void) { char * _ast_gen_body_26;
   op.req_body.ref_name = "FormData";
   op.req_body.content_type = "application/x-www-form-urlencoded; charset=utf-8";
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26), _ast_gen_body_26);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_26),
+          _ast_gen_body_26);
   ASSERT(code);
   ASSERT(strstr(code, "Form URL-Encoded Body Construction") != NULL);
   ASSERT(strstr(code, "url_query_build_form(&form_qp, &form_body)") != NULL);
@@ -876,7 +918,8 @@ TEST test_body_form_urlencoded_with_params(void) { char * _ast_gen_body_26;
   PASS();
 }
 
-TEST test_body_form_urlencoded_object_fields(void) { char * _ast_gen_body_27; 
+TEST test_body_form_urlencoded_object_fields(void) {
+  char *_ast_gen_body_27;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -908,7 +951,8 @@ TEST test_body_form_urlencoded_object_fields(void) { char * _ast_gen_body_27;
   op.req_body.ref_name = "FormData";
   op.req_body.content_type = "application/x-www-form-urlencoded";
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27), _ast_gen_body_27);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_27),
+          _ast_gen_body_27);
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
   ASSERT(strstr(code, "Pet_to_json(req_body->pets[i]") != NULL);
@@ -918,7 +962,8 @@ TEST test_body_form_urlencoded_object_fields(void) { char * _ast_gen_body_27;
   PASS();
 }
 
-TEST test_body_form_urlencoded_object_style_form_explode_true(void) { char * _ast_gen_body_28; 
+TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
+  char *_ast_gen_body_28;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -972,7 +1017,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) { char * _as
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_28), _ast_gen_body_28);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_28),
+          _ast_gen_body_28);
   ASSERT(code);
   ASSERT(strstr(code, "url_query_add(&form_qp, \"color\"") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
@@ -981,7 +1027,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) { char * _as
   PASS();
 }
 
-TEST test_body_form_urlencoded_object_style_form_explode_false(void) { char * _ast_gen_body_29; 
+TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
+  char *_ast_gen_body_29;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1035,7 +1082,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) { char * _a
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_29), _ast_gen_body_29);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_29),
+          _ast_gen_body_29);
   ASSERT(code);
   ASSERT(strstr(code, "openapi_kv_join_form") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"filter\"") != NULL);
@@ -1045,7 +1093,8 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) { char * _a
   PASS();
 }
 
-TEST test_body_form_urlencoded_object_style_deep_object(void) { char * _ast_gen_body_30; 
+TEST test_body_form_urlencoded_object_style_deep_object(void) {
+  char *_ast_gen_body_30;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1099,7 +1148,8 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) { char * _ast_gen_
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_30), _ast_gen_body_30);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_30),
+          _ast_gen_body_30);
   ASSERT(code);
   ASSERT(strstr(code, "filter[color]") != NULL);
   ASSERT(strstr(code, "Filter_to_json") == NULL);
@@ -1108,7 +1158,8 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) { char * _ast_gen_
   PASS();
 }
 
-TEST test_body_multipart_primitives_and_arrays(void) { char * _ast_gen_body_31; 
+TEST test_body_multipart_primitives_and_arrays(void) {
+  char *_ast_gen_body_31;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1148,7 +1199,8 @@ TEST test_body_multipart_primitives_and_arrays(void) { char * _ast_gen_body_31;
   op.req_body.ref_name = "Upload";
   op.req_body.content_type = "multipart/form-data";
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31), _ast_gen_body_31);
+  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_31),
+          _ast_gen_body_31);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\"") != NULL);
@@ -1162,7 +1214,8 @@ TEST test_body_multipart_primitives_and_arrays(void) { char * _ast_gen_body_31;
   PASS();
 }
 
-TEST test_body_multipart_object_fields(void) { char * _ast_gen_body_32; 
+TEST test_body_multipart_object_fields(void) {
+  char *_ast_gen_body_32;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1194,7 +1247,8 @@ TEST test_body_multipart_object_fields(void) { char * _ast_gen_body_32;
   op.req_body.ref_name = "FormData";
   op.req_body.content_type = "multipart/form-data";
 
-  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32), _ast_gen_body_32);
+  code = (gen_body(&op, &spec, "/submit", NULL, &_ast_gen_body_32),
+          _ast_gen_body_32);
   ASSERT(code);
   ASSERT(strstr(code, "Pet_to_json(req_body->pet") != NULL);
   ASSERT(strstr(code, "Pet_to_json(req_body->pets[i]") != NULL);
@@ -1207,7 +1261,8 @@ TEST test_body_multipart_object_fields(void) { char * _ast_gen_body_32;
   PASS();
 }
 
-TEST test_body_multipart_encoding_content_type(void) { char * _ast_gen_body_33; 
+TEST test_body_multipart_encoding_content_type(void) {
+  char *_ast_gen_body_33;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1249,7 +1304,8 @@ TEST test_body_multipart_encoding_content_type(void) { char * _ast_gen_body_33;
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_33), _ast_gen_body_33);
+  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_33),
+          _ast_gen_body_33);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "http_request_add_part(&req, \"title\", NULL, "
@@ -1259,7 +1315,8 @@ TEST test_body_multipart_encoding_content_type(void) { char * _ast_gen_body_33;
   PASS();
 }
 
-TEST test_body_multipart_encoding_content_type_list(void) { char * _ast_gen_body_34; 
+TEST test_body_multipart_encoding_content_type_list(void) {
+  char *_ast_gen_body_34;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1301,7 +1358,8 @@ TEST test_body_multipart_encoding_content_type_list(void) { char * _ast_gen_body
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_34), _ast_gen_body_34);
+  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_34),
+          _ast_gen_body_34);
   ASSERT(code);
   ASSERT(strstr(code, "Multipart Body Construction") != NULL);
   ASSERT(strstr(code, "\"image/png\"") != NULL);
@@ -1311,7 +1369,8 @@ TEST test_body_multipart_encoding_content_type_list(void) { char * _ast_gen_body
   PASS();
 }
 
-TEST test_body_multipart_encoding_headers(void) { char * _ast_gen_body_35; 
+TEST test_body_multipart_encoding_headers(void) {
+  char *_ast_gen_body_35;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1365,7 +1424,8 @@ TEST test_body_multipart_encoding_headers(void) { char * _ast_gen_body_35;
   op.req_body_media_types = &mt;
   op.n_req_body_media_types = 1;
 
-  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_35), _ast_gen_body_35);
+  code = (gen_body(&op, &spec, "/upload", NULL, &_ast_gen_body_35),
+          _ast_gen_body_35);
   ASSERT(code);
   ASSERT(strstr(code, "http_request_add_part_header_last(&req, \"X-Trace\", "
                       "title_hdr_X_Trace") != NULL);
@@ -1376,7 +1436,8 @@ TEST test_body_multipart_encoding_headers(void) { char * _ast_gen_body_35;
   PASS();
 }
 
-TEST test_body_response_range_success(void) { char * _ast_gen_body_36; 
+TEST test_body_response_range_success(void) {
+  char *_ast_gen_body_36;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1401,7 +1462,8 @@ TEST test_body_response_range_success(void) { char * _ast_gen_body_36;
   PASS();
 }
 
-TEST test_body_default_response_success(void) { char * _ast_gen_body_37; 
+TEST test_body_default_response_success(void) {
+  char *_ast_gen_body_37;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1426,7 +1488,8 @@ TEST test_body_default_response_success(void) { char * _ast_gen_body_37;
   PASS();
 }
 
-TEST test_body_text_plain_response_string(void) { char * _ast_gen_body_38; 
+TEST test_body_text_plain_response_string(void) {
+  char *_ast_gen_body_38;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1452,7 +1515,8 @@ TEST test_body_text_plain_response_string(void) { char * _ast_gen_body_38;
   PASS();
 }
 
-TEST test_body_text_plain_response_range(void) { char * _ast_gen_body_39; 
+TEST test_body_text_plain_response_range(void) {
+  char *_ast_gen_body_39;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1478,7 +1542,8 @@ TEST test_body_text_plain_response_range(void) { char * _ast_gen_body_39;
   PASS();
 }
 
-TEST test_body_text_plain_response_default(void) { char * _ast_gen_body_40; 
+TEST test_body_text_plain_response_default(void) {
+  char *_ast_gen_body_40;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1504,7 +1569,8 @@ TEST test_body_text_plain_response_default(void) { char * _ast_gen_body_40;
   PASS();
 }
 
-TEST test_body_textual_response_xml(void) { char * _ast_gen_body_41; 
+TEST test_body_textual_response_xml(void) {
+  char *_ast_gen_body_41;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
@@ -1530,7 +1596,8 @@ TEST test_body_textual_response_xml(void) { char * _ast_gen_body_41;
   PASS();
 }
 
-TEST test_body_binary_response_pdf(void) { char * _ast_gen_body_42; 
+TEST test_body_binary_response_pdf(void) {
+  char *_ast_gen_body_42;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;

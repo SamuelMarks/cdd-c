@@ -38,7 +38,7 @@ static int run_body_rewrite(const char *code,
 
 TEST test_propagate_void_stmt(void) {
   const char *input = ""
-"void f() { do_work(); }";
+                      "void f() { do_work(); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;
@@ -55,7 +55,7 @@ TEST test_propagate_void_stmt(void) {
 
 TEST test_propagate_ptr_assignment(void) {
   const char *input = ""
-"void f() { char *s; s = my_strdup(\"a\"); }";
+                      "void f() { char *s; s = my_strdup(\"a\"); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
@@ -74,7 +74,7 @@ TEST test_propagate_ptr_assignment(void) {
 
 TEST test_propagate_ptr_declaration(void) {
   const char *input = ""
-"void f() { char *s = my_strdup(\"a\"); }";
+                      "void f() { char *s = my_strdup(\"a\"); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {
       {"my_strdup", REF_PTR_TO_INT_OUT, "char *"}};
@@ -94,7 +94,7 @@ TEST test_propagate_ptr_declaration(void) {
 
 TEST test_propagate_nested_hoisting(void) {
   const char *input = ""
-"void f() { outer(inner(\"x\")); }";
+                      "void f() { outer(inner(\"x\")); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"inner", REF_PTR_TO_INT_OUT, "char *"}};
   int rc;
@@ -116,7 +116,7 @@ TEST test_propagate_nested_hoisting(void) {
 TEST test_integration_safety_and_prop(void) {
   const char *input =
       ""
-"void f() { char * p = (char *)malloc(10); if(!p) return; do_work(); }";
+      "void f() { char * p = (char *)malloc(10); if(!p) return; do_work(); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   int rc;
@@ -135,7 +135,7 @@ TEST test_integration_safety_and_prop(void) {
 
 TEST test_realloc_safety_injection(void) {
   const char *input = ""
-"void f() { char *p; p = realloc(p, 100); }";
+                      "void f() { char *p; p = realloc(p, 100); }";
   char *output = NULL;
   int rc;
 

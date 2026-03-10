@@ -15,11 +15,10 @@
 #include "functions/parse/tokenizer.h"
 
 TEST test_generate_diff_basic(void) {
-  const char *src =
-      ""
-"int main() {\n"
-      "  return 0;\n"
-      "}\n";
+  const char *src = ""
+                    "int main() {\n"
+                    "  return 0;\n"
+                    "}\n";
 
   struct TokenList *tokens = NULL;
   struct PatchList patches;
@@ -31,7 +30,7 @@ TEST test_generate_diff_basic(void) {
   ASSERT_EQ(0, rc);
 
   patch_list_init(&patches);
-  
+
   /* Create a dummy patch replacing '0' with '1' */
   {
     size_t i;
@@ -69,8 +68,6 @@ TEST test_generate_diff_basic(void) {
   PASS();
 }
 
-SUITE(diff_generator_suite) {
-  RUN_TEST(test_generate_diff_basic);
-}
+SUITE(diff_generator_suite) { RUN_TEST(test_generate_diff_basic); }
 
 #endif /* TEST_DIFF_GENERATOR_H */

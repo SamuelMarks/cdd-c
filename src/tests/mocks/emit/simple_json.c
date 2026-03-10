@@ -141,8 +141,10 @@ int HazE_display(const struct HazE *const haz_e, FILE *fh) {
     return rc;
   rc = fprintf(fh, "%s\n", s);
   if (rc >= 0) {
-    if (fflush(fh) != 0) rc = -1;
-    else rc = 0;
+    if (fflush(fh) != 0)
+      rc = -1;
+    else
+      rc = 0;
   }
   free(s);
   return rc;
@@ -364,8 +366,10 @@ int FooE_display(const struct FooE *foo_e, FILE *fh) {
     return rc;
   rc = fprintf(fh, "%s\n", s);
   if (rc >= 0) {
-    if (fflush(fh) != 0) rc = -1;
-    else rc = 0;
+    if (fflush(fh) != 0)
+      rc = -1;
+    else
+      rc = 0;
   }
   free(s);
   return rc;

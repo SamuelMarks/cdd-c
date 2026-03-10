@@ -12,7 +12,10 @@
 #include "tests/emit/sdk_tests.h"
 
 #define CHECK_IO(x)                                                            \
-  if ((x) < 0) { return EIO; } else (void)0
+  if ((x) < 0) {                                                               \
+    return EIO;                                                                \
+  } else                                                                       \
+    (void)0
 
 /* --- Helper to write a test for a single operation --- */
 static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
@@ -133,8 +136,7 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
   return 0;
 }
 
-int codegen_sdk_tests_generate(FILE *fp,
-                               const struct OpenAPI_Spec *spec,
+int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                                const struct SdkTestsConfig *config) {
   size_t i, j;
 
@@ -151,7 +153,7 @@ int codegen_sdk_tests_generate(FILE *fp,
                    config->client_header));
 
   CHECK_IO(fprintf(fp, "GREATEST_MAIN_DEFS();\n"
-"#pragma warning(disable: 4551)\n\n"));
+                       "#pragma warning(disable: 4551)\n\n"));
 
   /* Iterate Operations */
   for (i = 0; i < spec->n_paths; ++i) {
@@ -172,7 +174,7 @@ int codegen_sdk_tests_generate(FILE *fp,
   CHECK_IO(fprintf(fp, "}\n\n"));
 
   CHECK_IO(fprintf(fp, ""
-"int main(int argc, char **argv) {\n"));
+                       "int main(int argc, char **argv) {\n"));
   CHECK_IO(fprintf(fp, "  GREATEST_MAIN_BEGIN();\n"));
   CHECK_IO(fprintf(fp, "  RUN_SUITE(sdk_suite);\n"));
   CHECK_IO(fprintf(fp, "  GREATEST_MAIN_END();\n}\n"));

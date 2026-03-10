@@ -21,7 +21,8 @@ TEST test_server_gen_basic(void) {
   spec.paths[0].route = "/test/route";
 
   spec.paths[0].n_operations = 9;
-  spec.paths[0].operations = (struct OpenAPI_Operation *)calloc(9, sizeof(struct OpenAPI_Operation));
+  spec.paths[0].operations =
+      (struct OpenAPI_Operation *)calloc(9, sizeof(struct OpenAPI_Operation));
 
   spec.paths[0].operations[0].verb = OA_VERB_GET;
   spec.paths[0].operations[0].operation_id = "doGet";

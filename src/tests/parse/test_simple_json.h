@@ -10,7 +10,7 @@ TEST test_simple_cleanup_and_null(void) {
   Foo_cleanup(NULL);
 
   {
-    struct Haz * hz = (struct Haz *)malloc(sizeof(*hz));
+    struct Haz *hz = (struct Haz *)malloc(sizeof(*hz));
     if (hz) {
       hz->bzr = "hello";
       Haz_cleanup(hz);
