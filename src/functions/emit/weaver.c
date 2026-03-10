@@ -82,25 +82,25 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
     strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
 #if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
+    strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
     strcpy(endif_str, "#endif\\n");
 #endif

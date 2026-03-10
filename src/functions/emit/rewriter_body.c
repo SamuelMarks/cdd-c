@@ -313,14 +313,14 @@ int rewrite_body(const struct TokenList *tokens,
 
                     if (is_empty)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-                      sprintf_s(arg_append, sizeof(arg_append), "&%s",
+                      sprintf_s(arg_append, strlen(lhs_name) + 10, "&%s",
                                 lhs_name);
 #else
                       sprintf(arg_append, "&%s", lhs_name);
 #endif
                     else
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-                      sprintf_s(arg_append, sizeof(arg_append), ", &%s",
+                      sprintf_s(arg_append, strlen(lhs_name) + 10, ", &%s",
                                 lhs_name);
 #else
                       sprintf(arg_append, ", &%s", lhs_name);

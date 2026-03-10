@@ -28,10 +28,10 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
     strcpy_s(op->operation_id, strlen(id) + 1, id);
 #else
 #if defined(_MSC_VER)
-    strcpy_s(op->operation_id, sizeof(op->operation_id), id);
+    strcpy_s(op->operation_id, strlen(id) + 1, id);
 #else
 #if defined(_MSC_VER)
-    strcpy_s(op->operation_id, sizeof(op->operation_id), id);
+    strcpy_s(op->operation_id, strlen(id) + 1, id);
 #else
     strcpy(op->operation_id, id);
 #endif
