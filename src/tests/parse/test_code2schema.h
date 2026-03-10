@@ -30,14 +30,15 @@ TEST test_write_enum_functions(void) {
     if (err != 0 || tmp_fh == NULL)
       FAILm("Failed to open file for writing");
   }
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
   fopen_s(&tmp_fh, "tmp_enum_func.c", "w");
-#else
-  tmp_fh = fopen("tmp_enum_func.c", "w");
-#endif
   if (!tmp_fh)
     FAILm("Failed to open file for writing");
+#else
+  tmp_fh = fopen("tmp_enum_func.c", "w");
+  if (!tmp_fh)
+    FAILm("Failed to open file for writing");
+#endif
 
   ASSERT_EQ(0, write_enum_to_str_func(tmp_fh, "MyEnum", &em, NULL));
   ASSERT_EQ(0, write_enum_from_str_func(tmp_fh, "MyEnum", &em, NULL));
@@ -207,15 +208,7 @@ TEST test_trim_trailing(void) {
 #elif defined(_MSC_VER)
   strcpy_s(a, sizeof(a), "foo   \t;");
 #else
-#if defined(_MSC_VER)
-  strcpy_s(a, sizeof(a), "foo   \t;");
-#else
-#if defined(_MSC_VER)
-  strcpy_s(a, sizeof(a), "foo   \t;");
-#else
   strcpy(a, "foo   \t;");
-#endif
-#endif
 #endif
   trim_trailing(a);
   ASSERT_STR_EQ("foo", a);

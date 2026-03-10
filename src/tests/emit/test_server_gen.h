@@ -62,8 +62,7 @@ TEST test_server_gen_basic(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   if (fopen_s(&f, "test_server_server.c", "r") != 0)
     f = NULL;
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
   fopen_s(&f, "test_server_server.c", "r");
 #else
   f = fopen("test_server_server.c", "r");
