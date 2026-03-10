@@ -38,13 +38,12 @@ TEST test_lift_anonymous_struct(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     if (fopen_s(&f, "anon.json", "r") != 0)
       f = NULL;
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
     fopen_s(&f, "anon.json", "r");
 #else
-f = fopen("anon.json", "r");
+    f = fopen("anon.json", "r");
 #endif
-ASSERT(f);
+    ASSERT(f);
     fseek(f, 0, SEEK_END);
     sz = ftell(f);
     rewind(f);

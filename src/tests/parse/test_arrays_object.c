@@ -98,13 +98,12 @@ TEST test_code2schema_obj_array_detection(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   if (fopen_s(&f, json_out_file, "r") != 0)
     f = NULL;
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
   fopen_s(&f, json_out_file, "r");
 #else
-f = fopen(json_out_file, "r");
+  f = fopen(json_out_file, "r");
 #endif
-ASSERT(f);
+  ASSERT(f);
   fseek(f, 0, SEEK_END);
   len = ftell(f);
   rewind(f);

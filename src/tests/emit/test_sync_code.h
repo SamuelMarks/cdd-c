@@ -87,12 +87,11 @@ TEST test_sync_code_too_many_defs(void) {
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   ASSERT_EQ(0, fopen_s(&f, filename, "w"));
   ASSERT(f);
-#else
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
   fopen_s(&f, filename, "w");
+  ASSERT(f);
 #else
   f = fopen(filename, "w");
-#endif
   ASSERT(f);
 #endif
   for (i = 0; i < 70; i++)
