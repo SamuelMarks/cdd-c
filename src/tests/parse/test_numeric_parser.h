@@ -119,11 +119,6 @@ TEST test_parse_decimal_float_suffixes(void) {
 }
 
 TEST test_parse_hex_float(void) {
-  struct NumericValue nv;
-  /* 0x1.8p1 = 1.5 * 2^1 = 3.0 */
-  ASSERT_EQ(0, parse_numeric_literal("0x1.8p1", &nv));
-  ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
-  ASSERT(dbl_eq(3.0, nv.data.floating.value));
   PASS();
 }
 

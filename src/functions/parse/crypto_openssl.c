@@ -92,10 +92,12 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
   }
 #else
   /* OpenSSL 1.1 */
-  result = HMAC(EVP_sha256(), key, (int)key_len, (const unsigned char *)data,
+  {
+    unsigned char *result = HMAC(EVP_sha256(), key, (int)key_len, (const unsigned char *)data,
                 data_len, out_mac, &len);
   if (!result)
-    return EIO;
+      return EIO;
+  }
 #endif
 
   if (len != CRYPTO_SHA256_SIZE)

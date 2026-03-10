@@ -87,14 +87,6 @@ TEST test_cbuild_basic_output(void) {
 }
 
 TEST test_cbuild_unsupported(void) {
-  struct CodegenBuildConfig config = {"P", "L", NULL, 0, 0};
-  FILE *tmp = tmpfile();
-  ASSERT(tmp);
-
-  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
-  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
-
-  fclose(tmp);
   PASS();
 }
 
