@@ -1,3 +1,6 @@
+#if defined(_MSC_VER)
+#pragma warning(disable: 4005)
+#endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
