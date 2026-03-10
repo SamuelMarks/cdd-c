@@ -32,31 +32,20 @@ TEST test_schema_codegen_circular_refs(void) {
 
    */
 
+  int rc;
+  char * header_content = NULL;
+  size_t sz;
   const char *const filename = "circular.json";
-
   const char *argv[2];
+  const char *schema = "{\"components\": {\"schemas\": {"
+                       "\"A\": {\"type\": \"object\", \"properties\": {\"b\": "
+                       "{\"$ref\": \"#/components/schemas/B\"}}},"
+                       "\"B\": {\"type\": \"object\", \"properties\": {\"a\": "
+                       "{\"$ref\": \"#/components/schemas/A\"}}}"
+                       "}}}";
+
   argv[0] = filename;
   argv[1] = "circular_out";
-
-  int rc;
-
-  char *header_content = NULL;
-
-  size_t sz;
-
-  /* Create schemas where A has property B, B has property A */
-
-  const char *schema = "{\"components\": {\"schemas\": {"
-
-                       "\"A\": {\"type\": \"object\", \"properties\": {\"b\": "
-
-                       "{\"$ref\": \"#/components/schemas/B\"}}},"
-
-                       "\"B\": {\"type\": \"object\", \"properties\": {\"a\": "
-
-                       "{\"$ref\": \"#/components/schemas/A\"}}}"
-
-                       "}}}";
 
   rc = write_to_file(filename, schema);
 
@@ -78,13 +67,15 @@ TEST test_schema_codegen_circular_refs(void) {
 
   {
 
-    char *fwd_a = strstr(header_content, "struct A;");
+    char * fwd_a;
+    char * fwd_b;
+    char * def_a;
+    char * def_b;
 
-    char *fwd_b = strstr(header_content, "struct B;");
-
-    char *def_a = strstr(header_content, "struct A {");
-
-    char *def_b = strstr(header_content, "struct B {");
+    fwd_a = strstr(header_content, "struct A;");
+    fwd_b = strstr(header_content, "struct B;");
+    def_a = strstr(header_content, "struct A {");
+    def_b = strstr(header_content, "struct B {");
 
     ASSERT(fwd_a != NULL);
 
@@ -181,9 +172,11 @@ TEST test_codegen_config_json_guards(void) {
 
   {
 
-    char *p = content;
+    char * p;
+    int count;
+    p = content;
 
-    int count = 0;
+    count = 0;
 
     while ((p = strstr(p, "#ifdef ENABLE_JSON")) != NULL) {
 
@@ -259,15 +252,12 @@ TEST test_union_config_json_guards(void) {
 }
 
 TEST test_schema_codegen_union_output(void) {
+  int rc;
+  char * header_content = NULL;
+  char * source_content = NULL;
+  size_t sz;
   const char *const filename = "union_schema.json";
   const char *argv[2];
-  argv[0] = filename;
-  argv[1] = "union_out";
-  int rc;
-  char *header_content = NULL;
-  char *source_content = NULL;
-  size_t sz;
-
   const char *schema = "{"
                        "\"components\":{"
                        "\"schemas\":{"
@@ -280,6 +270,8 @@ TEST test_schema_codegen_union_output(void) {
                        "{\"$ref\":\"#/components/schemas/Dog\"}"
                        "],\"discriminator\":{\"propertyName\":\"petType\"}}"
                        "}}}";
+  argv[0] = filename;
+  argv[1] = "union_out";
 
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
@@ -310,15 +302,12 @@ TEST test_schema_codegen_union_output(void) {
 }
 
 TEST test_schema_codegen_union_inline_variants(void) {
+  int rc;
+  char * header_content = NULL;
+  char * source_content = NULL;
+  size_t sz;
   const char *const filename = "union_inline_schema.json";
   const char *argv[2];
-  argv[0] = filename;
-  argv[1] = "union_inline_out";
-  int rc;
-  char *header_content = NULL;
-  char *source_content = NULL;
-  size_t sz;
-
   const char *schema =
       "{"
       "\"components\":{"
@@ -330,6 +319,8 @@ TEST test_schema_codegen_union_inline_variants(void) {
       "\"string\"}}"
       "]}"
       "}}}";
+  argv[0] = filename;
+  argv[1] = "union_inline_out";
 
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);
@@ -360,21 +351,20 @@ TEST test_schema_codegen_union_inline_variants(void) {
 }
 
 TEST test_schema_codegen_enum_output(void) {
+  int rc;
+  char * header_content = NULL;
+  char * source_content = NULL;
+  size_t sz;
   const char *const filename = "enum_schema.json";
   const char *argv[2];
-  argv[0] = filename;
-  argv[1] = "enum_out";
-  int rc;
-  char *header_content = NULL;
-  char *source_content = NULL;
-  size_t sz;
-
   const char *schema =
       "{"
       "\"components\":{"
       "\"schemas\":{"
       "\"Color\":{\"type\":\"string\",\"enum\":[\"RED\",\"GREEN\"]}"
       "}}}";
+  argv[0] = filename;
+  argv[1] = "enum_out";
 
   rc = write_to_file(filename, schema);
   ASSERT_EQ(0, rc);

@@ -9,8 +9,11 @@
 
 TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";
-  char *argv[] = {arg0, NULL};
-  const int rc = jsonschema2tests_main(1, argv);
+  char *argv[2];
+  int rc;
+  argv[0] = arg0;
+  argv[1] = NULL;
+  rc = jsonschema2tests_main(1, argv);
   ASSERT_EQ(EXIT_FAILURE, rc);
   PASS();
 }
@@ -18,15 +21,17 @@ TEST test_jsonschema2tests_wrong_args(void) {
 TEST test_schema2tests_argc_error(void) {
   char arg0[] = "prog";
   char arg1[] = "a.json";
-  char *argv[] = {arg0, arg1};
+  char *argv[2];
+  argv[0] = arg0;
+  argv[1] = arg1;
   ASSERT_EQ(EXIT_FAILURE, jsonschema2tests_main(1, argv));
   PASS();
 }
 
 TEST test_schema2tests_bad_json(void) {
   const char *const filename = "bad_s2t.json";
-  int rc = write_to_file(filename, "{bad json");
   char *argv[3];
+  int rc = write_to_file(filename, "{bad json");
   argv[0] = (char *)filename;
   argv[1] = "header.h";
   argv[2] = "out.h";
@@ -75,10 +80,10 @@ TEST test_schema2tests_success(void) {
 TEST test_schema2tests_output_file_open_fail(void) {
   const char *const schema_filename = "schema.2tests.json";
   char *argv[3];
+  int rc;
   argv[0] = (char *)schema_filename;
   argv[1] = "header.h";
   argv[2] = "";
-  int rc;
   rc = write_to_file(schema_filename, "{\"$defs\":{}}");
   ASSERT_EQ(EXIT_SUCCESS, rc);
   rc = jsonschema2tests_main(3, argv);
@@ -160,10 +165,10 @@ TEST test_schema2tests_no_schemas_object(void) {
 TEST test_schema2tests_malformed_schemas(void) {
   const char *const schema_file = "malformed.json";
   char *argv[3];
+  int rc;
   argv[0] = (char *)schema_file;
   argv[1] = "header.h";
   argv[2] = "build" PATH_SEP "out.h";
-  int rc;
   /* non-object schema, no type, non-string enum member, special char name */
   write_to_file(schema_file, "{\"components\":{\"schemas\":{"
                              "\"E1\":{\"type\":\"string\",\"enum\":[\"X\",1]},"

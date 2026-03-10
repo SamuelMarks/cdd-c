@@ -186,12 +186,12 @@ TEST test_audit_json_output(void) {
 
 TEST test_audit_stats_null(void) {
   struct AuditStats stats;
+  char *_test_json = (char *)1;
   audit_stats_init(NULL); /* Should do nothing safely */
   audit_stats_free(NULL); /* Should return safely */
 
   ASSERT_EQ(EINVAL, audit_project(NULL, &stats));
   ASSERT_EQ(EINVAL, audit_project("dummy", NULL));
-  char *_test_json = (char *)1;
   audit_print_json(NULL, &_test_json);
   ASSERT(_test_json == NULL);
 
@@ -205,6 +205,7 @@ TEST test_audit_edge_cases(void) {
   char *d_dir_c = NULL;
   char *f_strndup = NULL;
   char *f_bad_token = NULL;
+  char *f_unreadable = NULL;
   struct AuditStats stats;
 
   tempdir(&sys_tmp);
@@ -224,7 +225,6 @@ TEST test_audit_edge_cases(void) {
   write_to_file(f_strndup, "char* f() { return strndup(\"a\", 1); }");
 
   /* Unreadable file */
-  char *f_unreadable = NULL;
   asprintf(&f_unreadable, "%s%sunreadable.c", root, PATH_SEP);
   write_to_file(f_unreadable, "int unreadable = 1;");
   chmod(f_unreadable, 0000);

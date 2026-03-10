@@ -16,6 +16,7 @@ TEST test_schema_constraints_roundtrip(void) {
   struct StructField *_ast_struct_fields_get_2;
   struct StructField *_ast_struct_fields_get_3;
   struct StructField *_ast_struct_fields_get_4;
+  struct StructFields sf;
   const char *schema =
       "{\"type\":\"object\",\"properties\":{"
       "\"score\":{\"type\":\"number\","
@@ -36,12 +37,12 @@ TEST test_schema_constraints_roundtrip(void) {
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
-  struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
   ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
 
   {
-    struct StructField *score =
+    struct StructField * score;
+    score = 
         (struct_fields_get(&sf, "score", &_ast_struct_fields_get_0),
          _ast_struct_fields_get_0);
     ASSERT(score != NULL);
@@ -54,7 +55,8 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
-    struct StructField *age =
+    struct StructField * age;
+    age = 
         (struct_fields_get(&sf, "age", &_ast_struct_fields_get_1),
          _ast_struct_fields_get_1);
     ASSERT(age != NULL);
@@ -67,7 +69,8 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
-    struct StructField *name =
+    struct StructField * name;
+    name = 
         (struct_fields_get(&sf, "name", &_ast_struct_fields_get_2),
          _ast_struct_fields_get_2);
     ASSERT(name != NULL);
@@ -80,7 +83,8 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
-    struct StructField *enabled =
+    struct StructField * enabled;
+    enabled = 
         (struct_fields_get(&sf, "enabled", &_ast_struct_fields_get_3),
          _ast_struct_fields_get_3);
     ASSERT(enabled != NULL);
@@ -88,7 +92,8 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
-    struct StructField *tags =
+    struct StructField * tags;
+    tags = 
         (struct_fields_get(&sf, "tags", &_ast_struct_fields_get_4),
          _ast_struct_fields_get_4);
     ASSERT(tags != NULL);
@@ -100,6 +105,10 @@ TEST test_schema_constraints_roundtrip(void) {
   }
 
   {
+    JSON_Object * age_prop;
+    JSON_Object * name_prop;
+    JSON_Object * enabled_prop;
+    JSON_Object * tags_prop;
     JSON_Value *schemas_val;
     JSON_Object *schemas_obj;
     JSON_Object *test_obj;
@@ -126,10 +135,6 @@ TEST test_schema_constraints_roundtrip(void) {
       ASSERT(ex_min > 3.4 && ex_min < 3.6);
       ASSERT(ex_max > 9.2 && ex_max < 9.3);
     }
-    JSON_Object *age_prop;
-    JSON_Object *name_prop;
-    JSON_Object *enabled_prop;
-    JSON_Object *tags_prop;
     {
       double def_num;
       def_num = json_object_get_number(score_prop, "default");
@@ -169,6 +174,7 @@ TEST test_schema_constraints_roundtrip(void) {
 }
 
 TEST test_schema_annotations_roundtrip(void) {
+  struct StructFields sf;
   JSON_Value *val;
   JSON_Object *obj;
   struct StructField *_ast_struct_fields_get_5;
@@ -188,12 +194,12 @@ TEST test_schema_annotations_roundtrip(void) {
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
-  struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
   ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
 
   {
-    struct StructField *id_field =
+    struct StructField * id_field;
+    id_field = 
         (struct_fields_get(&sf, "id", &_ast_struct_fields_get_5),
          _ast_struct_fields_get_5);
     ASSERT(id_field != NULL);
@@ -204,7 +210,8 @@ TEST test_schema_annotations_roundtrip(void) {
   }
 
   {
-    struct StructField *secret_field =
+    struct StructField * secret_field;
+    secret_field = 
         (struct_fields_get(&sf, "secret", &_ast_struct_fields_get_6),
          _ast_struct_fields_get_6);
     ASSERT(secret_field != NULL);
@@ -214,7 +221,8 @@ TEST test_schema_annotations_roundtrip(void) {
   }
 
   {
-    struct StructField *readme_field =
+    struct StructField * readme_field;
+    readme_field = 
         (struct_fields_get(&sf, "readme", &_ast_struct_fields_get_7),
          _ast_struct_fields_get_7);
     ASSERT(readme_field != NULL);
@@ -303,16 +311,17 @@ TEST test_schema_allof_merge(void) {
   ASSERT(schema_val != NULL);
 
   {
+    struct StructFields sf;
     JSON_Object *root_obj;
     JSON_Object *schema_obj;
     root_obj = json_value_get_object(root_val);
     schema_obj = json_value_get_object(schema_val);
-    struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, root_obj));
 
     {
-      struct StructField *id_field =
+      struct StructField * id_field;
+      id_field = 
           (struct_fields_get(&sf, "id", &_ast_struct_fields_get_8),
            _ast_struct_fields_get_8);
       ASSERT(id_field != NULL);
@@ -323,7 +332,8 @@ TEST test_schema_allof_merge(void) {
     }
 
     {
-      struct StructField *name_field =
+      struct StructField * name_field;
+      name_field = 
           (struct_fields_get(&sf, "name", &_ast_struct_fields_get_9),
            _ast_struct_fields_get_9);
       ASSERT(name_field != NULL);
@@ -334,7 +344,8 @@ TEST test_schema_allof_merge(void) {
     }
 
     {
-      struct StructField *extra_field =
+      struct StructField * extra_field;
+      extra_field = 
           (struct_fields_get(&sf, "extra", &_ast_struct_fields_get_10),
            _ast_struct_fields_get_10);
       ASSERT(extra_field != NULL);
@@ -367,9 +378,9 @@ TEST test_schema_anyof_first_object(void) {
   ASSERT(schema_val != NULL);
 
   {
+    struct StructFields sf;
     JSON_Object *schema_obj;
     schema_obj = json_value_get_object(schema_val);
-    struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
 
@@ -401,9 +412,9 @@ TEST test_schema_oneof_first_object(void) {
   ASSERT(schema_val != NULL);
 
   {
+    struct StructFields sf;
     JSON_Object *schema_obj;
     schema_obj = json_value_get_object(schema_val);
-    struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
 
@@ -420,6 +431,7 @@ TEST test_schema_oneof_first_object(void) {
 }
 
 TEST test_schema_keyword_passthrough(void) {
+  struct StructFields sf;
   JSON_Value *val;
   JSON_Object *obj;
   const char *schema =
@@ -451,7 +463,6 @@ TEST test_schema_keyword_passthrough(void) {
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
-  struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
   ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
 
@@ -470,7 +481,8 @@ TEST test_schema_keyword_passthrough(void) {
 
     {
       JSON_Object *pat_schema;
-      JSON_Object *pattern_props =
+      JSON_Object * pattern_props;
+      pattern_props = 
           json_object_get_object(spec, "patternProperties");
       ASSERT(pattern_props != NULL);
       pat_schema = json_object_get_object(pattern_props, "^x-");
@@ -516,7 +528,8 @@ TEST test_schema_keyword_passthrough(void) {
       meta_prop = json_object_get_object(props, "meta");
       ASSERT(meta_prop != NULL);
       {
-        JSON_Object *meta_additional =
+        JSON_Object * meta_additional;
+        meta_additional = 
             json_object_get_object(meta_prop, "additionalProperties");
         ASSERT(meta_additional != NULL);
         ASSERT_STR_EQ("string",
@@ -567,11 +580,11 @@ TEST test_schema_allof_keyword_merge(void) {
   ASSERT(schema_val != NULL);
 
   {
+    struct StructFields sf;
     JSON_Object *schema_obj;
     JSON_Value *schemas_val;
     JSON_Object *schemas_obj;
     schema_obj = json_value_get_object(schema_val);
-    struct StructFields sf;
     ASSERT_EQ(0, struct_fields_init(&sf));
     ASSERT_EQ(0, json_object_to_struct_fields(schema_obj, &sf, NULL));
 
@@ -584,12 +597,13 @@ TEST test_schema_allof_keyword_merge(void) {
       JSON_Object *pat_schema;
       JSON_Object *props;
       JSON_Object *id_prop;
+      JSON_Object *pattern_props;
       merged = json_object_get_object(schemas_obj, "Merged");
       ASSERT(merged != NULL);
       ASSERT(json_object_has_value(merged, "additionalProperties"));
       ASSERT_EQ(0, json_object_get_boolean(merged, "additionalProperties"));
 
-      JSON_Object *pattern_props =
+      pattern_props =
           json_object_get_object(merged, "patternProperties");
       ASSERT(pattern_props != NULL);
       pat_schema = json_object_get_object(pattern_props, "^x-");
@@ -615,6 +629,7 @@ TEST test_schema_allof_keyword_merge(void) {
 }
 
 TEST test_schema_type_union_roundtrip(void) {
+  struct StructFields sf;
   JSON_Value *val;
   JSON_Object *obj;
   struct StructField *_ast_struct_fields_get_15;
@@ -635,12 +650,12 @@ TEST test_schema_type_union_roundtrip(void) {
   obj = json_value_get_object(val);
   ASSERT(obj != NULL);
 
-  struct StructFields sf;
   ASSERT_EQ(0, struct_fields_init(&sf));
   ASSERT_EQ(0, json_object_to_struct_fields(obj, &sf, NULL));
 
   {
-    struct StructField *name =
+    struct StructField * name;
+    name = 
         (struct_fields_get(&sf, "name", &_ast_struct_fields_get_15),
          _ast_struct_fields_get_15);
     ASSERT(name != NULL);
@@ -651,7 +666,8 @@ TEST test_schema_type_union_roundtrip(void) {
   }
 
   {
-    struct StructField *age =
+    struct StructField * age;
+    age = 
         (struct_fields_get(&sf, "age", &_ast_struct_fields_get_16),
          _ast_struct_fields_get_16);
     ASSERT(age != NULL);
@@ -662,7 +678,8 @@ TEST test_schema_type_union_roundtrip(void) {
   }
 
   {
-    struct StructField *tags =
+    struct StructField * tags;
+    tags = 
         (struct_fields_get(&sf, "tags", &_ast_struct_fields_get_17),
          _ast_struct_fields_get_17);
     ASSERT(tags != NULL);

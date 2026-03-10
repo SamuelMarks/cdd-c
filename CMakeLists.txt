@@ -285,11 +285,7 @@ enable_testing()
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)
 if (C_CDD_BUILD_TESTING)
-    if (MSVC AND MSVC_VERSION LESS 1900)
-        message(STATUS "Skipping tests on MSVC < 2015 due to C99 syntax incompatibilities")
-    else()
-        add_subdirectory("src/tests")
-    endif()
+    add_subdirectory("src/tests")
 endif (C_CDD_BUILD_TESTING)
 
 ###########

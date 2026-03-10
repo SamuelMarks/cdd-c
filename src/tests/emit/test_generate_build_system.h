@@ -62,8 +62,12 @@ TEST test_gen_build_system_cli_args(void) {
   char arg0[] = "cmake";
   char arg1[] = "test_build_dir";
   char arg2[] = "CLIProj";
-  char *argv[] = {arg0, arg1, arg2};
+  char *argv[3];
   int rc;
+
+  argv[0] = arg0;
+  argv[1] = arg1;
+  argv[2] = arg2;
 
   rc = generate_build_system_main(3, argv);
   ASSERT_EQ(EXIT_SUCCESS, rc);
@@ -89,12 +93,19 @@ TEST test_gen_build_system_cli_args(void) {
 TEST test_gen_build_system_bad_args(void) {
   char arg0_short[] = "cmake";
   char arg1_short[] = ".";
-  char *argv_short[] = {arg0_short, arg1_short};
+  char *argv_short[2];
 
   char arg0_bad[] = "ninja";
   char arg1_bad[] = ".";
   char arg2_bad[] = "Name";
-  char *argv_bad[] = {arg0_bad, arg1_bad, arg2_bad};
+  char *argv_bad[3];
+
+  argv_short[0] = arg0_short;
+  argv_short[1] = arg1_short;
+
+  argv_bad[0] = arg0_bad;
+  argv_bad[1] = arg1_bad;
+  argv_bad[2] = arg2_bad;
 
   /* Missing name */
   ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(2, argv_short));

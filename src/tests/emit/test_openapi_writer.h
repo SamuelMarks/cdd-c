@@ -26,8 +26,8 @@
 
 static int load_spec_str2(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn;
-  dyn = json_parse_string(json_str);
   int rc;
+  dyn = json_parse_string(json_str);
   if (!dyn)
     return -1;
   openapi_spec_init(spec);
@@ -81,9 +81,10 @@ static void setup_test_spec(struct OpenAPI_Spec *spec,
 /* --- Tests --- */
 
 TEST test_writer_empty_spec(void) {
-  struct OpenAPI_Spec spec = {0};
-  char *json = NULL;
   int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   rc = openapi_write_spec_to_json(&spec, &json);
   if (rc != 0)
@@ -107,11 +108,12 @@ TEST test_writer_empty_spec(void) {
 }
 
 TEST test_writer_basic_operation(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
@@ -124,8 +126,9 @@ TEST test_writer_basic_operation(void) {
     JSON_Value *root;
     JSON_Object *p_item;
     JSON_Object *op_obj;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -141,10 +144,12 @@ TEST test_writer_basic_operation(void) {
 }
 
 TEST test_writer_schema_document(void) {
-  char *_ast_strdup_0 = NULL;
-  struct OpenAPI_Spec spec;
-  char *json = NULL;
   int rc;
+  char * _ast_strdup_0;
+  struct OpenAPI_Spec spec;
+  char * json;
+  _ast_strdup_0 = NULL;
+  json = NULL;
 
   openapi_spec_init(&spec);
   spec.is_schema_document = 1;
@@ -165,10 +170,11 @@ TEST test_writer_schema_document(void) {
 }
 
 TEST test_writer_root_metadata_and_tags(void) {
-  struct OpenAPI_Spec spec = {0};
-  struct OpenAPI_Tag tags[1];
-  char *json = NULL;
   int rc;
+  struct OpenAPI_Tag tags[1];
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   memset(tags, 0, sizeof(tags));
   spec.openapi_version = "3.2.0";
@@ -229,14 +235,15 @@ TEST test_writer_root_metadata_and_tags(void) {
 }
 
 TEST test_writer_path_ref_and_servers(void) {
+  int rc;
+  struct OpenAPI_Server path_servers[1];
+  struct OpenAPI_Server op_servers[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Server path_servers[1];
-  struct OpenAPI_Server op_servers[1];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(path_servers, 0, sizeof(path_servers));
   memset(op_servers, 0, sizeof(op_servers));
@@ -275,8 +282,9 @@ TEST test_writer_path_ref_and_servers(void) {
     JSON_Object *op_obj;
     JSON_Array *op_servers_arr;
     JSON_Object *op_srv0;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     p_servers = json_object_get_array(p_item, "servers");
@@ -300,12 +308,13 @@ TEST test_writer_path_ref_and_servers(void) {
 }
 
 TEST test_writer_webhooks(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path hook = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.webhooks = &hook;
   spec.n_webhooks = 1;
@@ -329,8 +338,9 @@ TEST test_writer_webhooks(void) {
     JSON_Value *root;
     JSON_Object *hook_item;
     JSON_Object *op_obj;
+    JSON_Object * hooks;
     root = json_parse_string(json);
-    JSON_Object *hooks =
+    hooks = 
         json_object_get_object(json_value_get_object(root), "webhooks");
     hook_item = json_object_get_object(hooks, "petEvent");
     op_obj = json_object_get_object(hook_item, "post");
@@ -346,13 +356,14 @@ TEST test_writer_webhooks(void) {
 }
 
 TEST test_writer_params_responses(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
@@ -410,12 +421,13 @@ TEST test_writer_params_responses(void) {
 }
 
 TEST test_writer_parameter_metadata(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.description = "Search term";
@@ -433,8 +445,9 @@ TEST test_writer_parameter_metadata(void) {
     JSON_Value *root;
     JSON_Array *oa_params;
     JSON_Object *p_obj;
+    JSON_Object * op_obj;
     root = json_parse_string(json);
-    JSON_Object *op_obj = json_object_get_object(
+    op_obj = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -453,12 +466,13 @@ TEST test_writer_parameter_metadata(void) {
 }
 
 TEST test_writer_allow_empty_value(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.allow_empty_value_set = 1;
@@ -473,8 +487,9 @@ TEST test_writer_allow_empty_value(void) {
     JSON_Value *root;
     JSON_Array *oa_params;
     JSON_Object *p_obj;
+    JSON_Object * op_obj;
     root = json_parse_string(json);
-    JSON_Object *op_obj = json_object_get_object(
+    op_obj = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -491,12 +506,13 @@ TEST test_writer_allow_empty_value(void) {
 }
 
 TEST test_writer_request_body_metadata_and_response_description(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   op.verb = OA_VERB_POST;
@@ -544,9 +560,10 @@ TEST test_writer_request_body_metadata_and_response_description(void) {
 }
 
 TEST test_writer_info_metadata(void) {
-  struct OpenAPI_Spec spec = {0};
-  char *json = NULL;
   int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   spec.info.title = "Example API";
   spec.info.summary = "Short";
@@ -569,8 +586,9 @@ TEST test_writer_info_metadata(void) {
     JSON_Value *root;
     JSON_Object *contact;
     JSON_Object *license;
+    JSON_Object * info;
     root = json_parse_string(json);
-    JSON_Object *info =
+    info = 
         json_object_get_object(json_value_get_object(root), "info");
     contact = json_object_get_object(info, "contact");
     license = json_object_get_object(info, "license");
@@ -598,9 +616,10 @@ TEST test_writer_info_metadata(void) {
 }
 
 TEST test_writer_info_license_identifier_and_url_rejected(void) {
-  struct OpenAPI_Spec spec = {0};
-  char *json = NULL;
   int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   spec.info.title = "Example API";
   spec.info.version = "1.0";
@@ -615,10 +634,11 @@ TEST test_writer_info_license_identifier_and_url_rejected(void) {
 }
 
 TEST test_writer_server_url_query_rejected(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Server server = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.info.title = "Example API";
   spec.info.version = "1.0";
@@ -633,11 +653,12 @@ TEST test_writer_server_url_query_rejected(void) {
 }
 
 TEST test_writer_operation_metadata(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.summary = "Summary text";
@@ -651,8 +672,9 @@ TEST test_writer_operation_metadata(void) {
 
   {
     JSON_Value *root;
+    JSON_Object * op_obj;
     root = json_parse_string(json);
-    JSON_Object *op_obj =
+    op_obj = 
         json_object_get_object(json_value_get_object(root), "paths");
     op_obj = json_object_get_object(op_obj, "/test/route");
     op_obj = json_object_get_object(op_obj, "get");
@@ -670,12 +692,13 @@ TEST test_writer_operation_metadata(void) {
 }
 
 TEST test_writer_response_content_type(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.content_type = "text/plain";
@@ -692,8 +715,9 @@ TEST test_writer_response_content_type(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -715,12 +739,13 @@ TEST test_writer_response_content_type(void) {
 }
 
 TEST test_writer_inline_response_schema_primitive(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.inline_type = "string";
@@ -736,8 +761,9 @@ TEST test_writer_inline_response_schema_primitive(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -757,12 +783,13 @@ TEST test_writer_inline_response_schema_primitive(void) {
 }
 
 TEST test_writer_inline_response_schema_array(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
@@ -780,8 +807,9 @@ TEST test_writer_inline_response_schema_array(void) {
     JSON_Object *media;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -803,12 +831,13 @@ TEST test_writer_inline_response_schema_array(void) {
 }
 
 TEST test_writer_inline_schema_format_and_content(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.inline_type = "string";
@@ -827,8 +856,9 @@ TEST test_writer_inline_schema_format_and_content(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -852,12 +882,13 @@ TEST test_writer_inline_schema_format_and_content(void) {
 }
 
 TEST test_writer_inline_schema_array_item_format_and_content(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.is_array = 1;
@@ -878,8 +909,9 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
     JSON_Object *media;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -905,13 +937,14 @@ TEST test_writer_inline_schema_array_item_format_and_content(void) {
 }
 
 TEST test_writer_schema_external_docs_discriminator_xml(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_DiscriminatorMap map;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  struct OpenAPI_DiscriminatorMap map;
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
 
@@ -953,8 +986,9 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
     JSON_Object *disc;
     JSON_Object *mapping;
     JSON_Object *xml;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -993,13 +1027,14 @@ TEST test_writer_schema_external_docs_discriminator_xml(void) {
 }
 
 TEST test_writer_inline_schema_const_examples_annotations(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Any examples[2];
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Any examples[2];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(examples, 0, sizeof(examples));
   examples[0].type = OA_ANY_STRING;
@@ -1034,8 +1069,9 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
     JSON_Object *media;
     JSON_Object *schema;
     JSON_Array *examples_arr;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -1063,6 +1099,7 @@ TEST test_writer_inline_schema_const_examples_annotations(void) {
 }
 
 TEST test_writer_preserves_composed_component_schema(void) {
+  int rc;
   const char *json =
       "{"
       "\"openapi\":\"3.2.0\","
@@ -1081,8 +1118,8 @@ TEST test_writer_preserves_composed_component_schema(void) {
       "}";
 
   struct OpenAPI_Spec spec;
-  char *out_json = NULL;
-  int rc;
+  char * out_json;
+  out_json = NULL;
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
@@ -1119,6 +1156,7 @@ TEST test_writer_preserves_composed_component_schema(void) {
 }
 
 TEST test_writer_preserves_inline_composed_schema(void) {
+  int rc;
   /* */
 
   const char *json =
@@ -1151,8 +1189,8 @@ TEST test_writer_preserves_inline_composed_schema(void) {
       "}";
 
   struct OpenAPI_Spec spec;
-  char *out_json = NULL;
-  int rc;
+  char * out_json;
+  out_json = NULL;
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
@@ -1170,13 +1208,15 @@ TEST test_writer_preserves_inline_composed_schema(void) {
     JSON_Object *root_obj;
     JSON_Object *comps;
     JSON_Object *schemas;
+    JSON_Object * inline_schema;
+    JSON_Array * one_of;
     root = json_parse_string(out_json);
     root_obj = json_value_get_object(root);
     comps = json_object_get_object(root_obj, "components");
     schemas = json_object_get_object(comps, "schemas");
-    JSON_Object *inline_schema =
+    inline_schema = 
         json_object_get_object(schemas, "Inline_GetPets_Response_200");
-    JSON_Array *one_of =
+    one_of = 
         inline_schema ? json_object_get_array(inline_schema, "oneOf") : NULL;
     ASSERT(inline_schema != NULL);
     ASSERT(one_of != NULL);
@@ -1190,12 +1230,13 @@ TEST test_writer_preserves_inline_composed_schema(void) {
 }
 
 TEST test_writer_schema_ref_summary_description(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = "Mode";
@@ -1213,8 +1254,9 @@ TEST test_writer_schema_ref_summary_description(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * responses;
     root = json_parse_string(json);
-    JSON_Object *responses = json_object_get_object(
+    responses = json_object_get_object(
         json_object_get_object(
             json_object_get_object(json_value_get_object(root), "paths"),
             "/test/route"),
@@ -1238,9 +1280,10 @@ TEST test_writer_schema_ref_summary_description(void) {
 }
 
 TEST test_writer_info_license_missing_name_rejected(void) {
-  struct OpenAPI_Spec spec = {0};
-  char *json = NULL;
   int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   spec.info.title = "Example";
   spec.info.version = "1.0";
@@ -1253,11 +1296,12 @@ TEST test_writer_info_license_missing_name_rejected(void) {
 }
 
 TEST test_writer_options_trace_verbs(void) {
-  struct OpenAPI_Spec spec = {0};
+  int rc;
   struct OpenAPI_Path path;
   struct OpenAPI_Operation ops[2];
-  char *json = NULL;
-  int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   memset(&path, 0, sizeof(path));
   memset(ops, 0, sizeof(ops));
@@ -1278,8 +1322,9 @@ TEST test_writer_options_trace_verbs(void) {
 
   {
     JSON_Value *root;
+    JSON_Object * verbs;
     root = json_parse_string(json);
-    JSON_Object *verbs = json_object_get_object(
+    verbs = json_object_get_object(
         json_object_get_object(json_value_get_object(root), "paths"), "/verbs");
     ASSERT(json_object_get_object(verbs, "options") != NULL);
     ASSERT(json_object_get_object(verbs, "trace") != NULL);
@@ -1291,11 +1336,12 @@ TEST test_writer_options_trace_verbs(void) {
 }
 
 TEST test_writer_query_and_external_docs(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_QUERY;
@@ -1313,8 +1359,9 @@ TEST test_writer_query_and_external_docs(void) {
     JSON_Object *p_item;
     JSON_Object *op_obj;
     JSON_Object *ext;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "query");
@@ -1332,12 +1379,13 @@ TEST test_writer_query_and_external_docs(void) {
 }
 
 TEST test_writer_parameter_styles(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   /* Configure Advanced Params */
@@ -1374,12 +1422,13 @@ TEST test_writer_parameter_styles(void) {
 }
 
 TEST test_writer_parameter_explode_false(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.in = OA_PARAM_IN_QUERY;
@@ -1417,12 +1466,13 @@ TEST test_writer_parameter_explode_false(void) {
 }
 
 TEST test_writer_parameter_style_matrix(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.in = OA_PARAM_IN_PATH;
@@ -1456,12 +1506,13 @@ TEST test_writer_parameter_style_matrix(void) {
 }
 
 TEST test_writer_parameter_content_any(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -1514,6 +1565,8 @@ TEST test_writer_parameter_content_any(void) {
 }
 
 TEST test_writer_parameter_and_header_content_media_type(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
@@ -1523,8 +1576,7 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
   struct OpenAPI_MediaType param_media = {0};
   struct OpenAPI_MediaType header_media = {0};
   struct OpenAPI_Encoding enc = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -1578,15 +1630,17 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
     JSON_Object *content;
     JSON_Object *encoding;
     JSON_Object *enc_id;
+    JSON_Object * paths;
+    JSON_Object * media;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/content");
     op_obj = json_object_get_object(p_item, "get");
     params = json_object_get_array(op_obj, "parameters");
     p0 = json_array_get_object(params, 0);
     content = json_object_get_object(p0, "content");
-    JSON_Object *media =
+    media = 
         json_object_get_object(content, "application/x-www-form-urlencoded");
     encoding = json_object_get_object(media, "encoding");
     enc_id = json_object_get_object(encoding, "id");
@@ -1622,13 +1676,14 @@ TEST test_writer_parameter_and_header_content_media_type(void) {
 }
 
 TEST test_writer_parameter_examples_object(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  struct OpenAPI_Example ex;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  struct OpenAPI_Example ex;
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(&ex, 0, sizeof(ex));
   setup_test_spec(&spec, &path, &op, &param, NULL);
@@ -1653,8 +1708,9 @@ TEST test_writer_parameter_examples_object(void) {
     JSON_Object *p0;
     JSON_Object *examples;
     JSON_Object *basic;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -1674,12 +1730,13 @@ TEST test_writer_parameter_examples_object(void) {
 }
 
 TEST test_writer_parameter_examples_media(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.content_type = "application/json";
@@ -1701,8 +1758,9 @@ TEST test_writer_parameter_examples_media(void) {
     JSON_Object *p0;
     JSON_Object *content;
     JSON_Object *media;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -1721,11 +1779,12 @@ TEST test_writer_parameter_examples_media(void) {
 }
 
 TEST test_writer_component_examples(void) {
-  struct OpenAPI_Spec spec = {0};
-  struct OpenAPI_Example ex;
-  char *json = NULL;
-  char *names[1];
   int rc;
+  struct OpenAPI_Example ex;
+  char * json;
+  char *names[1];
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   memset(&ex, 0, sizeof(ex));
   names[0] = "ex1";
@@ -1746,8 +1805,9 @@ TEST test_writer_component_examples(void) {
     JSON_Value *root;
     JSON_Object *examples;
     JSON_Object *ex_obj;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     examples = json_object_get_object(comps, "examples");
     ex_obj = json_object_get_object(examples, "ex1");
@@ -1761,12 +1821,13 @@ TEST test_writer_component_examples(void) {
 }
 
 TEST test_writer_oauth2_flows(void) {
-  struct OpenAPI_Spec spec = {0};
+  int rc;
   struct OpenAPI_SecurityScheme scheme;
   struct OpenAPI_OAuthFlow flow;
   struct OpenAPI_OAuthScope scope;
-  char *json = NULL;
-  int rc;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   memset(&scheme, 0, sizeof(scheme));
   memset(&flow, 0, sizeof(flow));
@@ -1798,8 +1859,9 @@ TEST test_writer_oauth2_flows(void) {
     JSON_Object *flows;
     JSON_Object *password;
     JSON_Object *scopes;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     schemes = json_object_get_object(comps, "securitySchemes");
     oauth = json_object_get_object(schemes, "oauth");
@@ -1818,10 +1880,11 @@ TEST test_writer_oauth2_flows(void) {
 }
 
 TEST test_writer_servers(void) {
-  struct OpenAPI_Spec spec = {0};
-  struct OpenAPI_Server servers[1];
-  char *json = NULL;
   int rc;
+  struct OpenAPI_Server servers[1];
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  json = NULL;
 
   memset(servers, 0, sizeof(servers));
   servers[0].url = "https://api.example.com";
@@ -1860,12 +1923,13 @@ TEST test_writer_servers(void) {
 }
 
 TEST test_writer_querystring_param(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -1899,10 +1963,11 @@ TEST test_writer_querystring_param(void) {
       JSON_Object *p_obj;
       JSON_Object *content;
       JSON_Object *schema;
+      JSON_Object * media;
       oa_params = json_object_get_array(op_obj, "parameters");
       p_obj = json_array_get_object(oa_params, 0);
       content = json_object_get_object(p_obj, "content");
-      JSON_Object *media =
+      media = 
           json_object_get_object(content, "application/x-www-form-urlencoded");
       schema = json_object_get_object(media, "schema");
       ASSERT_STR_EQ("querystring", json_object_get_string(p_obj, "in"));
@@ -1918,12 +1983,13 @@ TEST test_writer_querystring_param(void) {
 }
 
 TEST test_writer_ignores_reserved_header_params(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter params[2] = {{0}};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -1951,10 +2017,10 @@ TEST test_writer_ignores_reserved_header_params(void) {
   {
     JSON_Value *root;
     JSON_Object *op_obj;
-    root = json_parse_string(json);
-    op_obj = json_value_get_object(root);
     JSON_Array *oa_params;
     JSON_Object *p_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/h");
     op_obj = json_object_get_object(op_obj, "get");
@@ -1970,13 +2036,14 @@ TEST test_writer_ignores_reserved_header_params(void) {
 }
 
 TEST test_writer_ignores_content_type_response_header(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Header headers[2] = {{0}};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -2007,10 +2074,10 @@ TEST test_writer_ignores_content_type_response_header(void) {
   {
     JSON_Value *root;
     JSON_Object *op_obj;
-    root = json_parse_string(json);
-    op_obj = json_value_get_object(root);
     JSON_Object *resp_obj;
     JSON_Object *headers_obj;
+    root = json_parse_string(json);
+    op_obj = json_value_get_object(root);
     op_obj = json_object_get_object(op_obj, "paths");
     op_obj = json_object_get_object(op_obj, "/r");
     op_obj = json_object_get_object(op_obj, "get");
@@ -2028,12 +2095,13 @@ TEST test_writer_ignores_content_type_response_header(void) {
 }
 
 TEST test_writer_path_level_parameters(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter pparam = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -2061,8 +2129,9 @@ TEST test_writer_path_level_parameters(void) {
     JSON_Object *item;
     JSON_Array *oa_params;
     JSON_Object *p_obj;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     item = json_object_get_object(paths, "/pets");
     oa_params = json_object_get_array(item, "parameters");
@@ -2081,12 +2150,13 @@ TEST test_writer_path_level_parameters(void) {
 }
 
 TEST test_writer_server_variables(void) {
+  int rc;
+  char *enum_vals[2];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Server server = {0};
   struct OpenAPI_ServerVariable var = {0};
-  char *enum_vals[2];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   enum_vals[0] = "prod";
   enum_vals[1] = "staging";
@@ -2138,13 +2208,14 @@ TEST test_writer_server_variables(void) {
 }
 
 TEST test_writer_security_schemes(void) {
-  struct OpenAPI_Spec spec = {0};
-  struct OpenAPI_SecurityScheme s1, s2;
-  char *json = NULL;
   int rc;
-
+  struct OpenAPI_SecurityScheme s1, s2;
+  char * json;
+  struct OpenAPI_Spec spec = {0};
   struct OpenAPI_SecurityScheme schemes[3];
   struct OpenAPI_SecurityScheme s3;
+  json = NULL;
+
   memset(&s1, 0, sizeof(s1));
   memset(&s2, 0, sizeof(s2));
   memset(&s3, 0, sizeof(s3));
@@ -2177,8 +2248,9 @@ TEST test_writer_security_schemes(void) {
   {
     JSON_Value *root;
     JSON_Object *secs;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     secs = json_object_get_object(comps, "securitySchemes");
 
@@ -2218,15 +2290,16 @@ TEST test_writer_security_schemes(void) {
 }
 
 TEST test_writer_security_requirements(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op = {0};
   struct OpenAPI_SecurityRequirementSet root_set;
   struct OpenAPI_SecurityRequirement root_req;
   struct OpenAPI_SecurityRequirementSet op_set;
   struct OpenAPI_SecurityRequirement op_req;
-  char *json = NULL;
-  int rc;
+  char * json;
+  struct OpenAPI_Operation op = {0};
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
 
@@ -2272,7 +2345,8 @@ TEST test_writer_security_requirements(void) {
     {
       JSON_Array *op_sec;
       JSON_Object *op_req_obj;
-      JSON_Object *op_obj = json_object_get_object(
+      JSON_Object * op_obj;
+      op_obj = json_object_get_object(
           json_object_get_object(json_object_get_object(root_obj, "paths"),
                                  "/test/route"),
           "get");
@@ -2289,12 +2363,13 @@ TEST test_writer_security_requirements(void) {
 }
 
 TEST test_writer_multipart_schema(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op = {0};
   struct OpenAPI_MultipartField parts[2];
-  char *json = NULL;
-  int rc;
+  char * json;
+  struct OpenAPI_Operation op = {0};
+  json = NULL;
 
   memset(&parts, 0, sizeof(parts));
   parts[0].name = "file";
@@ -2357,20 +2432,21 @@ TEST test_writer_multipart_schema(void) {
 }
 
 TEST test_writer_components_and_response_headers(void) {
+  int rc;
+  struct OpenAPI_Response responses[2];
+  char *param_names[1];
+  char *resp_names[1];
+  char *hdr_names[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response responses[2];
   struct OpenAPI_Header resp_hdr = {0};
   struct OpenAPI_Parameter comp_param = {0};
   struct OpenAPI_Response comp_resp = {0};
   struct OpenAPI_Header comp_hdr = {0};
   struct OpenAPI_Parameter op_param = {0};
-  char *param_names[1];
-  char *resp_names[1];
-  char *hdr_names[1];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(responses, 0, sizeof(responses));
 
@@ -2440,6 +2516,8 @@ TEST test_writer_components_and_response_headers(void) {
     JSON_Object *p0;
     JSON_Object *resp200_hdrs;
     JSON_Object *x_rate;
+    JSON_Object * resp200;
+    JSON_Object * resp404;
     root = json_parse_string(json);
     root_obj = json_value_get_object(root);
     components = json_object_get_object(root_obj, "components");
@@ -2451,9 +2529,9 @@ TEST test_writer_components_and_response_headers(void) {
     get = json_object_get_object(item, "get");
     params_arr = json_object_get_array(get, "parameters");
     p0 = json_array_get_object(params_arr, 0);
-    JSON_Object *resp200 =
+    resp200 = 
         json_object_get_object(json_object_get_object(get, "responses"), "200");
-    JSON_Object *resp404 =
+    resp404 = 
         json_object_get_object(json_object_get_object(get, "responses"), "404");
     resp200_hdrs = json_object_get_object(resp200, "headers");
     x_rate = json_object_get_object(resp200_hdrs, "X-Rate");
@@ -2488,13 +2566,14 @@ TEST test_writer_components_and_response_headers(void) {
 }
 
 TEST test_writer_components_request_bodies(void) {
+  int rc;
+  char *rb_names[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_RequestBody comp_rb = {0};
-  char *rb_names[1];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, NULL);
   op.verb = OA_VERB_POST;
@@ -2557,11 +2636,13 @@ TEST test_writer_components_request_bodies(void) {
 }
 
 TEST test_writer_components_schemas(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct StructFields sf;
-  char *name = "MyModel";
-  char *json = NULL;
-  int rc;
+  char * name;
+  char * json;
+  name = "MyModel";
+  json = NULL;
 
   memset(&spec, 0, sizeof(spec));
   struct_fields_init(&sf);
@@ -2582,8 +2663,9 @@ TEST test_writer_components_schemas(void) {
     JSON_Object *model;
     JSON_Object *props;
     JSON_Object *id_prop;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     schemas = json_object_get_object(comps, "schemas");
     model = json_object_get_object(schemas, "MyModel");
@@ -2601,12 +2683,13 @@ TEST test_writer_components_schemas(void) {
 }
 
 TEST test_writer_components_schemas_raw(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   char *names[3] = {"Token", "Flag", "Nums"};
   char *raw[3] = {"{\"type\":\"string\"}", "true",
                   "{\"type\":\"array\",\"items\":{\"type\":\"integer\"}}"};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.raw_schema_names = names;
   spec.raw_schema_json = raw;
@@ -2624,8 +2707,9 @@ TEST test_writer_components_schemas_raw(void) {
     JSON_Value *flag_val;
     JSON_Object *nums;
     JSON_Object *items;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     schemas = json_object_get_object(comps, "schemas");
     token = json_object_get_object(schemas, "Token");
@@ -2647,12 +2731,13 @@ TEST test_writer_components_schemas_raw(void) {
 }
 
 TEST test_writer_schema_ref_external(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
@@ -2672,8 +2757,9 @@ TEST test_writer_schema_ref_external(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     get = json_object_get_object(p_item, "get");
@@ -2694,12 +2780,13 @@ TEST test_writer_schema_ref_external(void) {
 }
 
 TEST test_writer_schema_dynamic_ref_external(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
@@ -2720,8 +2807,9 @@ TEST test_writer_schema_dynamic_ref_external(void) {
     JSON_Object *content;
     JSON_Object *media;
     JSON_Object *schema;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     get = json_object_get_object(p_item, "get");
@@ -2742,12 +2830,13 @@ TEST test_writer_schema_dynamic_ref_external(void) {
 }
 
 TEST test_writer_schema_items_ref_external(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
@@ -2769,8 +2858,9 @@ TEST test_writer_schema_items_ref_external(void) {
     JSON_Object *media;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     get = json_object_get_object(p_item, "get");
@@ -2793,12 +2883,13 @@ TEST test_writer_schema_items_ref_external(void) {
 }
 
 TEST test_writer_schema_items_dynamic_ref_external(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   resp.schema.ref_name = NULL;
@@ -2821,8 +2912,9 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
     JSON_Object *media;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     get = json_object_get_object(p_item, "get");
@@ -2845,12 +2937,13 @@ TEST test_writer_schema_items_dynamic_ref_external(void) {
 }
 
 TEST test_writer_additional_operations(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation add_op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -2876,11 +2969,13 @@ TEST test_writer_additional_operations(void) {
     JSON_Value *root;
     JSON_Object *p_item;
     JSON_Object *copy_op;
+    JSON_Object * paths;
+    JSON_Object * add_ops;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/copy");
-    JSON_Object *add_ops =
+    add_ops = 
         json_object_get_object(p_item, "additionalOperations");
     copy_op = json_object_get_object(add_ops, "COPY");
 
@@ -2895,14 +2990,15 @@ TEST test_writer_additional_operations(void) {
 }
 
 TEST test_writer_component_media_types_and_content_ref(void) {
+  int rc;
+  char *media_names[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_MediaType mt = {0};
-  char *media_names[1];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   media_names[0] = "application/vnd.acme+json";
   spec.component_media_types = &mt;
@@ -2945,11 +3041,13 @@ TEST test_writer_component_media_types_and_content_ref(void) {
     JSON_Object *responses;
     JSON_Object *resp_obj;
     JSON_Object *content;
+    JSON_Object * mt_obj;
+    JSON_Object * mt_content;
     root = json_parse_string(json);
     obj = json_value_get_object(root);
     comps = json_object_get_object(obj, "components");
     media = json_object_get_object(comps, "mediaTypes");
-    JSON_Object *mt_obj =
+    mt_obj = 
         json_object_get_object(media, "application/vnd.acme+json");
     schema_obj = json_object_get_object(mt_obj, "schema");
     paths = json_object_get_object(obj, "paths");
@@ -2958,7 +3056,7 @@ TEST test_writer_component_media_types_and_content_ref(void) {
     responses = json_object_get_object(get_op, "responses");
     resp_obj = json_object_get_object(responses, "200");
     content = json_object_get_object(resp_obj, "content");
-    JSON_Object *mt_content =
+    mt_content = 
         json_object_get_object(content, "application/vnd.acme+json");
 
     ASSERT_STR_EQ("#/components/schemas/Pet",
@@ -2974,13 +3072,14 @@ TEST test_writer_component_media_types_and_content_ref(void) {
 }
 
 TEST test_writer_response_multiple_content(void) {
+  int rc;
+  struct OpenAPI_MediaType contents[2];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  struct OpenAPI_MediaType contents[2];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(contents, 0, sizeof(contents));
 
@@ -3009,8 +3108,9 @@ TEST test_writer_response_multiple_content(void) {
     JSON_Object *responses;
     JSON_Object *r200;
     JSON_Object *content;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -3030,14 +3130,15 @@ TEST test_writer_response_multiple_content(void) {
 }
 
 TEST test_writer_request_body_multiple_content_and_encoding(void) {
+  int rc;
+  struct OpenAPI_MediaType media[1];
+  struct OpenAPI_Encoding enc[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
-  struct OpenAPI_MediaType media[1];
-  struct OpenAPI_Encoding enc[1];
   struct OpenAPI_Header enc_hdr = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(media, 0, sizeof(media));
   memset(enc, 0, sizeof(enc));
@@ -3084,8 +3185,9 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
     JSON_Object *headers;
     JSON_Object *hdr;
     JSON_Object *hdr_schema;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
     op_obj = json_object_get_object(p_item, "get");
@@ -3111,15 +3213,16 @@ TEST test_writer_request_body_multiple_content_and_encoding(void) {
 }
 
 TEST test_writer_media_type_prefix_item_encoding(void) {
-  struct OpenAPI_Spec spec = {0};
+  int rc;
   struct OpenAPI_MediaType media[1];
   char *media_names[1];
   struct OpenAPI_Encoding prefix[2];
-  struct OpenAPI_Encoding item = {0};
   struct OpenAPI_Encoding nested[1];
+  char * json;
+  struct OpenAPI_Spec spec = {0};
+  struct OpenAPI_Encoding item = {0};
   struct OpenAPI_Header prefix_hdr = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(media, 0, sizeof(media));
   memset(prefix, 0, sizeof(prefix));
@@ -3171,8 +3274,9 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
     JSON_Object *item_obj;
     JSON_Object *item_encoding;
     JSON_Object *meta_obj;
+    JSON_Object * components;
     root = json_parse_string(json);
-    JSON_Object *components =
+    components = 
         json_object_get_object(json_value_get_object(root), "components");
     media_types = json_object_get_object(components, "mediaTypes");
     mt = json_object_get_object(media_types, "multipart/mixed");
@@ -3205,13 +3309,14 @@ TEST test_writer_media_type_prefix_item_encoding(void) {
 }
 
 TEST test_writer_component_path_items(void) {
+  int rc;
+  char *path_item_names[1];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path_item = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *path_item_names[1];
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   path_item.route = "FooItem";
   path_item.summary = "foo";
@@ -3260,15 +3365,16 @@ TEST test_writer_component_path_items(void) {
 }
 
 TEST test_writer_response_links(void) {
+  int rc;
+  struct OpenAPI_LinkParam params[2];
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Link link = {0};
-  struct OpenAPI_LinkParam params[2];
   struct OpenAPI_Server link_server = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   memset(params, 0, sizeof(params));
 
@@ -3321,8 +3427,9 @@ TEST test_writer_response_links(void) {
     JSON_Object *link_obj;
     JSON_Object *params_obj;
     JSON_Object *srv_obj;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     op_obj = json_object_get_object(p_item, "get");
@@ -3349,6 +3456,8 @@ TEST test_writer_response_links(void) {
 }
 
 TEST test_writer_callbacks(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
@@ -3357,8 +3466,7 @@ TEST test_writer_callbacks(void) {
   struct OpenAPI_Path cb_path = {0};
   struct OpenAPI_Operation cb_op = {0};
   struct OpenAPI_Response cb_resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -3400,14 +3508,16 @@ TEST test_writer_callbacks(void) {
     JSON_Object *cbs;
     JSON_Object *cb_obj;
     JSON_Object *cb_post;
+    JSON_Object * paths;
+    JSON_Object * cb_path_obj;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     op_obj = json_object_get_object(p_item, "get");
     cbs = json_object_get_object(op_obj, "callbacks");
     cb_obj = json_object_get_object(cbs, "onEvent");
-    JSON_Object *cb_path_obj =
+    cb_path_obj = 
         json_object_get_object(cb_obj, "{$request.body#/url}");
     cb_post = json_object_get_object(cb_path_obj, "post");
 
@@ -3422,14 +3532,15 @@ TEST test_writer_callbacks(void) {
 }
 
 TEST test_writer_parameter_and_header_schema_ref(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter params[2] = {0};
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Header hdr = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -3476,8 +3587,9 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
     JSON_Object *p0_schema;
     JSON_Object *p1_schema;
     JSON_Object *p1_items;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     op_obj = json_object_get_object(p_item, "get");
@@ -3516,13 +3628,14 @@ TEST test_writer_parameter_and_header_schema_ref(void) {
 }
 
 TEST test_writer_parameter_schema_format_and_content(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -3561,8 +3674,9 @@ TEST test_writer_parameter_schema_format_and_content(void) {
     JSON_Array *params_arr;
     JSON_Object *p_obj;
     JSON_Object *schema;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     op_obj = json_object_get_object(p_item, "get");
@@ -3584,12 +3698,13 @@ TEST test_writer_parameter_schema_format_and_content(void) {
 }
 
 TEST test_writer_request_body_ref_with_description(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.paths = &path;
   spec.n_paths = 1;
@@ -3617,8 +3732,9 @@ TEST test_writer_request_body_ref_with_description(void) {
     JSON_Object *p_item;
     JSON_Object *op_obj;
     JSON_Object *rb;
+    JSON_Object * paths;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/pets");
     op_obj = json_object_get_object(p_item, "post");
@@ -3636,10 +3752,11 @@ TEST test_writer_request_body_ref_with_description(void) {
 }
 
 TEST test_writer_security_scheme_deprecated(void) {
+  int rc;
+  char * json;
   struct OpenAPI_Spec spec = {0};
   struct OpenAPI_SecurityScheme scheme = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
@@ -3660,8 +3777,9 @@ TEST test_writer_security_scheme_deprecated(void) {
     JSON_Value *root;
     JSON_Object *schemes;
     JSON_Object *old_key;
+    JSON_Object * comps;
     root = json_parse_string(json);
-    JSON_Object *comps =
+    comps = 
         json_object_get_object(json_value_get_object(root), "components");
     schemes = json_object_get_object(comps, "securitySchemes");
     old_key = json_object_get_object(schemes, "oldKey");
@@ -3674,13 +3792,14 @@ TEST test_writer_security_scheme_deprecated(void) {
 }
 
 TEST test_writer_schema_enum_default_nullable(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
+  struct OpenAPI_Any enum_vals[2];
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
-  struct OpenAPI_Any enum_vals[2];
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3707,15 +3826,18 @@ TEST test_writer_schema_enum_default_nullable(void) {
     JSON_Object *p0;
     JSON_Object *schema;
     JSON_Array *enum_arr;
+    JSON_Object * paths;
+    JSON_Array * params;
+    JSON_Array * type_arr;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
-    JSON_Array *type_arr =
+    type_arr = 
         json_value_get_array(json_object_get_value(schema, "type"));
     enum_arr = json_object_get_array(schema, "enum");
     ASSERT(type_arr != NULL);
@@ -3735,13 +3857,14 @@ TEST test_writer_schema_enum_default_nullable(void) {
 }
 
 TEST test_writer_schema_type_union(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
   char *types[] = {"string", "integer", "null"};
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3760,15 +3883,18 @@ TEST test_writer_schema_type_union(void) {
     JSON_Object *p_item;
     JSON_Object *p0;
     JSON_Object *schema;
+    JSON_Object * paths;
+    JSON_Array * params;
+    JSON_Array * type_arr;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
-    JSON_Array *type_arr =
+    type_arr = 
         json_value_get_array(json_object_get_value(schema, "type"));
     ASSERT(type_arr != NULL);
     ASSERT_EQ(3, json_array_get_count(type_arr));
@@ -3783,13 +3909,14 @@ TEST test_writer_schema_type_union(void) {
 }
 
 TEST test_writer_schema_array_items_enum_nullable(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
+  struct OpenAPI_Any enum_vals[2];
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
-  struct OpenAPI_Any enum_vals[2];
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3815,16 +3942,19 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
     JSON_Object *schema;
     JSON_Object *items;
     JSON_Array *enum_arr;
+    JSON_Object * paths;
+    JSON_Array * params;
+    JSON_Array * type_arr;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
     items = json_object_get_object(schema, "items");
-    JSON_Array *type_arr =
+    type_arr = 
         json_value_get_array(json_object_get_value(items, "type"));
     enum_arr = json_object_get_array(items, "enum");
     ASSERT(type_arr != NULL);
@@ -3843,13 +3973,14 @@ TEST test_writer_schema_array_items_enum_nullable(void) {
 }
 
 TEST test_writer_schema_items_type_union(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
   char *types[] = {"string", "integer"};
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3869,16 +4000,19 @@ TEST test_writer_schema_items_type_union(void) {
     JSON_Object *p0;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * paths;
+    JSON_Array * params;
+    JSON_Array * type_arr;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
     items = json_object_get_object(schema, "items");
-    JSON_Array *type_arr =
+    type_arr = 
         json_value_get_array(json_object_get_value(items, "type"));
     ASSERT(type_arr != NULL);
     ASSERT_EQ(2, json_array_get_count(type_arr));
@@ -3892,12 +4026,13 @@ TEST test_writer_schema_items_type_union(void) {
 }
 
 TEST test_writer_schema_boolean(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3914,11 +4049,13 @@ TEST test_writer_schema_boolean(void) {
     JSON_Object *p_item;
     JSON_Object *p0;
     JSON_Value *schema_val;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema_val = json_object_get_value(p0, "schema");
@@ -3933,13 +4070,14 @@ TEST test_writer_schema_boolean(void) {
 }
 
 TEST test_writer_schema_numeric_enum(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
+  struct OpenAPI_Any enum_vals[2];
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
-  struct OpenAPI_Any enum_vals[2];
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -3962,11 +4100,13 @@ TEST test_writer_schema_numeric_enum(void) {
     JSON_Object *p0;
     JSON_Object *schema;
     JSON_Array *enum_arr;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
@@ -3983,13 +4123,14 @@ TEST test_writer_schema_numeric_enum(void) {
 }
 
 TEST test_writer_schema_items_examples(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
+  struct OpenAPI_Any item_examples[2];
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
-  struct OpenAPI_Any item_examples[2];
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -4014,11 +4155,13 @@ TEST test_writer_schema_items_examples(void) {
     JSON_Object *schema;
     JSON_Object *items;
     JSON_Array *examples;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
@@ -4036,12 +4179,13 @@ TEST test_writer_schema_items_examples(void) {
 }
 
 TEST test_writer_schema_items_boolean(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -4060,11 +4204,13 @@ TEST test_writer_schema_items_boolean(void) {
     JSON_Object *p0;
     JSON_Object *schema;
     JSON_Value *items_val;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
@@ -4080,12 +4226,13 @@ TEST test_writer_schema_items_boolean(void) {
 }
 
 TEST test_writer_schema_example_and_numeric_constraints(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -4109,11 +4256,13 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
     JSON_Object *p_item;
     JSON_Object *p0;
     JSON_Object *schema;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
@@ -4128,12 +4277,13 @@ TEST test_writer_schema_example_and_numeric_constraints(void) {
 }
 
 TEST test_writer_schema_array_constraints_and_items_example(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
   param.schema_set = 1;
@@ -4164,11 +4314,13 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
     JSON_Object *p0;
     JSON_Object *schema;
     JSON_Object *items;
+    JSON_Object * paths;
+    JSON_Array * params;
     root = json_parse_string(json);
-    JSON_Object *paths =
+    paths = 
         json_object_get_object(json_value_get_object(root), "paths");
     p_item = json_object_get_object(paths, "/test/route");
-    JSON_Array *params = json_object_get_array(
+    params = json_object_get_array(
         json_object_get_object(p_item, "get"), "parameters");
     p0 = json_array_get_object(params, 0);
     schema = json_object_get_object(p0, "schema");
@@ -4188,6 +4340,7 @@ TEST test_writer_schema_array_constraints_and_items_example(void) {
 }
 
 TEST test_writer_inline_schema_items_const_default_and_extras(void) {
+  int rc;
   const char *json =
       "{\"paths\":{\"/"
       "q\":{\"get\":{\"parameters\":[{\"name\":\"tags\",\"in\":\"query\","
@@ -4197,8 +4350,8 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
       "0\"}";
 
   struct OpenAPI_Spec spec;
-  char *out_json = NULL;
-  int rc;
+  char * out_json;
+  out_json = NULL;
 
   rc = load_spec_str2(json, &spec);
   if (rc != 0)
@@ -4255,11 +4408,9 @@ TEST test_writer_input_validation(void) {
 }
 
 TEST test_writer_extensions_non_schema(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Parameter param = {0};
-  struct OpenAPI_Response resp = {0};
   struct OpenAPI_Callback cb;
   struct OpenAPI_Path cb_path;
   struct OpenAPI_Operation cb_op;
@@ -4270,10 +4421,13 @@ TEST test_writer_extensions_non_schema(void) {
   struct OpenAPI_SecurityRequirementSet sec_set;
   struct OpenAPI_OAuthFlow flow;
   struct OpenAPI_OAuthScope scope;
-  struct OpenAPI_RequestBody comp_rb = {0};
   char *rb_names[1];
-  char *json = NULL;
-  int rc;
+  char * json;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_RequestBody comp_rb = {0};
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, &resp);
 
@@ -4393,12 +4547,13 @@ TEST test_writer_extensions_non_schema(void) {
     JSON_Object *rb_obj;
     JSON_Array *security_arr;
     JSON_Object *security_obj;
+    JSON_Object * ext_docs_obj;
     root = json_parse_string(json);
     root_obj = json_value_get_object(root);
     info_obj = json_object_get_object(root_obj, "info");
     contact_obj = json_object_get_object(info_obj, "contact");
     license_obj = json_object_get_object(info_obj, "license");
-    JSON_Object *ext_docs_obj =
+    ext_docs_obj = 
         json_object_get_object(root_obj, "externalDocs");
     tags_arr = json_object_get_array(root_obj, "tags");
     tag_obj = json_array_get_object(tags_arr, 0);
@@ -4449,12 +4604,13 @@ TEST test_writer_extensions_non_schema(void) {
 }
 
 TEST test_writer_paths_webhooks_components_extensions(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, NULL, &resp);
   spec.info.title = "Spec";
@@ -4503,12 +4659,13 @@ TEST test_writer_paths_webhooks_components_extensions(void) {
 }
 
 TEST test_writer_methods_and_styles(void) {
+  int rc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Path path;
+  char * json;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   setup_test_spec(&spec, &path, &op, &param, NULL);
 
@@ -4562,9 +4719,10 @@ TEST test_writer_methods_and_styles(void) {
 }
 
 TEST test_writer_xml_and_oauth(void) {
-  struct OpenAPI_Spec spec;
-  char *json = NULL;
   int rc;
+  struct OpenAPI_Spec spec;
+  char * json;
+  json = NULL;
 
   openapi_spec_init(&spec);
   spec.openapi_version = "3.2.0";
@@ -4599,12 +4757,13 @@ TEST test_writer_xml_and_oauth(void) {
 }
 
 TEST test_writer_xml_types(void) {
+  int rc;
   struct OpenAPI_Spec spec;
+  char * json;
   struct OpenAPI_Path path = {0};
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
-  char *json = NULL;
-  int rc;
+  json = NULL;
 
   openapi_spec_init(&spec);
   spec.openapi_version = "3.2.0";
