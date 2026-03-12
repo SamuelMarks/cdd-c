@@ -9,9 +9,9 @@
 
 #define CODE2SCHEMA_H
 
-/* clang-format off */
 #ifdef __cplusplus
 
+/* clang-format off */
 #include <cstdlib>
 
 #include <cstring>

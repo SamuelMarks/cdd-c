@@ -28,8 +28,8 @@
 #endif
 #else
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Internal component structure for a parsed signature.

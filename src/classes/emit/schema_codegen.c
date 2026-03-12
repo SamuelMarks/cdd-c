@@ -33,8 +33,8 @@
 #define PATH_MAX _MAX_PATH
 #else
 #include <limits.h>
-#endif
 /* clang-format on */
+#endif
 
 #ifndef PATH_MAX
 /** @brief PATH_MAX definition */

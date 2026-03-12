@@ -232,16 +232,23 @@ struct SqlParserState {
   struct sql_parse_error_t *out_error;
 };
 
-static const struct sql_token_t *sql_parser_peek(struct SqlParserState *state) {
+static int sql_parser_peek(struct SqlParserState *state,
+                           struct sql_token_t **_out_val) {
   size_t c = state->cursor;
   while (c < state->list->size &&
          state->list->tokens[c].kind == SQL_TOKEN_WHITESPACE) {
     c++;
   }
   if (c < state->list->size) {
-    return &state->list->tokens[c];
+    {
+      *_out_val = &state->list->tokens[c];
+      return 0;
+    }
   }
-  return NULL;
+  {
+    *_out_val = NULL;
+    return 0;
+  }
 }
 
 static void sql_parser_consume(struct SqlParserState *state) {
@@ -256,7 +263,9 @@ static void sql_parser_consume(struct SqlParserState *state) {
 
 static int sql_parser_match_keyword(struct SqlParserState *state,
                                     const char *kw) {
-  const struct sql_token_t *tok = sql_parser_peek(state);
+  struct sql_token_t *_ast_sql_parser_peek_0;
+  const struct sql_token_t *tok =
+      (sql_parser_peek(state, &_ast_sql_parser_peek_0), _ast_sql_parser_peek_0);
   if (tok && tok->kind == SQL_TOKEN_KEYWORD) {
     if (tok->length == strlen(kw) &&
         strncmp(tok->start, kw, tok->length) == 0) {
@@ -270,7 +279,9 @@ static int sql_parser_match_keyword(struct SqlParserState *state,
 static int sql_parser_match_kind(struct SqlParserState *state,
                                  enum SqlTokenKind kind,
                                  const struct sql_token_t **out_tok) {
-  const struct sql_token_t *tok = sql_parser_peek(state);
+  struct sql_token_t *_ast_sql_parser_peek_1;
+  const struct sql_token_t *tok =
+      (sql_parser_peek(state, &_ast_sql_parser_peek_1), _ast_sql_parser_peek_1);
   if (tok && tok->kind == kind) {
     if (out_tok) {
       *out_tok = tok;
@@ -282,16 +293,20 @@ static int sql_parser_match_kind(struct SqlParserState *state,
 }
 
 static int sql_parser_set_error(struct SqlParserState *state, const char *msg) {
+  struct sql_token_t *_ast_sql_parser_peek_2;
   if (state->out_error) {
     state->out_error->message = msg;
-    state->out_error->token = sql_parser_peek(state);
+    state->out_error->token = (sql_parser_peek(state, &_ast_sql_parser_peek_2),
+                               _ast_sql_parser_peek_2);
   }
   return 1; /* Return 1 to indicate error */
 }
 
 static int sql_parse_data_type(struct SqlParserState *state,
                                enum SqlDataType *out_type, int *out_length) {
-  const struct sql_token_t *tok = sql_parser_peek(state);
+  struct sql_token_t *_ast_sql_parser_peek_3;
+  const struct sql_token_t *tok =
+      (sql_parser_peek(state, &_ast_sql_parser_peek_3), _ast_sql_parser_peek_3);
   if (!tok || tok->kind != SQL_TOKEN_KEYWORD) {
     return sql_parser_set_error(state, "Expected data type");
   }
@@ -435,6 +450,8 @@ sql_parse_column_constraint(struct SqlParserState *state,
 int sql_parse_table(const struct sql_token_list_t *list,
                     struct sql_table_t **out_table,
                     struct sql_parse_error_t *out_error) {
+  struct sql_token_t *_ast_sql_parser_peek_4;
+  struct sql_token_t *_ast_sql_parser_peek_5;
   struct SqlParserState state;
   struct sql_table_t *table = NULL;
   const struct sql_token_t *name_tok;
@@ -479,7 +496,9 @@ int sql_parse_table(const struct sql_token_list_t *list,
   /* Parse columns and table constraints */
   while (1) {
     const struct sql_token_t *col_name_tok;
-    const struct sql_token_t *peek = sql_parser_peek(&state);
+    const struct sql_token_t *peek =
+        (sql_parser_peek(&state, &_ast_sql_parser_peek_4),
+         _ast_sql_parser_peek_4);
 
     if (!peek)
       break;
@@ -535,7 +554,8 @@ int sql_parse_table(const struct sql_token_list_t *list,
       /* Parse inline constraints */
       while (1) {
         struct sql_constraint_t constraint;
-        peek = sql_parser_peek(&state);
+        peek = (sql_parser_peek(&state, &_ast_sql_parser_peek_5),
+                _ast_sql_parser_peek_5);
         if (!peek || peek->kind == SQL_TOKEN_COMMA ||
             peek->kind == SQL_TOKEN_RPAREN) {
           break;

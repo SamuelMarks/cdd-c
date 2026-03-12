@@ -83,27 +83,41 @@ static int is_nullable(const struct sql_column_t *col) {
   return 1; /* nullable */
 }
 
-const char *sql_type_to_c_type(enum SqlDataType type) {
+int sql_type_to_c_type(enum SqlDataType type, char **_out_val) {
   switch (type) {
-  case SQL_TYPE_INT:
-    return "int32_t";
-  case SQL_TYPE_BIGINT:
-    return "int64_t";
+  case SQL_TYPE_INT: {
+    *_out_val = "int32_t";
+    return 0;
+  }
+  case SQL_TYPE_BIGINT: {
+    *_out_val = "int64_t";
+    return 0;
+  }
   case SQL_TYPE_VARCHAR:
   case SQL_TYPE_TEXT:
   case SQL_TYPE_CHAR:
   case SQL_TYPE_DATE:
-  case SQL_TYPE_TIMESTAMP:
-    return "char *";
-  case SQL_TYPE_FLOAT:
-    return "float";
+  case SQL_TYPE_TIMESTAMP: {
+    *_out_val = "char *";
+    return 0;
+  }
+  case SQL_TYPE_FLOAT: {
+    *_out_val = "float";
+    return 0;
+  }
   case SQL_TYPE_DOUBLE:
-  case SQL_TYPE_DECIMAL:
-    return "double";
-  case SQL_TYPE_BOOLEAN:
-    return "bool";
-  default:
-    return "void *";
+  case SQL_TYPE_DECIMAL: {
+    *_out_val = "double";
+    return 0;
+  }
+  case SQL_TYPE_BOOLEAN: {
+    *_out_val = "bool";
+    return 0;
+  }
+  default: {
+    *_out_val = "void *";
+    return 0;
+  }
   }
 }
 
@@ -121,6 +135,7 @@ int sql_type_is_string(enum SqlDataType type) {
 }
 
 int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
+  char *_ast_sql_type_to_c_type_0;
   char table_name_upper[128];
   char struct_name[128];
   size_t i;
@@ -158,7 +173,9 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
 
   for (i = 0; i < table->n_columns; ++i) {
     const struct sql_column_t *col = &table->columns[i];
-    const char *c_type = sql_type_to_c_type(col->type);
+    const char *c_type =
+        (sql_type_to_c_type(col->type, &_ast_sql_type_to_c_type_0),
+         _ast_sql_type_to_c_type_0);
     int nullable = is_nullable(col);
     int is_str = sql_type_is_string(col->type);
 
@@ -232,6 +249,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
 
 int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
                          const char *header_name) {
+  char *_ast_sql_type_to_c_type_1;
   char struct_name[128];
   size_t i;
 
@@ -314,7 +332,9 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
     const struct sql_column_t *col = &table->columns[i];
     int is_str = sql_type_is_string(col->type);
     int nullable = is_nullable(col);
-    const char *c_type = sql_type_to_c_type(col->type);
+    const char *c_type =
+        (sql_type_to_c_type(col->type, &_ast_sql_type_to_c_type_1),
+         _ast_sql_type_to_c_type_1);
 
     if (is_str) {
       fprintf(fp, "  if (src->%s) {\n", col->name);

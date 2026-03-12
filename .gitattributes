@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+*.sh text eol=lf
+*.Dockerfile text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+LICENSE-CC0 text eol=lf
+README.md text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
