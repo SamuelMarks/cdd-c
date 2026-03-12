@@ -8,4 +8,4 @@ on:
 
 jobs:
   build:
-    uses: SamuelMarks/c-ghactions/.github/workflows/c-cmake-ci.yml@master
+    uses: SamuelMarks/c-ci/.github/workflows/c-cmake-ci.yml@master
