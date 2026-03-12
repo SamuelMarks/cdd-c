@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -27,6 +28,7 @@
 #include "classes/parse/numeric.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 /** @brief MAX_LINE_LENGTH definition */
 #define MAX_LINE_LENGTH 1024

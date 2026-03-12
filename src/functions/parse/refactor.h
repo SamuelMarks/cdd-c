@@ -11,8 +11,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "functions/emit/rewriter_body.h"
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Context containing global refactoring state.

@@ -11,6 +11,7 @@
 #ifndef TEST_CODEGEN_JSON_H
 #define TEST_CODEGEN_JSON_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h" /* For struct_fields_init etc */
+/* clang-format on */
 
 /* Common Setup */
 static void setup_json_fields(struct StructFields *sf) {

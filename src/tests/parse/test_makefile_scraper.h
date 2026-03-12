@@ -6,10 +6,12 @@
 #ifndef TEST_MAKEFILE_SCRAPER_H
 #define TEST_MAKEFILE_SCRAPER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/makefile_scraper.h"
+/* clang-format on */
 
 TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;

@@ -12,7 +12,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Entry point for sync_code command.

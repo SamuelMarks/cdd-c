@@ -1,3 +1,4 @@
+/* clang-format off */
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,6 +16,7 @@
 #include <c89stringutils_string_extras.h>
 
 #include "simple_json.h"
+/* clang-format on */
 
 /** \brief func */
 /**

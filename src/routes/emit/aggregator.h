@@ -21,8 +21,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 /**
  * @brief Add an operation to the OpenAPI Spec, organizing by Path.

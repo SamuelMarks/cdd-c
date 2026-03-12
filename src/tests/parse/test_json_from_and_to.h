@@ -1,9 +1,11 @@
 #ifndef TEST_JSON_FROM_AND_TO_H
 #define TEST_JSON_FROM_AND_TO_H
 
+/* clang-format off */
 #include <mocks/emit/simple_json.h>
 
 #include <greatest.h>
+/* clang-format on */
 
 TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;

@@ -13,8 +13,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <c_cdd_export.h>
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Represents a single unchecked allocation violation.

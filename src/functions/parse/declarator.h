@@ -20,10 +20,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
 #include <limits.h>
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Classification of a type node in the chain.

@@ -6,11 +6,13 @@
 #ifndef TEST_DIFF_H
 #define TEST_DIFF_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/emit/diff.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_patch_list_to_diff_basic(void) {
   struct PatchList list;

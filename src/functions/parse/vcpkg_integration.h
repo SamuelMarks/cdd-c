@@ -15,7 +15,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
+/* clang-format on */
 
 /**
  * @brief Represents an identified dependency for vcpkg.

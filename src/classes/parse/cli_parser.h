@@ -10,9 +10,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/cst.h"
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Represents a single CLI option/flag.

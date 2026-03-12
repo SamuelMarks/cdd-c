@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 
 #include "functions/parse/str.h" /* For string duplication utilities if specific needed */
 #include "functions/parse/strategy.h"
+/* clang-format on */
 
 /* Common constants */
 /* Note: In a larger system these might be configurable via context struct */

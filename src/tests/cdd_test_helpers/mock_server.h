@@ -16,8 +16,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "cdd_test_helpers_export.h"
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Opaque handle for the server instance.

@@ -4,12 +4,14 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
+/* clang-format on */
 
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \

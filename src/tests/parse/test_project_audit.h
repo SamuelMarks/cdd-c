@@ -1,6 +1,7 @@
 #ifndef TEST_PROJECT_AUDIT_H
 #define TEST_PROJECT_AUDIT_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 
 TEST test_audit_stats_init(void) {
   struct AuditStats stats;

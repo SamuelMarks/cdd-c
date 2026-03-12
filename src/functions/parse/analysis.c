@@ -4,6 +4,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include "c_cdd_stdbool.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},

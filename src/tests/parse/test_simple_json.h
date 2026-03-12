@@ -1,9 +1,11 @@
 #ifndef TEST_SIMPLE_JSON_H
 #define TEST_SIMPLE_JSON_H
 
+/* clang-format off */
 #include <greatest.h>
 
 #include "../mocks/emit/simple.h"
+/* clang-format on */
 
 TEST test_simple_cleanup_and_null(void) {
   Haz_cleanup(NULL); /* Safe to call on NULL */

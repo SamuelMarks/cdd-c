@@ -6,11 +6,13 @@
 #ifndef TEST_DESIG_INIT_H
 #define TEST_DESIG_INIT_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_scan_for_designated_initializers_basic(void) {
   struct TokenList *tokens = NULL;

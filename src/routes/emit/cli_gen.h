@@ -10,9 +10,11 @@
 extern "C" {
 #endif
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 
 /**
  * @brief Generate CLI C source file.

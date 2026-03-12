@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -13,6 +14,7 @@
 
 #include "docstrings/parse/doc.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 /* --- Helpers --- */
 

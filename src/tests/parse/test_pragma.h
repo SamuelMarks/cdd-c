@@ -1,12 +1,14 @@
 #ifndef TEST_PRAGMA_H
 #define TEST_PRAGMA_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_tokenize_pragma_op(void) {
   struct TokenList *tl = NULL;

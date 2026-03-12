@@ -11,11 +11,13 @@
 #ifndef TEST_URL_UTILS_H
 #define TEST_URL_UTILS_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "routes/parse/url.h"
+/* clang-format on */
 
 /* --- Encoding Tests --- */
 

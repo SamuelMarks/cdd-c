@@ -13,6 +13,7 @@
 #ifndef TEST_C2OPENAPI_OP_H
 #define TEST_C2OPENAPI_OP_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,7 @@
 #include "docstrings/parse/doc.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/operation.h"
+/* clang-format on */
 
 /* --- Helpers --- */
 

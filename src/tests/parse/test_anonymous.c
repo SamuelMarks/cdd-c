@@ -3,6 +3,7 @@
  * @brief Integration tests for anonymous structure lifting.
  */
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "classes/parse/code2schema.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 
 GREATEST_MAIN_DEFS();
 #pragma warning(disable : 4551)

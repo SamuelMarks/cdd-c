@@ -1,6 +1,7 @@
 #ifndef TEST_SERVER_JSON_RPC_H
 #define TEST_SERVER_JSON_RPC_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #endif
+/* clang-format on */
 
 TEST test_server_json_rpc_bind_fail(void) {
 #if defined(_WIN32)

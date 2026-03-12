@@ -7,6 +7,7 @@
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
+/* clang-format off */
 #include "functions/parse/fs.h"
 #include "greatest.h"
 #include "routes/parse/cli.h"
@@ -20,6 +21,7 @@
 #else
 #include <unistd.h>
 #endif
+/* clang-format on */
 
 #define TEMP_OUT_FILE "to_docs_json_out.json"
 #define TEMP_SPEC_FILE "test_spec.json"

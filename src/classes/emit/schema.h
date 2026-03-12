@@ -18,9 +18,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "classes/parse/inspector.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 /**
  * @brief Register a list of types discovered in a file into the Spec.

@@ -10,6 +10,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -23,6 +24,7 @@
 #include "functions/parse/cst.h" /* For CST analysis */
 #include "functions/parse/str.h" /* For string duplication and utilities */
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /* --- Type Definitions Logic --- */
 

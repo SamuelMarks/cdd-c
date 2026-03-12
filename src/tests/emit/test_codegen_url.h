@@ -6,6 +6,7 @@
 #ifndef TEST_CODEGEN_URL_H
 #define TEST_CODEGEN_URL_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 
 #include "openapi/parse/openapi.h"
 #include "routes/emit/url.h"
+/* clang-format on */
 
 static int gen_url_code(const char *tmpl,
                         const struct OpenAPI_Parameter *params, size_t n_params,

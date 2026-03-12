@@ -19,10 +19,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 #include <stdio.h>
 
 #include "c_cdd_export.h"
+/* clang-format on */
 
 /**
  * @brief Enumeration of supported build systems.

@@ -15,8 +15,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 /**
  * @brief Serialize an OpenAPI Spec structure to a JSON string.

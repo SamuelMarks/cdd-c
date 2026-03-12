@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@
 #include "functions/parse/str.h"
 #include "openapi/parse/openapi.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 /* --- Helper Function Prototypes --- */
 

@@ -1,6 +1,8 @@
+/* clang-format off */
 #include <stdlib.h>
 
 #include "simple.h"
+/* clang-format on */
 
 void Haz_cleanup(struct Haz *const haz) { free(haz); }
 

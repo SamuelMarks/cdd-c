@@ -10,9 +10,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/cst.h"
 #include <stdio.h>
+/* clang-format on */
 
 /**
  * @brief Accurately reconstruct unmodified code byte-for-byte from the token

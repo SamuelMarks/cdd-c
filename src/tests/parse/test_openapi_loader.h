@@ -10,6 +10,7 @@
 #pragma GCC diagnostic ignored "-Woverlength-strings"
 #endif
 
+/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@
 
 #include "classes/emit/struct.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);

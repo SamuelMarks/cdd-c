@@ -1,6 +1,7 @@
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 
+/* clang-format off */
 #include <stdio.h>
 #include <string.h>
 
@@ -11,6 +12,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_structs, const size_t expected_enums,

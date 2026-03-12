@@ -1,6 +1,7 @@
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
+/* clang-format off */
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #include <greatest.h>
 
 #include "classes/parse/numeric.h"
+/* clang-format on */
 
 /* Helper to check float equality with epsilon */
 static int dbl_eq(double a, double b) { return fabs(a - b) < 1e-9; }
@@ -118,9 +120,7 @@ TEST test_parse_decimal_float_suffixes(void) {
   PASS();
 }
 
-TEST test_parse_hex_float(void) {
-  PASS();
-}
+TEST test_parse_hex_float(void) { PASS(); }
 
 TEST test_parse_errors(void) {
   struct NumericValue nv;

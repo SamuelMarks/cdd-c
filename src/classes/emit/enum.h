@@ -19,11 +19,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 #include <stdio.h>
 
 #include "c_cdd_export.h"
 #include "c_cdd_stdbool.h"
+/* clang-format on */
 
 /**
  * @brief Container for enum members extracted from code or schema.

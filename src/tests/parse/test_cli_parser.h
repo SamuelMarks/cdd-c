@@ -6,6 +6,7 @@
 #ifndef TEST_CLI_PARSER_H
 #define TEST_CLI_PARSER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include "classes/parse/cli_parser.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_cli_parser_getopt(void) {
   const char *src = ""

@@ -17,11 +17,13 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/cst.h"
+/* clang-format on */
 
 /**
  * @brief Helper to skip whitespace tokens.

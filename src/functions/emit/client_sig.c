@@ -6,6 +6,7 @@
  * Appends standard `struct ApiError **api_error` argument to all operations.
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -15,6 +16,7 @@
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)

@@ -1,9 +1,11 @@
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/diff_generator.h"
+/* clang-format on */
 
 /* Simplified diff engine. In a real scenario we'd do a line-by-line diff.
    For CST rewrites, we can emit the old code and the new code and run a simple

@@ -11,6 +11,7 @@
 #ifndef TEST_ANALYSIS_H
 #define TEST_ANALYSIS_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
@@ -18,6 +19,7 @@
 #include "functions/parse/tokenizer.h"
 
 #include <errno.h>
+/* clang-format on */
 
 static int setup_analysis_tokens(const char *code,
                                  struct TokenList **_out_val) {

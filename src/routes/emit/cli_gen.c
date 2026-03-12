@@ -5,10 +5,12 @@
  * Emits a robust C89 CLI application based on an OpenAPI definition.
  */
 
+/* clang-format off */
 #include "cli_gen.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf

@@ -9,6 +9,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -17,6 +18,7 @@
 #include <string.h>
 
 #include "classes/parse/numeric.h"
+/* clang-format on */
 
 #ifndef UINT64_MAX
 #if defined(_UI64_MAX)

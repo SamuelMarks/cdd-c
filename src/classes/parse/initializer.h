@@ -20,9 +20,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Discriminator for initializer value type.

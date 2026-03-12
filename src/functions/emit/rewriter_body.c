@@ -4,6 +4,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,7 @@
 #include "functions/parse/strategy.h"
 #include "functions/parse/tokenizer.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 /* --- Implementation Helpers --- */
 

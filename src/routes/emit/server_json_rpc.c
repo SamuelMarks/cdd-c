@@ -1,3 +1,4 @@
+/* clang-format off */
 #include "server_json_rpc.h"
 #include <parson.h>
 #include <stdio.h>
@@ -14,6 +15,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #endif
+/* clang-format on */
 
 #if defined(_WIN32)
 typedef SOCKET cdd_socket_t;

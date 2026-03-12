@@ -11,6 +11,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,6 +29,7 @@
 #else
 #include <errno.h>
 #endif
+/* clang-format on */
 
 /**
  * @brief Internal component structure for a parsed signature.

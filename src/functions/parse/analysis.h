@@ -20,10 +20,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Defines how an allocator function indicates failure.

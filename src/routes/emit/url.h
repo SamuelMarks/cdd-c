@@ -18,10 +18,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stdio.h>
 
 #include "c_cdd_export.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 /**
  * @brief Configuration for URL code generation.

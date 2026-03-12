@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@
 
 #include "c_cdd_stdbool.h"
 #include "classes/emit/enum.h"
+/* clang-format on */
 
 /* Standard definitions for greatest library */
 GREATEST_MAIN_DEFS();

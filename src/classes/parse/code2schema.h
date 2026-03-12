@@ -9,6 +9,7 @@
 
 #define CODE2SCHEMA_H
 
+/* clang-format off */
 #ifdef __cplusplus
 
 #include <cstdlib>
@@ -40,6 +41,7 @@ extern "C" {
 #include <c_cdd_export.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 
 /**
  * @brief CLI entry point for code2schema command.

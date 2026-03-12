@@ -5,6 +5,7 @@
  * polymorphism (oneOf) via a discriminator tag.
  */
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/emit/codegen.h"
+/* clang-format on */
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();

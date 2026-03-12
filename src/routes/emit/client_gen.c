@@ -10,6 +10,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -20,6 +21,7 @@
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 
 /* Helper macro for I/O checking */
 /** @def CHECK_IO_CLEANUP @brief CHECK_IO macro */
@@ -1232,18 +1234,7 @@ static /**
          "    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__\n"
          "    strcpy_s(client->base_url, strlen(base_url) + 1, base_url);\n"
          "#else\n"
-         "#if defined(_MSC_VER)\n"
-         "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
-         "#else\n"
-         "#if defined(_MSC_VER)\n"
-         "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
-         "#else\n"
-         "#if defined(_MSC_VER)\n"
-         "    strcpy_s(client->base_url, sizeof(client->base_url), base_url);\n"
-         "#else\n"
          "    strcpy(client->base_url, base_url);\n"
-         "#endif\n"
-         "#endif\n"
          "#endif\n"));
   CHECK_IO(fprintf(c, "  }\n"));
 

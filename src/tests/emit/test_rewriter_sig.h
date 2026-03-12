@@ -1,12 +1,14 @@
 #ifndef TEST_REWRITER_SIG_H
 #define TEST_REWRITER_SIG_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/rewriter_sig.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Helper to run rewrite_signature on a string input and verify against

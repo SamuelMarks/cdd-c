@@ -1,6 +1,8 @@
+/* clang-format off */
 #include <stdlib.h>
 
 #include "simple.h"
+/* clang-format on */
 
 /** \brief func */
 /**

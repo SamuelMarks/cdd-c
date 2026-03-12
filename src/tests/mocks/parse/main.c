@@ -1,3 +1,4 @@
+/* clang-format off */
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -9,6 +10,7 @@
 #endif
 
 #include "../emit/simple_json.h"
+/* clang-format on */
 
 static const char *const haz_e_mock0 =
     "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";

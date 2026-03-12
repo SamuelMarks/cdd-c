@@ -12,6 +12,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 
@@ -98,6 +99,7 @@ extern C_CDD_EXPORT /**
 #include <limits.h>
 #include <sys/stat.h>
 #include <unistd.h>
+/* clang-format on */
 
 /** @brief c_stat definition */
 typedef struct stat c_stat;

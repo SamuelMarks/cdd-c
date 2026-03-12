@@ -6,10 +6,12 @@
 #ifndef TEST_CMAKE_PARSER_H
 #define TEST_CMAKE_PARSER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/cmake_parser.h"
+/* clang-format on */
 
 TEST test_cmake_modifier_basic(void) {
   struct CMakeModifier mod;

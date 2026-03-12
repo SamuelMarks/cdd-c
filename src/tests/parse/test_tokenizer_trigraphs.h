@@ -1,6 +1,7 @@
 #ifndef TEST_TOKENIZER_TRIGRAPHS_H
 #define TEST_TOKENIZER_TRIGRAPHS_H
 
+/* clang-format off */
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /* Helper setup */
 

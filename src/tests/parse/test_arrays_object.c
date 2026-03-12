@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,6 +90,7 @@ TEST test_code2schema_obj_array_detection(void) {
   {
 /* code2schema_main calls parse_header_file */
 #include "classes/parse/code2schema.h"
+    /* clang-format on */
     char *argv[] = {"test_obj_array.h", (char *)json_out_file};
     ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
   }

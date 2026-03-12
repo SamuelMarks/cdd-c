@@ -11,6 +11,7 @@
 #ifndef TEST_CODEGEN_SECURITY_H
 #define TEST_CODEGEN_SECURITY_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 
 #include "openapi/parse/openapi.h"
 #include "routes/emit/security.h"
+/* clang-format on */
 
 /* Helper to capture output */
 static int gen_sec_code(const struct OpenAPI_Spec *spec,

@@ -11,6 +11,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -20,6 +21,7 @@
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 #ifndef SIZE_MAX
 /** @brief SIZE_MAX definition */

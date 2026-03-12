@@ -20,6 +20,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stdio.h>
 
 #include "c_cdd_export.h"
@@ -27,6 +28,7 @@ extern "C" {
 #include "classes/emit/enum.h"   /* For EnumMembers */
 #include "classes/emit/struct.h" /* For StructFields */
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Categorization of a detected type definition.

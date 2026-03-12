@@ -28,6 +28,7 @@ extern "C" {
 
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 
 #include "c_cdd_export.h"
@@ -41,6 +42,7 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 #include <c_str_span.h>
+/* clang-format on */
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif

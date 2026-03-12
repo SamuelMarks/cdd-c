@@ -1,3 +1,4 @@
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -5,6 +6,7 @@
 #include <string.h>
 
 #include "classes/parse/cli_parser.h"
+/* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup

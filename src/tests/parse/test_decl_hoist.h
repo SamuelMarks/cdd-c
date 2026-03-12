@@ -6,11 +6,13 @@
 #ifndef TEST_DECL_HOIST_H
 #define TEST_DECL_HOIST_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/decl_hoist.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_scan_for_mixed_declarations_basic(void) {
   struct TokenList *tokens = NULL;
