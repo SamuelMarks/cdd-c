@@ -9,6 +9,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +19,6 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-/* clang-format off */
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #pragma warning(push)
 #pragma warning(disable: 4201 4214)
@@ -29,10 +29,10 @@
 
 #include <wincrypt.h>
 #pragma warning(pop)
-/* clang-format on */
 #endif
 
 #include "functions/parse/crypto_types.h"
+/* clang-format on */
 
 #ifdef _WIN32
 

@@ -24,7 +24,7 @@ extern "C" {
  * type for certain types if needed, though usually handled by the caller).
  * @return String representing the C type (e.g., "int32_t", "char*").
  */
-C_CDD_EXPORT const char *sql_type_to_c_type(enum SqlDataType type);
+C_CDD_EXPORT int sql_type_to_c_type(enum SqlDataType type, char **_out_val);
 
 /**
  * @brief Checks if a given SQL type is passed/stored as a pointer string by

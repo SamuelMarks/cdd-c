@@ -38,8 +38,8 @@
 #endif
 #else
 #include <errno.h>
-#endif
 /* clang-format on */
+#endif
 
 /* --- Graph Data Structures --- */
 

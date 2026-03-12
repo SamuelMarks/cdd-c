@@ -31,8 +31,8 @@ extern "C" {
 #else
 /* Fallback for systems without asprintf (e.g. MSVC, pure C89) */
 #include <c89stringutils_string_extras.h>
-#endif
 /* clang-format on */
+#endif
 
 /**
  * @brief Format specifier for size_t/ssize_t.

@@ -14,8 +14,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#endif
 /* clang-format on */
+#endif
 
 #if defined(_WIN32)
 typedef SOCKET cdd_socket_t;
