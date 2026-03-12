@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +34,7 @@
 #else
 #include <limits.h>
 #endif
+/* clang-format on */
 
 #ifndef PATH_MAX
 /** @brief PATH_MAX definition */

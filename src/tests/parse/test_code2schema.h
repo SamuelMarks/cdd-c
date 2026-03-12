@@ -1,6 +1,7 @@
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
+/* clang-format off */
 #include <stdint.h>
 #include <string.h>
 
@@ -11,6 +12,7 @@
 #include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
 #include <cdd_test_helpers/cdd_helpers.h>
+/* clang-format on */
 
 /* Updated test cases to reflect new return types (int vs void) */
 

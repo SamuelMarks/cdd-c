@@ -6,6 +6,7 @@
 #ifndef TEST_SAFE_CRT_H
 #define TEST_SAFE_CRT_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 
 #include "functions/emit/safe_crt.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_safe_crt_strcpy(void) {
   const char *src = ""

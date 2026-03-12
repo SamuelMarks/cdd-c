@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -22,6 +23,7 @@
 #include "routes/emit/security.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)

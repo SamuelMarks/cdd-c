@@ -10,6 +10,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include "win_compat_sym.h"
 #include <ctype.h>
 #include <errno.h>
@@ -20,6 +21,7 @@
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
 #include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
+/* clang-format on */
 
 /* Select correct strdup function name for generated code */
 #if defined(_MSC_VER)

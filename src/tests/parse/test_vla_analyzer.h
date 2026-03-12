@@ -6,11 +6,13 @@
 #ifndef TEST_VLA_ANALYZER_H
 #define TEST_VLA_ANALYZER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
+/* clang-format on */
 
 TEST test_scan_for_vlas_basic(void) {
   struct TokenList *tokens = NULL;

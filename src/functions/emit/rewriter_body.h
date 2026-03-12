@@ -14,9 +14,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Enum describing how a function call has been refactored.

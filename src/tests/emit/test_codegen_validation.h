@@ -1,12 +1,14 @@
 #ifndef TEST_CODEGEN_VALIDATION_H
 #define TEST_CODEGEN_VALIDATION_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 
 /* Helper: generate code and return as buffer */
 static int gen_parse_code(const char *name, struct StructFields *sf,

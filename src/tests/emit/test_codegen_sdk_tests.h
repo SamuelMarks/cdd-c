@@ -7,6 +7,7 @@
 #ifndef TEST_CODEGEN_SDK_TESTS_H
 #define TEST_CODEGEN_SDK_TESTS_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@
 
 #include "openapi/parse/openapi.h"
 #include "tests/emit/sdk_tests.h"
+/* clang-format on */
 
 TEST test_gen_sdk_test_basic(void) {
   struct OpenAPI_Spec spec;

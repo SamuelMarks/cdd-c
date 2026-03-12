@@ -1,12 +1,14 @@
 #ifndef TEST_CODEGEN_EQ_H
 #define TEST_CODEGEN_EQ_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 
 /* Helper to generate code and return as string buffer */
 static int generate_eq_code(const char *struct_name, struct StructFields *sf,

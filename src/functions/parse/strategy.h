@@ -15,9 +15,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "functions/emit/patcher.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Inject safety checks for unchecked allocations.

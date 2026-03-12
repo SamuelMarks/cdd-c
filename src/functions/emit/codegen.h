@@ -15,6 +15,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
@@ -22,6 +23,7 @@ extern "C" {
 #include "classes/emit/types.h"
 
 #include <stdio.h>
+/* clang-format on */
 
 /**
  * @brief Aggregated configuration for code generation.

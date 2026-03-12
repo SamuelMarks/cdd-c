@@ -1,6 +1,7 @@
 #ifndef TEST_CST_PARSER_H
 #define TEST_CST_PARSER_H
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@
 
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /* Helper to create a fake token list for testing */
 static void make_simple_token_list(struct TokenList *tl) {

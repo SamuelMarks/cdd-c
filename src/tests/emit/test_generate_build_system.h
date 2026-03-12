@@ -11,6 +11,7 @@
 #ifndef TEST_GENERATE_BUILD_SYSTEM_H
 #define TEST_GENERATE_BUILD_SYSTEM_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/emit/build_system.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 
 TEST test_gen_cmake_basic(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";

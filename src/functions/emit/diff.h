@@ -12,9 +12,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/emit/patcher.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Generate a Unified Diff from a list of patches.

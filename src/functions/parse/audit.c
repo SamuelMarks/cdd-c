@@ -6,6 +6,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include "functions/parse/audit.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/fs.h"
@@ -17,6 +18,7 @@
 #include <parson.h>
 #include <stdlib.h>
 #include <string.h>
+/* clang-format on */
 
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

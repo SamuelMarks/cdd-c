@@ -1,6 +1,7 @@
 #ifndef TEST_INITIALIZER_PARSER_H
 #define TEST_INITIALIZER_PARSER_H
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 static int tokenize_str(const char *s, struct TokenList **_out_val) {
   struct TokenList *tl = NULL;

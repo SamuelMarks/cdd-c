@@ -26,6 +26,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "c_cdd_stdbool.h"
 #include <stddef.h>
@@ -42,6 +43,7 @@ typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
 #endif
+/* clang-format on */
 
 /* Fallback for Pre-C99 environments missing stdint.h */
 #if !defined(UINT64_MAX)

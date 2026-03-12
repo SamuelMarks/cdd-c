@@ -15,12 +15,14 @@
 #ifndef TEST_DOC_PARSER_H
 #define TEST_DOC_PARSER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "docstrings/parse/doc.h"
+/* clang-format on */
 
 /* --- Test Helpers --- */
 

@@ -19,10 +19,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stdio.h>
 
 #include "c_cdd_export.h"
 #include "classes/emit/struct.h" /* Reuses StructFields definition */
+/* clang-format on */
 
 /**
  * @brief Configuration for JSON generation.

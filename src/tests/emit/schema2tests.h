@@ -11,7 +11,9 @@
 extern "C" {
 #endif
 
+/* clang-format off */
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Entry point for generating tests from a JSON schema.

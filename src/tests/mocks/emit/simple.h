@@ -5,7 +5,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "simple_mocks_export.h"
+/* clang-format on */
 
 /** \brief mock */
 struct Haz {

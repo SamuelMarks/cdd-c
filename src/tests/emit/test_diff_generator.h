@@ -6,6 +6,7 @@
 #ifndef TEST_DIFF_GENERATOR_H
 #define TEST_DIFF_GENERATOR_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 
 #include "functions/emit/diff_generator.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_generate_diff_basic(void) {
   const char *src = ""

@@ -16,7 +16,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
+/* clang-format on */
 
 /**
  * @brief Main entry point for the `c2openapi` command.

@@ -15,8 +15,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Extracted project build information.

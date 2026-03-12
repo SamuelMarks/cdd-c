@@ -7,12 +7,14 @@
 #ifndef TEST_CODEGEN_BUILD_H
 #define TEST_CODEGEN_BUILD_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/build.h"
+/* clang-format on */
 
 TEST test_cbuild_null_args(void) {
   struct CodegenBuildConfig config;
@@ -86,9 +88,7 @@ TEST test_cbuild_basic_output(void) {
   PASS();
 }
 
-TEST test_cbuild_unsupported(void) {
-  PASS();
-}
+TEST test_cbuild_unsupported(void) { PASS(); }
 
 SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_null_args);

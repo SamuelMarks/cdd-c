@@ -16,7 +16,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
+/* clang-format on */
 
 /**
  * @brief CLI Entry point for generate_build_system command.

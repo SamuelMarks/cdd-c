@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -12,6 +13,7 @@
 #include <string.h>
 
 #include "functions/emit/diff.h"
+/* clang-format on */
 
 struct DiffLine {
   const char *text;

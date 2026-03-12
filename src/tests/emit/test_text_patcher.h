@@ -7,6 +7,7 @@
 #ifndef TEST_TEXT_PATCHER_H
 #define TEST_TEXT_PATCHER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 #include "functions/emit/patcher.h"
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /* Helper to setup a token list from a string */
 static int setup_patch_tokens(const char *code, struct TokenList **_out_val) {

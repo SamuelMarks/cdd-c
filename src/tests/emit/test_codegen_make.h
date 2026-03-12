@@ -7,6 +7,7 @@
 #ifndef TEST_CODEGEN_MAKE_H
 #define TEST_CODEGEN_MAKE_H
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 #include <greatest.h>
 
 #include "functions/emit/make.h"
+/* clang-format on */
 
 TEST test_make_simple(void) {
   FILE *tmp = tmpfile();

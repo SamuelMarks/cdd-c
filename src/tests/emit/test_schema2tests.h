@@ -1,11 +1,13 @@
 #ifndef TEST_SCHEMA2TESTS_H
 #define TEST_SCHEMA2TESTS_H
 
+/* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
 
 #include "functions/parse/fs.h"
 #include "tests/emit/schema2tests.h"
+/* clang-format on */
 
 TEST test_jsonschema2tests_wrong_args(void) {
   char arg0[] = "program";

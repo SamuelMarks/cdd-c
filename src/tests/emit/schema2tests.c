@@ -4,6 +4,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,6 +29,7 @@
 #else
 #include <errno.h>
 #endif
+/* clang-format on */
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \

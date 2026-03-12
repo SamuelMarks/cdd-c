@@ -1,6 +1,7 @@
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 
 TEST test_cli_gen_basic(void) {
   struct OpenAPI_Spec spec;

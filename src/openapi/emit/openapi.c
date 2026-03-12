@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
+/* clang-format on */
 
 /* --- Helper Prototypes --- */
 

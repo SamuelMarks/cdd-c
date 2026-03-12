@@ -6,6 +6,7 @@
 #ifndef TEST_VCPKG_INTEGRATION_H
 #define TEST_VCPKG_INTEGRATION_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
@@ -49,7 +50,8 @@ TEST test_vcpkg_builder_duplicate(void) {
 #ifndef _MSC_VER
 #include <pthread.h>
 #endif
-                    ";
+                /* clang-format on */
+                ";
 
       ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));

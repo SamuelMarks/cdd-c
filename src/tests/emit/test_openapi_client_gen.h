@@ -6,6 +6,7 @@
 #ifndef TEST_OPENAPI_CLIENT_GEN_H
 #define TEST_OPENAPI_CLIENT_GEN_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,7 @@
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
                                struct OpenAPI_Operation *op) {

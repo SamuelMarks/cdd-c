@@ -10,8 +10,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+/* clang-format off */
 #include "cdd_test_helpers_export.h"
 #include <stdio.h>
+/* clang-format on */
 
 /**
  * @brief Callback for assertion failures in dependencies.

@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
+/* clang-format off */
 #else
 #if __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
@@ -16,6 +17,7 @@ extern "C" {
 #include <parson.h>
 
 #include "simple_mocks_export.h"
+/* clang-format on */
 
 enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };
 

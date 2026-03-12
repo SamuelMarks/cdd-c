@@ -1,6 +1,7 @@
 #ifndef TEST_PREPROCESSOR_H
 #define TEST_PREPROCESSOR_H
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,7 @@
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #define PATH_SEP_CHAR '\\'

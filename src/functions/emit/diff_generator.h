@@ -10,8 +10,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include "functions/emit/patcher.h"
+/* clang-format on */
 
 /**
  * @brief Generate a unified diff (.patch format) from applied token patches.

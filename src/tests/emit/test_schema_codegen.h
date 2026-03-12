@@ -2,6 +2,7 @@
 
 #define TEST_SCHEMA_CODEGEN_H
 
+/* clang-format off */
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"
@@ -13,6 +14,7 @@
 #include "functions/emit/codegen.h"
 
 #include "functions/parse/fs.h"
+/* clang-format on */
 
 /* Forward declare static functions from schema_codegen.c if we want unit-test
 
@@ -33,7 +35,7 @@ TEST test_schema_codegen_circular_refs(void) {
    */
 
   int rc;
-  char * header_content = NULL;
+  char *header_content = NULL;
   size_t sz;
   const char *const filename = "circular.json";
   const char *argv[2];
@@ -67,10 +69,10 @@ TEST test_schema_codegen_circular_refs(void) {
 
   {
 
-    char * fwd_a;
-    char * fwd_b;
-    char * def_a;
-    char * def_b;
+    char *fwd_a;
+    char *fwd_b;
+    char *def_a;
+    char *def_b;
 
     fwd_a = strstr(header_content, "struct A;");
     fwd_b = strstr(header_content, "struct B;");
@@ -172,7 +174,7 @@ TEST test_codegen_config_json_guards(void) {
 
   {
 
-    char * p;
+    char *p;
     int count;
     p = content;
 
@@ -253,8 +255,8 @@ TEST test_union_config_json_guards(void) {
 
 TEST test_schema_codegen_union_output(void) {
   int rc;
-  char * header_content = NULL;
-  char * source_content = NULL;
+  char *header_content = NULL;
+  char *source_content = NULL;
   size_t sz;
   const char *const filename = "union_schema.json";
   const char *argv[2];
@@ -303,8 +305,8 @@ TEST test_schema_codegen_union_output(void) {
 
 TEST test_schema_codegen_union_inline_variants(void) {
   int rc;
-  char * header_content = NULL;
-  char * source_content = NULL;
+  char *header_content = NULL;
+  char *source_content = NULL;
   size_t sz;
   const char *const filename = "union_inline_schema.json";
   const char *argv[2];
@@ -352,8 +354,8 @@ TEST test_schema_codegen_union_inline_variants(void) {
 
 TEST test_schema_codegen_enum_output(void) {
   int rc;
-  char * header_content = NULL;
-  char * source_content = NULL;
+  char *header_content = NULL;
+  char *source_content = NULL;
   size_t sz;
   const char *const filename = "enum_schema.json";
   const char *argv[2];

@@ -1,11 +1,13 @@
 #ifndef TEST_REFACTOR_ORCHESTRATOR_H
 #define TEST_REFACTOR_ORCHESTRATOR_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/orchestrator.h"
+/* clang-format on */
 
 TEST test_orchestrator_simple_propagation(void) {
   /*

@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \

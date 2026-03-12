@@ -9,6 +9,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +118,7 @@ TEST test_code2schema_array_detection(void) {
        It IS in code2schema.h. */
 
 #include "classes/parse/code2schema.h"
+    /* clang-format on */
     ASSERT_EQ(EXIT_SUCCESS, code2schema_main(2, argv));
   }
 

@@ -11,6 +11,7 @@
 #ifndef TEST_C_INSPECTOR_TYPES_H
 #define TEST_C_INSPECTOR_TYPES_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 
 TEST test_scan_c23_enum_fixed_type(void) {
   const char *filename = "test_c23_enum.h";

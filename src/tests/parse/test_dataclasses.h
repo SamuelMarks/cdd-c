@@ -1,6 +1,7 @@
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <mocks/emit/simple_json.h>
 
@@ -13,6 +14,7 @@
 #endif
 
 #include "cdd_test_helpers/cdd_helpers.h"
+/* clang-format on */
 
 /*
  * Mocks for strict recursive testing (Linked List).

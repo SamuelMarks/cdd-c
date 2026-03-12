@@ -17,6 +17,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 #include <stdio.h>
 
@@ -31,6 +32,7 @@ extern "C" {
 /* Fallback for systems without asprintf (e.g. MSVC, pure C89) */
 #include <c89stringutils_string_extras.h>
 #endif
+/* clang-format on */
 
 /**
  * @brief Format specifier for size_t/ssize_t.

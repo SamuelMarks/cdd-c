@@ -7,11 +7,13 @@
 #ifndef TEST_STR_UTILS_H
 #define TEST_STR_UTILS_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/str.h"
+/* clang-format on */
 
 /* --- strdup tests --- */
 

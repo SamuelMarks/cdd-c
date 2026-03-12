@@ -6,6 +6,7 @@
 #ifndef TEST_CST_PRINTER_H
 #define TEST_CST_PRINTER_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 
 #include "functions/emit/cst_printer.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 TEST test_cst_print_exact(void) {
   const char *src = "/* comment */\n"

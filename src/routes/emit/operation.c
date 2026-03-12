@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -16,6 +17,7 @@
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
 #include "routes/emit/operation.h"
+/* clang-format on */
 
 /* --- Helpers --- */
 

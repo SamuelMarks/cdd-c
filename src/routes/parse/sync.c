@@ -12,6 +12,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@
 #include "functions/parse/tokenizer.h"
 #include "routes/emit/url.h"
 #include "routes/parse/sync.h"
+/* clang-format on */
 
 /** @brief CALL_AND_CHECK definition */
 #define CALL_AND_CHECK(x)                                                      \

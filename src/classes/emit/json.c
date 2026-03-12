@@ -9,6 +9,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,7 @@
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "functions/parse/str.h" /* for string helpers */
 #include "win_compat_sym.h"
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)

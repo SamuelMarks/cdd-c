@@ -6,6 +6,7 @@
 #ifndef TEST_CODEGEN_CLIENT_SIG_H
 #define TEST_CODEGEN_CLIENT_SIG_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 
 #include "functions/emit/client_sig.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 static int gen_sig(const struct OpenAPI_Operation *op,
                    const struct CodegenSigConfig *cfg, char **_out_val) {

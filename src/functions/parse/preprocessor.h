@@ -25,10 +25,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 
 #include "c_cdd_export.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Enumeration of supported directives scanned by path logic.

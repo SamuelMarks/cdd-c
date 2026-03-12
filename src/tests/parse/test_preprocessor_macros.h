@@ -1,6 +1,7 @@
 #ifndef TEST_PREPROCESSOR_MACROS_H
 #define TEST_PREPROCESSOR_MACROS_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +10,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
+/* clang-format on */
 
 TEST test_pp_define_object_like(void) {
   const char *fname = "test_defs.h";

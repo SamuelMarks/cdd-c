@@ -1,12 +1,14 @@
 #ifndef TEST_REFACTOR_H
 #define TEST_REFACTOR_H
 
+/* clang-format off */
 #include <errno.h>
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/refactor.h"
+/* clang-format on */
 
 TEST test_refactor_context_lifecycle(void) {
   struct RefactorContext ctx;

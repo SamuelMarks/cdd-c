@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -13,6 +14,7 @@
 
 #include "functions/parse/str.h" /* For c_cdd_strdup helpers */
 #include "routes/parse/url.h"
+/* clang-format on */
 
 /* Standard definitions for C89 compatibility */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

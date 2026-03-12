@@ -23,8 +23,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "functions/parse/tokenizer.h"
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Rewrite a function signature token stream into a C string.

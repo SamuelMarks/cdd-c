@@ -1,6 +1,7 @@
 #ifndef TEST_TOKENIZER_H
 #define TEST_TOKENIZER_H
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok,
                          char **_out_val) {

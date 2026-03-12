@@ -1,3 +1,4 @@
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 #include <c89stringutils_string_extras.h>
 
 #include "simple_json.h"
+/* clang-format on */
 
 int quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {

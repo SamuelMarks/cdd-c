@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include "classes/emit/types.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
+/* clang-format on */
 
 /* Wrapper for fprintf to check errors tersely */
 /** @brief CHECK_IO macro */

@@ -25,12 +25,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 #include <stdio.h>
 
 #include "c_cdd_export.h"
 #include "c_cdd_stdbool.h"
 #include "classes/emit/enum.h"
+/* clang-format on */
 
 /**
  * @brief Represents a single field within a struct.

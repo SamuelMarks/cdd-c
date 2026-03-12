@@ -13,6 +13,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 
 #include <errno.h>
@@ -22,6 +23,7 @@
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /* --- Phase 1 & 2 Logic --- */
 

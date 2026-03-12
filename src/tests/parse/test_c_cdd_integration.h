@@ -1,6 +1,7 @@
 #ifndef TEST_C_CDD_INTEGRATION_H
 #define TEST_C_CDD_INTEGRATION_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include "functions/parse/audit.h"
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Test the tokenization, analysis, and rewriting pipeline on a single

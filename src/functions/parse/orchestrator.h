@@ -15,7 +15,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Apply the "fix" workflow to a single C source string.

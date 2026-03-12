@@ -4,11 +4,13 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/make.h"
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)

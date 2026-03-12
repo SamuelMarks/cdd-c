@@ -34,11 +34,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <parson.h>
 #include <stddef.h>
 
 #include "c_cdd_export.h"
 #include "classes/emit/struct.h" /* For StructFields definition */
+/* clang-format on */
 
 struct OpenAPI_Path;
 struct OpenAPI_Server;

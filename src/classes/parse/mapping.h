@@ -17,8 +17,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Discriminator for the resulting OpenAPI type category.

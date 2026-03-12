@@ -1,6 +1,7 @@
 #ifndef TEST_FLEXIBLE_ARRAY_H
 #define TEST_FLEXIBLE_ARRAY_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 
 #include "classes/emit/struct.h"
 #include "classes/parse/code2schema.h"
+/* clang-format on */
 
 TEST test_parse_fam_basic(void) {
   struct StructFields sf;

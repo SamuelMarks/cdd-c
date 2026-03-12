@@ -17,6 +17,7 @@
 #pragma GCC diagnostic ignored "-Woverlength-strings"
 #endif
 
+/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include "routes/parse/cli.h"
+/* clang-format on */
 
 TEST test_c2openapi_full_flow(void) {
   char *tmp_dir = NULL;

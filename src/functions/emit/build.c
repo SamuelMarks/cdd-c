@@ -8,11 +8,13 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "functions/emit/build.h"
+/* clang-format on */
 
 #if defined(_MSC_VER)
 #pragma warning(push)

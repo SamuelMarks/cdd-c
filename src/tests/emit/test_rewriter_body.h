@@ -1,6 +1,7 @@
 #ifndef TEST_REWRITER_BODY_H
 #define TEST_REWRITER_BODY_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 #include "functions/emit/rewriter_body.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 static int run_body_rewrite(const char *code,
                             const struct RefactoredFunction *funcs,

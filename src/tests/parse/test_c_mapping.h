@@ -11,12 +11,14 @@
 #ifndef TEST_C_MAPPING_H
 #define TEST_C_MAPPING_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "classes/parse/mapping.h"
+/* clang-format on */
 
 TEST test_mapping_int(void) {
   struct OpenApiTypeMapping m;

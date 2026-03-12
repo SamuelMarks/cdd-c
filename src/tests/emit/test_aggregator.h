@@ -10,6 +10,7 @@
 #ifndef TEST_AGGREGATOR_H
 #define TEST_AGGREGATOR_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@
 
 #include "openapi/parse/openapi.h"
 #include "routes/emit/aggregator.h"
+/* clang-format on */
 
 static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   memset(op, 0, sizeof(*op));

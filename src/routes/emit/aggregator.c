@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 
 #include "functions/parse/str.h"
 #include "routes/emit/aggregator.h"
+/* clang-format on */
 
 /**
  * @brief Comparison function to find a path by route string.

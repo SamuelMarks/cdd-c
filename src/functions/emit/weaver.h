@@ -15,11 +15,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 
 #include "c_cdd_export.h"
 #include "functions/emit/patcher.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 
 /**
  * @brief Wrap a contiguous block of tokens in a conditional compilation block.

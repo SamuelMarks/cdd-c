@@ -1,5 +1,5 @@
 #if defined(_MSC_VER)
-#pragma warning(disable: 4005)
+#pragma warning(disable : 4005)
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
@@ -12,6 +12,7 @@
  * @brief Main test runner.
  */
 
+/* clang-format off */
 #include <errno.h>
 
 #ifndef ENOTSUP
@@ -90,6 +91,7 @@
 #include "parse/test_integration_c2openapi.h"
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
+/* clang-format on */
 
 GREATEST_MAIN_DEFS();
 

@@ -11,7 +11,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <c_cdd_export.h>
+/* clang-format on */
 
 /**
  * @brief Entry point for generating C code from a JSON schema file.

@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -25,6 +26,7 @@
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
+/* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup

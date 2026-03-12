@@ -16,7 +16,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_cdd_export.h"
+/* clang-format on */
 
 /**
  * @brief Represents a parsed CMake target modification intent.

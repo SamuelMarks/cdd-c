@@ -22,12 +22,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include <stddef.h>
 
 #include "c_cdd_export.h"
 #include "classes/parse/inspector.h"
 #include "docstrings/parse/doc.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 /**
  * @brief Represents a single argument parsed from a signature string.

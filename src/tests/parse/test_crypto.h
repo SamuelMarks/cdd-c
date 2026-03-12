@@ -12,6 +12,7 @@
 #ifndef TEST_CRYPTO_H
 #define TEST_CRYPTO_H
 
+/* clang-format off */
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>
@@ -19,6 +20,7 @@
 #include <string.h>
 
 #include "functions/parse/crypto_types.h"
+/* clang-format on */
 
 /* Helpers */
 

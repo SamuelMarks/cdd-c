@@ -23,10 +23,10 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#include <windef.h>
-#include <winbase.h>
-#include <winnls.h>
 #include <fileapi.h>
+#include <winbase.h>
+#include <windef.h>
+#include <winnls.h>
 #endif
 #endif
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

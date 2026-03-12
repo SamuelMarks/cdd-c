@@ -10,6 +10,7 @@
 #ifndef TEST_REFACTOR_API_SYNC_H
 #define TEST_REFACTOR_API_SYNC_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/parse/sync.h"
+/* clang-format on */
 
 static int load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);

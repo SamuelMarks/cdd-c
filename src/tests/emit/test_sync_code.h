@@ -1,10 +1,12 @@
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
+/* clang-format off */
 #include "functions/emit/sync.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <greatest.h>
 #include <stdio.h>
+/* clang-format on */
 
 TEST test_sync_code_wrong_args(void) {
   char *argv[] = {"program", NULL};

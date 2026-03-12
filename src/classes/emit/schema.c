@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 #include "classes/emit/schema.h"
 #include "classes/emit/struct.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 /* --- Helpers --- */
 

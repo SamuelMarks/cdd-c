@@ -8,6 +8,7 @@
 #ifndef TEST_C2OPENAPI_SCHEMA_H
 #define TEST_C2OPENAPI_SCHEMA_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 
 TEST test_register_single_struct(void) {
   struct OpenAPI_Spec spec;

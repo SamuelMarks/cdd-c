@@ -11,12 +11,14 @@
 #ifndef TEST_CODEGEN_STRUCT_H
 #define TEST_CODEGEN_STRUCT_H
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "classes/emit/struct.h"
+/* clang-format on */
 
 static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_init(sf);
