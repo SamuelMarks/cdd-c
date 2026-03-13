@@ -47,7 +47,7 @@ TEST test_cbuild_basic_output(void) {
   struct CodegenBuildConfig config;
   const char *sources[] = {"client.c", "models.c"};
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp);
   memset(&config, 0, sizeof(config));

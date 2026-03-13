@@ -15,7 +15,7 @@ static int generate_def_code(const char *struct_name, struct StructFields *sf,
                              char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

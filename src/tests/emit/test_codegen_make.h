@@ -20,7 +20,7 @@
 TEST test_make_simple(void) {
   FILE *tmp = tmpfile();
   struct MakeConfig cfg;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -48,7 +48,7 @@ TEST test_make_simple(void) {
 TEST test_make_extra_sources(void) {
   FILE *tmp = tmpfile();
   struct MakeConfig cfg;
-  char *content;
+  char *content = NULL;
   char *extras[] = {"a.c", "b.c"};
   long sz;
 

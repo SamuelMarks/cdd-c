@@ -62,7 +62,13 @@
 #include <shlobj_core.h>
 #endif
 #pragma warning(pop)
-#else /* Not MSVC */
+#elif defined(__WATCOMC__) || defined(__DOS__)
+#include <direct.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+/* No dirent.h on DOS Watcom natively */
+#else /* POSIX */
 #include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -567,6 +573,8 @@ static /**
 
 #if defined(_WIN32)
   res = _mkdir(path);
+#elif defined(__WATCOMC__) || defined(__DOS__)
+  res = mkdir(path);
 #else
   res = mkdir(path, 0777);
 #endif
@@ -653,6 +661,9 @@ int makedir(const char *path) {
     return EINVAL;
 #if defined(_WIN32)
   if (_mkdir(path) == 0)
+    return 0;
+#elif defined(__WATCOMC__) || defined(__DOS__)
+  if (mkdir(path) == 0)
     return 0;
 #else
   if (mkdir(path, 0777) == 0)
@@ -792,8 +803,8 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
        * The assumption is arc4random is available in this env based on previous
        * context. */
       uint32_t number = (uint32_t)rand();
-      if (asprintf(&tmpfilename, "%s%c%s%" PRIu32 "%s", tmpdir_path, PATH_SEP_C,
-                   prefix == NULL ? "" : prefix, number,
+      if (asprintf(&tmpfilename, "%s%c%s%lu%s", tmpdir_path, PATH_SEP_C,
+                   prefix == NULL ? "" : prefix, (unsigned long)number,
                    suffix == NULL ? "" : suffix) == -1) {
         free(tmpdir_path);
         return ENOMEM;
@@ -932,6 +943,8 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
     _findclose(handle);
   }
+#elif defined(__WATCOMC__) || defined(__DOS__)
+  return ENOSYS;
 #else
   {
     /* POSIX implementation using opendir / readdir */

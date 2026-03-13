@@ -15,7 +15,7 @@ static int gen_parse_code(const char *name, struct StructFields *sf,
                           char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

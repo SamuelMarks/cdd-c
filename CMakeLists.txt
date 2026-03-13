@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.11)
 
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
 
+if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
+    function(target_compile_features)
+    endfunction()
+endif()
+
 if(MSVC AND MSVC_VERSION LESS 1600)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/msvc")
 endif()
@@ -57,7 +62,9 @@ if(MSVC)
 endif()
 
 set(CMAKE_C_STANDARD 90)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
+    set(CMAKE_C_STANDARD_REQUIRED ON)
+endif()
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 
@@ -66,7 +73,9 @@ if(C_CDD_USE_UNICODE)
 endif()
 
 if(C_CDD_MULTI_THREADED)
-    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<NOT:$<COMPILE_LANG_AND_ID:C,CXX,MSVC>>:-pthread>")
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "Watcom")
+        target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE "$<$<NOT:$<COMPILE_LANG_AND_ID:C,CXX,MSVC>>:-pthread>")
+    endif()
 endif()
 
 if(MSVC)
@@ -88,7 +97,9 @@ endif()
 if (NOT DEFINED MSVC_VERSION
         OR MSVC_VERSION STRGREATER "1900" # 2015
         OR NOT (CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom"))
+    if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
     target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+endif()
 elseif ((MSVC_VERSION STRLESS_EQUAL "1900"
         OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom"
         OR CYGWIN)
@@ -99,7 +110,9 @@ elseif ((MSVC_VERSION STRLESS_EQUAL "1900"
             "${CMAKE_BINARY_DIR}/c89stringutils_export.h")
 endif ()
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.15")
+    if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
     target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+endif()
 
     set(gcc_like "$<COMPILE_LANG_AND_ID:C,CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
     set(msvc "$<COMPILE_LANG_AND_ID:C,CXX,MSVC>")
@@ -135,7 +148,9 @@ else ()
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
     set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 
+    if (NOT (CMAKE_C_COMPILER_ID MATCHES "Watcom"))
     target_compile_features("${PROJECT_NAME}_compiler_flags" INTERFACE "c_std_${CMAKE_C_STANDARD}")
+endif()
 
     # add compiler warning flags just when building this project via
     # the BUILD_INTERFACE genex
@@ -169,13 +184,13 @@ if (NOT DEFINED TARGET_ARCH)
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
 
-if (WIN32 OR EMSCRIPTEN OR APPLE)
+if (WIN32 OR EMSCRIPTEN OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
     option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
 else ()
     option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" ON)
 endif ()
 
-if (EMSCRIPTEN)
+if (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
     option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" ON)
 endif ()
 
@@ -229,7 +244,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         GIT_REPOSITORY https://github.com/civetweb/civetweb.git
         GIT_TAG master
     )
-    if(MSVC AND MSVC_VERSION LESS 1600)
+    if(MSVC AND MSVC_VERSION LESS 1600 OR CMAKE_C_COMPILER_ID MATCHES "Watcom")
         FetchContent_GetProperties(civetweb)
         if(NOT civetweb_POPULATED)
             FetchContent_Populate(civetweb)

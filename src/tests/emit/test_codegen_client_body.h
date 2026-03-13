@@ -22,7 +22,7 @@ static int gen_body(const struct OpenAPI_Operation *op,
                     const char *base_url_expr, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

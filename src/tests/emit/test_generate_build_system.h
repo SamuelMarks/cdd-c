@@ -24,7 +24,7 @@
 
 TEST test_gen_cmake_basic(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 
@@ -43,7 +43,7 @@ TEST test_gen_cmake_basic(void) {
 
 TEST test_gen_cmake_with_tests(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 

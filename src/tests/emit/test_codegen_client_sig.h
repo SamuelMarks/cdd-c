@@ -20,7 +20,7 @@ static int gen_sig(const struct OpenAPI_Operation *op,
                    const struct CodegenSigConfig *cfg, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

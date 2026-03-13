@@ -341,11 +341,10 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
       fprintf(fp, "    dest->%s = (char*)malloc(strlen(src->%s) + 1);\n",
               col->name, col->name);
       fprintf(fp, "    if (!dest->%s) return 1;\n", col->name);
-      fprintf(fp, "#if defined(_MSC_VER)
-    strcpy_s(dest->%s, sizeof(dest->%s), src->%s);
-#else
-    strcpy(dest->%s, src->%s);
-#endif \n ", col->name, col->name);
+      fprintf(fp,
+              "#if defined(_MSC_VER)\n    strcpy_s(dest->%s, strlen(src->%s) + "
+              "1, src->%s);\n#else\n    strcpy(dest->%s, src->%s);\n#endif\n",
+              col->name, col->name, col->name, col->name, col->name);
       fprintf(fp, "  } else {\n    dest->%s = NULL;\n  }\n", col->name);
     } else if (nullable) {
       fprintf(fp, "  if (src->%s) {\n", col->name);

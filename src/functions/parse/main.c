@@ -211,7 +211,7 @@ static /**
     fprintf(stderr, "Error: -f <directory> required\n");
     return EXIT_FAILURE;
   }
-  c2_argv[0] = "c2openapi";
+  c2_argv[0] = (char *)"c2openapi";
   c2_argv[1] = (char *)input_dir;
   c2_argv[2] = (char *)out_file;
   return c2openapi_cli_main(3, c2_argv);
