@@ -3,10 +3,10 @@
  * @brief Unit tests for weaver implementation.
  */
 
+/* clang-format off */
 #ifndef TEST_WEAVER_H
 #define TEST_WEAVER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

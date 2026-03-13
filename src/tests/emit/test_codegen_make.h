@@ -4,10 +4,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_MAKE_H
 #define TEST_CODEGEN_MAKE_H
 
-/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

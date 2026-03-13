@@ -3,10 +3,10 @@
  * @brief Unit tests for diff generation.
  */
 
+/* clang-format off */
 #ifndef TEST_DIFF_H
 #define TEST_DIFF_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

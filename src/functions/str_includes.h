@@ -4,13 +4,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
 /* clang-format off */
+#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
 #include <stdio.h>
 #else
 #include <c89stringutils_string_extras.h>
-/* clang-format on */
 #endif
+/* clang-format on */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define NUM_LONG_FMT "z"

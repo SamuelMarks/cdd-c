@@ -3,10 +3,10 @@
  * @brief Unit tests for designated initializer analysis.
  */
 
+/* clang-format off */
 #ifndef TEST_DESIG_INIT_H
 #define TEST_DESIG_INIT_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

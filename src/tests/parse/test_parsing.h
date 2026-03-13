@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 
-/* clang-format off */
 #include <stdio.h>
 #include <string.h>
 

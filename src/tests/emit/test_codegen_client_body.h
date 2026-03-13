@@ -3,10 +3,10 @@
  * @brief Unit tests for Client Body Logic Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_CLIENT_BODY_H
 #define TEST_CODEGEN_CLIENT_BODY_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

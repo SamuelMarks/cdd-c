@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_C_CDD_INTEGRATION_H
 #define TEST_C_CDD_INTEGRATION_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

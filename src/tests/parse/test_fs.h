@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_FS_H
 #define TEST_FS_H
 
-/* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include <errno.h>

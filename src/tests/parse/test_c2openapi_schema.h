@@ -5,10 +5,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_C2OPENAPI_SCHEMA_H
 #define TEST_C2OPENAPI_SCHEMA_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

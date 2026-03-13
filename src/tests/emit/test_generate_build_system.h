@@ -8,10 +8,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_GENERATE_BUILD_SYSTEM_H
 #define TEST_GENERATE_BUILD_SYSTEM_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

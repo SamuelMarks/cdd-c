@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_PRAGMA_H
 #define TEST_PRAGMA_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

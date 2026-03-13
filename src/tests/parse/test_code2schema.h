@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
-/* clang-format off */
 #include <stdint.h>
 #include <string.h>
 

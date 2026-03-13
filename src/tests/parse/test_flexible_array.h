@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_FLEXIBLE_ARRAY_H
 #define TEST_FLEXIBLE_ARRAY_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

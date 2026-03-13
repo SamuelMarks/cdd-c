@@ -3,8 +3,8 @@
 
 #ifdef __cplusplus
 extern "C" {
-/* clang-format off */
 #else
+/* clang-format off */
 #if __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else

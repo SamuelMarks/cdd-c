@@ -4,10 +4,10 @@
  * @brief Tests for the to_docs_json CLI functionality.
  */
 
+/* clang-format off */
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
-/* clang-format off */
 #include "functions/parse/fs.h"
 #include "greatest.h"
 #include "routes/parse/cli.h"

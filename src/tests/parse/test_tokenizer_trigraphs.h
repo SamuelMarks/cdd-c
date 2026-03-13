@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_TOKENIZER_TRIGRAPHS_H
 #define TEST_TOKENIZER_TRIGRAPHS_H
 
-/* clang-format off */
 #include <stdio.h>
 
 #include <stdlib.h>

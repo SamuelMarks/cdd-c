@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_PREPROCESSOR_MACROS_H
 #define TEST_PREPROCESSOR_MACROS_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -4,10 +4,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_TEXT_PATCHER_H
 #define TEST_TEXT_PATCHER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

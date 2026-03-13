@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
-/* clang-format off */
 #include <assert.h>
 #include <greatest.h>
 #include <stdarg.h>
@@ -38,7 +38,7 @@ static /**
   va_start(args, n);
   for (i = 0; i < n; i++) {
     int expected_kind = va_arg(args, int);
-    ASSERT_EQ_FMT(expected_kind, curr ? curr->kind : -1, "%d");
+    ASSERT_EQ_FMT((int)expected_kind, curr ? (int)curr->kind : -1, "%d");
     curr = curr->inner;
   }
   va_end(args);

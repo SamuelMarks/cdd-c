@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_REFACTOR_ORCHESTRATOR_H
 #define TEST_REFACTOR_ORCHESTRATOR_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

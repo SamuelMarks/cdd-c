@@ -3,10 +3,10 @@
  * @brief Tests for the OpenAPI Client Library Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_OPENAPI_CLIENT_GEN_H
 #define TEST_OPENAPI_CLIENT_GEN_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

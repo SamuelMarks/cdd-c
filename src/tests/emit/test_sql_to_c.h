@@ -3,10 +3,10 @@
  * @brief Tests for SQL to C struct emission.
  */
 
+/* clang-format off */
 #ifndef C_CDD_TEST_SQL_TO_C_H
 #define C_CDD_TEST_SQL_TO_C_H
 
-/* clang-format off */
 #include "classes/emit/sql_to_c.h"
 #include <greatest.h>
 #include <string.h>

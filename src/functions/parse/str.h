@@ -27,8 +27,8 @@ extern "C" {
 /* --- Platform Compatibility Macros --- */
 
 #if defined(__WATCOMC__) || defined(__DOS__)
-#define strtok_r(str, delim, saveptr) strtok((str), (delim))
-#define strtok_s(str, delim, saveptr) strtok((str), (delim))
+#define strtok_r(str, delim, saveptr) ((void)(saveptr), strtok((str), (delim)))
+#define strtok_s(str, delim, saveptr) ((void)(saveptr), strtok((str), (delim)))
 #endif
 
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE) || defined(HAVE_ASPRINTF)
@@ -36,8 +36,8 @@ extern "C" {
 #else
 /* Fallback for systems without asprintf (e.g. MSVC, pure C89) */
 #include <c89stringutils_string_extras.h>
-/* clang-format on */
 #endif
+/* clang-format on */
 
 /**
  * @brief Format specifier for size_t/ssize_t.

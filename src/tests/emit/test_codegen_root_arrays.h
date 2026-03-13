@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_CODEGEN_ROOT_ARRAYS_H
 #define TEST_CODEGEN_ROOT_ARRAYS_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

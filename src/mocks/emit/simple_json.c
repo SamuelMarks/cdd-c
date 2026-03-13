@@ -550,7 +550,7 @@ int FooE_from_jsonObject(const JSON_Object *jsonObject,
   if (jsonObject == NULL || foo_e == NULL)
     return EINVAL;
 
-  new_foo = calloc(sizeof(*new_foo), 1);
+  new_foo = calloc(1, sizeof(*new_foo));
   if (new_foo == NULL)
     return ENOMEM;
 

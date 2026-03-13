@@ -3,10 +3,10 @@
  * @brief Tests for enum schema + required property support.
  */
 
+/* clang-format off */
 #ifndef TEST_SCHEMA_ENUM_REQUIRED_H
 #define TEST_SCHEMA_ENUM_REQUIRED_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>

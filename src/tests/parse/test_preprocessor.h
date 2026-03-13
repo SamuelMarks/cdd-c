@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_PREPROCESSOR_H
 #define TEST_PREPROCESSOR_H
 
-/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
