@@ -47,7 +47,7 @@ TEST test_sync_signature_update(void) {
       "\"schema\":{\"type\":\"integer\"}}]"
       "}}}}";
   struct OpenAPI_Spec spec;
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 
@@ -81,7 +81,7 @@ TEST test_sync_url_logic_update(void) {
       "\"schema\":{\"type\":\"integer\"}}]"
       "}}}}";
   struct OpenAPI_Spec spec;
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 
@@ -119,7 +119,7 @@ TEST test_sync_query_update(void) {
       "}}}}";
 
   struct OpenAPI_Spec spec;
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 
@@ -156,7 +156,7 @@ TEST test_sync_header_update(void) {
       "}}}}";
 
   struct OpenAPI_Spec spec;
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 

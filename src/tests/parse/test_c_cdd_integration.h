@@ -131,7 +131,7 @@ TEST test_integration_recursive_fix(void) {
     char *sub = NULL;
     char *f1 = NULL;
     char *f2 = NULL;
-    char *content;
+    char *content = NULL;
     size_t sz;
 
     asprintf(&sub, "%s%ssub", root, PATH_SEP);
@@ -364,7 +364,7 @@ TEST test_integration_schema2code_with_guards(void) {
   char *source_file = "integ_guard_out.c";
   char *param1 = "--guard-json=ENABLE_JSON";
   char *param2 = "--guard-utils=DATA_UTILS";
-  char *content;
+  char *content = NULL;
   size_t sz;
   int rc;
 

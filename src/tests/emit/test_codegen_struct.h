@@ -30,7 +30,7 @@ TEST test_cleanup_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp);
   setup_struct_fields(&sf);
@@ -58,7 +58,7 @@ TEST test_cleanup_generation(void) {
 TEST test_default_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -87,7 +87,7 @@ TEST test_default_generation(void) {
 TEST test_deepcopy_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -118,7 +118,7 @@ TEST test_deepcopy_generation(void) {
 TEST test_eq_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -146,7 +146,7 @@ TEST test_guards_injection(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   struct CodegenStructConfig cfg;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);

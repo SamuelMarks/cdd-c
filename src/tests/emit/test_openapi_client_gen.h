@@ -597,7 +597,7 @@ TEST test_gen_client_defaults(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
-  char *content;
+  char *content = NULL;
   size_t sz;
 
   setup_minimal_spec(&spec, &op);
@@ -626,7 +626,7 @@ TEST test_gen_transport_selection(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config = {0};
-  char *content;
+  char *content = NULL;
   size_t sz;
 
   setup_minimal_spec(&spec, &op);

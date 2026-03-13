@@ -24,7 +24,7 @@ TEST test_write_union_to_json(void) {
   struct StructFields sf;
   struct CodegenTypesConfig config = {0};
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -59,7 +59,7 @@ TEST test_write_union_to_json(void) {
 TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -90,7 +90,7 @@ TEST test_write_union_from_json_object(void) {
 TEST test_write_union_from_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -122,7 +122,7 @@ TEST test_write_union_from_json(void) {
 TEST test_write_union_array_to_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -150,7 +150,7 @@ TEST test_write_union_array_to_json(void) {
 TEST test_write_union_array_from_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -178,7 +178,7 @@ TEST test_write_union_array_from_json(void) {
 TEST test_write_union_array_cleanup(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -205,7 +205,7 @@ TEST test_write_union_array_cleanup(void) {
 TEST test_write_union_cleanup_switch(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -236,7 +236,7 @@ TEST test_write_union_cleanup_switch(void) {
 
 TEST test_root_array_string_cleanup(void) {
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -260,7 +260,7 @@ TEST test_root_array_string_cleanup(void) {
 
 TEST test_root_array_int_from_json(void) {
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -286,7 +286,7 @@ TEST test_root_array_int_from_json(void) {
 
 TEST test_root_array_obj_to_json(void) {
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -312,7 +312,7 @@ TEST test_union_guards(void) {
   struct StructFields sf;
   struct CodegenTypesConfig cfg;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);

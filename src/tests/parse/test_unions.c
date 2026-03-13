@@ -23,7 +23,7 @@ GREATEST_MAIN_DEFS();
 TEST test_write_union_to_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -59,7 +59,7 @@ TEST test_write_union_to_json(void) {
 TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -92,7 +92,7 @@ TEST test_write_union_from_json_object(void) {
 TEST test_write_union_from_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -123,7 +123,7 @@ TEST test_write_union_from_json(void) {
 TEST test_write_union_cleanup(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);

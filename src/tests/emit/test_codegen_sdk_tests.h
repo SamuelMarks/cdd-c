@@ -25,7 +25,7 @@ TEST test_gen_sdk_test_basic(void) {
   struct SdkTestsConfig config;
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp)
     return -1;

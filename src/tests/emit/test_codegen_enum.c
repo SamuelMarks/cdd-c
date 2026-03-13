@@ -40,7 +40,7 @@ TEST test_enum_to_str_basic(void) {
   FILE *tmp = tmpfile();
   struct EnumMembers em;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp != NULL);
   setup_basic_enum(&em);
@@ -76,7 +76,7 @@ TEST test_enum_from_str_basic(void) {
   FILE *tmp = tmpfile();
   struct EnumMembers em;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp != NULL);
   setup_basic_enum(&em);
@@ -113,7 +113,7 @@ TEST test_enum_guards(void) {
   struct EnumMembers em;
   struct CodegenEnumConfig config;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp != NULL);
   setup_basic_enum(&em);

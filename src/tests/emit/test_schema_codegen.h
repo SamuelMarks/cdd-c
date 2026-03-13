@@ -126,7 +126,7 @@ TEST test_codegen_config_json_guards(void) {
   /* We use the specific config struct now */
   struct CodegenJsonConfig config;
 
-  char *content;
+  char *content = NULL;
 
   long sz;
 
@@ -210,7 +210,7 @@ TEST test_union_config_json_guards(void) {
   /* Specific config struct */
   struct CodegenTypesConfig config;
 
-  char *content;
+  char *content = NULL;
 
   long sz;
 
@@ -413,7 +413,7 @@ TEST test_codegen_config_utils_guards(void) {
   /* Specific config struct */
   struct CodegenStructConfig config;
 
-  char *content;
+  char *content = NULL;
 
   long sz;
 

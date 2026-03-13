@@ -21,7 +21,7 @@ static int gen_url_code(const char *tmpl,
                         char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;
@@ -50,7 +50,7 @@ static int gen_url_code(const char *tmpl,
 static int gen_query_code(const struct OpenAPI_Operation *op, char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

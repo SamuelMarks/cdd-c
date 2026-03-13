@@ -32,7 +32,7 @@ TEST test_json_to_plain(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp);
   setup_json_fields(&sf);
@@ -62,7 +62,7 @@ TEST test_json_from_plain(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   long sz;
-  char *content;
+  char *content = NULL;
 
   ASSERT(tmp);
   setup_json_fields(&sf);
@@ -90,7 +90,7 @@ TEST test_json_from_plain(void) {
 TEST test_json_recursive_obj(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -118,7 +118,7 @@ TEST test_json_recursive_obj(void) {
 TEST test_json_array_logic(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);
@@ -149,7 +149,7 @@ TEST test_json_guards(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   struct CodegenJsonConfig config;
-  char *content;
+  char *content = NULL;
   long sz;
 
   ASSERT(tmp);

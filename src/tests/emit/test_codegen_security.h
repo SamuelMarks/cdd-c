@@ -29,7 +29,7 @@ static int gen_sec_code(const struct OpenAPI_Spec *spec,
   struct OpenAPI_Operation op_local;
   const struct OpenAPI_Operation *op = op_in;
   long sz;
-  char *content;
+  char *content = NULL;
 
   if (!tmp) {
     *_out_val = NULL;

@@ -20,11 +20,11 @@ TEST test_simple_cleanup_and_null(void) {
   }
 
   {
-    struct Foo *foo = (struct Foo *)calloc(sizeof(*foo), 1);
+    struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
     if (foo) {
       foo->bar = NULL;
       foo->can = 0;
-      foo->haz = (struct Haz *)calloc(sizeof(*foo->haz), 1);
+      foo->haz = (struct Haz *)calloc(1, sizeof(*foo->haz));
       if (foo->haz)
         Foo_cleanup(foo); /* This will free haz and foo */
       else
@@ -36,7 +36,7 @@ TEST test_simple_cleanup_and_null(void) {
 }
 
 TEST test_foo_cleanup_with_null_haz(void) {
-  struct Foo *foo = (struct Foo *)calloc(sizeof(*foo), 1);
+  struct Foo *foo = (struct Foo *)calloc(1, sizeof(*foo));
   if (foo) {
     foo->bar = NULL;
     foo->can = 0;
