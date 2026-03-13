@@ -3,10 +3,10 @@
  * @brief Unit tests for the URL Code Generator and Query logic.
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_URL_H
 #define TEST_CODEGEN_URL_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

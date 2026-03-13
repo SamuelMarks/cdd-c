@@ -259,11 +259,11 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
 
   str_to_title(struct_name, table->name);
 
-  fprintf(fp, "/* clang-format off */\n");
+  fprintf(fp, "\n");
   fprintf(fp, "#include \"%s\"\n", header_name);
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "/* clang-format on */\n\n");
+  fprintf(fp, "\n\n");
 
   /* Array init */
   fprintf(

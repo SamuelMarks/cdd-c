@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_JSON_FROM_AND_TO_H
 #define TEST_JSON_FROM_AND_TO_H
 
-/* clang-format off */
 #include <mocks/emit/simple_json.h>
 
 #include <greatest.h>

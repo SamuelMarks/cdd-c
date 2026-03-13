@@ -478,7 +478,7 @@ int FooE_from_jsonObject(const JSON_Object *const jsonObject,
   if (jsonObject == NULL || foo_e == NULL)
     return EINVAL;
 
-  new_foo = (struct FooE *)calloc(sizeof(*new_foo), 1);
+  new_foo = (struct FooE *)calloc(1, sizeof(*new_foo));
   if (new_foo == NULL)
     return ENOMEM;
 

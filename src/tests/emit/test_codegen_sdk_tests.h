@@ -4,10 +4,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_SDK_TESTS_H
 #define TEST_CODEGEN_SDK_TESTS_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -3,10 +3,10 @@
  * @brief Unit tests for CST non-destructive printing.
  */
 
+/* clang-format off */
 #ifndef TEST_CST_PRINTER_H
 #define TEST_CST_PRINTER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

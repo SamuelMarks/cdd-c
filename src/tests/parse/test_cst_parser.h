@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_CST_PARSER_H
 #define TEST_CST_PARSER_H
 
-/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

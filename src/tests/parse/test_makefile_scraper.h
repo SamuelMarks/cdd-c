@@ -3,10 +3,10 @@
  * @brief Unit tests for Makefile/configure.ac scraper.
  */
 
+/* clang-format off */
 #ifndef TEST_MAKEFILE_SCRAPER_H
 #define TEST_MAKEFILE_SCRAPER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

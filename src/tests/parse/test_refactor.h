@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_REFACTOR_H
 #define TEST_REFACTOR_H
 
-/* clang-format off */
 #include <errno.h>
 #include <greatest.h>
 #include <stdlib.h>

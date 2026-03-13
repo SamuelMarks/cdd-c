@@ -3,10 +3,10 @@
  * @brief Unit tests for C Client Signature Generation.
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_CLIENT_SIG_H
 #define TEST_CODEGEN_CLIENT_SIG_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

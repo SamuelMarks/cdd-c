@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_SERVER_GEN_H
 #define TEST_SERVER_GEN_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

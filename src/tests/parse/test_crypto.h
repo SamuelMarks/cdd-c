@@ -9,10 +9,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CRYPTO_H
 #define TEST_CRYPTO_H
 
-/* clang-format off */
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>

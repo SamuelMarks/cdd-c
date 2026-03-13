@@ -5,10 +5,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_TYPES_H
 #define TEST_CODEGEN_TYPES_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

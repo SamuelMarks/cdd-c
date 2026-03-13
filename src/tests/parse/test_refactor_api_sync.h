@@ -7,10 +7,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_REFACTOR_API_SYNC_H
 #define TEST_REFACTOR_API_SYNC_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

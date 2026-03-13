@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_SCHEMA_CONSTRAINTS_H
 #define TEST_SCHEMA_CONSTRAINTS_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 

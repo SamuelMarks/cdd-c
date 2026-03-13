@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
-/* clang-format off */
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>

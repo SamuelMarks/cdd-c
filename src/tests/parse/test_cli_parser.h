@@ -3,10 +3,10 @@
  * @brief Unit tests for parsing C CLI argument parsers.
  */
 
+/* clang-format off */
 #ifndef TEST_CLI_PARSER_H
 #define TEST_CLI_PARSER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <mocks/emit/simple_json.h>
 
@@ -102,6 +102,7 @@ TEST test_recursive_deepcopy(void) {
   struct Node *next = (struct Node *)malloc(sizeof(struct Node));
   struct Node *copy = NULL;
   int rc;
+  (void)rc;
 
   ASSERT(head && next);
   head->value = 10;
@@ -151,6 +152,7 @@ TEST test_recursive_eq(void) {
 TEST test_FooE_default_deepcopy_eq_cleanup(void) {
   struct FooE *foo0 = NULL, *foo1 = NULL, *foo2 = NULL;
   int rc;
+  (void)rc;
 
   rc = FooE_default(&foo0);
   ASSERT_EQ(0, rc);
@@ -177,6 +179,7 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 TEST test_HazE_default_deepcopy_eq_cleanup(void) {
   struct HazE *h0 = NULL, *h1 = NULL, *h2 = NULL;
   int rc;
+  (void)rc;
 
   rc = HazE_default(&h0);
   ASSERT_EQ(0, rc);
@@ -206,6 +209,7 @@ TEST test_FooE_json_roundtrip(void) {
   struct FooE *foo_in = NULL;
   char *json_out = NULL;
   int rc;
+  (void)rc;
 
   rc = FooE_from_json(json, &foo_in);
   ASSERT_EQ_FMT(0, rc, "%d");
@@ -232,6 +236,7 @@ TEST test_HazE_json_roundtrip(void) {
   struct HazE *haz_in = NULL;
   char *json_out = NULL;
   int rc;
+  (void)rc;
 
   rc = HazE_from_json(json, &haz_in);
   ASSERT_EQ(0, rc);
@@ -279,6 +284,7 @@ TEST test_json_parsing_corner_cases(void) {
   struct HazE *h = NULL;
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
 
   /* Test HazE from JSON with missing "tank" field */
   rc = HazE_from_json("{\"bzr\": \"val\"}", &h);
@@ -361,6 +367,7 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
+  (void)rc;
   const char *const tmp_fname = "display_test.tmp";
   FILE *fh;
 
@@ -440,6 +447,7 @@ TEST test_Tank_to_str_from_str(void) {
   char *str = NULL;
   enum Tank val;
   int rc;
+  (void)rc;
 
   rc = Tank_to_str(Tank_BIG, &str);
   ASSERT_EQ(0, rc);
@@ -495,6 +503,7 @@ TEST test_to_json_with_null_fields(void) {
   struct FooE foo = {NULL, 12, NULL};
   char *json_out = NULL;
   int rc;
+  (void)rc;
 
   foo.haz = &haz;
 
@@ -538,6 +547,7 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
+  (void)rc;
   const char *const tmp_fname = "debug_test.tmp";
   FILE *fh;
 
@@ -620,6 +630,7 @@ TEST test_deepcopy_null_fields(void) {
   struct FooE foo_in = {NULL, 42, NULL};
   struct FooE *foo_out = NULL;
   int rc;
+  (void)rc;
 
   /* Deepcopy HazE with NULL bzr */
   rc = HazE_deepcopy(&haz_in, &haz_out);
@@ -644,6 +655,7 @@ TEST test_deepcopy_null_fields(void) {
 TEST test_json_parsing_missing_fields(void) {
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
 
   /* `bar` is optional and can be missing */
   rc = FooE_from_json(
@@ -676,6 +688,7 @@ TEST test_json_parsing_missing_fields(void) {
 TEST test_debug_with_null_nested(void) {
   struct FooE *f = NULL;
   int rc;
+  (void)rc;
 
   rc = FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f);
   ASSERT_EQ(0, rc);

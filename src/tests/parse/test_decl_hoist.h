@@ -3,10 +3,10 @@
  * @brief Unit tests for declaration hoisting analysis.
  */
 
+/* clang-format off */
 #ifndef TEST_DECL_HOIST_H
 #define TEST_DECL_HOIST_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

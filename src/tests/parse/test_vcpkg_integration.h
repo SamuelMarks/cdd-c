@@ -3,10 +3,10 @@
  * @brief Unit tests for Vcpkg Integration Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_VCPKG_INTEGRATION_H
 #define TEST_VCPKG_INTEGRATION_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

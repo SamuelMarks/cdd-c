@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_SCHEMA2TESTS_H
 #define TEST_SCHEMA2TESTS_H
 
-/* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
 

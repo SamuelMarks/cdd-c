@@ -10,10 +10,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_OPENAPI_WRITER_H
 #define TEST_OPENAPI_WRITER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>

@@ -76,8 +76,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-/* clang-format on */
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+/* clang-format on */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -893,6 +893,9 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
        If user passed a file, we process it. */
     return cb(path, user_data);
   }
+
+  (void)full_path;
+  (void)rc;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   {

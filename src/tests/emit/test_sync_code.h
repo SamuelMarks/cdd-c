@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
-/* clang-format off */
 #include "functions/emit/sync.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <greatest.h>

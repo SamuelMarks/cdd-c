@@ -2,10 +2,10 @@
  * @file test_mocks.h
  * @brief Mock data structures and factories for tests.
  */
+/* clang-format off */
 #ifndef TEST_MOCKS_H
 #define TEST_MOCKS_H
 
-/* clang-format off */
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 

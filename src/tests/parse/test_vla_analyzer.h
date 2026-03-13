@@ -3,10 +3,10 @@
  * @brief Unit tests for VLA analyzer.
  */
 
+/* clang-format off */
 #ifndef TEST_VLA_ANALYZER_H
 #define TEST_VLA_ANALYZER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

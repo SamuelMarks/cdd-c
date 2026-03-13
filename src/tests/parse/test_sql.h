@@ -3,10 +3,10 @@
  * @brief Tests for the SQL DDL Lexer.
  */
 
+/* clang-format off */
 #ifndef C_CDD_TEST_SQL_H
 #define C_CDD_TEST_SQL_H
 
-/* clang-format off */
 #include "classes/parse/sql.h"
 #include <greatest.h>
 /* clang-format on */

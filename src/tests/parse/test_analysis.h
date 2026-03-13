@@ -8,10 +8,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_ANALYSIS_H
 #define TEST_ANALYSIS_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

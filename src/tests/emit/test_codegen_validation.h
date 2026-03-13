@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_CODEGEN_VALIDATION_H
 #define TEST_CODEGEN_VALIDATION_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

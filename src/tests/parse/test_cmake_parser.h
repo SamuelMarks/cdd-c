@@ -3,10 +3,10 @@
  * @brief Unit tests for CMake parser modifications.
  */
 
+/* clang-format off */
 #ifndef TEST_CMAKE_PARSER_H
 #define TEST_CMAKE_PARSER_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 

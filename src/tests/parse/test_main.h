@@ -1,7 +1,7 @@
+/* clang-format off */
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
-/* clang-format off */
 #include "functions/parse/main.h"
 #include "greatest.h"
 /* clang-format on */

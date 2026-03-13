@@ -8,10 +8,10 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_JSON_H
 #define TEST_CODEGEN_JSON_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>

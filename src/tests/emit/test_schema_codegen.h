@@ -1,8 +1,8 @@
+/* clang-format off */
 #ifndef TEST_SCHEMA_CODEGEN_H
 
 #define TEST_SCHEMA_CODEGEN_H
 
-/* clang-format off */
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"

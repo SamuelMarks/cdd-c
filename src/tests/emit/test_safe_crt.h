@@ -3,10 +3,10 @@
  * @brief Unit tests for Safe CRT transformations.
  */
 
+/* clang-format off */
 #ifndef TEST_SAFE_CRT_H
 #define TEST_SAFE_CRT_H
 
-/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
