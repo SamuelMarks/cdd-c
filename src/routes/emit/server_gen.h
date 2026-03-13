@@ -1,5 +1,8 @@
 #ifndef CDD_SERVER_GEN_H
 #define CDD_SERVER_GEN_H
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include "c_cddConfig.h"
@@ -14,4 +17,7 @@ C_CDD_EXPORT /**
     openapi_server_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* CDD_SERVER_GEN_H */
