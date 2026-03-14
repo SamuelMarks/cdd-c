@@ -42,36 +42,6 @@ static void str_to_title(char *dst, const char *src) {
   *dst = '\0';
 }
 
-/**
- * @brief Sanitize an SQL identifier to a valid C identifier.
- * Collisions aren't checked here, but this ensures invalid characters are
- * replaced.
- */
-static void sanitize_identifier(char *dst, const char *src) {
-  if (!*src) {
-    *dst = '\0';
-    return;
-  }
-  /* First char must be alpha or underscore */
-  if (isalpha((unsigned char)*src) || *src == '_') {
-    *dst = *src;
-  } else {
-    *dst = '_'; /* Fallback if somehow numeric started */
-  }
-  dst++;
-  src++;
-  while (*src) {
-    if (isalnum((unsigned char)*src) || *src == '_') {
-      *dst = *src;
-    } else {
-      *dst = '_';
-    }
-    dst++;
-    src++;
-  }
-  *dst = '\0';
-}
-
 static int is_nullable(const struct sql_column_t *col) {
   size_t i;
   for (i = 0; i < col->n_constraints; ++i) {

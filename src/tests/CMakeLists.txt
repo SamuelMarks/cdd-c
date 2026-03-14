@@ -87,24 +87,16 @@ add_library("${LIBRARY_NAME}" INTERFACE)
 add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}") 
 set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER "${CMAKE_CURRENT_SOURCE_DIR}") 
 
-target_include_directories( 
-        "${LIBRARY_NAME}" 
+target_include_directories(
+        "${LIBRARY_NAME}"
         INTERFACE
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>" 
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>" 
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/mocks>" 
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" 
-) 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.13") 
-    set_target_properties( 
-            "${LIBRARY_NAME}" 
-            PROPERTIES
-            LINKER_LANGUAGE
-            C
-    ) 
-endif () 
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/mocks>"
+        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+)
 
-add_subdirectory("cdd_test_helpers") 
+add_subdirectory("cdd_test_helpers")
 target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers") 
 
 ################## 

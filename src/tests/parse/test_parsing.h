@@ -87,7 +87,7 @@ TEST test_precondition_failure(void) {
 }
 
 TEST test_parsing_struct(void) {
-  TEST _ast_parsing_test_0;
+
   CHECK_CALL(parsing_test("Struct parsing",
                           AZ_SPAN_FROM_STR("struct Point { int x; int y; };"),
                           1, 0, 0, 0, 0, 1));
@@ -95,7 +95,7 @@ TEST test_parsing_struct(void) {
 }
 
 TEST test_parsing_enum(void) {
-  TEST _ast_parsing_test_1;
+
   CHECK_CALL(parsing_test("Enum parsing",
                           AZ_SPAN_FROM_STR("enum Color { RED, GREEN, BLUE };"),
                           0, 1, 0, 0, 0, 1));
@@ -103,7 +103,7 @@ TEST test_parsing_enum(void) {
 }
 
 TEST test_parsing_union(void) {
-  TEST _ast_parsing_test_2;
+
   CHECK_CALL(parsing_test("Union parsing",
                           AZ_SPAN_FROM_STR("union Data { int i; float f; };"),
                           0, 0, 1, 0, 0, 1));
@@ -111,7 +111,7 @@ TEST test_parsing_union(void) {
 }
 
 TEST test_parsing_comments(void) {
-  TEST _ast_parsing_test_3;
+
   CHECK_CALL(parsing_test(
       "Comments parsing",
       AZ_SPAN_FROM_STR("/* comment block */\n// line comment\nint x;"), 0, 0, 0,
@@ -120,7 +120,7 @@ TEST test_parsing_comments(void) {
 }
 
 TEST test_parsing_macros(void) {
-  TEST _ast_parsing_test_4;
+
   CHECK_CALL(parsing_test("Macros parsing",
                           AZ_SPAN_FROM_STR("#define MAX 100\nint a;"), 0, 0, 0,
                           0, 1, 2));
@@ -128,7 +128,7 @@ TEST test_parsing_macros(void) {
 }
 
 TEST test_parsing_complex(void) {
-  TEST _ast_parsing_test_5;
+
   CHECK_CALL(parsing_test(
       "Complex parsing",
       AZ_SPAN_FROM_STR("/* block comment */\n"
@@ -143,14 +143,14 @@ TEST test_parsing_complex(void) {
 }
 
 TEST test_parsing_empty(void) {
-  TEST _ast_parsing_test_6;
+
   CHECK_CALL(
       parsing_test("Empty string", AZ_SPAN_FROM_STR(""), 0, 0, 0, 0, 0, 0));
   PASS();
 }
 
 TEST test_parsing_struct_with_anonymous_union(void) {
-  TEST _ast_parsing_test_7;
+
   CHECK_CALL(parsing_test("Struct with anonymous union",
                           AZ_SPAN_FROM_STR("struct S { union { int i; }; };"),
                           1, /* structs */

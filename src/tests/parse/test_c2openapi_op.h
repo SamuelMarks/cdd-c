@@ -1184,8 +1184,8 @@ TEST test_build_custom_verb_additional(void) {
 }
 
 TEST test_build_response_multi_content(void) {
-  struct OpenAPI_MediaType *_ast_find_response_media_type_0;
-  struct OpenAPI_MediaType *_ast_find_response_media_type_1;
+  const struct OpenAPI_MediaType *_ast_find_response_media_type_0;
+  const struct OpenAPI_MediaType *_ast_find_response_media_type_1;
   struct OpBuilderContext ctx;
   struct C2OpenAPI_ParsedSig sig;
   struct DocMetadata doc;

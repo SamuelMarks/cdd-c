@@ -34,7 +34,7 @@ struct Node {
 };
 
 /* Emulate Generated Code for Node to test the logic pattern */
-void Node_cleanup(struct Node *const obj) {
+static void Node_cleanup(struct Node *const obj) {
   if (obj == NULL)
     return;
   if (obj->next) {
@@ -44,7 +44,7 @@ void Node_cleanup(struct Node *const obj) {
   free(obj);
 }
 
-int Node_deepcopy(const struct Node *src, struct Node **dest) {
+static int Node_deepcopy(const struct Node *src, struct Node **dest) {
   if (!dest)
     return EINVAL;
   if (!src) {
@@ -72,7 +72,7 @@ int Node_deepcopy(const struct Node *src, struct Node **dest) {
   return (enum greatest_test_res)0;
 }
 
-int Node_eq(const struct Node *a, const struct Node *b) {
+static int Node_eq(const struct Node *a, const struct Node *b) {
   if (a == NULL || b == NULL)
     return (a == b);
   if (a->value != b->value)
