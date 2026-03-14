@@ -15,6 +15,9 @@ set(Header_Files
         "routes/emit/operation.h"
         "classes/emit/schema.h"
         "classes/parse/mapping.h"
+        "classes/parse/sql.h"
+        "classes/parse/migration.h"
+        "classes/emit/sql_to_c.h"
         "classes/parse/migration.h"
         "functions/parse/migration_runner.h"
         "classes/parse/code2schema.h"
@@ -58,7 +61,8 @@ set(Header_Files
         "functions/emit/sync.h"
         "functions/emit/patcher.h"
         "functions/parse/tokenizer.h"
-        "routes/parse/url.h"
+        "functions/parse/str.h"
+        "functions/parse/db_loader.h"
         "win_compat_sym.h"
 )
 source_group("Header Files" FILES "${Header_Files}")
@@ -70,8 +74,10 @@ set(Source_Files
         "routes/emit/operation.c"
         "classes/emit/schema.c"
         "classes/parse/mapping.c"
+        "classes/parse/sql.c"
         "classes/parse/migration.c"
         "functions/parse/migration_runner.c"
+        "classes/emit/sql_to_c.c"
         "classes/parse/code2schema.c"
         "functions/emit/codegen.c"
         "functions/emit/build.c"
@@ -282,17 +288,56 @@ else()
     target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
 endif()
 
-if(NOT TARGET PostgreSQL::PostgreSQL)
+set(CDD_POSTGRESQL "LINKED" CACHE STRING "PostgreSQL support (LINKED, DYNAMIC, OFF)")
+set(CDD_SQLITE "OFF" CACHE STRING "SQLite support (LINKED, DYNAMIC, OFF)")
+set(CDD_MYSQL "OFF" CACHE STRING "MySQL support (LINKED, DYNAMIC, OFF)")
+
+if(CDD_POSTGRESQL STREQUAL "LINKED")
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-        find_package(PostgreSQL REQUIRED)
+        find_package(PostgreSQL QUIET)
     else ()
-        find_package(PostgreSQL REQUIRED)
+        find_package(PostgreSQL CONFIG QUIET)
     endif ()
+    if(TARGET PostgreSQL::PostgreSQL)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE PostgreSQL::PostgreSQL)
+        target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_LINKED)
+    elseif(PostgreSQL_FOUND)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE pq)
+        target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_LINKED)
+    endif()
+elseif(CDD_POSTGRESQL STREQUAL "DYNAMIC")
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_DYNAMIC)
+    if(NOT WIN32)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
+    endif()
 endif()
-if(TARGET PostgreSQL::PostgreSQL)
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE PostgreSQL::PostgreSQL)
-else()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE pq)
+
+if(CDD_SQLITE STREQUAL "LINKED")
+    find_package(unofficial-sqlite3 CONFIG QUIET)
+    if(TARGET unofficial::sqlite3::sqlite3)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE unofficial::sqlite3::sqlite3)
+        target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_LINKED)
+    else()
+        find_package(SQLite3 QUIET)
+        if(SQLite3_FOUND)
+            target_link_libraries("${LIBRARY_NAME}" PRIVATE SQLite::SQLite3)
+            target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_LINKED)
+        endif()
+    endif()
+elseif(CDD_SQLITE STREQUAL "DYNAMIC")
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_SQLITE_DYNAMIC)
+    if(NOT WIN32)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
+    endif()
+endif()
+
+if(CDD_MYSQL STREQUAL "LINKED")
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_MYSQL_LINKED)
+elseif(CDD_MYSQL STREQUAL "DYNAMIC")
+    target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_MYSQL_DYNAMIC)
+    if(NOT WIN32)
+        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
+    endif()
 endif()
 
 target_link_libraries(

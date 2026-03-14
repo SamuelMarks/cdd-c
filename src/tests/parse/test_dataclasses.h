@@ -367,9 +367,9 @@ TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
   const char *const tmp_fname = "display_test.tmp";
-  FILE *fh;
+  FILE *fh = NULL;
+  (void)rc;
 
   write_to_file(tmp_fname, "content");
 
@@ -547,9 +547,9 @@ TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  (void)rc;
   const char *const tmp_fname = "debug_test.tmp";
-  FILE *fh;
+  FILE *fh = NULL;
+  (void)rc;
 
   write_to_file(tmp_fname, "content");
 

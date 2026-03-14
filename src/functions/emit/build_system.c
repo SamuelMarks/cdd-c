@@ -96,6 +96,14 @@ static /**
 
   CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
   CHECK_IO(fprintf(fp, "FetchContent_Declare(\n"));
+  CHECK_IO(fprintf(fp, "    c-fs\n"));
+  CHECK_IO(fprintf(fp, "    GIT_REPOSITORY "
+                       "https://github.com/SamuelMarks/c-fs.git\n"));
+  CHECK_IO(fprintf(fp, "    GIT_TAG        master\n"));
+  CHECK_IO(fprintf(fp, ")\n"));
+  CHECK_IO(fprintf(fp, "FetchContent_MakeAvailable(c-fs)\n\n"));
+
+  CHECK_IO(fprintf(fp, "FetchContent_Declare(\n"));
   CHECK_IO(fprintf(fp, "    c-abstract-http\n"));
   CHECK_IO(fprintf(fp, "    GIT_REPOSITORY "
                        "https://github.com/SamuelMarks/c-abstract-http.git\n"));
@@ -111,9 +119,9 @@ static /**
   CHECK_IO(fprintf(fp, ")\n"));
   CHECK_IO(fprintf(fp, "FetchContent_MakeAvailable(c-orm)\n\n"));
 
-  CHECK_IO(
-      fprintf(fp, "target_link_libraries(%s PRIVATE c-abstract-http c-orm)\n\n",
-              project_name));
+  CHECK_IO(fprintf(
+      fp, "target_link_libraries(%s PRIVATE c-fs c-abstract-http c-orm)\n\n",
+      project_name));
 
   /* Include Directories */
   CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));
