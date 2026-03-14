@@ -6,7 +6,21 @@ extern "C" {
 #else
 /* clang-format off */
 #if __STDC_VERSION__ >= 199901L
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#if !defined(__cplusplus)
+#ifndef bool
+#define bool unsigned char
+#endif
+#ifndef true
+#define true 1
+#endif
+#ifndef false
+#define false 0
+#endif
+#endif
+#else
 #include <stdbool.h>
+#endif
 #else
 #include <c_cdd_stdbool.h>
 #endif /* __STDC_VERSION__ >= 199901L */

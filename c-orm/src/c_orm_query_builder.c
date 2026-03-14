@@ -158,9 +158,9 @@ int c_orm_select_limit(c_orm_select_builder_t *builder, size_t limit) {
     return 1;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  sprintf_s(buf, sizeof(buf), " LIMIT %I64u", (unsigned long long)limit);
+  sprintf_s(buf, sizeof(buf), " LIMIT " CDD_ZU_FMT, CAST_ZU limit);
 #else
-  sprintf(buf, " LIMIT %zu", limit);
+  sprintf(buf, " LIMIT " CDD_ZU_FMT, CAST_ZU limit);
 #endif
   c_orm_string_builder_append(builder->sb, buf);
   return 0;
@@ -172,9 +172,9 @@ int c_orm_select_offset(c_orm_select_builder_t *builder, size_t offset) {
     return 1;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  sprintf_s(buf, sizeof(buf), " OFFSET %I64u", (unsigned long long)offset);
+  sprintf_s(buf, sizeof(buf), " OFFSET " CDD_ZU_FMT, CAST_ZU offset);
 #else
-  sprintf(buf, " OFFSET %zu", offset);
+  sprintf(buf, " OFFSET " CDD_ZU_FMT, CAST_ZU offset);
 #endif
   c_orm_string_builder_append(builder->sb, buf);
   return 0;
