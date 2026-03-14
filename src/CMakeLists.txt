@@ -15,6 +15,8 @@ set(Header_Files
         "routes/emit/operation.h"
         "classes/emit/schema.h"
         "classes/parse/mapping.h"
+        "classes/parse/migration.h"
+        "functions/parse/migration_runner.h"
         "classes/parse/code2schema.h"
         "functions/emit/codegen.h"
         "functions/emit/build.h"
@@ -68,6 +70,8 @@ set(Source_Files
         "routes/emit/operation.c"
         "classes/emit/schema.c"
         "classes/parse/mapping.c"
+        "classes/parse/migration.c"
+        "functions/parse/migration_runner.c"
         "classes/parse/code2schema.c"
         "functions/emit/codegen.c"
         "functions/emit/build.c"
@@ -276,6 +280,19 @@ if(TARGET parson::parson)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
 else()
     target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
+endif()
+
+if(NOT TARGET PostgreSQL::PostgreSQL)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
+        find_package(PostgreSQL REQUIRED)
+    else ()
+        find_package(PostgreSQL REQUIRED)
+    endif ()
+endif()
+if(TARGET PostgreSQL::PostgreSQL)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE PostgreSQL::PostgreSQL)
+else()
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE pq)
 endif()
 
 target_link_libraries(

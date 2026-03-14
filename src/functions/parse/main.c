@@ -85,6 +85,16 @@ static /**
   puts("      Generate C code from JSON schema.");
   puts("  jsonschema2tests <schema.json> <header_to_test.h> <out.h>");
   puts("      Generate C tests from JSON schema.");
+  puts("  migrate <up|down|create> [args...]");
+  puts("      Manage database migrations.");
+  puts("  db reset");
+  puts("      Drop and recreate the database schema, then run UP migrations.");
+  puts("  schema dump [schema.sql]");
+  puts("      Dump the current database schema state.");
+  puts("  seed [seeds.sql]");
+  puts("      Seed the database with test data.");
+  puts("  setup_test_db [db_name]");
+  puts("      Setup a test database dynamically in CI mode.");
 }
 
 static /**
@@ -270,6 +280,26 @@ int cdd_main(int argc, char **argv) {
     rc = server_json_rpc_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "jsonschema2tests") == 0) {
     rc = jsonschema2tests_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "migrate") == 0) {
+    rc = migrate_cli_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "db") == 0) {
+    if (argc > 2 && strcmp(argv[2], "reset") == 0) {
+      rc = db_reset_cli_main(argc - 3, argv + 3);
+    } else {
+      fprintf(stderr, "Unknown db command. Try 'db reset'\n");
+      rc = EXIT_FAILURE;
+    }
+  } else if (strcmp(cmd, "schema") == 0) {
+    if (argc > 2 && strcmp(argv[2], "dump") == 0) {
+      rc = schema_dump_cli_main(argc - 3, argv + 3);
+    } else {
+      fprintf(stderr, "Unknown schema command. Try 'schema dump'\n");
+      rc = EXIT_FAILURE;
+    }
+  } else if (strcmp(cmd, "seed") == 0) {
+    rc = seed_cli_main(argc - 2, argv + 2);
+  } else if (strcmp(cmd, "setup_test_db") == 0) {
+    rc = setup_test_db_cli_main(argc - 2, argv + 2);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {
