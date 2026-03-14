@@ -19,7 +19,7 @@
 #include "simple_json.h"
 /* clang-format on */
 
-int quote_or_null(const char *const s, char **s1) {
+static int quote_or_null(const char *const s, char **s1) {
   if (s == NULL) {
     *s1 = strdup("(null)");
     if (*s1 == NULL)
@@ -41,7 +41,7 @@ int quote_or_null(const char *const s, char **s1) {
   return 0;
 }
 
-int c_str_eq(const char *const s0, const char *const s1) {
+static int c_str_eq(const char *const s0, const char *const s1) {
   return ((s0 == NULL && s1 == NULL) ||
           (s0 != NULL && s1 != NULL && strcmp(s0, s1) == 0))
              ? 0
