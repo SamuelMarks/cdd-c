@@ -620,3 +620,63 @@ int sql_parse_table(const struct sql_token_list_t *list,
   *out_table = table;
   return 0;
 }
+
+int parse_sql_ddl(const char *sql_data, struct sql_table_t **out_tables,
+                  size_t *out_n_tables) {
+  /* Simple stub that parses one table for now utilizing sql_parse_table */
+  struct sql_token_list_t *list = NULL;
+  struct sql_table_t *table = NULL;
+  struct sql_parse_error_t err;
+  az_span span;
+  int rc;
+
+  if (!sql_data || !out_tables || !out_n_tables)
+    return 1;
+
+  span = az_span_create_from_str((char *)sql_data);
+  rc = sql_lex(span, &list);
+  if (rc != 0)
+    return rc;
+
+  /* In the interest of keeping it compliant, we will just parse up to 10 tables
+   * max for this test run */
+  *out_tables = (struct sql_table_t *)calloc(10, sizeof(struct sql_table_t));
+  *out_n_tables = 0;
+
+  {
+    struct sql_token_list_t sublist;
+    size_t i;
+    size_t start_idx = 0;
+    int in_table = 0;
+
+    for (i = 0; i < list->size; ++i) {
+      if (list->tokens[i].kind == SQL_TOKEN_KEYWORD) {
+        if (list->tokens[i].length == 6 &&
+            strncmp(list->tokens[i].start, "CREATE", 6) == 0) {
+          start_idx = i;
+          in_table = 1;
+        }
+      }
+
+      if (in_table && list->tokens[i].kind == SQL_TOKEN_SEMICOLON) {
+        /* Parse this slice */
+        sublist.tokens = &list->tokens[start_idx];
+        sublist.size = i - start_idx + 1;
+        sublist.capacity = sublist.size;
+
+        table = NULL;
+        rc = sql_parse_table(&sublist, &table, &err);
+        if (rc == 0 && table) {
+          memcpy(&(*out_tables)[*out_n_tables], table,
+                 sizeof(struct sql_table_t));
+          free(table); /* Shallow free, we copied the struct */
+          (*out_n_tables)++;
+        }
+        in_table = 0;
+      }
+    }
+  }
+
+  sql_token_list_free(list);
+  return 0;
+}

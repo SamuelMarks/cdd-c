@@ -176,6 +176,18 @@ C_CDD_EXPORT int sql_token_list_free(struct sql_token_list_t *list);
  */
 C_CDD_EXPORT int sql_table_free(struct sql_table_t *table);
 
+/**
+ * @brief Parse full SQL DDL file returning all tables.
+ *
+ * @param sql_data SQL source text
+ * @param out_tables Pointer to receive array of tables
+ * @param out_n_tables Pointer to receive count
+ * @return 0 on success
+ */
+C_CDD_EXPORT int parse_sql_ddl(const char *sql_data,
+                               struct sql_table_t **out_tables,
+                               size_t *out_n_tables);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -134,6 +134,11 @@ int sql_type_is_string(enum SqlDataType type) {
   }
 }
 
+static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
+                               const char *struct_name);
+static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
+                              const char *struct_name);
+
 int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   char *_ast_sql_type_to_c_type_0;
   char table_name_upper[128];
@@ -242,6 +247,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   fprintf(fp, "}\n");
   fprintf(fp, "#endif /* __cplusplus */\n\n");
 
+  fprintf(fp, "extern const c_orm_table_meta_t %s_meta;\n\n", struct_name);
   fprintf(fp, "#endif /* C_ORM_MODEL_%s_H */\n", table_name_upper);
 
   return 0;
@@ -383,8 +389,8 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
   fprintf(fp, "  return 0;\n");
   fprintf(fp, "}\n\n");
 
-  emit_c_orm_metadata(fp, table, struct_name);
   emit_c_orm_queries(fp, table, struct_name);
+  emit_c_orm_metadata(fp, table, struct_name);
 
   return 0;
 }
@@ -394,7 +400,6 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
 const char *sql_type_to_c_orm_type(enum SqlDataType type) {
   switch (type) {
   case SQL_TYPE_INT:
-  case SQL_TYPE_INTEGER:
     return "C_ORM_TYPE_INT32";
   case SQL_TYPE_BIGINT:
     return "C_ORM_TYPE_INT64";
@@ -407,15 +412,11 @@ const char *sql_type_to_c_orm_type(enum SqlDataType type) {
   case SQL_TYPE_TIMESTAMP:
     return "C_ORM_TYPE_TIMESTAMP";
   case SQL_TYPE_FLOAT:
-  case SQL_TYPE_REAL:
     return "C_ORM_TYPE_FLOAT";
   case SQL_TYPE_DOUBLE:
-  case SQL_TYPE_DOUBLE_PRECISION:
   case SQL_TYPE_DECIMAL:
-  case SQL_TYPE_NUMERIC:
     return "C_ORM_TYPE_DOUBLE";
   case SQL_TYPE_BOOLEAN:
-  case SQL_TYPE_BOOL:
     return "C_ORM_TYPE_BOOL";
   default:
     return "C_ORM_TYPE_UNKNOWN";
@@ -498,7 +499,7 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
       for (j = 0; j < table->columns[i].n_constraints; ++j) {
         if (table->columns[i].constraints[j].type ==
             SQL_CONSTRAINT_FOREIGN_KEY) {
-          target = table->columns[i].constraints[j].details.foreign_key.table;
+          target = table->columns[i].constraints[j].reference_table;
           break;
         }
       }
@@ -515,67 +516,41 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
   fprintf(fp, "const size_t %s_struct_size = sizeof(struct %s);\n\n",
           struct_name, struct_name);
 
-  return 0;
-}
-/**
- * @brief Emit table string queries.
- */
-static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
-                              const char *struct_name) {
-  size_t i;
-  int pk_count = 0;
-  const char *pk_name = NULL;
-
+  /* Emit fully compiled metadata struct */
+  fprintf(fp, "const c_orm_column_meta_t %s_meta_columns[] = {\n", struct_name);
   for (i = 0; i < table->n_columns; ++i) {
-    size_t j;
-    for (j = 0; j < table->columns[i].n_constraints; ++j) {
-      if (table->columns[i].constraints[j].type == SQL_CONSTRAINT_PRIMARY_KEY) {
-        pk_count++;
-        pk_name = table->columns[i].name;
+    is_pk = 0;
+    if (table->columns[i].n_constraints > 0) {
+      size_t j;
+      for (j = 0; j < table->columns[i].n_constraints; ++j) {
+        if (table->columns[i].constraints[j].type ==
+            SQL_CONSTRAINT_PRIMARY_KEY) {
+          is_pk = 1;
+          break;
+        }
       }
     }
-  }
+    is_null = is_nullable(&table->columns[i]);
 
-  fprintf(fp, "const char* %s_query_select_all = \"SELECT * FROM %s\";\n\n",
-          struct_name, table->name);
+    fprintf(fp, "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL }%s\n",
+            table->columns[i].name,
+            sql_type_to_c_orm_type(table->columns[i].type), struct_name,
+            table->columns[i].name, is_pk ? "true" : "false",
+            is_null ? "true" : "false", i == table->n_columns - 1 ? "" : ",");
+  }
+  fprintf(fp, "};\n\n");
 
-  if (pk_count == 1 && pk_name) {
-    fprintf(fp,
-            "const char* %s_query_select_by_pk = \"SELECT * FROM %s WHERE %s = "
-            "?\";\n\n",
-            struct_name, table->name, pk_name);
-    fprintf(fp,
-            "const char* %s_query_delete_by_pk = \"DELETE FROM %s WHERE %s = "
-            "?\";\n\n",
-            struct_name, table->name, pk_name);
-  } else {
-    fprintf(fp, "const char* %s_query_select_by_pk = NULL;\n\n", struct_name);
-    fprintf(fp, "const char* %s_query_delete_by_pk = NULL;\n\n", struct_name);
-  }
-
-  fprintf(fp, "const char* %s_query_insert = \"INSERT INTO %s (", struct_name,
-          table->name);
-  for (i = 0; i < table->n_columns; ++i) {
-    fprintf(fp, "%s%s", table->columns[i].name,
-            i == table->n_columns - 1 ? "" : ", ");
-  }
-  fprintf(fp, ") VALUES (");
-  for (i = 0; i < table->n_columns; ++i) {
-    fprintf(fp, "?%s", i == table->n_columns - 1 ? "" : ", ");
-  }
-  fprintf(fp, ")\";\n\n");
-
-  fprintf(fp, "const char* %s_query_update = \"UPDATE %s SET ", struct_name,
-          table->name);
-  for (i = 0; i < table->n_columns; ++i) {
-    fprintf(fp, "%s = ?%s", table->columns[i].name,
-            i == table->n_columns - 1 ? "" : ", ");
-  }
-  if (pk_count == 1 && pk_name) {
-    fprintf(fp, " WHERE %s = ?\";\n\n", pk_name);
-  } else {
-    fprintf(fp, "\";\n\n");
-  }
+  fprintf(fp, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
+  fprintf(fp, "  \"%s\",\n", table->name);
+  fprintf(fp, "  %s_meta_columns,\n", struct_name);
+  fprintf(fp, "  %zu,\n", table->n_columns);
+  fprintf(fp, "  sizeof(struct %s),\n", struct_name);
+  fprintf(fp, "  %s_query_select_all,\n", struct_name);
+  fprintf(fp, "  %s_query_select_by_pk,\n", struct_name);
+  fprintf(fp, "  %s_query_insert,\n", struct_name);
+  fprintf(fp, "  %s_query_update,\n", struct_name);
+  fprintf(fp, "  %s_query_delete_by_pk\n", struct_name);
+  fprintf(fp, "};\n\n");
 
   return 0;
 }
@@ -598,24 +573,24 @@ static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
     }
   }
 
-  fprintf(fp, "const char* %s_query_select_all = \"SELECT * FROM %s\";\n\n",
+  fprintf(fp, "#define %s_query_select_all \"SELECT * FROM %s\"\n\n",
           struct_name, table->name);
 
   if (pk_count == 1 && pk_name) {
     fprintf(fp,
-            "const char* %s_query_select_by_pk = \"SELECT * FROM %s WHERE %s = "
-            "?\";\n\n",
+            "#define %s_query_select_by_pk \"SELECT * FROM %s WHERE %s = "
+            "?\"\n\n",
             struct_name, table->name, pk_name);
     fprintf(fp,
-            "const char* %s_query_delete_by_pk = \"DELETE FROM %s WHERE %s = "
-            "?\";\n\n",
+            "#define %s_query_delete_by_pk \"DELETE FROM %s WHERE %s = "
+            "?\"\n\n",
             struct_name, table->name, pk_name);
   } else {
-    fprintf(fp, "const char* %s_query_select_by_pk = NULL;\n\n", struct_name);
-    fprintf(fp, "const char* %s_query_delete_by_pk = NULL;\n\n", struct_name);
+    fprintf(fp, "#define %s_query_select_by_pk NULL\n\n", struct_name);
+    fprintf(fp, "#define %s_query_delete_by_pk NULL\n\n", struct_name);
   }
 
-  fprintf(fp, "const char* %s_query_insert = \"INSERT INTO %s (", struct_name,
+  fprintf(fp, "#define %s_query_insert \"INSERT INTO %s (", struct_name,
           table->name);
   for (i = 0; i < table->n_columns; ++i) {
     fprintf(fp, "%s%s", table->columns[i].name,
@@ -625,18 +600,18 @@ static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
   for (i = 0; i < table->n_columns; ++i) {
     fprintf(fp, "?%s", i == table->n_columns - 1 ? "" : ", ");
   }
-  fprintf(fp, ")\";\n\n");
+  fprintf(fp, ")\"\n\n");
 
-  fprintf(fp, "const char* %s_query_update = \"UPDATE %s SET ", struct_name,
+  fprintf(fp, "#define %s_query_update \"UPDATE %s SET ", struct_name,
           table->name);
   for (i = 0; i < table->n_columns; ++i) {
     fprintf(fp, "%s = ?%s", table->columns[i].name,
             i == table->n_columns - 1 ? "" : ", ");
   }
   if (pk_count == 1 && pk_name) {
-    fprintf(fp, " WHERE %s = ?\";\n\n", pk_name);
+    fprintf(fp, " WHERE %s = ?\"\n\n", pk_name);
   } else {
-    fprintf(fp, "\";\n\n");
+    fprintf(fp, "\"\n\n");
   }
 
   return 0;

@@ -69,3 +69,10 @@ test_cmake/
 test_patch_repo/
 vcpkg_installed/
 _deps/
+ 
+# Scratch and log files
+append*.txt
+mingw_errors*.txt
+seed_*.txt
+build_output.txt
+temp_diff.txt
