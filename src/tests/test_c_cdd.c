@@ -91,6 +91,7 @@
 #include "parse/test_integration_c2openapi.h"
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
+#include "parse/test_migration.h"
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
@@ -166,6 +167,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(cli_gen_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(server_json_rpc_suite);
+  RUN_SUITE(migration_suite);
 
   GREATEST_MAIN_END();
 }

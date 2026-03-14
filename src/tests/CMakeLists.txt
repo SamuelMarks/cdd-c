@@ -79,6 +79,7 @@ set(Header_Files
         "emit/test_aggregator.h"
         "parse/test_c2openapi_schema.h"
         "parse/test_integration_c2openapi.h"
+        "parse/test_migration.h"
 ) 
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
 
@@ -128,7 +129,7 @@ set_target_properties(
         LINKER_LANGUAGE
         C
 ) 
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}") 
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}") 
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}") 
 

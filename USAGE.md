@@ -1,43 +1,60 @@
-# Usage
+# CDD-C Usage & c-orm Integration
 
-To use `cdd-c`, you first need an input source: either an OpenAPI spec or an existing C codebase.
+`cdd-c` provides a complete database migration management system out of the box to securely prepare target development schemas prior to `c-orm` code generation.
 
-## Parsing C Code (C to OpenAPI)
+The code generator strictly introspects database schema artifacts locally to ensure C type safety, which mandates a live running database equipped with identical schema profiles.
 
-When converting your native C structures, headers, and comments into an OpenAPI JSON spec:
+## Configuration
 
-```bash
-# Output OpenAPI
-./bin/cdd-c to_openapi -f src/routes.c -o build/openapi.json
-```
-
-## Emitting C Code (OpenAPI to C)
-
-When converting an OpenAPI spec into native C code (like an API Client/SDK or Server Stub):
+To establish the environment variable configuration globally across CLI tools:
 
 ```bash
-# Generate SDK client code
-./bin/cdd-c from_openapi to_sdk -i swagger.yaml -o generated_sdk/
-
-# Generate an interactive CLI to wrap the SDK
-./bin/cdd-c from_openapi to_sdk_cli -i swagger.yaml -o generated_cli/
-
-# Generate a server route skeleton
-./bin/cdd-c from_openapi to_server -i swagger.yaml -o generated_server/
+export DATABASE_URL="postgresql://user:password@localhost:5432/my_dev_db"
 ```
 
-### JSON RPC Server
-
-The tool also operates as a long-running JSON RPC server to offer compiler services remotely:
+## Creating & Running Migrations
 
 ```bash
-./bin/cdd-c serve_json_rpc --port 8082 --listen 0.0.0.0
+# Generate a new boilerplate .sql file stamped by timestamp inside ./migrations/
+cdd-c migrate create init_users
+
+# Once written, apply all pending forward chronological UP migrations
+cdd-c migrate up
+
+# Rollback the last applied migration natively
+cdd-c migrate down
 ```
 
-### Documentation Snippets
+## CI/CD Pipeline Operations
 
-Generate documentation configuration `docs.json`:
+For headless systems such as GitHub Actions, `cdd-c` integrates seamlessly to scaffold dynamic integration testing environments. 
+
+Point `DATABASE_URL` momentarily to the administrative `postgres` DB to establish the target.
 
 ```bash
-./bin/cdd-c to_docs_json --no-imports --no-wrapping -i swagger.yaml -o docs.json
+# Administrative context
+export DATABASE_URL="postgresql://postgres:pass@localhost:5432/postgres"
+
+# Establish target database (if it doesn't already exist)
+cdd-c setup_test_db my_ci_test_db
+
+# Pivot context towards the created database
+export DATABASE_URL="postgresql://postgres:pass@localhost:5432/my_ci_test_db"
+
+# Force clear all schemas & execute all UP migrations entirely
+cdd-c db reset
+
+# Execute a direct initialization payload of default parameters/entities
+cdd-c seed seeds.sql
 ```
+
+## Exposing the Schema to c-orm
+
+To perform programmatic extraction, run the schema dumper. This guarantees your `c-orm` generators operate off the pristine schema state.
+
+```bash
+# Extract the active schema structure utilizing pg_dump wrapper
+cdd-c schema dump schema.sql
+```
+
+Now, `c-orm` can aggressively compile structural mapping layers across all verified SQLite/PostgreSQL/MySQL models.

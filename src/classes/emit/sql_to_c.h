@@ -13,6 +13,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "classes/parse/sql.h"
+#include "classes/emit/c_orm_meta.h"
 #include <stdio.h>
 /* clang-format on */
 
@@ -33,6 +34,14 @@ C_CDD_EXPORT int sql_type_to_c_type(enum SqlDataType type, char **_out_val);
  * @return 1 if string/pointer, 0 if primitive.
  */
 C_CDD_EXPORT int sql_type_is_string(enum SqlDataType type);
+
+/**
+ * @brief Map a SQL data type to a c_orm_type_t enum string.
+ *
+ * @param type The SQL data type.
+ * @return String representing the c_orm_type_t (e.g., "C_ORM_TYPE_INT32").
+ */
+C_CDD_EXPORT const char *sql_type_to_c_orm_type(enum SqlDataType type);
 
 /**
  * @brief Generate the C header file content for a given SQL table.

@@ -9,6 +9,7 @@
     "c89stringutils",
     "civetweb",
     "libpq",
+    "sqlite3",
     {
       "name": "curl",
       "platform": "!windows"
