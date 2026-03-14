@@ -66,7 +66,11 @@ TEST test_e2e_insert_user(void) {
 
   err = c_orm_insert(db, &Users_meta, &u);
   if (err != C_ORM_OK) {
-    printf("Error: %s\n", c_orm_get_last_error_message(db));
+    {
+      const char *msg;
+      c_orm_get_last_error_message(db, &msg);
+      printf("Error: %s\n", msg);
+    }
   }
   ASSERT_EQ_FMT(C_ORM_OK, err, "%d");
   PASS();

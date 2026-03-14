@@ -165,8 +165,33 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   fprintf(fp, "extern \"C\" {\n");
   fprintf(fp, "#endif /* __cplusplus */\n\n");
 
-  fprintf(fp, "#include <stdint.h>\n");
-  fprintf(fp, "#include <stdbool.h>\n");
+  fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+              "typedef signed __int8 int8_t;\n"
+              "typedef unsigned __int8 uint8_t;\n"
+              "typedef signed __int16 int16_t;\n"
+              "typedef unsigned __int16 uint16_t;\n"
+              "typedef signed __int32 int32_t;\n"
+              "typedef unsigned __int32 uint32_t;\n"
+              "typedef signed __int64 int64_t;\n"
+              "typedef unsigned __int64 uint64_t;\n"
+              "#else\n"
+              "#include <stdint.h>\n"
+              "#endif\n");
+  fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+              "#if !defined(__cplusplus)\n"
+              "#ifndef bool\n"
+              "#define bool unsigned char\n"
+              "#endif\n"
+              "#ifndef true\n"
+              "#define true 1\n"
+              "#endif\n"
+              "#ifndef false\n"
+              "#define false 0\n"
+              "#endif\n"
+              "#endif\n"
+              "#else\n"
+              "#include <stdbool.h>\n"
+              "#endif\n");
   fprintf(fp, "#include <stddef.h>\n\n");
 
   /* Emit row struct */
@@ -543,7 +568,7 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
   fprintf(fp, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
   fprintf(fp, "  \"%s\",\n", table->name);
   fprintf(fp, "  %s_meta_columns,\n", struct_name);
-  fprintf(fp, "  %zu,\n", table->n_columns);
+  fprintf(fp, "  %lu,\n", (unsigned long)table->n_columns);
   fprintf(fp, "  sizeof(struct %s),\n", struct_name);
   fprintf(fp, "  %s_query_select_all,\n", struct_name);
   fprintf(fp, "  %s_query_select_by_pk,\n", struct_name);

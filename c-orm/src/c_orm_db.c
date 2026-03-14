@@ -8,11 +8,15 @@
 #include <stddef.h>
 /* clang-format on */
 
-const char *c_orm_get_last_error_message(c_orm_db_t *db) {
+int c_orm_get_last_error_message(c_orm_db_t *db, const char **out_msg) {
+  if (!out_msg)
+    return C_ORM_ERROR_UNKNOWN;
   if (!db || !db->vtable || !db->vtable->get_last_error) {
-    return "Unknown Error (No DB context)";
+    *out_msg = "Unknown Error (No DB context)";
+  } else {
+    *out_msg = db->vtable->get_last_error(db);
   }
-  return db->vtable->get_last_error(db);
+  return C_ORM_OK;
 }
 
 void c_orm_set_log_callback(c_orm_db_t *db, c_orm_log_cb cb, void *user_data) {
