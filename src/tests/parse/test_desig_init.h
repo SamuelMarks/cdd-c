@@ -7,6 +7,11 @@
 #ifndef TEST_DESIG_INIT_H
 #define TEST_DESIG_INIT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -49,5 +54,9 @@ PASS();
 SUITE(desig_init_suite) {
   RUN_TEST(test_scan_for_designated_initializers_basic);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_DESIG_INIT_H */

@@ -7,6 +7,11 @@
 #ifndef TEST_MAKEFILE_SCRAPER_H
 #define TEST_MAKEFILE_SCRAPER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -53,5 +58,9 @@ TEST test_scrape_makefile_basic(void) {
 }
 
 SUITE(makefile_scraper_suite) { RUN_TEST(test_scrape_makefile_basic); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_MAKEFILE_SCRAPER_H */

@@ -12,6 +12,11 @@
 #ifndef TEST_CODEGEN_STRUCT_H
 #define TEST_CODEGEN_STRUCT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -208,5 +213,9 @@ SUITE(codegen_struct_suite) {
   RUN_TEST(test_null_args);
   RUN_TEST(test_struct_fields_add_bitwidth);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_STRUCT_H */

@@ -2,6 +2,11 @@
 #ifndef TEST_SERVER_GEN_H
 #define TEST_SERVER_GEN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,5 +104,9 @@ SUITE(server_gen_suite) {
   RUN_TEST(test_server_gen_basic);
   RUN_TEST(test_server_gen_fail_open);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SERVER_GEN_H */

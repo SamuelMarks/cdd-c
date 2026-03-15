@@ -7,6 +7,11 @@
 #ifndef TEST_SAFE_CRT_H
 #define TEST_SAFE_CRT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,5 +63,9 @@ TEST test_safe_crt_strcpy(void) {
 }
 
 SUITE(safe_crt_suite) { RUN_TEST(test_safe_crt_strcpy); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_SAFE_CRT_H */

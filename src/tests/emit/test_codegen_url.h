@@ -7,6 +7,11 @@
 #ifndef TEST_CODEGEN_URL_H
 #define TEST_CODEGEN_URL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -988,5 +993,9 @@ SUITE(codegen_url_suite) {
   RUN_TEST(test_path_matrix_object_explode_false);
   RUN_TEST(test_path_simple_param_number);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_URL_H */

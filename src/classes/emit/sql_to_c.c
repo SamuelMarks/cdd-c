@@ -160,7 +160,15 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
               "#endif\n"
               "#endif\n"
               "#else\n"
+              "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+              "#ifndef __cplusplus\n"
+              "          typedef unsigned char bool;\n"
+              "#define true 1\n"
+              "#define false 0\n"
+              "#endif\n"
+              "#else\n"
               "#include <stdbool.h>\n"
+              "#endif \n "
               "#endif\n");
   fprintf(fp, "#include <stddef.h>\n\n");
 

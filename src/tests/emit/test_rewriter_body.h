@@ -2,6 +2,11 @@
 #ifndef TEST_REWRITER_BODY_H
 #define TEST_REWRITER_BODY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -163,5 +168,9 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_integration_safety_and_prop);
   RUN_TEST(test_realloc_safety_injection);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_REWRITER_BODY_H */

@@ -39,18 +39,30 @@ int patch_list_generate_diff(const struct TokenList *tokens,
     return 0;
   }
 
-  /* Print header */
+/* Print header */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  diff_len += sprintf_s(diff_buf + diff_len, diff_cap - diff_len,
+                        "--- a/%s\n+++ b/%s\n", filename, filename);
+#else
   diff_len +=
       sprintf(diff_buf + diff_len, "--- a/%s\n+++ b/%s\n", filename, filename);
-
+#endif
   for (i = 0; i < list->size; ++i) {
     const struct Patch *p = &list->patches[i];
     /* Find line numbers to give context */
     /* This is a simplification; we'll output a chunk */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    diff_len += sprintf_s(diff_buf + diff_len, diff_cap - diff_len,
+                          "@@ -patch %d @@\n", (int)i);
+#else
     diff_len += sprintf(diff_buf + diff_len, "@@ -patch %d @@\n", (int)i);
+#endif
 
     /* Emit old tokens (we prefix with '-') */
-    diff_len += sprintf(diff_buf + diff_len, "-");
+    diff_buf[diff_len++] = '-';
+    diff_buf[diff_len] = '\0';
     {
       size_t j;
       for (j = p->start_token_idx; j < p->end_token_idx; ++j) {
@@ -65,7 +77,8 @@ int patch_list_generate_diff(const struct TokenList *tokens,
         diff_len += tokens->tokens[j].length;
       }
     }
-    diff_len += sprintf(diff_buf + diff_len, "\n");
+    diff_buf[diff_len++] = '\n';
+    diff_buf[diff_len] = '\0';
 
     /* Emit new tokens (we prefix with '+') */
     if (diff_len + strlen(p->text) + 10 > diff_cap) {
@@ -74,7 +87,13 @@ int patch_list_generate_diff(const struct TokenList *tokens,
       if (!diff_buf)
         return ENOMEM;
     }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    diff_len +=
+        sprintf_s(diff_buf + diff_len, diff_cap - diff_len, "+%s\n", p->text);
+#else
     diff_len += sprintf(diff_buf + diff_len, "+%s\n", p->text);
+#endif
   }
 
   *out_diff = diff_buf;

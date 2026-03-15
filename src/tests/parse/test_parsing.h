@@ -2,6 +2,11 @@
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <stdio.h>
 #include <string.h>
 
@@ -174,5 +179,9 @@ SUITE(parsing_suite) {
   RUN_TEST(test_parsing_struct_with_anonymous_union);
   RUN_TEST(test_precondition_failure);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_PARSING_H */

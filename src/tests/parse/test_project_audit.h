@@ -2,6 +2,11 @@
 #ifndef TEST_PROJECT_AUDIT_H
 #define TEST_PROJECT_AUDIT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,5 +275,9 @@ SUITE(project_audit_suite) {
   RUN_TEST(test_audit_return_alloc);
   RUN_TEST(test_audit_json_output);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_PROJECT_AUDIT_H */

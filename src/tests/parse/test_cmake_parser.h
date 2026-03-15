@@ -7,6 +7,11 @@
 #ifndef TEST_CMAKE_PARSER_H
 #define TEST_CMAKE_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -65,5 +70,9 @@ SUITE(cmake_parser_suite) {
   RUN_TEST(test_cmake_modifier_basic);
   RUN_TEST(test_cmake_modifier_global);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CMAKE_PARSER_H */

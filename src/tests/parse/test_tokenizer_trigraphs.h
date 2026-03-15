@@ -2,6 +2,11 @@
 #ifndef TEST_TOKENIZER_TRIGRAPHS_H
 #define TEST_TOKENIZER_TRIGRAPHS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -186,5 +191,9 @@ SUITE(tokenizer_trigraphs_suite) {
 
   RUN_TEST(test_matches_string_with_splice);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_TOKENIZER_TRIGRAPHS_H */

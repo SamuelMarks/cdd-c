@@ -7,6 +7,11 @@
 #ifndef TEST_SCHEMA_ENUM_REQUIRED_H
 #define TEST_SCHEMA_ENUM_REQUIRED_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -144,5 +149,9 @@ SUITE(schema_enum_required_suite) {
   RUN_TEST(test_loader_enum_and_required);
   RUN_TEST(test_writer_enum_and_required);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_SCHEMA_ENUM_REQUIRED_H */

@@ -12,6 +12,11 @@
 #ifndef TEST_CODEGEN_JSON_H
 #define TEST_CODEGEN_JSON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,5 +193,9 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_json_guards);
   RUN_TEST(test_json_null_args);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_JSON_H */

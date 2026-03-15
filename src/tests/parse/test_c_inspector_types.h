@@ -12,6 +12,11 @@
 #ifndef TEST_C_INSPECTOR_TYPES_H
 #define TEST_C_INSPECTOR_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,5 +98,9 @@ SUITE(c_inspector_types_suite) {
   RUN_TEST(test_scan_c23_enum_fixed_type_whitespace);
   RUN_TEST(test_scan_classic_enum);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C_INSPECTOR_TYPES_H */

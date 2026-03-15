@@ -2,6 +2,11 @@
 #ifndef TEST_CODEGEN_DEFAULTS_H
 #define TEST_CODEGEN_DEFAULTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -197,5 +202,9 @@ SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_nullptr);
   RUN_TEST(test_default_binary_literal);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_DEFAULTS_H */

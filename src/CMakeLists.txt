@@ -259,7 +259,7 @@ if(NOT TARGET c89stringutils)
         find_package(c89stringutils CONFIG REQUIRED)
     endif ()
 endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE c89stringutils)
+target_link_libraries("${LIBRARY_NAME}" PRIVATE cfs c89stringutils)
 
 
 if(NOT TARGET c_str_span)

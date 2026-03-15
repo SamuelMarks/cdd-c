@@ -2,6 +2,11 @@
 #ifndef TEST_JSON_FROM_AND_TO_H
 #define TEST_JSON_FROM_AND_TO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <mocks/emit/simple_json.h>
 
 #include <greatest.h>
@@ -107,5 +112,9 @@ SUITE(json_from_and_to_suite) {
 
   RUN_TEST(test_FooE_to_json_and_from_json_non_null_haz);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_JSON_FROM_AND_TO_H */

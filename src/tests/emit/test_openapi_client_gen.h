@@ -7,6 +7,11 @@
 #ifndef TEST_OPENAPI_CLIENT_GEN_H
 #define TEST_OPENAPI_CLIENT_GEN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -683,5 +688,9 @@ SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_gen_client_defaults);
   RUN_TEST(test_gen_transport_selection);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_CLIENT_GEN_H */

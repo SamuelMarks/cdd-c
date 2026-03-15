@@ -12,6 +12,11 @@
 #ifndef TEST_GENERATE_BUILD_SYSTEM_H
 #define TEST_GENERATE_BUILD_SYSTEM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,5 +129,9 @@ SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_build_system_cli_args);
   RUN_TEST(test_gen_build_system_bad_args);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_GENERATE_BUILD_SYSTEM_H */

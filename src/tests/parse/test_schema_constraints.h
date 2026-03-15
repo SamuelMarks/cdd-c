@@ -2,6 +2,11 @@
 #ifndef TEST_SCHEMA_CONSTRAINTS_H
 #define TEST_SCHEMA_CONSTRAINTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <parson.h>
 
@@ -746,5 +751,9 @@ SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_allof_keyword_merge);
   RUN_TEST(test_schema_type_union_roundtrip);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_SCHEMA_CONSTRAINTS_H */

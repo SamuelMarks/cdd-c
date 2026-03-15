@@ -12,6 +12,11 @@
 #ifndef TEST_CODEGEN_SECURITY_H
 #define TEST_CODEGEN_SECURITY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -393,5 +398,9 @@ SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_security_requirements_filter);
   RUN_TEST(test_sec_null_safety);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SECURITY_H */

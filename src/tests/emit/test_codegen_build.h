@@ -8,6 +8,11 @@
 #ifndef TEST_CODEGEN_BUILD_H
 #define TEST_CODEGEN_BUILD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,5 +100,9 @@ SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_basic_output);
   RUN_TEST(test_cbuild_unsupported);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_BUILD_H */

@@ -2,6 +2,11 @@
 #ifndef TEST_FS_H
 #define TEST_FS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include <errno.h>
@@ -144,5 +149,9 @@ SUITE(fs_suite) {
   RUN_TEST(test_walk_directory);
   RUN_TEST(test_makedir_check);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_FS_H */

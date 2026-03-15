@@ -2,6 +2,11 @@
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef signed __int8 int8_t;
 typedef unsigned __int8 uint8_t;
@@ -469,5 +474,9 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_codegen_empty_struct_and_enum);
   RUN_TEST(test_codegen_struct_null_args);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_CODE2SCHEMA_H */

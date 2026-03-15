@@ -2,6 +2,11 @@
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <assert.h>
 #include <greatest.h>
 #include <stdarg.h>
@@ -233,5 +238,9 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_atomic_qualifier_on_base);
   RUN_TEST(test_abstract_atomic_ptr);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_DECLARATOR_PARSER_H */

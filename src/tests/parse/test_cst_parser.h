@@ -2,6 +2,11 @@
 #ifndef TEST_CST_PARSER_H
 #define TEST_CST_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -342,5 +347,9 @@ SUITE(cst_parser_suite) {
 
   RUN_TEST(parse_c11_generic); /* Added */
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_CST_PARSER_H */

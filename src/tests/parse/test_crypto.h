@@ -13,6 +13,11 @@
 #ifndef TEST_CRYPTO_H
 #define TEST_CRYPTO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>
@@ -162,5 +167,9 @@ SUITE(crypto_suite) {
   RUN_TEST(test_hmac_rfc4231_case2);
   RUN_TEST(test_hmac_empty_keys_or_data);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CRYPTO_H */

@@ -16,6 +16,11 @@
 #ifndef TEST_DOC_PARSER_H
 #define TEST_DOC_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -732,5 +737,9 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_malformed_lines);
   RUN_TEST(test_doc_parse_encodings);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_DOC_PARSER_H */

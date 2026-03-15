@@ -7,6 +7,11 @@
 #ifndef TEST_VLA_ANALYZER_H
 #define TEST_VLA_ANALYZER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -46,5 +51,9 @@ PASS();
 }
 
 SUITE(vla_analyzer_suite) { RUN_TEST(test_scan_for_vlas_basic); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_VLA_ANALYZER_H */

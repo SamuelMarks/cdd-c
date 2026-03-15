@@ -1,6 +1,22 @@
-cmake_minimum_required(VERSION 3.11)
 
+cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
+    include(FetchContent)
+    FetchContent_Declare(
+        c_fs
+        URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.zip
+    )
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    FetchContent_MakeAvailable(c_fs)
+    include_directories(${c_fs_SOURCE_DIR}/include)
+endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
+    include(FetchContent)
+endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
+    include(FetchContent)
+endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
     function(target_compile_features)
@@ -199,10 +215,12 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     set(BUILD_SHARED_LIBS OFF)
 
     # c-str-span
+
     FetchContent_Declare(
         c_str_span
         GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
         GIT_TAG master
+        GIT_CONFIG core.autocrlf=false
     )
     FetchContent_MakeAvailable(c_str_span)
     include_directories(${c_str_span_SOURCE_DIR})
@@ -212,6 +230,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         c89stringutils
         GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
         GIT_TAG master
+        GIT_CONFIG core.autocrlf=false
     )
     FetchContent_MakeAvailable(c89stringutils)
     include_directories(${c89stringutils_SOURCE_DIR}/c89stringutils)
@@ -234,6 +253,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         parson
         GIT_REPOSITORY https://github.com/kgabis/parson.git
         GIT_TAG master
+        GIT_CONFIG core.autocrlf=false
     )
     FetchContent_MakeAvailable(parson)
     include_directories(${parson_SOURCE_DIR})
@@ -243,6 +263,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         civetweb
         GIT_REPOSITORY https://github.com/civetweb/civetweb.git
         GIT_TAG master
+        GIT_CONFIG core.autocrlf=false
     )
     if(MSVC AND MSVC_VERSION LESS 1600 OR CMAKE_C_COMPILER_ID MATCHES "Watcom")
         FetchContent_GetProperties(civetweb)
@@ -361,3 +382,12 @@ if (DOXYGEN_FOUND)
     )
 endif()
 message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
+
+
+
+
+
+
+
+
+

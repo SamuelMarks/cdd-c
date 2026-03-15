@@ -23,7 +23,15 @@ extern "C" {
 #endif
 #endif
 #else
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#ifndef __cplusplus
+typedef unsigned char bool;
+#define true 1
+#define false 0
+#endif
+#else
 #include <stdbool.h>
+#endif
 #endif
 #include <stddef.h>
 

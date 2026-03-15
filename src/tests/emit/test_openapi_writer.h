@@ -14,6 +14,11 @@
 #ifndef TEST_OPENAPI_WRITER_H
 #define TEST_OPENAPI_WRITER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -4853,5 +4858,9 @@ SUITE(openapi_writer_suite) {
   RUN_TEST(test_writer_schema_items_examples);
   RUN_TEST(test_writer_schema_numeric_enum);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_WRITER_H */

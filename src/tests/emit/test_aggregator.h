@@ -11,6 +11,11 @@
 #ifndef TEST_AGGREGATOR_H
 #define TEST_AGGREGATOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,5 +184,9 @@ SUITE(aggregator_suite) {
   RUN_TEST(test_aggregator_add_webhook);
   RUN_TEST(test_aggregator_bad_args);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_AGGREGATOR_H */

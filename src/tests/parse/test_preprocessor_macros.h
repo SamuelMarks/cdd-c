@@ -2,6 +2,11 @@
 #ifndef TEST_PREPROCESSOR_MACROS_H
 #define TEST_PREPROCESSOR_MACROS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,5 +142,9 @@ SUITE(preprocessor_macros_suite) {
   RUN_TEST(test_pp_define_variadic_empty);
   RUN_TEST(test_pp_define_variadic_gcc);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_PREPROCESSOR_MACROS_H */

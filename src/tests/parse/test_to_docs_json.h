@@ -8,6 +8,11 @@
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "functions/parse/fs.h"
 #include "greatest.h"
 #include "routes/parse/cli.h"
@@ -176,5 +181,9 @@ SUITE(to_docs_json_suite) {
   RUN_TEST(test_to_docs_json_basic);
   RUN_TEST(test_to_docs_json_no_imports_no_wrapping);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* C_CDD_TEST_TO_DOCS_JSON_H */

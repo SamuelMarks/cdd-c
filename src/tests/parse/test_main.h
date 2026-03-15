@@ -2,6 +2,11 @@
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "functions/parse/main.h"
 #include "greatest.h"
 /* clang-format on */
@@ -69,4 +74,9 @@ SUITE(main_suite) {
   RUN_TEST(test_main_invalid_command);
   RUN_TEST(test_main_subcommands);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif

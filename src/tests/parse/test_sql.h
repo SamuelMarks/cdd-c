@@ -7,6 +7,11 @@
 #ifndef C_CDD_TEST_SQL_H
 #define C_CDD_TEST_SQL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "classes/parse/sql.h"
 #include <greatest.h>
 /* clang-format on */
@@ -117,5 +122,9 @@ SUITE(sql_suite) {
   RUN_TEST(test_sql_lexer_types);
   RUN_TEST(test_sql_parser_basic);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* C_CDD_TEST_SQL_H */

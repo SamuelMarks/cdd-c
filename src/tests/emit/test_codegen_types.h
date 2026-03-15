@@ -9,6 +9,11 @@
 #ifndef TEST_CODEGEN_TYPES_H
 #define TEST_CODEGEN_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -361,5 +366,9 @@ SUITE(codegen_types_suite) {
   RUN_TEST(test_union_guards);
   RUN_TEST(test_types_null_args);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_TYPES_H */

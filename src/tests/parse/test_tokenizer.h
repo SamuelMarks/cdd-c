@@ -2,6 +2,11 @@
 #ifndef TEST_TOKENIZER_H
 #define TEST_TOKENIZER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -175,5 +180,9 @@ SUITE(tokenizer_suite) {
   RUN_TEST(tokenize_c23_digit_separators);
   RUN_TEST(tokenize_digit_separator_edge_case);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_TOKENIZER_H */
