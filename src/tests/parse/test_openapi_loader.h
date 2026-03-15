@@ -5,6 +5,11 @@
 
 #ifndef TEST_OPENAPI_LOADER_H
 #define TEST_OPENAPI_LOADER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverlength-strings"
@@ -4329,5 +4334,9 @@ SUITE(openapi_loader_suite) {
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_LOADER_H */

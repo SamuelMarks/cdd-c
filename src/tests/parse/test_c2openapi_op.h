@@ -14,6 +14,11 @@
 #ifndef TEST_C2OPENAPI_OP_H
 #define TEST_C2OPENAPI_OP_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1683,5 +1688,9 @@ SUITE(c2openapi_op_suite) {
   RUN_TEST(test_build_request_body_default_content_type);
   RUN_TEST(test_build_op_request_body_multi_content);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C2OPENAPI_OP_H */

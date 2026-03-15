@@ -2,6 +2,11 @@
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "functions/emit/sync.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <greatest.h>
@@ -225,5 +230,9 @@ SUITE(sync_code_suite) {
   RUN_TEST(test_patch_header_ptr_arg);
   RUN_TEST(test_patch_header_ignore_others);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SYNC_CODE_H */

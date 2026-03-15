@@ -8,6 +8,11 @@
 #ifndef TEST_STR_UTILS_H
 #define TEST_STR_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -400,5 +405,9 @@ SUITE(str_utils_suite) {
   RUN_TEST(test_c_cdd_str_trim_trailing_whitespace_null);
   RUN_TEST(test_c_cdd_destringize);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_STR_UTILS_H */

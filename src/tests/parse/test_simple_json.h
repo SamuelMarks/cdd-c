@@ -2,6 +2,11 @@
 #ifndef TEST_SIMPLE_JSON_H
 #define TEST_SIMPLE_JSON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 
 #include "../mocks/emit/simple.h"
@@ -50,5 +55,9 @@ SUITE(simple_mocks_suite) {
   RUN_TEST(test_simple_cleanup_and_null);
   RUN_TEST(test_foo_cleanup_with_null_haz);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SIMPLE_JSON_H */

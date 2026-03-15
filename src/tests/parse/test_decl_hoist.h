@@ -7,6 +7,11 @@
 #ifndef TEST_DECL_HOIST_H
 #define TEST_DECL_HOIST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -47,5 +52,9 @@ PASS();
 }
 
 SUITE(decl_hoist_suite) { RUN_TEST(test_scan_for_mixed_declarations_basic); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_DECL_HOIST_H */

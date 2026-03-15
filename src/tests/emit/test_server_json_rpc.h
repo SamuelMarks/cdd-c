@@ -2,6 +2,11 @@
 #ifndef TEST_SERVER_JSON_RPC_H
 #define TEST_SERVER_JSON_RPC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +21,11 @@
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #endif
 #endif
 /* clang-format on */
@@ -107,5 +116,9 @@ SUITE(server_json_rpc_suite) {
   RUN_TEST(test_server_json_rpc_bind_fail);
   RUN_TEST(test_server_json_rpc_listen_once);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SERVER_JSON_RPC_H */

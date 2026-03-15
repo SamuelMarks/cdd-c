@@ -7,6 +7,11 @@
 #ifndef TEST_DIFF_H
 #define TEST_DIFF_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -113,5 +118,9 @@ ASSERT(diff_str != NULL);
     RUN_TEST(test_patch_list_to_diff_basic);
     RUN_TEST(test_patch_list_to_diff_empty);
   }
+
+#ifdef __cplusplus
+  }
+#endif /* __cplusplus */
 
 #endif /* TEST_DIFF_H */

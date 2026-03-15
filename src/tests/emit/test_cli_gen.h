@@ -2,6 +2,11 @@
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,5 +76,9 @@ SUITE(cli_gen_suite) {
   RUN_TEST(test_cli_gen_basic);
   RUN_TEST(test_cli_gen_fail_open);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_CLI_GEN_H */

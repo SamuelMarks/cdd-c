@@ -2,6 +2,11 @@
 #ifndef TEST_CODEGEN_ROOT_ARRAYS_H
 #define TEST_CODEGEN_ROOT_ARRAYS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,5 +167,9 @@ SUITE(root_array_suite) {
   RUN_TEST(test_root_obj_array_to_json);
   RUN_TEST(test_root_array_cleanup);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_ROOT_ARRAYS_H */

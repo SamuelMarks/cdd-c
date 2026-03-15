@@ -3,6 +3,11 @@
 
 #define TEST_SCHEMA_CODEGEN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"
@@ -484,5 +489,9 @@ SUITE(schema_codegen_suite) {
 
   RUN_TEST(test_codegen_config_utils_guards);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SCHEMA_CODEGEN_H */

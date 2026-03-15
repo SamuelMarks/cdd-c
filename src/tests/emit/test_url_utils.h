@@ -12,6 +12,11 @@
 #ifndef TEST_URL_UTILS_H
 #define TEST_URL_UTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -376,5 +381,9 @@ SUITE(url_utils_suite) {
   RUN_TEST(test_query_build_encoding_keys);
   RUN_TEST(test_query_null_safety);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_URL_UTILS_H */

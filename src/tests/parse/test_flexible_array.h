@@ -2,6 +2,11 @@
 #ifndef TEST_FLEXIBLE_ARRAY_H
 #define TEST_FLEXIBLE_ARRAY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,5 +125,9 @@ SUITE(flexible_array_suite) {
   RUN_TEST(test_parse_fixed_array_not_fam);
   RUN_TEST(test_parse_fam_mixed_lines);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_FLEXIBLE_ARRAY_H */

@@ -8,6 +8,11 @@
 #ifndef TEST_CODEGEN_SDK_TESTS_H
 #define TEST_CODEGEN_SDK_TESTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,5 +100,9 @@ SUITE(codegen_sdk_tests_suite) {
   RUN_TEST(test_gen_sdk_test_basic);
   RUN_TEST(test_gen_sdk_test_nulls);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SDK_TESTS_H */

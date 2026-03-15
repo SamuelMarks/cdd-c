@@ -2,6 +2,11 @@
 #ifndef TEST_REFACTOR_ORCHESTRATOR_H
 #define TEST_REFACTOR_ORCHESTRATOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,5 +148,9 @@ SUITE(refactor_orchestrator_suite) {
   RUN_TEST(test_orchestrator_no_alloc);
   RUN_TEST(test_orchestrator_preserves_structs);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_REFACTOR_ORCHESTRATOR_H */

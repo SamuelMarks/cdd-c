@@ -7,6 +7,11 @@
 #ifndef TEST_WEAVER_H
 #define TEST_WEAVER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -207,5 +212,9 @@ ASSERT_EQ(0, res);
     RUN_TEST(test_weaver_inject_msvc_headers);
     RUN_TEST(test_weaver_vla_to_alloca);
   }
+
+#ifdef __cplusplus
+  }
+#endif /* __cplusplus */
 
 #endif /* TEST_WEAVER_H */

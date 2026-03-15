@@ -2,6 +2,11 @@
 #ifndef TEST_C_CDD_INTEGRATION_H
 #define TEST_C_CDD_INTEGRATION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -415,5 +420,9 @@ SUITE(integration_suite) {
   RUN_TEST(test_end_to_end_project_lifecycle);
   RUN_TEST(test_integration_schema2code_with_guards);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C_CDD_INTEGRATION_H */

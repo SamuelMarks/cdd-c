@@ -11,6 +11,11 @@
 #ifndef TEST_REFACTOR_API_SYNC_H
 #define TEST_REFACTOR_API_SYNC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,5 +188,9 @@ SUITE(api_sync_suite) {
   RUN_TEST(test_sync_query_update);
   RUN_TEST(test_sync_header_update);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_REFACTOR_API_SYNC_H */

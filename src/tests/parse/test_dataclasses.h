@@ -2,6 +2,11 @@
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <mocks/emit/simple_json.h>
 
@@ -828,5 +833,9 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_simple_json_HazE_more_eq_cases);
   RUN_TEST(test_FooE_eq_nested_diff);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_DATACLASSES_H */

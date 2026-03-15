@@ -1,10 +1,18 @@
-#include " db_loader.h\
+/* clang-format off */
+#include "functions/parse/db_loader.h"
 #include <stddef.h>
+
 #if defined(_WIN32)
-#include <windows.h>
+#pragma warning(push)
+#pragma warning(disable: 4201 4214)
+#include "win_compat_sym.h"
+#include <windef.h>
+#include <winbase.h>
+#pragma warning(pop)
 #else
 #include <dlfcn.h>
 #endif
+/* clang-format on */
 
 static int check_lib(const char *win_name, const char *posix_name) {
 #if defined(_WIN32)

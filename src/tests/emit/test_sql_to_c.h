@@ -7,6 +7,11 @@
 #ifndef C_CDD_TEST_SQL_TO_C_H
 #define C_CDD_TEST_SQL_TO_C_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "classes/emit/sql_to_c.h"
 #include <greatest.h>
 #include <string.h>
@@ -101,5 +106,9 @@ SUITE(sql_to_c_suite) {
   RUN_TEST(test_sql_to_c_header_emit);
   RUN_TEST(test_sql_to_c_source_emit);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* C_CDD_TEST_SQL_TO_C_H */

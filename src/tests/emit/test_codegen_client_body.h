@@ -7,6 +7,11 @@
 #ifndef TEST_CODEGEN_CLIENT_BODY_H
 #define TEST_CODEGEN_CLIENT_BODY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1669,5 +1674,9 @@ SUITE(client_body_suite) {
   RUN_TEST(test_body_textual_response_xml);
   RUN_TEST(test_body_binary_response_pdf);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_CLIENT_BODY_H */

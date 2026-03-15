@@ -8,6 +8,11 @@
 #ifndef TEST_TEXT_PATCHER_H
 #define TEST_TEXT_PATCHER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -269,5 +274,9 @@ SUITE(text_patcher_suite) {
   RUN_TEST(test_patch_overlap_behavior);
   RUN_TEST(test_patch_append_end);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_TEXT_PATCHER_H */

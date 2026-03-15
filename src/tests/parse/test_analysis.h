@@ -12,6 +12,11 @@
 #ifndef TEST_ANALYSIS_H
 #define TEST_ANALYSIS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -175,5 +180,9 @@ SUITE(analysis_suite) {
   RUN_TEST(test_asprintf_unchecked);
   RUN_TEST(test_init_free_safety);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_ANALYSIS_H */

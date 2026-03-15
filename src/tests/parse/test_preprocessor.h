@@ -2,6 +2,11 @@
 #ifndef TEST_PREPROCESSOR_H
 #define TEST_PREPROCESSOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -443,5 +448,9 @@ SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_if_else);
   RUN_TEST(test_pp_nested_if);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_PREPROCESSOR_H */

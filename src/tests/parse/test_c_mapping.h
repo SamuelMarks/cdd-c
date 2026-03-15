@@ -12,6 +12,11 @@
 #ifndef TEST_C_MAPPING_H
 #define TEST_C_MAPPING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,5 +135,9 @@ SUITE(c_mapping_suite) {
   RUN_TEST(test_mapping_long);
   RUN_TEST(test_mapping_void_ptr);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C_MAPPING_H */

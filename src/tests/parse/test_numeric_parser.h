@@ -2,6 +2,11 @@
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -152,5 +157,9 @@ SUITE(numeric_parser_suite) {
   RUN_TEST(test_parse_hex_float);
   RUN_TEST(test_parse_errors);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_NUMERIC_PARSER_H */

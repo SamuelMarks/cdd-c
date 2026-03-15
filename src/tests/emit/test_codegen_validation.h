@@ -2,6 +2,11 @@
 #ifndef TEST_CODEGEN_VALIDATION_H
 #define TEST_CODEGEN_VALIDATION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -358,5 +363,9 @@ SUITE(codegen_validation_suite) {
   RUN_TEST(test_string_simple_pattern_exact);
   RUN_TEST(test_string_simple_pattern_contains);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_VALIDATION_H */

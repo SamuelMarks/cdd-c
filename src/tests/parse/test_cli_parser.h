@@ -7,6 +7,11 @@
 #ifndef TEST_CLI_PARSER_H
 #define TEST_CLI_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,5 +87,9 @@ TEST test_cli_parser_getopt(void) {
 }
 
 SUITE(cli_parser_suite) { RUN_TEST(test_cli_parser_getopt); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CLI_PARSER_H */

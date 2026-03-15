@@ -2,6 +2,11 @@
 #ifndef TEST_SCHEMA2TESTS_H
 #define TEST_SCHEMA2TESTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
 
@@ -369,5 +374,9 @@ SUITE(schema2tests_suite) {
   RUN_TEST(test_schema2tests_output_in_current_dir);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_SCHEMA2TESTS_H */

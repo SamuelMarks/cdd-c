@@ -7,6 +7,11 @@
 #ifndef TEST_CST_PRINTER_H
 #define TEST_CST_PRINTER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,5 +64,9 @@ TEST test_cst_print_exact(void) {
 }
 
 SUITE(cst_printer_suite) { RUN_TEST(test_cst_print_exact); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CST_PRINTER_H */

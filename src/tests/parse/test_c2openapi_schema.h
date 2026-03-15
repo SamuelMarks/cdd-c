@@ -9,6 +9,11 @@
 #ifndef TEST_C2OPENAPI_SCHEMA_H
 #define TEST_C2OPENAPI_SCHEMA_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -189,5 +194,9 @@ SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_register_null_safety);
   RUN_TEST(test_register_enum_schema);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_C2OPENAPI_SCHEMA_H */

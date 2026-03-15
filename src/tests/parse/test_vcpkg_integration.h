@@ -7,6 +7,11 @@
 #ifndef TEST_VCPKG_INTEGRATION_H
 #define TEST_VCPKG_INTEGRATION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <greatest.h>
 #include <string.h>
 
@@ -67,5 +72,9 @@ SUITE(vcpkg_integration_suite) {
   RUN_TEST(test_vcpkg_builder_basic);
   RUN_TEST(test_vcpkg_builder_duplicate);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_VCPKG_INTEGRATION_H */

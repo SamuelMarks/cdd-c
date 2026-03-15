@@ -2,6 +2,11 @@
 #ifndef TEST_INITIALIZER_PARSER_H
 #define TEST_INITIALIZER_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -239,5 +244,9 @@ SUITE(initializer_parser_suite) {
   RUN_TEST(test_init_trailing_comma);
   RUN_TEST(test_init_errors);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_INITIALIZER_PARSER_H */

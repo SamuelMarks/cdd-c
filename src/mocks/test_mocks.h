@@ -6,11 +6,20 @@
 #ifndef TEST_MOCKS_H
 #define TEST_MOCKS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 
 /*
  * Ensure coverage across OpenAPI models and types to satisfy test dependencies
  */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_MOCKS_H */

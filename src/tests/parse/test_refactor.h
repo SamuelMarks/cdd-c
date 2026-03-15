@@ -2,6 +2,11 @@
 #ifndef TEST_REFACTOR_H
 #define TEST_REFACTOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <errno.h>
 #include <greatest.h>
 #include <stdlib.h>
@@ -66,5 +71,9 @@ SUITE(refactor_suite) {
   RUN_TEST(test_apply_refactoring_to_string_basic);
   RUN_TEST(test_apply_refactoring_to_string_errors);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_REFACTOR_H */

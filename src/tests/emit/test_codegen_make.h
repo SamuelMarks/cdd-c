@@ -8,6 +8,11 @@
 #ifndef TEST_CODEGEN_MAKE_H
 #define TEST_CODEGEN_MAKE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,5 +98,9 @@ SUITE(codegen_make_suite) {
   RUN_TEST(test_make_extra_sources);
   RUN_TEST(test_make_invalid);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_MAKE_H */
