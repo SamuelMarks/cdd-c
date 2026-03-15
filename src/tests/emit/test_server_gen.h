@@ -59,6 +59,12 @@ TEST test_server_gen_basic(void) {
       (enum OpenAPI_Verb)999; /* Unknown verb triggers default branch */
   spec.paths[0].operations[8].operation_id = "doUnknown";
 
+  spec.paths[0].operations[1].n_req_body_media_types = 1;
+  spec.paths[0].operations[1].req_body_media_types =
+      (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
+  spec.paths[0].operations[1].req_body_media_types[0].name =
+      "application/x-www-form-urlencoded";
+
   memset(&config, 0, sizeof(config));
   config.filename_base = "test_server";
 
@@ -79,6 +85,7 @@ TEST test_server_gen_basic(void) {
     fclose(f);
 
   remove("test_server_server.c");
+  free(spec.paths[0].operations[1].req_body_media_types);
   free(spec.paths[0].operations);
   free(spec.paths);
 
