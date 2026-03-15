@@ -168,7 +168,9 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_h, "#include <stdbool.h>\n");
   fprintf(fp_h, "#endif\n\n");
   fprintf(fp_h, "#include <stddef.h>\n");
-  fprintf(fp_h, "#include \"classes/emit/c_orm_meta.h\"\n\n");
+  fprintf(fp_h, "#include \"classes/emit/c_orm_meta.h\"\n");
+  fprintf(fp_h, "#include \"c_orm_db.h\"\n");
+  fprintf(fp_h, "#include \"c_orm_api.h\"\n\n");
 
   /* Source */
   fprintf(fp_c, "/* Generated ORM Models Implementation */\n\n");
@@ -192,20 +194,24 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_h, "};\n\n");
 
     /* ORM Metadata declarations */
-    fprintf(fp_h, "extern const char* %s_col_names[];\n", struct_name);
-    fprintf(fp_h, "extern const c_orm_type_t %s_col_types[];\n", struct_name);
-    fprintf(fp_h, "extern const size_t %s_col_offsets[];\n", struct_name);
-    fprintf(fp_h, "extern const bool %s_col_is_pk[];\n", struct_name);
-    fprintf(fp_h, "extern const bool %s_col_is_nullable[];\n\n", struct_name);
-    fprintf(fp_h, "extern const c_orm_meta_t %s_meta;\n\n", struct_name);
+    fprintf(fp_h, "extern const c_orm_column_meta_t %s_cols[%lu];\n",
+            struct_name, (unsigned long)sf->size);
+    fprintf(fp_h, "extern const c_orm_table_meta_t %s_meta;\n\n", struct_name);
 
     /* CRUD Boilerplate declarations */
-    fprintf(fp_h, "int insert_%s(const struct %s* obj);\n", struct_name,
+    fprintf(fp_h, "c_orm_error_t create_table_%s(c_orm_db_t* db);\n",
             struct_name);
+    fprintf(fp_h,
+            "c_orm_error_t insert_%s(c_orm_db_t* db, const struct %s* obj);\n",
+            struct_name, struct_name);
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
-      if (strstr(field->description, "[PK]") != NULL) {
-        fprintf(fp_h, "int get_%s_by_%s(const %s %s, struct %s** out_obj);\n",
+      if (strstr(field->description, "[PK]") != NULL ||
+          strstr(field->description, "[UNIQUE]") != NULL ||
+          strstr(field->description, "[INDEX]") != NULL) {
+        fprintf(fp_h,
+                "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s %s, "
+                "struct %s** out_obj);\n",
                 struct_name, field->name, openapi_type_to_c_type(field),
                 field->name, struct_name);
       }
@@ -213,81 +219,129 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_h, "\n");
 
     /* ORM Metadata definitions */
-    fprintf(fp_c, "const char* %s_col_names[] = {\n", struct_name);
+    fprintf(fp_c, "const c_orm_column_meta_t %s_cols[%lu] = {\n", struct_name,
+            (unsigned long)sf->size);
     for (j = 0; j < sf->size; ++j) {
-      fprintf(fp_c, "  \"%s\"%s\n", sf->fields[j].name,
+      const struct StructField *field = &sf->fields[j];
+      int is_pk = (strstr(field->description, "[PK]") != NULL);
+      const char *fk_target = "NULL";
+      char fk_buf[256];
+      char *fk_start = strstr(field->description, "[FK=");
+      if (fk_start) {
+        char *fk_end = strchr(fk_start, ']');
+        if (fk_end && (size_t)(fk_end - fk_start - 4) < sizeof(fk_buf)) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          strncpy_s(fk_buf, sizeof(fk_buf), fk_start + 4,
+                    fk_end - fk_start - 4);
+#else
+          strncpy(fk_buf, fk_start + 4, fk_end - fk_start - 4);
+#endif
+          fk_buf[fk_end - fk_start - 4] = '\0';
+          fprintf(
+              fp_c,
+              "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, \"%s\" }%s\n",
+              field->name, openapi_type_to_c_orm_type(field), struct_name,
+              field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
+              fk_buf, j == sf->size - 1 ? "" : ",");
+          continue;
+        }
+      }
+
+      fprintf(fp_c,
+              "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL }%s\n",
+              field->name, openapi_type_to_c_orm_type(field), struct_name,
+              field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
               j == sf->size - 1 ? "" : ",");
     }
     fprintf(fp_c, "};\n\n");
 
-    fprintf(fp_c, "const c_orm_type_t %s_col_types[] = {\n", struct_name);
-    for (j = 0; j < sf->size; ++j) {
-      fprintf(fp_c, "  %s%s\n", openapi_type_to_c_orm_type(&sf->fields[j]),
-              j == sf->size - 1 ? "" : ",");
-    }
-    fprintf(fp_c, "};\n\n");
-
-    fprintf(fp_c, "const size_t %s_col_offsets[] = {\n", struct_name);
-    for (j = 0; j < sf->size; ++j) {
-      fprintf(fp_c, "  offsetof(struct %s, %s)%s\n", struct_name,
-              sf->fields[j].name, j == sf->size - 1 ? "" : ",");
-    }
-    fprintf(fp_c, "};\n\n");
-
-    fprintf(fp_c, "const bool %s_col_is_pk[] = {\n", struct_name);
-    for (j = 0; j < sf->size; ++j) {
-      int is_pk = (strstr(sf->fields[j].description, "[PK]") != NULL);
-      fprintf(fp_c, "  %s%s\n", is_pk ? "true" : "false",
-              j == sf->size - 1 ? "" : ",");
-    }
-    fprintf(fp_c, "};\n\n");
-
-    fprintf(fp_c, "const bool %s_col_is_nullable[] = {\n", struct_name);
-    for (j = 0; j < sf->size; ++j) {
-      /* Simplified: default nullable=true for simplicity or if not PK */
-      int is_pk = (strstr(sf->fields[j].description, "[PK]") != NULL);
-      fprintf(fp_c, "  %s%s\n", is_pk ? "false" : "true",
-              j == sf->size - 1 ? "" : ",");
-    }
-    fprintf(fp_c, "};\n\n");
-
-    fprintf(fp_c, "const c_orm_meta_t %s_meta = {\n", struct_name);
+    fprintf(fp_c, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
     fprintf(fp_c, "  \"%s\",\n", struct_name);
+    fprintf(fp_c, "  %s_cols,\n", struct_name);
     fprintf(fp_c, "  %lu,\n", (unsigned long)sf->size);
-    fprintf(fp_c, "  %s_col_names,\n", struct_name);
-    fprintf(fp_c, "  %s_col_types,\n", struct_name);
-    fprintf(fp_c, "  %s_col_offsets,\n", struct_name);
-    fprintf(fp_c, "  %s_col_is_pk,\n", struct_name);
-    fprintf(fp_c, "  %s_col_is_nullable\n", struct_name);
+    fprintf(fp_c, "  sizeof(struct %s),\n", struct_name);
+    fprintf(fp_c, "  NULL, NULL, NULL, NULL, NULL\n");
     fprintf(fp_c, "};\n\n");
 
     /* CRUD Boilerplate definitions */
-    fprintf(fp_c, "int insert_%s(const struct %s* obj) {\n", struct_name,
+    fprintf(fp_c, "c_orm_error_t create_table_%s(c_orm_db_t* db) {\n",
             struct_name);
+    fprintf(fp_c, "  c_orm_query_t *query = NULL;\n");
+    fprintf(fp_c, "  int has_row = 0;\n");
+    fprintf(fp_c, "  /* Simple CREATE TABLE placeholder, use real DDL "
+                  "generator in production */\n");
+    fprintf(fp_c, "  if (db && db->vtable && db->vtable->prepare) {\n");
     fprintf(fp_c,
-            "  /* CRUD boilerplate to link with c-orm: c_orm_insert(&%s_meta, "
-            "obj) */\n",
+            "    if (db->vtable->prepare(db, \"CREATE TABLE IF NOT EXISTS %s "
+            "(id INTEGER PRIMARY KEY)\", &query) == 0) {\n",
             struct_name);
-    fprintf(fp_c, "  (void)obj;\n");
-    fprintf(fp_c, "  return 0;\n");
-    fprintf(fp_c, "}\n\n");
-
+    fprintf(fp_c, "      db->vtable->step(query, &has_row);\n");
+    fprintf(fp_c, "      db->vtable->finalize(query);\n");
+    fprintf(fp_c, "    }\n");
     for (j = 0; j < sf->size; ++j) {
-      const struct StructField *field = &sf->fields[j];
-      if (strstr(field->description, "[PK]") != NULL) {
-        fprintf(fp_c, "int get_%s_by_%s(const %s %s, struct %s** out_obj) {\n",
-                struct_name, field->name, openapi_type_to_c_type(field),
-                field->name, struct_name);
+      if (strstr(sf->fields[j].description, "[INDEX]") != NULL) {
         fprintf(fp_c,
-                "  /* CRUD boilerplate to link with c-orm: c_orm_get(&%s_meta, "
-                "...) */\n",
-                struct_name);
-        fprintf(fp_c, "  (void)%s;\n", field->name);
-        fprintf(fp_c, "  if (out_obj) *out_obj = NULL;\n");
-        fprintf(fp_c, "  return 0;\n");
-        fprintf(fp_c, "}\n\n");
+                "    if (db->vtable->prepare(db, \"CREATE INDEX IF NOT EXISTS "
+                "idx_%s_%s ON %s(%s)\", &query) == 0) {\n",
+                struct_name, sf->fields[j].name, struct_name,
+                sf->fields[j].name);
+        fprintf(fp_c, "      db->vtable->step(query, &has_row);\n");
+        fprintf(fp_c, "      db->vtable->finalize(query);\n");
+        fprintf(fp_c, "    }\n");
+      }
+      if (strstr(sf->fields[j].description, "[UNIQUE]") != NULL) {
+        fprintf(fp_c,
+                "    if (db->vtable->prepare(db, \"CREATE UNIQUE INDEX IF NOT "
+                "EXISTS uidx_%s_%s ON %s(%s)\", &query) == 0) {\n",
+                struct_name, sf->fields[j].name, struct_name,
+                sf->fields[j].name);
+        fprintf(fp_c, "      db->vtable->step(query, &has_row);\n");
+        fprintf(fp_c, "      db->vtable->finalize(query);\n");
+        fprintf(fp_c, "    }\n");
       }
     }
+    fprintf(fp_c, "  }\n");
+    fprintf(fp_c, "  return C_ORM_SUCCESS;\n");
+    fprintf(fp_c, "}\n\n");
+
+    fprintf(fp_c,
+            "c_orm_error_t insert_%s(c_orm_db_t* db, const struct %s* obj) {\n",
+            struct_name, struct_name);
+            struct_name);
+            fprintf(fp_c, "  return c_orm_insert(db, &%s_meta, obj);\n",
+                    struct_name);
+            fprintf(fp_c, "}\n\n");
+
+            for (j = 0; j < sf->size; ++j) {
+              const struct StructField *field = &sf->fields[j];
+              if (strstr(field->description, "[PK]") != NULL) {
+                fprintf(fp_c,
+                        "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s "
+                        "%s, struct %s** out_obj) {\n",
+                        struct_name, field->name, openapi_type_to_c_type(field),
+                        field->name, struct_name);
+                if (strcmp(openapi_type_to_c_type(field), "int32_t") == 0 ||
+                    strcmp(openapi_type_to_c_type(field), "int64_t") == 0) {
+                  fprintf(
+                      fp_c,
+                      "  if (out_obj) *out_obj = malloc(sizeof(struct %s));\n",
+                      struct_name);
+                  fprintf(fp_c, "  if (out_obj && !*out_obj) return "
+                                "C_ORM_ERROR_MEMORY;\n");
+                  fprintf(fp_c,
+                          "  return c_orm_find_by_id_int32(db, &%s_meta, "
+                          "(int32_t)%s, *out_obj);\n",
+                          struct_name, field->name);
+                } else {
+                  fprintf(fp_c, "  (void)db;\n");
+                  fprintf(fp_c, "  (void)%s;\n", field->name);
+                  fprintf(fp_c, "  if (out_obj) *out_obj = NULL;\n");
+                  fprintf(fp_c, "  return C_ORM_ERROR_NOT_IMPLEMENTED;\n");
+                }
+                fprintf(fp_c, "}\n\n");
+              }
+            }
   }
 
   fprintf(fp_h, "#ifdef __cplusplus\n}\n#endif\n");
