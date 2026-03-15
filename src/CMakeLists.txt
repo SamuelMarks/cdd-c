@@ -102,6 +102,7 @@ set(Source_Files
         "routes/emit/aggregator.c"
         "routes/emit/client_gen.c"
         "routes/emit/cli_gen.c"
+        "routes/emit/orm_gen.c"
         "routes/emit/server_gen.c"
         "openapi/parse/openapi.c"
         "openapi/emit/openapi.c"

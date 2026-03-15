@@ -41,7 +41,7 @@ struct AuditViolationList {
 /**
  * @brief Statistics collected during an audit.
  */
-struct C_CDD_EXPORT AuditStats {
+struct AuditStats {
   size_t files_scanned;         /**< Number of C files analyzed */
   size_t allocations_checked;   /**< Count of safe (checked) allocations */
   size_t allocations_unchecked; /**< Count of unsafe (unchecked) allocations */
