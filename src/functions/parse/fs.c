@@ -721,19 +721,12 @@ int tempdir(char **out_path) {
   }
 #else
   {
-    char pathname[L_tmpnam + 1];
-    char *ptr;
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif /* defined(__GNUC__) || defined(__clang__) */
-    ptr = tmpnam(pathname);
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif /* defined(__GNUC__) || defined(__clang__) */
-    if (ptr == NULL)
-      return errno ? errno : EIO;
-    return get_dirname(ptr, out_path);
+#ifdef P_tmpdir
+    *out_path = (c_cdd_strdup(P_tmpdir, &_ast_strdup_5), _ast_strdup_5);
+#else
+    *out_path = (c_cdd_strdup("/tmp", &_ast_strdup_5), _ast_strdup_5);
+#endif
+    return *out_path ? 0 : ENOMEM;
   }
 #endif
 }

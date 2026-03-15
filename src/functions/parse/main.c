@@ -27,6 +27,8 @@
 #include "openapi/parse/openapi.h"
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
+#include "routes/emit/orm_gen.h"
+#include "routes/emit/server_gen.h"
 #include "routes/emit/server_json_rpc.h"
 #include "routes/parse/cli.h" /* New entry */
 #include "tests/emit/schema2tests.h"
@@ -118,7 +120,9 @@ static /**
   puts("  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]");
   puts("  from_openapi to_sdk_cli -i <spec.json> [-o <dir>]");
   puts("  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]");
-  puts("      Generate C SDK and optionally CLI from OpenAPI spec.");
+  puts("  from_openapi to_server -i <spec.json> [-o <dir>]");
+  puts("  from_openapi to_server --input-dir <specs_dir> [-o <dir>]");
+  puts("      Generate C SDK, Server, and optionally CLI from OpenAPI spec.");
   puts("  to_openapi -f <dir> [-o <out.json>]");
   puts("      Generate OpenAPI spec from C source code.");
   puts("  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>");
@@ -158,6 +162,7 @@ static /**
   const char *input_dir = NULL;
   const char *out_dir = NULL;
   int is_cli = 0;
+  int is_server = 0;
   int i;
   struct OpenAPI_Spec spec = {0};
 
@@ -178,6 +183,10 @@ static /**
       argv++;
     } else if (strcmp(argv[1], "to_sdk_cli") == 0) {
       is_cli = 1;
+      argc--;
+      argv++;
+    } else if (strcmp(argv[1], "to_server") == 0) {
+      is_server = 1;
       argc--;
       argv++;
     }
@@ -231,6 +240,13 @@ static /**
     if (is_cli) {
       openapi_cli_generate(&spec, &config);
     }
+    if (is_server) {
+      openapi_server_generate(&spec, &config);
+    }
+
+    /* Always generate ORM models for to_sdk and to_server */
+    openapi_orm_generate(&spec, &config);
+
     if (out_dir) {
       free((void *)config.filename_base);
     }

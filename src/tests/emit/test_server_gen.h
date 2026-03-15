@@ -13,8 +13,70 @@ extern "C" {
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "routes/emit/client_gen.h"
+#include "routes/emit/orm_gen.h"
 #include "routes/emit/server_gen.h"
 /* clang-format on */
+
+TEST test_orm_gen_basic(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenApiClientConfig config;
+  int rc;
+  FILE *f;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&config, 0, sizeof(config));
+
+  config.filename_base = "test_orm";
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char *));
+  spec.defined_schema_names[0] = strdup("TestModel");
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+
+  struct_fields_init(&spec.defined_schemas[0]);
+  struct_fields_add(&spec.defined_schemas[0], "id", "integer", "", "", "");
+
+  /* Add [PK] to description to test PK code path */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  strncpy_s(spec.defined_schemas[0].fields[0].description,
+            sizeof(spec.defined_schemas[0].fields[0].description),
+            "[PK] The ID",
+            sizeof(spec.defined_schemas[0].fields[0].description) - 1);
+#else
+  strncpy(spec.defined_schemas[0].fields[0].description, "[PK] The ID",
+          sizeof(spec.defined_schemas[0].fields[0].description) - 1);
+#endif
+  spec.defined_schemas[0]
+      .fields[0]
+      .description[sizeof(spec.defined_schemas[0].fields[0].description) - 1] =
+      '\0';
+
+  rc = openapi_orm_generate(&spec, &config);
+  ASSERT_EQ(0, rc);
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  if (fopen_s(&f, "test_orm_models.h", "r") != 0)
+    f = NULL;
+#elif defined(_MSC_VER)
+  fopen_s(&f, "test_orm_models.h", "r");
+#else
+  f = fopen("test_orm_models.h", "r");
+#endif
+  ASSERT(f != NULL);
+  if (f)
+    fclose(f);
+
+  remove("test_orm_models.h");
+  remove("test_orm_models.c");
+
+  struct_fields_free(&spec.defined_schemas[0]);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names[0]);
+  free(spec.defined_schema_names);
+
+  PASS();
+}
 
 TEST test_server_gen_basic(void) {
   struct OpenAPI_Spec spec;
@@ -110,6 +172,7 @@ TEST test_server_gen_fail_open(void) {
 SUITE(server_gen_suite) {
   RUN_TEST(test_server_gen_basic);
   RUN_TEST(test_server_gen_fail_open);
+  RUN_TEST(test_orm_gen_basic);
 }
 
 #ifdef __cplusplus

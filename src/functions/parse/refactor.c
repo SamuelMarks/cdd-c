@@ -83,6 +83,9 @@ int apply_refactoring_to_string(const struct RefactorContext *ctx,
   struct AllocationSiteList allocs = {0};
   int rc;
 
+  if (source_code == NULL || out_code == NULL)
+    return EINVAL;
+
   /* 1. Tokenize */
   if ((rc = tokenize(az_span_create_from_str((char *)source_code), &tokens)) !=
       0) {
