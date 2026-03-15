@@ -13394,6 +13394,62 @@ static /**
 
   /* Load Schemas First */
   if (comps_obj) {
+    int has_oauth2 = 0;
+    const JSON_Object *schemes =
+        json_object_get_object(comps_obj, "securitySchemes");
+    if (schemes) {
+      size_t scount = json_object_get_count(schemes);
+      size_t sk;
+      for (sk = 0; sk < scount; ++sk) {
+        const JSON_Object *sec_obj =
+            json_value_get_object(json_object_get_value_at(schemes, sk));
+        const char *type = json_object_get_string(sec_obj, "type");
+        if (type && strcmp(type, "oauth2") == 0) {
+          has_oauth2 = 1;
+          break;
+        }
+      }
+    }
+    if (has_oauth2) {
+      JSON_Object *mut_comps = (JSON_Object *)comps_obj;
+      JSON_Object *schemas = json_object_get_object(mut_comps, "schemas");
+      if (!schemas) {
+        json_object_set_value(mut_comps, "schemas", json_value_init_object());
+        schemas = json_object_get_object(mut_comps, "schemas");
+      }
+      if (!json_object_has_value(schemas, "OAuth2TokenRequest")) {
+        json_object_set_value(
+            schemas, "OAuth2TokenRequest",
+            json_parse_string(
+                "{\"type\":\"object\",\"properties\":{\"grant_type\":{\"type\":"
+                "\"string\"},\"username\":{\"type\":\"string\"},\"password\":{"
+                "\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"client_"
+                "id\":{\"type\":\"string\"},\"client_secret\":{\"type\":"
+                "\"string\"},\"refresh_token\":{\"type\":\"string\"},\"code\":{"
+                "\"type\":\"string\"},\"redirect_uri\":{\"type\":\"string\"}},"
+                "\"required\":[\"grant_type\"]}"));
+      }
+      if (!json_object_has_value(schemas, "OAuth2TokenResponse")) {
+        json_object_set_value(
+            schemas, "OAuth2TokenResponse",
+            json_parse_string(
+                "{\"type\":\"object\",\"properties\":{\"access_token\":{"
+                "\"type\":\"string\"},\"token_type\":{\"type\":\"string\"},"
+                "\"expires_in\":{\"type\":\"integer\"},\"refresh_token\":{"
+                "\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},"
+                "\"required\":[\"access_token\",\"token_type\"]}"));
+      }
+      if (!json_object_has_value(schemas, "OAuth2Client")) {
+        json_object_set_value(
+            schemas, "OAuth2Client",
+            json_parse_string(
+                "{\"type\":\"object\",\"properties\":{\"client_id\":{\"type\":"
+                "\"string\"},\"client_secret\":{\"type\":\"string\"},"
+                "\"redirect_uris\":{\"type\":\"array\",\"items\":{\"type\":"
+                "\"string\"}}},\"required\":[\"client_id\",\"client_secret\"]"
+                "}"));
+      }
+    }
     rc = parse_components(comps_obj, out);
     if (rc != 0) {
       openapi_spec_free(out);

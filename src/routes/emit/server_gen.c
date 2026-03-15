@@ -42,7 +42,8 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include <civetweb.h>\n\n");
+  fprintf(fp, "#include <civetweb.h>\n");
+  fprintf(fp, "#include <c_rest_request.h>\n\n");
 
   /* Print Server info for documentation */
   fprintf(fp, "/* API Title: %s */\n",
@@ -118,6 +119,29 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
         if (op->req_body.content_schema) {
           fprintf(fp, "    /* Expecting requestBody schema: %s */\n",
                   op->req_body.ref ? op->req_body.ref : "inline");
+        }
+
+        if (op->n_req_body_media_types > 0) {
+          size_t m;
+          for (m = 0; m < op->n_req_body_media_types; m++) {
+            if (op->req_body_media_types[m].name &&
+                strcmp(op->req_body_media_types[m].name,
+                       "application/x-www-form-urlencoded") == 0) {
+              fprintf(fp, "    /* Parse form-urlencoded request body */\n");
+              fprintf(fp, "    {\n");
+              fprintf(
+                  fp,
+                  "        struct c_rest_urlencoded_data urlencoded_data;\n");
+              fprintf(fp, "        if (c_rest_request_parse_urlencoded(conn, "
+                          "&urlencoded_data) == 0) {\n");
+              fprintf(
+                  fp,
+                  "            /* Successfully parsed urlencoded body */\n");
+              fprintf(fp, "        }\n");
+              fprintf(fp, "    }\n");
+              break;
+            }
+          }
         }
 
         if (op->n_responses > 0) {

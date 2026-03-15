@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "functions/parse/main.h"
 #include "c_cddConfig.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
