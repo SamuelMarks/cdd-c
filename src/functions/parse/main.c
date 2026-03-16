@@ -26,6 +26,7 @@
 #include "functions/parse/db_loader.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/cli_gen.h"
+#include "routes/emit/client_gui_gen.h"
 #include "routes/emit/client_gen.h"
 #include "routes/emit/orm_gen.h"
 #include "routes/emit/server_gen.h"
@@ -237,6 +238,7 @@ static /**
     config.func_prefix = "api_";
 
     rc = openapi_client_generate(&spec, &config);
+    openapi_client_gui_generate(&spec, &config);
     if (is_cli) {
       openapi_cli_generate(&spec, &config);
     }
