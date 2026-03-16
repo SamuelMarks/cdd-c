@@ -224,7 +224,6 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
       int is_pk = (strstr(field->description, "[PK]") != NULL);
-      const char *fk_target = "NULL";
       char fk_buf[256];
       char *fk_start = strstr(field->description, "[FK=");
       if (fk_start) {
@@ -308,40 +307,37 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c,
             "c_orm_error_t insert_%s(c_orm_db_t* db, const struct %s* obj) {\n",
             struct_name, struct_name);
-            struct_name);
-            fprintf(fp_c, "  return c_orm_insert(db, &%s_meta, obj);\n",
-                    struct_name);
-            fprintf(fp_c, "}\n\n");
+    fprintf(fp_c, "  return c_orm_insert(db, &%s_meta, obj);\n", struct_name);
+    fprintf(fp_c, "}\n\n");
 
-            for (j = 0; j < sf->size; ++j) {
-              const struct StructField *field = &sf->fields[j];
-              if (strstr(field->description, "[PK]") != NULL) {
-                fprintf(fp_c,
-                        "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s "
-                        "%s, struct %s** out_obj) {\n",
-                        struct_name, field->name, openapi_type_to_c_type(field),
-                        field->name, struct_name);
-                if (strcmp(openapi_type_to_c_type(field), "int32_t") == 0 ||
-                    strcmp(openapi_type_to_c_type(field), "int64_t") == 0) {
-                  fprintf(
-                      fp_c,
-                      "  if (out_obj) *out_obj = malloc(sizeof(struct %s));\n",
-                      struct_name);
-                  fprintf(fp_c, "  if (out_obj && !*out_obj) return "
-                                "C_ORM_ERROR_MEMORY;\n");
-                  fprintf(fp_c,
-                          "  return c_orm_find_by_id_int32(db, &%s_meta, "
-                          "(int32_t)%s, *out_obj);\n",
-                          struct_name, field->name);
-                } else {
-                  fprintf(fp_c, "  (void)db;\n");
-                  fprintf(fp_c, "  (void)%s;\n", field->name);
-                  fprintf(fp_c, "  if (out_obj) *out_obj = NULL;\n");
-                  fprintf(fp_c, "  return C_ORM_ERROR_NOT_IMPLEMENTED;\n");
-                }
-                fprintf(fp_c, "}\n\n");
-              }
-            }
+    for (j = 0; j < sf->size; ++j) {
+      const struct StructField *field = &sf->fields[j];
+      if (strstr(field->description, "[PK]") != NULL) {
+        fprintf(fp_c,
+                "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s "
+                "%s, struct %s** out_obj) {\n",
+                struct_name, field->name, openapi_type_to_c_type(field),
+                field->name, struct_name);
+        if (strcmp(openapi_type_to_c_type(field), "int32_t") == 0 ||
+            strcmp(openapi_type_to_c_type(field), "int64_t") == 0) {
+          fprintf(fp_c,
+                  "  if (out_obj) *out_obj = malloc(sizeof(struct %s));\n",
+                  struct_name);
+          fprintf(fp_c, "  if (out_obj && !*out_obj) return "
+                        "C_ORM_ERROR_MEMORY;\n");
+          fprintf(fp_c,
+                  "  return c_orm_find_by_id_int32(db, &%s_meta, "
+                  "(int32_t)%s, *out_obj);\n",
+                  struct_name, field->name);
+        } else {
+          fprintf(fp_c, "  (void)db;\n");
+          fprintf(fp_c, "  (void)%s;\n", field->name);
+          fprintf(fp_c, "  if (out_obj) *out_obj = NULL;\n");
+          fprintf(fp_c, "  return C_ORM_ERROR_NOT_IMPLEMENTED;\n");
+        }
+        fprintf(fp_c, "}\n\n");
+      }
+    }
   }
 
   fprintf(fp_h, "#ifdef __cplusplus\n}\n#endif\n");
