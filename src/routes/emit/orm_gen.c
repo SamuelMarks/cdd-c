@@ -329,6 +329,16 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
                   "  return c_orm_find_by_id_int32(db, &%s_meta, "
                   "(int32_t)%s, *out_obj);\n",
                   struct_name, field->name);
+        } else if (strcmp(openapi_type_to_c_type(field), "char*") == 0) {
+          fprintf(fp_c,
+                  "  if (out_obj) *out_obj = malloc(sizeof(struct %s));\n",
+                  struct_name);
+          fprintf(fp_c, "  if (out_obj && !*out_obj) return "
+                        "C_ORM_ERROR_MEMORY;\n");
+          fprintf(fp_c,
+                  "  return c_orm_find_by_string(db, &%s_meta, \"%s\", "
+                  "%s, *out_obj);\n",
+                  struct_name, field->name, field->name);
         } else {
           fprintf(fp_c, "  (void)db;\n");
           fprintf(fp_c, "  (void)%s;\n", field->name);
