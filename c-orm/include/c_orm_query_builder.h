@@ -10,8 +10,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_orm_db.h"
 #include "c_orm_string_builder.h"
+/* clang-format on */
 
 /**
  * @brief Opaque select builder handle.

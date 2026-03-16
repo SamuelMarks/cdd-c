@@ -19,6 +19,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,7 @@ extern "C" {
 #include "docstrings/parse/doc.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/operation.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- Helpers --- */

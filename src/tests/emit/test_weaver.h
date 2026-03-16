@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -125,6 +126,7 @@ TEST test_weaver_inject_msvc_headers(void) {
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <winsock2.h>
+/* clang-format on */
 /* clang-format on */
 #ifndef NOMINMAX
 #define NOMINMAX

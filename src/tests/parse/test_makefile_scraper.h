@@ -12,10 +12,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/makefile_scraper.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_scrape_makefile_basic(void) {

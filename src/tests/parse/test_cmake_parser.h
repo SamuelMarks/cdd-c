@@ -12,10 +12,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/cmake_parser.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cmake_modifier_basic(void) {

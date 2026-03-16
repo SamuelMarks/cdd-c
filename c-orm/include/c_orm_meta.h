@@ -30,10 +30,14 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
+/* clang-format off */
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdbool.h>
 #endif
 #endif
+#endif
 #include <stddef.h>
+/* clang-format on */
 
 /**
  * @brief Data types supported by c-orm.

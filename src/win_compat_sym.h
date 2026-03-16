@@ -31,7 +31,9 @@ extern "C" {
 #define SIZE_T_FMT "u"
 #define NUM_FORMAT "llu"
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <inttypes.h>
+#endif
 /* clang-format on */
 #define SIZE_T_FMT "zu"
 #define NUM_FORMAT PRIu64

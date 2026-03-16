@@ -14,6 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +25,7 @@ extern "C" {
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_register_single_struct(void) {

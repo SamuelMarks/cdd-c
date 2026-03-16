@@ -19,7 +19,9 @@
 #ifdef _WIN32
 #include <io.h>
 #else
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 #endif
 #endif
 #endif

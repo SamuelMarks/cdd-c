@@ -8,6 +8,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"
@@ -19,6 +20,7 @@ extern "C" {
 #include "functions/emit/codegen.h"
 
 #include "functions/parse/fs.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Forward declare static functions from schema_codegen.c if we want unit-test

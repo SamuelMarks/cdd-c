@@ -12,11 +12,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_scan_for_vlas_basic(void) {

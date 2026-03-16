@@ -19,6 +19,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 #include <stdlib.h>
@@ -27,6 +28,7 @@ extern "C" {
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- Helpers --- */

@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@ extern "C" {
 
 #include "classes/emit/struct.h"
 #include "classes/parse/code2schema.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_parse_fam_basic(void) {

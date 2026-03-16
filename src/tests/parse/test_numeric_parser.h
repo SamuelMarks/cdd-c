@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -16,6 +17,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "classes/parse/numeric.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper to check float equality with epsilon */

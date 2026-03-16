@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@ extern "C" {
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 static int tokenize_str(const char *s, struct TokenList **_out_val) {

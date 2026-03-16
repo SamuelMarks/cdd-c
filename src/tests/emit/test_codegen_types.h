@@ -14,6 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@ extern "C" {
 
 #include "classes/emit/struct.h" /* For struct_fields init helpers */
 #include "classes/emit/types.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- Union Tests --- */

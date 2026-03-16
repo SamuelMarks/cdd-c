@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <assert.h>
 #include <greatest.h>
 #include <stdarg.h>
@@ -16,6 +17,7 @@ extern "C" {
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 static /**

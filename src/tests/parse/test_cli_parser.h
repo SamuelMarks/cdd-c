@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,7 @@ extern "C" {
 #include "classes/parse/cli_parser.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cli_parser_getopt(void) {

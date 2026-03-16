@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,7 @@ extern "C" {
 
 #include "functions/emit/client_sig.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 static int gen_sig(const struct OpenAPI_Operation *op,

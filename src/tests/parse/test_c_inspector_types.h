@@ -17,6 +17,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_scan_c23_enum_fixed_type(void) {

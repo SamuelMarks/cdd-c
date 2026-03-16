@@ -17,6 +17,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +25,7 @@ extern "C" {
 
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h" /* For struct_fields_init etc */
+/* clang-format on */
 /* clang-format on */
 
 /* Common Setup */

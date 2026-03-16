@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +25,10 @@ extern "C" {
 #ifdef _WIN32
 #include <io.h>
 #else
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
+/* clang-format on */
 #endif
 #endif
 #endif

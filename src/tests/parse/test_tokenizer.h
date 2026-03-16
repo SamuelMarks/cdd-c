@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok,

@@ -98,7 +98,9 @@ extern C_CDD_EXPORT /**
 /* POSIX systems */
 #include <limits.h>
 #include <sys/stat.h>
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 /* clang-format on */
 
 /** @brief c_stat definition */

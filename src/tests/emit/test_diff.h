@@ -12,11 +12,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/emit/diff.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_patch_list_to_diff_basic(void) {

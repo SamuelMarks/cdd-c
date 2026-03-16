@@ -7,12 +7,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper: generate code and return as buffer */

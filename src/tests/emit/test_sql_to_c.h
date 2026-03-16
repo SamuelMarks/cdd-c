@@ -12,9 +12,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include "classes/emit/sql_to_c.h"
 #include <greatest.h>
 #include <string.h>
+/* clang-format on */
 /* clang-format on */
 
 TEST test_sql_to_c_header_emit(void) {

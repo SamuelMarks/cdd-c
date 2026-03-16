@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <mocks/emit/simple_json.h>
 
@@ -19,6 +20,7 @@ extern "C" {
 #endif
 
 #include "cdd_test_helpers/cdd_helpers.h"
+/* clang-format on */
 /* clang-format on */
 
 /*

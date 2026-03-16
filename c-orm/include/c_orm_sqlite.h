@@ -10,7 +10,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "c_orm_db.h"
+/* clang-format on */
 
 /**
  * @brief Create a new SQLite database connection.

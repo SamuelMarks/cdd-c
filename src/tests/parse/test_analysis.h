@@ -17,6 +17,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
@@ -24,6 +25,7 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 
 #include <errno.h>
+/* clang-format on */
 /* clang-format on */
 
 static int setup_analysis_tokens(const char *code,

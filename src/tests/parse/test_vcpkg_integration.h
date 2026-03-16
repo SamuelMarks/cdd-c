@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
@@ -55,6 +56,7 @@ TEST test_vcpkg_builder_duplicate(void) {
 #ifndef _MSC_VER
 #include <pthread.h>
 #endif
+                /* clang-format on */
                 /* clang-format on */
                 ";
 

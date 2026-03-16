@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -16,6 +17,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper setup */

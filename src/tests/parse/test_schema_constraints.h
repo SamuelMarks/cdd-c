@@ -7,12 +7,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <parson.h>
 
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "classes/emit/struct.h"
 #include "classes/parse/code2schema.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_schema_constraints_roundtrip(void) {

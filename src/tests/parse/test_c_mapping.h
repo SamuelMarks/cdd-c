@@ -17,12 +17,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "classes/parse/mapping.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_mapping_int(void) {

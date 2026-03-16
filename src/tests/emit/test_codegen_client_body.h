@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@ extern "C" {
 #include "classes/emit/struct.h"
 #include "functions/emit/client_body.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 static int gen_body(const struct OpenAPI_Operation *op,

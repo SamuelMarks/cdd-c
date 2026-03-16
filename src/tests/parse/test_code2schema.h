@@ -17,7 +17,10 @@ typedef unsigned __int32 uint32_t;
 typedef signed __int64 int64_t;
 typedef unsigned __int64 uint64_t;
 #else
+/* clang-format off */
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdint.h>
+#endif
 #endif
 #include <string.h>
 
@@ -28,6 +31,7 @@ typedef unsigned __int64 uint64_t;
 #include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
 #include <cdd_test_helpers/cdd_helpers.h>
+/* clang-format on */
 /* clang-format on */
 
 /* Updated test cases to reflect new return types (int vs void) */

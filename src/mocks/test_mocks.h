@@ -11,7 +11,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 /*

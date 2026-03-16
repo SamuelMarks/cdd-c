@@ -128,8 +128,11 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
                   fp,
                   "        struct c_rest_urlencoded_data urlencoded_data;\n");
               if (op->req_body.ref_name) {
-                fprintf(fp, "        struct %s req_struct;\n", op->req_body.ref_name);
-                fprintf(fp, "        memset(&req_struct, 0, sizeof(req_struct));\n");
+                fprintf(fp, "        struct %s req_struct;\n",
+                        op->req_body.ref_name);
+                fprintf(
+                    fp,
+                    "        memset(&req_struct, 0, sizeof(req_struct));\n");
               }
               fprintf(fp, "        if (c_rest_request_parse_urlencoded(conn, "
                           "&urlencoded_data) == 0) {\n");
@@ -138,7 +141,9 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
                 size_t f;
                 const char *fname;
                 const char *ftype;
-                if (openapi_spec_find_schema(spec, op->req_body.ref_name, &sf) == 0 && sf) {
+                if (openapi_spec_find_schema(spec, op->req_body.ref_name,
+                                             &sf) == 0 &&
+                    sf) {
                   /* Declare all variables first */
                   for (f = 0; f < sf->size; ++f) {
                     fname = sf->fields[f].name;
@@ -148,25 +153,44 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
                   for (f = 0; f < sf->size; ++f) {
                     fname = sf->fields[f].name;
                     ftype = sf->fields[f].type;
-                    fprintf(fp, "            val_%s = c_rest_urlencoded_get_value(&urlencoded_data, \"%s\");\n", fname, fname);
+                    fprintf(fp,
+                            "            val_%s = "
+                            "c_rest_urlencoded_get_value(&urlencoded_data, "
+                            "\"%s\");\n",
+                            fname, fname);
                     if (strcmp(ftype, "string") == 0) {
-                      fprintf(fp, "            if (val_%s) req_struct.%s = val_%s;\n", fname, fname, fname);
+                      fprintf(
+                          fp,
+                          "            if (val_%s) req_struct.%s = val_%s;\n",
+                          fname, fname, fname);
                     } else if (strcmp(ftype, "integer") == 0) {
-                      fprintf(fp, "            if (val_%s) req_struct.%s = atoi(val_%s);\n", fname, fname, fname);
+                      fprintf(fp,
+                              "            if (val_%s) req_struct.%s = "
+                              "atoi(val_%s);\n",
+                              fname, fname, fname);
                     } else if (strcmp(ftype, "boolean") == 0) {
-                      fprintf(fp, "            if (val_%s) req_struct.%s = (strcmp(val_%s, \"true\") == 0 || strcmp(val_%s, \"1\") == 0);\n", fname, fname, fname, fname);
+                      fprintf(fp,
+                              "            if (val_%s) req_struct.%s = "
+                              "(strcmp(val_%s, \"true\") == 0 || "
+                              "strcmp(val_%s, \"1\") == 0);\n",
+                              fname, fname, fname, fname);
                     } else if (strcmp(ftype, "number") == 0) {
-                      fprintf(fp, "            if (val_%s) req_struct.%s = atof(val_%s);\n", fname, fname, fname);
+                      fprintf(fp,
+                              "            if (val_%s) req_struct.%s = "
+                              "atof(val_%s);\n",
+                              fname, fname, fname);
                     }
                   }
                 }
               }
               fprintf(
-                  fp,                  "            /* Successfully parsed urlencoded body */\n");
+                  fp,
+                  "            /* Successfully parsed urlencoded body */\n");
               fprintf(fp, "        }\n");
               fprintf(fp, "    }\n");
               break;
-            }          }
+            }
+          }
         }
 
         if (op->n_responses > 0) {

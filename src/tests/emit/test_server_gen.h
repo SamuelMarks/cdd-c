@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,7 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 #include "routes/emit/orm_gen.h"
 #include "routes/emit/server_gen.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_orm_gen_basic(void) {

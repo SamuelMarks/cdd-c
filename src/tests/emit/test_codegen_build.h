@@ -13,12 +13,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/emit/build.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cbuild_null_args(void) {
