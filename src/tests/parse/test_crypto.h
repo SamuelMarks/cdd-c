@@ -18,6 +18,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>
@@ -25,6 +26,7 @@ extern "C" {
 #include <string.h>
 
 #include "functions/parse/crypto_types.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helpers */

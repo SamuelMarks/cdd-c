@@ -1,3 +1,4 @@
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 
 /* The generated models */
 #include "Models.h"
+/* clang-format on */
 
 static c_orm_db_t *db = NULL;
 

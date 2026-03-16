@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,7 @@ extern "C" {
 
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper to create a fake token list for testing */

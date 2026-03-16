@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)

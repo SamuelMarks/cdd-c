@@ -7,6 +7,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_audit_stats_init(void) {

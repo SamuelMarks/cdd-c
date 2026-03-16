@@ -12,6 +12,7 @@
 
 #ifdef __cplusplus
 
+/* clang-format off */
 #include <cstdlib>
 
 #include <cstring>
@@ -46,7 +47,9 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdbool.h>
+#endif
 #endif
 #endif
 
@@ -63,6 +66,7 @@ typedef unsigned char bool;
 #include <c_cdd_export.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 /* clang-format on */
 
 /**

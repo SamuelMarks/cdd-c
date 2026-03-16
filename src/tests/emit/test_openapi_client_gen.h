@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 /* clang-format on */
 
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,

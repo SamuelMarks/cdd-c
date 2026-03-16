@@ -94,7 +94,9 @@ static void platform_cleanup(void) { WSACleanup(); }
 #ifdef _WIN32
 #include <io.h>
 #else
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 #endif
 #endif
 /* clang-format on */

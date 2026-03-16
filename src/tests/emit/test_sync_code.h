@@ -7,10 +7,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include "functions/emit/sync.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <greatest.h>
 #include <stdio.h>
+/* clang-format on */
 /* clang-format on */
 
 TEST test_sync_code_wrong_args(void) {

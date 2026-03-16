@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include "functions/parse/fs.h"
 #include "greatest.h"
 #include "routes/parse/cli.h"
@@ -24,7 +25,10 @@ extern "C" {
 #ifdef _WIN32
 #include <io.h>
 #else
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
+/* clang-format on */
 #endif
 /* clang-format on */
 

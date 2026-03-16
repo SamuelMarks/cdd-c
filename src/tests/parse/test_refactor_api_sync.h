@@ -16,6 +16,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +25,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/parse/sync.h"
+/* clang-format on */
 /* clang-format on */
 
 static int load_spec(const char *json, struct OpenAPI_Spec *spec) {

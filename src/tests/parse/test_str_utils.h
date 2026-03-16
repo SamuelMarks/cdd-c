@@ -13,11 +13,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/str.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- strdup tests --- */

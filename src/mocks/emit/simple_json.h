@@ -26,7 +26,10 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
+/* clang-format off */
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdbool.h>
+#endif
 #endif
 #endif
 #else
@@ -39,6 +42,7 @@ typedef unsigned char bool;
 #include <parson.h>
 
 #include "simple_mocks_export.h"
+/* clang-format on */
 /* clang-format on */
 
 enum SIMPLE_MOCKS_EXPORT Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };

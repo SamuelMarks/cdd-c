@@ -17,12 +17,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "classes/emit/struct.h"
+/* clang-format on */
 /* clang-format on */
 
 static void setup_struct_fields(struct StructFields *sf) {

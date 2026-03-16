@@ -7,11 +7,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
 #include <greatest.h>
 
 #include "functions/parse/fs.h"
 #include "tests/emit/schema2tests.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_jsonschema2tests_wrong_args(void) {

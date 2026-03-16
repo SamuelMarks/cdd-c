@@ -71,14 +71,18 @@
 #else /* POSIX */
 #include <dirent.h>
 #include <fcntl.h>
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <inttypes.h>
+#endif
 #include <libgen.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #if defined(_MSC_VER)
 #include <io.h>
 #else
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* clang-format on */

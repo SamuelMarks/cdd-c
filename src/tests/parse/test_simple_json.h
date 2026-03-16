@@ -7,9 +7,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 
 #include "../mocks/emit/simple.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_simple_cleanup_and_null(void) {

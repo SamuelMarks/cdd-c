@@ -7,11 +7,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/orchestrator.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_orchestrator_simple_propagation(void) {
