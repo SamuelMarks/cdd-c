@@ -7,6 +7,7 @@
 
 /* clang-format off */
 #include "server_gen.h"
+#include "routes/emit/security.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -202,8 +203,8 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
           fprintf(fp, "    /* Callbacks configured: %lu */\n",
                   (unsigned long)op->n_callbacks);
         }
-        if (op->security) {
-          fprintf(fp, "    /* Requires security scheme */\n");
+        if (op->security || spec->security_set) {
+          codegen_security_write_server_apply(fp, op, spec);
         }
 
         fprintf(fp, "    mg_printf(conn, \"HTTP/1.1 200 OK\\r\\nContent-Type: "

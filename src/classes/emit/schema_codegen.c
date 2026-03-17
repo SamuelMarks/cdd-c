@@ -216,51 +216,63 @@ static /**
   char *_ast_get_type_from_ref_5;
   size_t i;
 
-  CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
-  for (i = 0; i < sf->size; i++) {
-    const struct StructField *field = &sf->fields[i];
-    const char *n = field->name;
-    const char *t = field->type;
-    const char *r = field->ref;
+  if (strcmp(struct_name, "OAuth2TokenResponse") == 0) {
+    CHECK_IO(fprintf(hfile, "#ifndef CDD_C_OMIT_OAUTH2_STRUCT\n"));
+    CHECK_IO(fprintf(hfile, "#include \"c_orm_oauth2.h\"\n"));
+    CHECK_IO(
+        fprintf(hfile, "#define OAuth2TokenResponse c_orm_oauth2_token\n"));
+    CHECK_IO(fprintf(hfile, "#endif\n\n"));
+  } else if (strcmp(struct_name, "User") == 0) {
+    CHECK_IO(fprintf(hfile, "#ifndef CDD_C_OMIT_USER_STRUCT\n"));
+    CHECK_IO(fprintf(hfile, "#include \"c_orm_user.h\"\n"));
+    CHECK_IO(fprintf(hfile, "#define User c_orm_user\n"));
+    CHECK_IO(fprintf(hfile, "#endif\n\n"));
+  } else {
+    CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
+    for (i = 0; i < sf->size; i++) {
+      const struct StructField *field = &sf->fields[i];
+      const char *n = field->name;
+      const char *t = field->type;
+      const char *r = field->ref;
 
-    if (strcmp(t, "string") == 0) {
-      CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
-    } else if (strcmp(t, "integer") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
-    } else if (strcmp(t, "number") == 0) {
-      CHECK_IO(fprintf(hfile, "  double %s;\n", n));
-    } else if (strcmp(t, "boolean") == 0) {
-      CHECK_IO(fprintf(hfile, "  int %s;\n", n));
-    } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(hfile, "  enum %s %s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_3),
-                        _ast_get_type_from_ref_3),
-                       n));
-    } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_4),
-                        _ast_get_type_from_ref_4),
-                       n));
-    } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
-      if (strcmp(r, "string") == 0) {
-        CHECK_IO(fprintf(hfile, "  char **%s;\n", n));
-      } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
-        CHECK_IO(fprintf(hfile, "  int *%s;\n", n));
-      } else if (strcmp(r, "number") == 0) {
-        CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
-      } else {
-        CHECK_IO(fprintf(hfile, "  struct %s **%s;\n",
-                         (get_type_from_ref(r, &_ast_get_type_from_ref_5),
-                          _ast_get_type_from_ref_5),
+      if (strcmp(t, "string") == 0) {
+        CHECK_IO(fprintf(hfile, "  const char *%s;\n", n));
+      } else if (strcmp(t, "integer") == 0) {
+        CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      } else if (strcmp(t, "number") == 0) {
+        CHECK_IO(fprintf(hfile, "  double %s;\n", n));
+      } else if (strcmp(t, "boolean") == 0) {
+        CHECK_IO(fprintf(hfile, "  int %s;\n", n));
+      } else if (strcmp(t, "enum") == 0) {
+        CHECK_IO(fprintf(hfile, "  enum %s %s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_3),
+                          _ast_get_type_from_ref_3),
                          n));
+      } else if (strcmp(t, "object") == 0) {
+        CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_4),
+                          _ast_get_type_from_ref_4),
+                         n));
+      } else if (strcmp(t, "array") == 0) {
+        CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
+        if (strcmp(r, "string") == 0) {
+          CHECK_IO(fprintf(hfile, "  char **%s;\n", n));
+        } else if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0) {
+          CHECK_IO(fprintf(hfile, "  int *%s;\n", n));
+        } else if (strcmp(r, "number") == 0) {
+          CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
+        } else {
+          CHECK_IO(fprintf(hfile, "  struct %s **%s;\n",
+                           (get_type_from_ref(r, &_ast_get_type_from_ref_5),
+                            _ast_get_type_from_ref_5),
+                           n));
+        }
+      } else {
+        CHECK_IO(fprintf(hfile, "  void *%s;\n", n));
       }
-    } else {
-      CHECK_IO(fprintf(hfile, "  void *%s;\n", n));
     }
+    CHECK_IO(fputs("};\n\n", hfile));
   }
-  CHECK_IO(fputs("};\n\n", hfile));
-
   /* Prototypes */
   if (config && config->json_guard)
     CHECK_IO(fprintf(hfile, "#ifdef %s\n", config->json_guard));

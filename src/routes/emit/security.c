@@ -362,3 +362,61 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
 
   return 0;
 }
+
+/**
+ * @brief Emit server middleware hooks
+ */
+int codegen_security_write_server_apply(FILE *fp,
+                                        const struct OpenAPI_Operation *op,
+                                        const struct OpenAPI_Spec *spec) {
+  size_t i;
+  int has_security = 0;
+  const struct OpenAPI_SecurityRequirementSet *active_sets = NULL;
+  size_t n_active_sets = 0;
+  int security_set = 0;
+
+  if (!fp || !op || !spec)
+    return EINVAL;
+
+  resolve_active_security(op, spec, &active_sets, &n_active_sets,
+                          &security_set);
+
+  if (security_set && n_active_sets == 0) {
+    return 0;
+  }
+
+  if (spec->security_schemes == NULL || spec->n_security_schemes == 0) {
+    return 0;
+  }
+
+  for (i = 0; i < spec->n_security_schemes; ++i) {
+    const struct OpenAPI_SecurityScheme *sch = &spec->security_schemes[i];
+    if (!scheme_is_active(sch, active_sets, n_active_sets, security_set, spec))
+      continue;
+
+    if ((sch->type == OA_SEC_HTTP && sch->scheme &&
+         strcmp(sch->scheme, "bearer") == 0) ||
+        sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
+      fprintf(fp, "    /* Validate Bearer Token / OAuth2 */\n");
+      fprintf(fp, "    if (c_rest_middleware_bearer_auth(conn) != 0) {\n");
+      fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
+                  "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
+      fprintf(fp, "      return 401;\n");
+      fprintf(fp, "    }\n");
+      has_security = 1;
+    } else if (sch->type == OA_SEC_HTTP && sch->scheme &&
+               strcmp(sch->scheme, "basic") == 0) {
+      fprintf(fp, "    /* Validate Basic Auth */\n");
+      fprintf(fp, "    if (c_rest_middleware_basic_auth(conn) != 0) {\n");
+      fprintf(fp, "      mg_printf(conn, \"HTTP/1.1 401 "
+                  "Unauthorized\\r\\nContent-Length: 0\\r\\n\\r\\n\");\n");
+      fprintf(fp, "      return 401;\n");
+      fprintf(fp, "    }\n");
+      has_security = 1;
+    }
+  }
+
+  (void)has_security;
+
+  return 0;
+}
