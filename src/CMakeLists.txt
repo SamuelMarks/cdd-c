@@ -86,6 +86,7 @@ set(Source_Files
         "functions/emit/client_sig.c"
         "classes/emit/enum.c"
         "classes/emit/json.c"
+        "classes/emit/standalone_json.c"
         "functions/emit/make.c"
         "tests/emit/sdk_tests.c"
         "routes/emit/security.c"
