@@ -21,6 +21,87 @@
 #define SNPRINTF snprintf
 #endif
 
+/**
+ * @brief Parses the database schema extension from the OpenAPI struct field.
+ *
+ * @param[in] field The OpenAPI struct field containing metadata and extensions.
+ * @param[out] is_pk Pointer to int set to 1 if field is a primary key, 0
+ * otherwise.
+ * @param[out] is_unique Pointer to int set to 1 if field is unique, 0
+ * otherwise.
+ * @param[out] is_index Pointer to int set to 1 if field is indexed, 0
+ * otherwise.
+ * @param[out] fk_buf Buffer to store foreign key reference string.
+ * @param[in] fk_buf_size Size of the foreign key buffer.
+ */
+static void check_db_schema(const struct StructField *field, int *is_pk,
+                            int *is_unique, int *is_index, char *fk_buf,
+                            size_t fk_buf_size) {
+  *is_pk = 0;
+  *is_unique = 0;
+  *is_index = 0;
+  if (fk_buf && fk_buf_size > 0)
+    fk_buf[0] = '\0';
+
+  if (field->description[0]) {
+    if (strstr(field->description, "[PK]") != NULL)
+      *is_pk = 1;
+    if (strstr(field->description, "[UNIQUE]") != NULL)
+      *is_unique = 1;
+    if (strstr(field->description, "[INDEX]") != NULL)
+      *is_index = 1;
+    if (fk_buf && fk_buf_size > 0) {
+      char *fk_start = strstr(field->description, "[FK=");
+      if (fk_start) {
+        char *fk_end = strchr(fk_start, ']');
+        if (fk_end && (size_t)(fk_end - fk_start - 4) < fk_buf_size) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+          strncpy_s(fk_buf, fk_buf_size, fk_start + 4, fk_end - fk_start - 4);
+#else
+          strncpy(fk_buf, fk_start + 4, fk_end - fk_start - 4);
+#endif
+          fk_buf[fk_end - fk_start - 4] = '\0';
+        }
+      }
+    }
+  }
+
+  if (field->schema_extra_json) {
+    JSON_Value *extras = json_parse_string(field->schema_extra_json);
+    if (extras) {
+      JSON_Object *obj = json_value_get_object(extras);
+      if (obj) {
+        JSON_Object *db = json_object_get_object(obj, "x-db-schema");
+        if (db) {
+          if (json_object_has_value(db, "primary_key") &&
+              json_object_get_boolean(db, "primary_key") == 1)
+            *is_pk = 1;
+          if (json_object_has_value(db, "unique") &&
+              json_object_get_boolean(db, "unique") == 1)
+            *is_unique = 1;
+          if (json_object_has_value(db, "index") &&
+              json_object_get_boolean(db, "index") == 1)
+            *is_index = 1;
+          if (fk_buf && fk_buf_size > 0 && json_object_has_value(db, "fk")) {
+            const char *fk = json_object_get_string(db, "fk");
+            if (fk) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+              strncpy_s(fk_buf, fk_buf_size, fk, fk_buf_size - 1);
+#else
+              strncpy(fk_buf, fk, fk_buf_size - 1);
+#endif
+              fk_buf[fk_buf_size - 1] = '\0';
+            }
+          }
+        }
+      }
+      json_value_free(extras);
+    }
+  }
+}
+
 static const char *openapi_type_to_c_orm_type(const struct StructField *field) {
   if (strcmp(field->type, "integer") == 0) {
     if (field->format[0]) {
@@ -92,7 +173,16 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     return EINVAL;
 
   if (config->model_header) {
-    model_h = strdup(config->model_header);
+    size_t header_len = strlen(config->model_header);
+    model_h = malloc(header_len + 1);
+    if (model_h) {
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      strcpy_s(model_h, header_len + 1, config->model_header);
+#else
+      strcpy(model_h, config->model_header);
+#endif
+    }
   } else {
     size_t len = strlen(config->filename_base) + 10;
     model_h = malloc(len + 1);
@@ -206,9 +296,9 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
             struct_name, struct_name);
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
-      if (strstr(field->description, "[PK]") != NULL ||
-          strstr(field->description, "[UNIQUE]") != NULL ||
-          strstr(field->description, "[INDEX]") != NULL) {
+      int is_pk, is_unique, is_index;
+      check_db_schema(field, &is_pk, &is_unique, &is_index, NULL, 0);
+      if (is_pk || is_unique || is_index) {
         fprintf(fp_h,
                 "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s %s, "
                 "struct %s** out_obj);\n",
@@ -223,35 +313,24 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
             (unsigned long)sf->size);
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
-      int is_pk = (strstr(field->description, "[PK]") != NULL);
+      int is_pk, is_unique, is_index;
       char fk_buf[256];
-      char *fk_start = strstr(field->description, "[FK=");
-      if (fk_start) {
-        char *fk_end = strchr(fk_start, ']');
-        if (fk_end && (size_t)(fk_end - fk_start - 4) < sizeof(fk_buf)) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-          strncpy_s(fk_buf, sizeof(fk_buf), fk_start + 4,
-                    fk_end - fk_start - 4);
-#else
-          strncpy(fk_buf, fk_start + 4, fk_end - fk_start - 4);
-#endif
-          fk_buf[fk_end - fk_start - 4] = '\0';
-          fprintf(
-              fp_c,
-              "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, \"%s\" }%s\n",
-              field->name, openapi_type_to_c_orm_type(field), struct_name,
-              field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
-              fk_buf, j == sf->size - 1 ? "" : ",");
-          continue;
-        }
-      }
+      check_db_schema(field, &is_pk, &is_unique, &is_index, fk_buf,
+                      sizeof(fk_buf));
 
-      fprintf(fp_c,
-              "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL }%s\n",
-              field->name, openapi_type_to_c_orm_type(field), struct_name,
-              field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
-              j == sf->size - 1 ? "" : ",");
+      if (fk_buf[0]) {
+        fprintf(fp_c,
+                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, \"%s\" }%s\n",
+                field->name, openapi_type_to_c_orm_type(field), struct_name,
+                field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
+                fk_buf, j == sf->size - 1 ? "" : ",");
+      } else {
+        fprintf(fp_c,
+                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL }%s\n",
+                field->name, openapi_type_to_c_orm_type(field), struct_name,
+                field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
+                j == sf->size - 1 ? "" : ",");
+      }
     }
     fprintf(fp_c, "};\n\n");
 
@@ -279,7 +358,10 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "      db->vtable->finalize(query);\n");
     fprintf(fp_c, "    }\n");
     for (j = 0; j < sf->size; ++j) {
-      if (strstr(sf->fields[j].description, "[INDEX]") != NULL) {
+      int is_pk, is_unique, is_index;
+      check_db_schema(&sf->fields[j], &is_pk, &is_unique, &is_index, NULL, 0);
+
+      if (is_index) {
         fprintf(fp_c,
                 "    if (db->vtable->prepare(db, \"CREATE INDEX IF NOT EXISTS "
                 "idx_%s_%s ON %s(%s)\", &query) == 0) {\n",
@@ -289,7 +371,7 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
         fprintf(fp_c, "      db->vtable->finalize(query);\n");
         fprintf(fp_c, "    }\n");
       }
-      if (strstr(sf->fields[j].description, "[UNIQUE]") != NULL) {
+      if (is_unique) {
         fprintf(fp_c,
                 "    if (db->vtable->prepare(db, \"CREATE UNIQUE INDEX IF NOT "
                 "EXISTS uidx_%s_%s ON %s(%s)\", &query) == 0) {\n",
@@ -312,7 +394,10 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
 
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
-      if (strstr(field->description, "[PK]") != NULL) {
+      int is_pk, is_unique, is_index;
+      check_db_schema(field, &is_pk, &is_unique, &is_index, NULL, 0);
+
+      if (is_pk || is_unique || is_index) {
         fprintf(fp_c,
                 "c_orm_error_t get_%s_by_%s(c_orm_db_t* db, const %s "
                 "%s, struct %s** out_obj) {\n",
@@ -350,7 +435,7 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  fprintf(fp_h, "#ifdef __cplusplus\n}\n#endif\n");
+  fprintf(fp_h, "#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n");
   fprintf(fp_h, "#endif /* C_ORM_MODELS_H */\n");
 
   fclose(fp_h);
