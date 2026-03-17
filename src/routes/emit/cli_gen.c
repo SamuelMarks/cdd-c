@@ -80,7 +80,15 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
             spec->info.license.url ? spec->info.license.url : "");
   }
 
-  fprintf(fp, "  printf(\"Usage: cli <command> [args]\\n\\nCommands:\\n\");\n");
+  fprintf(fp, "  printf(\"Usage: cli [options] <command> [args]\\n\\n\");\n");
+  fprintf(fp, "  printf(\"Options:\\n\");\n");
+  fprintf(fp, "  printf(\"  --db <backend>             Database backend (e.g. "
+              "sqlite, postgres)\\n\");\n");
+  fprintf(fp, "  printf(\"  --connection-string <str>  Database connection "
+              "string\\n\");\n");
+  fprintf(fp, "  printf(\"  --thread-pool-size <int>   Number of threads "
+              "(default 4)\\n\\n\");\n");
+  fprintf(fp, "  printf(\"Commands:\\n\");\n");
 
   /* Print commands */
   for (i = 0; i < spec->n_paths; i++) {
@@ -116,11 +124,33 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
               " */\n"
               "int main(int argc, char **argv) {\n");
   fprintf(fp, "  int i;\n");
-  fprintf(fp, "  if (argc < 2 || strcmp(argv[1], \"--help\") == 0 || "
-              "strcmp(argv[1], \"-h\") == 0) {\n");
+  fprintf(fp, "  char *db_backend = \"sqlite\";\n");
+  fprintf(fp, "  char *connection_string = NULL;\n");
+  fprintf(fp, "  int thread_pool_size = 4;\n");
+  fprintf(fp, "  int cmd_idx = 1;\n\n");
+  fprintf(fp, "  for (i = 1; i < argc; i++) {\n");
+  fprintf(fp, "    if (strcmp(argv[i], \"--db\") == 0 && i + 1 < argc) {\n");
+  fprintf(fp, "      db_backend = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--connection-string\") == 0 && "
+              "i + 1 < argc) {\n");
+  fprintf(fp, "      connection_string = argv[++i];\n");
+  fprintf(fp, "    } else if (strcmp(argv[i], \"--thread-pool-size\") == 0 && "
+              "i + 1 < argc) {\n");
+  fprintf(fp, "      thread_pool_size = atoi(argv[++i]);\n");
+  fprintf(fp, "    } else if (argv[i][0] != '-') {\n");
+  fprintf(fp, "      cmd_idx = i;\n");
+  fprintf(fp, "      break;\n");
+  fprintf(fp, "    }\n");
+  fprintf(fp, "  }\n\n");
+  fprintf(fp,
+          "  if (cmd_idx >= argc || strcmp(argv[cmd_idx], \"--help\") == 0 || "
+          "strcmp(argv[cmd_idx], \"-h\") == 0) {\n");
   fprintf(fp, "    print_cli_help();\n");
   fprintf(fp, "    return 0;\n");
   fprintf(fp, "  }\n\n");
+  fprintf(fp, "  (void)db_backend;\n");
+  fprintf(fp, "  (void)connection_string;\n");
+  fprintf(fp, "  (void)thread_pool_size;\n\n");
 
   /* Check Webhooks, External Docs, JSON Schema Dialect */
   if (spec->n_webhooks > 0) {

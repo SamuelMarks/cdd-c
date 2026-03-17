@@ -8,7 +8,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include "c_cdd_export.h"
@@ -31,6 +31,6 @@ extern C_CDD_EXPORT /**
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
-#endif
+#endif /* C_CDD_OPENAPI_CLI_GEN_H */
