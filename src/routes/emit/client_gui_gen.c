@@ -56,9 +56,13 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_h, "extern \"C\" {\n");
   fprintf(fp_h, "#endif /* __cplusplus */\n\n");
   fprintf(fp_h, "struct OAuth2TokenResponse;\n");
-  fprintf(fp_h, "int cmp_oauth2_view_render(void);\n");
-  fprintf(fp_h, "int execute_password_grant(const char* username, const char* "
+  fprintf(fp_h, "int cmp_oauth2_view_render(const char* token_endpoint);\n");
+  fprintf(fp_h, "int execute_password_grant(const char* token_endpoint, const "
+                "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token);\n\n");
+  fprintf(fp_h, "void cmp_ui_builder_begin_column(void);\n");
+  fprintf(fp_h, "void m3_text_field_init(const char* label);\n");
+  fprintf(fp_h, "void m3_button_init(const char* label);\n");
   fprintf(fp_h, "#ifdef __cplusplus\n");
   fprintf(fp_h, "}\n");
   fprintf(fp_h, "#endif /* __cplusplus */\n\n");
@@ -77,58 +81,65 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "extern int cdd_c_parse_oauth2_token(const char *json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 
-  /* Locate OAuth2 password flow info in spec (mock up for now) */
-  fprintf(fp_c, "int cmp_oauth2_view_render(void) {\n");
-  fprintf(fp_c, "  /* Pre-filled from OpenAPI spec */\n");
+  fprintf(fp_c,
+          "/* GUI Stub implementations (for standalone compilation) */\n");
+  fprintf(fp_c, "void cmp_ui_builder_begin_column(void) {}\n");
+  fprintf(fp_c,
+          "void m3_text_field_init(const char* label) { (void)label; }\n");
+  fprintf(fp_c, "void m3_button_init(const char* label) { (void)label; }\n\n");
 
+  fprintf(fp_c, "int cmp_oauth2_view_render(const char* token_endpoint) {\n");
+  fprintf(fp_c, "  if (!token_endpoint) {\n");
   if (spec->n_servers > 0 && spec->servers[0].url) {
-    fprintf(fp_c, "  const char* api_url = \"%s\";\n", spec->servers[0].url);
+    fprintf(fp_c, "    token_endpoint = \"%s/oauth/token\";\n",
+            spec->servers[0].url);
   } else {
-    fprintf(fp_c, "  const char* api_url = \"http://localhost:8080\";\n");
+    fprintf(fp_c,
+            "    token_endpoint = \"http://localhost:8080/oauth/token\";\n");
   }
+  fprintf(fp_c, "  }\n");
 
-  fprintf(fp_c, "  printf(\"Rendering OAuth2 View for %%s\\n\", api_url);\n");
-
-  /* If spec has security schemes, we could iterate scopes here. For now we use
-   * generic. */
-  fprintf(fp_c, "  /* Available scopes: */\n");
-  fprintf(fp_c, "  printf(\"Scope: read\\n\");\n");
-  fprintf(fp_c, "  printf(\"Scope: write\\n\");\n");
+  fprintf(fp_c, "  cmp_ui_builder_begin_column();\n");
+  fprintf(fp_c, "  m3_text_field_init(\"Username\");\n");
+  fprintf(fp_c, "  m3_text_field_init(\"Password\");\n");
+  fprintf(fp_c, "  m3_button_init(\"Login\");\n");
   fprintf(fp_c, "  return 0;\n");
   fprintf(fp_c, "}\n\n");
 
-  fprintf(fp_c, "int execute_password_grant(const char* username, const char* "
+  fprintf(fp_c, "int execute_password_grant(const char* token_endpoint, const "
+                "char* username, const char* "
                 "password, struct OAuth2TokenResponse** out_token) {\n");
   fprintf(fp_c, "  /* Generated automated request-handling logic mapping "
                 "OpenAPI password flow */\n");
   fprintf(fp_c, "  struct HttpRequest req;\n");
   fprintf(fp_c, "  struct HttpResponse res;\n");
   fprintf(fp_c, "  int rc;\n");
-  fprintf(fp_c, "  char json_payload[512];\n");
+  fprintf(fp_c, "  char payload[512];\n");
   fprintf(fp_c, "  memset(&req, 0, sizeof(req));\n");
   fprintf(fp_c, "  memset(&res, 0, sizeof(res));\n");
-  fprintf(fp_c, "  printf(\"Executing OAuth2 password grant for user: "
-                "%%s\\n\", username);\n");
   fprintf(fp_c, "#if defined(_MSC_VER)\n");
-  fprintf(fp_c,
-          "  sprintf_s(json_payload, sizeof(json_payload), "
-          "\"{\\\"grant_type\\\":\\\"password\\\",\\\"username\\\":\\\"%%s\\\","
-          "\\\"password\\\":\\\"%%s\\\"}\", username, password);\n");
+  fprintf(fp_c, "  sprintf_s(payload, sizeof(payload), "
+                "\"grant_type=password&username=%%s&password=%%s\", username, "
+                "password);\n");
   fprintf(fp_c, "#else\n");
-  fprintf(fp_c,
-          "  sprintf(json_payload, "
-          "\"{\\\"grant_type\\\":\\\"password\\\",\\\"username\\\":\\\"%%s\\\","
-          "\\\"password\\\":\\\"%%s\\\"}\", username, password);\n");
+  fprintf(fp_c, "  sprintf(payload, "
+                "\"grant_type=password&username=%%s&password=%%s\", username, "
+                "password);\n");
   fprintf(fp_c, "#endif\n");
   fprintf(fp_c, "  req.method = HTTP_POST;\n");
+  fprintf(fp_c, "  if (!token_endpoint) {\n");
   if (spec->n_servers > 0 && spec->servers[0].url) {
-    fprintf(fp_c, "  req.url = \"%s/oauth/token\";\n", spec->servers[0].url);
+    fprintf(fp_c, "    req.url = \"%s/oauth/token\";\n", spec->servers[0].url);
   } else {
-    fprintf(fp_c, "  req.url = \"http://localhost:8080/oauth/token\";\n");
+    fprintf(fp_c, "    req.url = \"http://localhost:8080/oauth/token\";\n");
   }
-  fprintf(fp_c, "  req.body = json_payload;\n");
-  fprintf(fp_c, "  req.body_len = strlen(json_payload);\n");
-  fprintf(fp_c, "  req.content_type = \"application/json\";\n");
+  fprintf(fp_c, "  } else {\n");
+  fprintf(fp_c, "    req.url = token_endpoint;\n");
+  fprintf(fp_c, "  }\n");
+  fprintf(fp_c, "  req.body = payload;\n");
+  fprintf(fp_c, "  req.body_len = strlen(payload);\n");
+  fprintf(fp_c,
+          "  req.content_type = \"application/x-www-form-urlencoded\";\n");
   fprintf(fp_c, "  rc = http_client_send(&req, &res);\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");

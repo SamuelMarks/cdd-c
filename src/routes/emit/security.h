@@ -69,6 +69,14 @@ extern C_CDD_EXPORT /**
     codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
                                      const struct OpenAPI_Spec *spec);
 
+extern C_CDD_EXPORT /**
+                     * @brief Generate middleware check for servers
+                     */
+    int
+    codegen_security_write_server_apply(FILE *fp,
+                                        const struct OpenAPI_Operation *op,
+                                        const struct OpenAPI_Spec *spec);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
