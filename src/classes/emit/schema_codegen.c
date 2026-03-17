@@ -271,6 +271,12 @@ static /**
   CHECK_IO(fprintf(
       hfile, "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
       struct_name, struct_name));
+  if (strcmp(struct_name, "OAuth2TokenResponse") == 0) {
+    CHECK_IO(fprintf(hfile,
+                     "extern LIB_EXPORT int cdd_c_parse_oauth2_token(const "
+                     "char *, struct %s **);\n",
+                     struct_name));
+  }
   if (config && config->json_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 
@@ -320,9 +326,36 @@ static /**
     return errno;
 
   CHECK_RC(print_header_guard(fp, basename));
-  CHECK_IO(fprintf(fp,
-                   "#include <stdlib.h>\n#include \"lib_export.h\"\n\n#ifdef "
-                   "__cplusplus\nextern \"C\" {\n#endif\n\n"));
+  CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"
+                       "#include \"lib_export.h\"\n\n"
+                       "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                       "typedef signed __int8 int8_t;\n"
+                       "typedef unsigned __int8 uint8_t;\n"
+                       "typedef signed __int16 int16_t;\n"
+                       "typedef unsigned __int16 uint16_t;\n"
+                       "typedef signed __int32 int32_t;\n"
+                       "typedef unsigned __int32 uint32_t;\n"
+                       "typedef signed __int64 int64_t;\n"
+                       "typedef unsigned __int64 uint64_t;\n"
+                       "#else\n"
+                       "#include <stdint.h>\n"
+                       "#endif\n\n"
+                       "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+                       "#if !defined(__cplusplus)\n"
+                       "#ifndef bool\n"
+                       "#define bool unsigned char\n"
+                       "#endif\n"
+                       "#ifndef true\n"
+                       "#define true 1\n"
+                       "#endif\n"
+                       "#ifndef false\n"
+                       "#define false 0\n"
+                       "#endif\n"
+                       "#endif\n"
+                       "#else\n"
+                       "#include <stdbool.h>\n"
+                       "#endif\n\n"
+                       "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
@@ -480,6 +513,9 @@ static /**
       CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
       CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
+      if (strcmp(name, "OAuth2TokenResponse") == 0) {
+        CHECK_RC(write_struct_from_json_standalone_func(fp, name, &sf));
+      }
       CHECK_RC(write_struct_cleanup_func(fp, name, &sf, &struct_cfg));
       CHECK_RC(write_struct_default_func(fp, name, &sf, &struct_cfg));
       CHECK_RC(write_struct_deepcopy_func(fp, name, &sf, &struct_cfg));

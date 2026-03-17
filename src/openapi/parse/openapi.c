@@ -13422,10 +13422,14 @@ static /**
             schemas, "OAuth2TokenRequest",
             json_parse_string(
                 "{\"type\":\"object\",\"properties\":{\"grant_type\":{\"type\":"
-                "\"string\"},\"username\":{\"type\":\"string\"},\"password\":{"
-                "\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"client_"
+                "\"string\",\"enum\":[\"password\",\"authorization_code\","
+                "\"client_credentials\",\"refresh_token\"]},\"username\":{"
+                "\"type\":\"string\"},\"password\":{"
+                "\"type\":\"string\",\"writeOnly\":true},\"scope\":{\"type\":"
+                "\"string\"},\"client_"
                 "id\":{\"type\":\"string\"},\"client_secret\":{\"type\":"
-                "\"string\"},\"refresh_token\":{\"type\":\"string\"},\"code\":{"
+                "\"string\",\"writeOnly\":true},\"refresh_token\":{\"type\":"
+                "\"string\"},\"code\":{"
                 "\"type\":\"string\"},\"redirect_uri\":{\"type\":\"string\"}},"
                 "\"required\":[\"grant_type\"]}"));
       }
@@ -13444,9 +13448,38 @@ static /**
             schemas, "OAuth2Client",
             json_parse_string(
                 "{\"type\":\"object\",\"properties\":{\"client_id\":{\"type\":"
-                "\"string\"},\"client_secret\":{\"type\":\"string\"},"
+                "\"string\",\"description\":\"[UNIQUE]\"},\"client_secret_"
+                "hash\":{\"type\":\"string\",\"writeOnly\":true},"
                 "\"redirect_uris\":{\"type\":\"array\",\"items\":{\"type\":"
-                "\"string\"}}},\"required\":[\"client_id\",\"client_secret\"]"
+                "\"string\"}},\"grant_types\":{\"type\":\"array\",\"items\":{"
+                "\"type\":\"string\"}}},\"required\":[\"client_id\",\"client_"
+                "secret_hash\"]"
+                "}"));
+      }
+      if (!json_object_has_value(schemas, "OAuth2User")) {
+        json_object_set_value(
+            schemas, "OAuth2User",
+            json_parse_string(
+                "{\"type\":\"object\",\"properties\":{\"username\":{\"type\":"
+                "\"string\",\"description\":\"[UNIQUE]\"},\"password_hash\":{"
+                "\"type\":\"string\",\"writeOnly\":true},"
+                "\"created_at\":{\"type\":\"integer\",\"format\":\"int64\"}},"
+                "\"required\":[\"username\",\"password_hash\"]"
+                "}"));
+      }
+      if (!json_object_has_value(schemas, "OAuth2Token")) {
+        json_object_set_value(
+            schemas, "OAuth2Token",
+            json_parse_string(
+                "{\"type\":\"object\",\"properties\":{\"access_token\":{"
+                "\"type\":"
+                "\"string\",\"description\":\"[UNIQUE]\"},\"refresh_token\":{"
+                "\"type\":\"string\",\"description\":\"[UNIQUE]\"},"
+                "\"expires_at\":{\"type\":\"integer\",\"format\":\"int64\"},"
+                "\"client_id\":{\"type\":\"integer\",\"description\":\"[FK="
+                "OAuth2Client]\"},\"user_id\":{\"type\":\"integer\","
+                "\"description\":\"[FK=OAuth2User]\"}},\"required\":[\"access_"
+                "token\"]"
                 "}"));
       }
     }

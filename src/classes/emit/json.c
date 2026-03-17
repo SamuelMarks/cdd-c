@@ -86,6 +86,9 @@ int write_struct_to_json_func(FILE *fp, const char *struct_name,
     const char *t = sf->fields[i].type;
     const char *r = sf->fields[i].ref;
 
+    if (sf->fields[i].write_only)
+      continue;
+
     CHECK_IO(fprintf(fp, "  if (need_comma) { jasprintf(json, \",\"); if "
                          "(*json==NULL) return ENOMEM; }\n"));
 
@@ -267,6 +270,9 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
     const char *t = sf->fields[i].type;
     const char *r = sf->fields[i].ref;
     struct StructField *f = &sf->fields[i];
+
+    if (f->read_only)
+      continue;
 
     if (strcmp(t, "integer") == 0) {
       CHECK_IO(fprintf(

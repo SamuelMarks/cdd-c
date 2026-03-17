@@ -92,6 +92,10 @@ write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                   const struct StructFields *sf,
                                   const struct CodegenJsonConfig *config);
 
+extern C_CDD_EXPORT int
+write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
+                                       const struct StructFields *sf);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
