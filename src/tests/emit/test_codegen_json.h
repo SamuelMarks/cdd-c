@@ -187,6 +187,32 @@ TEST test_json_null_args(void) {
   PASS();
 }
 
+TEST test_standalone_json_func(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  char *content = NULL;
+  long sz;
+
+  ASSERT(tmp);
+  setup_json_fields(&sf);
+
+  ASSERT_EQ(0, write_struct_from_json_standalone_func(tmp, "Data", &sf));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, sz + 1);
+  fread(content, 1, sz, tmp);
+
+  ASSERT(strstr(content, "Data_parse_json(char *json"));
+  ASSERT(strstr(content, "(strcmp(key, \"id\") == 0)"));
+
+  free(content);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
 SUITE(codegen_json_suite) {
   RUN_TEST(test_json_to_plain);
   RUN_TEST(test_json_from_plain);
@@ -194,6 +220,7 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_json_array_logic);
   RUN_TEST(test_json_guards);
   RUN_TEST(test_json_null_args);
+  RUN_TEST(test_standalone_json_func);
 }
 
 #ifdef __cplusplus

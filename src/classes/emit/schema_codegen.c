@@ -18,6 +18,9 @@
 
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
+#include "classes/emit/form.h"
+#include "classes/emit/jwt.h"
+#include "classes/emit/oauth2_error.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/emit/struct.h"
 #include "classes/emit/types.h"
@@ -485,9 +488,10 @@ static /**
     return errno;
 
   CHECK_IO(fprintf(fp,
-                   "#include <errno.h>\n#include <stdlib.h>\n#include "
-                   "<string.h>\n#include <parson.h>\n#include "
-                   "<c89stringutils_string_extras.h>\n#include \"%s.h\"\n\n",
+                   "#include <errno.h>\\n#include <stdio.h>\\n#include "
+                   "<stdlib.h>\\n#include "
+                   "<string.h>\\n#include <parson.h>\\n#include "
+                   "<c89stringutils_string_extras.h>\\n#include \"%s.h\"\\n\\n",
                    basename));
 
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
@@ -525,6 +529,13 @@ static /**
       CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
       CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
+      CHECK_RC(write_struct_to_form_urlencoded_func(fp, name, &sf));
+      if (strcmp(name, "OAuth2Error") == 0) {
+        CHECK_RC(write_oauth2_error_parser_func(fp, name, &sf));
+      }
+      if (strcmp(name, "JwtPayload") == 0) {
+        CHECK_RC(write_struct_from_jwt_func(fp, name, &sf));
+      }
       if (strcmp(name, "OAuth2TokenResponse") == 0) {
         CHECK_RC(write_struct_from_json_standalone_func(fp, name, &sf));
       }

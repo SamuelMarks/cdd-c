@@ -132,7 +132,7 @@ TEST test_integration_recursive_fix(void) {
 
   tempdir(&sys_tmp);
   asprintf(&root, "%s%sfix_rec_test_%d", sys_tmp, PATH_SEP, rand());
-  makedir(root);
+  makedirs(root);
 
   {
     char *sub = NULL;
@@ -142,7 +142,7 @@ TEST test_integration_recursive_fix(void) {
     size_t sz;
 
     asprintf(&sub, "%s%ssub", root, PATH_SEP);
-    makedir(sub);
+    makedirs(sub);
 
     /* File in root */
     asprintf(&f1, "%s%sa.c", root, PATH_SEP);

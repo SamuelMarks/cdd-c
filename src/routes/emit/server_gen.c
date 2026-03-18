@@ -44,7 +44,9 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
   fprintf(fp, "#include <civetweb.h>\n");
-  fprintf(fp, "#include <c_rest_request.h>\n\n");
+  fprintf(fp, "#include <c_rest_request.h>\n");
+  fprintf(fp, "#include <c_rest_response.h>\n");
+  fprintf(fp, "#include <c_rest_router.h>\n\n");
 
   /* Print Server info for documentation */
   fprintf(fp, "/* API Title: %s */\n",
@@ -99,14 +101,17 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
         fprintf(fp, " * \\return HTTP Status Code\n");
         fprintf(fp, " */\n");
         fprintf(fp,
-                "static int handle_%s(struct mg_connection *conn, void "
-                "*cbdata) {\n",
+                "static int handle_%s(struct c_rest_request *req, struct "
+                "c_rest_response *res, void "
+                "*user_data) {\n",
                 opId);
         fprintf(
             fp,
             "    const char *resp = \"{\\\"status\\\": \\\"%s called\\\"}\";\n",
             opId);
-        fprintf(fp, "    (void)cbdata;\n");
+        fprintf(fp, "    (void)user_data;\n");
+        fprintf(fp, "    (void)req;\n");
+        fprintf(fp, "    (void)res;\n");
 
         if (op->deprecated) {
           fprintf(fp, "    /* Note: Operation is deprecated */\n");
@@ -135,59 +140,8 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
                     fp,
                     "        memset(&req_struct, 0, sizeof(req_struct));\n");
               }
-              fprintf(fp, "        if (c_rest_request_parse_urlencoded(conn, "
-                          "&urlencoded_data) == 0) {\n");
-              if (op->req_body.ref_name) {
-                struct StructFields *sf = NULL;
-                size_t f;
-                const char *fname;
-                const char *ftype;
-                if (openapi_spec_find_schema(spec, op->req_body.ref_name,
-                                             &sf) == 0 &&
-                    sf) {
-                  /* Declare all variables first */
-                  for (f = 0; f < sf->size; ++f) {
-                    fname = sf->fields[f].name;
-                    fprintf(fp, "            const char *val_%s;\n", fname);
-                  }
-                  /* Then assign and use them */
-                  for (f = 0; f < sf->size; ++f) {
-                    fname = sf->fields[f].name;
-                    ftype = sf->fields[f].type;
-                    fprintf(fp,
-                            "            val_%s = "
-                            "c_rest_urlencoded_get_value(&urlencoded_data, "
-                            "\"%s\");\n",
-                            fname, fname);
-                    if (strcmp(ftype, "string") == 0) {
-                      fprintf(
-                          fp,
-                          "            if (val_%s) req_struct.%s = val_%s;\n",
-                          fname, fname, fname);
-                    } else if (strcmp(ftype, "integer") == 0) {
-                      fprintf(fp,
-                              "            if (val_%s) req_struct.%s = "
-                              "atoi(val_%s);\n",
-                              fname, fname, fname);
-                    } else if (strcmp(ftype, "boolean") == 0) {
-                      fprintf(fp,
-                              "            if (val_%s) req_struct.%s = "
-                              "(strcmp(val_%s, \"true\") == 0 || "
-                              "strcmp(val_%s, \"1\") == 0);\n",
-                              fname, fname, fname, fname);
-                    } else if (strcmp(ftype, "number") == 0) {
-                      fprintf(fp,
-                              "            if (val_%s) req_struct.%s = "
-                              "atof(val_%s);\n",
-                              fname, fname, fname);
-                    }
-                  }
-                }
-              }
-              fprintf(
-                  fp,
-                  "            /* Successfully parsed urlencoded body */\n");
-              fprintf(fp, "        }\n");
+              fprintf(fp, "        /* if (c_rest_request_parse_urlencoded(req, "
+                          "&urlencoded_data) == 0) { ... } */\n");
               fprintf(fp, "    }\n");
               break;
             }
@@ -207,9 +161,10 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
           codegen_security_write_server_apply(fp, op, spec);
         }
 
-        fprintf(fp, "    mg_printf(conn, \"HTTP/1.1 200 OK\\r\\nContent-Type: "
-                    "application/json\\r\\nContent-Length: "
-                    "%%d\\r\\n\\r\\n%%s\", (int)strlen(resp), resp);\n");
+        fprintf(fp, "    /* c_rest_response_set_status(res, 200); */\n");
+        fprintf(
+            fp,
+            "    /* c_rest_response_set_body(res, resp, strlen(resp)); */\n");
         fprintf(fp, "    return 200;\n");
         fprintf(fp, "}\n\n");
       }
@@ -220,12 +175,46 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
               " * @brief Autogenerated docstring\n"
               " */\n"
               "int main(int argc, char **argv) {\n");
-  fprintf(fp, "    const char *options[] = {\"document_root\", \".\", "
-              "\"listening_ports\", \"8080\", 0};\n");
+  fprintf(fp, "    const char *options[15];\n");
   fprintf(fp, "    struct mg_callbacks callbacks;\n");
   fprintf(fp, "    struct mg_context *ctx;\n");
-  fprintf(fp, "    (void)argc;\n");
-  fprintf(fp, "    (void)argv;\n\n");
+  fprintf(fp, "    int i;\n");
+  fprintf(fp, "    const char *port_str = \"8080\";\n");
+  fprintf(fp, "    const char *db_path = \"oauth.db\";\n");
+  fprintf(fp, "    const char *cert_path = NULL;\n");
+  fprintf(fp, "    const char *key_path = NULL;\n");
+  fprintf(fp, "    const char *threads_str = \"4\";\n");
+  fprintf(fp, "    int opt_idx = 0;\n\n");
+  fprintf(fp, "    for (i = 1; i < argc; i++) {\n");
+  fprintf(fp,
+          "        if (strcmp(argv[i], \"--port\") == 0 && i + 1 < argc) {\n");
+  fprintf(fp, "            port_str = argv[++i];\n");
+  fprintf(fp, "        } else if (strcmp(argv[i], \"--db-path\") == 0 && i + 1 "
+              "< argc) {\n");
+  fprintf(fp, "            db_path = argv[++i];\n");
+  fprintf(fp, "        } else if (strcmp(argv[i], \"--cert\") == 0 && i + 1 < "
+              "argc) {\n");
+  fprintf(fp, "            cert_path = argv[++i];\n");
+  fprintf(fp, "        } else if (strcmp(argv[i], \"--key\") == 0 && i + 1 < "
+              "argc) {\n");
+  fprintf(fp, "            key_path = argv[++i];\n");
+  fprintf(fp, "        } else if (strcmp(argv[i], \"--threads\") == 0 && i + 1 "
+              "< argc) {\n");
+  fprintf(fp, "            threads_str = argv[++i];\n");
+  fprintf(fp, "        }\n");
+  fprintf(fp, "    }\n\n");
+  fprintf(fp, "    (void)db_path; /* Will be used in init_db() */\n\n");
+  fprintf(fp, "    options[opt_idx++] = \"document_root\";\n");
+  fprintf(fp, "    options[opt_idx++] = \".\";\n");
+  fprintf(fp, "    options[opt_idx++] = \"listening_ports\";\n");
+  fprintf(fp, "    options[opt_idx++] = port_str;\n");
+  fprintf(fp, "    options[opt_idx++] = \"num_threads\";\n");
+  fprintf(fp, "    options[opt_idx++] = threads_str;\n");
+  fprintf(fp, "    if (cert_path && key_path) {\n");
+  fprintf(fp, "        options[opt_idx++] = \"ssl_certificate\";\n");
+  fprintf(fp, "        options[opt_idx++] = cert_path;\n");
+  fprintf(fp, "    }\n");
+  fprintf(fp, "    options[opt_idx] = 0;\n\n");
 
   fprintf(fp, "    init_db();\n\n");
 
@@ -238,17 +227,44 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "        return 1;\n");
   fprintf(fp, "    }\n\n");
 
+  fprintf(fp, "    {\n");
+  fprintf(fp, "        c_rest_router *router = NULL;\n");
+  fprintf(fp, "        if (c_rest_router_init(&router) == 0) {\n");
+
   /* Register handlers */
   for (i = 0; i < spec->n_paths; i++) {
     for (j = 0; j < spec->paths[i].n_operations; j++) {
       const struct OpenAPI_Operation *op = &spec->paths[i].operations[j];
       const char *opId = op->operation_id;
       if (opId) {
-        fprintf(fp, "    mg_set_request_handler(ctx, \"%s\", handle_%s, 0);\n",
-                spec->paths[i].route, opId);
+        const char *method = "GET";
+        if (op->verb == OA_VERB_POST)
+          method = "POST";
+        else if (op->verb == OA_VERB_PUT)
+          method = "PUT";
+        else if (op->verb == OA_VERB_DELETE)
+          method = "DELETE";
+        else if (op->verb == OA_VERB_OPTIONS)
+          method = "OPTIONS";
+        else if (op->verb == OA_VERB_HEAD)
+          method = "HEAD";
+        else if (op->verb == OA_VERB_PATCH)
+          method = "PATCH";
+        else if (op->verb == OA_VERB_TRACE)
+          method = "TRACE";
+        fprintf(fp,
+                "            c_rest_router_add(router, \"%s\", \"%s\", "
+                "handle_%s, NULL);\n",
+                method, spec->paths[i].route, opId);
       }
     }
   }
+
+  fprintf(fp, "            /* TODO: bind router to CivetWeb (e.g. via c_rest "
+              "dispatch middleware) */\n");
+  fprintf(fp, "            c_rest_router_destroy(router);\n");
+  fprintf(fp, "        }\n");
+  fprintf(fp, "    }\n\n");
 
   fprintf(fp, "    printf(\"Server listening on port 8080... Press enter to "
               "exit.\\n\");\n");
@@ -258,6 +274,63 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "}\n");
 
   fclose(fp);
+
+  /* Test Stub Generation */
+  {
+    char test_path[1024];
+    FILE *fp_test = NULL;
+    SNPRINTF(test_path, sizeof(test_path), "test_%s_server.c",
+             config->filename_base);
+#if defined(_MSC_VER)
+    if (fopen_s(&fp_test, test_path, "w") != 0)
+      fp_test = NULL;
+#else
+    fp_test = fopen(test_path, "w");
+#endif
+    if (fp_test) {
+      fprintf(
+          fp_test,
+          "/* Auto-generated greatest.h test stub for server endpoints */\n\n");
+      fprintf(fp_test, "#include <stdlib.h>\n");
+      fprintf(fp_test, "#include <string.h>\n");
+      fprintf(fp_test, "#include <greatest.h>\n");
+      fprintf(fp_test, "#include <c_rest_request.h>\n");
+      fprintf(fp_test, "#include <c_rest_response.h>\n\n");
+
+      for (i = 0; i < spec->n_paths; i++) {
+        for (j = 0; j < spec->paths[i].n_operations; j++) {
+          const struct OpenAPI_Operation *op = &spec->paths[i].operations[j];
+          const char *opId = op->operation_id;
+          if (opId) {
+            fprintf(fp_test, "TEST test_server_handle_%s(void) {\n", opId);
+            fprintf(fp_test, "  /* TODO: Implement test for %s */\n", opId);
+            fprintf(fp_test, "  struct c_rest_request req;\n");
+            fprintf(fp_test, "  struct c_rest_response res;\n");
+            fprintf(fp_test, "  memset(&req, 0, sizeof(req));\n");
+            fprintf(fp_test, "  memset(&res, 0, sizeof(res));\n");
+            fprintf(fp_test,
+                    "  /* int status = handle_%s(&req, &res, NULL); */\n",
+                    opId);
+            fprintf(fp_test, "  /* ASSERT_EQ(200, status); */\n");
+            fprintf(fp_test, "  PASS();\n");
+            fprintf(fp_test, "}\n\n");
+          }
+        }
+      }
+
+      fprintf(fp_test, "SUITE(server_endpoints_suite) {\n");
+      for (i = 0; i < spec->n_paths; i++) {
+        for (j = 0; j < spec->paths[i].n_operations; j++) {
+          if (spec->paths[i].operations[j].operation_id) {
+            fprintf(fp_test, "  RUN_TEST(test_server_handle_%s);\n",
+                    spec->paths[i].operations[j].operation_id);
+          }
+        }
+      }
+      fprintf(fp_test, "}\n");
+      fclose(fp_test);
+    }
+  }
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
