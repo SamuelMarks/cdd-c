@@ -30,6 +30,9 @@
 #include "emit/test_codegen_defaults.h"
 #include "emit/test_codegen_eq.h"
 #include "emit/test_codegen_json.h"
+#include "emit/test_codegen_form.h"
+#include "emit/test_codegen_jwt.h"
+#include "emit/test_codegen_oauth2_error.h"
 #include "emit/test_codegen_make.h"
 #include "emit/test_codegen_root_arrays.h"
 #include "emit/test_codegen_sdk_tests.h"
@@ -109,6 +112,9 @@ int main(int argc, char **argv) {
   RUN_SUITE(codegen_defaults_suite);
   RUN_SUITE(codegen_eq_suite);
   RUN_SUITE(codegen_json_suite);
+  RUN_SUITE(codegen_form_suite);
+  RUN_SUITE(codegen_jwt_suite);
+  RUN_SUITE(codegen_oauth2_error_suite);
   RUN_SUITE(codegen_make_suite);
   RUN_SUITE(codegen_security_suite);
   RUN_SUITE(codegen_struct_suite);

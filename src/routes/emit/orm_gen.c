@@ -339,7 +339,56 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "  %s_cols,\n", struct_name);
     fprintf(fp_c, "  %lu,\n", (unsigned long)sf->size);
     fprintf(fp_c, "  sizeof(struct %s),\n", struct_name);
-    fprintf(fp_c, "  NULL, NULL, NULL, NULL, NULL\n");
+    fprintf(fp_c, "  \"SELECT * FROM %s\",\n", struct_name);
+    {
+      const char *pk_name = NULL;
+      size_t k;
+      int first_update = 1;
+      for (k = 0; k < sf->size; ++k) {
+        int is_pk, is_unique, is_index;
+        check_db_schema(&sf->fields[k], &is_pk, &is_unique, &is_index, NULL, 0);
+        if (is_pk) {
+          pk_name = sf->fields[k].name;
+          break;
+        }
+      }
+
+      if (pk_name) {
+        fprintf(fp_c, "  \"SELECT * FROM %s WHERE %s = ?\",\n", struct_name,
+                pk_name);
+      } else {
+        fprintf(fp_c, "  NULL,\n");
+      }
+
+      fprintf(fp_c, "  \"INSERT INTO %s (", struct_name);
+      for (k = 0; k < sf->size; ++k) {
+        fprintf(fp_c, "%s%s", sf->fields[k].name,
+                k == sf->size - 1 ? "" : ", ");
+      }
+      fprintf(fp_c, ") VALUES (");
+      for (k = 0; k < sf->size; ++k) {
+        fprintf(fp_c, "?%s", k == sf->size - 1 ? "" : ", ");
+      }
+      fprintf(fp_c, ")\",\n");
+
+      if (pk_name) {
+        fprintf(fp_c, "  \"UPDATE %s SET ", struct_name);
+        for (k = 0; k < sf->size; ++k) {
+          if (strcmp(sf->fields[k].name, pk_name) == 0)
+            continue;
+          if (!first_update) {
+            fprintf(fp_c, ", ");
+          }
+          fprintf(fp_c, "%s = ?", sf->fields[k].name);
+          first_update = 0;
+        }
+        fprintf(fp_c, " WHERE %s = ?\",\n", pk_name);
+        fprintf(fp_c, "  \"DELETE FROM %s WHERE %s = ?\"\n", struct_name,
+                pk_name);
+      } else {
+        fprintf(fp_c, "  NULL,\n  NULL\n");
+      }
+    }
     fprintf(fp_c, "};\n\n");
 
     /* CRUD Boilerplate definitions */
@@ -437,6 +486,46 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
 
   fprintf(fp_h, "#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n");
   fprintf(fp_h, "#endif /* C_ORM_MODELS_H */\n");
+
+  /* Test Stub Generation */
+  {
+    char test_path[1024];
+    FILE *fp_test = NULL;
+    SNPRINTF(test_path, sizeof(test_path), "test_%s_models.c",
+             config->filename_base);
+#if defined(_MSC_VER)
+    if (fopen_s(&fp_test, test_path, "w") != 0)
+      fp_test = NULL;
+#else
+    fp_test = fopen(test_path, "w");
+#endif
+    if (fp_test) {
+      fprintf(fp_test,
+              "/* Auto-generated greatest.h test stub for ORM models */\n\n");
+      fprintf(fp_test, "#include <stdlib.h>\n");
+      fprintf(fp_test, "#include <string.h>\n");
+      fprintf(fp_test, "#include <greatest.h>\n");
+      fprintf(fp_test, "#include \"%s\"\n\n", model_h);
+
+      for (i = 0; i < spec->n_defined_schemas; i++) {
+        const char *struct_name = spec->defined_schema_names[i];
+        fprintf(fp_test, "TEST test_orm_%s_meta(void) {\n", struct_name);
+        fprintf(fp_test, "  /* Check C-ORM meta structure fields */\n");
+        fprintf(fp_test, "  ASSERT_STR_EQ(\"%s\", %s_meta.table_name);\n",
+                struct_name, struct_name);
+        fprintf(fp_test, "  PASS();\n");
+        fprintf(fp_test, "}\n\n");
+      }
+
+      fprintf(fp_test, "SUITE(orm_models_suite) {\n");
+      for (i = 0; i < spec->n_defined_schemas; i++) {
+        fprintf(fp_test, "  RUN_TEST(test_orm_%s_meta);\n",
+                spec->defined_schema_names[i]);
+      }
+      fprintf(fp_test, "}\n");
+      fclose(fp_test);
+    }
+  }
 
   fclose(fp_h);
   fclose(fp_c);

@@ -4,12 +4,12 @@ project(c_cdd VERSION 0.0.1 LANGUAGES C)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
     FetchContent_Declare(
-        c_fs
+        cfs
         URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.zip
     )
     set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-    FetchContent_MakeAvailable(c_fs)
-    include_directories(${c_fs_SOURCE_DIR}/include)
+    FetchContent_MakeAvailable(cfs)
+    include_directories(${cfs_SOURCE_DIR}/include)
 endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
@@ -255,7 +255,10 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         GIT_TAG master
         GIT_CONFIG core.autocrlf=false
     )
+    set(OLD_BSL ${BUILD_SHARED_LIBS})
+    set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(parson)
+    set(BUILD_SHARED_LIBS ${OLD_BSL})
     include_directories(${parson_SOURCE_DIR})
 
     # civetweb
