@@ -37,8 +37,8 @@
 static /**
         * @brief Reads a line from a file pointer and strips trailing newlines.
         *
-        * Reads up to `bufsz - 1` characters from the file into the buffer `buf`.
-        * Any trailing '\r' or '\n' characters are removed.
+        * Reads up to `bufsz - 1` characters from the file into the buffer
+        * `buf`. Any trailing '\r' or '\n' characters are removed.
         *
         * @param[in] fp The file pointer to read from.
         * @param[out] buf The buffer to store the read string.
@@ -359,13 +359,16 @@ static /**
 }
 
 static /**
-        * @brief Deep copies an array of string pointers into a new dynamically allocated array.
+        * @brief Deep copies an array of string pointers into a new dynamically
+        * allocated array.
         *
-        * Allocates memory for both the array pointers and the underlying strings.
-        * Handles cleanup via `free_string_array` if memory exhaustion occurs.
+        * Allocates memory for both the array pointers and the underlying
+        * strings. Handles cleanup via `free_string_array` if memory exhaustion
+        * occurs.
         *
         * @param[out] dst Pointer to receive the allocated destination array.
-        * @param[out] dst_count Pointer to receive the element count matching src.
+        * @param[out] dst_count Pointer to receive the element count matching
+        * src.
         * @param[in] src The array to copy elements from.
         * @param[in] src_count The number of elements in the src array.
         * @return 0 on success, ENOMEM on allocation failure.
@@ -585,14 +588,15 @@ static /**
 static /**
         * @brief Extracts valid C types from an array of JSON types.
         *
-        * In OpenAPI/JSON schema, `type` can be an array like `["string", "null"]`.
-        * Extracts each distinct type, determining the primary C type, while flagging
-        * nullability if `"null"` is encountered in the list.
+        * In OpenAPI/JSON schema, `type` can be an array like `["string",
+        * "null"]`. Extracts each distinct type, determining the primary C type,
+        * while flagging nullability if `"null"` is encountered in the list.
         *
         * @param[in] arr The JSON_Array representing multiple types.
         * @param[out] out_union Target array to store individual type strings.
         * @param[out] out_count Number of extracted elements in `out_union`.
-        * @param[out] out_primary Tracks the primary structural type (e.g. "object").
+        * @param[out] out_primary Tracks the primary structural type (e.g.
+        * "object").
         * @param[out] out_nullable Set to 1 if the JSON array includes `"null"`.
         * @return 0 on success, ENOMEM if a memory allocation fails.
         */
@@ -848,14 +852,15 @@ static /**
 static /**
         * @brief Collects unstructured extra properties from a JSON Object.
         *
-        * Loops over the properties of `obj` and copies any that do not match keys
-        * found within the provided `skip_keys` list into a newly allocated
+        * Loops over the properties of `obj` and copies any that do not match
+        * keys found within the provided `skip_keys` list into a newly allocated
         * JSON string representing those leftover (extra) attributes.
         *
         * @param[in] obj The source JSON Object to collect properties from.
         * @param[in] skip_keys Array of string keys to ignore during the copy.
         * @param[in] skip_count Size of the skip_keys array.
-        * @param[out] out_json Contains serialized JSON string of extra properties.
+        * @param[out] out_json Contains serialized JSON string of extra
+        * properties.
         * @return 0 on success, ENOMEM on allocation failure.
         */
     int
@@ -917,10 +922,12 @@ static /**
 }
 
 static /**
-        * @brief Merges extra attributes described by a JSON string into a target parson JSON Object.
+        * @brief Merges extra attributes described by a JSON string into a
+        * target parson JSON Object.
         *
-        * Parses the JSON string `extras_json`, clones each value, and sets them directly on `target`.
-        * Returns early if there are no extras. Does not override existing keys on `target`.
+        * Parses the JSON string `extras_json`, clones each value, and sets them
+        * directly on `target`. Returns early if there are no extras. Does not
+        * override existing keys on `target`.
         *
         * @param[in,out] target The JSON_Object to merge properties into.
         * @param[in] extras_json A serialized JSON string of extra properties.
@@ -1155,13 +1162,16 @@ static /**
 }
 
 static /**
-        * @brief Merges two serialized JSON objects containing extra schemas together.
+        * @brief Merges two serialized JSON objects containing extra schemas
+        * together.
         *
-        * Parses `dest_json` and `src_json`. Clones the properties from the `src`
-        * object into `dest`, serializing the result back out into `dest_json`.
-        * If `dest_json` was NULL, `src_json` is effectively duplicated into it.
+        * Parses `dest_json` and `src_json`. Clones the properties from the
+        * `src` object into `dest`, serializing the result back out into
+        * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
+        * duplicated into it.
         *
-        * @param[in,out] dest_json Pointer to an allocated JSON string. Reallocated.
+        * @param[in,out] dest_json Pointer to an allocated JSON string.
+        * Reallocated.
         * @param[in] src_json The JSON string of extra schemas to append.
         * @return 0 on success, ENOMEM if a memory/allocation failure occurs.
         */
@@ -1479,7 +1489,8 @@ static /**
     int
     ref_points_to_string_enum(const JSON_Object *root, const char *ref);
 static /**
-        * @brief Checks if a given property name is present in a required properties list.
+        * @brief Checks if a given property name is present in a required
+        * properties list.
         */
     int
     required_name_in_list(const JSON_Array *required, const char *name);
@@ -1954,7 +1965,8 @@ int json_array_to_enum_members(const JSON_Array *a, struct EnumMembers *e) {
 }
 
 static /**
-        * @brief Internal helper to convert a JSON Schema object to StructFields.
+        * @brief Internal helper to convert a JSON Schema object to
+        * StructFields.
         */
     int
     json_object_to_struct_fields_internal(const JSON_Object *o,
@@ -2486,7 +2498,8 @@ int json_object_to_struct_fields_ex(const JSON_Object *schema_obj,
 }
 
 /**
- * @brief Extended code generation function to convert JSON Schema to StructFields.
+ * @brief Extended code generation function to convert JSON Schema to
+ * StructFields.
  */
 int json_object_to_struct_fields_ex_codegen(const JSON_Object *schema_obj,
                                             struct StructFields *fields,
@@ -2998,7 +3011,8 @@ static /**
 }
 
 static /**
-        * @brief Checks if a given property name is present in a required properties list.
+        * @brief Checks if a given property name is present in a required
+        * properties list.
         */
     int
     required_name_in_list(const JSON_Array *required, const char *name) {
@@ -4057,7 +4071,8 @@ static /**
 }
 
 static /**
-        * @brief Retrieves the discriminator mapping value for a given schema variant.
+        * @brief Retrieves the discriminator mapping value for a given schema
+        * variant.
         */
     int
     discriminator_value_for_variant(const JSON_Object *disc_obj,
@@ -5491,7 +5506,8 @@ static /**
 }
 
 static /**
-        * @brief Writes the default value of a StructField to a JSON schema object.
+        * @brief Writes the default value of a StructField to a JSON schema
+        * object.
         */
     void
     write_default_value(JSON_Object *pobj, const struct StructField *field) {
@@ -5538,7 +5554,8 @@ static /**
 }
 
 static /**
-        * @brief Writes numeric constraints of a StructField to a JSON schema object.
+        * @brief Writes numeric constraints of a StructField to a JSON schema
+        * object.
         */
     void
     write_numeric_constraints(JSON_Object *pobj,
@@ -5563,7 +5580,8 @@ static /**
 }
 
 static /**
-        * @brief Writes string constraints of a StructField to a JSON schema object.
+        * @brief Writes string constraints of a StructField to a JSON schema
+        * object.
         */
     void
     write_string_constraints(JSON_Object *pobj,
@@ -5581,7 +5599,8 @@ static /**
 }
 
 static /**
-        * @brief Writes array constraints of a StructField to a JSON schema object.
+        * @brief Writes array constraints of a StructField to a JSON schema
+        * object.
         */
     void
     write_array_constraints(JSON_Object *pobj,
@@ -5963,7 +5982,8 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
 }
 
 static /**
-        * @brief Parses a union definition and writes it to a JSON Schema object.
+        * @brief Parses a union definition and writes it to a JSON Schema
+        * object.
         */
     int
     parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
@@ -6216,8 +6236,8 @@ static /**
 /**
  * @brief Main entry point for the `code2schema` CLI command.
  *
- * Reads a C header file line by line, parses structures, and emits the equivalent
- * JSON Schema output to the given file.
+ * Reads a C header file line by line, parses structures, and emits the
+ * equivalent JSON Schema output to the given file.
  *
  * @param[in] argc Argument count (expects 2).
  * @param[in] argv Arguments array (input header file, output JSON file).
