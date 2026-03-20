@@ -5163,7 +5163,15 @@ int to_docs_json_cli_main(int argc, char **argv) {
   size_t p, op_idx;
 
   for (i = 0; i < argc; i++) {
-    if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) &&
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      puts("Usage: cdd-c to_docs_json [args]");
+      puts("");
+      puts("Options:");
+      puts("  -i, --input <spec.json> Input OpenAPI spec file");
+      puts("  --no-imports            Disable imports in generated examples");
+      puts("  --no-wrapping           Disable wrapping in generated examples");
+      return EXIT_SUCCESS;
+    } else if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) &&
         i + 1 < argc) {
       input_file = argv[++i];
     } else if (strcmp(argv[i], "--no-imports") == 0) {
