@@ -124,7 +124,7 @@ static /**
   puts("  from_openapi to_server -i <spec.json> [-o <dir>]");
   puts("  from_openapi to_server --input-dir <specs_dir> [-o <dir>]");
   puts("      Generate C SDK, Server, and optionally CLI from OpenAPI spec.");
-  puts("  to_openapi -f <dir> [-o <out.json>]");
+  puts("  to_openapi -i <dir> [-o <out.json>]");
   puts("      Generate OpenAPI spec from C source code.");
   puts("  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>");
   puts("      Generate JSON code examples for doc sites.");
@@ -273,14 +273,14 @@ static /**
   int i;
 
   for (i = 0; i < argc; i++) {
-    if (strcmp(argv[i], "-f") == 0 && i + 1 < argc) {
+    if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) && i + 1 < argc) {
       input_dir = argv[++i];
-    } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) && i + 1 < argc) {
       out_file = argv[++i];
     }
   }
   if (!input_dir) {
-    fprintf(stderr, "Error: -f <directory> required\n");
+    fprintf(stderr, "Error: -i <directory> required\n");
     return EXIT_FAILURE;
   }
   c2_argv[0] = (char *)"c2openapi";
