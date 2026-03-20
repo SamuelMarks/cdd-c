@@ -2652,7 +2652,7 @@ static /**
   if (!version || !*version)
     return 0;
   return (version[0] == '3' && version[1] == '.' &&
-          (version[2] == '1' || version[2] == '2'));
+          (version[2] == '0' || version[2] == '1' || version[2] == '2'));
 }
 
 static /**
