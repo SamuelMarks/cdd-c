@@ -162,22 +162,38 @@ Commands:
 
 ```
 $ ./build_cmake/bin/cdd-c from_openapi --help
-Error: -i <spec.json> or --input-dir <dir> required
-Error executing 'from_openapi': code 1
+Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+
+Commands:
+  to_sdk         Generate C SDK from OpenAPI spec
+  to_sdk_cli     Generate C SDK and CLI from OpenAPI spec
+  to_server      Generate C Server from OpenAPI spec
+
+Options:
+  -i <spec.json>            Input OpenAPI spec file
+  --input-dir <specs_dir>   Input directory containing OpenAPI specs
+  -o <dir>                  Output directory
 ```
 
 ### `to_openapi`
 
 ```
 $ ./build_cmake/bin/cdd-c to_openapi --help
-Error: -i <directory> required
-Error executing 'to_openapi': code 1
+Usage: cdd-c to_openapi [args]
+
+Options:
+  -i, --input <dir>       Input directory containing C source code
+  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
 ```
 
 ### `to_docs_json`
 
 ```
 $ ./build_cmake/bin/cdd-c to_docs_json --help
-Error: -i <spec.json> required
-Error executing 'to_docs_json': code 1
+Usage: cdd-c to_docs_json [args]
+
+Options:
+  -i, --input <spec.json> Input OpenAPI spec file
+  --no-imports            Disable imports in generated examples
+  --no-wrapping           Disable wrapping in generated examples
 ```
