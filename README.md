@@ -113,3 +113,71 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+## CLI Help
+
+```
+$ ./build_cmake/bin/cdd-c --help
+Usage: ./build_cmake/bin/cdd-c <command> [args]
+
+Commands:
+  from_openapi to_sdk -i <spec.json> [-o <dir>]
+  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]
+  from_openapi to_sdk_cli -i <spec.json> [-o <dir>]
+  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]
+  from_openapi to_server -i <spec.json> [-o <dir>]
+  from_openapi to_server --input-dir <specs_dir> [-o <dir>]
+      Generate C SDK, Server, and optionally CLI from OpenAPI spec.
+  to_openapi -i <dir> [-o <out.json>]
+      Generate OpenAPI spec from C source code.
+  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>
+      Generate JSON code examples for doc sites.
+  audit <directory>
+      Scan directory for memory safety issues.
+  c2openapi <dir> <out.json>
+      Generate OpenAPI spec from C source code.
+  code2schema <header.h> <schema.json>
+      Convert C header to JSON Schema.
+  generate_build_system <type> <out_dir> <name> [test_file]
+      Generate build system files.
+  schema2code <schema.json> <out_dir>
+      Generate C code from JSON schema.
+  sql2c <schema.sql> <out_dir>
+      Generate C code (c-orm compatible) from SQL DDL.
+  jsonschema2tests <schema.json> <header_to_test.h> <out.h>
+      Generate C tests from JSON schema.
+  migrate <up|down|create> [args...]
+      Manage database migrations.
+  db reset
+      Drop and recreate the database schema, then run UP migrations.
+  schema dump [schema.sql]
+      Dump the current database schema state.
+  seed [seeds.sql]
+      Seed the database with test data.
+  setup_test_db [db_name]
+      Setup a test database dynamically in CI mode.
+```
+
+### `from_openapi`
+
+```
+$ ./build_cmake/bin/cdd-c from_openapi --help
+Error: -i <spec.json> or --input-dir <dir> required
+Error executing 'from_openapi': code 1
+```
+
+### `to_openapi`
+
+```
+$ ./build_cmake/bin/cdd-c to_openapi --help
+Error: -i <directory> required
+Error executing 'to_openapi': code 1
+```
+
+### `to_docs_json`
+
+```
+$ ./build_cmake/bin/cdd-c to_docs_json --help
+Error: -i <spec.json> required
+Error executing 'to_docs_json': code 1
+```
