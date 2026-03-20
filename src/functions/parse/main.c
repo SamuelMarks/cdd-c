@@ -108,7 +108,8 @@ static /**
         * @brief Audits a target project directory for common code issues.
         *
         * Runs static analysis to find potential memory leaks or rule violations
-        * and prints a summary. Requires exactly one argument: the directory path.
+        * and prints a summary. Requires exactly one argument: the directory
+        * path.
         *
         * @param[in] argc Argument count for the command (should be 1)
         * @param[in] argv Argument values containing the directory path
@@ -127,7 +128,8 @@ static /**
 }
 
 static /**
-        * @brief Displays CLI usage information and a list of available commands.
+        * @brief Displays CLI usage information and a list of available
+        * commands.
         *
         * @param[in] prog_name The program executable name (usually argv[0])
         */
@@ -230,7 +232,8 @@ static /**
       puts("");
       puts("Options:");
       puts("  -i <spec.json>            Input OpenAPI spec file");
-      puts("  --input-dir <specs_dir>   Input directory containing OpenAPI specs");
+      puts("  --input-dir <specs_dir>   Input directory containing OpenAPI "
+           "specs");
       puts("  -o <dir>                  Output directory");
       return EXIT_SUCCESS;
     } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
@@ -298,12 +301,15 @@ static /**
 }
 
 static /**
-        * @brief Handles the `to_openapi` command parsing C code to an OpenAPI spec.
+        * @brief Handles the `to_openapi` command parsing C code to an OpenAPI
+        * spec.
         *
-        * Invokes the internal C-to-OpenAPI translation logic and writes the result.
+        * Invokes the internal C-to-OpenAPI translation logic and writes the
+        * result.
         *
         * @param[in] argc Argument count including command flags
-        * @param[in] argv Argument values pointing to the source directory and options
+        * @param[in] argv Argument values pointing to the source directory and
+        * options
         * @return EXIT_SUCCESS if parsing and serialization succeed
         */
     int
@@ -322,12 +328,18 @@ static /**
       puts("Usage: cdd-c to_openapi [args]");
       puts("");
       puts("Options:");
-      puts("  -i, --input <dir>       Input directory containing C source code");
-      puts("  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)");
+      puts(
+          "  -i, --input <dir>       Input directory containing C source code");
+      puts("  -o, --output <out.json> Output OpenAPI spec file (default: "
+           "openapi.json)");
       return EXIT_SUCCESS;
-    } else if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-i") == 0 ||
+                strcmp(argv[i], "--input") == 0) &&
+               i + 1 < argc) {
       input_dir = argv[++i];
-    } else if ((strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0) && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-o") == 0 ||
+                strcmp(argv[i], "--output") == 0) &&
+               i + 1 < argc) {
       out_file = argv[++i];
     }
   }
@@ -345,8 +357,9 @@ static /**
 /**
  * @brief Main entry point dispatcher.
  *
- * This function routes execution to the specific sub-command requested by the user,
- * e.g., `audit`, `c2openapi`, `generate_build_system`. It handles `--version` and
+ * This function routes execution to the specific sub-command requested by the
+ * user, e.g., `audit`, `c2openapi`, `generate_build_system`. It handles
+ * `--version` and
  * `--help` directly.
  *
  * @param[in] argc Passed straight from application main.

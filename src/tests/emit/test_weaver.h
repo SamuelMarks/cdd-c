@@ -1,6 +1,6 @@
 /**
  * @file test_weaver.h
- * @brief Unit tests for weaver implementation.
+ * @brief Executes the unit tests for weaver operation.
  */
 
 /* clang-format off */
