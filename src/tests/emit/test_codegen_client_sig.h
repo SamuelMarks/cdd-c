@@ -3,14 +3,12 @@
  * @brief Unit tests for C Client Signature Generation.
  */
 
-/* clang-format off */
 #ifndef TEST_CODEGEN_CLIENT_SIG_H
 #define TEST_CODEGEN_CLIENT_SIG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,7 +18,6 @@ extern "C" {
 
 #include "functions/emit/client_sig.h"
 #include "openapi/parse/openapi.h"
-/* clang-format on */
 /* clang-format on */
 
 static int gen_sig(const struct OpenAPI_Operation *op,

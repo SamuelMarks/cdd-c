@@ -4,14 +4,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_CODEGEN_MAKE_H
 #define TEST_CODEGEN_MAKE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <stdio.h>
@@ -21,7 +19,6 @@ extern "C" {
 #include <greatest.h>
 
 #include "functions/emit/make.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_make_simple(void) {

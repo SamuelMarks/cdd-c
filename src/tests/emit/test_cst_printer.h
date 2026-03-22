@@ -3,14 +3,12 @@
  * @brief Unit tests for CST non-destructive printing.
  */
 
-/* clang-format off */
 #ifndef TEST_CST_PRINTER_H
 #define TEST_CST_PRINTER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,7 +18,6 @@ extern "C" {
 
 #include "functions/emit/cst_printer.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_cst_print_exact(void) {

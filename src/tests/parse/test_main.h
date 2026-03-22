@@ -1,4 +1,3 @@
-/* clang-format off */
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
@@ -6,11 +5,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /* clang-format off */
 #include "functions/parse/main.h"
 #include "greatest.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_main_no_args(void) {

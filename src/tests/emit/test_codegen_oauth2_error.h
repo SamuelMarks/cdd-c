@@ -20,8 +20,8 @@ extern "C" {
 
 #include "classes/emit/oauth2_error.h"
 #include "classes/emit/struct.h"
-
 /* clang-format on */
+
 TEST test_oauth2_error_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;

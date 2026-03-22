@@ -4,14 +4,12 @@
  * @brief Tests for the to_docs_json CLI functionality.
  */
 
-/* clang-format off */
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include "functions/parse/fs.h"
@@ -30,7 +28,6 @@ extern "C" {
 #endif
 /* clang-format on */
 #endif
-/* clang-format on */
 
 #define TEMP_OUT_FILE "to_docs_json_out.json"
 #define TEMP_SPEC_FILE "test_spec.json"

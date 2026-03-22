@@ -20,8 +20,8 @@ extern "C" {
 
 #include "classes/emit/jwt.h"
 #include "classes/emit/struct.h"
-
 /* clang-format on */
+
 TEST test_jwt_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;

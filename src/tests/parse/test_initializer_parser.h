@@ -1,11 +1,9 @@
-/* clang-format off */
 #ifndef TEST_INITIALIZER_PARSER_H
 #define TEST_INITIALIZER_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <errno.h>
@@ -17,7 +15,6 @@ extern "C" {
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 /* clang-format on */
 
 static int tokenize_str(const char *s, struct TokenList **_out_val) {

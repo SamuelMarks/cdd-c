@@ -8,14 +8,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_C_MAPPING_H
 #define TEST_C_MAPPING_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -24,7 +22,6 @@ extern "C" {
 #include <string.h>
 
 #include "classes/parse/mapping.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_mapping_int(void) {

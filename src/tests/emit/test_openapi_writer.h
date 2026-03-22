@@ -10,14 +10,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_OPENAPI_WRITER_H
 #define TEST_OPENAPI_WRITER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -28,7 +26,6 @@ extern "C" {
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
-/* clang-format on */
 /* clang-format on */
 
 /* --- Helpers --- */

@@ -7,14 +7,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_REFACTOR_API_SYNC_H
 #define TEST_REFACTOR_API_SYNC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -25,7 +23,6 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/parse/sync.h"
-/* clang-format on */
 /* clang-format on */
 
 static int load_spec(const char *json, struct OpenAPI_Spec *spec) {

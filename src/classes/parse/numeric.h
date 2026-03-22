@@ -44,8 +44,8 @@ typedef unsigned __int64 uint64_t;
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdint.h>
 #endif
-#endif
 /* clang-format on */
+#endif
 
 /* Fallback for Pre-C99 environments missing stdint.h */
 #if !defined(UINT64_MAX)

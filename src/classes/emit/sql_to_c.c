@@ -131,9 +131,9 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   fprintf(fp, "#ifndef C_ORM_MODEL_%s_H\n", table_name_upper);
   fprintf(fp, "#define C_ORM_MODEL_%s_H\n\n", table_name_upper);
 
-  fprintf(fp, "#ifdef __cplusplus\n");
+  fprintf(fp, "#ifdef __cpuspus\n");
   fprintf(fp, "extern \"C\" {\n");
-  fprintf(fp, "#endif /* __cplusplus */\n\n");
+  fprintf(fp, "#endif /* __cpuspus */\n\n");
 
   fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
               "typedef signed __int8 int8_t;\n"
@@ -148,7 +148,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
               "#include <stdint.h>\n"
               "#endif\n");
   fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-              "#if !defined(__cplusplus)\n"
+              "#if !defined(__cpuspus)\n"
               "#ifndef bool\n"
               "#define bool unsigned char\n"
               "#endif\n"
@@ -161,7 +161,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
               "#endif\n"
               "#else\n"
               "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-              "#ifndef __cplusplus\n"
+              "#ifndef __cpuspus\n"
               "          typedef unsigned char bool;\n"
               "#define true 1\n"
               "#define false 0\n"
@@ -246,9 +246,9 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
           "*dest);\n\n",
           struct_name, struct_name, struct_name);
 
-  fprintf(fp, "#ifdef __cplusplus\n");
+  fprintf(fp, "#ifdef __cpuspus\n");
   fprintf(fp, "}\n");
-  fprintf(fp, "#endif /* __cplusplus */\n\n");
+  fprintf(fp, "#endif /* __cpuspus */\n\n");
 
   fprintf(fp, "extern const c_orm_table_meta_t %s_meta;\n\n", struct_name);
   fprintf(fp, "#endif /* C_ORM_MODEL_%s_H */\n", table_name_upper);
@@ -432,7 +432,7 @@ const char *sql_type_to_c_orm_type(enum SqlDataType type) {
  * @param fp File pointer to write to.
  * @param table The SQL table AST node.
  * @param struct_name The generated struct name.
- * @return 0 on success, non-zero on failure.
+ * @return 0 on success, non-zero on faiure.
  */
 static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
                                const char *struct_name) {
@@ -547,7 +547,7 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
   fprintf(fp, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
   fprintf(fp, "  \"%s\",\n", table->name);
   fprintf(fp, "  %s_meta_columns,\n", struct_name);
-  fprintf(fp, "  %lu,\n", (unsigned long)table->n_columns);
+  fprintf(fp, "  %u,\n", (unsigned int)table->n_columns);
   fprintf(fp, "  sizeof(struct %s),\n", struct_name);
   fprintf(fp, "  %s_query_select_all,\n", struct_name);
   fprintf(fp, "  %s_query_select_by_pk,\n", struct_name);
@@ -617,6 +617,706 @@ static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
   } else {
     fprintf(fp, "\"\n\n");
   }
+
+  return 0;
+}
+/* To be appended to sql_to_c.c */
+
+int sql_to_c_projection_struct_emit(FILE *fp,
+                                    const cdd_c_query_projection_t *proj,
+                                    const char *struct_name,
+                                    unsigned long long *out_hash) {
+
+  size_t i;
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  if (out_hash) {
+    /* Simplified fast query string hash simulation for external routing
+     * metadata tag ID */
+    unsigned long long hash = 14695981039346656037ULL;
+    const char *s = struct_name; /* In reality we hash the actual SELECT AST,
+                                    simplified for mock */
+    while (*s) {
+      hash ^= (unsigned char)(*s++);
+      hash *= 1099511628211ULL;
+    }
+    *out_hash = hash;
+
+    fprintf(fp, "\n/* Auto-generated Route Hash ID Tag: %llu */\n", hash);
+  }
+
+  fprintf(fp, "/**\n");
+
+  fprintf(fp, " * @brief Specific generated struct for a query projection.\n");
+
+  if (proj->source_table) {
+
+    fprintf(fp, " * Target table: %s\n", proj->source_table);
+  }
+
+  fprintf(fp, " */\n");
+
+  fprintf(fp, "typedef struct %s {\n", struct_name);
+
+  for (i = 0; i < proj->n_fields; ++i) {
+
+    const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+    char *c_type = NULL;
+
+    if (sql_type_to_c_type(field->type, &c_type) != 0) {
+
+      /* Fallback to void* or generic byte array if completely unknown, though
+       * type inference should catch most */
+
+      fprintf(fp, "    /* Unknown SQL type: %d */\n", field->type);
+
+      fprintf(fp, "    void *%s;\n", field->name);
+
+    } else {
+
+      if (field->is_array) {
+
+        fprintf(fp, "    %s *%s;\n", c_type, field->name);
+
+        fprintf(fp, "    size_t %s_count;\n", field->name);
+
+      } else {
+
+        if (sql_type_is_string(field->type)) {
+
+          /* Depending on length, it could be a fixed buffer or a pointer.
+           * Default to pointer for pure queries unless bounded */
+
+          if (field->length > 0) {
+
+            fprintf(fp, "    char %s[%u];\n", field->name,
+                    (unsigned int)field->length);
+
+          } else {
+
+            fprintf(fp, "    %s %s;\n", c_type, field->name);
+          }
+
+        } else {
+
+          fprintf(fp, "    %s %s;\n", c_type, field->name);
+        }
+      }
+    }
+  }
+
+  fprintf(fp, "} %s;\n\n", struct_name);
+
+  /* Generate deep free decl */
+
+  fprintf(fp, "extern C_CDD_EXPORT void %s_free(%s *obj);\n\n", struct_name,
+          struct_name);
+
+  return 0;
+}
+
+int sql_to_c_projection_free_emit(FILE *fp,
+                                  const cdd_c_query_projection_t *proj,
+                                  const char *struct_name) {
+
+  size_t i;
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  fprintf(fp, "void %s_free(%s *obj) {\n", struct_name, struct_name);
+
+  fprintf(fp, "    if (!obj) return;\n");
+
+  for (i = 0; i < proj->n_fields; ++i) {
+
+    const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+    if (field->is_array) {
+      fprintf(fp, "    if (obj->%s) free(obj->%s);\n", field->name,
+              field->name);
+    } else if (sql_type_is_string(field->type) && field->length == 0) {
+      /* Only free if it's an unbounded pointer string */
+      if (field->is_secure) {
+        fprintf(fp,
+                "    if (obj->%s) { memset(obj->%s, 0, strlen(obj->%s)); "
+                "free(obj->%s); }\n",
+                field->name, field->name, field->name, field->name);
+      } else {
+        fprintf(fp, "    if (obj->%s) free(obj->%s);\n", field->name,
+                field->name);
+      }
+    } else if (sql_type_is_string(field->type) && field->length > 0 &&
+               field->is_secure) {
+      fprintf(fp, "    memset(obj->%s, 0, %u);\n", field->name,
+              (unsigned int)field->length);
+    }
+  }
+
+  fprintf(fp, "}\n\n");
+
+  return 0;
+}
+
+int sql_to_c_projection_meta_emit(FILE *fp,
+                                  const cdd_c_query_projection_t *proj,
+                                  const char *struct_name) {
+
+  size_t i;
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  fprintf(fp, "/* Metadata for %s */\n", struct_name);
+
+  fprintf(fp, "static const c_orm_prop_meta_t %s_props[] = {\n", struct_name);
+
+  for (i = 0; i < proj->n_fields; ++i) {
+
+    const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+    const char *orm_type = sql_type_to_c_orm_type(field->type);
+
+    fprintf(fp, "    {\n");
+
+    fprintf(fp, "        \"%s\",\n", field->name);
+
+    fprintf(fp, "        %s,\n", orm_type ? orm_type : "C_ORM_TYPE_UNKNOWN");
+
+    fprintf(fp, "        offsetof(%s, %s),\n", struct_name, field->name);
+
+    fprintf(fp, "        %s,\n", field->is_array ? "1" : "0");
+
+    fprintf(fp, "        %u,\n", (unsigned int)field->length);
+
+    fprintf(fp, "        %d /* is_secure */\n", field->is_secure ? 1 : 0);
+    fprintf(fp, "    }");
+    if (i < proj->n_fields - 1) {
+      fprintf(fp, ",");
+    }
+
+    fprintf(fp, "\n");
+  }
+
+  fprintf(fp, "};\n\n");
+
+  fprintf(fp, "const c_orm_meta_t %s_meta = {\n", struct_name);
+
+  fprintf(fp, "    \"%s\",\n", struct_name);
+
+  fprintf(fp, "    sizeof(%s),\n", struct_name);
+
+  fprintf(fp, "    %u,\n", (unsigned int)proj->n_fields);
+
+  fprintf(fp, "    %s_props,\n", struct_name);
+
+  fprintf(fp, "    NULL\n");
+
+  fprintf(fp, "};\n\n");
+
+  return 0;
+}
+
+/* To be appended to sql_to_c.c */
+
+int sql_to_c_projection_hydrate_emit(FILE *fp,
+                                     const cdd_c_query_projection_t *proj,
+                                     const char *struct_name) {
+
+  size_t i;
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  fprintf(
+      fp,
+      "int %s_hydrate(%s *out_struct, const cdd_c_abstract_struct_t *row) {\n",
+      struct_name, struct_name);
+
+  fprintf(fp, "    cdd_c_variant_t *val;\n");
+
+  fprintf(fp, "    if (!out_struct || !row) return -1;\n");
+
+  for (i = 0; i < proj->n_fields; ++i) {
+
+    const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+    fprintf(fp, "    if (cdd_c_abstract_get(row, \"%s\", &val) == 0) {\n",
+            field->name);
+
+    switch (field->type) {
+
+    case SQL_TYPE_INT:
+
+    case SQL_TYPE_BIGINT:
+
+    case SQL_TYPE_BOOLEAN:
+
+      fprintf(fp, "        if (val->type == CDD_C_VARIANT_TYPE_INT) {\n");
+
+      fprintf(fp, "            out_struct->%s = val->value.i_val;\n",
+              field->name);
+
+      fprintf(fp, "        }\n");
+
+      break;
+
+    case SQL_TYPE_FLOAT:
+
+    case SQL_TYPE_DOUBLE:
+
+      fprintf(fp, "        if (val->type == CDD_C_VARIANT_TYPE_FLOAT) {\n");
+
+      fprintf(fp, "            out_struct->%s = val->value.f_val;\n",
+              field->name);
+
+      fprintf(fp, "        }\n");
+
+      break;
+
+    case SQL_TYPE_VARCHAR:
+
+    case SQL_TYPE_TEXT:
+
+      fprintf(fp, "        if (val->type == CDD_C_VARIANT_TYPE_STRING) {\n");
+
+      if (field->length > 0) {
+
+        /* Fixed buffer */
+
+        fprintf(fp,
+                "            strncpy(out_struct->%s, val->value.s_val, %u);\n",
+                field->name, (unsigned int)field->length);
+
+        fprintf(fp, "            out_struct->%s[%u - 1] = '\\0';\n",
+                field->name, (unsigned int)field->length);
+
+      } else {
+
+        /* Dynamic alloc */
+
+        fprintf(fp, "            out_struct->%s = strdup(val->value.s_val);\n",
+                field->name);
+      }
+
+      fprintf(fp, "        }\n");
+
+      break;
+
+    case SQL_TYPE_UNKNOWN:
+
+      /* Complex blobs handling stubbed for pure C string extraction mapping */
+
+      fprintf(fp, "        /* BLOB extraction handling requires external "
+                  "memory allocator mapping */\n");
+
+      break;
+
+    default:
+
+      break;
+    }
+
+    fprintf(fp, "    }\n");
+  }
+
+  fprintf(fp, "    return 0;\n");
+
+  fprintf(fp, "}\n\n");
+
+  return 0;
+}
+
+int sql_to_c_projection_dehydrate_emit(FILE *fp,
+                                       const cdd_c_query_projection_t *proj,
+                                       const char *struct_name) {
+
+  size_t i;
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  fprintf(fp,
+          "int %s_dehydrate(const %s *in_struct, cdd_c_abstract_struct_t "
+          "*out_row) {\n",
+          struct_name, struct_name);
+
+  fprintf(fp, "    cdd_c_variant_t val;\n");
+
+  fprintf(fp, "    if (!in_struct || !out_row) return -1;\n");
+
+  fprintf(fp, "    if (cdd_c_abstract_struct_init(out_row) != 0) return -1;\n");
+
+  for (i = 0; i < proj->n_fields; ++i) {
+
+    const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+    switch (field->type) {
+
+    case SQL_TYPE_INT:
+
+    case SQL_TYPE_BIGINT:
+
+    case SQL_TYPE_BOOLEAN:
+
+      fprintf(fp, "    val.type = CDD_C_VARIANT_TYPE_INT;\n");
+
+      fprintf(fp, "    val.value.i_val = in_struct->%s;\n", field->name);
+
+      break;
+
+    case SQL_TYPE_FLOAT:
+
+    case SQL_TYPE_DOUBLE:
+
+      fprintf(fp, "    val.type = CDD_C_VARIANT_TYPE_FLOAT;\n");
+
+      fprintf(fp, "    val.value.f_val = in_struct->%s;\n", field->name);
+
+      break;
+
+    case SQL_TYPE_VARCHAR:
+
+    case SQL_TYPE_TEXT:
+
+      fprintf(fp, "    val.type = CDD_C_VARIANT_TYPE_STRING;\n");
+
+      if (field->length > 0) {
+
+        fprintf(fp, "    val.value.s_val = (char*)in_struct->%s;\n",
+                field->name);
+
+      } else {
+
+        fprintf(fp, "    val.value.s_val = in_struct->%s;\n", field->name);
+      }
+
+      break;
+
+    case SQL_TYPE_UNKNOWN:
+
+      fprintf(fp,
+              "    /* Blob dehydration requires memory mapping bypass */\n");
+
+      break;
+
+    default:
+
+      continue;
+    }
+
+    fprintf(fp, "    if (cdd_c_abstract_set(out_row, \"%s\", &val) != 0) {\n",
+            field->name);
+
+    fprintf(fp, "        cdd_c_abstract_struct_free(out_row);\n");
+
+    fprintf(fp, "        return -1;\n");
+
+    fprintf(fp, "    }\n");
+  }
+
+  fprintf(fp, "    return 0;\n");
+
+  fprintf(fp, "}\n\n");
+
+  return 0;
+}
+/* To be appended to sql_to_c.c */
+
+int sql_to_c_projection_nested_struct_emit(FILE *fp,
+                                           const cdd_c_query_projection_t *proj,
+                                           const char *struct_name) {
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  /* A nested 1-to-1 struct uses the exact same codegen logic as a top level
+     projection,
+
+     just rendered within the context of an outer struct */
+
+  return sql_to_c_projection_struct_emit(fp, proj, struct_name, NULL);
+}
+
+int sql_to_c_projection_nested_array_emit(FILE *fp,
+                                          const cdd_c_query_projection_t *proj,
+                                          const char *struct_name,
+                                          const char *array_name) {
+
+  if (!fp || !proj || !struct_name || !array_name)
+    return -1;
+
+  /* First emit the base struct */
+
+  if (sql_to_c_projection_struct_emit(fp, proj, struct_name, NULL) != 0)
+    return -1;
+
+  /* Then emit the array wrapper struct used for 1-to-Many nested responses */
+
+  fprintf(fp, "/**\n");
+
+  fprintf(fp, " * @brief 1-to-Many array container for %s.\n", struct_name);
+
+  fprintf(fp, " */\n");
+
+  fprintf(fp, "typedef struct %s {\n", array_name);
+
+  fprintf(fp, "    %s *items;\n", struct_name);
+
+  fprintf(fp, "    size_t count;\n");
+
+  fprintf(fp, "    size_t capacity;\n");
+
+  fprintf(fp, "} %s;\n\n", array_name);
+
+  /* Array Deep Free handler */
+
+  fprintf(fp, "extern C_CDD_EXPORT void %s_free(%s *arr);\n\n", array_name,
+          array_name);
+
+  fprintf(fp, "void %s_free(%s *arr) {\n", array_name, array_name);
+
+  fprintf(fp, "    size_t i;\n");
+
+  fprintf(fp, "    if (!arr || !arr->items) return;\n");
+
+  fprintf(fp, "    for (i = 0; i < arr->count; ++i) {\n");
+
+  fprintf(fp, "        %s_free(&arr->items[i]);\n", struct_name);
+
+  fprintf(fp, "    }\n");
+
+  fprintf(fp, "    free(arr->items);\n");
+
+  fprintf(fp, "    arr->items = NULL;\n");
+
+  fprintf(fp, "    arr->count = 0;\n");
+
+  fprintf(fp, "    arr->capacity = 0;\n");
+
+  fprintf(fp, "}\n\n");
+
+  return 0;
+}
+
+/* To be appended to sql_to_c.c */
+
+int sql_to_c_projection_dirty_bitmask_emit(FILE *fp,
+                                           const cdd_c_query_projection_t *proj,
+                                           const char *struct_name) {
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  fprintf(fp, "/**\n");
+
+  fprintf(fp, " * @brief Bitmask struct tracking dirtied fields for %s.\n",
+          struct_name);
+
+  fprintf(fp, " */\n");
+
+  fprintf(fp, "typedef struct %s_mask {\n", struct_name);
+
+  if (proj->n_fields == 0) {
+
+    fprintf(fp, "    int _empty_mask;\n");
+
+  } else if (proj->n_fields <= 8) {
+
+    fprintf(fp, "    unsigned char mask;\n");
+
+  } else if (proj->n_fields <= 16) {
+
+    fprintf(fp, "    unsigned short mask;\n");
+
+  } else if (proj->n_fields <= 32) {
+
+    fprintf(fp, "    unsigned int mask;\n");
+
+  } else if (proj->n_fields <= 64) {
+
+    fprintf(fp, "    unsigned long long mask;\n");
+
+  } else {
+
+    size_t arr_size = (proj->n_fields / 64) + 1;
+
+    fprintf(fp, "    unsigned long long mask[%u];\n", (unsigned int)arr_size);
+  }
+
+  fprintf(fp, "} %s_mask;\n\n", struct_name);
+
+  return 0;
+}
+
+int sql_to_c_projection_union_struct_emit(FILE *fp,
+                                          const cdd_c_query_projection_t *projs,
+                                          size_t n_projs,
+                                          const char *struct_name) {
+
+  size_t i;
+
+  if (!fp || !projs || !struct_name || n_projs == 0)
+    return -1;
+
+  fprintf(fp, "/**\n");
+
+  fprintf(fp,
+          " * @brief Variant enum and struct for a SQL UNION projection.\n");
+
+  fprintf(fp, " */\n");
+
+  fprintf(fp, "typedef enum %s_type {\n", struct_name);
+
+  fprintf(fp, "    %s_TYPE_UNKNOWN = 0,\n", struct_name);
+
+  for (i = 0; i < n_projs; ++i) {
+
+    fprintf(fp, "    %s_TYPE_BRANCH_%u", struct_name, (unsigned int)i);
+
+    if (i < n_projs - 1)
+      fprintf(fp, ",");
+
+    fprintf(fp, "\n");
+  }
+
+  fprintf(fp, "} %s_type;\n\n", struct_name);
+
+  fprintf(fp, "typedef struct %s {\n", struct_name);
+
+  fprintf(fp, "    %s_type type;\n", struct_name);
+
+  fprintf(fp, "    union {\n");
+
+  for (i = 0; i < n_projs; ++i) {
+
+    fprintf(fp, "        struct {\n");
+
+    /* Inline struct body logic without full typedefs to keep it contained */
+
+    size_t j;
+
+    for (j = 0; j < projs[i].n_fields; ++j) {
+
+      const cdd_c_query_projection_field_t *field = &projs[i].fields[j];
+
+      char *c_type = NULL;
+
+      if (sql_type_to_c_type(field->type, &c_type) == 0) {
+
+        if (field->is_array) {
+
+          fprintf(fp, "            %s *%s;\n", c_type, field->name);
+
+          fprintf(fp, "            size_t %s_count;\n", field->name);
+
+        } else if (sql_type_is_string(field->type)) {
+
+          if (field->length > 0) {
+
+            fprintf(fp, "            char %s[%u];\n", field->name,
+                    (unsigned int)field->length);
+
+          } else {
+
+            fprintf(fp, "            %s %s;\n", c_type, field->name);
+          }
+
+        } else {
+
+          fprintf(fp, "            %s %s;\n", c_type, field->name);
+        }
+      }
+    }
+
+    fprintf(fp, "        } branch_%u;\n", (unsigned int)i);
+  }
+
+  fprintf(fp, "    } data;\n");
+
+  fprintf(fp, "} %s;\n\n", struct_name);
+
+  /* Auto free */
+
+  fprintf(fp, "extern C_CDD_EXPORT void %s_free(%s *obj);\n\n", struct_name,
+          struct_name);
+
+  return 0;
+}
+
+int sql_to_c_projection_polymorphic_struct_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name) {
+
+  if (!fp || !proj || !struct_name)
+    return -1;
+
+  /* Polymorphic mappings simply bind the exact target struct directly
+
+     alongside an arbitrary abstract struct payload dictionary payload to catch
+
+     undefined dynamic outputs */
+
+  fprintf(fp, "/**\n");
+
+  fprintf(fp, " * @brief Polymorphic struct capable of mapping explicit fields "
+              "and dynamic rows.\n");
+
+  fprintf(fp, " */\n");
+
+  fprintf(fp, "typedef struct %s {\n", struct_name);
+
+  fprintf(fp, "    /* Abstract mapping properties dynamically resolved */\n");
+
+  fprintf(fp, "    cdd_c_abstract_struct_t abstract_properties;\n");
+
+  fprintf(fp, "    \n");
+
+  fprintf(fp, "    /* Specific mapping properties generated strictly */\n");
+
+  /* Use direct struct output logic internally */
+
+  {
+
+    size_t i;
+
+    for (i = 0; i < proj->n_fields; ++i) {
+
+      const cdd_c_query_projection_field_t *field = &proj->fields[i];
+
+      char *c_type = NULL;
+
+      if (sql_type_to_c_type(field->type, &c_type) == 0) {
+
+        if (field->is_array) {
+
+          fprintf(fp, "    %s *%s;\n", c_type, field->name);
+
+          fprintf(fp, "    size_t %s_count;\n", field->name);
+
+        } else if (sql_type_is_string(field->type)) {
+
+          if (field->length > 0) {
+
+            fprintf(fp, "    char %s[%u];\n", field->name,
+                    (unsigned int)field->length);
+
+          } else {
+
+            fprintf(fp, "    %s %s;\n", c_type, field->name);
+          }
+
+        } else {
+
+          fprintf(fp, "    %s %s;\n", c_type, field->name);
+        }
+      }
+    }
+  }
+
+  fprintf(fp, "} %s;\n\n", struct_name);
 
   return 0;
 }

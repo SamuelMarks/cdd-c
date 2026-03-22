@@ -10176,7 +10176,8 @@ int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
 static /**
         * @brief Executes the media type is json operation.
         */
-    int media_type_is_json(const char *name) {
+    int
+    media_type_is_json(const char *name) {
   size_t _ast_media_type_base_len_66;
   size_t len;
   if (!name)
@@ -10269,8 +10270,9 @@ int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, str
 static /**
         * @brief Executes the select primary media type index operation.
         */
-    int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
-                                        size_t n) {
+    int
+    select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
+                                    size_t n) {
   size_t i;
   int best_idx = -1;
   int best_spec = -1;

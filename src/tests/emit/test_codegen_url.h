@@ -3,14 +3,12 @@
  * @brief Unit tests for the URL Code Generator and Query logic.
  */
 
-/* clang-format off */
 #ifndef TEST_CODEGEN_URL_H
 #define TEST_CODEGEN_URL_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,7 +18,6 @@ extern "C" {
 
 #include "openapi/parse/openapi.h"
 #include "routes/emit/url.h"
-/* clang-format on */
 /* clang-format on */
 
 static int gen_url_code(const char *tmpl,

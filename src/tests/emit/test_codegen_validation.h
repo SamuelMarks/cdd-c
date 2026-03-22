@@ -1,11 +1,9 @@
-/* clang-format off */
 #ifndef TEST_CODEGEN_VALIDATION_H
 #define TEST_CODEGEN_VALIDATION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -14,7 +12,6 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/codegen.h"
-/* clang-format on */
 /* clang-format on */
 
 /* Helper: generate code and return as buffer */

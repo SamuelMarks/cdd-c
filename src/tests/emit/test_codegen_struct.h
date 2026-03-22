@@ -8,14 +8,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_CODEGEN_STRUCT_H
 #define TEST_CODEGEN_STRUCT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -24,7 +22,6 @@ extern "C" {
 #include <string.h>
 
 #include "classes/emit/struct.h"
-/* clang-format on */
 /* clang-format on */
 
 static void setup_struct_fields(struct StructFields *sf) {

@@ -1,11 +1,9 @@
-/* clang-format off */
 #ifndef TEST_CODEGEN_ROOT_ARRAYS_H
 #define TEST_CODEGEN_ROOT_ARRAYS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -14,7 +12,6 @@ extern "C" {
 #include <string.h>
 
 #include "classes/emit/types.h"
-/* clang-format on */
 /* clang-format on */
 
 /* Helper to capture output. Updated signature to match codegen_types functions.
