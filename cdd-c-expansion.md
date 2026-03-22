@@ -1,3 +1,5 @@
+> **Note:** This plan has been fully implemented and its features are now part of the core cdd-c functionality.
+
 # Exhaustive Expansion Plan for `cdd-c` (CST Weaver for MSVC Migration)
 
 To achieve PR-ready, pre-processor-intertwined code that upstream maintainers will accept, `cdd-c` must evolve from a standard parser/generator into an **Advanced Concrete Syntax Tree (CST) Weaver**. Standard AST parsers discard whitespace, comments, and macro expansions, which destroys the original formatting. To generate acceptable patches, `cdd-c` must preserve the exact byte-for-byte layout of unmodified code while cleanly injecting MSVC/Windows compatibility layers.
@@ -82,3 +84,4 @@ Here is the exhaustive roadmap for extending `cdd-c` to perfectly support the `a
 1. [x] **Parser Token Attachment:** Validate the current parsing engine's ability to retain whitespace/comments. If it drops them, switch the backend parser immediately to a CST-friendly one (e.g., adapting an existing library like `tree-sitter-c` with a token preservation layer, or extending a Clang-based LibTooling approach).
 2. [x] **Weaver Proof-of-Concept:** Implement the `Weaver Engine` primitive to successfully wrap a single `printf("hello")` into an `#ifdef _MSC_VER` block and write it back to disk perfectly formatted.
 3. [x] **Macro AST Overlay:** Implement the architecture for dual-representing macro invocations (the raw text tokens vs. the expanded syntax tree) so `#define` logic isn't destroyed during rewrites.
+

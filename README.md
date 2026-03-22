@@ -91,7 +91,7 @@ The `cdd-c` project uses a fully custom whitespace, comment, and macro sensitive
 | `C` Models / Structs / Types | ✅ | ✅ |
 | `C` Server Routes / Endpoints | ✅ | ✅ |
 | `C` API Clients / SDKs | ✅ | ✅ |
-| `C` ORM / DB Schemas | [ ] | [ ] |
+| `C` ORM / DB Schemas | ✅ | ✅ |
 | `C` CLI Argument Parsers | [ ] | ✅ |
 | `C` Docstrings / Comments | ✅ | ✅ |
 
