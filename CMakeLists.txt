@@ -261,27 +261,22 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     set(BUILD_SHARED_LIBS ${OLD_BSL})
     include_directories(${parson_SOURCE_DIR})
 
-    # civetweb
-    FetchContent_Declare(
-        civetweb
-        GIT_REPOSITORY https://github.com/civetweb/civetweb.git
-        GIT_TAG master
-        GIT_CONFIG core.autocrlf=false
-    )
-    if(MSVC AND MSVC_VERSION LESS 1600 OR CMAKE_C_COMPILER_ID MATCHES "Watcom")
-        FetchContent_MakeAvailable(civetweb)
-        include_directories(${civetweb_SOURCE_DIR}/include)
+    # c-rest-framework
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework")
+        FetchContent_Declare(
+            c_rest_framework
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework"
+        )
     else()
-        set(CIVETWEB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-        set(CIVETWEB_ENABLE_CXX OFF CACHE BOOL "" FORCE)
-        set(CIVETWEB_ALLOW_WARNINGS ON CACHE BOOL "" FORCE)
-        set(CIVETWEB_ENABLE_SERVER_EXECUTABLE OFF CACHE BOOL "" FORCE)
-        # Prevent strict C89 flags from ruining civetweb
-        set(CMAKE_C_STANDARD 99)
-        FetchContent_MakeAvailable(civetweb)
-        set(CMAKE_C_STANDARD 90)
-        include_directories(${civetweb_SOURCE_DIR}/include)
+        FetchContent_Declare(
+            c_rest_framework
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-rest-framework.git
+            GIT_TAG master
+            GIT_CONFIG core.autocrlf=false
+        )
     endif()
+    FetchContent_MakeAvailable(c_rest_framework)
+    include_directories("${c_rest_framework_SOURCE_DIR}/include")
     if(TARGET parson AND NOT TARGET parson::parson)
         add_library(parson::parson ALIAS parson)
     endif()
