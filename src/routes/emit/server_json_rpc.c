@@ -22,10 +22,10 @@
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-#endif
-#endif
-#endif
 /* clang-format on */
+#endif
+#endif
+#endif
 
 #if defined(__WATCOMC__) || defined(__DOS__)
 typedef int cdd_socket_t;

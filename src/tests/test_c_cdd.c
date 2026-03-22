@@ -95,6 +95,12 @@
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
 #include "parse/test_migration.h"
+#include "parse/test_abstract_struct.h"
+#include "parse/test_query_projection.h"
+#include "parse/test_cdd_c_ir.h"
+#include "parse/test_hydrate_router.h"
+#include "emit/test_sql_to_c.h"
+#include "emit/test_sql_to_c_proj.h"
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
@@ -148,6 +154,12 @@ int main(int argc, char **argv) {
   RUN_SUITE(refactor_suite);
   RUN_SUITE(rewriter_body_suite);
   RUN_SUITE(rewriter_sig_suite);
+  RUN_SUITE(abstract_struct_suite);
+  RUN_SUITE(query_projection_suite);
+  RUN_SUITE(cdd_c_ir_suite);
+  RUN_SUITE(hydrate_router_suite);
+  RUN_SUITE(sql_to_c_suite);
+  RUN_SUITE(sql_to_c_proj_suite);
   RUN_SUITE(schema2tests_suite);
   RUN_SUITE(schema_codegen_suite);
   RUN_SUITE(schema_constraints_suite);

@@ -9,14 +9,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_CRYPTO_H
 #define TEST_CRYPTO_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <errno.h>
@@ -26,7 +24,6 @@ extern "C" {
 #include <string.h>
 
 #include "functions/parse/crypto_types.h"
-/* clang-format on */
 /* clang-format on */
 
 /* Helpers */
