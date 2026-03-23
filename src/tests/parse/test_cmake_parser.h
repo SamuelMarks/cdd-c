@@ -3,6 +3,7 @@
  * @brief Unit tests for CMake parser modifications.
  */
 
+/* clang-format off */
 #ifndef TEST_CMAKE_PARSER_H
 #define TEST_CMAKE_PARSER_H
 
@@ -10,11 +11,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 /* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/cmake_parser.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cmake_modifier_basic(void) {

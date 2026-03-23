@@ -3,12 +3,14 @@
  * @brief Unit tests for Client Body Logic Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_CLIENT_BODY_H
 #define TEST_CODEGEN_CLIENT_BODY_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -19,6 +21,7 @@ extern "C" {
 #include "classes/emit/struct.h"
 #include "functions/emit/client_body.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 static int gen_body(const struct OpenAPI_Operation *op,

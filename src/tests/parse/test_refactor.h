@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_REFACTOR_H
 #define TEST_REFACTOR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <errno.h>
@@ -12,6 +14,7 @@ extern "C" {
 #include <string.h>
 
 #include "functions/parse/refactor.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_refactor_context_lifecycle(void) {

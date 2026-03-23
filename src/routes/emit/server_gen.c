@@ -43,7 +43,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include <c_rest_modality.h>\n");
+  fprintf(fp, "#include <civetweb.h>\n");
   fprintf(fp, "#include <c_rest_request.h>\n");
   fprintf(fp, "#include <c_rest_response.h>\n");
   fprintf(fp, "#include <c_rest_router.h>\n\n");
@@ -175,14 +175,16 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
               " * @brief Auto-generated code from OpenAPI specification\n"
               " */\n"
               "int main(int argc, char **argv) {\n");
-  fprintf(fp, "    struct c_rest_context *ctx = NULL;\n");
-  fprintf(fp, "    int rc;\n");
+  fprintf(fp, "    const char *options[15];\n");
+  fprintf(fp, "    struct mg_callbacks callbacks;\n");
+  fprintf(fp, "    struct mg_context *ctx;\n");
   fprintf(fp, "    int i;\n");
   fprintf(fp, "    const char *port_str = \"8080\";\n");
   fprintf(fp, "    const char *db_path = \"oauth.db\";\n");
   fprintf(fp, "    const char *cert_path = NULL;\n");
   fprintf(fp, "    const char *key_path = NULL;\n");
   fprintf(fp, "    const char *threads_str = \"4\";\n");
+  fprintf(fp, "    int opt_idx = 0;\n\n");
   fprintf(fp, "    for (i = 1; i < argc; i++) {\n");
   fprintf(fp,
           "        if (strcmp(argv[i], \"--port\") == 0 && i + 1 < argc) {\n");
@@ -201,20 +203,29 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "            threads_str = argv[++i];\n");
   fprintf(fp, "        }\n");
   fprintf(fp, "    }\n\n");
-  fprintf(fp, "    (void)db_path; /* Will be used in init_db() */\n");
-  fprintf(fp, "    (void)cert_path; /* TODO: apply TLS config */\n");
-  fprintf(fp, "    (void)key_path; /* TODO: apply TLS config */\n");
-  fprintf(fp, "    (void)threads_str;\n\n");
+  fprintf(fp, "    (void)db_path; /* Will be used in init_db() */\n\n");
+  fprintf(fp, "    options[opt_idx++] = \"document_root\";\n");
+  fprintf(fp, "    options[opt_idx++] = \".\";\n");
+  fprintf(fp, "    options[opt_idx++] = \"listening_ports\";\n");
+  fprintf(fp, "    options[opt_idx++] = port_str;\n");
+  fprintf(fp, "    options[opt_idx++] = \"num_threads\";\n");
+  fprintf(fp, "    options[opt_idx++] = threads_str;\n");
+  fprintf(fp, "    if (cert_path && key_path) {\n");
+  fprintf(fp, "        options[opt_idx++] = \"ssl_certificate\";\n");
+  fprintf(fp, "        options[opt_idx++] = cert_path;\n");
+  fprintf(fp, "    }\n");
+  fprintf(fp, "    options[opt_idx] = 0;\n\n");
+
   fprintf(fp, "    init_db();\n\n");
 
-  fprintf(fp, "    rc = c_rest_init(C_REST_MODALITY_MULTI_THREAD, &ctx);\n");
-  fprintf(fp, "    if (rc != 0) {\n");
+  fprintf(fp, "    memset(&callbacks, 0, sizeof(callbacks));\n");
+  fprintf(fp, "    ctx = mg_start(&callbacks, 0, options);\n");
+  fprintf(fp, "    if (ctx == NULL) {\n");
   fprintf(
       fp,
-      "        fprintf(stderr, \"Failed to start server framework.\\n\");\n");
+      "        fprintf(stderr, \"Failed to start CivetWeb server.\\n\");\n");
   fprintf(fp, "        return 1;\n");
-  fprintf(fp, "    }\n");
-  fprintf(fp, "    ctx->listen_port = (unsigned short)atoi(port_str);\n\n");
+  fprintf(fp, "    }\n\n");
 
   fprintf(fp, "    {\n");
   fprintf(fp, "        c_rest_router *router = NULL;\n");
@@ -249,18 +260,16 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  fprintf(fp, "            c_rest_set_router(ctx, router);\n");
-  fprintf(fp, "            printf(\"Server listening on port %%s... Press "
-              "Ctrl+C to exit.\\n\", port_str);\n");
-  fprintf(fp, "            rc = c_rest_run(ctx);\n");
-  fprintf(fp, "            if (rc != 0) {\n");
-  fprintf(fp, "                fprintf(stderr, \"Server error.\\n\");\n");
-  fprintf(fp, "            }\n");
+  fprintf(fp, "            /* TODO: bind router to CivetWeb (e.g. via c_rest "
+              "dispatch middleware) */\n");
   fprintf(fp, "            c_rest_router_destroy(router);\n");
   fprintf(fp, "        }\n");
   fprintf(fp, "    }\n\n");
 
-  fprintf(fp, "    c_rest_destroy(ctx);\n");
+  fprintf(fp, "    printf(\"Server listening on port 8080... Press enter to "
+              "exit.\\n\");\n");
+  fprintf(fp, "    getchar();\n");
+  fprintf(fp, "    mg_stop(ctx);\n");
   fprintf(fp, "    return 0;\n");
   fprintf(fp, "}\n");
 

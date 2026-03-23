@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_PROJECT_AUDIT_H
 #define TEST_PROJECT_AUDIT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -13,6 +15,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/fs.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_audit_stats_init(void) {

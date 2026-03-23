@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_TOKENIZER_TRIGRAPHS_H
 #define TEST_TOKENIZER_TRIGRAPHS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <stdio.h>
@@ -15,6 +17,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper setup */

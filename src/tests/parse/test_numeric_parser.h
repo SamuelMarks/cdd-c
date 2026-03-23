@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <errno.h>
@@ -15,6 +17,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "classes/parse/numeric.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper to check float equality with epsilon */

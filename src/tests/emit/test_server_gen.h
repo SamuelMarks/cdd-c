@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_SERVER_GEN_H
 #define TEST_SERVER_GEN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -14,6 +16,7 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 #include "routes/emit/orm_gen.h"
 #include "routes/emit/server_gen.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_orm_gen_basic(void) {

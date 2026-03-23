@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_PREPROCESSOR_H
 #define TEST_PREPROCESSOR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <stdio.h>
@@ -16,6 +18,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)

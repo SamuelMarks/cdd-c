@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_FS_H
 #define TEST_FS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include "cdd_test_helpers/cdd_helpers.h"
@@ -19,6 +21,7 @@ extern "C" {
 #ifndef _MSC_VER
 #include <sys/stat.h>
 #endif /* !_MSC_VER */
+/* clang-format on */
 /* clang-format on */
 
 TEST test_get_basename(void) {

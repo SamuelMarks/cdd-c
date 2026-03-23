@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_REWRITER_BODY_H
 #define TEST_REWRITER_BODY_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -13,6 +15,7 @@ extern "C" {
 #include "functions/emit/rewriter_body.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 static int run_body_rewrite(const char *code,

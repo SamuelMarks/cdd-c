@@ -3,6 +3,7 @@
  * @brief Tests for SQL to C struct emission.
  */
 
+/* clang-format off */
 #ifndef C_CDD_TEST_SQL_TO_C_H
 #define C_CDD_TEST_SQL_TO_C_H
 
@@ -10,10 +11,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 /* clang-format off */
 #include "classes/emit/sql_to_c.h"
 #include <greatest.h>
 #include <string.h>
+/* clang-format on */
 /* clang-format on */
 
 TEST test_sql_to_c_header_emit(void) {

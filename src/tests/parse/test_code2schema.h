@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef signed __int8 int8_t;
@@ -29,6 +31,7 @@ typedef unsigned __int64 uint64_t;
 #include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
 #include <cdd_test_helpers/cdd_helpers.h>
+/* clang-format on */
 /* clang-format on */
 
 /* Updated test cases to reflect new return types (int vs void) */

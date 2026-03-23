@@ -5,6 +5,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef CODE2SCHEMA_H
 
 #define CODE2SCHEMA_H
@@ -65,6 +66,7 @@ typedef unsigned char bool;
 #include <c_cdd_export.h>
 
 #include "functions/emit/codegen.h"
+/* clang-format on */
 /* clang-format on */
 
 /**

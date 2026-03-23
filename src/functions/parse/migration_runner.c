@@ -20,6 +20,7 @@
 #include "classes/parse/migration.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
+/* clang-format on */
 
 #if defined(USE_LIBPQ_LINKED) || defined(USE_LIBPQ_DYNAMIC)
 
@@ -33,9 +34,7 @@
 #pragma warning(pop)
 #else
 #include <dlfcn.h>
-#include <time.h>
 #endif
-/* clang-format on */
 
 typedef struct pg_conn PGconn;
 typedef struct pg_result PGresult;
@@ -703,6 +702,7 @@ int rollback_last_migration(const char *migrations_dir) {
 
   return 0;
 }
+#include <time.h>
 
 /**
  * @brief Executes the create migration file operation.

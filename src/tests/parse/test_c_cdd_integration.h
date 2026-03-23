@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_C_CDD_INTEGRATION_H
 #define TEST_C_CDD_INTEGRATION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -21,6 +23,7 @@ extern "C" {
 #include "functions/parse/audit.h"
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /**

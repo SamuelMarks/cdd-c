@@ -97,9 +97,9 @@ static void platform_cleanup(void) { WSACleanup(); }
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
+#endif
+#endif
 /* clang-format on */
-#endif
-#endif
 
 typedef int socket_t;
 typedef pthread_t thread_t;

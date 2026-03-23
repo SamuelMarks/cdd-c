@@ -3,12 +3,14 @@
  * @brief Unit tests for Vcpkg Integration Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_VCPKG_INTEGRATION_H
 #define TEST_VCPKG_INTEGRATION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -54,6 +56,7 @@ TEST test_vcpkg_builder_duplicate(void) {
 #ifndef _MSC_VER
 #include <pthread.h>
 #endif
+                /* clang-format on */
                 /* clang-format on */
                 ";
 
