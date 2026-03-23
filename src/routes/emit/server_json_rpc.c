@@ -1,3 +1,4 @@
+#ifndef __wasi__
 /* clang-format off */
 #include "server_json_rpc.h"
 #include <parson.h>
@@ -138,3 +139,8 @@ C_CDD_EXPORT int server_json_rpc_main(int argc, char **argv) {
   return 0;
 #endif
 }
+
+#else
+#include "server_json_rpc.h"
+int server_json_rpc_main(int argc, char **argv) { return -1; }
+#endif

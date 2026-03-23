@@ -77,11 +77,22 @@ bin\cdd-c.exe %ARGS%
 goto end
 
 :build_wasm
-if not exist "build_wasm" mkdir build_wasm
+echo Building WASM via wasi-sdk...
+if not exist "wasi-sdk" (
+    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-x86_64-windows.tar.gz' -OutFile 'wasi-sdk.tar.gz'"
+    powershell -Command "tar xf wasi-sdk.tar.gz"
+    powershell -Command "Move-Item -Path 'wasi-sdk-24.0*' -Destination 'wasi-sdk'"
+    powershell -Command "Remove-Item 'wasi-sdk.tar.gz'"
+)
+powershell -Command "(Get-Content wasi-sdk/share/cmake/wasi-sdk.cmake) -replace 'VERSION 3.4.0', 'VERSION 3.11' | Set-Content wasi-sdk/share/cmake/wasi-sdk.cmake"
+if exist "build_wasm" rmdir /S /Q build_wasm
+mkdir build_wasm
 cd build_wasm
-call emcmake cmake ..
-cmake --build .
+cmake .. -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake -DCMAKE_C_FLAGS="-DCFS_OS_DOS=1 -include sys/types.h -include unistd.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" -DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" -DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_MULTI_THREADED=OFF -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build . --target cdd-c
 cd ..
+if not exist "bin" mkdir bin
+copy build_wasm\cdd-c bin\cdd-c.wasm
 goto end
 
 :build_docker
