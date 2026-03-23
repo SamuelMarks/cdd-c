@@ -12,7 +12,6 @@
 
 #ifdef __cplusplus
 
-/* clang-format off */
 #include <cstdlib>
 
 #include <cstring>
@@ -66,7 +65,6 @@ typedef unsigned char bool;
 #include <c_cdd_export.h>
 
 #include "functions/emit/codegen.h"
-/* clang-format on */
 /* clang-format on */
 
 /**

@@ -4,14 +4,12 @@
  * @brief Tests for the to_docs_json CLI functionality.
  */
 
-/* clang-format off */
 #ifndef C_CDD_TEST_TO_DOCS_JSON_H
 #define C_CDD_TEST_TO_DOCS_JSON_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include "functions/parse/fs.h"
@@ -28,7 +26,6 @@ extern "C" {
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-/* clang-format on */
 #endif
 /* clang-format on */
 

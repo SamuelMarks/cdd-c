@@ -13,7 +13,9 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "classes/parse/sql.h"
-#include "classes/emit/c_orm_meta.h"
+#include "classes/emit/cdd_c_orm_meta.h"
+#include "classes/parse/query_projection.h"
+#include "classes/parse/abstract_struct.h"
 #include <stdio.h>
 /* clang-format on */
 
@@ -64,6 +66,35 @@ C_CDD_EXPORT int sql_to_c_header_emit(FILE *fp,
  */
 C_CDD_EXPORT int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
                                       const char *header_name);
+
+C_CDD_EXPORT int
+sql_to_c_projection_struct_emit(FILE *fp, const cdd_c_query_projection_t *proj,
+                                const char *struct_name,
+                                unsigned long long *out_hash);
+C_CDD_EXPORT int
+sql_to_c_projection_free_emit(FILE *fp, const cdd_c_query_projection_t *proj,
+                              const char *struct_name);
+C_CDD_EXPORT int
+sql_to_c_projection_meta_emit(FILE *fp, const cdd_c_query_projection_t *proj,
+                              const char *struct_name);
+C_CDD_EXPORT int
+sql_to_c_projection_hydrate_emit(FILE *fp, const cdd_c_query_projection_t *proj,
+                                 const char *struct_name);
+C_CDD_EXPORT int sql_to_c_projection_dehydrate_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
+C_CDD_EXPORT int sql_to_c_projection_nested_struct_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
+C_CDD_EXPORT int sql_to_c_projection_nested_array_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name,
+    const char *array_name);
+C_CDD_EXPORT int sql_to_c_projection_dirty_bitmask_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
+C_CDD_EXPORT int
+sql_to_c_projection_union_struct_emit(FILE *fp,
+                                      const cdd_c_query_projection_t *projs,
+                                      size_t n_projs, const char *struct_name);
+C_CDD_EXPORT int sql_to_c_projection_polymorphic_struct_emit(
+    FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
 
 #ifdef __cplusplus
 }

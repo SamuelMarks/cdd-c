@@ -104,3 +104,5 @@ __pycache__/
 target/
 .idea/
 wasi-sdk/
+
+# Temporary scripts\n*.js\n*.diff\n*.obj\n*.bat\n

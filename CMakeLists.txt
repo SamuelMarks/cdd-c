@@ -1,15 +1,21 @@
 
 cmake_minimum_required(VERSION 3.11)
-project(c_cdd VERSION 0.0.1)
+project(c_cdd VERSION 0.0.1 LANGUAGES C)
+
+if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -zm -zc -mh")
+endif()
+
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
     FetchContent_Declare(
         cfs
         URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
     set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
     FetchContent_MakeAvailable(cfs)
-    include_directories(${cfs_SOURCE_DIR}/include)
+    include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
 endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
@@ -218,30 +224,37 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     FetchContent_Declare(
         c_str_span
-        GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
-        GIT_TAG master
-        GIT_CONFIG core.autocrlf=false
+        URL https://github.com/SamuelMarks/c-str-span/archive/refs/heads/master.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
     FetchContent_MakeAvailable(c_str_span)
-    include_directories(${c_str_span_SOURCE_DIR})
+    include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
 
     # c89stringutils
     FetchContent_Declare(
         c89stringutils
-        GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-        GIT_TAG master
-        GIT_CONFIG core.autocrlf=false
+        URL https://github.com/offscale/c89stringutils/archive/refs/heads/master.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
     FetchContent_MakeAvailable(c89stringutils)
-    include_directories(${c89stringutils_SOURCE_DIR}/c89stringutils)
+    include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
 
     # curl
     if (C_CDD_USE_LIBCURL)
-        FetchContent_Declare(
-            curl
-            GIT_REPOSITORY https://github.com/curl/curl.git
-            GIT_TAG curl-8_4_0
-        )
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../curl")
+            FetchContent_Declare(
+                curl
+                SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../curl"
+            )
+        else()
+            FetchContent_Declare(
+                curl
+                GIT_REPOSITORY https://github.com/curl/curl.git
+                GIT_TAG curl-8_4_0
+            )
+        endif()
         set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
         set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
         set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
@@ -251,16 +264,15 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     # parson
     FetchContent_Declare(
         parson
-        GIT_REPOSITORY https://github.com/kgabis/parson.git
-        GIT_TAG master
-        GIT_CONFIG core.autocrlf=false
+        URL https://github.com/kgabis/parson/archive/refs/heads/master.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
     set(OLD_BSL ${BUILD_SHARED_LIBS})
     set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(parson)
     set(BUILD_SHARED_LIBS ${OLD_BSL})
-    include_directories(${parson_SOURCE_DIR})
-
+    include_directories(SYSTEM ${parson_SOURCE_DIR})
     if(TARGET parson AND NOT TARGET parson::parson)
         add_library(parson::parson ALIAS parson)
     endif()
@@ -273,9 +285,47 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif ()
     
     # We still keep the module path just in case
-
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
+    # c-rest-framework
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework")
+        FetchContent_Declare(
+            c_rest_framework
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework"
+        )
+    else()
+        FetchContent_Declare(
+            c_rest_framework
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-rest-framework.git
+            GIT_TAG master
+            GIT_CONFIG core.autocrlf=false
+        )
+    endif()
+    FetchContent_MakeAvailable(c_rest_framework)
+    include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
+
+    # c-orm
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-orm")
+        FetchContent_Declare(
+            c_orm
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../c-orm"
+        )
+    else()
+        FetchContent_Declare(
+            c_orm
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
+            GIT_TAG master
+            GIT_CONFIG core.autocrlf=false
+        )
+    endif()
+    set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
+    set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)
+    FetchContent_MakeAvailable(c_orm)
+    include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
+
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
+
+
 
 # configure a header file to pass the version number only
 configure_file(
@@ -300,9 +350,9 @@ enable_testing()
 
 option(BUILD_TESTING "Build the tests" OFF)
 option(C_CDD_BUILD_TESTING "Build the tests" OFF)
-if (C_CDD_BUILD_TESTING)
+if (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
     add_subdirectory("src/tests")
-endif (C_CDD_BUILD_TESTING)
+endif (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 
 ###########
 # Install #

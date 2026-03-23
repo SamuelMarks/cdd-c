@@ -83,6 +83,10 @@ set(Source_Files
         "functions/parse/migration_runner.c"
         "classes/emit/sql_to_c.c"
         "classes/parse/code2schema.c"
+        "classes/parse/query_projection.c"
+        "classes/parse/hydrate_router.c"
+        "classes/parse/cdd_c_ir.c"
+        "classes/parse/abstract_struct.c"
         "functions/emit/codegen.c"
         "functions/emit/build.c"
         "functions/emit/client_body.c"
@@ -377,10 +381,12 @@ set(EXEC_NAME "cdd-c")
 set(Cli_Source_Files "bin_cdd.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
+endif()
 
 if(NOT TARGET parson)
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)

@@ -12,14 +12,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_DOC_PARSER_H
 #define TEST_DOC_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -28,7 +26,6 @@ extern "C" {
 #include <string.h>
 
 #include "docstrings/parse/doc.h"
-/* clang-format on */
 /* clang-format on */
 
 /* --- Test Helpers --- */
