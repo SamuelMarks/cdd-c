@@ -3,7 +3,6 @@
  * @brief Unit tests for designated initializer analysis.
  */
 
-/* clang-format off */
 #ifndef TEST_DESIG_INIT_H
 #define TEST_DESIG_INIT_H
 
@@ -11,14 +10,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/desig_init.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_scan_for_designated_initializers_basic(void) {

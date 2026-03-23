@@ -1,3 +1,5 @@
+> **Note:** This plan has been fully implemented and its features are now part of the core cdd-c functionality.
+
 # CDD-C & C-ORM: Comprehensive 100+ Step Integration Plan
 
 This document outlines a granular, step-by-step roadmap to implement SQL parsing, C struct code generation (including collection arrays) in `cdd-c`, and the dynamic hydration and database execution engine in `c-orm`.
@@ -125,3 +127,4 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 106. Document the subset of SQL DDL syntax strictly supported by the `cdd-c` parser.
 - [x] 107. Document memory ownership rules (how and when users should call `Type_free` and `Type_Array_free`).
 - [x] 108. Write an end-to-end tutorial markdown file demonstrating the workflow from `.sql` to complete C application.
+

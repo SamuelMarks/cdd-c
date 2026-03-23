@@ -1,11 +1,9 @@
-/* clang-format off */
 #ifndef TEST_SERVER_JSON_RPC_H
 #define TEST_SERVER_JSON_RPC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -28,7 +26,6 @@ extern "C" {
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-/* clang-format on */
 #endif
 #endif
 #endif

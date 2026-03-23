@@ -8,14 +8,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_GENERATE_BUILD_SYSTEM_H
 #define TEST_GENERATE_BUILD_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -26,7 +24,6 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/emit/build_system.h"
 #include "functions/parse/fs.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_gen_cmake_basic(void) {

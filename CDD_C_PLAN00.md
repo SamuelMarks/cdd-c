@@ -1,3 +1,5 @@
+> **Note:** This plan has been fully implemented and its features are now part of the core cdd-c functionality.
+
 # CDD-C Plan: Database Schema & Migration Management (Steps 1-15)
 
 To support live database introspection in `c-orm`, `cdd-c` must provide a reliable way to define, migrate, and spin up a development database schema. The codegen tool needs a living database with the correct schema to interrogate.
@@ -22,3 +24,4 @@ To support live database introspection in `c-orm`, `cdd-c` must provide a reliab
 - [x] **Step 13:** Add support for seeding the database with test data (e.g., `seeds.sql`).
 - [x] **Step 14:** Write unit and integration tests for the migration runner to ensure schema integrity.
 - [x] **Step 15:** Document `cdd-c` usage specifically tailored to how it prepares the database for `c-orm` type introspection.
+

@@ -28,7 +28,6 @@
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
-/* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
@@ -5383,6 +5382,7 @@ int setup_test_db_cli_main(int argc, char **argv) {
 }
 
 #include "classes/emit/sql_to_c.h"
+/* clang-format on */
 
 /**
  * @brief Executes the sql2c main operation.

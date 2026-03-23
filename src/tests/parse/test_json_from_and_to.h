@@ -1,4 +1,3 @@
-/* clang-format off */
 #ifndef TEST_JSON_FROM_AND_TO_H
 #define TEST_JSON_FROM_AND_TO_H
 
@@ -6,12 +5,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /* clang-format off */
 #include <mocks/emit/simple_json.h>
 
 #include <greatest.h>
-/* clang-format on */
 /* clang-format on */
 
 TEST test_enum_tank_to_str_and_from_str(void) {

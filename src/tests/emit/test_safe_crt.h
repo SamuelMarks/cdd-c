@@ -3,14 +3,12 @@
  * @brief Unit tests for Safe CRT transformations.
  */
 
-/* clang-format off */
 #ifndef TEST_SAFE_CRT_H
 #define TEST_SAFE_CRT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,7 +18,6 @@ extern "C" {
 
 #include "functions/emit/safe_crt.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 /* clang-format on */
 
 TEST test_safe_crt_strcpy(void) {

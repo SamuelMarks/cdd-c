@@ -1,11 +1,9 @@
-/* clang-format off */
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <assert.h>
@@ -17,7 +15,6 @@ extern "C" {
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/tokenizer.h"
-/* clang-format on */
 /* clang-format on */
 
 static /**

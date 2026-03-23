@@ -1,5 +1,5 @@
-#ifndef __wasi__
 /* clang-format off */
+#ifndef __wasi__
 #include "server_json_rpc.h"
 #include <parson.h>
 #include <stdio.h>
@@ -26,7 +26,6 @@
 #endif
 #endif
 #endif
-/* clang-format on */
 
 #if defined(__WATCOMC__) || defined(__DOS__)
 typedef int cdd_socket_t;
@@ -142,5 +141,6 @@ C_CDD_EXPORT int server_json_rpc_main(int argc, char **argv) {
 
 #else
 #include "server_json_rpc.h"
+/* clang-format on */
 int server_json_rpc_main(int argc, char **argv) { return -1; }
 #endif

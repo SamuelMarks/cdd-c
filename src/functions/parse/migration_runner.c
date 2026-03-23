@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file migration_runner.c
  * @brief Implementation of database migrations logic using libpq.
  *
@@ -20,7 +20,6 @@
 #include "classes/parse/migration.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
-/* clang-format on */
 
 #if defined(USE_LIBPQ_LINKED) || defined(USE_LIBPQ_DYNAMIC)
 
@@ -703,6 +702,7 @@ int rollback_last_migration(const char *migrations_dir) {
   return 0;
 }
 #include <time.h>
+/* clang-format on */
 
 /**
  * @brief Executes the create migration file operation.

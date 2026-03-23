@@ -8,14 +8,12 @@
  * @author Samuel Marks
  */
 
-/* clang-format off */
 #ifndef TEST_ANALYSIS_H
 #define TEST_ANALYSIS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 /* clang-format off */
 #include <greatest.h>
@@ -25,7 +23,6 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 
 #include <errno.h>
-/* clang-format on */
 /* clang-format on */
 
 static int setup_analysis_tokens(const char *code,
