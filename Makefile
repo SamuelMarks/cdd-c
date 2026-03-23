@@ -44,8 +44,26 @@ run: build
 	$(CLI_BIN) $(ARGS)
 
 build_wasm:
-	mkdir -p build_wasm
-	cd build_wasm && emcmake cmake .. && cmake --build .
+	@echo "Building WASM via wasi-sdk..."
+	@if [ ! -d "wasi-sdk" ]; then \
+		OS_NAME=$$(uname -s | tr A-Z a-z); \
+		if [ "$$OS_NAME" = "darwin" ]; then WASI_OS="macos"; else WASI_OS="linux"; fi; \
+		curl -L -O "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-arm64-$${WASI_OS}.tar.gz" || \
+		curl -L -O "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-x86_64-$${WASI_OS}.tar.gz"; \
+		tar xf wasi-sdk-24.0-*-$${WASI_OS}.tar.gz; \
+		rm wasi-sdk-24.0-*-$${WASI_OS}.tar.gz; \
+		mv wasi-sdk-24.0* wasi-sdk; \
+	fi
+	@sed -i.bak 's/VERSION 3.4.0/VERSION 3.11/g' wasi-sdk/share/cmake/wasi-sdk.cmake || true
+	rm -rf build_wasm && mkdir -p build_wasm
+	cd build_wasm && cmake .. -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
+		-DCMAKE_C_FLAGS="-DCFS_OS_DOS=1 -include sys/types.h -include unistd.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
+		-DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
+		-DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_MULTI_THREADED=OFF \
+		-DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+	cd build_wasm && $(MAKE) cdd-c
+	mkdir -p bin
+	cp build_wasm/bin/cdd-c bin/cdd-c.wasm
 
 build_docker:
 	docker build -t cdd-c:alpine -f alpine.Dockerfile .

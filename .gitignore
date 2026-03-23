@@ -103,3 +103,4 @@ __pycache__/
 *.so
 target/
 .idea/
+wasi-sdk/
