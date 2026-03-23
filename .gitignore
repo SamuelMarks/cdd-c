@@ -105,4 +105,17 @@ target/
 .idea/
 wasi-sdk/
 
-# Temporary scripts\n*.js\n*.diff\n*.obj\n*.bat\n
+# Temporary scripts
+*.js
+*.diff
+*.obj
+*.bat
+*ci_out*.txt
+build_out*.txt
+test.json
+tokenizer.json
+test_tokenizer_generated.h
+test_proc.cmake
+coverage.js
+coverage.css
+c-orm/

@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
 
+option(BUILD_TESTING "Build the tests" ON)
+option(C_CDD_BUILD_TESTING "Build the tests" ON)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -zm -zc -mh")
 endif()
@@ -243,18 +246,11 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     # curl
     if (C_CDD_USE_LIBCURL)
-        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../curl")
-            FetchContent_Declare(
-                curl
-                SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../curl"
-            )
-        else()
-            FetchContent_Declare(
-                curl
-                GIT_REPOSITORY https://github.com/curl/curl.git
-                GIT_TAG curl-8_4_0
-            )
-        endif()
+        FetchContent_Declare(
+            curl
+            GIT_REPOSITORY https://github.com/curl/curl.git
+            GIT_TAG curl-8_4_0
+        )
         set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
         set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
         set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
@@ -286,41 +282,34 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     
     # We still keep the module path just in case
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-
-    # c-rest-framework
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework")
-        FetchContent_Declare(
-            c_rest_framework
-            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/c-rest-framework"
-        )
-    else()
-        FetchContent_Declare(
-            c_rest_framework
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-rest-framework.git
-            GIT_TAG master
-            GIT_CONFIG core.autocrlf=false
-        )
-    endif()
-    FetchContent_MakeAvailable(c_rest_framework)
+# c-rest-framework
+FetchContent_Declare(
+    c_rest_framework
+    GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
+    GIT_TAG master
+    GIT_CONFIG core.autocrlf=false
+    SOURCE_SUBDIR c-rest-framework
+)
+FetchContent_MakeAvailable(c_rest_framework)
     include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
 
     # c-orm
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-orm")
-        FetchContent_Declare(
-            c_orm
-            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../c-orm"
-        )
-    else()
-        FetchContent_Declare(
-            c_orm
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
-            GIT_TAG master
-            GIT_CONFIG core.autocrlf=false
-        )
-    endif()
+    FetchContent_Declare(
+        c_orm
+        GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
+        GIT_TAG master
+        GIT_CONFIG core.autocrlf=false
+    )
     set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
     set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c/CMakeLists.txt" "cmake_minimum_required(VERSION 3.14)\nproject(empty_cdd_c)\n")
+    set(C_REST_FRAMEWORK_FETCH_CDD_C OFF CACHE BOOL "Disable cdd_c fetch" FORCE)
+    set(SAVE_BUILD_TESTING ${BUILD_TESTING})
+    set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
     FetchContent_MakeAvailable(c_orm)
+    set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+    set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
     include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
 
 endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
@@ -348,8 +337,6 @@ option(C_CDD_USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 include(CTest)
 enable_testing()
 
-option(BUILD_TESTING "Build the tests" OFF)
-option(C_CDD_BUILD_TESTING "Build the tests" OFF)
 if (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
     add_subdirectory("src/tests")
 endif (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")

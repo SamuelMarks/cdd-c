@@ -1,1 +1,0 @@
-message("PROC: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
