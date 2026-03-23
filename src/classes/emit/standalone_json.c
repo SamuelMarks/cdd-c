@@ -1,4 +1,3 @@
-/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +5,6 @@
 
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
-/* clang-format on */
 
 int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
                                            const struct StructFields *sf) {

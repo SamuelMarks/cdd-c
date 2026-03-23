@@ -3,12 +3,14 @@
  * @brief Tests for enum schema + required property support.
  */
 
+/* clang-format off */
 #ifndef TEST_SCHEMA_ENUM_REQUIRED_H
 #define TEST_SCHEMA_ENUM_REQUIRED_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,6 +22,7 @@ extern "C" {
 #include "classes/emit/struct.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 static int load_spec_string(const char *json, struct OpenAPI_Spec *spec) {

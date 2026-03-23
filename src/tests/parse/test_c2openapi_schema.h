@@ -5,12 +5,14 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_C2OPENAPI_SCHEMA_H
 #define TEST_C2OPENAPI_SCHEMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -23,6 +25,7 @@ extern "C" {
 #include "classes/parse/inspector.h"
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_register_single_struct(void) {

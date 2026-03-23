@@ -94,3 +94,12 @@ sync_sig.c
 sync_url.c
 test.c
 fix_docstrings.sh
+
+*.wasm
+node_modules/
+dist/
+build/
+__pycache__/
+*.so
+target/
+.idea/

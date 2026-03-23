@@ -83,9 +83,9 @@
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-/* clang-format on */
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
+/* clang-format on */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -574,8 +574,7 @@ out_error:
 static /**
         * @brief Executes the maybe mkdir operation.
         */
-    int
-    maybe_mkdir(const char *path) {
+    int maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 

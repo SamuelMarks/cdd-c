@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -18,6 +20,7 @@ extern "C" {
 #endif
 
 #include "cdd_test_helpers/cdd_helpers.h"
+/* clang-format on */
 /* clang-format on */
 
 /*

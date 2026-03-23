@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -13,6 +15,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cli_gen_basic(void) {

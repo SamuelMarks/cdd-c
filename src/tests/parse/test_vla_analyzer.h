@@ -3,6 +3,7 @@
  * @brief Unit tests for VLA analyzer.
  */
 
+/* clang-format off */
 #ifndef TEST_VLA_ANALYZER_H
 #define TEST_VLA_ANALYZER_H
 
@@ -10,12 +11,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 /* clang-format off */
 #include <greatest.h>
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vla_analyzer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_scan_for_vlas_basic(void) {

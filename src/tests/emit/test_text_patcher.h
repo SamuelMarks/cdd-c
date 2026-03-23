@@ -4,12 +4,14 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_TEXT_PATCHER_H
 #define TEST_TEXT_PATCHER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -19,6 +21,7 @@ extern "C" {
 #include "functions/emit/patcher.h"
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Helper to setup a token list from a string */

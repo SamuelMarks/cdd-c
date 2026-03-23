@@ -20,8 +20,8 @@ extern "C" {
 
 #include "classes/emit/form.h"
 #include "classes/emit/struct.h"
-/* clang-format on */
 
+/* clang-format on */
 TEST test_form_urlencoded_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;

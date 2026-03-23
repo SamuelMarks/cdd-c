@@ -1,3 +1,4 @@
+/* clang-format off */
 #ifndef TEST_SCHEMA_CODEGEN_H
 
 #define TEST_SCHEMA_CODEGEN_H
@@ -5,6 +6,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -18,6 +20,7 @@ extern "C" {
 #include "functions/emit/codegen.h"
 
 #include "functions/parse/fs.h"
+/* clang-format on */
 /* clang-format on */
 
 /* Forward declare static functions from schema_codegen.c if we want unit-test

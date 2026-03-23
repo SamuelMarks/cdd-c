@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <stdio.h>
@@ -16,6 +18,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST parsing_test(const char *const test_name, const az_span source,

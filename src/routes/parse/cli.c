@@ -23,13 +23,11 @@
 #include "functions/parse/tokenizer.h"
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
+#include "functions/parse/migration_runner.h"
+#include "classes/parse/sql.h"
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
-#include "classes/parse/sql.h"
-#include "functions/parse/migration_runner.h"
-#include "classes/emit/sql_to_c.h"
-#include "classes/parse/cdd_c_ir.h"
 /* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -5308,6 +5306,8 @@ int to_docs_json_cli_main(int argc, char **argv) {
   openapi_spec_free(&spec);
   return EXIT_SUCCESS;
 }
+#include "classes/parse/sql.h"
+#include "functions/parse/migration_runner.h"
 
 /**
  * @brief Executes the migrate cli main operation.
@@ -5382,6 +5382,8 @@ int setup_test_db_cli_main(int argc, char **argv) {
   return setup_test_database(db_name, migrations_dir);
 }
 
+#include "classes/emit/sql_to_c.h"
+
 /**
  * @brief Executes the sql2c main operation.
  */
@@ -5390,17 +5392,16 @@ int sql2c_main(int argc, char **argv) {
   const char *out_dir;
   char *sql_data;
   size_t sql_size;
-  cdd_c_ir_t ir;
+  struct sql_table_t *tables;
+  size_t n_tables;
   int rc;
   size_t i;
   char *h_path;
   char *c_path;
-  char *proj_h_path;
-  char *proj_c_path;
   FILE *fp;
 
   if (argc < 2) {
-    fprintf(stderr, "Usage: cdd-c sql2c <schema_or_queries.sql> <out_dir>\n");
+    fprintf(stderr, "Usage: cdd-c sql2c <schema.sql> <out_dir>\n");
     return EXIT_FAILURE;
   }
 
@@ -5415,17 +5416,10 @@ int sql2c_main(int argc, char **argv) {
     sql_data[sql_size] = '\0';
   }
 
-  if (cdd_c_ir_init(&ir) != 0) {
-    fprintf(stderr, "Failed to initialize IR\n");
-    free(sql_data);
-    return EXIT_FAILURE;
-  }
-
-  rc = parse_sql_into_ir(sql_data, &ir);
+  rc = parse_sql_ddl(sql_data, &tables, &n_tables);
   if (rc != 0) {
-    fprintf(stderr, "Failed to parse SQL into IR\n");
+    fprintf(stderr, "Failed to parse SQL DDL\n");
     free(sql_data);
-    cdd_c_ir_free(&ir);
     return EXIT_FAILURE;
   }
 
@@ -5433,95 +5427,50 @@ int sql2c_main(int argc, char **argv) {
 
   h_path = (char *)malloc(strlen(out_dir) + 32);
   c_path = (char *)malloc(strlen(out_dir) + 32);
-  proj_h_path = (char *)malloc(strlen(out_dir) + 32);
-  proj_c_path = (char *)malloc(strlen(out_dir) + 32);
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(h_path, strlen(out_dir) + 32, "%s/Models.h", out_dir);
   sprintf_s(c_path, strlen(out_dir) + 32, "%s/Models.c", out_dir);
-  sprintf_s(proj_h_path, strlen(out_dir) + 32, "%s/ModelsQueries.h", out_dir);
-  sprintf_s(proj_c_path, strlen(out_dir) + 32, "%s/ModelsQueries.c", out_dir);
 #else
   sprintf(h_path, "%s/Models.h", out_dir);
   sprintf(c_path, "%s/Models.c", out_dir);
-  sprintf(proj_h_path, "%s/ModelsQueries.h", out_dir);
-  sprintf(proj_c_path, "%s/ModelsQueries.c", out_dir);
 #endif
 
-  if (ir.n_tables > 0) {
-    fp = fopen(h_path, "wb");
-    if (fp) {
-      fprintf(fp, "#ifndef MODELS_H\n#define MODELS_H\n\n");
-      fprintf(fp, "#include \"c_orm_meta.h\"\n\n");
-      for (i = 0; i < ir.n_tables; ++i) {
-        sql_to_c_header_emit(fp, &ir.tables[i]);
-      }
-      fprintf(fp, "#endif\n");
-      fclose(fp);
+  fp = fopen(h_path, "wb");
+  if (fp) {
+    fprintf(fp, "#ifndef MODELS_H\n#define MODELS_H\n\n");
+    fprintf(fp, "#include \"c_orm_meta.h\"\n\n");
+    for (i = 0; i < n_tables; ++i) {
+      sql_to_c_header_emit(fp, &tables[i]);
     }
-
-    fp = fopen(c_path, "wb");
-    if (fp) {
-      for (i = 0; i < ir.n_tables; ++i) {
-        sql_to_c_source_emit(fp, &ir.tables[i], "Models.h");
-      }
-      fclose(fp);
-    }
+    fprintf(fp, "#endif\n");
+    fclose(fp);
   }
 
-  if (ir.n_projections > 0) {
-    fp = fopen(proj_h_path, "wb");
-    if (fp) {
-      fprintf(fp, "/* Auto-generated Query Projections */\n");
-      fprintf(fp, "#ifndef MODELS_QUERIES_H\n#define MODELS_QUERIES_H\n\n");
-      fprintf(fp, "#include \"c_orm_meta.h\"\n\n");
-      fprintf(fp, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
-      for (i = 0; i < ir.n_projections; ++i) {
-        char struct_name[256];
-#if defined(_MSC_VER)
-        sprintf_s(struct_name, sizeof(struct_name), "QueryProjection%lu",
-                  (unsigned long)i);
-#else
-        sprintf(struct_name, "QueryProjection%lu", (unsigned long)i);
-#endif
-        sql_to_c_projection_struct_emit(fp, &ir.projections[i], struct_name,
-                                        NULL);
-      }
-      fprintf(fp, "#ifdef __cplusplus\n}\n#endif\n\n");
-      fprintf(fp, "#endif\n");
-      fclose(fp);
+  fp = fopen(c_path, "wb");
+  if (fp) {
+    for (i = 0; i < n_tables; ++i) {
+      sql_to_c_source_emit(fp, &tables[i], "Models.h");
     }
-
-    fp = fopen(proj_c_path, "wb");
-    if (fp) {
-      fprintf(fp, "/* Auto-generated Query Projections Metadata and Free "
-                  "Handlers */\n");
-      fprintf(fp, "#include \"ModelsQueries.h\"\n");
-      fprintf(fp, "#include <stdlib.h>\n\n");
-      for (i = 0; i < ir.n_projections; ++i) {
-        char struct_name[256];
-#if defined(_MSC_VER)
-        sprintf_s(struct_name, sizeof(struct_name), "QueryProjection%lu",
-                  (unsigned long)i);
-#else
-        sprintf(struct_name, "QueryProjection%lu", (unsigned long)i);
-#endif
-        sql_to_c_projection_free_emit(fp, &ir.projections[i], struct_name);
-        sql_to_c_projection_meta_emit(fp, &ir.projections[i], struct_name);
-        sql_to_c_projection_hydrate_emit(fp, &ir.projections[i], struct_name);
-        sql_to_c_projection_dehydrate_emit(fp, &ir.projections[i], struct_name);
-      }
-      fclose(fp);
-    }
+    fclose(fp);
   }
 
   free(h_path);
   free(c_path);
-  free(proj_h_path);
-  free(proj_c_path);
 
-  cdd_c_ir_free(&ir);
+  for (i = 0; i < n_tables; ++i) {
+    size_t j;
+    for (j = 0; j < tables[i].n_columns; ++j) {
+      free(tables[i].columns[j].name);
+      if (tables[i].columns[j].constraints) {
+        free(tables[i].columns[j].constraints);
+      }
+    }
+    free(tables[i].columns);
+    free(tables[i].name);
+  }
+  free(tables);
 
-  return EXIT_SUCCESS;
+  return 0;
 }

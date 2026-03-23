@@ -4,6 +4,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_STR_UTILS_H
 #define TEST_STR_UTILS_H
 
@@ -11,12 +12,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 /* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/str.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- strdup tests --- */

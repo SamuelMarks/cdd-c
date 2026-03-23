@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_SERVER_JSON_RPC_H
 #define TEST_SERVER_JSON_RPC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -30,6 +32,7 @@ extern "C" {
 #endif
 #endif
 #endif
+/* clang-format on */
 
 TEST test_server_json_rpc_bind_fail(void) {
 #if defined(_WIN32)

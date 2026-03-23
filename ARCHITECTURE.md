@@ -74,10 +74,9 @@ By standardizing on a single IR (heavily inspired by OpenAPI / JSON Schema primi
 The Backend's responsibility is to take the universal IR and generate valid target output. Emitters can be written to support various environments (e.g., Client vs Server, Web vs CLI).
 
 * **Code Generation**: Emitters iterate over the IR and generate idiomatic `C` source code using specialized templates or AST emission techniques.
-  * A **Server Emitter** creates routing controllers and request-validation logic (currently targeting `c-rest-framework`).
+  * A **Server Emitter** creates routing controllers and request-validation logic.
   * A **Client Emitter** creates API wrappers, fetch functions (using curl/libcurl or similar), and response-parsing logic.
-* **Database & CLI Generation**: Emitters can also target ORM models (via `c-orm`) or command-line parsers by mapping IR properties to database columns, schemas, or CLI arguments.
-* **SQL DDL Parsing**: A custom SQL lexer and parser allow directly reading `CREATE TABLE` statements to generate `c-orm` compatible C models and metadata.
+* **Database & CLI Generation**: Emitters can also target ORM models or command-line parsers by mapping IR properties to database columns or CLI arguments.
 * **Specification Generation**: Emitters translating back to OpenAPI serialize the IR into standard OpenAPI 3.x JSON or YAML, rigorously formatting descriptions, type constraints, and endpoint schemas based on what was parsed from the source code.
 
 ## 🔄 Extensibility

@@ -25,34 +25,6 @@ typedef enum {
   C_ORM_TYPE_UNKNOWN
 } c_orm_type_t;
 
-/* clang-format off */
-#include <stddef.h>
-/* clang-format on */
-
-/**
- * @brief Metadata describing a single property/field of an ORM mapped struct.
- */
-typedef struct c_orm_prop_meta {
-  const char *name;
-  const char *type;
-  size_t offset;
-  int is_array;
-  unsigned int length;
-  int is_secure;
-} c_orm_prop_meta_t;
-
-/**
- * @brief Metadata describing a full ORM mapped struct layout.
- */
-typedef struct c_orm_meta {
-  const char *name;
-  size_t size;
-  size_t num_props;
-  const c_orm_prop_meta_t *props;
-  void *driver_ctx; /* Phase 4: Identity Map and Generic Driver Context
-                       Extensions */
-} c_orm_meta_t;
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

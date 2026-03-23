@@ -3,12 +3,14 @@
  * @brief Unit tests for parsing C CLI argument parsers.
  */
 
+/* clang-format off */
 #ifndef TEST_CLI_PARSER_H
 #define TEST_CLI_PARSER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -18,6 +20,7 @@ extern "C" {
 #include "classes/parse/cli_parser.h"
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cli_parser_getopt(void) {

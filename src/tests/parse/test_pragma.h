@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_PRAGMA_H
 #define TEST_PRAGMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -12,6 +14,7 @@ extern "C" {
 
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_tokenize_pragma_op(void) {

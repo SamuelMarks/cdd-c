@@ -47,9 +47,9 @@
 #define PATH_SEP_CHAR '/'
 
 #include <errno.h>
-/* clang-format on */
 
 #endif
+/* clang-format on */
 
 /* Standard IO / FS helpers */
 

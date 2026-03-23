@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_PREPROCESSOR_MACROS_H
 #define TEST_PREPROCESSOR_MACROS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -14,6 +16,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_pp_define_object_like(void) {

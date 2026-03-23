@@ -4,12 +4,14 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_BUILD_H
 #define TEST_CODEGEN_BUILD_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -18,6 +20,7 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/build.h"
+/* clang-format on */
 /* clang-format on */
 
 TEST test_cbuild_null_args(void) {

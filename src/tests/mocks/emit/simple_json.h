@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #else
+/* clang-format off */
 #if __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #if !defined(__cplusplus)
@@ -41,6 +42,7 @@ typedef unsigned char bool;
 #include <parson.h>
 
 #include "simple_mocks_export.h"
+/* clang-format on */
 /* clang-format on */
 
 enum Tank { Tank_BIG, Tank_SMALL, Tank_UNKNOWN = -1 };

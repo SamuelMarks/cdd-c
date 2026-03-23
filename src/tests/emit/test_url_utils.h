@@ -8,6 +8,7 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_URL_UTILS_H
 #define TEST_URL_UTILS_H
 
@@ -15,12 +16,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
 /* clang-format off */
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "routes/parse/url.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- Encoding Tests --- */

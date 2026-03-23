@@ -5,12 +5,14 @@
  * @author Samuel Marks
  */
 
+/* clang-format off */
 #ifndef TEST_CODEGEN_TYPES_H
 #define TEST_CODEGEN_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,6 +22,7 @@ extern "C" {
 
 #include "classes/emit/struct.h" /* For struct_fields init helpers */
 #include "classes/emit/types.h"
+/* clang-format on */
 /* clang-format on */
 
 /* --- Union Tests --- */

@@ -3,12 +3,14 @@
  * @brief Executes the unit tests for weaver operation.
  */
 
+/* clang-format off */
 #ifndef TEST_WEAVER_H
 #define TEST_WEAVER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -124,6 +126,7 @@ TEST test_weaver_inject_msvc_headers(void) {
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <winsock2.h>
+/* clang-format on */
 /* clang-format on */
 #ifndef NOMINMAX
 #define NOMINMAX

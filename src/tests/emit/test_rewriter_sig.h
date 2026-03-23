@@ -1,9 +1,11 @@
+/* clang-format off */
 #ifndef TEST_REWRITER_SIG_H
 #define TEST_REWRITER_SIG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -12,6 +14,7 @@ extern "C" {
 
 #include "functions/emit/rewriter_sig.h"
 #include "functions/parse/tokenizer.h"
+/* clang-format on */
 /* clang-format on */
 
 /**

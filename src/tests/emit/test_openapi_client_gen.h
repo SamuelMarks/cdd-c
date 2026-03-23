@@ -3,12 +3,14 @@
  * @brief Tests for the OpenAPI Client Library Generator.
  */
 
+/* clang-format off */
 #ifndef TEST_OPENAPI_CLIENT_GEN_H
 #define TEST_OPENAPI_CLIENT_GEN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
 
 /* clang-format off */
 #include <greatest.h>
@@ -20,6 +22,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "openapi/parse/openapi.h"
 #include "routes/emit/client_gen.h"
+/* clang-format on */
 /* clang-format on */
 
 static void setup_minimal_spec(struct OpenAPI_Spec *spec,
