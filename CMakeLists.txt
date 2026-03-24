@@ -34,9 +34,14 @@ endif()
 
 if(MSVC AND MSVC_VERSION LESS 1600)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/msvc")
+    link_directories("C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib")
 endif()
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
+
+if (MSVC AND MSVC_VERSION LESS 1800)
+    add_compile_definitions(HAS_STDBOOL _STDBOOL_H "bool=unsigned char" "true=1" "false=0")
+endif()
  
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)

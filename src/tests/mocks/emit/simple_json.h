@@ -3,8 +3,9 @@
 
 #ifdef __cplusplus
 extern "C" {
-#else
-#if __STDC_VERSION__ >= 199901L
+#endif /* __cplusplus */
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #if !defined(__cplusplus)
 #ifndef bool
@@ -34,7 +35,6 @@ typedef unsigned char bool;
 #else
 #include <c_cdd_stdbool.h>
 #endif /* __STDC_VERSION__ >= 199901L */
-#endif /* __cplusplus */
 
 #include <stdio.h>
 
