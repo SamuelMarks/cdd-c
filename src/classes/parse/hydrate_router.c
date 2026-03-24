@@ -23,7 +23,8 @@
 static CDD_C_THREAD_LOCAL char cdd_c_hydrate_error_msg[512] = {0};
 
 int cdd_c_hydrate_router_get_last_error(const char **out_msg) {
-  if (!out_msg) return -1;
+  if (!out_msg)
+    return -1;
   if (cdd_c_hydrate_error_msg[0] == '\0') {
     *out_msg = NULL;
   } else {

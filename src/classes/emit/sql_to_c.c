@@ -536,7 +536,9 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
     }
     is_null = is_nullable(&table->columns[i]);
 
-    fprintf(fp, "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, false }%s\n",
+    fprintf(fp,
+            "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, "
+            "false }%s\n",
             table->columns[i].name,
             sql_type_to_c_orm_type(table->columns[i].type), struct_name,
             table->columns[i].name, is_pk ? "true" : "false",

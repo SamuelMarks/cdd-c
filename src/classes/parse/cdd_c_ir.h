@@ -24,13 +24,13 @@ extern "C" {
  * projections parsed from a file.
  */
 typedef struct CddCIr {
-  struct sql_table_t *tables;
-  size_t n_tables;
-  size_t capacity_tables;
+  struct sql_table_t *tables;            /**< Array of parsed tables */
+  size_t n_tables;                       /**< Number of tables parsed */
+  size_t capacity_tables;                /**< Capacity of the tables array */
 
-  cdd_c_query_projection_t *projections;
-  size_t n_projections;
-  size_t capacity_projections;
+  cdd_c_query_projection_t *projections; /**< Array of parsed projections */
+  size_t n_projections;                  /**< Number of projections parsed */
+  size_t capacity_projections;           /**< Capacity of the projections array */
 } cdd_c_ir_t;
 
 extern C_CDD_EXPORT /**

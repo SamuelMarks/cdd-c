@@ -297,7 +297,8 @@ struct c_orm_meta;
  * @param field The field name to look up.
  * @return The offset in bytes, or (size_t)-1 if not found.
  */
-C_CDD_EXPORT int cdd_c_meta_offsetof(const struct c_orm_meta *meta, const char *field, size_t *out_offset);
+C_CDD_EXPORT int cdd_c_meta_offsetof(const struct c_orm_meta *meta,
+                                     const char *field, size_t *out_offset);
 
 /**
  * @brief Provide reflection utility macro helper checking metadata matching

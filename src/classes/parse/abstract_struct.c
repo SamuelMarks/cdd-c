@@ -49,13 +49,15 @@ static void cdd_c_free(void *ptr) {
 }
 
 int cdd_c_get_allocated_bytes(size_t *out_bytes) {
-  if (!out_bytes) return -1;
+  if (!out_bytes)
+    return -1;
   *out_bytes = cdd_c_memory_allocated;
   return 0;
 }
 
 int cdd_c_get_freed_calls(size_t *out_calls) {
-  if (!out_calls) return -1;
+  if (!out_calls)
+    return -1;
   *out_calls = cdd_c_memory_freed;
   return 0;
 }
@@ -774,8 +776,8 @@ int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
   return -1;
 #endif
 }
-int cdd_c_meta_offsetof(const struct c_orm_meta *struct_meta,
-                           const char *field, size_t *out_offset) {
+int cdd_c_meta_offsetof(const struct c_orm_meta *struct_meta, const char *field,
+                        size_t *out_offset) {
   size_t i;
   const c_orm_meta_t *meta = (const c_orm_meta_t *)struct_meta;
   if (!meta || !field || !out_offset)
