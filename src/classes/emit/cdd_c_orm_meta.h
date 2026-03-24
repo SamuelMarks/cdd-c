@@ -10,9 +10,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <c_orm_meta.h>
-
 /* clang-format off */
+#include <c_orm_meta.h>
 #include <stddef.h>
 /* clang-format on */
 
@@ -20,24 +19,23 @@ extern "C" {
  * @brief Metadata describing a single property/field of an ORM mapped struct.
  */
 typedef struct c_orm_prop_meta {
-  const char *name;
-  const char *type;
-  size_t offset;
-  int is_array;
-  unsigned int length;
-  int is_secure;
+  const char *name;      /**< Name of the property */
+  const char *type;      /**< Type of the property */
+  size_t offset;         /**< Offset in bytes within the struct */
+  int is_array;          /**< Boolean flag indicating if it is an array */
+  unsigned int length;   /**< Array length if applicable */
+  int is_secure;         /**< Boolean flag indicating if it contains secure data */
 } c_orm_prop_meta_t;
 
 /**
  * @brief Metadata describing a full ORM mapped struct layout.
  */
 typedef struct c_orm_meta {
-  const char *name;
-  size_t size;
-  size_t num_props;
-  const c_orm_prop_meta_t *props;
-  void *driver_ctx; /* Phase 4: Identity Map and Generic Driver Context
-                       Extensions */
+  const char *name;                /**< Name of the struct */
+  size_t size;                     /**< Total size in bytes */
+  size_t num_props;                /**< Number of properties in the struct */
+  const c_orm_prop_meta_t *props;  /**< Pointer to the properties array */
+  void *driver_ctx;                /**< Phase 4: Identity Map and Generic Driver Context Extensions */
 } c_orm_meta_t;
 
 #ifdef __cplusplus

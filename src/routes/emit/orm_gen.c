@@ -320,27 +320,29 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
 
       if (fk_buf[0]) {
         fprintf(fp_c,
-                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, \"%s\", false, false }%s\n",
+                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, \"%s\", "
+                "false, false }%s\n",
                 field->name, openapi_type_to_c_orm_type(field), struct_name,
                 field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
                 fk_buf, j == sf->size - 1 ? "" : ",");
       } else {
         fprintf(fp_c,
-                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, false }%s\n",
+                "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, "
+                "false }%s\n",
                 field->name, openapi_type_to_c_orm_type(field), struct_name,
                 field->name, is_pk ? "true" : "false", is_pk ? "false" : "true",
                 j == sf->size - 1 ? "" : ",");
       }
-      }
-      fprintf(fp_c, "};\n\n");
+    }
+    fprintf(fp_c, "};\n\n");
 
-      fprintf(fp_c, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
-      fprintf(fp_c, "  \"%s\",\n", struct_name);
-      fprintf(fp_c, "  %s_cols,\n", struct_name);
-      fprintf(fp_c, "  %lu,\n", (unsigned long)sf->size);
-      fprintf(fp_c, "  sizeof(struct %s),\n", struct_name);
-      fprintf(fp_c, "  \"SELECT * FROM %s\",\n", struct_name);
-      {
+    fprintf(fp_c, "const c_orm_table_meta_t %s_meta = {\n", struct_name);
+    fprintf(fp_c, "  \"%s\",\n", struct_name);
+    fprintf(fp_c, "  %s_cols,\n", struct_name);
+    fprintf(fp_c, "  %lu,\n", (unsigned long)sf->size);
+    fprintf(fp_c, "  sizeof(struct %s),\n", struct_name);
+    fprintf(fp_c, "  \"SELECT * FROM %s\",\n", struct_name);
+    {
       const char *pk_name = NULL;
       size_t k;
       int first_update = 1;
@@ -385,14 +387,14 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
         fprintf(fp_c, " WHERE %s = ?\",\n", pk_name);
         fprintf(fp_c, "  \"DELETE FROM %s WHERE %s = ?\",\n", struct_name,
                 pk_name);
-        fprintf(fp_c, "  \"SELECT * FROM %s WHERE %s = ? FOR UPDATE\",\n", struct_name,
-                pk_name);
+        fprintf(fp_c, "  \"SELECT * FROM %s WHERE %s = ? FOR UPDATE\",\n",
+                struct_name, pk_name);
       } else {
         fprintf(fp_c, "  NULL,\n  NULL,\n  NULL,\n");
       }
       fprintf(fp_c, "  false, false, 0, 0, { 0 }, NULL, 0\n");
-      }
-      fprintf(fp_c, "};\n\n");
+    }
+    fprintf(fp_c, "};\n\n");
     /* CRUD Boilerplate definitions */
     fprintf(fp_c, "c_orm_error_t create_table_%s(c_orm_db_t* db) {\n",
             struct_name);

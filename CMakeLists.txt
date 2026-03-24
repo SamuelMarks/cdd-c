@@ -280,40 +280,47 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         endif()
     endif ()
     
-    # We still keep the module path just in case
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-# c-rest-framework
-FetchContent_Declare(
-    c_rest_framework
-    GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
-    GIT_TAG master
-    GIT_CONFIG core.autocrlf=false
-    SOURCE_SUBDIR c-rest-framework
-)
-FetchContent_MakeAvailable(c_rest_framework)
-    include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
+    endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
-    # c-orm
-    FetchContent_Declare(
-        c_orm
-        GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
-        GIT_TAG master
-        GIT_CONFIG core.autocrlf=false
-    )
-    set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
-    set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c")
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c/CMakeLists.txt" "cmake_minimum_required(VERSION 3.14)\nproject(empty_cdd_c)\n")
-    set(C_REST_FRAMEWORK_FETCH_CDD_C OFF CACHE BOOL "Disable cdd_c fetch" FORCE)
-    set(SAVE_BUILD_TESTING ${BUILD_TESTING})
-    set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
-    FetchContent_MakeAvailable(c_orm)
-    set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
-    set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
-    include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
+        # We still keep the module path just in case
+        list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
+        # c-rest-framework
+        FetchContent_Declare(
+            c_rest_framework
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
+            GIT_TAG master
+            GIT_CONFIG core.autocrlf=false
+            SOURCE_SUBDIR c-rest-framework
+            PATCH_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/patch_abstract_http.cmake
+        )
+        FetchContent_MakeAvailable(c_rest_framework)
+        include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
 
+        # c-orm
+        FetchContent_Declare(
+            c_orm
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
+            GIT_TAG master
+            GIT_CONFIG core.autocrlf=false
+            PATCH_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/patch_c_orm.cmake
+        )
+        set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
+        set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)  
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c")
+        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c/CMakeLists.txt" "cmake_minimum_required(VERSION 3.14)\nproject(empty_cdd_c)\n")
+        set(C_REST_FRAMEWORK_FETCH_CDD_C OFF CACHE BOOL "Disable cdd_c fetch" FORCE)
+        set(FETCHCONTENT_SOURCE_DIR_C_ABSTRACT_HTTP "${c_rest_framework_SOURCE_DIR}" CACHE PATH "Use c_rest_framework for c_abstract_http" FORCE)
+        set(FETCHCONTENT_SOURCE_DIR_c_abstract_http "${c_rest_framework_SOURCE_DIR}" CACHE PATH "Use c_rest_framework for c_abstract_http" FORCE)
+        set(C_REST_FRAMEWORK_FETCH_C_ABSTRACT_HTTP OFF CACHE BOOL "Disable c_abstract_http fetch" FORCE)
+        set(SAVE_BUILD_TESTING ${BUILD_TESTING})
+        set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
+        FetchContent_MakeAvailable(c_orm)
+        set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+        set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+        include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
+    endif()
 
 
 # configure a header file to pass the version number only
