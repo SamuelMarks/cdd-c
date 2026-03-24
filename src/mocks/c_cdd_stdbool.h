@@ -8,8 +8,13 @@
  * @author Samuel Marks
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #if !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) && !defined(__cplusplus)
 #define _STDBOOL_H
+#define HAS_STDBOOL
 
 #ifdef bool
 #undef bool
@@ -29,10 +34,10 @@
 
 /**
  * @brief Boolean type alias.
- * Using size_t ensures alignment with machine word size for efficient register
- * usage.
+ * Using unsigned char for compatibility with other headers like c_orm.
  */
-typedef size_t bool;
+typedef unsigned char _c_cdd_bool;
+#define bool _c_cdd_bool
 
 /**
  * @brief Logical true.
@@ -43,6 +48,10 @@ typedef size_t bool;
  * @brief Logical false.
  * Defined as negation of true to ensure logical consistency.
  */
-#define false (!true)
+#define false 0
 
 #endif /* !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

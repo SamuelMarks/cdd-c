@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include <c_cdd_export.h>
@@ -27,6 +27,6 @@ extern C_CDD_EXPORT int jsonschema2tests_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* !SCHEMA2TESTS_H */

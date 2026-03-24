@@ -3,7 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include <stdio.h>
@@ -17,6 +17,6 @@ write_oauth2_error_parser_func(FILE *fp, const char *struct_name,
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* C_CDD_CODEGEN_OAUTH2_ERROR_H */

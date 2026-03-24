@@ -7,27 +7,18 @@
 
 /* clang-format off */
 #ifndef CODE2SCHEMA_H
-
 #define CODE2SCHEMA_H
 
 #ifdef __cplusplus
-
-#include <cstdlib>
-
-#include <cstring>
-
 extern "C" {
-
-#else
+#endif /* __cplusplus */
 
 #include <stdlib.h>
-
 #include <string.h>
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-
 #if defined(_MSC_VER) && _MSC_VER < 1800
-#if !defined(__cplusplus)
+#ifndef __cplusplus
 #ifndef bool
 #define bool unsigned char
 #endif
@@ -51,19 +42,12 @@ typedef unsigned char bool;
 #endif
 #endif
 #endif
-
 #else
-
 #include <c_cdd_stdbool.h>
-
 #endif /* __STDC_VERSION__ >= 199901L */
 
-#endif /* __cplusplus */
-
 #include <parson.h>
-
 #include <c_cdd_export.h>
-
 #include "functions/emit/codegen.h"
 /* clang-format on */
 
