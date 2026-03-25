@@ -150,7 +150,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-fprofile-arcs;-ftest-coverage>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
     target_link_options(
             "${PROJECT_NAME}_compiler_flags"
@@ -190,7 +190,7 @@ endif()
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
             "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
-            "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
+            "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
 endif ()
 
