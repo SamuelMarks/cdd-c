@@ -42,7 +42,7 @@ TEST test_make_simple(void) {
   ASSERT(strstr(content, "project(test_client"));
   ASSERT(strstr(content, "find_package(CURL REQUIRED)"));
   ASSERT(strstr(content, "add_library(test_client"));
-  ASSERT(strstr(content, "parson::parson"));
+  ASSERT(strstr(content, "parson"));
 
   free(content);
   fclose(tmp);

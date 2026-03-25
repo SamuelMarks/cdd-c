@@ -2,7 +2,7 @@ include(FetchContent)
 
 include(FindPackageHandleStandardArgs)
 
-if (NOT TARGET parson::parson)
+if (NOT TARGET parson)
     FetchContent_Declare(
             parson
             GIT_REPOSITORY https://github.com/kgabis/parson.git
@@ -28,6 +28,3 @@ find_package_handle_standard_args(parson
 
 mark_as_advanced(parson_SOURCE_DIR parson_BINARY_DIR)
 
-if (TARGET parson AND NOT TARGET parson::parson)
-    add_library(parson::parson ALIAS parson)
-endif (TARGET parson AND NOT TARGET parson::parson)

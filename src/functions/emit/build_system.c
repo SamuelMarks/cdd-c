@@ -74,13 +74,8 @@ static /**
 
   /* Dependency Logic */
   CHECK_IO(fprintf(fp, "find_package(parson REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "if(TARGET parson::parson)\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson::parson)\n",
+  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson)\n\n",
                    project_name));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson)\n",
-                   project_name));
-  CHECK_IO(fprintf(fp, "endif()\n\n"));
 
   CHECK_IO(fprintf(fp, "find_package(c89stringutils CONFIG REQUIRED)\n"));
   CHECK_IO(fprintf(fp,

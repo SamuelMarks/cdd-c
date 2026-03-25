@@ -165,12 +165,9 @@ include(GNUInstallDirs)
 target_include_directories(
         "${LIBRARY_NAME}"
         PUBLIC
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mocks>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
@@ -296,11 +293,7 @@ else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
 endif()
-if(TARGET parson::parson)
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
-else()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
-endif()
+target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
 
 set(CDD_POSTGRESQL "LINKED" CACHE STRING "PostgreSQL support (LINKED, DYNAMIC, OFF)")
 set(CDD_SQLITE "OFF" CACHE STRING "SQLite support (LINKED, DYNAMIC, OFF)")

@@ -221,7 +221,7 @@ int sql_table_free(struct sql_table_t *table) {
     if (table->table_constraints)
       free(table->table_constraints);
 
-    free(table);
+    /* free(table); removed */
   }
   return 0;
 }
