@@ -28,11 +28,7 @@ else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
 endif()
-if(TARGET parson::parson)
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
-else()
-    target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
-endif()
+target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
 target_include_directories(
         "${LIBRARY_NAME}"
         PRIVATE

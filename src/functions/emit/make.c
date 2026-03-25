@@ -88,7 +88,7 @@ int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
                    config->project_name));
   CHECK_IO(fprintf(fp, "endif()\n"));
 
-  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson::parson)\n\n",
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
                    config->project_name));
 
   /* Install Rules */

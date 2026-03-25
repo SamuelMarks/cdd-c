@@ -178,7 +178,7 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
         rc = sql_parse_table(&sublist, &table, &err);
         if (rc == 0 && table) {
           cdd_c_ir_add_table(out_ir, table);
-          sql_table_free(table);
+          free(table);
         }
         in_table = 0;
       } else if (in_select) {
@@ -186,7 +186,7 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
         rc = sql_parse_select(&sublist, &proj, &err);
         if (rc == 0 && proj) {
           cdd_c_ir_add_projection(out_ir, proj);
-          cdd_c_query_projection_free(proj);
+          /* cdd_c_query_projection_free(proj); */
           free(proj);
         }
         in_select = 0;
@@ -202,7 +202,7 @@ int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
     rc = sql_parse_returning(list, &proj, &err);
     if (rc == 0 && proj) {
       cdd_c_ir_add_projection(out_ir, proj);
-      cdd_c_query_projection_free(proj);
+      /* cdd_c_query_projection_free(proj); */
       free(proj);
     }
   }

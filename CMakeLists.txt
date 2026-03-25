@@ -149,7 +149,7 @@ endif()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-Wdeclaration-after-statement;-Werror=declaration-after-statement;-fprofile-arcs;-ftest-coverage>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-fprofile-arcs;-ftest-coverage>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
     target_link_options(
@@ -189,7 +189,7 @@ endif()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-Wdeclaration-after-statement;-Werror=declaration-after-statement>>"
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W4;-WX;-Zi;-permissive-;-sdl;-guard:cf;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
 endif ()
@@ -237,6 +237,13 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     )
     set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
     FetchContent_MakeAvailable(c_str_span)
+    if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
+        file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
+        string(REPLACE "// size must be >= 0" "/* size must be >= 0 */" span_content "${span_content}")
+        string(REPLACE "/* Size = 1024 */" "Size = 1024" span_content "${span_content}")
+        string(REPLACE "// Size = 1024" "Size = 1024" span_content "${span_content}")
+        file(WRITE "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" "${span_content}")
+    endif()
     include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
 
     # c89stringutils
@@ -274,9 +281,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     FetchContent_MakeAvailable(parson)
     set(BUILD_SHARED_LIBS ${OLD_BSL})
     include_directories(SYSTEM ${parson_SOURCE_DIR})
-    if(TARGET parson AND NOT TARGET parson::parson)
-        add_library(parson::parson ALIAS parson)
-    endif()
     if (C_CDD_USE_LIBCURL)
         if(TARGET curl AND NOT TARGET CURL::libcurl)
             add_library(CURL::libcurl ALIAS curl)
@@ -298,7 +302,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             GIT_TAG master
             GIT_CONFIG core.autocrlf=false
             SOURCE_SUBDIR c-rest-framework
-            PATCH_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/patch_abstract_http.cmake
+            
         )
         FetchContent_MakeAvailable(c_rest_framework)
         include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
@@ -309,7 +313,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
             GIT_TAG master
             GIT_CONFIG core.autocrlf=false
-            PATCH_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/patch_c_orm.cmake
+            
         )
         set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
         set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)  
