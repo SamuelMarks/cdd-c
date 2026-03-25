@@ -13,10 +13,11 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
     FetchContent_Declare(
         cfs
-        URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP true
+        GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
+    GIT_TAG master
+        
     )
-    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    
     FetchContent_MakeAvailable(cfs)
     include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
 endif()
@@ -232,10 +233,11 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     FetchContent_Declare(
         c_str_span
-        URL https://github.com/SamuelMarks/c-str-span/archive/refs/heads/master.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP true
+        GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
+    GIT_TAG master
+        
     )
-    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    
     FetchContent_MakeAvailable(c_str_span)
     if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
         file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
@@ -249,10 +251,11 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     # c89stringutils
     FetchContent_Declare(
         c89stringutils
-        URL https://github.com/offscale/c89stringutils/archive/refs/heads/master.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP true
+        GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
+    GIT_TAG master
+        
     )
-    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    
     FetchContent_MakeAvailable(c89stringutils)
     include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
 
@@ -272,10 +275,11 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     # parson
     FetchContent_Declare(
         parson
-        URL https://github.com/kgabis/parson/archive/refs/heads/master.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP true
+        GIT_REPOSITORY https://github.com/kgabis/parson.git
+    GIT_TAG master
+        
     )
-    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    
     set(OLD_BSL ${BUILD_SHARED_LIBS})
     set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(parson)
