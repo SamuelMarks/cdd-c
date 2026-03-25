@@ -1,3 +1,4 @@
+message(STATUS "RUNNING cdd-c CMakeLists.txt")
 
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
@@ -15,6 +16,8 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
         cfs
         GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
     GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
+    
         
     )
     
@@ -235,6 +238,8 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         c_str_span
         GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
     GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
+    
         
     )
     
@@ -253,6 +258,8 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         c89stringutils
         GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
     GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
+    
         
     )
     
@@ -277,6 +284,8 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         parson
         GIT_REPOSITORY https://github.com/kgabis/parson.git
     GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
+    
         
     )
     
@@ -304,6 +313,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             c_rest_framework
             GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
             GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
             GIT_CONFIG core.autocrlf=false
             SOURCE_SUBDIR c-rest-framework
             
@@ -316,6 +326,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             c_orm
             GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
             GIT_TAG master
+    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
             GIT_CONFIG core.autocrlf=false
             
         )
@@ -329,9 +340,13 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         set(C_REST_FRAMEWORK_FETCH_C_ABSTRACT_HTTP OFF CACHE BOOL "Disable c_abstract_http fetch" FORCE)
         set(SAVE_BUILD_TESTING ${BUILD_TESTING})
         set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
-        FetchContent_MakeAvailable(c_orm)
-        set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
-        set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+        if(POLICY CMP0169)
+            cmake_policy(SET CMP0169 OLD)
+        endif()
+        FetchContent_GetProperties(c_orm)
+        if(NOT c_orm_POPULATED)
+            FetchContent_Populate(c_orm)
+        endif()
         include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
     endif()
 
@@ -347,7 +362,16 @@ configure_file(
 # Doing this at the end so that all definitions and link/include paths are
 # available for the sub-projects.
 #===============================================================================
+message(STATUS "RUNNING add_subdirectory(src)")
 add_subdirectory("src")
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
+    if (NOT TARGET c-orm)
+        add_subdirectory("${c_orm_SOURCE_DIR}" "${c_orm_BINARY_DIR}")
+        set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+        set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
+    endif()
+endif()
 
 
 find_program(MEMORYCHECK_COMMAND NAMES valgrind)
