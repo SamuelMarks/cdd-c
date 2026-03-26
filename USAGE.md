@@ -27,7 +27,7 @@ cdd-c migrate down
 
 ## CI/CD Pipeline Operations
 
-For headless systems such as GitHub Actions, `cdd-c` integrates seamlessly to scaffold dynamic integration testing environments. 
+For headless systems such as GitHub Actions, `cdd-c` integrates seamlessly to scaffold dynamic integration testing environments.
 
 Point `DATABASE_URL` momentarily to the administrative `postgres` DB to establish the target.
 

@@ -1,5 +1,4 @@
-cdd-c
-=====
+# cdd-c
 
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml)
@@ -11,6 +10,7 @@ OpenAPI ↔ C. This is one compiler in a suite, all focussed on the same task: C
 Each compiler is written in its target language, is whitespace and comment sensitive, and has both an SDK and CLI.
 
 The CLI—at a minimum—has:
+
 - `cdd-c --help`
 - `cdd-c --version`
 - `cdd-c from_openapi -i spec.json`
@@ -27,11 +27,11 @@ The goal of this project is to enable rapid application development without trad
 
 The `cdd-c` compiler leverages a unified architecture to support various facets of API and code lifecycle management.
 
-* **Compilation**:
-  * **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, database schemas, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
-  * **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
-* **AST-Driven & Safe**: Employs static analysis (Abstract Syntax Trees via a custom whitespace, comment, and macro sensitive parser) instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
-* **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
+- **Compilation**:
+  - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, database schemas, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
+  - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
+- **AST-Driven & Safe**: Employs static analysis (Abstract Syntax Trees via a custom whitespace, comment, and macro sensitive parser) instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
+- **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
 
 ## 📦 Installation
 
@@ -83,17 +83,17 @@ The `cdd-c` project uses a fully custom whitespace, comment, and macro sensitive
 
 ## 🏗 Supported Conversions for C
 
-*(The boxes below reflect the features supported by this specific `cdd-c` implementation)*
+_(The boxes below reflect the features supported by this specific `cdd-c` implementation)_
 
-| Concept | Parse (From) | Emit (To) |
-|---------|--------------|-----------|
-| OpenAPI (JSON/YAML) | ✅ | ✅ |
-| `C` Models / Structs / Types | ✅ | ✅ |
-| `C` Server Routes / Endpoints | ✅ | ✅ |
-| `C` API Clients / SDKs | ✅ | ✅ |
-| `C` ORM / DB Schemas | [ ] | [ ] |
-| `C` CLI Argument Parsers | [ ] | ✅ |
-| `C` Docstrings / Comments | ✅ | ✅ |
+| Concept                       | Parse (From) | Emit (To) |
+| ----------------------------- | ------------ | --------- |
+| OpenAPI (JSON/YAML)           | ✅           | ✅        |
+| `C` Models / Structs / Types  | ✅           | ✅        |
+| `C` Server Routes / Endpoints | ✅           | ✅        |
+| `C` API Clients / SDKs        | ✅           | ✅        |
+| `C` ORM / DB Schemas          | [ ]          | [ ]       |
+| `C` CLI Argument Parsers      | [ ]          | ✅        |
+| `C` Docstrings / Comments     | ✅           | ✅        |
 
 WASM Support: Possible ✅ | Implemented ✅
 

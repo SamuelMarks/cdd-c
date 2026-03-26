@@ -2,8 +2,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
+      - id: check-yaml
+      - id: end-of-file-fixer
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:
