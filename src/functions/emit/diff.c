@@ -285,8 +285,8 @@ int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
     split_lines(new_text, strlen(new_text), &new_lines, &new_line_count);
 
     append_to_diff(&diff_str, &diff_len, &diff_cap,
-                   "@@ -%" SIZE_T_FMT ",%" SIZE_T_FMT " +%" SIZE_T_FMT
-                   ",%" SIZE_T_FMT " @@\\n",
+                   "@@ -%" CDD_SIZE_T_FMT ",%" CDD_SIZE_T_FMT
+                   " +%" CDD_SIZE_T_FMT ",%" CDD_SIZE_T_FMT " @@\\n",
                    (size_t)b->old_start_line,
                    (size_t)(b->old_end_line - b->old_start_line + 1),
                    (size_t)(b->old_start_line + current_line_delta),

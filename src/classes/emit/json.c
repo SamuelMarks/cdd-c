@@ -347,12 +347,12 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
         CHECK_IO(fprintf(fp, "      len = strlen(ret->%s);\n", n));
         if (f->has_min_len)
           CHECK_IO(fprintf(fp,
-                           "      if (len < %" SIZE_T_FMT
+                           "      if (len < %" CDD_SIZE_T_FMT
                            ") { %s_cleanup(ret); return ERANGE; }\n",
                            (size_t)f->min_len, struct_name));
         if (f->has_max_len)
           CHECK_IO(fprintf(fp,
-                           "      if (len > %" SIZE_T_FMT
+                           "      if (len > %" CDD_SIZE_T_FMT
                            ") { %s_cleanup(ret); return ERANGE; }\n",
                            (size_t)f->max_len, struct_name));
         if (f->pattern[0]) {
@@ -393,12 +393,13 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                              "%s_cleanup(ret); return ERANGE; }\n",
                              n, pat, struct_name));
           } else if (strncmp(f->pattern, "^", 1) == 0) { /* prefix */
-            CHECK_IO(fprintf(fp,
-                             "      if (strncmp(ret->%s, \"%s\", %" SIZE_T_FMT
-                             ") != 0) { "
-                             "%s_cleanup(ret); return ERANGE; }\n",
-                             n, f->pattern + 1, (size_t)strlen(f->pattern) - 1,
-                             struct_name));
+            CHECK_IO(
+                fprintf(fp,
+                        "      if (strncmp(ret->%s, \"%s\", %" CDD_SIZE_T_FMT
+                        ") != 0) { "
+                        "%s_cleanup(ret); return ERANGE; }\n",
+                        n, f->pattern + 1, (size_t)strlen(f->pattern) - 1,
+                        struct_name));
           } else if (f->pattern[(size_t)strlen(f->pattern) - 1] ==
                      '$') { /* suffix */
             char pat[256];
@@ -431,8 +432,8 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             pat[pl] = 0;
             CHECK_IO(
                 fprintf(fp,
-                        "      if (len < %" SIZE_T_FMT
-                        " || strcmp(ret->%s + len - %" SIZE_T_FMT ", "
+                        "      if (len < %" CDD_SIZE_T_FMT
+                        " || strcmp(ret->%s + len - %" CDD_SIZE_T_FMT ", "
                         "\"%s\") != 0) { %s_cleanup(ret); return ERANGE; }\n",
                         (size_t)pl, n, (size_t)pl, pat, struct_name));
           } else { /* contains */

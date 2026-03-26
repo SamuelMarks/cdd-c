@@ -8311,9 +8311,10 @@ static /**
   for (attempt = 1; attempt < 10000; ++attempt) {
     char buf[256];
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(buf, sizeof(buf), "%s_%" SIZE_T_FMT "", base, (size_t)attempt);
+    sprintf_s(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", base,
+              (size_t)attempt);
 #else
-    sprintf(buf, "%s_%" SIZE_T_FMT "", base, (size_t)attempt);
+    sprintf(buf, "%s_%" CDD_SIZE_T_FMT "", base, (size_t)attempt);
 #endif
     if (!schema_name_in_use(spec, buf)) {
       *_out_val = (c_cdd_strdup(buf, &_ast_strdup_205), _ast_strdup_205);

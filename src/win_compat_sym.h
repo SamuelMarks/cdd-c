@@ -22,27 +22,27 @@ extern "C" {
 #endif
 
 #if defined(_MSC_VER)
-#define SIZE_T_FMT "Iu"
-#define NUM_FORMAT "I64u"
+#define CDD_SIZE_T_FMT "zu"
+#define CDD_NUM_FORMAT "llu"
 #elif defined(__MINGW64__)
-#define SIZE_T_FMT "llu"
-#define NUM_FORMAT "llu"
+#define CDD_SIZE_T_FMT "llu"
+#define CDD_NUM_FORMAT "llu"
 #elif defined(__MINGW32__)
-#define SIZE_T_FMT "u"
-#define NUM_FORMAT "llu"
+#define CDD_SIZE_T_FMT "u"
+#define CDD_NUM_FORMAT "llu"
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <inttypes.h>
 #endif
 /* clang-format on */
-#define SIZE_T_FMT "zu"
-#define NUM_FORMAT PRIu64
+#define CDD_SIZE_T_FMT "zu"
+#define CDD_NUM_FORMAT PRIu64
 #elif defined(__LP64__) || defined(_LP64)
-#define SIZE_T_FMT "lu"
-#define NUM_FORMAT "llu"
+#define CDD_SIZE_T_FMT "lu"
+#define CDD_NUM_FORMAT "llu"
 #else
-#define SIZE_T_FMT "u"
-#define NUM_FORMAT "llu"
+#define CDD_SIZE_T_FMT "u"
+#define CDD_NUM_FORMAT "llu"
 #endif
 
 #ifdef __cplusplus
