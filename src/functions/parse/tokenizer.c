@@ -14,6 +14,11 @@
  */
 
 /* clang-format off */
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wc99-extensions"
+#endif
+
 #include <ctype.h>
 
 #include <errno.h>
@@ -1643,3 +1648,6 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
   return 0;
 }
+#if defined(__clang__) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -547,7 +547,7 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
             CHECK_IO(fprintf(fp, "  (*out)->%s = %" NUM_FORMAT ";\n", n,
-                             (unsigned long long)nv.data.integer.value));
+                             (uint64_t)nv.data.integer.value));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
