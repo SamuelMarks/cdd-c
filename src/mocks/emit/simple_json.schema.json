@@ -6,10 +6,7 @@
         "enum": ["BIG", "SMALL", "UNKNOWN"]
       },
       "HazE": {
-        "required": [
-          "bzr",
-          "tank"
-        ],
+        "required": ["bzr", "tank"],
         "type": "object",
         "properties": {
           "bzr": {
@@ -21,11 +18,7 @@
         }
       },
       "FooE": {
-        "required": [
-          "bar",
-          "can",
-          "haz"
-        ],
+        "required": ["bar", "can", "haz"],
         "type": "object",
         "properties": {
           "bar": {

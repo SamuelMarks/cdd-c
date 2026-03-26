@@ -4,23 +4,23 @@ This project strives to fully implement the [OpenAPI Specification Version 3.2.0
 
 ## Support Matrix
 
-| Specification Concept                 | Status |
-| ------------------------------------- | ------ |
-| Info Object                           | ✅      |
-| Server Object                         | ✅      |
-| Components Object                     | ✅      |
-| Paths Object                          | ✅      |
-| Path Item Object                      | ✅      |
-| Operation Object                      | ✅      |
-| Parameter Object                      | ✅      |
-| Request Body Object                   | ✅      |
-| Responses Object                      | ✅      |
-| Responses / Schema Object             | ✅      |
-| Reference Object (`$ref`)             | ✅      |
-| OAuth Flows                           | ✅      |
-| Security Requirement Object           | ✅      |
-| Links / Callbacks                     | ✅      |
-| Webhooks                              | ✅      |
+| Specification Concept       | Status |
+| --------------------------- | ------ |
+| Info Object                 | ✅     |
+| Server Object               | ✅     |
+| Components Object           | ✅     |
+| Paths Object                | ✅     |
+| Path Item Object            | ✅     |
+| Operation Object            | ✅     |
+| Parameter Object            | ✅     |
+| Request Body Object         | ✅     |
+| Responses Object            | ✅     |
+| Responses / Schema Object   | ✅     |
+| Reference Object (`$ref`)   | ✅     |
+| OAuth Flows                 | ✅     |
+| Security Requirement Object | ✅     |
+| Links / Callbacks           | ✅     |
+| Webhooks                    | ✅     |
 
 ### Next Steps
 

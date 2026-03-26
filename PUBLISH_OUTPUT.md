@@ -11,7 +11,7 @@ name: Update API SDK
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Every night
+    - cron: "0 0 * * *" # Every night
   workflow_dispatch:
 
 jobs:

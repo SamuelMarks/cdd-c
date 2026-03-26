@@ -5,6 +5,7 @@
 This document outlines a granular, step-by-step roadmap to implement SQL parsing, C struct code generation (including collection arrays) in `cdd-c`, and the dynamic hydration and database execution engine in `c-orm`.
 
 ## Phase 1: `cdd-c` Lexer & Parser (SQL/DDL)
+
 - [x] 1. Define AST node struct for SQL Table definition (`sql_table_t`).
 - [x] 2. Define AST node struct for SQL Column definition (`sql_column_t`).
 - [x] 3. Define enum for SQL Data Types (INT, VARCHAR, FLOAT, BOOLEAN, etc.).
@@ -27,6 +28,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 20. Add unit tests for SQL Lexer and Parser components against various DDL dialects.
 
 ## Phase 2: `cdd-c` IR to C Struct Emission
+
 - [x] 21. Create an emission module specifically for C header files (`.h`).
 - [x] 22. Generate standard includes in headers (`<stdint.h>`, `<stdbool.h>`, `<stddef.h>`).
 - [x] 23. Generate robust `#ifndef` / `#define` include guards based on table names.
@@ -49,6 +51,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 40. Write comprehensive unit tests for struct, array, and memory helper emission logic.
 
 ## Phase 3: `cdd-c` ORM Metadata Emission
+
 - [x] 41. Define standard `c_orm_type_t` enum in the `cdd-c` emission context.
 - [x] 42. Emit static string arrays of column names (`const char* Type_col_names[]`).
 - [x] 43. Emit static arrays of column types mapped to `c_orm_type_t`.
@@ -66,6 +69,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 55. Add unit tests verifying generated metadata memory layout and offset correctness.
 
 ## Phase 4: `c-orm` Core Metadata & Interface Setup
+
 - [x] 56. Define the matching `c_orm_column_meta_t` struct in `c-orm` headers.
 - [x] 57. Define the matching `c_orm_table_meta_t` struct in `c-orm` headers.
 - [x] 58. Define the matching `c_orm_type_t` enum in `c-orm` headers.
@@ -78,6 +82,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 65. Set up CMake build system for `c-orm` as a consumable static or shared library.
 
 ## Phase 5: `c-orm` Database Driver Implementations (SQLite Focus)
+
 - [x] 66. Implement SQLite driver initialization and `vtable` wiring.
 - [x] 67. Implement `c_orm_connect(url, &db)` for SQLite backend.
 - [x] 68. Implement `c_orm_disconnect(db)` and resource cleanup.
@@ -91,6 +96,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 76. Implement statement finalization and reset logic (`sqlite3_finalize` / `sqlite3_reset`).
 
 ## Phase 6: `c-orm` Query Builder
+
 - [x] 77. Implement a dynamic string builder utility (`c_orm_string_builder_t`) for safe SQL generation.
 - [x] 78. Create `c_orm_select_builder_t` and its initialization function.
 - [x] 79. Implement `where_eq` and `where_neq` builder filter functions.
@@ -103,6 +109,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 86. Create an `update_builder` for dynamic updates (partial field updates).
 
 ## Phase 7: `c-orm` Hydration & API Execution
+
 - [x] 87. Implement reflection-based row hydrator: iterate over `c_orm_table_meta_t` and map cursor columns to struct offsets.
 - [x] 88. Implement dynamic memory allocation during hydration (e.g., `strdup` for variable string sizes).
 - [x] 89. Implement runtime type casting from Driver returned types to the target C struct offset types.
@@ -117,6 +124,7 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 98. Implement transaction wrappers (`c_orm_begin`, `c_orm_commit`, `c_orm_rollback`).
 
 ## Phase 8: E2E Integration, Testing & Documentation
+
 - [x] 99. Setup an E2E testing directory containing both `cdd-c` and `c-orm` projects.
 - [x] 100. Create a complex sample schema file (`schema.sql`) for E2E tests containing various constraints and types.
 - [x] 101. Integrate `cdd-c` as a custom CMake command to generate models dynamically before `c-orm` compilation.
@@ -127,4 +135,3 @@ This document outlines a granular, step-by-step roadmap to implement SQL parsing
 - [x] 106. Document the subset of SQL DDL syntax strictly supported by the `cdd-c` parser.
 - [x] 107. Document memory ownership rules (how and when users should call `Type_free` and `Type_Array_free`).
 - [x] 108. Write an end-to-end tutorial markdown file demonstrating the workflow from `.sql` to complete C application.
-

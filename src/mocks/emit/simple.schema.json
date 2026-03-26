@@ -18,7 +18,7 @@
   "$defs": {
     "Haz": {
       "type": "object",
-      "required": [ "bzr" ],
+      "required": ["bzr"],
       "properties": {
         "bzr": {
           "type": "string"
