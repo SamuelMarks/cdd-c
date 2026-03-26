@@ -309,16 +309,34 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
         # c-rest-framework
+        if (NOT C_CDD_USE_LIBCURL)
+            set(C_ABSTRACT_HTTP_USE_RAW_SOCKETS ON CACHE BOOL "" FORCE)
+        endif()
+        if (NOT C_CDD_USE_LIBCURL)
+            set(C_ABSTRACT_HTTP_USE_LIBFETCH ON CACHE BOOL "" FORCE)
+            if (NOT TARGET fetch)
+                add_library(fetch INTERFACE)
+            endif()
+        endif()
         FetchContent_Declare(
             c_rest_framework
+
             GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
             GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
+            UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
             GIT_CONFIG core.autocrlf=false
             SOURCE_SUBDIR c-rest-framework
-            
         )
-        FetchContent_MakeAvailable(c_rest_framework)
+        FetchContent_GetProperties(c_rest_framework)
+        if(NOT c_rest_framework_POPULATED)
+            FetchContent_Populate(c_rest_framework)
+            # Patch the CMakeLists.txt to not fetch CURL when WASI
+            file(READ "${c_rest_framework_SOURCE_DIR}/CMakeLists.txt" HTTP_CMAKE)
+            string(REPLACE "STREQUAL \"DOS\"" "STREQUAL \"DOS\" OR CMAKE_SYSTEM_NAME STREQUAL \"WASI\"" HTTP_CMAKE "${HTTP_CMAKE}")
+            file(WRITE "${c_rest_framework_SOURCE_DIR}/CMakeLists.txt" "${HTTP_CMAKE}")
+            
+            FetchContent_MakeAvailable(c_rest_framework)
+        endif()
         include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
 
         # c-orm
@@ -382,7 +400,9 @@ include(CTest)
 enable_testing()
 
 if (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+    if(BUILD_TESTING)
     add_subdirectory("src/tests")
+endif()
 endif (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 
 ###########
