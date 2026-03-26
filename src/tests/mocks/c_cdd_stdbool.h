@@ -7,8 +7,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-#if !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) && !defined(__cplusplus)
+#if !defined(_STDBOOL_H) && !defined(__STDBOOL_H) && !defined(HAS_STDBOOL) &&  \
+    !defined(__cplusplus)
 #define _STDBOOL_H
+#define __STDBOOL_H
 #define HAS_STDBOOL
 
 #ifdef bool
