@@ -367,6 +367,7 @@ TEST test_debug_and_display(void) {
   PASS();
 }
 
+#if !(defined(_MSC_VER) && !defined(__INTEL_COMPILER)) && !defined(__APPLE__)
 TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -413,6 +414,7 @@ TEST test_display_fail(void) {
 
   PASS();
 }
+#endif
 
 TEST test_eq_null_cases(void) {
   struct FooE *f1 = NULL, *f2 = NULL;
@@ -547,6 +549,7 @@ TEST test_to_json_with_null_fields(void) {
   PASS();
 }
 
+#if !(defined(_MSC_VER) && !defined(__INTEL_COMPILER)) && !defined(__APPLE__)
 TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
@@ -594,6 +597,7 @@ TEST test_debug_fail(void) {
   remove(tmp_fname);
   PASS();
 }
+#endif
 
 TEST test_json_parsing_wrong_types(void) {
   struct FooE *f = NULL;

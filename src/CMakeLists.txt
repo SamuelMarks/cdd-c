@@ -293,7 +293,7 @@ else ()
     find_package(parson CONFIG REQUIRED)
 endif ()
 endif()
-target_link_libraries("${LIBRARY_NAME}" PRIVATE parson)
+target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
 
 set(CDD_POSTGRESQL "LINKED" CACHE STRING "PostgreSQL support (LINKED, DYNAMIC, OFF)")
 set(CDD_SQLITE "OFF" CACHE STRING "SQLite support (LINKED, DYNAMIC, OFF)")

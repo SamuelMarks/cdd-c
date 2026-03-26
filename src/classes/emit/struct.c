@@ -40,8 +40,7 @@ static const char *kStrDupFunc = "strdup";
 static /**
         * @brief Frees the memory associated with string array.
         */
-    void
-    free_string_array(char **arr, size_t n) {
+    void free_string_array(char **arr, size_t n) {
   size_t i;
   if (!arr)
     return;
@@ -548,7 +547,7 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
             CHECK_IO(fprintf(fp, "  (*out)->%s = %" NUM_FORMAT ";\n", n,
-                             nv.data.integer.value));
+                             (unsigned long long)nv.data.integer.value));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
             CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
