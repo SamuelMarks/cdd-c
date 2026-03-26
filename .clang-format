@@ -1,3 +1,4 @@
 ---
 Language: C
 BasedOnStyle: LLVM
+SortIncludes: Never
