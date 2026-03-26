@@ -39,7 +39,7 @@ extern "C" {
 #define NUM_FORMAT PRIu64
 #elif defined(__LP64__) || defined(_LP64)
 #define SIZE_T_FMT "lu"
-#define NUM_FORMAT "lu"
+#define NUM_FORMAT "llu"
 #else
 #define SIZE_T_FMT "u"
 #define NUM_FORMAT "llu"

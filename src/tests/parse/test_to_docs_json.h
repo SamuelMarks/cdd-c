@@ -95,28 +95,21 @@ TEST test_to_docs_json_basic(void) {
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
 
-  arr = json_value_get_array(val);
-  ASSERT(arr != NULL);
-  ASSERT_EQ(1, json_array_get_count(arr));
+  JSON_Object *root_obj = json_value_get_object(val);
+  ASSERT(root_obj != NULL);
 
-  lang_obj = json_array_get_object(arr, 0);
-  ASSERT_STR_EQ("c", json_object_get_string(lang_obj, "language"));
+  JSON_Object *endpoints_obj = json_object_get_object(root_obj, "endpoints");
+  ASSERT(endpoints_obj != NULL);
 
-  ops = json_object_get_array(lang_obj, "operations");
-  ASSERT(ops != NULL);
-  ASSERT_EQ(1, json_array_get_count(ops));
+  JSON_Object *pet_obj = json_object_get_object(endpoints_obj, "/pet");
+  ASSERT(pet_obj != NULL);
 
-  op_obj = json_array_get_object(ops, 0);
-  ASSERT_STR_EQ("GET", json_object_get_string(op_obj, "method"));
-  ASSERT_STR_EQ("/pet", json_object_get_string(op_obj, "path"));
-  ASSERT_STR_EQ("getPet", json_object_get_string(op_obj, "operationId"));
+  const char *code_str = json_object_get_string(pet_obj, "get");
+  ASSERT(code_str != NULL);
 
-  code_obj = json_object_get_object(op_obj, "code");
-  ASSERT(code_obj != NULL);
-  ASSERT(json_object_has_value(code_obj, "imports"));
-  ASSERT(json_object_has_value(code_obj, "wrapper_start"));
-  ASSERT(json_object_has_value(code_obj, "wrapper_end"));
-  ASSERT(json_object_has_value(code_obj, "snippet"));
+  ASSERT(strstr(code_str, "#include \"generated_client.h\"") != NULL);
+  ASSERT(strstr(code_str, "int main(void)") != NULL);
+  ASSERT(strstr(code_str, "api_getPet") != NULL);
 
   json_value_free(val);
 
@@ -160,16 +153,21 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
 
-  arr = json_value_get_array(val);
-  lang_obj = json_array_get_object(arr, 0);
-  ops = json_object_get_array(lang_obj, "operations");
-  op_obj = json_array_get_object(ops, 0);
-  code_obj = json_object_get_object(op_obj, "code");
+  JSON_Object *root_obj = json_value_get_object(val);
+  ASSERT(root_obj != NULL);
 
-  ASSERT(!json_object_has_value(code_obj, "imports"));
-  ASSERT(!json_object_has_value(code_obj, "wrapper_start"));
-  ASSERT(!json_object_has_value(code_obj, "wrapper_end"));
-  ASSERT(json_object_has_value(code_obj, "snippet"));
+  JSON_Object *endpoints_obj = json_object_get_object(root_obj, "endpoints");
+  ASSERT(endpoints_obj != NULL);
+
+  JSON_Object *pet_obj = json_object_get_object(endpoints_obj, "/pet");
+  ASSERT(pet_obj != NULL);
+
+  const char *code_str = json_object_get_string(pet_obj, "get");
+  ASSERT(code_str != NULL);
+
+  ASSERT(strstr(code_str, "#include") == NULL);
+  ASSERT(strstr(code_str, "int main(void)") == NULL);
+  ASSERT(strstr(code_str, "api_getPet") != NULL);
 
   json_value_free(val);
 
