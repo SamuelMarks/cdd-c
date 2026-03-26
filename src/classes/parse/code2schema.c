@@ -3805,7 +3805,7 @@ static /**
     *_out_val = sanitized;
     return 0;
   }
-  snprintf(buf, sizeof(buf), "%s_%" SIZE_T_FMT "", sanitized,
+  snprintf(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
            (size_t)(index + 1));
   free(sanitized);
   out = (c_cdd_strdup(buf, &_ast_strdup_12), _ast_strdup_12);
@@ -3819,7 +3819,8 @@ static /**
     return 0;
   }
   free(out);
-  snprintf(buf, sizeof(buf), "Variant_%" SIZE_T_FMT "", (size_t)(index + 1));
+  snprintf(buf, sizeof(buf), "Variant_%" CDD_SIZE_T_FMT "",
+           (size_t)(index + 1));
   {
     *_out_val = (c_cdd_strdup(buf, &_ast_strdup_13), _ast_strdup_13);
     return 0;

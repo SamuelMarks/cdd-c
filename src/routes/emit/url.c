@@ -869,21 +869,22 @@ static /**
           "      {\n"
           "        size_t key_len = strlen(key_enc);\n"
           "        size_t val_len = strlen(val_enc);\n"
-          "        size_t extra = key_len + val_len + %" SIZE_T_FMT " + "
-          "(joined_len ? %" SIZE_T_FMT " : 0);\n"
+          "        size_t extra = key_len + val_len + %" CDD_SIZE_T_FMT " + "
+          "(joined_len ? %" CDD_SIZE_T_FMT " : 0);\n"
           "        char *tmp = (char *)realloc(joined, joined_len + extra + "
           "1);\n"
           "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; "
           "goto cleanup; }\n"
           "        joined = tmp;\n"
           "        if (joined_len) {\n"
-          "          memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
-          "          joined_len += %" SIZE_T_FMT ";\n"
+          "          memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT
+          ");\n"
+          "          joined_len += %" CDD_SIZE_T_FMT ";\n"
           "        }\n"
           "        memcpy(joined + joined_len, key_enc, key_len);\n"
           "        joined_len += key_len;\n"
-          "        memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
-          "        joined_len += %" SIZE_T_FMT ";\n"
+          "        memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
+          "        joined_len += %" CDD_SIZE_T_FMT ";\n"
           "        memcpy(joined + joined_len, val_enc, val_len);\n"
           "        joined_len += val_len;\n"
           "        joined[joined_len] = '\\0';\n"
@@ -1067,18 +1068,18 @@ static /**
         fp,
         "        size_t key_len = strlen(key_enc);\n"
         "        size_t val_len = strlen(val_enc);\n"
-        "        size_t extra = key_len + val_len + 1 + (first ? %" SIZE_T_FMT
-        " : %" SIZE_T_FMT ");\n"
+        "        size_t extra = key_len + val_len + 1 + (first ? "
+        "%" CDD_SIZE_T_FMT " : %" CDD_SIZE_T_FMT ");\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; goto "
         "cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (first && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
-        "        if (!first && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (first && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
+        "        if (!first && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, key_enc, key_len);\n"
         "        path_len += key_len;\n"
         "        path_%s[path_len++] = '=';\n"
@@ -1093,23 +1094,23 @@ static /**
         fp,
         "        size_t key_len = strlen(key_enc);\n"
         "        size_t val_len = strlen(val_enc);\n"
-        "        size_t extra = key_len + val_len + 1 + (first ? %" SIZE_T_FMT
-        " : %" SIZE_T_FMT ") + "
-        "%" SIZE_T_FMT ";\n"
+        "        size_t extra = key_len + val_len + 1 + (first ? "
+        "%" CDD_SIZE_T_FMT " : %" CDD_SIZE_T_FMT ") + "
+        "%" CDD_SIZE_T_FMT ";\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(key_enc); free(val_enc); rc = ENOMEM; goto "
         "cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (first && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
-        "        if (!first && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (first && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
+        "        if (!first && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, key_enc, key_len);\n"
         "        path_len += key_len;\n"
-        "        memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT ");\n"
-        "        path_len += %" SIZE_T_FMT ";\n"
+        "        memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
+        "        path_len += %" CDD_SIZE_T_FMT ";\n"
         "        memcpy(path_%s + path_len, val_enc, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n",
@@ -1189,18 +1190,18 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "      {\n"
-        "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT
-        " : 0) + (i == 0 ? %" SIZE_T_FMT " : "
+        "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT
+        " : 0) + (i == 0 ? %" CDD_SIZE_T_FMT " : "
         "0);\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (i == 0 && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
-        "        if (i > 0 && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (i == 0 && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
+        "        if (i > 0 && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, enc, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n"
@@ -1213,18 +1214,18 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "      {\n"
-        "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT
-        " : 0) + (i == 0 ? %" SIZE_T_FMT " : "
+        "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT
+        " : 0) + (i == 0 ? %" CDD_SIZE_T_FMT " : "
         "0);\n"
         "        char *tmp = (char *)realloc(path_%s, path_len + extra + 1);\n"
         "        if (!tmp) { rc = ENOMEM; goto cleanup; }\n"
         "        path_%s = tmp;\n"
-        "        if (i == 0 && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
-        "        if (i > 0 && %" SIZE_T_FMT
-        ") { memcpy(path_%s + path_len, \"%s\", %" SIZE_T_FMT "); "
-        "path_len += %" SIZE_T_FMT "; }\n"
+        "        if (i == 0 && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
+        "        if (i > 0 && %" CDD_SIZE_T_FMT
+        ") { memcpy(path_%s + path_len, \"%s\", %" CDD_SIZE_T_FMT "); "
+        "path_len += %" CDD_SIZE_T_FMT "; }\n"
         "        memcpy(path_%s + path_len, raw, val_len);\n"
         "        path_len += val_len;\n"
         "        path_%s[path_len] = '\\0';\n"
@@ -1387,13 +1388,13 @@ static /**
   CHECK_IO(fprintf(
       fp,
       "      {\n"
-      "        size_t extra = val_len + (i > 0 ? %" SIZE_T_FMT " : 0);\n"
+      "        size_t extra = val_len + (i > 0 ? %" CDD_SIZE_T_FMT " : 0);\n"
       "        char *tmp = (char *)realloc(joined, joined_len + extra + 1);\n"
       "        if (!tmp) { free(enc); rc = ENOMEM; goto cleanup; }\n"
       "        joined = tmp;\n"
       "        if (i > 0) {\n"
-      "          memcpy(joined + joined_len, \"%s\", %" SIZE_T_FMT ");\n"
-      "          joined_len += %" SIZE_T_FMT ";\n"
+      "          memcpy(joined + joined_len, \"%s\", %" CDD_SIZE_T_FMT ");\n"
+      "          joined_len += %" CDD_SIZE_T_FMT ";\n"
       "        }\n"
       "        memcpy(joined + joined_len, enc, val_len);\n"
       "        joined_len += val_len;\n"

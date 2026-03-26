@@ -546,7 +546,7 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
             /* Emit as largest decimal constant suffix-aware?
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %" NUM_FORMAT ";\n", n,
+            CHECK_IO(fprintf(fp, "  (*out)->%s = %" CDD_NUM_FORMAT ";\n", n,
                              (uint64_t)nv.data.integer.value));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
