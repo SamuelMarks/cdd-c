@@ -367,50 +367,40 @@ TEST test_debug_and_display(void) {
   PASS();
 }
 
-#if !(defined(_MSC_VER) && !defined(__INTEL_COMPILER)) && !defined(__APPLE__)
+#if 1
 TEST test_display_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  const char *const tmp_fname = "display_test.tmp";
-  FILE *fh = NULL;
   (void)rc;
 
-  write_to_file(tmp_fname, "content");
+  FooE_default(&foo);
+  HazE_default(&haz);
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#ifndef _WIN32
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r");
-    if (err != 0 || fh == NULL) {
-      FAILm("Failed to read file");
-    }
+    const char *const tmp_fname = "display_test.tmp";
+    FILE *fh = NULL;
+    write_to_file(tmp_fname, "content");
+    fh = fopen(tmp_fname, "r");
+    ASSERT(fh != NULL);
+
+    rc = FooE_display(foo, fh); /* Try to write to read-only stream */
+    ASSERT(rc != 0);
+
+    rc = HazE_display(haz, fh);
+    ASSERT(rc != 0);
+
+    fclose(fh);
+    remove(tmp_fname);
   }
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fh, tmp_fname, "r");
-#else
-  fh = fopen(tmp_fname, "r");
-#endif
-  ASSERT(fh != NULL);
+  /* MSVC aborts on writing to read-only streams. We test this path on Linux for
+   * coverage. */
 #endif
 
-  FooE_default(&foo);
-  rc = FooE_display(foo, fh); /* Try to write to read-only stream */
-#ifndef _WIN32
-  ASSERT(rc != 0);
-#endif
   FooE_cleanup(foo);
-
-  HazE_default(&haz);
-  rc = HazE_display(haz, fh);
-#ifndef _WIN32
-  ASSERT(rc != 0);
-#endif
   HazE_cleanup(haz);
-
-  fclose(fh);
-  remove(tmp_fname);
 
   PASS();
 }
@@ -549,52 +539,42 @@ TEST test_to_json_with_null_fields(void) {
   PASS();
 }
 
-#if !(defined(_MSC_VER) && !defined(__INTEL_COMPILER)) && !defined(__APPLE__)
+#if 1
 TEST test_debug_fail(void) {
   struct FooE *foo = NULL;
   struct HazE *haz = NULL;
   int rc;
-  const char *const tmp_fname = "debug_test.tmp";
-  FILE *fh = NULL;
   (void)rc;
 
-  write_to_file(tmp_fname, "content");
+  FooE_default(&foo);
+  HazE_default(&haz);
 
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+#ifndef _WIN32
   {
-    const errno_t err = fopen_s(&fh, tmp_fname, "r");
-    if (err != 0 || fh == NULL) {
-      FAILm("Failed to read file");
-    }
+    const char *const tmp_fname = "debug_test.tmp";
+    FILE *fh = NULL;
+    write_to_file(tmp_fname, "content");
+    fh = fopen(tmp_fname, "r");
+    ASSERT(fh != NULL);
+
+    rc = FooE_debug(foo, fh); /* Try to write to read-only stream */
+    ASSERT(rc != 0);
+
+    rewind(fh); /* reset for next test */
+
+    rc = HazE_debug(haz, fh); /* Try to write to read-only stream */
+    ASSERT(rc != 0);
+
+    fclose(fh);
+    remove(tmp_fname);
   }
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fh, tmp_fname, "r");
-#else
-  fh = fopen(tmp_fname, "r");
-#endif
-  ASSERT(fh != NULL);
+  /* MSVC aborts on writing to read-only streams. */
 #endif
 
-  FooE_default(&foo);
-  rc = FooE_debug(foo, fh); /* Try to write to read-only stream */
-#ifndef _WIN32
-  ASSERT(rc != 0);
-#endif
   FooE_cleanup(foo);
-
-  rewind(fh); /* reset for next test */
-
-  HazE_default(&haz);
-  rc = HazE_debug(haz, fh); /* Try to write to read-only stream */
-#ifndef _WIN32
-  ASSERT(rc != 0);
-#endif
   HazE_cleanup(haz);
 
-  fclose(fh);
-  remove(tmp_fname);
   PASS();
 }
 #endif
@@ -815,7 +795,7 @@ SUITE(dataclasses_suite) {
   RUN_TEST(test_json_parsing_errors);
   RUN_TEST(test_null_args_and_errors);
   RUN_TEST(test_json_parsing_corner_cases);
-#if (defined(_MSC_VER) && !defined(__INTEL_COMPILER)) || defined(__APPLE__)
+#if 0
   /* TODO: Get them to work on MSVC and fix macOS segfaults */
 #else
   RUN_TEST(test_display_fail);
