@@ -329,6 +329,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
             GIT_CONFIG core.autocrlf=false
             SOURCE_SUBDIR c-rest-framework
+            PATCH_COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/patch_c_rest_framework.cmake"
         )
         set(SAVE_BUILD_TESTING ${BUILD_TESTING})
         set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
@@ -336,12 +337,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         set(C_CDD_BUILD_TESTING OFF CACHE BOOL "Build the tests" FORCE)
         FetchContent_GetProperties(c_rest_framework)
         if(NOT c_rest_framework_POPULATED)
-            FetchContent_Populate(c_rest_framework)
-            # Patch the CMakeLists.txt to not fetch CURL when WASI
-            file(READ "${c_rest_framework_SOURCE_DIR}/CMakeLists.txt" HTTP_CMAKE)
-            string(REPLACE "STREQUAL \"DOS\"" "STREQUAL \"DOS\" OR CMAKE_SYSTEM_NAME STREQUAL \"WASI\"" HTTP_CMAKE "${HTTP_CMAKE}")
-            file(WRITE "${c_rest_framework_SOURCE_DIR}/CMakeLists.txt" "${HTTP_CMAKE}")
-            
             FetchContent_MakeAvailable(c_rest_framework)
         endif()
         include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
@@ -368,7 +363,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         endif()
         FetchContent_GetProperties(c_orm)
         if(NOT c_orm_POPULATED)
-            FetchContent_Populate(c_orm)
+            FetchContent_MakeAvailable(c_orm)
         endif()
         include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
     endif()

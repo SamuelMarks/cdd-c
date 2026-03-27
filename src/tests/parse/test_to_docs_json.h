@@ -67,11 +67,10 @@ TEST test_to_docs_json_basic(void) {
   int stdout_fd;
   fpos_t pos;
   JSON_Value *val;
-  JSON_Array *arr;
-  JSON_Object *lang_obj;
-  JSON_Array *ops;
-  JSON_Object *op_obj;
-  JSON_Object *code_obj;
+  JSON_Object *root_obj;
+  JSON_Object *endpoints_obj;
+  JSON_Object *pet_obj;
+  const char *code_str;
 
   write_test_spec();
 
@@ -95,16 +94,16 @@ TEST test_to_docs_json_basic(void) {
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
 
-  JSON_Object *root_obj = json_value_get_object(val);
+  root_obj = json_value_get_object(val);
   ASSERT(root_obj != NULL);
 
-  JSON_Object *endpoints_obj = json_object_get_object(root_obj, "endpoints");
+  endpoints_obj = json_object_get_object(root_obj, "endpoints");
   ASSERT(endpoints_obj != NULL);
 
-  JSON_Object *pet_obj = json_object_get_object(endpoints_obj, "/pet");
+  pet_obj = json_object_get_object(endpoints_obj, "/pet");
   ASSERT(pet_obj != NULL);
 
-  const char *code_str = json_object_get_string(pet_obj, "get");
+  code_str = json_object_get_string(pet_obj, "get");
   ASSERT(code_str != NULL);
 
   ASSERT(strstr(code_str, "#include \"generated_client.h\"") != NULL);
@@ -125,11 +124,10 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   int stdout_fd;
   fpos_t pos;
   JSON_Value *val;
-  JSON_Array *arr;
-  JSON_Object *lang_obj;
-  JSON_Array *ops;
-  JSON_Object *op_obj;
-  JSON_Object *code_obj;
+  JSON_Object *root_obj;
+  JSON_Object *endpoints_obj;
+  JSON_Object *pet_obj;
+  const char *code_str;
 
   write_test_spec();
 
@@ -153,16 +151,16 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   val = json_parse_file(TEMP_OUT_FILE);
   ASSERT(val != NULL);
 
-  JSON_Object *root_obj = json_value_get_object(val);
+  root_obj = json_value_get_object(val);
   ASSERT(root_obj != NULL);
 
-  JSON_Object *endpoints_obj = json_object_get_object(root_obj, "endpoints");
+  endpoints_obj = json_object_get_object(root_obj, "endpoints");
   ASSERT(endpoints_obj != NULL);
 
-  JSON_Object *pet_obj = json_object_get_object(endpoints_obj, "/pet");
+  pet_obj = json_object_get_object(endpoints_obj, "/pet");
   ASSERT(pet_obj != NULL);
 
-  const char *code_str = json_object_get_string(pet_obj, "get");
+  code_str = json_object_get_string(pet_obj, "get");
   ASSERT(code_str != NULL);
 
   ASSERT(strstr(code_str, "#include") == NULL);

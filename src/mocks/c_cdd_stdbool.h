@@ -12,6 +12,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
+#if (defined(_MSC_VER) && _MSC_VER >= 1800) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(__clang__) && !defined(_MSC_VER)) || (defined(__GNUC__) && !defined(_MSC_VER))
+#include <stdbool.h>
+#else
 #if !defined(_STDBOOL_H) && !defined(__STDBOOL_H) && !defined(HAS_STDBOOL) &&  \
     !defined(__cplusplus)
 #define _STDBOOL_H
@@ -30,9 +34,7 @@ extern "C" {
 #undef false
 #endif /* false */
 
-/* clang-format off */
 #include <stdlib.h>
-/* clang-format on */
 
 /**
  * @brief Boolean type alias.
@@ -53,6 +55,8 @@ typedef unsigned char _c_cdd_bool;
 #define false 0
 
 #endif /* !defined(_STDBOOL_H) && !defined(HAS_STDBOOL) */
+#endif
+/* clang-format on */
 
 #ifdef __cplusplus
 }
