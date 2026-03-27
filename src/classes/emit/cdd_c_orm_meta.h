@@ -1,6 +1,6 @@
 /**
- * @file c_orm_meta.h
- * @brief Common definitions and enums for c-orm code generation.
+ * @file cdd_c_orm_meta.h
+ * @brief Common definitions and enums for cdd-c struct meta-data.
  */
 
 #ifndef C_CDD_C_ORM_META_H
@@ -11,33 +11,32 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#include <c_orm_meta.h>
 #include <stddef.h>
 /* clang-format on */
 
 /**
- * @brief Metadata describing a single property/field of an ORM mapped struct.
+ * @brief Metadata describing a single property/field of an mapped struct.
  */
-typedef struct c_orm_prop_meta {
+typedef struct cdd_c_prop_meta {
   const char *name;    /**< Name of the property */
   const char *type;    /**< Type of the property */
   size_t offset;       /**< Offset in bytes within the struct */
   int is_array;        /**< Boolean flag indicating if it is an array */
   unsigned int length; /**< Array length if applicable */
   int is_secure; /**< Boolean flag indicating if it contains secure data */
-} c_orm_prop_meta_t;
+} cdd_c_prop_meta_t;
 
 /**
- * @brief Metadata describing a full ORM mapped struct layout.
+ * @brief Metadata describing a full mapped struct layout.
  */
-typedef struct c_orm_meta {
+typedef struct cdd_c_meta {
   const char *name;               /**< Name of the struct */
   size_t size;                    /**< Total size in bytes */
   size_t num_props;               /**< Number of properties in the struct */
-  const c_orm_prop_meta_t *props; /**< Pointer to the properties array */
+  const cdd_c_prop_meta_t *props; /**< Pointer to the properties array */
   void *driver_ctx; /**< Phase 4: Identity Map and Generic Driver Context
                        Extensions */
-} c_orm_meta_t;
+} cdd_c_meta_t;
 
 #ifdef __cplusplus
 }
