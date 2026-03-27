@@ -401,29 +401,40 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
  * @brief Converts a SQL data type enum to its corresponding C ORM string
  * representation.
  */
-const char *sql_type_to_c_orm_type(enum SqlDataType type) {
+int sql_type_to_c_orm_type(enum SqlDataType type, const char **out_val) {
+  if (!out_val)
+    return 1;
   switch (type) {
   case SQL_TYPE_INT:
-    return "C_ORM_TYPE_INT32";
+    *out_val = "C_ORM_TYPE_INT32";
+    return 0;
   case SQL_TYPE_BIGINT:
-    return "C_ORM_TYPE_INT64";
+    *out_val = "C_ORM_TYPE_INT64";
+    return 0;
   case SQL_TYPE_VARCHAR:
   case SQL_TYPE_TEXT:
   case SQL_TYPE_CHAR:
-    return "C_ORM_TYPE_STRING";
+    *out_val = "C_ORM_TYPE_STRING";
+    return 0;
   case SQL_TYPE_DATE:
-    return "C_ORM_TYPE_DATE";
+    *out_val = "C_ORM_TYPE_DATE";
+    return 0;
   case SQL_TYPE_TIMESTAMP:
-    return "C_ORM_TYPE_TIMESTAMP";
+    *out_val = "C_ORM_TYPE_TIMESTAMP";
+    return 0;
   case SQL_TYPE_FLOAT:
-    return "C_ORM_TYPE_FLOAT";
+    *out_val = "C_ORM_TYPE_FLOAT";
+    return 0;
   case SQL_TYPE_DOUBLE:
   case SQL_TYPE_DECIMAL:
-    return "C_ORM_TYPE_DOUBLE";
+    *out_val = "C_ORM_TYPE_DOUBLE";
+    return 0;
   case SQL_TYPE_BOOLEAN:
-    return "C_ORM_TYPE_BOOL";
+    *out_val = "C_ORM_TYPE_BOOL";
+    return 0;
   default:
-    return "C_ORM_TYPE_UNKNOWN";
+    *out_val = "C_ORM_TYPE_UNKNOWN";
+    return 0;
   }
 }
 /**
@@ -439,6 +450,7 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
   size_t i;
   int is_pk;
   int is_null;
+  const char *orm_type_str;
 
   /* Emit column names array */
   fprintf(fp, "const char* %s_col_names[] = {\n", struct_name);
@@ -451,8 +463,12 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
   /* Emit column types array */
   fprintf(fp, "const c_orm_type_t %s_col_types[] = {\n", struct_name);
   for (i = 0; i < table->n_columns; ++i) {
-    fprintf(fp, "  %s%s\n", sql_type_to_c_orm_type(table->columns[i].type),
-            i == table->n_columns - 1 ? "" : ",");
+    fprintf(
+        fp, "  %s%s\n",
+        ((sql_type_to_c_orm_type(table->columns[i].type, &orm_type_str) == 0)
+             ? orm_type_str
+             : "C_ORM_TYPE_UNKNOWN"),
+        i == table->n_columns - 1 ? "" : ",");
   }
   fprintf(fp, "};\n\n");
 
@@ -536,13 +552,16 @@ static int emit_c_orm_metadata(FILE *fp, const struct sql_table_t *table,
     }
     is_null = is_nullable(&table->columns[i]);
 
-    fprintf(fp,
-            "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, "
-            "false }%s\n",
-            table->columns[i].name,
-            sql_type_to_c_orm_type(table->columns[i].type), struct_name,
-            table->columns[i].name, is_pk ? "true" : "false",
-            is_null ? "true" : "false", i == table->n_columns - 1 ? "" : ",");
+    fprintf(
+        fp,
+        "  { \"%s\", %s, offsetof(struct %s, %s), %s, %s, NULL, false, "
+        "false }%s\n",
+        table->columns[i].name,
+        ((sql_type_to_c_orm_type(table->columns[i].type, &orm_type_str) == 0)
+             ? orm_type_str
+             : "C_ORM_TYPE_UNKNOWN"),
+        struct_name, table->columns[i].name, is_pk ? "true" : "false",
+        is_null ? "true" : "false", i == table->n_columns - 1 ? "" : ",");
   }
   fprintf(fp, "};\n\n");
 
@@ -770,6 +789,7 @@ int sql_to_c_projection_meta_emit(FILE *fp,
                                   const char *struct_name) {
 
   size_t i;
+  const char *orm_type_str;
 
   if (!fp || !proj || !struct_name)
     return -1;
@@ -782,7 +802,10 @@ int sql_to_c_projection_meta_emit(FILE *fp,
 
     const cdd_c_query_projection_field_t *field = &proj->fields[i];
 
-    const char *orm_type = sql_type_to_c_orm_type(field->type);
+    const char *orm_type = "C_ORM_TYPE_UNKNOWN";
+    if (sql_type_to_c_orm_type(field->type, &orm_type_str) == 0) {
+      orm_type = orm_type_str;
+    }
 
     fprintf(fp, "    {\n");
 
