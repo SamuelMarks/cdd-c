@@ -21,7 +21,10 @@ extern "C" {
 #endif
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#define CDD_SIZE_T_FMT "Iu"
+#define CDD_NUM_FORMAT "I64u"
+#elif defined(_MSC_VER)
 #define CDD_SIZE_T_FMT "zu"
 #define CDD_NUM_FORMAT "llu"
 #elif defined(__MINGW64__)
