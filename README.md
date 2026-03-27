@@ -91,8 +91,8 @@ _(The boxes below reflect the features supported by this specific `cdd-c` implem
 | `C` Models / Structs / Types  | ✅           | ✅        |
 | `C` Server Routes / Endpoints | ✅           | ✅        |
 | `C` API Clients / SDKs        | ✅           | ✅        |
-| `C` ORM / DB Schemas          | [ ]          | [ ]       |
-| `C` CLI Argument Parsers      | [ ]          | ✅        |
+| `C` ORM / DB Schemas          | [ ]          | ✅        |
+| `C` CLI Argument Parsers      | ✅           | ✅        |
 | `C` Docstrings / Comments     | ✅           | ✅        |
 
 WASM Support: Possible ✅ | Implemented ✅
@@ -180,6 +180,24 @@ Options:
 ```
 $ ./build_cmake/bin/cdd-c to_openapi --help
 Usage: cdd-c to_openapi [args]
+
+Options:
+  -i, --input <dir>       Input directory containing C source code
+  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
+```
+
+### `to_docs_json`
+
+```
+$ ./build_cmake/bin/cdd-c to_docs_json --help
+Usage: cdd-c to_docs_json [args]
+
+Options:
+  -i, --input <spec.json> Input OpenAPI spec file
+  --no-imports            Disable imports in generated examples
+  --no-wrapping           Disable wrapping in generated examples
+```
+i [args]
 
 Options:
   -i, --input <dir>       Input directory containing C source code
