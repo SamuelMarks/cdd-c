@@ -288,7 +288,7 @@ C_CDD_EXPORT int
 cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct, void *row,
                              void *fields, unsigned int num_fields);
 
-struct c_orm_meta;
+struct cdd_c_meta;
 
 /**
  * @brief Retrieves the offset of a field dynamically from a specific metadata
@@ -297,7 +297,7 @@ struct c_orm_meta;
  * @param field The field name to look up.
  * @return The offset in bytes, or (size_t)-1 if not found.
  */
-C_CDD_EXPORT int cdd_c_meta_offsetof(const struct c_orm_meta *meta,
+C_CDD_EXPORT int cdd_c_meta_offsetof(const struct cdd_c_meta *meta,
                                      const char *field, size_t *out_offset);
 
 /**
@@ -321,7 +321,7 @@ C_CDD_EXPORT int cdd_c_meta_offsetof(const struct c_orm_meta *meta,
 C_CDD_EXPORT int
 cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
                            const void *in_struct,
-                           const struct c_orm_meta *struct_meta);
+                           const struct cdd_c_meta *struct_meta);
 
 /**
  * @brief Converts a dynamic abstract dictionary cleanly into a static C struct.
@@ -335,7 +335,7 @@ cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
  */
 C_CDD_EXPORT int cdd_c_abstract_to_specific(
     void *out_struct, const cdd_c_abstract_struct_t *in_astruct,
-    const struct c_orm_meta *struct_meta, int strict_mapping);
+    const struct cdd_c_meta *struct_meta, int strict_mapping);
 
 #ifdef __cplusplus
 }

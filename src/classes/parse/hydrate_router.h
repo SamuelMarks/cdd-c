@@ -28,7 +28,7 @@ extern "C" {
 typedef int (*cdd_c_specific_hydrator_fn)(void *out_struct,
                                           const cdd_c_abstract_struct_t *row);
 
-struct c_orm_meta; /* Forward decl */
+struct cdd_c_meta; /* Forward decl */
 
 /**
  * @brief Mapping entry to associate a dynamic query hash/ID with its specific
@@ -36,7 +36,7 @@ struct c_orm_meta; /* Forward decl */
  */
 typedef struct CddCHydrateRoute {
   unsigned long long query_id_hash;
-  const struct c_orm_meta *struct_meta;
+  const struct cdd_c_meta *struct_meta;
   cdd_c_specific_hydrator_fn hydrate_fn;
 } cdd_c_hydrate_route_t;
 
@@ -80,7 +80,7 @@ C_CDD_EXPORT void cdd_c_hydrate_router_set_last_error(const char *msg);
 C_CDD_EXPORT int
 cdd_c_hydrate_router_register(cdd_c_hydrate_router_t *router,
                               unsigned long long query_id_hash,
-                              const struct c_orm_meta *struct_meta,
+                              const struct cdd_c_meta *struct_meta,
                               cdd_c_specific_hydrator_fn hydrate_fn);
 
 /**

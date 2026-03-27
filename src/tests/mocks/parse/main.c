@@ -20,6 +20,7 @@ static const char *const foo_e_mock0 =
 
 int main(void) {
   const enum Tank t = Tank_BIG;
+
   char *tank_as_str = NULL;
   struct HazE haz_e = {"some_bzr", Tank_SMALL};
   struct FooE foo_e = {"some_bar", 5, NULL};
@@ -27,6 +28,7 @@ int main(void) {
   char *foo_e_json = NULL;
   struct HazE *haz_e0 = (struct HazE *)malloc(sizeof(*haz_e0));
   struct FooE *foo_e0 = (struct FooE *)malloc(sizeof(*foo_e0));
+  (void)t;
   foo_e.haz = &haz_e;
 
   if (haz_e0 == NULL || foo_e0 == NULL)

@@ -53,7 +53,7 @@ int cdd_c_hydrate_router_init(cdd_c_hydrate_router_t *router) {
 
 int cdd_c_hydrate_router_register(cdd_c_hydrate_router_t *router,
                                   unsigned long long query_id_hash,
-                                  const struct c_orm_meta *struct_meta,
+                                  const struct cdd_c_meta *struct_meta,
                                   cdd_c_specific_hydrator_fn hydrate_fn) {
   cdd_c_hydrate_route_t *new_routes;
   size_t new_cap, i;

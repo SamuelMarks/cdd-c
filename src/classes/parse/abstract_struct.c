@@ -776,10 +776,10 @@ int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
   return -1;
 #endif
 }
-int cdd_c_meta_offsetof(const struct c_orm_meta *struct_meta, const char *field,
+int cdd_c_meta_offsetof(const struct cdd_c_meta *struct_meta, const char *field,
                         size_t *out_offset) {
   size_t i;
-  const c_orm_meta_t *meta = (const c_orm_meta_t *)struct_meta;
+  const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!meta || !field || !out_offset)
     return -1;
 
@@ -794,9 +794,9 @@ int cdd_c_meta_offsetof(const struct c_orm_meta *struct_meta, const char *field,
 
 int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
                                const void *in_struct,
-                               const struct c_orm_meta *struct_meta) {
+                               const struct cdd_c_meta *struct_meta) {
   size_t i;
-  const c_orm_meta_t *meta = (const c_orm_meta_t *)struct_meta;
+  const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!out_astruct || !in_struct || !meta)
     return -1;
 
@@ -804,7 +804,7 @@ int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
     return -1;
 
   for (i = 0; i < meta->num_props; ++i) {
-    const c_orm_prop_meta_t *prop = &meta->props[i];
+    const cdd_c_prop_meta_t *prop = &meta->props[i];
     cdd_c_variant_t val;
     val.type = CDD_C_VARIANT_TYPE_NULL;
 
@@ -840,10 +840,10 @@ int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
 
 int cdd_c_abstract_to_specific(void *out_struct,
                                const cdd_c_abstract_struct_t *in_astruct,
-                               const struct c_orm_meta *struct_meta,
+                               const struct cdd_c_meta *struct_meta,
                                int strict_mapping) {
   size_t i;
-  const c_orm_meta_t *meta = (const c_orm_meta_t *)struct_meta;
+  const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!out_struct || !in_astruct || !meta)
     return -1;
 
@@ -852,7 +852,7 @@ int cdd_c_abstract_to_specific(void *out_struct,
   }
 
   for (i = 0; i < meta->num_props; ++i) {
-    const c_orm_prop_meta_t *prop = &meta->props[i];
+    const cdd_c_prop_meta_t *prop = &meta->props[i];
     cdd_c_variant_t *val = NULL;
 
     if (cdd_c_abstract_get(in_astruct, prop->name, &val) != 0) {

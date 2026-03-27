@@ -36,7 +36,7 @@ TEST test_hydrate_router_registration_and_dispatch(void) {
   cdd_c_abstract_struct_t row;
   cdd_c_variant_t val;
   mock_hydrate_struct_t out_struct;
-  const struct c_orm_meta *dummy_meta = NULL;
+  const struct cdd_c_meta *dummy_meta = NULL;
   unsigned long long hash = 12345;
 
   ASSERT_EQ(0, cdd_c_hydrate_router_init(&router));

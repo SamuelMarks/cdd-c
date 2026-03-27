@@ -160,9 +160,9 @@ TEST test_abstract_struct_conversion(void) {
 
   /* Avoid c_orm_meta initialization logic issues across compilers by mocking
    * the values in arrays explicitly via a safe test binding */
-  c_orm_prop_meta_t p1, p2, p3;
-  c_orm_meta_t meta;
-  c_orm_prop_meta_t props[3];
+  cdd_c_prop_meta_t p1, p2, p3;
+  cdd_c_meta_t meta;
+  cdd_c_prop_meta_t props[3];
 
   p1.name = "id";
   p1.type = "C_ORM_TYPE_INT32";
@@ -307,9 +307,9 @@ TEST test_mock_driver_specific_struct_hydration(void) {
   double mock_ratio = 1.234;
   char mock_greeting[] = "Mock Driver";
 
-  c_orm_prop_meta_t p1, p2, p3;
-  c_orm_meta_t meta;
-  c_orm_prop_meta_t props[3];
+  cdd_c_prop_meta_t p1, p2, p3;
+  cdd_c_meta_t meta;
+  cdd_c_prop_meta_t props[3];
 
   cdd_c_abstract_struct_t astruct;
 
@@ -367,7 +367,7 @@ TEST test_mock_driver_specific_struct_hydration(void) {
   ASSERT_EQ(0, cdd_c_abstract_hydrate(&astruct, drow.row_data, drow.cols,
                                       drow.n_cols));
   ASSERT_EQ(0, cdd_c_abstract_to_specific(&specific_out, &astruct,
-                                          (const struct c_orm_meta *)&meta, 1));
+                                          (const struct cdd_c_meta *)&meta, 1));
   cdd_c_abstract_struct_free(&astruct);
 
   /* Verify bindings mapped through generically into strict specific struct
@@ -471,9 +471,9 @@ TEST test_benchmark_hydration(void) {
   long long mock_can = 42;
   char mock_bar[] = "bench_str";
 
-  c_orm_prop_meta_t p1, p2;
-  c_orm_meta_t meta;
-  c_orm_prop_meta_t props[2];
+  cdd_c_prop_meta_t p1, p2;
+  cdd_c_meta_t meta;
+  cdd_c_prop_meta_t props[2];
 
   p1.name = "greeting";
   p1.type = "C_ORM_TYPE_STRING";
@@ -522,7 +522,7 @@ TEST test_benchmark_hydration(void) {
   for (i = 0; i < ITERATIONS; ++i) {
     cdd_c_abstract_hydrate(&astruct, row_data, cols, 2);
     cdd_c_abstract_to_specific(&specific_out, &astruct,
-                               (const struct c_orm_meta *)&meta, 0);
+                               (const struct cdd_c_meta *)&meta, 0);
     cdd_c_abstract_struct_free(&astruct);
   }
   end = clock();

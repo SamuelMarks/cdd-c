@@ -311,61 +311,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         # We still keep the module path just in case
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-        # c-rest-framework
-        if (NOT C_CDD_USE_LIBCURL)
-            set(C_ABSTRACT_HTTP_USE_RAW_SOCKETS ON CACHE BOOL "" FORCE)
-        endif()
-        if (NOT C_CDD_USE_LIBCURL)
-            set(C_ABSTRACT_HTTP_USE_LIBFETCH ON CACHE BOOL "" FORCE)
-            if (NOT TARGET fetch)
-                add_library(fetch INTERFACE)
-            endif()
-        endif()
-        FetchContent_Declare(
-            c_rest_framework
 
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
-            GIT_TAG master
-            UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-            GIT_CONFIG core.autocrlf=false
-            SOURCE_SUBDIR c-rest-framework
-            PATCH_COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/patch_c_rest_framework.cmake"
-        )
-        set(SAVE_BUILD_TESTING ${BUILD_TESTING})
-        set(SAVE_C_CDD_BUILD_TESTING ${C_CDD_BUILD_TESTING})
-        set(BUILD_TESTING OFF CACHE BOOL "Build the tests" FORCE)
-        set(C_CDD_BUILD_TESTING OFF CACHE BOOL "Build the tests" FORCE)
-        FetchContent_GetProperties(c_rest_framework)
-        if(NOT c_rest_framework_POPULATED)
-            FetchContent_MakeAvailable(c_rest_framework)
-        endif()
-        include_directories(SYSTEM "${c_rest_framework_SOURCE_DIR}/include")
-
-        # c-orm
-        FetchContent_Declare(
-            c_orm
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git
-            GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-            GIT_CONFIG core.autocrlf=false
-            
-        )
-        set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock CDD_C" FORCE)
-        set(FETCHCONTENT_SOURCE_DIR_cdd_c "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c" CACHE PATH "Mock cdd_c" FORCE)  
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c")
-        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/empty_cdd_c/CMakeLists.txt" "cmake_minimum_required(VERSION 3.14)\nproject(empty_cdd_c)\n")
-        set(C_REST_FRAMEWORK_FETCH_CDD_C OFF CACHE BOOL "Disable cdd_c fetch" FORCE)
-        set(FETCHCONTENT_SOURCE_DIR_C_ABSTRACT_HTTP "${c_rest_framework_SOURCE_DIR}" CACHE PATH "Use c_rest_framework for c_abstract_http" FORCE)
-        set(FETCHCONTENT_SOURCE_DIR_c_abstract_http "${c_rest_framework_SOURCE_DIR}" CACHE PATH "Use c_rest_framework for c_abstract_http" FORCE)
-        set(C_REST_FRAMEWORK_FETCH_C_ABSTRACT_HTTP OFF CACHE BOOL "Disable c_abstract_http fetch" FORCE)
-        if(POLICY CMP0169)
-            cmake_policy(SET CMP0169 OLD)
-        endif()
-        FetchContent_GetProperties(c_orm)
-        if(NOT c_orm_POPULATED)
-            FetchContent_MakeAvailable(c_orm)
-        endif()
-        include_directories(SYSTEM "${c_orm_SOURCE_DIR}/include")
     endif()
 
 
@@ -383,13 +329,7 @@ configure_file(
 message(STATUS "RUNNING add_subdirectory(src)")
 add_subdirectory("src")
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
-    if (NOT TARGET c-orm)
-        add_subdirectory("${c_orm_SOURCE_DIR}" "${c_orm_BINARY_DIR}")
-        set(BUILD_TESTING ${SAVE_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
-        set(C_CDD_BUILD_TESTING ${SAVE_C_CDD_BUILD_TESTING} CACHE BOOL "Build the tests" FORCE)
-    endif()
-endif()
+
 
 
 find_program(MEMORYCHECK_COMMAND NAMES valgrind)
