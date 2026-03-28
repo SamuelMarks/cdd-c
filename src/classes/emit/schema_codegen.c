@@ -335,7 +335,11 @@ static /**
   if (fopen_s(&fp, fname, "w") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, fname, "w");
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
   if (!fp)
     return errno;
@@ -482,7 +486,11 @@ static /**
   if (fopen_s(&fp, fname, "w") != 0)
     fp = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp, fname, "w");
+#else
   fp = fopen(fname, "w");
+#endif
 #endif
   if (!fp)
     return errno;

@@ -59,7 +59,11 @@ static void check_db_schema(const struct StructField *field, int *is_pk,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
           strncpy_s(fk_buf, fk_buf_size, fk_start + 4, fk_end - fk_start - 4);
 #else
+#if defined(_MSC_VER)
+          strncpy_s(fk_buf, fk_end - fk_start - 4 + 1, fk_start + 4, fk_end - fk_start - 4);
+#else
           strncpy(fk_buf, fk_start + 4, fk_end - fk_start - 4);
+#endif
 #endif
           fk_buf[fk_end - fk_start - 4] = '\0';
         }
@@ -90,7 +94,11 @@ static void check_db_schema(const struct StructField *field, int *is_pk,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
               strncpy_s(fk_buf, fk_buf_size, fk, fk_buf_size - 1);
 #else
+#if defined(_MSC_VER)
+              strncpy_s(fk_buf, fk_buf_size - 1 + 1, fk, fk_buf_size - 1);
+#else
               strncpy(fk_buf, fk, fk_buf_size - 1);
+#endif
 #endif
               fk_buf[fk_buf_size - 1] = '\0';
             }
@@ -180,7 +188,11 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
       strcpy_s(model_h, header_len + 1, config->model_header);
 #else
+#if defined(_MSC_VER)
+      strcpy_s(model_h, sizeof(model_h), config->model_header);
+#else
       strcpy(model_h, config->model_header);
+#endif
 #endif
     }
   } else {
@@ -209,8 +221,16 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
   if (fopen_s(&fp_c, path_c, "w") != 0)
     fp_c = NULL;
 #else
+#if defined(_MSC_VER)
+  fopen_s(&fp_h, path_h, "w");
+#else
   fp_h = fopen(path_h, "w");
+#endif
+#if defined(_MSC_VER)
+  fopen_s(&fp_c, path_c, "w");
+#else
   fp_c = fopen(path_c, "w");
+#endif
 #endif
 
   if (!fp_h || !fp_c) {
@@ -501,7 +521,11 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     if (fopen_s(&fp_test, test_path, "w") != 0)
       fp_test = NULL;
 #else
+#if defined(_MSC_VER)
+    fopen_s(&fp_test, test_path, "w");
+#else
     fp_test = fopen(test_path, "w");
+#endif
 #endif
     if (fp_test) {
       fprintf(fp_test,
