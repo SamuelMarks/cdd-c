@@ -201,7 +201,7 @@ endif ()
 if (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 else ()
     add_compile_definitions(_GNU_SOURCE _BSD_SOURCE)
-    include("${CMAKE_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
     ensure_symbol(
             TARGET "${PROJECT_NAME}_compiler_flags"
             SYMBOL "asprintf"
