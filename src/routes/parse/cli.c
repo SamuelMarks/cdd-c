@@ -5373,7 +5373,11 @@ int sql2c_main(int argc, char **argv) {
   sprintf(c_path, "%s/Models.c", out_dir);
 #endif
 
+#if defined(_MSC_VER)
+  fopen_s(&fp, h_path, "wb");
+#else
   fp = fopen(h_path, "wb");
+#endif
   if (fp) {
     fprintf(fp, "#ifndef MODELS_H\n#define MODELS_H\n\n");
     fprintf(fp, "#include \"c_orm_meta.h\"\n\n");
@@ -5384,7 +5388,11 @@ int sql2c_main(int argc, char **argv) {
     fclose(fp);
   }
 
+#if defined(_MSC_VER)
+  fopen_s(&fp, c_path, "wb");
+#else
   fp = fopen(c_path, "wb");
+#endif
   if (fp) {
     for (i = 0; i < n_tables; ++i) {
       sql_to_c_source_emit(fp, &tables[i], "Models.h");

@@ -16,7 +16,7 @@ if(NOT c_str_span_FOUND)
     FetchContent_Declare(
             c_str_span
             GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
-            GIT_TAG        887983564547f54c80b42967c180772d4625b4e1
+            GIT_TAG        master
             GIT_SHALLOW    TRUE
             #CONFIGURE_COMMAND BUILD_TESTING=OFF
             CMAKE_ARGS -DBUILD_TESTING=OFF

@@ -22,7 +22,7 @@ if(NOT cmocka_FOUND)
     FetchContent_Declare(
             cmocka
             GIT_REPOSITORY https://github.com/SamuelMarks/cmocka.git
-            GIT_TAG        3b20eadfe4a2b96281d5f8c58790b22f323da9fb
+            GIT_TAG        master
             GIT_SHALLOW    TRUE
     )
 

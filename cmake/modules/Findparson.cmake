@@ -6,7 +6,7 @@ if (NOT TARGET parson)
     FetchContent_Declare(
             parson
             GIT_REPOSITORY https://github.com/kgabis/parson.git
-            GIT_TAG ba29f4eda9ea7703a9f6a9cf2b0532a2605723c3
+            GIT_TAG master
     )
 
     FetchContent_MakeAvailable(parson)

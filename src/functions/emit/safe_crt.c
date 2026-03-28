@@ -153,7 +153,11 @@ static /**
 #if defined(_MSC_VER)
               strcpy_s(% s, sizeof(% s), % s);
 #else
+#if defined(_MSC_VER)
+              strcpy_s(% s, sizeof(% s), % s);
+#else
               strcpy(% s, % s);
+#endif
 #endif
 #endif \n "
               "#endif", dest, dest, src, dest, src);
@@ -180,12 +184,20 @@ static /**
   /* Pattern: FILE *#if defined(_MSC_VER)
 fopen_s(&f, path, mode);
 #else
+#if defined(_MSC_VER)
+fopen_s(&f, path, mode);
+#else
 f = fopen(path, mode);
+#endif
 #endif
 or#if defined(_MSC_VER)
  fopen_s(&f, path, mode);
 #else
+#if defined(_MSC_VER)
+fopen_s(&f, path, mode);
+#else
 f = fopen(path, mode);
+#endif
 #endif
 Find the assignment target to rewrite it as fopen_s(&f, path, mode);
   */
@@ -246,7 +258,11 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
                            "  %#if defined(_MSC_VER)
               fopen_s(&s, % s, % s);
 #else
+#if defined(_MSC_VER)
+              fopen_s(&s, % s, % s);
+#else
               s = fopen(% s, % s);
+#endif
 #endif
 \n "
     "#endif",
@@ -310,7 +326,11 @@ static /**
 #if defined(_MSC_VER)
               strncpy_s(% s, % s + 1, % s, % s);
 #else
+#if defined(_MSC_VER)
+              strncpy_s(% s, % s + 1, % s, % s);
+#else
               strncpy(% s, % s, % s);
+#endif
 #endif
 #endif \n "
               "#endif", dest, dest, src, count, dest, src, count);

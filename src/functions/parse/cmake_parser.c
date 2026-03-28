@@ -132,7 +132,11 @@ static /**
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "rb");
 #else
+#if defined(_MSC_VER)
+  fopen_s(&f, filename, "rb");
+#else
   f = fopen(filename, "rb");
+#endif
 #endif
   if (!f) {
     *_out_val = NULL;
