@@ -49,6 +49,8 @@
 #include "emit/test_rewriter_sig.h"
 #include "emit/test_schema2tests.h"
 #include "emit/test_schema_codegen.h"
+#include "emit/test_sql_to_c.h"
+#include "emit/test_c_to_sql.h"
 #include "emit/test_sync_code.h"
 #include "emit/test_text_patcher.h"
 #include "emit/test_url_utils.h"
@@ -150,6 +152,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(rewriter_sig_suite);
   RUN_SUITE(schema2tests_suite);
   RUN_SUITE(schema_codegen_suite);
+  RUN_SUITE(sql_to_c_suite);
+  RUN_SUITE(test_c_to_sql_suite);
   RUN_SUITE(schema_constraints_suite);
   RUN_SUITE(schema_enum_required_suite);
   RUN_SUITE(simple_mocks_suite);

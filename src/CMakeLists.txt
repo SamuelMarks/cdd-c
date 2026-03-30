@@ -1,4 +1,4 @@
-add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
+﻿add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 ###########
 # Library #
 ###########
@@ -82,6 +82,7 @@ set(Source_Files
         "classes/parse/migration.c"
         "functions/parse/migration_runner.c"
         "classes/emit/sql_to_c.c"
+        "classes/emit/c_to_sql.c"
         "classes/parse/code2schema.c"
         "classes/parse/query_projection.c"
         "classes/parse/hydrate_router.c"
@@ -430,3 +431,5 @@ if (APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
 endif()
+
+
