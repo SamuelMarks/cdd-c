@@ -60,7 +60,8 @@ static void check_db_schema(const struct StructField *field, int *is_pk,
           strncpy_s(fk_buf, fk_buf_size, fk_start + 4, fk_end - fk_start - 4);
 #else
 #if defined(_MSC_VER)
-          strncpy_s(fk_buf, fk_end - fk_start - 4 + 1, fk_start + 4, fk_end - fk_start - 4);
+          strncpy_s(fk_buf, fk_end - fk_start - 4 + 1, fk_start + 4,
+                    fk_end - fk_start - 4);
 #else
           strncpy(fk_buf, fk_start + 4, fk_end - fk_start - 4);
 #endif
