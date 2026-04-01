@@ -101,6 +101,55 @@ C_CDD_EXPORT int cdd_c_meta_diff_to_sql(const char *table_name,
  */
 C_CDD_EXPORT void cdd_c_meta_diff_free(cdd_c_meta_diff_t *diff);
 
+/**
+ * @brief Get the SQL query to inspect the live database schema.
+ *
+ * @param dialect The target SQL dialect.
+ * @param table_name The table to inspect.
+ * @param out_query Pointer to an allocated string with the query.
+ * @return 0 on success.
+ */
+C_CDD_EXPORT int cdd_c_get_schema_inspection_query(c_to_sql_dialect_t dialect,
+                                                   const char *table_name,
+                                                   char **out_query);
+
+/**
+ * @brief Emit CREATE INDEX SQL statement.
+ *
+ * @param table_name Name of the table.
+ * @param index_name Name of the index.
+ * @param column_name Column to index.
+ * @param is_unique 1 if unique index, 0 otherwise.
+ * @param out_sql Pointer to an allocated string with the query.
+ * @return 0 on success.
+ */
+C_CDD_EXPORT int cdd_c_emit_create_index(const char *table_name,
+                                         const char *index_name,
+                                         const char *column_name, int is_unique,
+                                         char **out_sql);
+
+/**
+ * @brief Emit DROP INDEX SQL statement.
+ *
+ * @param index_name Name of the index.
+ * @param out_sql Pointer to an allocated string with the query.
+ * @return 0 on success.
+ */
+C_CDD_EXPORT int cdd_c_emit_drop_index(const char *index_name, char **out_sql);
+
+/**
+ * @brief Reorder an array of C-ORM metadata schemas based on foreign key
+ * dependencies. Implements Topological Sorting.
+ *
+ * @param schemas Array of metadata pointers.
+ * @param num_schemas Number of elements in the array.
+ * @param out_schemas Array of metadata pointers sorted by dependency.
+ * @return 0 on success, non-zero if a cycle is detected.
+ */
+C_CDD_EXPORT int cdd_c_meta_topological_sort(const cdd_c_meta_t **schemas,
+                                             size_t num_schemas,
+                                             const cdd_c_meta_t **out_schemas);
+
 #ifdef __cplusplus
 }
 #endif
