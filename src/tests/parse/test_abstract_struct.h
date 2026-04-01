@@ -272,10 +272,56 @@ TEST test_abstract_hydrate_sqlite3(void) {
   sqlite3_close(db);
   PASS();
 }
+
+TEST test_cdd_c_inspect_schema_sqlite3(void) {
+  sqlite3 *db;
+  cdd_c_abstract_struct_array_t schema;
+  cdd_c_variant_t *out_val;
+  int rc;
+
+  ASSERT_EQ(SQLITE_OK, sqlite3_open(":memory:", &db));
+  ASSERT_EQ(
+      SQLITE_OK,
+      sqlite3_exec(
+          db,
+          "CREATE TABLE test(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ratio REAL, greeting TEXT UNIQUE NOT NULL, data BLOB)",
+          NULL, NULL, NULL));
+
+  rc = cdd_c_abstract_struct_array_init(&schema, 10);
+  ASSERT_EQ(0, rc);
+
+  rc = cdd_c_inspect_schema_sqlite3(db, "test", &schema);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(4, schema.count);
+
+  ASSERT_EQ(0, cdd_c_abstract_get(&schema.items[0], "name", &out_val));
+  ASSERT_STR_EQ("id", out_val->value.s_val);
+  ASSERT_EQ(0, cdd_c_abstract_get(&schema.items[0], "pk", &out_val));
+  ASSERT_EQ(1, out_val->value.i_val);
+  ASSERT_EQ(0, cdd_c_abstract_get(&schema.items[0], "notnull", &out_val));
+  ASSERT_EQ(1, out_val->value.i_val);
+
+  ASSERT_EQ(0, cdd_c_abstract_get(&schema.items[2], "name", &out_val));
+  ASSERT_STR_EQ("greeting", out_val->value.s_val);
+  ASSERT_EQ(0, cdd_c_abstract_get(&schema.items[2], "notnull", &out_val));
+  ASSERT_EQ(1, out_val->value.i_val);
+
+  cdd_c_abstract_struct_array_free(&schema);
+  sqlite3_close(db);
+  PASS();
+}
 #else
 TEST test_abstract_hydrate_sqlite3(void) {
   cdd_c_abstract_struct_t astruct;
   ASSERT_EQ(-1, cdd_c_abstract_hydrate_sqlite3(&astruct, NULL));
+  PASS();
+}
+
+TEST test_cdd_c_inspect_schema_sqlite3(void) {
+  cdd_c_abstract_struct_array_t schema;
+  cdd_c_abstract_struct_array_init(&schema, 10);
+  ASSERT_EQ(-1, cdd_c_inspect_schema_sqlite3(NULL, "test", &schema));
+  cdd_c_abstract_struct_array_free(&schema);
   PASS();
 }
 #endif
@@ -549,6 +595,7 @@ SUITE(abstract_struct_suite) {
   RUN_TEST(test_abstract_hydrate);
   RUN_TEST(test_abstract_struct_conversion);
   RUN_TEST(test_abstract_hydrate_sqlite3);
+  RUN_TEST(test_cdd_c_inspect_schema_sqlite3);
   RUN_TEST(test_abstract_hydrate_libpq);
   RUN_TEST(test_abstract_hydrate_mysql);
   RUN_TEST(test_mock_driver_specific_struct_hydration);

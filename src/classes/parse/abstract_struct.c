@@ -903,3 +903,175 @@ int cdd_c_abstract_to_specific(void *out_struct,
 
   return 0;
 }
+
+C_CDD_EXPORT int
+cdd_c_inspect_schema_sqlite3(void *db, const char *table_name,
+                             cdd_c_abstract_struct_array_t *out_schema) {
+#if defined(USE_SQLITE_LINKED)
+  sqlite3 *sql_db = (sqlite3 *)db;
+  sqlite3_stmt *stmt = NULL;
+  char query[512];
+
+  if (!db || !table_name || !out_schema)
+    return -1;
+
+  snprintf(query, sizeof(query), "PRAGMA table_info('%s')", table_name);
+  if (sqlite3_prepare_v2(sql_db, query, -1, &stmt, NULL) != SQLITE_OK) {
+    return -1;
+  }
+
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    cdd_c_abstract_struct_t col_def;
+    cdd_c_variant_t v_name, v_type, v_notnull, v_pk;
+
+    if (cdd_c_abstract_struct_init(&col_def) != 0)
+      continue;
+
+    v_name.type = CDD_C_VARIANT_TYPE_STRING;
+    v_name.value.s_val = (char *)sqlite3_column_text(stmt, 1);
+    cdd_c_abstract_set(&col_def, "name", &v_name);
+
+    v_type.type = CDD_C_VARIANT_TYPE_STRING;
+    v_type.value.s_val = (char *)sqlite3_column_text(stmt, 2);
+    cdd_c_abstract_set(&col_def, "type", &v_type);
+
+    v_notnull.type = CDD_C_VARIANT_TYPE_INT;
+    v_notnull.value.i_val = sqlite3_column_int(stmt, 3);
+    cdd_c_abstract_set(&col_def, "notnull", &v_notnull);
+
+    v_pk.type = CDD_C_VARIANT_TYPE_INT;
+    v_pk.value.i_val = sqlite3_column_int(stmt, 5);
+    cdd_c_abstract_set(&col_def, "pk", &v_pk);
+
+    cdd_c_abstract_struct_array_append(out_schema, &col_def);
+  }
+  sqlite3_finalize(stmt);
+  return 0;
+#else
+  (void)db;
+  (void)table_name;
+  (void)out_schema;
+  return -1;
+#endif
+}
+
+C_CDD_EXPORT int
+cdd_c_inspect_schema_libpq(void *conn, const char *table_name,
+                           cdd_c_abstract_struct_array_t *out_schema) {
+#if defined(USE_LIBPQ_LINKED)
+  PGconn *pq_conn = (PGconn *)conn;
+  PGresult *res;
+  char query[512];
+  int i, num_rows;
+
+  if (!conn || !table_name || !out_schema)
+    return -1;
+
+  snprintf(query, sizeof(query),
+           "SELECT column_name, data_type, is_nullable FROM "
+           "information_schema.columns WHERE table_name = '%s';",
+           table_name);
+  res = PQexec(pq_conn, query);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    PQclear(res);
+    return -1;
+  }
+
+  num_rows = PQntuples(res);
+  for (i = 0; i < num_rows; i++) {
+    cdd_c_abstract_struct_t col_def;
+    cdd_c_variant_t v_name, v_type, v_notnull;
+    char *name_val, *type_val, *is_nullable_val;
+
+    if (cdd_c_abstract_struct_init(&col_def) != 0)
+      continue;
+
+    name_val = PQgetvalue(res, i, 0);
+    type_val = PQgetvalue(res, i, 1);
+    is_nullable_val = PQgetvalue(res, i, 2);
+
+    v_name.type = CDD_C_VARIANT_TYPE_STRING;
+    v_name.value.s_val = name_val ? name_val : (char *)"";
+    cdd_c_abstract_set(&col_def, "name", &v_name);
+
+    v_type.type = CDD_C_VARIANT_TYPE_STRING;
+    v_type.value.s_val = type_val ? type_val : (char *)"";
+    cdd_c_abstract_set(&col_def, "type", &v_type);
+
+    v_notnull.type = CDD_C_VARIANT_TYPE_INT;
+    v_notnull.value.i_val =
+        (is_nullable_val && strcmp(is_nullable_val, "YES") != 0) ? 1 : 0;
+    cdd_c_abstract_set(&col_def, "notnull", &v_notnull);
+
+    cdd_c_abstract_struct_array_append(out_schema, &col_def);
+  }
+  PQclear(res);
+  return 0;
+#else
+  (void)conn;
+  (void)table_name;
+  (void)out_schema;
+  return -1;
+#endif
+}
+
+C_CDD_EXPORT int
+cdd_c_inspect_schema_mysql(void *conn, const char *table_name,
+                           cdd_c_abstract_struct_array_t *out_schema) {
+#if defined(USE_MYSQL_LINKED)
+  MYSQL *mysql_conn = (MYSQL *)conn;
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  char query[512];
+
+  if (!conn || !table_name || !out_schema)
+    return -1;
+
+  snprintf(query, sizeof(query), "SHOW COLUMNS FROM `%s`", table_name);
+  if (mysql_query(mysql_conn, query)) {
+    return -1;
+  }
+
+  res = mysql_store_result(mysql_conn);
+  if (!res) {
+    return -1;
+  }
+
+  while ((row = mysql_fetch_row(res))) {
+    cdd_c_abstract_struct_t col_def;
+    cdd_c_variant_t v_name, v_type, v_notnull, v_pk;
+    char *name_val = row[0];
+    char *type_val = row[1];
+    char *null_val = row[2]; /* YES or NO */
+    char *key_val = row[3];  /* PRI, MUL, etc */
+
+    if (cdd_c_abstract_struct_init(&col_def) != 0)
+      continue;
+
+    v_name.type = CDD_C_VARIANT_TYPE_STRING;
+    v_name.value.s_val = name_val ? name_val : (char *)"";
+    cdd_c_abstract_set(&col_def, "name", &v_name);
+
+    v_type.type = CDD_C_VARIANT_TYPE_STRING;
+    v_type.value.s_val = type_val ? type_val : (char *)"";
+    cdd_c_abstract_set(&col_def, "type", &v_type);
+
+    v_notnull.type = CDD_C_VARIANT_TYPE_INT;
+    v_notnull.value.i_val = (null_val && strcmp(null_val, "YES") != 0) ? 1 : 0;
+    cdd_c_abstract_set(&col_def, "notnull", &v_notnull);
+
+    v_pk.type = CDD_C_VARIANT_TYPE_INT;
+    v_pk.value.i_val = (key_val && strcmp(key_val, "PRI") == 0) ? 1 : 0;
+    cdd_c_abstract_set(&col_def, "pk", &v_pk);
+
+    cdd_c_abstract_struct_array_append(out_schema, &col_def);
+  }
+  mysql_free_result(res);
+  return 0;
+#else
+  (void)conn;
+  (void)table_name;
+  (void)out_schema;
+  return -1;
+#endif
+}

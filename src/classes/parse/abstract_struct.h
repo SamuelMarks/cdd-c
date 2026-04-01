@@ -288,6 +288,42 @@ C_CDD_EXPORT int
 cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct, void *row,
                              void *fields, unsigned int num_fields);
 
+/**
+ * @brief Inspects a SQLite3 database for a given table and populates an array
+ * of abstract structs describing its columns.
+ * @param db Opaque pointer to `sqlite3`.
+ * @param table_name Name of the table.
+ * @param out_schema Pointer to an initialized abstract struct array.
+ * @return 0 on success, non-zero on failure.
+ */
+C_CDD_EXPORT int
+cdd_c_inspect_schema_sqlite3(void *db, const char *table_name,
+                             cdd_c_abstract_struct_array_t *out_schema);
+
+/**
+ * @brief Inspects a PostgreSQL database (libpq) for a given table and populates
+ * an array of abstract structs.
+ * @param conn Opaque pointer to `PGconn`.
+ * @param table_name Name of the table.
+ * @param out_schema Pointer to an initialized abstract struct array.
+ * @return 0 on success, non-zero on failure.
+ */
+C_CDD_EXPORT int
+cdd_c_inspect_schema_libpq(void *conn, const char *table_name,
+                           cdd_c_abstract_struct_array_t *out_schema);
+
+/**
+ * @brief Inspects a MySQL/MariaDB database for a given table and populates an
+ * array of abstract structs.
+ * @param conn Opaque pointer to `MYSQL`.
+ * @param table_name Name of the table.
+ * @param out_schema Pointer to an initialized abstract struct array.
+ * @return 0 on success, non-zero on failure.
+ */
+C_CDD_EXPORT int
+cdd_c_inspect_schema_mysql(void *conn, const char *table_name,
+                           cdd_c_abstract_struct_array_t *out_schema);
+
 struct cdd_c_meta;
 
 /**
