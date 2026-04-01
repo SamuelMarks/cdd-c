@@ -111,6 +111,52 @@ static void check_db_schema(const struct StructField *field, int *is_pk,
   }
 }
 
+/**
+ * @brief Parses and extracts cdd-c annotations from a struct field.
+ *
+ * Scans the JSON metadata inside `schema_extra_json` to determine if
+ * sharding or telemetry options are enabled for this field.
+ *
+ * @param[in] field The struct field to inspect.
+ * @param[out] is_shard_key Pointer to an int that will receive 1 if this field
+ * is the shard key.
+ * @param[out] is_shard_hash Pointer to an int that will receive 1 if this field
+ * uses a consistent hash.
+ * @param[out] is_track_telemetry Pointer to an int that will receive 1 if
+ * telemetry is tracked.
+ * @param[out] slow_query_ms Pointer to an int that will receive the slow query
+ * warning threshold.
+ */
+static void check_cdd_annotations(const struct StructField *field,
+                                  int *is_shard_key, int *is_shard_hash,
+                                  int *is_track_telemetry, int *slow_query_ms) {
+  *is_shard_key = 0;
+  *is_shard_hash = 0;
+  *is_track_telemetry = 0;
+  *slow_query_ms = 0;
+
+  if (field->schema_extra_json) {
+    JSON_Value *extras = json_parse_string(field->schema_extra_json);
+    if (extras) {
+      JSON_Object *obj = json_value_get_object(extras);
+      if (obj) {
+        if (json_object_has_value(obj, "x-cdd-shard-key") &&
+            json_object_get_boolean(obj, "x-cdd-shard-key") == 1)
+          *is_shard_key = 1;
+        if (json_object_has_value(obj, "x-cdd-shard-hash") &&
+            json_object_get_boolean(obj, "x-cdd-shard-hash") == 1)
+          *is_shard_hash = 1;
+        if (json_object_has_value(obj, "x-cdd-track-telemetry") &&
+            json_object_get_boolean(obj, "x-cdd-track-telemetry") == 1)
+          *is_track_telemetry = 1;
+        if (json_object_has_value(obj, "x-cdd-slow-query"))
+          *slow_query_ms = (int)json_object_get_number(obj, "x-cdd-slow-query");
+      }
+      json_value_free(extras);
+    }
+  }
+}
+
 static const char *openapi_type_to_c_orm_type(const struct StructField *field) {
   if (strcmp(field->type, "integer") == 0) {
     if (field->format[0]) {
@@ -309,11 +355,40 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
             struct_name, (unsigned long)sf->size);
     fprintf(fp_h, "extern const c_orm_table_meta_t %s_meta;\n\n", struct_name);
 
-    /* CRUD Boilerplate declarations */
-    fprintf(fp_h, "c_orm_error_t create_table_%s(c_orm_db_t* db);\n",
+    fprintf(fp_h,
+            "struct %s_telemetry_payload {\n"
+            "  bool track_telemetry;\n"
+            "  int slow_query_warn_ms;\n"
+            "  const char *query_name;\n"
+            "};\n\n",
             struct_name);
     fprintf(fp_h,
+            "struct %s_shard_routing {\n"
+            "  const char *shard_key;\n"
+            "  bool shard_hash_consistent;\n"
+            "  int shard_offset_multipliers[10];\n" /* Precalculated directly */
+            "};\n\n",
+            struct_name);
+
+    fprintf(fp_h, "extern const struct %s_telemetry_payload %s_telemetry;\n",
+            struct_name, struct_name);
+    fprintf(fp_h, "extern const struct %s_shard_routing %s_sharding;\n\n",
+            struct_name, struct_name);
+    fprintf(fp_h,
             "c_orm_error_t insert_%s(c_orm_db_t* db, const struct %s* obj);\n",
+            struct_name, struct_name);
+    fprintf(fp_h,
+            "c_orm_error_t insert_async_%s(c_orm_db_t* db, const struct %s* "
+            "obj, void (*cb)(c_orm_error_t, void*), void* ctx);\n",
+            struct_name, struct_name);
+    fprintf(fp_h,
+            "struct %s_worker_payload {\n"
+            "  struct %s *items;\n"
+            "  size_t count;\n"
+            "  c_orm_db_t *db;\n"
+            "  void (*cb)(c_orm_error_t, void*);\n"
+            "  void *ctx;\n"
+            "};\n",
             struct_name, struct_name);
     for (j = 0; j < sf->size; ++j) {
       const struct StructField *field = &sf->fields[j];
@@ -416,6 +491,48 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
       fprintf(fp_c, "  false, false, 0, 0, { 0 }, NULL, 0\n");
     }
     fprintf(fp_c, "};\n\n");
+
+    {
+      const char *shard_key = "NULL";
+      int shard_hash = 0;
+      int track_tel = 0;
+      int slow_ms = 0;
+      size_t k;
+
+      for (k = 0; k < sf->size; ++k) {
+        int is_sk, is_sh, is_tt, s_ms;
+        check_cdd_annotations(&sf->fields[k], &is_sk, &is_sh, &is_tt, &s_ms);
+        if (is_sk)
+          shard_key = sf->fields[k].name;
+        if (is_sh)
+          shard_hash = 1;
+        if (is_tt)
+          track_tel = 1;
+        if (s_ms > slow_ms)
+          slow_ms = s_ms;
+      }
+
+      fprintf(fp_c,
+              "const struct %s_telemetry_payload %s_telemetry = {\n"
+              "  %s,\n"
+              "  %d,\n"
+              "  \"%s\"\n"
+              "};\n\n",
+              struct_name, struct_name, track_tel ? "true" : "false", slow_ms,
+              struct_name);
+
+      fprintf(fp_c,
+              "const struct %s_shard_routing %s_sharding = {\n"
+              "  %s%s%s,\n"
+              "  %s,\n"
+              "  { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }\n"
+              "};\n\n",
+              struct_name, struct_name,
+              strcmp(shard_key, "NULL") == 0 ? "" : "\"", shard_key,
+              strcmp(shard_key, "NULL") == 0 ? "" : "\"",
+              shard_hash ? "true" : "false");
+    }
+
     /* CRUD Boilerplate definitions */
     fprintf(fp_c, "c_orm_error_t create_table_%s(c_orm_db_t* db) {\n",
             struct_name);
@@ -464,6 +581,14 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
             "c_orm_error_t insert_%s(c_orm_db_t* db, const struct %s* obj) {\n",
             struct_name, struct_name);
     fprintf(fp_c, "  return c_orm_insert(db, &%s_meta, obj);\n", struct_name);
+    fprintf(fp_c, "}\n\n");
+
+    fprintf(fp_c,
+            "c_orm_error_t insert_async_%s(c_orm_db_t* db, const struct %s* "
+            "obj, void (*cb)(c_orm_error_t, void*), void* ctx) {\n",
+            struct_name, struct_name);
+    fprintf(fp_c, "  return c_orm_insert_async(db, &%s_meta, obj, cb, ctx);\n",
+            struct_name);
     fprintf(fp_c, "}\n\n");
 
     for (j = 0; j < sf->size; ++j) {
