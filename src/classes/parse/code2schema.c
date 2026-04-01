@@ -1548,6 +1548,12 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   int is_ptr = 0;
   char *colon_ptr = NULL;
 
+  int is_shard_key = 0;
+  int is_shard_hash = 0;
+  int is_track_telemetry = 0;
+  int is_slow_query = 0;
+  int slow_query_ms = 0;
+
   /* Helper for mapping result */
   struct OpenApiTypeMapping mapping;
   int rc;
@@ -1564,8 +1570,33 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
   buf[sizeof(buf) - 1] = '\0';
   trim_trailing(buf);
 
-  /* Handle Bit-fields */
-  colon_ptr = strrchr(buf, ':');
+  {
+    char *cmt = strstr(buf, "//");
+    if (!cmt)
+      cmt = strstr(buf, "/*");
+    if (cmt) {
+      char *sqw;
+      if (strstr(cmt, "@shard_key"))
+        is_shard_key = 1;
+      if (strstr(cmt, "@shard_hash"))
+        is_shard_hash = 1;
+      if (strstr(cmt, "@track_telemetry"))
+        is_track_telemetry = 1;
+      if (strstr(cmt, "@slow_query_warn"))
+        is_slow_query = 1;
+
+      /* Extract numeric argument for slow_query_warn */
+      sqw = strstr(cmt, "@slow_query_warn(");
+      if (sqw) {
+        slow_query_ms = atoi(sqw + 17);
+      }
+
+      *cmt = '\0';
+      trim_trailing(buf);
+    }
+  }
+
+  /* Handle Bit-fields */ colon_ptr = strrchr(buf, ':');
   if (colon_ptr) {
     char *w = colon_ptr + 1;
     while (*w && isspace((unsigned char)*w))
@@ -1738,6 +1769,34 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
       if (is_fam) {
         field->is_flexible_array = 1;
       }
+
+      /* Inject cdd-c specific ORM annotations */
+      if (is_shard_key || is_shard_hash || is_track_telemetry ||
+          is_slow_query) {
+        char cdd_json[256];
+        int cdd_len = 0;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        cdd_len = sprintf_s(
+            cdd_json, sizeof(cdd_json),
+            "{\"x-cdd-shard-key\":%s, \"x-cdd-shard-hash\":%s, "
+            "\"x-cdd-track-telemetry\":%s, \"x-cdd-slow-query\":%d}",
+            is_shard_key ? "true" : "false", is_shard_hash ? "true" : "false",
+            is_track_telemetry ? "true" : "false",
+            is_slow_query ? slow_query_ms : 0);
+#else
+        cdd_len = sprintf(
+            cdd_json,
+            "{\"x-cdd-shard-key\":%s, \"x-cdd-shard-hash\":%s, "
+            "\"x-cdd-track-telemetry\":%s, \"x-cdd-slow-query\":%d}",
+            is_shard_key ? "true" : "false", is_shard_hash ? "true" : "false",
+            is_track_telemetry ? "true" : "false",
+            is_slow_query ? slow_query_ms : 0);
+#endif
+        if (cdd_len > 0) {
+          merge_schema_extras_strings(&field->schema_extra_json, cdd_json);
+        }
+      }
+
       if (mapping.oa_format && mapping.oa_type) {
         if (mapping.kind == OA_TYPE_PRIMITIVE && !is_fam) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

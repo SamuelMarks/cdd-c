@@ -50,6 +50,11 @@ TEST test_orm_gen_basic(void) {
       .description[sizeof(spec.defined_schemas[0].fields[0].description) - 1] =
       '\0';
 
+  /* Add cdd-c annotations */
+  spec.defined_schemas[0].fields[0].schema_extra_json =
+      strdup("{\"x-cdd-shard-key\":true, \"x-cdd-track-telemetry\":true, "
+             "\"x-cdd-slow-query\":150}");
+
   rc = openapi_orm_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 

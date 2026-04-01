@@ -450,6 +450,36 @@ TEST test_codegen_struct_null_args(void) {
   PASS();
 }
 
+TEST test_parse_struct_member_annotations(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+
+  ASSERT_EQ(0, parse_struct_member_line(
+                   "int user_id; // @shard_key @shard_hash", &sf));
+  ASSERT_EQ(1, sf.size);
+  ASSERT_STR_EQ("user_id", sf.fields[0].name);
+  ASSERT_STR_EQ("integer", sf.fields[0].type);
+  ASSERT(sf.fields[0].schema_extra_json != NULL);
+  ASSERT(strstr(sf.fields[0].schema_extra_json, "\"x-cdd-shard-key\":true") !=
+         NULL);
+  ASSERT(strstr(sf.fields[0].schema_extra_json, "\"x-cdd-shard-hash\":true") !=
+         NULL);
+
+  ASSERT_EQ(
+      0, parse_struct_member_line(
+             "char *name; /* @track_telemetry @slow_query_warn(250) */", &sf));
+  ASSERT_EQ(2, sf.size);
+  ASSERT_STR_EQ("name", sf.fields[1].name);
+  ASSERT(sf.fields[1].schema_extra_json != NULL);
+  ASSERT(strstr(sf.fields[1].schema_extra_json,
+                "\"x-cdd-track-telemetry\":true") != NULL);
+  ASSERT(strstr(sf.fields[1].schema_extra_json, "\"x-cdd-slow-query\":250") !=
+         NULL);
+
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(code2schema_suite) {
   RUN_TEST(test_write_enum_functions);
   RUN_TEST(test_struct_fields_manage);
@@ -474,6 +504,7 @@ SUITE(code2schema_suite) {
   RUN_TEST(test_codegen_all_field_types);
   RUN_TEST(test_codegen_empty_struct_and_enum);
   RUN_TEST(test_codegen_struct_null_args);
+  RUN_TEST(test_parse_struct_member_annotations);
 }
 
 #ifdef __cplusplus
