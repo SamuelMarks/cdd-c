@@ -112,7 +112,7 @@ static /**
         */
     int
     media_type_has_prefix(const char *media_type, const char *prefix) {
-  size_t _ast_media_type_base_len_0;
+  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t pre_len;
@@ -141,7 +141,7 @@ static /**
         */
     int
     media_type_has_suffix(const char *media_type, const char *suffix) {
-  size_t _ast_media_type_base_len_1;
+  size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
   size_t suf_len;
@@ -172,7 +172,7 @@ static /**
         */
     int
     media_type_ieq(const char *media_type, const char *expected) {
-  size_t _ast_media_type_base_len_2;
+  size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
@@ -782,25 +782,25 @@ static /**
  */
 int codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
                                    const struct CodegenSigConfig *config) {
-  const char *_ast_querystring_param_json_array_item_type_4;
-  const char *_ast_querystring_param_json_array_item_ref_5;
-  const char *_ast_querystring_param_json_primitive_type_6;
-  const char *_ast_querystring_param_raw_primitive_type_7;
-  const char *_ast_map_array_item_type_8;
-  const char *_ast_map_type_to_c_arg_9;
-  const char *_ast_map_type_to_c_arg_10;
-  const char *_ast_map_array_item_type_11;
-  const char *_ast_map_type_to_c_arg_12;
-  const char *_ast_map_array_item_type_13;
-  const char *_ast_map_type_to_c_arg_14;
-  const char *_ast_map_array_item_type_15;
-  const char *_ast_map_type_to_c_arg_16;
+  const char *_ast_querystring_param_json_array_item_type_4 = NULL;
+  const char *_ast_querystring_param_json_array_item_ref_5 = NULL;
+  const char *_ast_querystring_param_json_primitive_type_6 = NULL;
+  const char *_ast_querystring_param_raw_primitive_type_7 = NULL;
+  const char *_ast_map_array_item_type_8 = NULL;
+  const char *_ast_map_type_to_c_arg_9 = NULL;
+  const char *_ast_map_type_to_c_arg_10 = NULL;
+  const char *_ast_map_array_item_type_11 = NULL;
+  const char *_ast_map_type_to_c_arg_12 = NULL;
+  const char *_ast_map_array_item_type_13 = NULL;
+  const char *_ast_map_type_to_c_arg_14 = NULL;
+  const char *_ast_map_array_item_type_15 = NULL;
+  const char *_ast_map_type_to_c_arg_16 = NULL;
   const struct OpenAPI_MediaType *_ast_find_media_type_17;
-  const char *_ast_map_array_item_type_18;
-  const char *_ast_map_type_to_c_arg_19;
+  const char *_ast_map_array_item_type_18 = NULL;
+  const char *_ast_map_type_to_c_arg_19 = NULL;
   const struct OpenAPI_SchemaRef *_ast_get_success_schema_20;
-  const char *_ast_map_array_item_type_out_21;
-  const char *_ast_map_type_to_c_out_22;
+  const char *_ast_map_array_item_type_out_21 = NULL;
+  const char *_ast_map_type_to_c_out_22 = NULL;
   const char *ctx_type =
       (config && config->ctx_type) ? config->ctx_type : "struct HttpClient *";
   const char *prefix = (config && config->prefix) ? config->prefix : "";

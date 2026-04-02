@@ -244,7 +244,7 @@ static /**
     int
     find_function_node(struct CstNodeList *cst, struct TokenList *tokens,
                        const char *func_name, struct CstNode **_out_val) {
-  bool _ast_token_matches_string_0;
+  bool _ast_token_matches_string_0 = false;
   size_t i;
   for (i = 0; i < cst->size; ++i) {
     if (cst->nodes[i].kind == CST_NODE_FUNCTION) {
@@ -340,9 +340,9 @@ static /**
     apply_query_sync(const struct OpenAPI_Operation *op,
                      struct TokenList *tokens, struct CstNode *node,
                      struct PatchList *patches) {
-  bool _ast_token_matches_string_1;
-  bool _ast_token_matches_string_2;
-  char *_ast_generate_expected_query_3;
+  bool _ast_token_matches_string_1 = false;
+  bool _ast_token_matches_string_2 = false;
+  char *_ast_generate_expected_query_3 = NULL;
   /* Locate "url_query_init" -> "url_query_build" */
   size_t k;
   size_t init_idx = 0;
@@ -420,8 +420,8 @@ static /**
     apply_header_sync(const struct OpenAPI_Operation *op,
                       struct TokenList *tokens, struct CstNode *node,
                       struct PatchList *patches) {
-  bool _ast_token_matches_string_4;
-  char *_ast_generate_expected_header_line_5;
+  bool _ast_token_matches_string_4 = false;
+  char *_ast_generate_expected_header_line_5 = NULL;
   size_t i, k;
   /*
      Heuristic: Look for "Header Parameter: name" comment.
@@ -507,12 +507,12 @@ static /**
                   struct CstNodeList *cst, const struct OpenAPI_Spec *spec,
                   const struct ApiSyncConfig *cfg) {
   struct CstNode *_ast_find_function_node_6;
-  char *_ast_generate_expected_sig_7;
-  char *_ast_extract_current_sig_8;
-  bool _ast_token_matches_string_9;
-  bool _ast_token_matches_string_10;
-  bool _ast_token_matches_string_11;
-  char *_ast_generate_expected_url_12;
+  char *_ast_generate_expected_sig_7 = NULL;
+  char *_ast_extract_current_sig_8 = NULL;
+  bool _ast_token_matches_string_9 = false;
+  bool _ast_token_matches_string_10 = false;
+  bool _ast_token_matches_string_11 = false;
+  char *_ast_generate_expected_url_12 = NULL;
   struct PatchList patches;
   size_t i, j;
   int rc = 0;

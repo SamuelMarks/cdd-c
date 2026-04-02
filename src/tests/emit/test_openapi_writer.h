@@ -150,7 +150,7 @@ TEST test_writer_basic_operation(void) {
 
 TEST test_writer_schema_document(void) {
   int rc;
-  char *_ast_strdup_0;
+  char *_ast_strdup_0 = NULL;
   struct OpenAPI_Spec spec;
   char *json;
   _ast_strdup_0 = NULL;

@@ -122,9 +122,9 @@ static /**
     print_union_declaration(FILE *hfile, const char *union_name,
                             const struct StructFields *sf,
                             const struct CodegenConfig *config) {
-  char *_ast_get_type_from_ref_0;
-  char *_ast_get_type_from_ref_1;
-  char *_ast_get_type_from_ref_2;
+  char *_ast_get_type_from_ref_0 = NULL;
+  char *_ast_get_type_from_ref_1 = NULL;
+  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   if (!hfile || !union_name || !sf)
     return EINVAL;
@@ -214,9 +214,9 @@ static /**
     print_struct_declaration(FILE *hfile, const char *struct_name,
                              const struct StructFields *sf,
                              const struct CodegenConfig *config) {
-  char *_ast_get_type_from_ref_3;
-  char *_ast_get_type_from_ref_4;
-  char *_ast_get_type_from_ref_5;
+  char *_ast_get_type_from_ref_3 = NULL;
+  char *_ast_get_type_from_ref_4 = NULL;
+  char *_ast_get_type_from_ref_5 = NULL;
   size_t i;
 
   if (strcmp(struct_name, "OAuth2TokenResponse") == 0) {
@@ -563,9 +563,9 @@ static /**
  * @brief Executes the schema2code main operation.
  */
 int schema2code_main(int argc, char **argv) {
-  bool _ast_str_starts_with_6;
-  bool _ast_str_starts_with_7;
-  bool _ast_str_starts_with_8;
+  bool _ast_str_starts_with_6 = false;
+  bool _ast_str_starts_with_7 = false;
+  bool _ast_str_starts_with_8 = false;
   const char *schema_file, *prefix;
   char *basename = NULL;
   struct CodegenConfig config = {0};

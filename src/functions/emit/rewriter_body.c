@@ -158,15 +158,15 @@ int rewrite_body(const struct TokenList *tokens,
                  const struct AllocationSiteList *allocs,
                  const struct RefactoredFunction *funcs, size_t func_count,
                  const struct SignatureTransform *transform, char **out_code) {
-  char *_ast_extract_token_text_0;
+  char *_ast_extract_token_text_0 = NULL;
   const struct RefactoredFunction *_ast_find_refactored_func_1;
-  char *_ast_extract_token_text_2;
-  size_t _ast_find_semicolon_3;
-  size_t _ast_find_semicolon_4;
-  size_t _ast_find_stmt_start_5;
-  char *_ast_join_tokens_range_6;
-  size_t _ast_find_semicolon_7;
-  char *_ast_join_tokens_range_8;
+  char *_ast_extract_token_text_2 = NULL;
+  size_t _ast_find_semicolon_3 = 0;
+  size_t _ast_find_semicolon_4 = 0;
+  size_t _ast_find_stmt_start_5 = 0;
+  char *_ast_join_tokens_range_6 = NULL;
+  size_t _ast_find_semicolon_7 = 0;
+  char *_ast_join_tokens_range_8 = NULL;
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;

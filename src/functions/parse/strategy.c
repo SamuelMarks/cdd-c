@@ -92,9 +92,9 @@ static /**
 int strategy_rewrite_realloc(const struct TokenList *tokens,
                              const struct AllocationSite *site,
                              const size_t semi_idx, struct PatchList *patches) {
-  size_t _ast_find_next_token_idx_0;
-  bool _ast_token_matches_string_1;
-  char *_ast_range_to_string_2;
+  size_t _ast_find_next_token_idx_0 = 0;
+  bool _ast_token_matches_string_1 = false;
+  char *_ast_range_to_string_2 = NULL;
   size_t call_idx = site->token_index;
   size_t lparen_idx;
   size_t assign_op_idx = 0;
@@ -240,7 +240,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
 int strategy_inject_safety_checks(const struct TokenList *tokens,
                                   const struct AllocationSiteList *allocs,
                                   struct PatchList *patches) {
-  size_t _ast_find_next_token_idx_3;
+  size_t _ast_find_next_token_idx_3 = 0;
   size_t i;
   if (!tokens || !allocs || !patches)
     return EINVAL;

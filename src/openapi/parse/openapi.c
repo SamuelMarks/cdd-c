@@ -3060,8 +3060,8 @@ static /**
     find_component_example(const struct OpenAPI_Spec *spec, const char *ref,
                            struct OpenAPI_Example **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_2;
-  char *_ast_ref_name_from_prefix_3;
-  char *_ast_json_pointer_unescape_4;
+  char *_ast_ref_name_from_prefix_3 = NULL;
+  char *_ast_json_pointer_unescape_4 = NULL;
   size_t i;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_2),
@@ -3556,7 +3556,7 @@ static /**
         */
     int
     normalize_path(const char *path, char **_out_val) {
-  char *_ast_dup_substr_7;
+  char *_ast_dup_substr_7 = NULL;
   char *_ast_strdup_40 = NULL;
   char *_ast_strdup_41 = NULL;
   char *_ast_strdup_42 = NULL;
@@ -3696,12 +3696,12 @@ static /**
     int
     resolve_uri_reference(const char *base_uri, const char *ref,
                           char **_out_val) {
-  size_t _ast_uri_scheme_len_8;
-  size_t _ast_uri_base_len_9;
-  size_t _ast_uri_base_len_10;
-  size_t _ast_uri_scheme_len_11;
-  char *_ast_normalize_path_12;
-  char *_ast_normalize_path_13;
+  size_t _ast_uri_scheme_len_8 = 0;
+  size_t _ast_uri_base_len_9 = 0;
+  size_t _ast_uri_base_len_10 = 0;
+  size_t _ast_uri_scheme_len_11 = 0;
+  char *_ast_normalize_path_12 = NULL;
+  char *_ast_normalize_path_13 = NULL;
   char *_ast_strdup_43 = NULL;
   char *_ast_strdup_44 = NULL;
   char *_ast_strdup_45 = NULL;
@@ -3853,9 +3853,9 @@ static /**
     int
     compute_document_uri(const char *self_uri, const char *retrieval_uri,
                          char **_out_val) {
-  char *_ast_resolve_uri_reference_14;
-  size_t _ast_uri_base_len_15;
-  char *_ast_dup_substr_16;
+  char *_ast_resolve_uri_reference_14 = NULL;
+  size_t _ast_uri_base_len_15 = 0;
+  char *_ast_dup_substr_16 = NULL;
   char *_ast_strdup_47 = NULL;
   char *_ast_strdup_48 = NULL;
   char *resolved = NULL;
@@ -3959,8 +3959,8 @@ static /**
     int
     resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
                        struct ResolvedRefTarget *_out_val) {
-  char *_ast_dup_substr_17;
-  char *_ast_resolve_uri_reference_18;
+  char *_ast_dup_substr_17 = NULL;
+  char *_ast_resolve_uri_reference_18 = NULL;
   struct ResolvedRefTarget out;
   const char *hash;
   size_t base_len;
@@ -4071,8 +4071,8 @@ void openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry) {
  */
 int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
                              struct OpenAPI_Spec *spec) {
-  size_t _ast_uri_base_len_19;
-  char *_ast_dup_substr_20;
+  size_t _ast_uri_base_len_19 = 0;
+  char *_ast_dup_substr_20 = NULL;
   size_t i;
   const char *base_src;
   char *base = NULL;
@@ -4127,7 +4127,7 @@ static /**
     int
     ref_base_matches_self(const struct OpenAPI_Spec *spec, const char *ref,
                           const char *hash) {
-  size_t _ast_uri_base_len_21;
+  size_t _ast_uri_base_len_21 = 0;
   size_t base_len;
   const char *self_uri;
   const char *self_hash;
@@ -4269,7 +4269,7 @@ static /**
     find_component_parameter(const struct OpenAPI_Spec *spec, const char *ref,
                              struct OpenAPI_Parameter **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_22;
-  char *_ast_ref_name_from_prefix_23;
+  char *_ast_ref_name_from_prefix_23 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_22),
        _ast_resolve_ref_target_22);
@@ -4313,7 +4313,7 @@ static /**
     find_component_response(const struct OpenAPI_Spec *spec, const char *ref,
                             struct OpenAPI_Response **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_24;
-  char *_ast_ref_name_from_prefix_25;
+  char *_ast_ref_name_from_prefix_25 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_24),
        _ast_resolve_ref_target_24);
@@ -4357,7 +4357,7 @@ static /**
     find_component_header(const struct OpenAPI_Spec *spec, const char *ref,
                           struct OpenAPI_Header **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_26;
-  char *_ast_ref_name_from_prefix_27;
+  char *_ast_ref_name_from_prefix_27 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_26),
        _ast_resolve_ref_target_26);
@@ -4402,7 +4402,7 @@ static /**
                                 const char *ref,
                                 struct OpenAPI_RequestBody **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_28;
-  char *_ast_ref_name_from_prefix_29;
+  char *_ast_ref_name_from_prefix_29 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_28),
        _ast_resolve_ref_target_28);
@@ -4446,8 +4446,8 @@ static /**
     find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref,
                               struct OpenAPI_MediaType **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_30;
-  char *_ast_ref_name_from_prefix_31;
-  char *_ast_json_pointer_unescape_32;
+  char *_ast_ref_name_from_prefix_31 = NULL;
+  char *_ast_json_pointer_unescape_32 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_30),
        _ast_resolve_ref_target_30);
@@ -4504,7 +4504,7 @@ static /**
     find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
                         struct OpenAPI_Link **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_33;
-  char *_ast_ref_name_from_prefix_34;
+  char *_ast_ref_name_from_prefix_34 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_33),
        _ast_resolve_ref_target_33);
@@ -4548,7 +4548,7 @@ static /**
     find_component_callback(const struct OpenAPI_Spec *spec, const char *ref,
                             struct OpenAPI_Callback **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_35;
-  char *_ast_ref_name_from_prefix_36;
+  char *_ast_ref_name_from_prefix_36 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_35),
        _ast_resolve_ref_target_35);
@@ -4592,8 +4592,8 @@ static /**
     find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
                              struct OpenAPI_Path **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_37;
-  char *_ast_ref_name_from_prefix_38;
-  char *_ast_json_pointer_unescape_39;
+  char *_ast_ref_name_from_prefix_38 = NULL;
+  char *_ast_json_pointer_unescape_39 = NULL;
   struct ResolvedRefTarget resolved =
       (resolve_ref_target(spec, ref, &_ast_resolve_ref_target_37),
        _ast_resolve_ref_target_37);
@@ -7522,14 +7522,14 @@ static /**
     int
     parse_schema_ref(const JSON_Object *schema, struct OpenAPI_SchemaRef *out,
                      const struct OpenAPI_Spec *spec) {
-  char *_ast_parse_schema_type_41;
+  char *_ast_parse_schema_type_41 = NULL;
   struct ResolvedRefTarget _ast_resolve_ref_target_42;
-  char *_ast_ref_name_from_prefix_43;
-  char *_ast_json_pointer_unescape_44;
-  char *_ast_parse_schema_type_45;
+  char *_ast_ref_name_from_prefix_43 = NULL;
+  char *_ast_json_pointer_unescape_44 = NULL;
+  char *_ast_parse_schema_type_45 = NULL;
   struct ResolvedRefTarget _ast_resolve_ref_target_46;
-  char *_ast_ref_name_from_prefix_47;
-  char *_ast_json_pointer_unescape_48;
+  char *_ast_ref_name_from_prefix_47 = NULL;
+  char *_ast_json_pointer_unescape_48 = NULL;
   char *_ast_strdup_180 = NULL;
   char *_ast_strdup_181 = NULL;
   char *_ast_strdup_182 = NULL;
@@ -8519,8 +8519,8 @@ static /**
     register_inline_schema(struct OpenAPI_Spec *spec, const char *base_name,
                            const JSON_Object *schema_obj,
                            const JSON_Value *schema_val, char **out_name) {
-  char *_ast_sanitize_component_name_49;
-  char *_ast_make_unique_schema_name_50;
+  char *_ast_sanitize_component_name_49 = NULL;
+  char *_ast_make_unique_schema_name_50 = NULL;
   struct StructFields tmp;
   char *sanitized = NULL;
   char *unique = NULL;
@@ -9629,7 +9629,7 @@ static /**
   struct OpenAPI_Parameter *_ast_find_component_parameter_58;
   enum OpenAPI_ParamIn _ast_parse_param_in_59;
   struct OpenAPI_MediaType *_ast_find_component_media_type_60;
-  char *_ast_build_inline_param_name_61;
+  char *_ast_build_inline_param_name_61 = NULL;
   enum OpenAPI_Style _ast_parse_param_style_62;
   char *_ast_strdup_234 = NULL;
   char *_ast_strdup_235 = NULL;
@@ -10142,8 +10142,8 @@ static /**
         */
     int
     media_type_base_equal(const char *a, const char *b) {
-  size_t _ast_media_type_base_len_64;
-  size_t _ast_media_type_base_len_65;
+  size_t _ast_media_type_base_len_64 = 0;
+  size_t _ast_media_type_base_len_65 = 0;
   size_t alen;
   size_t blen;
   if (!a || !b)
@@ -10179,7 +10179,7 @@ static /**
         */
     int
     media_type_is_json(const char *name) {
-  size_t _ast_media_type_base_len_66;
+  size_t _ast_media_type_base_len_66 = 0;
   size_t len;
   if (!name)
     return 0;
@@ -10198,7 +10198,7 @@ static /**
         */
     int
     media_type_specificity(const char *name) {
-  size_t _ast_media_type_base_len_67;
+  size_t _ast_media_type_base_len_67 = 0;
   const char *slash;
   size_t len;
   size_t type_len;
@@ -10473,9 +10473,9 @@ static /**
                               const int resolve_refs, const char *op_id) {
   struct OpenAPI_RequestBody *_ast_find_component_request_body_68;
   JSON_Object *_ast_find_media_object_by_name_69;
-  char *_ast_build_inline_request_name_70;
-  char *_ast_build_inline_request_name_71;
-  char *_ast_build_inline_request_name_72;
+  char *_ast_build_inline_request_name_70 = NULL;
+  char *_ast_build_inline_request_name_71 = NULL;
+  char *_ast_build_inline_request_name_72 = NULL;
   char *_ast_strdup_243 = NULL;
   char *_ast_strdup_244 = NULL;
   char *_ast_strdup_245 = NULL;
@@ -10797,9 +10797,9 @@ static /**
                           const char *resp_code) {
   struct OpenAPI_Response *_ast_find_component_response_73;
   JSON_Object *_ast_find_media_object_by_name_74;
-  char *_ast_build_inline_response_name_75;
-  char *_ast_build_inline_response_name_76;
-  char *_ast_build_inline_response_name_77;
+  char *_ast_build_inline_response_name_75 = NULL;
+  char *_ast_build_inline_response_name_76 = NULL;
+  char *_ast_build_inline_response_name_77 = NULL;
   char *_ast_strdup_252 = NULL;
   char *_ast_strdup_253 = NULL;
   char *_ast_strdup_254 = NULL;
@@ -12671,8 +12671,8 @@ static /**
     int
     validate_path_template_collisions(const struct OpenAPI_Path *paths,
                                       size_t n_paths) {
-  char *_ast_normalize_path_template_route_83;
-  char *_ast_normalize_path_template_route_84;
+  char *_ast_normalize_path_template_route_83 = NULL;
+  char *_ast_normalize_path_template_route_84 = NULL;
   size_t i;
   if (!paths)
     return 0;
@@ -12936,8 +12936,8 @@ static /**
     int
     path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                     const char *ref, const char *name) {
-  char *_ast_ref_name_from_prefix_85;
-  char *_ast_json_pointer_unescape_86;
+  char *_ast_ref_name_from_prefix_85 = NULL;
+  char *_ast_json_pointer_unescape_86 = NULL;
   const char *name_enc;
   char *name_dec;
   int match = 0;
@@ -12985,8 +12985,8 @@ static /**
     int
     callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                    const char *ref, const char *name) {
-  char *_ast_ref_name_from_prefix_87;
-  char *_ast_json_pointer_unescape_88;
+  char *_ast_ref_name_from_prefix_87 = NULL;
+  char *_ast_json_pointer_unescape_88 = NULL;
   const char *name_enc;
   char *name_dec;
   int match = 0;
@@ -13224,8 +13224,8 @@ static /**
                                     struct OpenAPI_Spec *out,
                                     const char *retrieval_uri,
                                     struct OpenAPI_DocRegistry *registry) {
-  char *_ast_compute_document_uri_89;
-  char *_ast_compute_document_uri_90;
+  char *_ast_compute_document_uri_89 = NULL;
+  char *_ast_compute_document_uri_90 = NULL;
   char *_ast_strdup_293 = NULL;
   char *_ast_strdup_294 = NULL;
   char *_ast_strdup_295 = NULL;

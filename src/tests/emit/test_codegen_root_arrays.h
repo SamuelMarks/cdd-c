@@ -55,7 +55,7 @@ static int generate_ra_code(int (*fn)(FILE *, const char *, const char *,
 }
 
 TEST test_root_int_array_from_json(void) {
-  char *_ast_generate_ra_code_0;
+  char *_ast_generate_ra_code_0 = NULL;
   char *code = (generate_ra_code(write_root_array_from_json_func, "IntList",
                                  "integer", NULL, &_ast_generate_ra_code_0),
                 _ast_generate_ra_code_0);
@@ -72,7 +72,7 @@ TEST test_root_int_array_from_json(void) {
 }
 
 TEST test_root_string_array_from_json(void) {
-  char *_ast_generate_ra_code_1;
+  char *_ast_generate_ra_code_1 = NULL;
   char *code = (generate_ra_code(write_root_array_from_json_func, "StrList",
                                  "string", NULL, &_ast_generate_ra_code_1),
                 _ast_generate_ra_code_1);
@@ -91,7 +91,7 @@ TEST test_root_string_array_from_json(void) {
 }
 
 TEST test_root_obj_array_from_json(void) {
-  char *_ast_generate_ra_code_2;
+  char *_ast_generate_ra_code_2 = NULL;
   /* Array of objects references "MyObj" */
   char *code = (generate_ra_code(write_root_array_from_json_func, "ObjList",
                                  "object", "MyObj", &_ast_generate_ra_code_2),
@@ -109,7 +109,7 @@ TEST test_root_obj_array_from_json(void) {
 }
 
 TEST test_root_int_array_to_json(void) {
-  char *_ast_generate_ra_code_3;
+  char *_ast_generate_ra_code_3 = NULL;
   char *code = (generate_ra_code(write_root_array_to_json_func, "IntList",
                                  "integer", NULL, &_ast_generate_ra_code_3),
                 _ast_generate_ra_code_3);
@@ -123,7 +123,7 @@ TEST test_root_int_array_to_json(void) {
 }
 
 TEST test_root_obj_array_to_json(void) {
-  char *_ast_generate_ra_code_4;
+  char *_ast_generate_ra_code_4 = NULL;
   char *code = (generate_ra_code(write_root_array_to_json_func, "ObjList",
                                  "object", "MyObj", &_ast_generate_ra_code_4),
                 _ast_generate_ra_code_4);
@@ -136,8 +136,8 @@ TEST test_root_obj_array_to_json(void) {
 }
 
 TEST test_root_array_cleanup(void) {
-  char *_ast_generate_ra_code_5;
-  char *_ast_generate_ra_code_6;
+  char *_ast_generate_ra_code_5 = NULL;
+  char *_ast_generate_ra_code_6 = NULL;
   /* String cleanup */
   char *code = (generate_ra_code(write_root_array_cleanup_func, "StrList",
                                  "string", NULL, &_ast_generate_ra_code_5),

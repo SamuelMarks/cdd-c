@@ -60,7 +60,7 @@ static /**
     int
     extract_word(const char *str, const char *end, const char **next_out,
                  char **_out_val) {
-  const char *_ast_skip_ws_0;
+  const char *_ast_skip_ws_0 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_0), _ast_skip_ws_0);
   const char *word_start = p;
   size_t len;
@@ -106,7 +106,7 @@ static /**
         */
     int
     extract_rest(const char *str, const char *end, char **_out_val) {
-  const char *_ast_skip_ws_1;
+  const char *_ast_skip_ws_1 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_1), _ast_skip_ws_1);
   const char *e = end;
   size_t len;
@@ -205,8 +205,8 @@ static /**
     int
     parse_tags_line(const char *line, const char *end,
                     struct DocMetadata *out) {
-  char *_ast_extract_rest_2;
-  char *_ast_trim_segment_3;
+  char *_ast_extract_rest_2 = NULL;
+  char *_ast_trim_segment_3 = NULL;
   char *rest;
   char *cursor;
   int rc = 0;
@@ -267,15 +267,15 @@ static /**
     int
     parse_tag_meta_line(const char *line, const char *end,
                         struct DocMetadata *out) {
-  char *_ast_extract_word_4;
-  const char *_ast_skip_ws_5;
-  char *_ast_trim_segment_6;
-  char *_ast_trim_segment_7;
-  char *_ast_trim_segment_8;
-  char *_ast_trim_segment_9;
-  char *_ast_trim_segment_10;
-  char *_ast_trim_segment_11;
-  const char *_ast_skip_ws_12;
+  char *_ast_extract_word_4 = NULL;
+  const char *_ast_skip_ws_5 = NULL;
+  char *_ast_trim_segment_6 = NULL;
+  char *_ast_trim_segment_7 = NULL;
+  char *_ast_trim_segment_8 = NULL;
+  char *_ast_trim_segment_9 = NULL;
+  char *_ast_trim_segment_10 = NULL;
+  char *_ast_trim_segment_11 = NULL;
+  const char *_ast_skip_ws_12 = NULL;
   char *_ast_strdup_1 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
@@ -405,7 +405,7 @@ static /**
     void
     parse_optional_bool_attr(const char *attr, const char *key, int *out_set,
                              int *out_val) {
-  char *_ast_trim_segment_13;
+  char *_ast_trim_segment_13 = NULL;
   size_t key_len;
   int parsed;
 
@@ -437,7 +437,7 @@ static /**
         */
     int
     parse_optional_example_attr(const char *attr, char **out_example) {
-  char *_ast_trim_segment_14;
+  char *_ast_trim_segment_14 = NULL;
   char *_ast_strdup_7 = NULL;
   char *val;
   if (!attr || !out_example)
@@ -460,7 +460,7 @@ static /**
     int
     parse_deprecated_line(const char *line, const char *end,
                           struct DocMetadata *out) {
-  char *_ast_extract_rest_15;
+  char *_ast_extract_rest_15 = NULL;
   char *rest;
   int value = 1;
 
@@ -487,8 +487,8 @@ static /**
     int
     parse_external_docs_line(const char *line, const char *end,
                              struct DocMetadata *out) {
-  char *_ast_extract_word_16;
-  char *_ast_extract_rest_17;
+  char *_ast_extract_word_16 = NULL;
+  char *_ast_extract_rest_17 = NULL;
   const char *cur = line;
   char *url;
   char *desc;
@@ -519,12 +519,12 @@ static /**
     int
     parse_contact_line(const char *line, const char *end,
                        struct DocMetadata *out) {
-  char *_ast_extract_rest_18;
-  char *_ast_trim_segment_19;
-  char *_ast_trim_segment_20;
-  char *_ast_trim_segment_21;
-  char *_ast_trim_segment_22;
-  char *_ast_trim_segment_23;
+  char *_ast_extract_rest_18 = NULL;
+  char *_ast_trim_segment_19 = NULL;
+  char *_ast_trim_segment_20 = NULL;
+  char *_ast_trim_segment_21 = NULL;
+  char *_ast_trim_segment_22 = NULL;
+  char *_ast_trim_segment_23 = NULL;
   char *_ast_strdup_8 = NULL;
   char *_ast_strdup_9 = NULL;
   char *_ast_strdup_10 = NULL;
@@ -619,12 +619,12 @@ static /**
     int
     parse_license_line(const char *line, const char *end,
                        struct DocMetadata *out) {
-  char *_ast_extract_rest_24;
-  char *_ast_trim_segment_25;
-  char *_ast_trim_segment_26;
-  char *_ast_trim_segment_27;
-  char *_ast_trim_segment_28;
-  char *_ast_trim_segment_29;
+  char *_ast_extract_rest_24 = NULL;
+  char *_ast_trim_segment_25 = NULL;
+  char *_ast_trim_segment_26 = NULL;
+  char *_ast_trim_segment_27 = NULL;
+  char *_ast_trim_segment_28 = NULL;
+  char *_ast_trim_segment_29 = NULL;
   char *_ast_strdup_12 = NULL;
   char *_ast_strdup_13 = NULL;
   char *_ast_strdup_14 = NULL;
@@ -732,14 +732,14 @@ static /**
     int
     parse_response_header_line(const char *line, const char *end,
                                struct DocMetadata *out) {
-  char *_ast_extract_word_30;
-  char *_ast_extract_word_31;
-  const char *_ast_skip_ws_32;
-  char *_ast_trim_segment_33;
-  char *_ast_trim_segment_34;
-  char *_ast_trim_segment_35;
-  const char *_ast_skip_ws_36;
-  char *_ast_extract_rest_37;
+  char *_ast_extract_word_30 = NULL;
+  char *_ast_extract_word_31 = NULL;
+  const char *_ast_skip_ws_32 = NULL;
+  char *_ast_trim_segment_33 = NULL;
+  char *_ast_trim_segment_34 = NULL;
+  char *_ast_trim_segment_35 = NULL;
+  const char *_ast_skip_ws_36 = NULL;
+  char *_ast_extract_rest_37 = NULL;
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
   char *_ast_strdup_18 = NULL;
@@ -848,20 +848,20 @@ static /**
     int
     parse_link_line(const char *line, const char *end,
                     struct DocMetadata *out) {
-  char *_ast_extract_word_38;
-  char *_ast_extract_word_39;
-  const char *_ast_skip_ws_40;
-  char *_ast_trim_segment_41;
-  char *_ast_trim_segment_42;
-  char *_ast_trim_segment_43;
-  char *_ast_trim_segment_44;
-  char *_ast_trim_segment_45;
-  char *_ast_trim_segment_46;
-  char *_ast_trim_segment_47;
-  char *_ast_trim_segment_48;
-  char *_ast_trim_segment_49;
-  const char *_ast_skip_ws_50;
-  char *_ast_extract_rest_51;
+  char *_ast_extract_word_38 = NULL;
+  char *_ast_extract_word_39 = NULL;
+  const char *_ast_skip_ws_40 = NULL;
+  char *_ast_trim_segment_41 = NULL;
+  char *_ast_trim_segment_42 = NULL;
+  char *_ast_trim_segment_43 = NULL;
+  char *_ast_trim_segment_44 = NULL;
+  char *_ast_trim_segment_45 = NULL;
+  char *_ast_trim_segment_46 = NULL;
+  char *_ast_trim_segment_47 = NULL;
+  char *_ast_trim_segment_48 = NULL;
+  char *_ast_trim_segment_49 = NULL;
+  const char *_ast_skip_ws_50 = NULL;
+  char *_ast_extract_rest_51 = NULL;
   char *_ast_strdup_20 = NULL;
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
@@ -1291,11 +1291,11 @@ static /**
     int
     parse_param_line(const char *line, const char *end,
                      struct DocMetadata *out) {
-  char *_ast_extract_word_52;
-  const char *_ast_skip_ws_53;
-  char *_ast_trim_segment_54;
-  const char *_ast_skip_ws_55;
-  char *_ast_extract_rest_56;
+  char *_ast_extract_word_52 = NULL;
+  const char *_ast_skip_ws_53 = NULL;
+  char *_ast_trim_segment_54 = NULL;
+  const char *_ast_skip_ws_55 = NULL;
+  char *_ast_extract_rest_56 = NULL;
   char *_ast_strdup_29 = NULL;
   char *_ast_strdup_30 = NULL;
   char *_ast_strdup_31 = NULL;
@@ -1403,12 +1403,12 @@ static /**
     int
     parse_return_line(const char *line, const char *end,
                       struct DocMetadata *out) {
-  char *_ast_extract_word_57;
-  const char *_ast_skip_ws_58;
-  char *_ast_trim_segment_59;
-  char *_ast_trim_segment_60;
-  const char *_ast_skip_ws_61;
-  char *_ast_extract_rest_62;
+  char *_ast_extract_word_57 = NULL;
+  const char *_ast_skip_ws_58 = NULL;
+  char *_ast_trim_segment_59 = NULL;
+  char *_ast_trim_segment_60 = NULL;
+  const char *_ast_skip_ws_61 = NULL;
+  char *_ast_extract_rest_62 = NULL;
   char *_ast_strdup_32 = NULL;
   char *_ast_strdup_33 = NULL;
   struct DocResponse *new_resps;
@@ -1494,7 +1494,7 @@ static /**
         */
     int
     split_scopes(const char *input, char ***out_scopes, size_t *out_count) {
-  char *_ast_trim_segment_63;
+  char *_ast_trim_segment_63 = NULL;
   char *_ast_strdup_34 = NULL;
   char *_ast_strdup_35 = NULL;
   char *buf;
@@ -1570,8 +1570,8 @@ static /**
     int
     parse_security_line(const char *line, const char *end,
                         struct DocMetadata *out) {
-  char *_ast_extract_word_64;
-  char *_ast_extract_rest_65;
+  char *_ast_extract_word_64 = NULL;
+  char *_ast_extract_rest_65 = NULL;
   const char *cur = line;
   char *scheme;
   char *rest;
@@ -1770,26 +1770,26 @@ static /**
     int
     parse_security_scheme_line(const char *line, const char *end,
                                struct DocMetadata *out) {
-  char *_ast_extract_word_66;
-  const char *_ast_skip_ws_67;
-  char *_ast_trim_segment_68;
+  char *_ast_extract_word_66 = NULL;
+  const char *_ast_skip_ws_67 = NULL;
+  char *_ast_trim_segment_68 = NULL;
   enum DocSecurityType _ast_parse_security_type_text_69;
-  char *_ast_trim_segment_70;
-  char *_ast_trim_segment_71;
-  char *_ast_trim_segment_72;
-  char *_ast_trim_segment_73;
-  char *_ast_trim_segment_74;
+  char *_ast_trim_segment_70 = NULL;
+  char *_ast_trim_segment_71 = NULL;
+  char *_ast_trim_segment_72 = NULL;
+  char *_ast_trim_segment_73 = NULL;
+  char *_ast_trim_segment_74 = NULL;
   enum DocSecurityIn _ast_parse_security_in_text_75;
-  char *_ast_trim_segment_76;
-  char *_ast_trim_segment_77;
-  char *_ast_trim_segment_78;
+  char *_ast_trim_segment_76 = NULL;
+  char *_ast_trim_segment_77 = NULL;
+  char *_ast_trim_segment_78 = NULL;
   enum DocOAuthFlowType _ast_parse_oauth_flow_type_text_79;
-  char *_ast_trim_segment_80;
-  char *_ast_trim_segment_81;
-  char *_ast_trim_segment_82;
-  char *_ast_trim_segment_83;
-  char *_ast_trim_segment_84;
-  const char *_ast_skip_ws_85;
+  char *_ast_trim_segment_80 = NULL;
+  char *_ast_trim_segment_81 = NULL;
+  char *_ast_trim_segment_82 = NULL;
+  char *_ast_trim_segment_83 = NULL;
+  char *_ast_trim_segment_84 = NULL;
+  const char *_ast_skip_ws_85 = NULL;
   char *_ast_strdup_36 = NULL;
   char *_ast_strdup_37 = NULL;
   char *_ast_strdup_38 = NULL;
@@ -2045,13 +2045,13 @@ static /**
     int
     parse_server_line(const char *line, const char *end,
                       struct DocMetadata *out) {
-  char *_ast_extract_word_86;
-  char *_ast_extract_rest_87;
-  char *_ast_find_key_token_88;
-  char *_ast_find_key_token_89;
-  char *_ast_trim_segment_90;
-  char *_ast_trim_segment_91;
-  char *_ast_trim_segment_92;
+  char *_ast_extract_word_86 = NULL;
+  char *_ast_extract_rest_87 = NULL;
+  char *_ast_find_key_token_88 = NULL;
+  char *_ast_find_key_token_89 = NULL;
+  char *_ast_trim_segment_90 = NULL;
+  char *_ast_trim_segment_91 = NULL;
+  char *_ast_trim_segment_92 = NULL;
   char *_ast_strdup_46 = NULL;
   char *_ast_strdup_47 = NULL;
   char *_ast_strdup_48 = NULL;
@@ -2182,13 +2182,13 @@ static /**
     int
     parse_server_var_line(const char *line, const char *end,
                           struct DocMetadata *out) {
-  char *_ast_extract_word_93;
-  const char *_ast_skip_ws_94;
-  char *_ast_trim_segment_95;
-  char *_ast_trim_segment_96;
-  char *_ast_trim_segment_97;
-  const char *_ast_skip_ws_98;
-  char *_ast_extract_rest_99;
+  char *_ast_extract_word_93 = NULL;
+  const char *_ast_skip_ws_94 = NULL;
+  char *_ast_trim_segment_95 = NULL;
+  char *_ast_trim_segment_96 = NULL;
+  char *_ast_trim_segment_97 = NULL;
+  const char *_ast_skip_ws_98 = NULL;
+  char *_ast_extract_rest_99 = NULL;
   char *_ast_strdup_50 = NULL;
   char *_ast_strdup_51 = NULL;
   char *_ast_strdup_52 = NULL;
@@ -2317,13 +2317,13 @@ static /**
     int
     parse_encoding_line(const char *line, const char *end,
                         struct DocMetadata *out, int kind) {
-  const char *_ast_skip_ws_100;
-  char *_ast_extract_rest_101;
-  const char *_ast_skip_ws_102;
-  char *_ast_extract_rest_103;
-  char *_ast_trim_segment_104;
-  char *_ast_trim_segment_105;
-  const char *_ast_skip_ws_106;
+  const char *_ast_skip_ws_100 = NULL;
+  char *_ast_extract_rest_101 = NULL;
+  const char *_ast_skip_ws_102 = NULL;
+  char *_ast_extract_rest_103 = NULL;
+  char *_ast_trim_segment_104 = NULL;
+  char *_ast_trim_segment_105 = NULL;
+  const char *_ast_skip_ws_106 = NULL;
   char *_ast_strdup_53 = NULL;
   const char *cur = line;
   struct DocEncoding *new_arr;
@@ -2411,11 +2411,11 @@ static /**
     int
     parse_request_body_line(const char *line, const char *end,
                             struct DocMetadata *out) {
-  const char *_ast_skip_ws_107;
-  char *_ast_trim_segment_108;
-  char *_ast_trim_segment_109;
-  const char *_ast_skip_ws_110;
-  char *_ast_extract_rest_111;
+  const char *_ast_skip_ws_107 = NULL;
+  char *_ast_trim_segment_108 = NULL;
+  char *_ast_trim_segment_109 = NULL;
+  const char *_ast_skip_ws_110 = NULL;
+  char *_ast_extract_rest_111 = NULL;
   char *_ast_strdup_54 = NULL;
   char *_ast_strdup_55 = NULL;
   char *_ast_strdup_56 = NULL;
@@ -2543,8 +2543,8 @@ static /**
     int
     parse_route_line(const char *line, const char *end,
                      struct DocMetadata *out) {
-  char *_ast_extract_word_112;
-  char *_ast_extract_word_113;
+  char *_ast_extract_word_112 = NULL;
+  char *_ast_extract_word_113 = NULL;
   const char *cur = line;
   char *word1 = (extract_word(cur, end, &cur, &_ast_extract_word_112),
                  _ast_extract_word_112);
@@ -2582,15 +2582,15 @@ static /**
  * @brief Executes the doc parse block operation.
  */
 int doc_parse_block(const char *comment, struct DocMetadata *out) {
-  char *_ast_extract_rest_114;
-  char *_ast_extract_rest_115;
-  char *_ast_extract_rest_116;
-  char *_ast_extract_rest_117;
-  char *_ast_extract_rest_118;
-  char *_ast_extract_rest_119;
-  char *_ast_extract_rest_120;
-  char *_ast_extract_rest_121;
-  char *_ast_extract_rest_122;
+  char *_ast_extract_rest_114 = NULL;
+  char *_ast_extract_rest_115 = NULL;
+  char *_ast_extract_rest_116 = NULL;
+  char *_ast_extract_rest_117 = NULL;
+  char *_ast_extract_rest_118 = NULL;
+  char *_ast_extract_rest_119 = NULL;
+  char *_ast_extract_rest_120 = NULL;
+  char *_ast_extract_rest_121 = NULL;
+  char *_ast_extract_rest_122 = NULL;
   const char *p = comment;
   int rc = 0;
 

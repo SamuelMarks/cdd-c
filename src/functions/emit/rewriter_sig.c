@@ -262,8 +262,8 @@ static /**
  * @brief Executes the rewrite signature operation.
  */
 int rewrite_signature(const struct TokenList *tokens, char **out_code) {
-  size_t _ast_find_balanced_end_0;
-  size_t _ast_find_balanced_end_1;
+  size_t _ast_find_balanced_end_0 = 0;
+  size_t _ast_find_balanced_end_1 = 0;
   struct ParsedSig sig;
   size_t i = 0;
   size_t lparen_idx = 0;

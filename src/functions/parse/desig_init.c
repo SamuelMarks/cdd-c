@@ -67,8 +67,8 @@ void desig_init_list_free(struct DesigInitList *list) {
  */
 int scan_for_designated_initializers(const struct TokenList *tokens,
                                      struct DesigInitList *list) {
-  char *_ast_strndup_0;
-  char *_ast_strndup_1;
+  char *_ast_strndup_0 = NULL;
+  char *_ast_strndup_1 = NULL;
   char *;
   char *;
   size_t i = 0;

@@ -276,7 +276,7 @@ static /**
         */
     int
     build_base_url_literal(const char *url, char **_out_val) {
-  char *_ast_escape_c_string_literal_2;
+  char *_ast_escape_c_string_literal_2 = NULL;
   char *escaped = NULL;
   char *literal = NULL;
   size_t len;
@@ -1121,8 +1121,8 @@ static /**
     int
     write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                           const struct OpenAPI_Spec *spec) {
-  char *_ast_render_server_url_default_3;
-  char *_ast_escape_c_string_literal_4;
+  char *_ast_render_server_url_default_3 = NULL;
+  char *_ast_escape_c_string_literal_4 = NULL;
   char *default_url = NULL;
   char *default_url_escaped = NULL;
   const char *default_url_literal = NULL;
@@ -1521,7 +1521,7 @@ static /**
     int
     write_docblock(FILE *fp, const struct OpenAPI_Path *path,
                    const struct OpenAPI_Operation *op) {
-  const char *_ast_verb_to_string_5;
+  const char *_ast_verb_to_string_5 = NULL;
   size_t i;
   CHECK_IO(fprintf(fp, "/** @def CHECK_IO_CLEANUP\n"));
   if (op->summary) {
@@ -1814,10 +1814,10 @@ static /**
                    const struct OpenAPI_Spec *spec,
                    const struct OpenApiClientConfig *config,
                    const char *prefix) {
-  char *_ast_sanitize_tag_6;
+  char *_ast_sanitize_tag_6 = NULL;
   struct OpenAPI_Server *_ast_select_operation_server_7;
-  char *_ast_render_server_url_default_8;
-  char *_ast_build_base_url_literal_9;
+  char *_ast_render_server_url_default_8 = NULL;
+  char *_ast_build_base_url_literal_9 = NULL;
   struct OpenAPI_Operation effective_op;
   struct OpenAPI_Parameter *effective_params = NULL;
   size_t effective_count = 0;
@@ -1966,8 +1966,8 @@ cleanup:
  */
 int openapi_client_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config) {
-  char *_ast_generate_guard_10;
-  char *_ast_derive_model_header_11;
+  char *_ast_generate_guard_10 = NULL;
+  char *_ast_derive_model_header_11 = NULL;
   FILE *hfile = NULL, *cfile = NULL;
   char *h_name = NULL, *c_name = NULL;
   char *guard = NULL, *model_h = NULL;

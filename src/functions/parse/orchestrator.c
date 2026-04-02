@@ -140,7 +140,7 @@ static /**
     int
     extract_func_name(const struct TokenList *tokens, size_t start,
                       size_t body_start, char **_out_val) {
-  size_t _ast_find_token_in_range_0;
+  size_t _ast_find_token_in_range_0 = 0;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_0),
                    _ast_find_token_in_range_0);
@@ -223,8 +223,8 @@ static /**
     analyze_signature_tokens(const struct TokenList *tokens, size_t start,
                              size_t body_start, int *is_ptr, int *is_void,
                              char **type_str) {
-  size_t _ast_find_token_in_range_1;
-  char *_ast_join_tokens_str_2;
+  size_t _ast_find_token_in_range_1 = 0;
+  char *_ast_join_tokens_str_2 = NULL;
   size_t i;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_1),
@@ -374,12 +374,12 @@ static /**
  * @brief Executes the orchestrate fix operation.
  */
 int orchestrate_fix(const char *source_code, char **const out_code) {
-  size_t _ast_find_token_in_range_3;
-  char *_ast_extract_func_name_4;
-  char *_ast_join_tokens_str_5;
-  char *_ast_join_tokens_str_6;
-  char *_ast_join_tokens_str_7;
-  char *_ast_join_tokens_str_8;
+  size_t _ast_find_token_in_range_3 = 0;
+  char *_ast_extract_func_name_4 = NULL;
+  char *_ast_join_tokens_str_5 = NULL;
+  char *_ast_join_tokens_str_6 = NULL;
+  char *_ast_join_tokens_str_7 = NULL;
+  char *_ast_join_tokens_str_8 = NULL;
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;

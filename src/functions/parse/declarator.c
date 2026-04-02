@@ -237,7 +237,7 @@ static /**
     int
     is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
                       size_t limit) {
-  size_t _ast_skip_ws_0;
+  size_t _ast_skip_ws_0 = 0;
   size_t i =
       (skip_ws(tokens, paren_idx + 1, limit, &_ast_skip_ws_0), _ast_skip_ws_0);
   if (i >= limit)
@@ -259,13 +259,13 @@ static /**
     int
     find_abstract_pivot(const struct TokenList *tokens, size_t start,
                         size_t end, size_t *_out_val) {
-  size_t _ast_skip_ws_1;
-  size_t _ast_skip_ws_2;
-  size_t _ast_skip_group_3;
-  size_t _ast_skip_ws_4;
-  size_t _ast_skip_group_5;
-  size_t _ast_skip_group_6;
-  size_t _ast_skip_group_7;
+  size_t _ast_skip_ws_1 = 0;
+  size_t _ast_skip_ws_2 = 0;
+  size_t _ast_skip_group_3 = 0;
+  size_t _ast_skip_ws_4 = 0;
+  size_t _ast_skip_group_5 = 0;
+  size_t _ast_skip_group_6 = 0;
+  size_t _ast_skip_group_7 = 0;
   size_t i = start;
   size_t best_pivot = end;
   int current_depth = 0;
@@ -354,12 +354,12 @@ static /**
     int
     find_pivot(const struct TokenList *tokens, size_t start, size_t end,
                int *is_abstract, size_t *_out_val) {
-  size_t _ast_skip_ws_8;
-  size_t _ast_skip_ws_9;
-  size_t _ast_skip_group_10;
-  size_t _ast_skip_ws_11;
-  size_t _ast_skip_group_12;
-  size_t _ast_find_abstract_pivot_13;
+  size_t _ast_skip_ws_8 = 0;
+  size_t _ast_skip_ws_9 = 0;
+  size_t _ast_skip_group_10 = 0;
+  size_t _ast_skip_ws_11 = 0;
+  size_t _ast_skip_group_12 = 0;
+  size_t _ast_find_abstract_pivot_13 = 0;
   size_t i = start;
   size_t best_ident = end;
 
@@ -417,28 +417,28 @@ static /**
  */
 int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info) {
-  size_t _ast_find_pivot_14;
-  char *_ast_join_tokens_range_15;
-  size_t _ast_skip_ws_back_16;
-  size_t _ast_skip_ws_17;
-  size_t _ast_skip_ws_back_18;
-  size_t _ast_skip_ws_19;
+  size_t _ast_find_pivot_14 = 0;
+  char *_ast_join_tokens_range_15 = NULL;
+  size_t _ast_skip_ws_back_16 = 0;
+  size_t _ast_skip_ws_17 = 0;
+  size_t _ast_skip_ws_back_18 = 0;
+  size_t _ast_skip_ws_19 = 0;
   struct DeclType *_ast_create_node_20;
-  size_t _ast_skip_group_21;
-  char *_ast_join_tokens_range_22;
-  size_t _ast_skip_ws_23;
+  size_t _ast_skip_group_21 = 0;
+  char *_ast_join_tokens_range_22 = NULL;
+  size_t _ast_skip_ws_23 = 0;
   struct DeclType *_ast_create_node_24;
-  size_t _ast_skip_group_25;
-  char *_ast_join_tokens_range_26;
-  size_t _ast_skip_ws_27;
+  size_t _ast_skip_group_25 = 0;
+  char *_ast_join_tokens_range_26 = NULL;
+  size_t _ast_skip_ws_27 = 0;
   struct DeclType *_ast_create_node_28;
-  char *_ast_join_tokens_range_29;
-  size_t _ast_skip_ws_back_30;
-  size_t _ast_skip_ws_back_31;
-  size_t _ast_skip_ws_back_32;
-  size_t _ast_skip_ws_33;
+  char *_ast_join_tokens_range_29 = NULL;
+  size_t _ast_skip_ws_back_30 = 0;
+  size_t _ast_skip_ws_back_31 = 0;
+  size_t _ast_skip_ws_back_32 = 0;
+  size_t _ast_skip_ws_33 = 0;
   struct DeclType *_ast_create_node_34;
-  char *_ast_join_tokens_range_35;
+  char *_ast_join_tokens_range_35 = NULL;
   char *_ast_strdup_1 = NULL;
   size_t pivot;
   size_t left, right;

@@ -173,7 +173,7 @@ static /**
     int
     parse_designator(const struct TokenList *tokens, size_t start, size_t limit,
                      char **out_str, size_t *out_next) {
-  char *_ast_join_tokens_skipping_ws_0;
+  char *_ast_join_tokens_skipping_ws_0 = NULL;
   size_t i = start;
   size_t end_desig;
 
@@ -214,7 +214,7 @@ static /**
     int
     parse_expression_str(const struct TokenList *tokens, size_t start,
                          size_t limit, char **out_str, size_t *out_next) {
-  char *_ast_join_tokens_skipping_ws_1;
+  char *_ast_join_tokens_skipping_ws_1 = NULL;
   size_t i = start;
   int depth_paren = 0;
   int depth_brace = 0; /* Should be 0 for scalar, but compound literals
@@ -265,10 +265,10 @@ static /**
  */
 int parse_initializer(const struct TokenList *tokens, size_t start_idx,
                       size_t end_idx, struct InitList *out, size_t *consumed) {
-  size_t _ast_skip_ws_2;
-  size_t _ast_skip_ws_3;
-  size_t _ast_skip_ws_4;
-  size_t _ast_skip_ws_5;
+  size_t _ast_skip_ws_2 = 0;
+  size_t _ast_skip_ws_3 = 0;
+  size_t _ast_skip_ws_4 = 0;
+  size_t _ast_skip_ws_5 = 0;
   size_t i;
   int rc = 0;
 

@@ -4226,7 +4226,7 @@ static /**
     int
     parse_c_signature_string(const char *sig_str,
                              struct C2OpenAPI_ParsedSig *out) {
-  size_t _ast_token_find_next_6;
+  size_t _ast_token_find_next_6 = 0;
   struct TokenList *tl = NULL;
   size_t i;
   int rc = 0;

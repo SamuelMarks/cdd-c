@@ -53,7 +53,7 @@ static int generate_eq_code(const char *struct_name, struct StructFields *sf,
 }
 
 TEST test_eq_primitive(void) {
-  char *_ast_generate_eq_code_0;
+  char *_ast_generate_eq_code_0 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -83,7 +83,7 @@ TEST test_eq_primitive(void) {
 }
 
 TEST test_eq_string(void) {
-  char *_ast_generate_eq_code_1;
+  char *_ast_generate_eq_code_1 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -106,7 +106,7 @@ TEST test_eq_string(void) {
 }
 
 TEST test_eq_recursive_object(void) {
-  char *_ast_generate_eq_code_2;
+  char *_ast_generate_eq_code_2 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -126,7 +126,7 @@ TEST test_eq_recursive_object(void) {
 }
 
 TEST test_eq_array_primitive(void) {
-  char *_ast_generate_eq_code_3;
+  char *_ast_generate_eq_code_3 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -150,7 +150,7 @@ TEST test_eq_array_primitive(void) {
 }
 
 TEST test_eq_array_string(void) {
-  char *_ast_generate_eq_code_4;
+  char *_ast_generate_eq_code_4 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -172,7 +172,7 @@ TEST test_eq_array_string(void) {
 }
 
 TEST test_eq_array_object(void) {
-  char *_ast_generate_eq_code_5;
+  char *_ast_generate_eq_code_5 = NULL;
   struct StructFields sf;
   char *code;
 

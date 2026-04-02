@@ -89,9 +89,9 @@ static /**
  * @brief Executes the scan for vlas operation.
  */
 int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
-  char *_ast_strndup_0;
-  char *_ast_strndup_1;
-  char *_ast_strndup_2;
+  char *_ast_strndup_0 = NULL;
+  char *_ast_strndup_1 = NULL;
+  char *_ast_strndup_2 = NULL;
   char *;
   char *;
   char *;

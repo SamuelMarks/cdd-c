@@ -55,7 +55,7 @@ static int gen_sig(const struct OpenAPI_Operation *op,
 }
 
 TEST test_sig_simple_get(void) {
-  char *_ast_gen_sig_0;
+  char *_ast_gen_sig_0 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -83,7 +83,7 @@ TEST test_sig_simple_get(void) {
 }
 
 TEST test_sig_verify_apierror(void) {
-  char *_ast_gen_sig_1;
+  char *_ast_gen_sig_1 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
   op.operation_id = (char *)"do";
@@ -98,7 +98,7 @@ TEST test_sig_verify_apierror(void) {
 }
 
 TEST test_sig_grouped(void) {
-  char *_ast_gen_sig_2;
+  char *_ast_gen_sig_2 = NULL;
   struct OpenAPI_Operation op = {0};
   struct CodegenSigConfig cfg = {0};
   char *code;
@@ -119,7 +119,7 @@ TEST test_sig_grouped(void) {
 }
 
 TEST test_sig_success_range_response(void) {
-  char *_ast_gen_sig_3;
+  char *_ast_gen_sig_3 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -140,7 +140,7 @@ TEST test_sig_success_range_response(void) {
 }
 
 TEST test_sig_default_response_success(void) {
-  char *_ast_gen_sig_4;
+  char *_ast_gen_sig_4 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -161,7 +161,7 @@ TEST test_sig_default_response_success(void) {
 }
 
 TEST test_sig_inline_response_string(void) {
-  char *_ast_gen_sig_5;
+  char *_ast_gen_sig_5 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -182,7 +182,7 @@ TEST test_sig_inline_response_string(void) {
 }
 
 TEST test_sig_inline_response_array(void) {
-  char *_ast_gen_sig_6;
+  char *_ast_gen_sig_6 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -204,7 +204,7 @@ TEST test_sig_inline_response_array(void) {
 }
 
 TEST test_sig_inline_request_body_string(void) {
-  char *_ast_gen_sig_7;
+  char *_ast_gen_sig_7 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -221,7 +221,7 @@ TEST test_sig_inline_request_body_string(void) {
 }
 
 TEST test_sig_inline_request_body_array(void) {
-  char *_ast_gen_sig_8;
+  char *_ast_gen_sig_8 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -239,7 +239,7 @@ TEST test_sig_inline_request_body_array(void) {
 }
 
 TEST test_sig_multipart_encoding_headers(void) {
-  char *_ast_gen_sig_9;
+  char *_ast_gen_sig_9 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_MediaType mt = {0};
   struct OpenAPI_Encoding enc = {0};
@@ -281,7 +281,7 @@ TEST test_sig_multipart_encoding_headers(void) {
 }
 
 TEST test_sig_text_plain_request_body(void) {
-  char *_ast_gen_sig_10;
+  char *_ast_gen_sig_10 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -298,7 +298,7 @@ TEST test_sig_text_plain_request_body(void) {
 }
 
 TEST test_sig_textual_request_body_xml(void) {
-  char *_ast_gen_sig_11;
+  char *_ast_gen_sig_11 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -314,7 +314,7 @@ TEST test_sig_textual_request_body_xml(void) {
 }
 
 TEST test_sig_octet_stream_request_body(void) {
-  char *_ast_gen_sig_12;
+  char *_ast_gen_sig_12 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -330,7 +330,7 @@ TEST test_sig_octet_stream_request_body(void) {
 }
 
 TEST test_sig_binary_request_body_pdf(void) {
-  char *_ast_gen_sig_13;
+  char *_ast_gen_sig_13 = NULL;
   struct OpenAPI_Operation op = {0};
   char *code;
 
@@ -346,7 +346,7 @@ TEST test_sig_binary_request_body_pdf(void) {
 }
 
 TEST test_sig_octet_stream_response_body(void) {
-  char *_ast_gen_sig_14;
+  char *_ast_gen_sig_14 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -366,7 +366,7 @@ TEST test_sig_octet_stream_response_body(void) {
 }
 
 TEST test_sig_binary_response_body_pdf(void) {
-  char *_ast_gen_sig_15;
+  char *_ast_gen_sig_15 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Response resp = {0};
   char *code;
@@ -386,7 +386,7 @@ TEST test_sig_binary_response_body_pdf(void) {
 }
 
 TEST test_sig_querystring_form_object(void) {
-  char *_ast_gen_sig_16;
+  char *_ast_gen_sig_16 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -414,7 +414,7 @@ TEST test_sig_querystring_form_object(void) {
 }
 
 TEST test_sig_querystring_json_ref(void) {
-  char *_ast_gen_sig_17;
+  char *_ast_gen_sig_17 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -442,7 +442,7 @@ TEST test_sig_querystring_json_ref(void) {
 }
 
 TEST test_sig_querystring_json_primitive(void) {
-  char *_ast_gen_sig_18;
+  char *_ast_gen_sig_18 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -469,7 +469,7 @@ TEST test_sig_querystring_json_primitive(void) {
 }
 
 TEST test_sig_querystring_json_array(void) {
-  char *_ast_gen_sig_19;
+  char *_ast_gen_sig_19 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -498,7 +498,7 @@ TEST test_sig_querystring_json_array(void) {
 }
 
 TEST test_sig_querystring_json_array_object(void) {
-  char *_ast_gen_sig_20;
+  char *_ast_gen_sig_20 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -527,7 +527,7 @@ TEST test_sig_querystring_json_array_object(void) {
 }
 
 TEST test_sig_querystring_raw_string(void) {
-  char *_ast_gen_sig_21;
+  char *_ast_gen_sig_21 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -554,7 +554,7 @@ TEST test_sig_querystring_raw_string(void) {
 }
 
 TEST test_sig_querystring_raw_integer(void) {
-  char *_ast_gen_sig_22;
+  char *_ast_gen_sig_22 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -581,7 +581,7 @@ TEST test_sig_querystring_raw_integer(void) {
 }
 
 TEST test_sig_query_object_param_kv(void) {
-  char *_ast_gen_sig_23;
+  char *_ast_gen_sig_23 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -605,7 +605,7 @@ TEST test_sig_query_object_param_kv(void) {
 }
 
 TEST test_sig_path_object_param_kv(void) {
-  char *_ast_gen_sig_24;
+  char *_ast_gen_sig_24 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -629,7 +629,7 @@ TEST test_sig_path_object_param_kv(void) {
 }
 
 TEST test_sig_header_object_param_kv(void) {
-  char *_ast_gen_sig_25;
+  char *_ast_gen_sig_25 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -653,7 +653,7 @@ TEST test_sig_header_object_param_kv(void) {
 }
 
 TEST test_sig_cookie_object_param_kv(void) {
-  char *_ast_gen_sig_26;
+  char *_ast_gen_sig_26 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;
@@ -677,7 +677,7 @@ TEST test_sig_cookie_object_param_kv(void) {
 }
 
 TEST test_sig_json_content_query_ref(void) {
-  char *_ast_gen_sig_27;
+  char *_ast_gen_sig_27 = NULL;
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Parameter param = {0};
   char *code;

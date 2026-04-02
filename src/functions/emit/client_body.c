@@ -296,7 +296,7 @@ static /**
         */
     int
     media_type_has_prefix(const char *media_type, const char *prefix) {
-  size_t _ast_media_type_base_len_0;
+  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t pre_len;
@@ -325,7 +325,7 @@ static /**
         */
     int
     media_type_has_suffix(const char *media_type, const char *suffix) {
-  size_t _ast_media_type_base_len_1;
+  size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
   size_t suf_len;
@@ -356,7 +356,7 @@ static /**
         */
     int
     media_type_ieq(const char *media_type, const char *expected) {
-  size_t _ast_media_type_base_len_2;
+  size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
@@ -2867,12 +2867,12 @@ static /**
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
   const struct OpenAPI_MediaType *_ast_find_media_type_8;
   struct OpenAPI_Encoding *_ast_find_encoding_9;
-  const char *_ast_first_content_type_entry_10;
-  const char *_ast_first_content_type_entry_11;
-  const char *_ast_first_content_type_entry_12;
-  const char *_ast_first_content_type_entry_13;
-  const char *_ast_first_content_type_entry_14;
-  const char *_ast_first_content_type_entry_15;
+  const char *_ast_first_content_type_entry_10 = NULL;
+  const char *_ast_first_content_type_entry_11 = NULL;
+  const char *_ast_first_content_type_entry_12 = NULL;
+  const char *_ast_first_content_type_entry_13 = NULL;
+  const char *_ast_first_content_type_entry_14 = NULL;
+  const char *_ast_first_content_type_entry_15 = NULL;
   const struct StructFields *sf;
   const struct OpenAPI_MediaType *mt;
   size_t i;
@@ -3197,8 +3197,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
                               const struct OpenAPI_Spec *spec,
                               const char *path_template,
                               const char *base_url_expr) {
-  const char *_ast_verb_to_enum_str_16;
-  const char *_ast_method_str_to_enum_str_17;
+  const char *_ast_verb_to_enum_str_16 = NULL;
+  const char *_ast_method_str_to_enum_str_17 = NULL;
   int query_exists = 0;
   int cookie_exists = 0;
   int has_querystring = 0;

@@ -50,7 +50,7 @@ static int gen_parse_code(const char *name, struct StructFields *sf,
 }
 
 TEST test_int_min_validation(void) {
-  char *_ast_gen_parse_code_0;
+  char *_ast_gen_parse_code_0 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -75,7 +75,7 @@ TEST test_int_min_validation(void) {
 }
 
 TEST test_int_exclusive_min(void) {
-  char *_ast_gen_parse_code_1;
+  char *_ast_gen_parse_code_1 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -101,7 +101,7 @@ TEST test_int_exclusive_min(void) {
 }
 
 TEST test_double_max_validation(void) {
-  char *_ast_gen_parse_code_2;
+  char *_ast_gen_parse_code_2 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -126,7 +126,7 @@ TEST test_double_max_validation(void) {
 }
 
 TEST test_double_exclusive_max(void) {
-  char *_ast_gen_parse_code_3;
+  char *_ast_gen_parse_code_3 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -152,7 +152,7 @@ TEST test_double_exclusive_max(void) {
 }
 
 TEST test_min_and_max(void) {
-  char *_ast_gen_parse_code_4;
+  char *_ast_gen_parse_code_4 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -179,7 +179,7 @@ TEST test_min_and_max(void) {
 }
 
 TEST test_string_len_validation(void) {
-  char *_ast_gen_parse_code_5;
+  char *_ast_gen_parse_code_5 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -207,7 +207,7 @@ TEST test_string_len_validation(void) {
 }
 
 TEST test_string_simple_pattern_prefix(void) {
-  char *_ast_gen_parse_code_6;
+  char *_ast_gen_parse_code_6 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -243,7 +243,7 @@ TEST test_string_simple_pattern_prefix(void) {
 }
 
 TEST test_string_simple_pattern_suffix(void) {
-  char *_ast_gen_parse_code_7;
+  char *_ast_gen_parse_code_7 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -279,7 +279,7 @@ TEST test_string_simple_pattern_suffix(void) {
 }
 
 TEST test_string_simple_pattern_exact(void) {
-  char *_ast_gen_parse_code_8;
+  char *_ast_gen_parse_code_8 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;
@@ -315,7 +315,7 @@ TEST test_string_simple_pattern_exact(void) {
 }
 
 TEST test_string_simple_pattern_contains(void) {
-  char *_ast_gen_parse_code_9;
+  char *_ast_gen_parse_code_9 = NULL;
   struct StructFields sf;
   char *code;
   struct StructField *f;

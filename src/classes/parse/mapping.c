@@ -140,8 +140,8 @@ static /**
  */
 int c_mapping_map_type(const char *c_type_in, const char *decl_name,
                        struct OpenApiTypeMapping *out) {
-  const char *_ast_skip_qualifiers_0;
-  char *_ast_clean_type_str_1;
+  const char *_ast_skip_qualifiers_0 = NULL;
+  char *_ast_clean_type_str_1 = NULL;
   bool _ast_starts_with_4 = false;
   bool _ast_starts_with_5 = false;
   char *_ast_strdup_6 = NULL;

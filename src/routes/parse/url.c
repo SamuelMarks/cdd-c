@@ -469,10 +469,10 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
  * @brief Executes the url query build operation.
  */
 int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
-  char *_ast_url_encode_10;
-  char *_ast_url_encode_11;
-  char *_ast_url_encode_12;
-  char *_ast_url_encode_13;
+  char *_ast_url_encode_10 = NULL;
+  char *_ast_url_encode_11 = NULL;
+  char *_ast_url_encode_12 = NULL;
+  char *_ast_url_encode_13 = NULL;
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
   char *_ast_strdup_6 = NULL;
@@ -583,10 +583,10 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
  * @brief Executes the url query build form operation.
  */
 int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
-  char *_ast_url_encode_form_14;
-  char *_ast_url_encode_form_15;
-  char *_ast_url_encode_form_16;
-  char *_ast_url_encode_form_17;
+  char *_ast_url_encode_form_14 = NULL;
+  char *_ast_url_encode_form_15 = NULL;
+  char *_ast_url_encode_form_16 = NULL;
+  char *_ast_url_encode_form_17 = NULL;
   char *_ast_strdup_7 = NULL;
   char *_ast_strdup_8 = NULL;
   size_t i;
@@ -756,7 +756,7 @@ static /**
 int openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
                          const char *delim, int allow_reserved,
                          char **_out_val) {
-  const char *_ast_kv_value_to_string_18;
+  const char *_ast_kv_value_to_string_18 = NULL;
   size_t i;
   char *buf = NULL;
   size_t len = 0;

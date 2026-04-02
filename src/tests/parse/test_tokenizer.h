@@ -99,9 +99,9 @@ TEST tokenize_all_tokens(void) {
 /* ... existing methods ... */
 
 TEST tokenize_c23_digit_separators(void) {
-  char *_ast_token_to_cstr_0;
-  char *_ast_token_to_cstr_1;
-  char *_ast_token_to_cstr_2;
+  char *_ast_token_to_cstr_0 = NULL;
+  char *_ast_token_to_cstr_1 = NULL;
+  char *_ast_token_to_cstr_2 = NULL;
   /* Test 123'456 */
   const az_span code = AZ_SPAN_FROM_STR("123'456 0xAB'CD 0b10'10");
   struct TokenList *tl = NULL;
@@ -133,7 +133,7 @@ TEST tokenize_c23_digit_separators(void) {
 }
 
 TEST tokenize_digit_separator_edge_case(void) {
-  char *_ast_token_to_cstr_3;
+  char *_ast_token_to_cstr_3 = NULL;
   /* Separator at end should NOT be included in number if not followed by digit
    */
   /* 123' -> 123 and ' (char literal start? or just punctuator?) */

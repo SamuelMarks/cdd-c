@@ -41,9 +41,9 @@
 int write_struct_to_json_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenJsonConfig *config) {
-  char *_ast_get_type_from_ref_0;
-  char *_ast_get_type_from_ref_1;
-  char *_ast_get_type_from_ref_2;
+  char *_ast_get_type_from_ref_0 = NULL;
+  char *_ast_get_type_from_ref_1 = NULL;
+  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   bool iter_needed = false;
   bool rc_needed = false;
@@ -211,10 +211,10 @@ int write_struct_from_json_func(FILE *fp, const char *struct_name,
 int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                       const struct StructFields *sf,
                                       const struct CodegenJsonConfig *config) {
-  char *_ast_get_type_from_ref_3;
-  char *_ast_get_type_from_ref_4;
-  char *_ast_get_type_from_ref_5;
-  char *_ast_get_type_from_ref_6;
+  char *_ast_get_type_from_ref_3 = NULL;
+  char *_ast_get_type_from_ref_4 = NULL;
+  char *_ast_get_type_from_ref_5 = NULL;
+  char *_ast_get_type_from_ref_6 = NULL;
   size_t i;
   bool iter_needed = false;
   bool rc_needed = false;

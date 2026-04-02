@@ -110,7 +110,7 @@ static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
                               const char *struct_name);
 
 int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
-  char *_ast_sql_type_to_c_type_0;
+  char *_ast_sql_type_to_c_type_0 = NULL;
   char table_name_upper[128];
   char struct_name[128];
   size_t i;
@@ -258,7 +258,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
 
 int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
                          const char *header_name) {
-  char *_ast_sql_type_to_c_type_1;
+  char *_ast_sql_type_to_c_type_1 = NULL;
   char struct_name[128];
   size_t i;
 

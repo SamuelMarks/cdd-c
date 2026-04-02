@@ -189,7 +189,7 @@ static /**
  */
 int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                               char **out_diff) {
-  char *_ast_read_file_to_string_0;
+  char *_ast_read_file_to_string_0 = NULL;
   size_t len = 0;
   char *src =
       (read_file_to_string(mod->filepath, &len, &_ast_read_file_to_string_0),

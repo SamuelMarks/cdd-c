@@ -231,8 +231,8 @@ static /**
                  const char *current_dir, const char *include_path,
 
                  int is_system, char **_out_val) {
-  char *_ast_join_path_0;
-  char *_ast_join_path_1;
+  char *_ast_join_path_0 = NULL;
+  char *_ast_join_path_1 = NULL;
 
   size_t i;
 
@@ -481,9 +481,9 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
  * @brief Executes the pp scan defines operation.
  */
 int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
-  bool _ast_token_matches_string_2;
-  char *_ast_token_to_string_3;
-  char *_ast_token_to_string_4;
+  bool _ast_token_matches_string_2 = false;
+  char *_ast_token_to_string_3 = NULL;
+  char *_ast_token_to_string_4 = NULL;
 
   char *content = NULL;
 
@@ -796,7 +796,7 @@ static /**
         */
     int
     match(struct ExprState *s, enum TokenKind kind, bool *_out_val) {
-  size_t _ast_skip_ws_5;
+  size_t _ast_skip_ws_5 = 0;
 
   (skip_ws(s, &_ast_skip_ws_5), _ast_skip_ws_5);
 
@@ -850,7 +850,7 @@ static /**
     is_defined_macro(const struct PreprocessorContext *ctx,
 
                      const struct Token *tok, bool *_out_val) {
-  bool _ast_token_matches_string_6;
+  bool _ast_token_matches_string_6 = false;
 
   size_t i;
 
@@ -892,13 +892,13 @@ static /**
         */
     int
     handle_has_include_embed(struct ExprState *s, long *_out_val) {
-  size_t _ast_skip_ws_7;
-  bool _ast_match_8;
-  size_t _ast_skip_ws_9;
-  char *_ast_reconstruct_path_10;
-  size_t _ast_skip_ws_11;
-  bool _ast_match_12;
-  char *_ast_resolve_path_13;
+  size_t _ast_skip_ws_7 = 0;
+  bool _ast_match_8 = false;
+  size_t _ast_skip_ws_9 = 0;
+  char *_ast_reconstruct_path_10 = NULL;
+  size_t _ast_skip_ws_11 = 0;
+  bool _ast_match_12 = false;
+  char *_ast_resolve_path_13 = NULL;
 
   int is_header = false;
 
@@ -1052,17 +1052,17 @@ static /**
         */
     int
     handle_has_c_attribute(struct ExprState *s, long *_out_val) {
-  size_t _ast_skip_ws_14;
-  bool _ast_match_15;
-  size_t _ast_skip_ws_16;
-  char *_ast_token_to_string_17;
+  size_t _ast_skip_ws_14 = 0;
+  bool _ast_match_15 = false;
+  size_t _ast_skip_ws_16 = 0;
+  char *_ast_token_to_string_17 = NULL;
   enum TokenKind _ast_identify_keyword_or_id_18;
-  char *_ast_token_to_string_19;
-  size_t _ast_skip_ws_20;
-  size_t _ast_skip_ws_21;
-  char *_ast_token_to_string_22;
-  size_t _ast_skip_ws_23;
-  bool _ast_match_24;
+  char *_ast_token_to_string_19 = NULL;
+  size_t _ast_skip_ws_20 = 0;
+  size_t _ast_skip_ws_21 = 0;
+  char *_ast_token_to_string_22 = NULL;
+  size_t _ast_skip_ws_23 = 0;
+  bool _ast_match_24 = false;
 
   long result = 0;
 
@@ -1204,18 +1204,18 @@ static /**
         */
     int
     parse_primary(struct ExprState *s, long *_out_val) {
-  size_t _ast_skip_ws_25;
-  bool _ast_match_26;
+  size_t _ast_skip_ws_25 = 0;
+  bool _ast_match_26 = false;
   long _ast_parse_expr_27;
-  bool _ast_match_28;
-  char *_ast_token_to_string_29;
-  bool _ast_token_matches_string_30;
+  bool _ast_match_28 = false;
+  char *_ast_token_to_string_29 = NULL;
+  bool _ast_token_matches_string_30 = false;
   long _ast_handle_has_include_embed_31;
-  bool _ast_token_matches_string_32;
+  bool _ast_token_matches_string_32 = false;
   long _ast_handle_has_include_embed_33;
-  bool _ast_token_matches_string_34;
+  bool _ast_token_matches_string_34 = false;
   long _ast_handle_has_c_attribute_35;
-  bool _ast_token_matches_string_36;
+  bool _ast_token_matches_string_36 = false;
 
   (skip_ws(s, &_ast_skip_ws_25), _ast_skip_ws_25);
 
@@ -1373,21 +1373,21 @@ static /**
         */
     int
     parse_unary(struct ExprState *s, long *_out_val) {
-  size_t _ast_skip_ws_37;
-  bool _ast_match_38;
+  size_t _ast_skip_ws_37 = 0;
+  bool _ast_match_38 = false;
   long _ast_parse_unary_39;
-  bool _ast_match_40;
+  bool _ast_match_40 = false;
   long _ast_parse_unary_41;
-  bool _ast_match_42;
+  bool _ast_match_42 = false;
   long _ast_parse_unary_43;
-  bool _ast_match_44;
+  bool _ast_match_44 = false;
   long _ast_parse_unary_45;
-  bool _ast_token_matches_string_46;
-  size_t _ast_skip_ws_47;
-  bool _ast_match_48;
-  size_t _ast_skip_ws_49;
-  bool _ast_is_defined_macro_50;
-  bool _ast_match_51;
+  bool _ast_token_matches_string_46 = false;
+  size_t _ast_skip_ws_47 = 0;
+  bool _ast_match_48 = false;
+  size_t _ast_skip_ws_49 = 0;
+  bool _ast_is_defined_macro_50 = false;
+  bool _ast_match_51 = false;
   long _ast_parse_primary_52;
 
   (skip_ws(s, &_ast_skip_ws_37), _ast_skip_ws_37);
@@ -1486,11 +1486,11 @@ static /**
     int
     parse_multiplicative(struct ExprState *s, long *_out_val) {
   long _ast_parse_unary_53;
-  bool _ast_match_54;
+  bool _ast_match_54 = false;
   long _ast_parse_unary_55;
-  bool _ast_match_56;
+  bool _ast_match_56 = false;
   long _ast_parse_unary_57;
-  bool _ast_match_58;
+  bool _ast_match_58 = false;
   long _ast_parse_unary_59;
 
   long val = (parse_unary(s, &_ast_parse_unary_53), _ast_parse_unary_53);
@@ -1545,9 +1545,9 @@ static /**
     int
     parse_additive(struct ExprState *s, long *_out_val) {
   long _ast_parse_multiplicative_60;
-  bool _ast_match_61;
+  bool _ast_match_61 = false;
   long _ast_parse_multiplicative_62;
-  bool _ast_match_63;
+  bool _ast_match_63 = false;
   long _ast_parse_multiplicative_64;
 
   long val = (parse_multiplicative(s, &_ast_parse_multiplicative_60),
@@ -1583,9 +1583,9 @@ static /**
     int
     parse_shift(struct ExprState *s, long *_out_val) {
   long _ast_parse_additive_65;
-  bool _ast_match_66;
+  bool _ast_match_66 = false;
   long _ast_parse_additive_67;
-  bool _ast_match_68;
+  bool _ast_match_68 = false;
   long _ast_parse_additive_69;
 
   long val =
@@ -1622,13 +1622,13 @@ static /**
     parse_relational(struct ExprState *s, long *_out_val) {
   long _ast_parse_shift_70;
   enum TokenKind _ast_peek_71;
-  bool _ast_match_72;
+  bool _ast_match_72 = false;
   long _ast_parse_shift_73;
-  bool _ast_match_74;
+  bool _ast_match_74 = false;
   long _ast_parse_shift_75;
-  bool _ast_match_76;
+  bool _ast_match_76 = false;
   long _ast_parse_shift_77;
-  bool _ast_match_78;
+  bool _ast_match_78 = false;
   long _ast_parse_shift_79;
 
   long val = (parse_shift(s, &_ast_parse_shift_70), _ast_parse_shift_70);
@@ -1681,9 +1681,9 @@ static /**
     int
     parse_equality(struct ExprState *s, long *_out_val) {
   long _ast_parse_relational_80;
-  bool _ast_match_81;
+  bool _ast_match_81 = false;
   long _ast_parse_relational_82;
-  bool _ast_match_83;
+  bool _ast_match_83 = false;
   long _ast_parse_relational_84;
 
   long val = (parse_relational(s, &_ast_parse_relational_80),
@@ -1719,7 +1719,7 @@ static /**
     int
     parse_logic_and(struct ExprState *s, long *_out_val) {
   long _ast_parse_equality_85;
-  bool _ast_match_86;
+  bool _ast_match_86 = false;
   long _ast_parse_equality_87;
 
   long val =
@@ -1745,7 +1745,7 @@ static /**
     int
     parse_logic_or(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_and_88;
-  bool _ast_match_89;
+  bool _ast_match_89 = false;
   long _ast_parse_logic_and_90;
 
   long val =
@@ -1825,12 +1825,12 @@ static /**
 
                        struct EmbedParams *out_params) {
   enum TokenKind _ast_identify_keyword_or_id_93;
-  char *_ast_token_to_string_94;
+  char *_ast_token_to_string_94 = NULL;
   enum TokenKind _ast_identify_keyword_or_id_95;
-  char *_ast_token_to_string_96;
-  char *_ast_reconstruct_path_97;
-  char *_ast_reconstruct_path_98;
-  char *_ast_reconstruct_path_99;
+  char *_ast_token_to_string_96 = NULL;
+  char *_ast_reconstruct_path_97 = NULL;
+  char *_ast_reconstruct_path_98 = NULL;
+  char *_ast_reconstruct_path_99 = NULL;
 
   size_t i = start;
 
@@ -2121,25 +2121,25 @@ int pp_scan_includes(const char *filename,
                      struct PreprocessorContext *ctx, pp_visitor_cb cb,
 
                      void *user_data) {
-  bool _ast_token_matches_string_100;
-  bool _ast_token_matches_string_101;
-  bool _ast_token_matches_string_102;
-  bool _ast_is_enabled_103;
-  bool _ast_is_defined_macro_104;
-  bool _ast_token_matches_string_105;
-  bool _ast_is_enabled_106;
-  bool _ast_token_matches_string_107;
+  bool _ast_token_matches_string_100 = false;
+  bool _ast_token_matches_string_101 = false;
+  bool _ast_token_matches_string_102 = false;
+  bool _ast_is_enabled_103 = false;
+  bool _ast_is_defined_macro_104 = false;
+  bool _ast_token_matches_string_105 = false;
+  bool _ast_is_enabled_106 = false;
+  bool _ast_token_matches_string_107 = false;
   enum CondState _ast_stack_peek_108;
-  bool _ast_is_enabled_109;
-  bool _ast_token_matches_string_110;
+  bool _ast_is_enabled_109 = false;
+  bool _ast_token_matches_string_110 = false;
   enum CondState _ast_stack_peek_111;
-  bool _ast_is_enabled_112;
-  bool _ast_token_matches_string_113;
-  bool _ast_is_enabled_114;
-  bool _ast_token_matches_string_115;
-  bool _ast_token_matches_string_116;
-  char *_ast_reconstruct_path_117;
-  char *_ast_resolve_path_118;
+  bool _ast_is_enabled_112 = false;
+  bool _ast_token_matches_string_113 = false;
+  bool _ast_is_enabled_114 = false;
+  bool _ast_token_matches_string_115 = false;
+  bool _ast_token_matches_string_116 = false;
+  char *_ast_reconstruct_path_117 = NULL;
+  char *_ast_resolve_path_118 = NULL;
 
   char *content = NULL;
 

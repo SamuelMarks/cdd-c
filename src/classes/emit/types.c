@@ -32,9 +32,9 @@
 int write_union_to_json_func(FILE *fp, const char *union_name,
                              const struct StructFields *sf,
                              const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_0;
-  char *_ast_get_type_from_ref_1;
-  char *_ast_get_type_from_ref_2;
+  char *_ast_get_type_from_ref_0 = NULL;
+  char *_ast_get_type_from_ref_1 = NULL;
+  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -188,8 +188,8 @@ int write_union_to_json_func(FILE *fp, const char *union_name,
 int write_union_from_jsonObject_func(FILE *fp, const char *union_name,
                                      const struct StructFields *sf,
                                      const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_3;
-  char *_ast_get_type_from_ref_4;
+  char *_ast_get_type_from_ref_3 = NULL;
+  char *_ast_get_type_from_ref_4 = NULL;
   size_t i;
   int needs_nested_rc = 0;
 
@@ -744,8 +744,8 @@ int write_union_from_json_func(FILE *fp, const char *union_name,
 int write_union_cleanup_func(FILE *fp, const char *union_name,
                              const struct StructFields *sf,
                              const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_5;
-  char *_ast_get_type_from_ref_6;
+  char *_ast_get_type_from_ref_5 = NULL;
+  char *_ast_get_type_from_ref_6 = NULL;
   size_t i;
   int iter_needed = 0;
   if (!fp || !union_name || !sf)
@@ -821,8 +821,8 @@ int write_union_cleanup_func(FILE *fp, const char *union_name,
 int write_root_array_cleanup_func(FILE *fp, const char *name,
                                   const char *item_type, const char *item_ref,
                                   const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_7;
-  char *_ast_get_type_from_ref_8;
+  char *_ast_get_type_from_ref_7 = NULL;
+  char *_ast_get_type_from_ref_8 = NULL;
   if (!fp || !name || !item_type)
     return EINVAL;
 
@@ -878,8 +878,8 @@ int write_root_array_cleanup_func(FILE *fp, const char *name,
 int write_root_array_to_json_func(FILE *fp, const char *name,
                                   const char *item_type, const char *item_ref,
                                   const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_9;
-  char *_ast_get_type_from_ref_10;
+  char *_ast_get_type_from_ref_9 = NULL;
+  char *_ast_get_type_from_ref_10 = NULL;
   if (!fp || !name || !item_type)
     return EINVAL;
 
@@ -948,10 +948,10 @@ int write_root_array_to_json_func(FILE *fp, const char *name,
 int write_root_array_from_json_func(FILE *fp, const char *name,
                                     const char *item_type, const char *item_ref,
                                     const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_11;
-  char *_ast_get_type_from_ref_12;
-  char *_ast_get_type_from_ref_13;
-  char *_ast_get_type_from_ref_14;
+  char *_ast_get_type_from_ref_11 = NULL;
+  char *_ast_get_type_from_ref_12 = NULL;
+  char *_ast_get_type_from_ref_13 = NULL;
+  char *_ast_get_type_from_ref_14 = NULL;
   if (!fp || !name || !item_type)
     return EINVAL;
 
