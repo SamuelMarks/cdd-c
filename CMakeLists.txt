@@ -17,10 +17,11 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
         GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
     GIT_TAG master
     UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-    
-        
+
+
     )
-    
+
+    set(CFS_BUILD_TESTING OFF CACHE BOOL "Disable cfs tests" FORCE)
     FetchContent_MakeAvailable(cfs)
     include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
 endif()
@@ -243,6 +244,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         
     )
     
+    set(C_STR_SPAN_BUILD_TESTING OFF CACHE BOOL "Disable c-str-span tests" FORCE)
     FetchContent_MakeAvailable(c_str_span)
     if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
         file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
@@ -263,6 +265,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         
     )
     
+    set(C89STRINGUTILS_BUILD_TESTING OFF CACHE BOOL "Disable c89stringutils tests" FORCE)
     FetchContent_MakeAvailable(c89stringutils)
     include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
 
