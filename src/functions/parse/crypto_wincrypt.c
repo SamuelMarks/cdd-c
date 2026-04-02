@@ -20,15 +20,19 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4201 4214)
+#endif
 #include "win_compat_sym.h"
 #include <windef.h>
 
 #include <winbase.h>
 
 #include <wincrypt.h>
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 #endif
 
 #include "functions/parse/crypto_types.h"
@@ -63,7 +67,7 @@ static /**
                            CRYPT_VERIFYCONTEXT)) {
     /* If failed, try creating new keyset (rarely needed for VERIFYCONTEXT but
      * safe practice) */
-    if (GetLastError() == NTE_BAD_KEYSET) {
+    if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
       if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                                CRYPT_NEWKEYSET | CRYPT_VERIFYCONTEXT)) {
         return EIO;
