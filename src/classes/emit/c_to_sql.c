@@ -4,38 +4,49 @@
 #include <stdlib.h>
 /* clang-format on */
 
-static const char *map_c_type_to_sql(const char *c_type,
-                                     c_to_sql_dialect_t dialect) {
+static int map_c_type_to_sql(const char *c_type, c_to_sql_dialect_t dialect,
+                             const char **out_sql) {
+  if (!out_sql)
+    return 1;
   if (strstr(c_type, "int") != NULL) {
     if (dialect == C_TO_SQL_DIALECT_MYSQL)
-      return "INT";
-    if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
-      return "INTEGER";
-    return "INTEGER";
+      *out_sql = "INT";
+    else if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
+      *out_sql = "INTEGER";
+    else
+      *out_sql = "INTEGER";
+    return 0;
   }
   if (strstr(c_type, "char") != NULL || strstr(c_type, "string") != NULL) {
     if (dialect == C_TO_SQL_DIALECT_MYSQL)
-      return "VARCHAR(255)";
-    if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
-      return "TEXT";
-    return "TEXT";
+      *out_sql = "VARCHAR(255)";
+    else if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
+      *out_sql = "TEXT";
+    else
+      *out_sql = "TEXT";
+    return 0;
   }
   if (strstr(c_type, "float") != NULL || strstr(c_type, "double") != NULL ||
       strstr(c_type, "number") != NULL) {
     if (dialect == C_TO_SQL_DIALECT_MYSQL)
-      return "DOUBLE";
-    if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
-      return "DOUBLE PRECISION";
-    return "REAL";
+      *out_sql = "DOUBLE";
+    else if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
+      *out_sql = "DOUBLE PRECISION";
+    else
+      *out_sql = "REAL";
+    return 0;
   }
   if (strstr(c_type, "bool") != NULL) {
     if (dialect == C_TO_SQL_DIALECT_POSTGRESQL)
-      return "BOOLEAN";
-    if (dialect == C_TO_SQL_DIALECT_MYSQL)
-      return "TINYINT(1)";
-    return "INTEGER";
+      *out_sql = "BOOLEAN";
+    else if (dialect == C_TO_SQL_DIALECT_MYSQL)
+      *out_sql = "TINYINT(1)";
+    else
+      *out_sql = "INTEGER";
+    return 0;
   }
-  return "BLOB";
+  *out_sql = "BLOB";
+  return 0;
 }
 
 C_CDD_EXPORT int write_struct_to_sql_create_table(FILE *fp,
@@ -50,12 +61,14 @@ C_CDD_EXPORT int write_struct_to_sql_create_table(FILE *fp,
 
   for (i = 0; i < sf->size; i++) {
     const struct StructField *f = &sf->fields[i];
-    const char *sql_type = map_c_type_to_sql(f->type, dialect);
+    const char *sql_type = NULL;
     int is_pk = 0;
     int is_unique = 0;
     int is_not_null = f->required;
     size_t len = strlen(f->name);
     int is_fk = 0;
+
+    map_c_type_to_sql(f->type, dialect, &sql_type);
 
     if (strcmp(f->name, "id") == 0 || strcmp(f->name, "Id") == 0 ||
         strcmp(f->name, "ID") == 0) {
@@ -128,7 +141,7 @@ C_CDD_EXPORT int cdd_c_meta_to_sql_create_table(const cdd_c_meta_t *meta,
     const cdd_c_prop_meta_t *prop = &meta->props[i];
     size_t len = strlen(prop->name);
     int is_fk = (len > 3 && strcmp(prop->name + len - 3, "_id") == 0);
-    sql_type = map_c_type_to_sql(prop->type, dialect);
+    map_c_type_to_sql(prop->type, dialect, &sql_type);
 
     offset += sprintf(buffer + offset, "  %s %s", prop->name, sql_type);
 
@@ -228,10 +241,11 @@ C_CDD_EXPORT int cdd_c_meta_diff_to_sql(const char *table_name,
 
   /* UP SQL */
   for (i = 0; i < diff->num_added; i++) {
+    const char *sql_type = NULL;
+    map_c_type_to_sql(diff->added_props[i].type, dialect, &sql_type);
     up_offset +=
         sprintf(up_buf + up_offset, "ALTER TABLE %s ADD COLUMN %s %s;\n",
-                table_name, diff->added_props[i].name,
-                map_c_type_to_sql(diff->added_props[i].type, dialect));
+                table_name, diff->added_props[i].name, sql_type);
     /* Generate DOWN SQL equivalent */
     if (dialect == C_TO_SQL_DIALECT_SQLITE) {
       down_offset +=
@@ -245,22 +259,24 @@ C_CDD_EXPORT int cdd_c_meta_diff_to_sql(const char *table_name,
   }
 
   for (i = 0; i < diff->num_dropped; i++) {
+    const char *sql_type = NULL;
+    map_c_type_to_sql(diff->dropped_props[i].type, dialect, &sql_type);
     up_offset += sprintf(up_buf + up_offset, "ALTER TABLE %s DROP COLUMN %s;\n",
                          table_name, diff->dropped_props[i].name);
     /* Generate DOWN SQL equivalent */
     down_offset +=
         sprintf(down_buf + down_offset, "ALTER TABLE %s ADD COLUMN %s %s;\n",
-                table_name, diff->dropped_props[i].name,
-                map_c_type_to_sql(diff->dropped_props[i].type, dialect));
+                table_name, diff->dropped_props[i].name, sql_type);
   }
 
   /* Handling altered props in SQLite usually requires table rebuilds,
      but for now we just emit the ALTER syntax and let the developer refine */
   for (i = 0; i < diff->num_altered; i++) {
+    const char *sql_type = NULL;
+    map_c_type_to_sql(diff->altered_props[i].type, dialect, &sql_type);
     up_offset +=
         sprintf(up_buf + up_offset, "ALTER TABLE %s ALTER COLUMN %s TYPE %s;\n",
-                table_name, diff->altered_props[i].name,
-                map_c_type_to_sql(diff->altered_props[i].type, dialect));
+                table_name, diff->altered_props[i].name, sql_type);
     down_offset +=
         sprintf(down_buf + down_offset,
                 "-- Revert of ALTER COLUMN %s not automatically handled\n",
