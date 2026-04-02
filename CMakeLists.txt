@@ -3,17 +3,11 @@ message(STATUS "RUNNING cdd-c CMakeLists.txt")
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
 
-option(BUILD_TESTING "Build the tests" ON)
-option(C_CDD_BUILD_TESTING "Build the tests" ON)
-
-# Disable 2nd-party tests
-option(C89STRINGUTILS_BUILD_TESTING "Build c89stringutils tests" OFF)
-option(C_ABSTRACT_HTTP_BUILD_TESTING "Build c-abstract-http tests" OFF)
-option(C_FS_BUILD_TESTING "Build cfs tests" OFF)
-option(CFS_BUILD_TESTING "Build cfs tests" OFF)
-option(C_ORM_BUILD_TESTING "Build c-orm tests" OFF)
-option(C_STR_SPAN_BUILD_TESTING "Build c-str-span tests" OFF)
-option(PARSON_BUILD_TESTING "Build parson tests" OFF)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    option(C_CDD_BUILD_TESTS "Build tests" ON)
+else()
+    option(C_CDD_BUILD_TESTS "Build tests" OFF)
+endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -zm -zc -mh")
@@ -30,8 +24,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
 
     )
 
-    set(CFS_BUILD_TESTING OFF CACHE BOOL "Disable cfs tests" FORCE)
-    FetchContent_MakeAvailable(cfs)
+        FetchContent_MakeAvailable(cfs)
     include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
 endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
@@ -268,8 +261,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         
     )
     
-    set(C_STR_SPAN_BUILD_TESTING OFF CACHE BOOL "Disable c-str-span tests" FORCE)
-    FetchContent_MakeAvailable(c_str_span)
+        FetchContent_MakeAvailable(c_str_span)
     if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
         file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
         string(REPLACE "// size must be >= 0" "/* size must be >= 0 */" span_content "${span_content}")
@@ -289,8 +281,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         
     )
     
-    set(C89STRINGUTILS_BUILD_TESTING OFF CACHE BOOL "Disable c89stringutils tests" FORCE)
-    FetchContent_MakeAvailable(c89stringutils)
+        FetchContent_MakeAvailable(c89stringutils)
     include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
 
     # curl
@@ -301,8 +292,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             GIT_TAG curl-8_4_0
         )
         set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
-        set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-        set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
+                set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(curl)
     endif ()
 
@@ -364,13 +354,10 @@ set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-
 option(C_CDD_USE_ASAN "Enable AddressSanitizer" OFF)
 option(C_CDD_USE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 include(CTest)
-enable_testing()
-
-if (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
-    if(BUILD_TESTING)
+if (C_CDD_BUILD_TESTS AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
+    enable_testing()
     add_subdirectory("src/tests")
 endif()
-endif (C_CDD_BUILD_TESTING AND NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 
 ###########
 # Install #
