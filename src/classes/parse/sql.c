@@ -680,3 +680,27 @@ int parse_sql_ddl(const char *sql_data, struct sql_table_t **out_tables,
   sql_token_list_free(list);
   return 0;
 }
+
+int sql_parse_select(const struct sql_token_list_t *list,
+                     struct CddCQueryProjection **out_proj,
+                     struct sql_parse_error_t *out_error) {
+  (void)list;
+  (void)out_proj;
+  if (out_error) {
+    out_error->message = "Not implemented";
+    out_error->token = NULL;
+  }
+  return 1;
+}
+
+int sql_parse_returning(const struct sql_token_list_t *list,
+                        struct CddCQueryProjection **out_proj,
+                        struct sql_parse_error_t *out_error) {
+  (void)list;
+  (void)out_proj;
+  if (out_error) {
+    out_error->message = "Not implemented";
+    out_error->token = NULL;
+  }
+  return 1;
+}

@@ -6,6 +6,15 @@ project(c_cdd VERSION 0.0.1 LANGUAGES C)
 option(BUILD_TESTING "Build the tests" ON)
 option(C_CDD_BUILD_TESTING "Build the tests" ON)
 
+# Disable 2nd-party tests
+option(C89STRINGUTILS_BUILD_TESTING "Build c89stringutils tests" OFF)
+option(C_ABSTRACT_HTTP_BUILD_TESTING "Build c-abstract-http tests" OFF)
+option(C_FS_BUILD_TESTING "Build cfs tests" OFF)
+option(CFS_BUILD_TESTING "Build cfs tests" OFF)
+option(C_ORM_BUILD_TESTING "Build c-orm tests" OFF)
+option(C_STR_SPAN_BUILD_TESTING "Build c-str-span tests" OFF)
+option(PARSON_BUILD_TESTING "Build parson tests" OFF)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Watcom")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -zm -zc -mh")
 endif()
@@ -201,7 +210,22 @@ endif ()
 
 if (MSVC OR __COMPILER_MSVC OR CMAKE_C_COMPILER_ID STREQUAL "OpenWatcom")
 else ()
-    add_compile_definitions(_GNU_SOURCE _BSD_SOURCE)
+    include(CheckCSourceCompiles)
+    check_c_source_compiles("
+    #if defined(__linux__) || defined(__linux)
+    # include <features.h>
+    #endif
+    #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 20))
+    #error glibc >= 2.20
+    #endif
+    int main(void) { return 0; }
+    " USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
+
+    if (USE_BSD_SOURCE_INSTEAD_OF_DEFAULT)
+        add_compile_definitions(_GNU_SOURCE _BSD_SOURCE)
+    else ()
+        add_compile_definitions(_GNU_SOURCE _DEFAULT_SOURCE)
+    endif ()
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/EnsureSymbol.cmake")
     ensure_symbol(
             TARGET "${PROJECT_NAME}_compiler_flags"

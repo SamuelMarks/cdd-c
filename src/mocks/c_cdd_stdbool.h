@@ -13,7 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-#if (defined(_MSC_VER) && _MSC_VER >= 1800) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(__clang__) && !defined(_MSC_VER)) || (defined(__GNUC__) && !defined(_MSC_VER))
+#if (defined(_MSC_VER) && _MSC_VER >= 1800) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
 #include <stdbool.h>
 #else
 #if !defined(_STDBOOL_H) && !defined(__STDBOOL_H) && !defined(HAS_STDBOOL) &&  \
