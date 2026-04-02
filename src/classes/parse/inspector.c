@@ -422,8 +422,8 @@ static /**
  */
 int c_inspector_extract_signatures(const char *source_code,
                                    struct FuncSigList *out) {
-  char *_ast_extract_span_text_0;
-  char *_ast_extract_span_text_1;
+  char *_ast_extract_span_text_0 = NULL;
+  char *_ast_extract_span_text_1 = NULL;
   struct TokenList *tl = NULL;
   struct CstNodeList cst = {0};
   int rc;

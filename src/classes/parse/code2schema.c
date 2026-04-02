@@ -3849,7 +3849,7 @@ static /**
     int
     make_unique_variant_name(const struct StructFields *dest, const char *base,
                              size_t index, char **_out_val) {
-  char *_ast_sanitize_identifier_3;
+  char *_ast_sanitize_identifier_3 = NULL;
   struct StructField *_ast_struct_fields_get_4;
   struct StructField *_ast_struct_fields_get_5;
   char *_ast_strdup_12 = NULL;
@@ -3900,7 +3900,7 @@ static /**
     int
     make_inline_schema_name(const char *schema_name, const char *variant_name,
                             const char *suffix, char **_out_val) {
-  char *_ast_sanitize_identifier_6;
+  char *_ast_sanitize_identifier_6 = NULL;
   char buf[256];
   const char *base_schema =
       (schema_name && *schema_name) ? schema_name : "Union";
@@ -3924,7 +3924,7 @@ static /**
     register_inline_schema(JSON_Object *root, const char *schema_name,
                            const char *variant_name, const char *suffix,
                            const JSON_Value *schema_val, char **out_name) {
-  char *_ast_make_inline_schema_name_7;
+  char *_ast_make_inline_schema_name_7 = NULL;
   JSON_Value *_ast_clone_json_value_8;
   char *name;
 
@@ -5140,8 +5140,8 @@ static /**
   enum UnionVariantJsonType _ast_detect_union_json_type_14;
   JSON_Object *_ast_resolve_schema_ref_object_15;
   enum UnionVariantJsonType _ast_detect_union_json_type_16;
-  char *_ast_make_unique_variant_name_17;
-  char *_ast_discriminator_value_for_variant_18;
+  char *_ast_make_unique_variant_name_17 = NULL;
+  char *_ast_discriminator_value_for_variant_18 = NULL;
   char *_ast_strdup_22 = NULL;
   const char *_ast_after_last_23 = NULL;
   const char *_ast_after_last_24 = NULL;
@@ -5579,7 +5579,7 @@ static /**
         */
     void
     write_default_value(JSON_Object *pobj, const struct StructField *field) {
-  const char *_ast_strip_quotes_19;
+  const char *_ast_strip_quotes_19 = NULL;
   const char *def;
   const char *typ;
   char buf[256];

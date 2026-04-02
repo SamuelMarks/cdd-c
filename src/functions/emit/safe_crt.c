@@ -112,8 +112,8 @@ static /**
     int
     generate_strcpy_patch(const struct TokenList *tokens, size_t call_start,
                           size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_0;
-  char *_ast_extract_token_text_1;
+  char *_ast_extract_token_text_0 = NULL;
+  char *_ast_extract_token_text_1 = NULL;
   /* Pattern: strcpy(dest, src) */
   size_t lparen = 0;
   size_t comma = 0;
@@ -178,9 +178,9 @@ static /**
     int
     generate_fopen_patch(const struct TokenList *tokens, size_t call_start,
                          size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_2;
-  char *_ast_extract_token_text_3;
-  char *_ast_extract_token_text_4;
+  char *_ast_extract_token_text_2 = NULL;
+  char *_ast_extract_token_text_3 = NULL;
+  char *_ast_extract_token_text_4 = NULL;
   /* Pattern: FILE *#if defined(_MSC_VER)
 fopen_s(&f, path, mode);
 #else
@@ -285,9 +285,9 @@ static /**
     int
     generate_strncpy_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_5;
-  char *_ast_extract_token_text_6;
-  char *_ast_extract_token_text_7;
+  char *_ast_extract_token_text_5 = NULL;
+  char *_ast_extract_token_text_6 = NULL;
+  char *_ast_extract_token_text_7 = NULL;
   /* Pattern: strncpy(dest, src, count) */
   size_t lparen = 0, comma1 = 0, comma2 = 0, rparen = 0, i;
   char *dest = NULL, *src = NULL, *count = NULL;
@@ -353,8 +353,8 @@ static /**
     int
     generate_sprintf_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_8;
-  char *_ast_extract_token_text_9;
+  char *_ast_extract_token_text_8 = NULL;
+  char *_ast_extract_token_text_9 = NULL;
   /* Pattern: sprintf(dest, format, ...) */
   size_t lparen = 0, comma1 = 0, rparen = 0, i;
   char *dest = NULL;
@@ -403,9 +403,9 @@ static /**
 int cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                                   const struct TokenList *tokens,
                                   struct SafeCrtPatchList *out_patches) {
-  char *_ast_extract_token_text_10;
-  char *_ast_extract_token_text_11;
-  char *_ast_extract_token_text_12;
+  char *_ast_extract_token_text_10 = NULL;
+  char *_ast_extract_token_text_11 = NULL;
+  char *_ast_extract_token_text_12 = NULL;
   size_t i, j;
   if (!cst || !tokens || !out_patches)
     return EINVAL;

@@ -93,7 +93,7 @@ static /**
         */
     int
     media_type_ieq(const char *media_type, const char *expected) {
-  size_t _ast_media_type_base_len_0;
+  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
@@ -122,7 +122,7 @@ static /**
         */
     int
     media_type_is_json(const char *media_type) {
-  size_t _ast_media_type_base_len_1;
+  size_t _ast_media_type_base_len_1 = 0;
   size_t len;
   if (!media_type)
     return 0;
@@ -1719,10 +1719,10 @@ int codegen_url_write_builder(FILE *fp, const char *path_template,
  */
 int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
                                    int qp_tracking) {
-  const char *_ast_querystring_param_json_array_item_type_6;
-  const char *_ast_querystring_param_json_array_item_ref_7;
-  const char *_ast_querystring_param_json_primitive_type_8;
-  const char *_ast_querystring_param_raw_primitive_type_9;
+  const char *_ast_querystring_param_json_array_item_type_6 = NULL;
+  const char *_ast_querystring_param_json_array_item_ref_7 = NULL;
+  const char *_ast_querystring_param_json_primitive_type_8 = NULL;
+  const char *_ast_querystring_param_raw_primitive_type_9 = NULL;
   size_t i;
   int has_query = 0;
   const struct OpenAPI_Parameter *querystring_param = NULL;

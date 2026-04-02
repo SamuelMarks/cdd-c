@@ -145,7 +145,7 @@ TEST test_splice_does_not_create_trigraph(void) {
 
 TEST test_matches_string_with_splice(void) {
   struct TokenList *_ast_tokenize_string_4;
-  bool _ast_token_matches_string_0;
+  bool _ast_token_matches_string_0 = false;
 
   struct TokenList *tl =
       (tokenize_string("RE\\\nTURN", &_ast_tokenize_string_4),

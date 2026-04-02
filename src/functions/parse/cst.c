@@ -149,7 +149,7 @@ static /**
     int
     match_function_definition(const struct TokenList *tokens, size_t start_idx,
                               size_t limit, size_t *end_idx_out) {
-  size_t _ast_skip_ws_0;
+  size_t _ast_skip_ws_0 = 0;
   size_t k = start_idx;
   int paren_depth;
   int brace_depth;
@@ -301,8 +301,8 @@ static /**
     int
     consume_static_assert(const struct TokenList *tokens, size_t start,
                           size_t limit, size_t *_out_val) {
-  size_t _ast_skip_ws_1;
-  size_t _ast_skip_ws_2;
+  size_t _ast_skip_ws_1 = 0;
+  size_t _ast_skip_ws_2 = 0;
   size_t i = start + 1;
   int paren_depth = 0;
 
@@ -352,8 +352,8 @@ static /**
     int
     consume_generic_selection(const struct TokenList *tokens, size_t start,
                               size_t limit, size_t *_out_val) {
-  size_t _ast_skip_ws_3;
-  size_t _ast_consume_balanced_parens_4;
+  size_t _ast_skip_ws_3 = 0;
+  size_t _ast_consume_balanced_parens_4 = 0;
   /* _Generic ( assignment-expression , generic-assoc-list ) */
   /* The generic-assoc-list is inside parens. */
   /* We just need to consume the balanced parens after _Generic. */
@@ -383,8 +383,8 @@ static /**
         */
     int
     is_expression_brace(const struct TokenList *tokens, size_t brace_idx) {
-  size_t _ast_skip_ws_back_5;
-  size_t _ast_skip_ws_back_6;
+  size_t _ast_skip_ws_back_5 = 0;
+  size_t _ast_skip_ws_back_6 = 0;
   size_t prev;
   enum TokenKind pk;
 
@@ -476,17 +476,17 @@ static /**
     int
     parse_recursive(const struct TokenList *tokens, size_t start, size_t end,
                     struct CstNodeList *out) {
-  size_t _ast_consume_attributes_7;
-  size_t _ast_consume_static_assert_8;
-  bool _ast_token_matches_string_9;
-  bool _ast_token_matches_string_10;
-  size_t _ast_consume_generic_selection_11;
-  size_t _ast_skip_ws_back_12;
-  size_t _ast_consume_balanced_braces_13;
-  size_t _ast_skip_ws_14;
-  size_t _ast_consume_balanced_braces_15;
-  size_t _ast_skip_ws_back_16;
-  bool _ast_token_matches_string_17;
+  size_t _ast_consume_attributes_7 = 0;
+  size_t _ast_consume_static_assert_8 = 0;
+  bool _ast_token_matches_string_9 = false;
+  bool _ast_token_matches_string_10 = false;
+  size_t _ast_consume_generic_selection_11 = 0;
+  size_t _ast_skip_ws_back_12 = 0;
+  size_t _ast_consume_balanced_braces_13 = 0;
+  size_t _ast_skip_ws_14 = 0;
+  size_t _ast_consume_balanced_braces_15 = 0;
+  size_t _ast_skip_ws_back_16 = 0;
+  bool _ast_token_matches_string_17 = false;
   size_t i = start;
   int rc;
 

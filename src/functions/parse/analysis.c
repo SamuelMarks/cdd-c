@@ -208,7 +208,7 @@ static /**
 int is_checked(const struct TokenList *tokens, size_t alloc_idx,
                const char *var_name, const struct AllocatorSpec *spec,
                int *used_before_check) {
-  bool _ast_token_matches_string_0;
+  bool _ast_token_matches_string_0 = false;
   size_t i = alloc_idx;
   *used_before_check = 0;
 
@@ -251,8 +251,8 @@ int is_checked(const struct TokenList *tokens, size_t alloc_idx,
  */
 int find_allocations(const struct TokenList *tokens,
                      struct AllocationSiteList *out) {
-  bool _ast_token_matches_string_1;
-  char *_ast_get_assigned_var_2;
+  bool _ast_token_matches_string_1 = false;
+  char *_ast_get_assigned_var_2 = NULL;
   size_t i;
   int rc;
 

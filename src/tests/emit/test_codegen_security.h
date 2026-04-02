@@ -69,7 +69,7 @@ static int gen_sec_code(const struct OpenAPI_Spec *spec,
 }
 
 TEST test_sec_bearer_token(void) {
-  char *_ast_gen_sec_code_0;
+  char *_ast_gen_sec_code_0 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -100,7 +100,7 @@ TEST test_sec_bearer_token(void) {
 }
 
 TEST test_sec_oauth2_bearer_token(void) {
-  char *_ast_gen_sec_code_1;
+  char *_ast_gen_sec_code_1 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -126,7 +126,7 @@ TEST test_sec_oauth2_bearer_token(void) {
 }
 
 TEST test_sec_openid_bearer_token(void) {
-  char *_ast_gen_sec_code_2;
+  char *_ast_gen_sec_code_2 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -152,7 +152,7 @@ TEST test_sec_openid_bearer_token(void) {
 }
 
 TEST test_sec_basic_token(void) {
-  char *_ast_gen_sec_code_3;
+  char *_ast_gen_sec_code_3 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -179,7 +179,7 @@ TEST test_sec_basic_token(void) {
 }
 
 TEST test_sec_api_key_header(void) {
-  char *_ast_gen_sec_code_4;
+  char *_ast_gen_sec_code_4 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -209,7 +209,7 @@ TEST test_sec_api_key_header(void) {
 }
 
 TEST test_sec_uri_requirement_matches_component(void) {
-  char *_ast_gen_sec_code_5;
+  char *_ast_gen_sec_code_5 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   struct OpenAPI_SecurityRequirement req;
@@ -252,7 +252,7 @@ TEST test_sec_uri_requirement_matches_component(void) {
 }
 
 TEST test_sec_api_key_query(void) {
-  char *_ast_gen_sec_code_6;
+  char *_ast_gen_sec_code_6 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -280,7 +280,7 @@ TEST test_sec_api_key_query(void) {
 }
 
 TEST test_sec_api_key_cookie(void) {
-  char *_ast_gen_sec_code_7;
+  char *_ast_gen_sec_code_7 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme sch;
   char *code;
@@ -307,7 +307,7 @@ TEST test_sec_api_key_cookie(void) {
 }
 
 TEST test_sec_multiple_schemes(void) {
-  char *_ast_gen_sec_code_8;
+  char *_ast_gen_sec_code_8 = NULL;
   /* Test mixing Bearer and API Key */
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
@@ -344,7 +344,7 @@ TEST test_sec_null_safety(void) {
 }
 
 TEST test_sec_security_requirements_filter(void) {
-  char *_ast_gen_sec_code_9;
+  char *_ast_gen_sec_code_9 = NULL;
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme schemes[2];
   struct OpenAPI_SecurityRequirementSet set;

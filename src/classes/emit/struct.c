@@ -284,8 +284,8 @@ int struct_fields_get(const struct StructFields *sf, const char *name,
 int write_struct_cleanup_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config) {
-  char *_ast_get_type_from_ref_0;
-  char *_ast_get_type_from_ref_1;
+  char *_ast_get_type_from_ref_0 = NULL;
+  char *_ast_get_type_from_ref_1 = NULL;
   size_t i;
   bool iter_needed = false;
 
@@ -404,7 +404,7 @@ int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
 int write_struct_eq_func(FILE *fp, const char *struct_name,
                          const struct StructFields *sf,
                          const struct CodegenStructConfig *config) {
-  char *_ast_get_type_from_ref_2;
+  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   int iter_needed = 0;
   if (!fp || !struct_name || !sf)
@@ -477,7 +477,7 @@ int write_struct_eq_func(FILE *fp, const char *struct_name,
 int write_struct_default_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenStructConfig *config) {
-  char *_ast_get_type_from_ref_3;
+  char *_ast_get_type_from_ref_3 = NULL;
   size_t i;
   int rc_needed = 0;
   if (!fp || !struct_name || !sf)

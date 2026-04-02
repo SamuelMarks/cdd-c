@@ -1114,7 +1114,7 @@ static /**
     void
     write_xml_object(JSON_Object *parent, const struct OpenAPI_Xml *xml,
                      int xml_set) {
-  char *_ast_xml_node_type_to_str_5;
+  char *_ast_xml_node_type_to_str_5 = NULL;
   JSON_Value *xml_val;
   JSON_Object *xml_obj;
   const char *node_type;
@@ -1455,8 +1455,8 @@ static /**
     void
     write_schema_ref(JSON_Object *parent, const char *key,
                      const struct OpenAPI_SchemaRef *ref) {
-  char *_ast_schema_ref_keyword_9;
-  char *_ast_schema_ref_keyword_10;
+  char *_ast_schema_ref_keyword_9 = NULL;
+  char *_ast_schema_ref_keyword_10 = NULL;
   JSON_Value *_ast_any_to_json_value_11;
   JSON_Value *_ast_any_to_json_value_12;
   JSON_Value *_ast_any_to_json_value_13;
@@ -1753,8 +1753,8 @@ static /**
     void
     write_parameter_object(JSON_Object *p_obj,
                            const struct OpenAPI_Parameter *p) {
-  char *_ast_param_in_to_str_14;
-  char *_ast_style_to_str_15;
+  char *_ast_param_in_to_str_14 = NULL;
+  char *_ast_style_to_str_15 = NULL;
   const char *in_str;
   const char *style_str;
 
@@ -1865,7 +1865,7 @@ static /**
         */
     void
     write_header_object(JSON_Object *h_obj, const struct OpenAPI_Header *h) {
-  char *_ast_style_to_str_16;
+  char *_ast_style_to_str_16 = NULL;
   const char *style_str;
 
   if (!h_obj || !h)
@@ -1948,7 +1948,7 @@ static /**
     int
     write_encoding_object(JSON_Object *enc_obj,
                           const struct OpenAPI_Encoding *enc) {
-  char *_ast_style_to_str_17;
+  char *_ast_style_to_str_17 = NULL;
   if (!enc_obj || !enc)
     return 0;
 
@@ -2713,7 +2713,7 @@ static /**
         */
     int
     write_operations(JSON_Object *path_item, const struct OpenAPI_Path *path) {
-  char *_ast_verb_to_str_20;
+  char *_ast_verb_to_str_20 = NULL;
   size_t i;
   int rc;
 
@@ -2747,7 +2747,7 @@ static /**
     int
     write_additional_operations(JSON_Object *path_item,
                                 const struct OpenAPI_Path *path) {
-  char *_ast_verb_to_str_21;
+  char *_ast_verb_to_str_21 = NULL;
   JSON_Value *add_val;
   JSON_Object *add_obj;
   size_t i;
@@ -3088,7 +3088,7 @@ static /**
     int
     write_security_schemes(JSON_Object *components,
                            const struct OpenAPI_Spec *spec) {
-  char *_ast_oauth_flow_type_to_str_22;
+  char *_ast_oauth_flow_type_to_str_22 = NULL;
   JSON_Value *sec_val;
   JSON_Object *sec_obj;
   size_t i;

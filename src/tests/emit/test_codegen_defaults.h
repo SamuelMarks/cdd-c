@@ -50,7 +50,7 @@ static int generate_def_code(const char *struct_name, struct StructFields *sf,
 }
 
 TEST test_default_primitive(void) {
-  char *_ast_generate_def_code_0;
+  char *_ast_generate_def_code_0 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -72,7 +72,7 @@ TEST test_default_primitive(void) {
 }
 
 TEST test_default_string(void) {
-  char *_ast_generate_def_code_1;
+  char *_ast_generate_def_code_1 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -101,7 +101,7 @@ TEST test_default_string(void) {
 }
 
 TEST test_default_enum(void) {
-  char *_ast_generate_def_code_2;
+  char *_ast_generate_def_code_2 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -124,7 +124,7 @@ TEST test_default_enum(void) {
 }
 
 TEST test_default_no_defaults(void) {
-  char *_ast_generate_def_code_3;
+  char *_ast_generate_def_code_3 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -145,7 +145,7 @@ TEST test_default_no_defaults(void) {
 }
 
 TEST test_default_nullptr(void) {
-  char *_ast_generate_def_code_4;
+  char *_ast_generate_def_code_4 = NULL;
   struct StructFields sf;
   char *code;
 
@@ -168,7 +168,7 @@ TEST test_default_nullptr(void) {
 }
 
 TEST test_default_binary_literal(void) {
-  char *_ast_generate_def_code_5;
+  char *_ast_generate_def_code_5 = NULL;
   struct StructFields sf;
   char *code;
 
