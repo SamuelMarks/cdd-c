@@ -42,7 +42,7 @@ extern "C" {
 #define CDD_NUM_FORMAT PRIu64
 #elif defined(__LP64__) || defined(_LP64)
 #define CDD_SIZE_T_FMT "lu"
-#define CDD_NUM_FORMAT "llu"
+#define CDD_NUM_FORMAT "lu"
 #else
 #define CDD_SIZE_T_FMT "u"
 #define CDD_NUM_FORMAT "llu"
