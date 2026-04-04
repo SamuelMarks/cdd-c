@@ -1,4 +1,4 @@
-﻿add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 ###########
 # Library #
 ###########
@@ -375,12 +375,15 @@ set(EXEC_NAME "cdd-c")
 set(Cli_Source_Files "bin_cdd.c")
 source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "DOS")
 add_executable("${EXEC_NAME}" "${Cli_Source_Files}")
 
 target_link_libraries("${EXEC_NAME}" PRIVATE "${LIBRARY_NAME}")
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 endif()
+endif()
+
 
 if(NOT TARGET parson)
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
@@ -431,5 +434,7 @@ if (APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
 endif()
+
+
 
 
