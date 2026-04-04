@@ -299,7 +299,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     # parson
     FetchContent_Declare(
         parson
-        GIT_REPOSITORY https://github.com/kgabis/parson.git
+        GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
     GIT_TAG master
     UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
     

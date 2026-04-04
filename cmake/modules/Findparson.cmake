@@ -5,7 +5,7 @@ include(FindPackageHandleStandardArgs)
 if (NOT TARGET parson)
     FetchContent_Declare(
             parson
-            GIT_REPOSITORY https://github.com/kgabis/parson.git
+            GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
             GIT_TAG master
     )
 
