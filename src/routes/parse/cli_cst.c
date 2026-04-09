@@ -124,6 +124,8 @@ int cli_cst_transformer_main(int argc, char **argv) {
     transform_fn = cdd_transform_gnu;
   } else if (strcmp(toolname, "error_percolator") == 0) {
     transform_fn = cdd_transform_percolate_errors;
+  } else if (strcmp(toolname, "safe_crt") == 0) {
+    transform_fn = cdd_transform_safe_crt;
   } else if (strcmp(toolname, "--help") == 0 || strcmp(toolname, "-h") == 0) {
     fprintf(stdout, "Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>\n");
     fprintf(stdout, "Tools:\n");
@@ -131,6 +133,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
     fprintf(stdout, "  msvc_port\n");
     fprintf(stdout, "  gnu_standardizer\n");
     fprintf(stdout, "  error_percolator\n");
+    fprintf(stdout, "  safe_crt\n");
     return 0;
   } else {
     fprintf(stderr, "Unknown tool: %s\n", toolname);
