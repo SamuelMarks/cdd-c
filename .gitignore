@@ -118,4 +118,101 @@ test_tokenizer_generated.h
 test_proc.cmake
 coverage.js
 coverage.css
-c-orm/
+c-orm/# --- End of original .gitignore ---
+# Aggressive Ignore Patterns
+
+# Compiled / Linking Artifacts
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+*.out
+*.app
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.map
+*.manifest
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+Testing/
+
+# Build Directories
+build/
+build-*/
+build_*/
+*build*/
+out/
+bin/
+obj/
+
+# Visual Studio & IDEs
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/
+.idea/
+cmake-build-*/
+
+# vcpkg
+vcpkg/
+vcpkg_installed/
+.vcpkg/
+
+# OS/System Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary / Scratch Files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+out*.txt
+*log*.txt
+*.log
+append*.txt
+temp_diff.txt
+payload.json
+out.json
+test.json
+tokenizer.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.py
+!scripts/**/*.py
+
+# Web / WASM
+node_modules/
+dist/
+*.wasm
+coverage.js
+coverage.css
+*.html
+
+# Misc
+.gemini/

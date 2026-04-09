@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "functions/parse/main.h"
+#include "routes/parse/cli_cst.h"
 #include "c_cddConfig.h"
 #include "classes/emit/schema_codegen.h"
 #include "classes/parse/code2schema.h"
@@ -152,7 +153,9 @@ static /**
   puts("      Scan directory for memory safety issues.");
   puts("  c2openapi <dir> <out.json>");
   puts("      Generate OpenAPI spec from C source code.");
-  puts("  code2schema <header.h> <schema.json>");
+  puts("  transformer <toolname> [--audit|--fix] [--dry-run] <files...>");
+    puts("      Run syntax tree transformations.");
+    puts("  code2schema <header.h> <schema.json>");
   puts("      Convert C header to JSON Schema.");
   puts("  generate_build_system <type> <out_dir> <name> [test_file]");
   puts("      Generate build system files.");
@@ -399,7 +402,9 @@ int cdd_main(int argc, char **argv) {
     rc = handle_audit(argc - 2, argv + 2);
   } else if (strcmp(cmd, "c2openapi") == 0) {
     rc = c2openapi_cli_main(argc - 1, argv + 1);
-  } else if (strcmp(cmd, "code2schema") == 0) {
+  } else if (strcmp(cmd, "transformer") == 0) {
+      rc = cli_cst_transformer_main(argc - 2, argv + 2);
+    } else if (strcmp(cmd, "code2schema") == 0) {
     if (argc != 4)
       return EXIT_FAILURE;
     rc = code2schema_main(argc - 2, argv + 2);
