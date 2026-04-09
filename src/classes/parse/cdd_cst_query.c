@@ -1,0 +1,206 @@
+/* clang-format off */
+#include "cdd_cst_query.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+/* clang-format on */
+
+int cdd_cst_traverse_preorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
+                              void *user_data) {
+  size_t i;
+  int rc;
+  if (!root || !visitor)
+    return EINVAL;
+
+  rc = visitor(root, user_data);
+  if (rc != 0)
+    return rc;
+
+  for (i = 0; i < root->num_children; i++) {
+    if (root->children[i].kind == CDD_CST_CHILD_NODE) {
+      rc = cdd_cst_traverse_preorder(root->children[i].val.node, visitor,
+                                     user_data);
+      if (rc != 0)
+        return rc;
+    }
+  }
+
+  return 0;
+}
+
+int cdd_cst_traverse_postorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
+                               void *user_data) {
+  size_t i;
+  int rc;
+  if (!root || !visitor)
+    return EINVAL;
+
+  for (i = 0; i < root->num_children; i++) {
+    if (root->children[i].kind == CDD_CST_CHILD_NODE) {
+      rc = cdd_cst_traverse_postorder(root->children[i].val.node, visitor,
+                                      user_data);
+      if (rc != 0)
+        return rc;
+    }
+  }
+
+  return visitor(root, user_data);
+}
+
+static int append_result(cdd_cst_query_result_t *res, cdd_cst_node_t *node) {
+  if (res->size >= res->capacity) {
+    size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
+    cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
+        res->nodes, new_cap * sizeof(cdd_cst_node_t *));
+    if (!new_arr)
+      return ENOMEM;
+    res->nodes = new_arr;
+    res->capacity = new_cap;
+  }
+  res->nodes[res->size++] = node;
+  return 0;
+}
+
+typedef struct type_query_ctx_t {
+  enum cdd_cst_node_kind_t target_kind;
+  cdd_cst_query_result_t *res;
+  int err;
+} type_query_ctx_t;
+
+static int type_visitor(cdd_cst_node_t *node, void *user_data) {
+  type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
+  if (node->kind == ctx->target_kind) {
+    ctx->err = append_result(ctx->res, node);
+    if (ctx->err != 0)
+      return ctx->err;
+  }
+  return 0;
+}
+
+int cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
+                               enum cdd_cst_node_kind_t kind,
+                               cdd_cst_query_result_t *out_result) {
+  type_query_ctx_t ctx;
+  if (!root || !out_result)
+    return EINVAL;
+
+  out_result->nodes = NULL;
+  out_result->size = 0;
+  out_result->capacity = 0;
+
+  ctx.target_kind = kind;
+  ctx.res = out_result;
+  ctx.err = 0;
+
+  cdd_cst_traverse_preorder(root, type_visitor, &ctx);
+
+  if (ctx.err != 0) {
+    if (out_result->nodes)
+      free(out_result->nodes);
+    out_result->nodes = NULL;
+    out_result->size = 0;
+    out_result->capacity = 0;
+    return ctx.err;
+  }
+
+  return 0;
+}
+
+typedef struct call_query_ctx_t {
+  const char *func_name;
+  size_t func_name_len;
+  cdd_cst_query_result_t *res;
+  int err;
+} call_query_ctx_t;
+
+static int call_visitor(cdd_cst_node_t *node, void *user_data) {
+  call_query_ctx_t *ctx = (call_query_ctx_t *)user_data;
+  if (node->kind == CDD_CST_CALL_EXPR) {
+    /* For now, look at children to find an identifier token that matches */
+    size_t i;
+    for (i = 0; i < node->num_children; i++) {
+      if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+        cdd_token_t *tok = node->children[i].val.token;
+        if (tok->kind == CDD_TOKEN_IDENTIFIER &&
+            tok->length == ctx->func_name_len) {
+          if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
+            ctx->err = append_result(ctx->res, node);
+            if (ctx->err != 0)
+              return ctx->err;
+            break; /* found match for this call node */
+          }
+        }
+      } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+        /* Sometimes the call expr's first child is an IDENTIFIER node */
+        cdd_cst_node_t *child = node->children[i].val.node;
+        if (child->kind == CDD_CST_IDENTIFIER && child->num_children > 0 &&
+            child->children[0].kind == CDD_CST_CHILD_TOKEN) {
+          cdd_token_t *tok = child->children[0].val.token;
+          if (tok->kind == CDD_TOKEN_IDENTIFIER &&
+              tok->length == ctx->func_name_len) {
+            if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
+              ctx->err = append_result(ctx->res, node);
+              if (ctx->err != 0)
+                return ctx->err;
+              break;
+            }
+          }
+        }
+      }
+    }
+  } else if (node->kind == CDD_CST_UNKNOWN) {
+    /* Heuristic check for unknown flat structures containing `func_name(` */
+    size_t i;
+    for (i = 0; i < node->num_children; i++) {
+      if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+        cdd_token_t *tok = node->children[i].val.token;
+        if (tok->kind == CDD_TOKEN_IDENTIFIER &&
+            tok->length == ctx->func_name_len) {
+          if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
+            /* Next token should be LPAREN to be a call */
+            if (i + 1 < node->num_children &&
+                node->children[i + 1].kind == CDD_CST_CHILD_TOKEN) {
+              if (node->children[i + 1].val.token->kind == CDD_TOKEN_LPAREN) {
+                ctx->err = append_result(ctx->res, node);
+                if (ctx->err != 0)
+                  return ctx->err;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+int cdd_cst_find_function_calls_named(cdd_cst_node_t *root,
+                                      const char *func_name,
+                                      cdd_cst_query_result_t *out_result) {
+  call_query_ctx_t ctx;
+  if (!root || !func_name || !out_result)
+    return EINVAL;
+
+  out_result->nodes = NULL;
+  out_result->size = 0;
+  out_result->capacity = 0;
+
+  ctx.func_name = func_name;
+  ctx.func_name_len = strlen(func_name);
+  ctx.res = out_result;
+  ctx.err = 0;
+
+  cdd_cst_traverse_preorder(root, call_visitor, &ctx);
+
+  if (ctx.err != 0) {
+    if (out_result->nodes)
+      free(out_result->nodes);
+    out_result->nodes = NULL;
+    out_result->size = 0;
+    out_result->capacity = 0;
+    return ctx.err;
+  }
+
+  return 0;
+}

@@ -60,6 +60,13 @@
 #include "parse/test_code2schema.h"
 #include "parse/test_crypto.h"
 #include "parse/test_cst_parser.h"
+#include "parse/test_cdd_lexer.h"
+#include "parse/test_cdd_cst.h"
+#include "parse/test_cdd_cst_mutate.h"
+#include "parse/test_cdd_cst_query.h"
+#include "parse/test_cdd_cst_trivia.h"
+#include "parse/test_cdd_cst_transform.h"
+
 #include "parse/test_dataclasses.h"
 #include "parse/test_declarator_parser.h"
 #include "parse/test_flexible_array.h"
@@ -126,6 +133,12 @@ int main(int argc, char **argv) {
   RUN_SUITE(root_array_suite);
   RUN_SUITE(codegen_sdk_tests_suite);
   RUN_SUITE(cst_parser_suite);
+  RUN_SUITE(cdd_lexer_suite);
+  RUN_SUITE(cdd_cst_suite);
+  RUN_SUITE(cdd_cst_mutate_suite);
+  RUN_SUITE(cdd_cst_query_suite);
+  RUN_SUITE(cdd_cst_trivia_suite);
+  RUN_SUITE(cdd_cst_transform_suite);
   RUN_SUITE(crypto_suite);
   RUN_SUITE(dataclasses_suite);
   RUN_SUITE(declarator_parser_suite);
