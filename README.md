@@ -103,21 +103,6 @@ WASM Support: Possible ✅ | Implemented ✅
 
 ---
 
-## License
-
-Licensed under either of
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
-
-at your option.
-
-### Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
-
 ## CLI Help
 
 ```
@@ -164,73 +149,74 @@ Commands:
       Setup a test database dynamically in CI mode.
 ```
 
-### `from_openapi`
+## Extensive Features & Functionality
 
-```
-$ ./build_cmake/bin/cdd-c from_openapi --help
-Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+`cdd-c` is not just a standard parser; it is a full-fledged **Compiler Driven Development (CDD)** suite tailored specifically for `C` (strictly targeting ISO C90 compliance). It deeply understands C down to its comments and whitespace, treating codebase refactoring, code generation, and API alignment as first-class, lossless operations.
 
-Commands:
-  to_sdk         Generate C SDK from OpenAPI spec
-  to_sdk_cli     Generate C SDK and CLI from OpenAPI spec
-  to_server      Generate C Server from OpenAPI spec
+### 1. Lossless AST Manipulation (Zero-Destruction Rule)
+Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a custom, highly robust **Concrete Syntax Tree (CST)** and **Abstract Syntax Tree (AST)** pipeline.
+- **Trivia Preservation:** It perfectly captures and preserves "trivia"—inline comments, block comments, and exact whitespace (indentation, newlines).
+- **Format-Safe Rewrites:** When you mutate a tree (for instance, converting a GNU compiler extension into a standard C89 equivalent), `cdd-c` applies the change surgically. Your code does not get butchered, formatted entirely differently, or stripped of its documentation. The generated ISO C code is meant for human developers, not just compilers.
 
-Options:
-  -i <spec.json>            Input OpenAPI spec file
-  --input-dir <specs_dir>   Input directory containing OpenAPI specs
-  -o <dir>                  Output directory
-```
+### 2. Multi-Directional Code Generation
+`cdd-c` acts as the master sync tool between your abstractions:
+- **API to Native C (SDK & Server):** Generate production-ready, memory-safe C clients, routing servers, and CLI argument parsers straight from OpenAPI JSON/YAML. 
+- **Native C to OpenAPI:** Write your C functions, document them with standard block comments, and let `cdd-c` statically analyze the types and routes to reverse-engineer a perfectly compliant OpenAPI 3.x spec.
+- **SQL / JSON Schema Sync:** Seamlessly sync SQL DDL statements to C ORM layers, or JSON schemas directly into C structs and validation logic.
 
-### `to_openapi`
+### 3. Built-in Security & Auditing
+- **Memory Safety Audits:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, and missing initializations before they hit production.
+- **Safe CRT Transformation:** Automatically enforce safety by running the `safe_crt` transformer, which intelligently rewrites legacy string and memory operations to use bounds-checked equivalents (e.g., `strcpy_s`, `sprintf_s`).
 
-```
-$ ./build_cmake/bin/cdd-c to_openapi --help
-Usage: cdd-c to_openapi [args]
+---
 
-Options:
-  -i, --input <dir>       Input directory containing C source code
-  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
-```
+## 🛠 Extending `cdd-c` with Transformers
 
-### `to_docs_json`
+The true power of `cdd-c` is its extensibility. You can write your own standalone, AST-aware transformers that modify C codebases directly while perfectly preserving all formatting, macros, and comments. 
 
-```
-$ ./build_cmake/bin/cdd-c to_docs_json --help
-Usage: cdd-c to_docs_json [args]
+### What is a Transformer?
+A transformer takes a parsed `cdd_cst_tree_t`, analyzes its geometrical and semantic nodes, and mutates the tree in place. It powers the `cdd-c transformer <toolname> --fix <files...>` CLI command.
 
-Options:
-  -i, --input <spec.json> Input OpenAPI spec file
-  --no-imports            Disable imports in generated examples
-  --no-wrapping           Disable wrapping in generated examples
-```
-i [args]
+### Built-in Transformers
+`cdd-c` ships with several highly complex transformers ready out of the box:
+- **`gnu_standardizer`**: An exhaustive engine that lowers complex GNU C extensions (like `__int128`, `__complex__`, statement expressions, computed gotos, and VLAs) into strictly compliant ISO C89 code.
+- **`msvc_port`**: Automatically patches syntax, header guards, and type declarations to compile cleanly under Microsoft Visual C++ (MSVC).
+- **`extern_c`**: Intelligently wraps headers in `extern "C" { ... }` blocks for flawless C++ interoperability.
+- **`error_percolator`**: Analyzes function return types and automatically propagates nested error enums and exit codes up the call stack.
+- **`safe_crt`**: Upgrades standard library calls to their bounds-checked, secure MSVC equivalents.
 
-Options:
-  -i, --input <dir>       Input directory containing C source code
-  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
-```
+### How to Write Your Own Transformer
 
-### `to_docs_json`
+Want to enforce a new coding standard, deprecate an old API project-wide, or implement a custom language feature? You can plug directly into the `cdd-c` mutator framework.
 
-```
-$ ./build_cmake/bin/cdd-c to_docs_json --help
-Usage: cdd-c to_docs_json [args]
+1. **Create the File:** Create a new directory and source file under `src/transformers/my_tool/my_tool.c`.
+2. **Include the Headers:** Include the core AST and mutator API headers (`classes/parse/cdd_cst_query.h`, `classes/parse/cdd_cst_mutate.h`).
+3. **Define the Signature:** Implement the standard transformer prototype:
+   ```c
+   int cdd_transform_my_tool(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
+   ```
+4. **Mutate the Tree:** Use `cdd_cst_find_nodes_by_type` to locate your target expressions. You can deeply inspect the `cdd_cst_node_t` structures, check their lexical scopes, or evaluate their compile-time types. Use `cdd_cst_node_replace` or `cdd_cst_node_insert_after` to safely alter the tree.
+5. **Register the Tool:** Add your prototype to `include/cdd_cst_transform.h` and map it to the CLI in `src/routes/parse/cli_cst.c`.
+6. **Compile & Run:** Your tool is now available natively via:
+   ```bash
+   cdd-c transformer my_tool --fix src/**/*.c
+   ```
 
-Options:
-  -i, --input <spec.json> Input OpenAPI spec file
-  --no-imports            Disable imports in generated examples
-  --no-wrapping           Disable wrapping in generated examples
-```
+Because `cdd-c` handles all the Lexing, CST generation, trivia management, and string emitting, your custom transformer only needs to focus on the raw logic of the C tree.
 
+---
 
-### `transformer`
+## License
 
-```
-$ ./build_cmake/bin/cdd-c transformer --help
-Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>
-Tools:
-  extern_c
-  msvc_port
-  gnu_standardizer
-  error_percolator
-```
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.

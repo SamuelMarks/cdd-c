@@ -198,6 +198,27 @@ static cdd_cst_node_t *parse_declaration_or_statement(parser_state_t *s,
     return parse_block(s, parent);
   }
 
+  if (t->kind == CDD_TOKEN_IDENTIFIER &&
+      ((t->length == 7 && memcmp(t->start, "__asm__", 7) == 0) ||
+       (t->length == 3 && memcmp(t->start, "asm", 3) == 0))) {
+    n = alloc_node(CDD_CST_ASM_STATEMENT, parent);
+    if (!n) {
+      s->err = ENOMEM;
+      return NULL;
+    }
+    while (s->pos < s->list->size) {
+      cdd_token_t *nxt = peek(s);
+      if (nxt->kind == CDD_TOKEN_SEMICOLON) {
+        append_child_token(n, advance(s));
+        break;
+      }
+      if (nxt->kind == CDD_TOKEN_RBRACE)
+        break;
+      append_child_token(n, advance(s));
+    }
+    return n;
+  }
+
   {
     size_t i;
     int is_decl = 0;

@@ -65,7 +65,11 @@
 #include "parse/test_cdd_cst_mutate.h"
 #include "parse/test_cdd_cst_query.h"
 #include "parse/test_cdd_cst_trivia.h"
-#include "parse/test_cdd_cst_transform.h"
+#include "transformers/extern_c/test_extern_c.h"
+#include "transformers/msvc_port/test_msvc_port.h"
+#include "transformers/gnu_standardizer/test_gnu_standardizer.h"
+#include "transformers/error_percolator/test_error_percolator.h"
+#include "transformers/safe_crt/test_safe_crt.h"
 
 #include "parse/test_dataclasses.h"
 #include "parse/test_declarator_parser.h"
@@ -138,7 +142,11 @@ int main(int argc, char **argv) {
   RUN_SUITE(cdd_cst_mutate_suite);
   RUN_SUITE(cdd_cst_query_suite);
   RUN_SUITE(cdd_cst_trivia_suite);
-  RUN_SUITE(cdd_cst_transform_suite);
+  RUN_SUITE(transformer_extern_c_suite);
+  RUN_SUITE(transformer_msvc_port_suite);
+  RUN_SUITE(transformer_gnu_standardizer_suite);
+  RUN_SUITE(transformer_error_percolator_suite);
+  RUN_SUITE(transformer_safe_crt_suite);
   RUN_SUITE(crypto_suite);
   RUN_SUITE(dataclasses_suite);
   RUN_SUITE(declarator_parser_suite);

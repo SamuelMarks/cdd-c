@@ -16,6 +16,8 @@ extern "C" {
 typedef struct cdd_transform_config_t {
   int use_tabs;     /**< 1 if tabs should be used for indentation */
   int indent_width; /**< Number of spaces (or tabs) per indentation level */
+  int fallback_vla_to_malloc; /**< If 1, rewrite VLAs to use malloc/free instead
+                                 of alloca */
 } cdd_transform_config_t;
 
 /**

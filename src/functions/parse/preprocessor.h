@@ -58,6 +58,7 @@ struct IncludeInfo {
   const char *resolved_path; /**< The resolved absolute/relative path on disk */
   const char *raw_path; /**< The raw path string as it appeared in source */
   int is_system;        /**< 1 if angle brackets <>, 0 if quoted "" */
+  int is_next;          /**< 1 if it is #include_next, 0 otherwise */
   struct EmbedParams params; /**< Embed parameters (zeroed for #include) */
 };
 

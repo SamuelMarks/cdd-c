@@ -20,12 +20,14 @@ TEST test_cdd_cst_query_types(void) {
   int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
 
-  rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
+  rc =
+      cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(1, res.size);
   free(res.nodes);
 
-  rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res); /* the return stmt */
+  rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN,
+                                  &res); /* the return stmt */
   ASSERT_EQ(0, rc);
   ASSERT(res.size > 0);
   free(res.nodes);

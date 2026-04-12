@@ -28,6 +28,7 @@ enum cdd_cst_node_kind_t {
   CDD_CST_UNARY_EXPR,
   CDD_CST_CALL_EXPR,
   CDD_CST_BLOCK,
+  CDD_CST_ASM_STATEMENT,
   CDD_CST_UNKNOWN /* fallback */
 };
 

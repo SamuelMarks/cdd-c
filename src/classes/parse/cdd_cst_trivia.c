@@ -33,7 +33,10 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
         size_t last_nl = 0;
         int found_nl = 0;
         for (j = 0; j < t->length; j++) {
-          if (t->start[j] == '\n') { last_nl = j; found_nl = 1; }
+          if (t->start[j] == '\n') {
+            last_nl = j;
+            found_nl = 1;
+          }
         }
         if (found_nl && last_nl + 1 < t->length) {
           /* There is whitespace after the newline */
@@ -57,7 +60,8 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
     out_config->use_tabs = 1;
     out_config->indent_width = 1;
   } else if (total_space_indents > 0) {
-    size_t avg; out_config->use_tabs = 0; /* Try to guess standard width (2, 4, 8) */
+    size_t avg;
+    out_config->use_tabs = 0; /* Try to guess standard width (2, 4, 8) */
     avg = sum_space_indent / total_space_indents;
     if (avg >= 3)
       out_config->indent_width = 4;
@@ -78,7 +82,8 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   uint8_t *ws_buf;
 
   (void)tree;
-  if (!config || !out_trivia) return EINVAL;
+  if (!config || !out_trivia)
+    return EINVAL;
 
   nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!nl)
@@ -120,11 +125,3 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   *out_trivia = nl;
   return 0;
 }
-
-
-
-
-
-
-
-

@@ -63,9 +63,49 @@ TEST test_cdd_cst_roundtrip_macros(void) {
   PASS();
 }
 
+TEST test_cdd_cst_asm_statement(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "void func() {\n"
+                     "  __asm__ volatile (\"nop\" : : : \"memory\");\n"
+                     "}";
+  char *out = NULL;
+  int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+
+  ASSERT_EQ(0, rc);
+  ASSERT(tree != NULL);
+  ASSERT(tree->root != NULL);
+
+  /* Validate that CDD_CST_ASM_STATEMENT is present */
+  {
+    cdd_cst_node_t *func = tree->root->children[0].val.node;
+    cdd_cst_node_t *block = func->children[func->num_children - 1].val.node;
+    cdd_cst_node_t *asm_stmt = NULL;
+    size_t i;
+    for (i = 0; i < block->num_children; i++) {
+      if (block->children[i].kind == CDD_CST_CHILD_NODE &&
+          block->children[i].val.node->kind == CDD_CST_ASM_STATEMENT) {
+        asm_stmt = block->children[i].val.node;
+        break;
+      }
+    }
+    ASSERT(asm_stmt != NULL);
+  }
+
+  rc = cdd_cst_emit(tree, &out);
+  ASSERT_EQ(0, rc);
+  ASSERT(out != NULL);
+
+  ASSERT_STR_EQ(code, out);
+
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(cdd_cst_suite) {
   RUN_TEST(test_cdd_cst_roundtrip_basic);
   RUN_TEST(test_cdd_cst_roundtrip_macros);
+  RUN_TEST(test_cdd_cst_asm_statement);
 }
 
 #ifdef __cplusplus

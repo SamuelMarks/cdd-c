@@ -28,14 +28,38 @@ static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
   }
 }
 
-static int is_identifier_start(int c) { return isalpha(c) || c == '_'; }
+static int is_identifier_start(int c) {
+  return isalpha(c) || c == '_' || c == '$';
+}
 
-static int is_identifier_part(int c) { return isalnum(c) || c == '_'; }
+static int is_identifier_part(int c) {
+  return isalnum(c) || c == '_' || c == '$';
+}
 
 static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
                                                  size_t len) {
   if (len == 3 && memcmp(start, "int", 3) == 0)
     return CDD_TOKEN_KEYWORD_INT;
+  if (len == 8 && memcmp(start, "__int128", 8) == 0)
+    return CDD_TOKEN_KEYWORD___INT128;
+  if (len == 6 && memcmp(start, "typeof", 6) == 0)
+    return CDD_TOKEN_KEYWORD_TYPEOF;
+  if (len == 10 && memcmp(start, "__typeof__", 10) == 0)
+    return CDD_TOKEN_KEYWORD_TYPEOF;
+  if (len == 13 && memcmp(start, "typeof_unqual", 13) == 0)
+    return CDD_TOKEN_KEYWORD_TYPEOF;
+  if (len == 17 && memcmp(start, "__typeof_unqual__", 17) == 0)
+    return CDD_TOKEN_KEYWORD_TYPEOF;
+  if (len == 11 && memcmp(start, "__auto_type", 11) == 0)
+    return CDD_TOKEN_KEYWORD___AUTO_TYPE;
+  if (len == 11 && memcmp(start, "__complex__", 11) == 0)
+    return CDD_TOKEN_KEYWORD___COMPLEX__;
+  if (len == 8 && memcmp(start, "__real__", 8) == 0)
+    return CDD_TOKEN_KEYWORD___REAL__;
+  if (len == 8 && memcmp(start, "__imag__", 8) == 0)
+    return CDD_TOKEN_KEYWORD___IMAG__;
+  if (len == 9 && memcmp(start, "__label__", 9) == 0)
+    return CDD_TOKEN_KEYWORD___LABEL__;
   if (len == 6 && memcmp(start, "struct", 6) == 0)
     return CDD_TOKEN_KEYWORD_STRUCT;
   if (len == 2 && memcmp(start, "if", 2) == 0)
@@ -44,6 +68,8 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
     return CDD_TOKEN_KEYWORD_ELSE;
   if (len == 6 && memcmp(start, "return", 6) == 0)
     return CDD_TOKEN_KEYWORD_RETURN;
+  if (len == 4 && memcmp(start, "goto", 4) == 0)
+    return CDD_TOKEN_KEYWORD_GOTO;
   return CDD_TOKEN_IDENTIFIER;
 }
 
@@ -191,8 +217,23 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         column++;
         while (pos < len) {
           if (base[pos] == '\\') {
-            pos += 2;
-            column += 2;
+            if (pos + 1 < len && base[pos + 1] == '\n') {
+              pos += 2;
+              line++;
+              column = 1;
+            } else if (pos + 2 < len && base[pos + 1] == '\r' &&
+                       base[pos + 2] == '\n') {
+              pos += 3;
+              line++;
+              column = 1;
+            } else if (pos + 1 < len && base[pos + 1] == '\r') {
+              pos += 2;
+              line++;
+              column = 1;
+            } else {
+              pos += 2;
+              column += 2;
+            }
           } else if (base[pos] == quote) {
             pos++;
             column++;
@@ -216,11 +257,15 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           id_start++;
         }
         if (id_start < len && isalpha(base[id_start])) {
-          size_t id_end = id_start; size_t id_len;
+          size_t id_end = id_start;
+          size_t id_len;
           while (id_end < len && isalpha(base[id_end]))
             id_end++;
           id_len = id_end - id_start;
           if (id_len == 7 && memcmp(base + id_start, "include", 7) == 0)
+            tok->kind = CDD_TOKEN_PREPROC_INCLUDE;
+          else if (id_len == 12 &&
+                   memcmp(base + id_start, "include_next", 12) == 0)
             tok->kind = CDD_TOKEN_PREPROC_INCLUDE;
           else if (id_len == 6 && memcmp(base + id_start, "define", 6) == 0)
             tok->kind = CDD_TOKEN_PREPROC_DEFINE;
@@ -241,9 +286,24 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         } else {
           tok->kind = CDD_TOKEN_OTHER;
         }
-        while (pos < len && base[pos] != '\n') {
-          column++;
-          pos++;
+        while (pos < len) {
+          if (base[pos] == '\\' && pos + 1 < len && base[pos + 1] == '\n') {
+            pos += 2;
+            line++;
+            column = 1;
+          } else if (base[pos] == '\\' && pos + 2 < len &&
+                     base[pos + 1] == '\r' && base[pos + 2] == '\n') {
+            pos += 3;
+            line++;
+            column = 1;
+          } else if (base[pos] == '\n') {
+            break;
+          } else {
+            if (base[pos] != '\r') {
+              column++;
+            }
+            pos++;
+          }
         }
         tok->length = pos - tok->offset;
       } else {
@@ -282,7 +342,14 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           tok->kind = CDD_TOKEN_PLUS;
           break;
         case '-':
-          tok->kind = CDD_TOKEN_MINUS;
+          if (pos < len && base[pos] == '>') {
+            tok->length++;
+            pos++;
+            column++;
+            tok->kind = CDD_TOKEN_ARROW;
+          } else {
+            tok->kind = CDD_TOKEN_MINUS;
+          }
           break;
         case '*':
           tok->kind = CDD_TOKEN_STAR;
@@ -374,7 +441,3 @@ void cdd_lexer_free_token_list(cdd_token_list_t *list) {
   }
   free(list);
 }
-
-
-
-
