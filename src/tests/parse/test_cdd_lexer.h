@@ -68,11 +68,15 @@ TEST test_cdd_lexer_errors(void) {
 TEST test_cdd_lexer_strings(void) {
   cdd_token_list_t *list = NULL;
   int rc = cdd_lexer_tokenize(
-      az_span_create_from_str("\"hello \\\" world\" 'a'"), &list);
+      az_span_create_from_str("\"hello \\\" world\" 'a' \"line1\\\nline2\""),
+      &list);
   ASSERT_EQ(0, rc);
-  ASSERT_EQ(2, list->size);
+  ASSERT_EQ(3, list->size);
   ASSERT_EQ(CDD_TOKEN_STRING, list->tokens[0].kind);
   ASSERT_EQ(CDD_TOKEN_CHAR, list->tokens[1].kind);
+  ASSERT_EQ(CDD_TOKEN_STRING, list->tokens[2].kind);
+  ASSERT_EQ(14,
+            list->tokens[2].length); /* "line1\<newline>line2" -> 14 bytes */
   cdd_lexer_free_token_list(list);
   PASS();
 }
@@ -87,6 +91,58 @@ TEST test_cdd_lexer_symbols(void) {
   PASS();
 }
 
+TEST test_cdd_lexer_gnu_extensions(void) {
+  cdd_token_list_t *list = NULL;
+  int rc =
+      cdd_lexer_tokenize(az_span_create_from_str(
+                             "__int128 typeof __typeof__ __auto_type __label__ "
+                             "__complex__ __real__ __imag__"),
+                         &list);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(8, list->size);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___INT128, list->tokens[0].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_TYPEOF, list->tokens[1].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_TYPEOF, list->tokens[2].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___AUTO_TYPE, list->tokens[3].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___LABEL__, list->tokens[4].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___COMPLEX__, list->tokens[5].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___REAL__, list->tokens[6].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD___IMAG__, list->tokens[7].kind);
+  cdd_lexer_free_token_list(list);
+  PASS();
+}
+
+TEST test_cdd_lexer_multiline_macro(void) {
+  cdd_token_list_t *list = NULL;
+  const char *code = "#define FOO(x) \\\n  do { \\\n    x++; // incr \\\n  } "
+                     "while(0)\nint main(){}";
+  int rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+
+  ASSERT_EQ(0, rc);
+  ASSERT(list != NULL);
+  /* The macro should be a single token up to while(0) */
+  ASSERT_EQ(CDD_TOKEN_PREPROC_DEFINE, list->tokens[0].kind);
+  ASSERT_EQ(57, list->tokens[0].length);
+  /* Next token should be int */
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_INT, list->tokens[1].kind);
+
+  cdd_lexer_free_token_list(list);
+  PASS();
+}
+
+TEST test_cdd_lexer_include_next(void) {
+  cdd_token_list_t *list = NULL;
+  const char *code = "#include_next <stdio.h>\n";
+  int rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+
+  ASSERT_EQ(0, rc);
+  ASSERT(list != NULL);
+  ASSERT_EQ(CDD_TOKEN_PREPROC_INCLUDE, list->tokens[0].kind);
+
+  cdd_lexer_free_token_list(list);
+  PASS();
+}
+
 SUITE(cdd_lexer_suite) {
   RUN_TEST(test_cdd_lexer_basic);
   RUN_TEST(test_cdd_lexer_empty);
@@ -94,6 +150,9 @@ SUITE(cdd_lexer_suite) {
   RUN_TEST(test_cdd_lexer_errors);
   RUN_TEST(test_cdd_lexer_strings);
   RUN_TEST(test_cdd_lexer_symbols);
+  RUN_TEST(test_cdd_lexer_gnu_extensions);
+  RUN_TEST(test_cdd_lexer_multiline_macro);
+  RUN_TEST(test_cdd_lexer_include_next);
 }
 
 #ifdef __cplusplus

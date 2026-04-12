@@ -11,8 +11,7 @@
 static int process_file(const char *filepath,
                         int (*transform_fn)(cdd_cst_tree_t *,
                                             const cdd_transform_config_t *),
-                        const cdd_transform_config_t *config,
-                        int is_audit,
+                        const cdd_transform_config_t *config, int is_audit,
                         int is_dry_run) {
   FILE *f;
   long fsize;
@@ -111,7 +110,8 @@ int cli_cst_transformer_main(int argc, char **argv) {
   int (*transform_fn)(cdd_cst_tree_t *, const cdd_transform_config_t *) = NULL;
 
   if (argc < 1) {
-    fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>\n");
+    fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
+                    "[--dry-run] <files...>\n");
     return 1;
   }
 
@@ -127,7 +127,8 @@ int cli_cst_transformer_main(int argc, char **argv) {
   } else if (strcmp(toolname, "safe_crt") == 0) {
     transform_fn = cdd_transform_safe_crt;
   } else if (strcmp(toolname, "--help") == 0 || strcmp(toolname, "-h") == 0) {
-    fprintf(stdout, "Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>\n");
+    fprintf(stdout, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
+                    "[--dry-run] <files...>\n");
     fprintf(stdout, "Tools:\n");
     fprintf(stdout, "  extern_c\n");
     fprintf(stdout, "  msvc_port\n");
@@ -148,7 +149,10 @@ int cli_cst_transformer_main(int argc, char **argv) {
     } else if (strcmp(argv[i], "--dry-run") == 0) {
       is_dry_run = 1;
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-      fprintf(stdout, "Usage: cdd-c transformer %s [--audit | --fix] [--dry-run] <files...>\n", toolname);
+      fprintf(stdout,
+              "Usage: cdd-c transformer %s [--audit | --fix] [--dry-run] "
+              "<files...>\n",
+              toolname);
       return 0;
     } else {
       /* Assume it's a file */
@@ -158,8 +162,9 @@ int cli_cst_transformer_main(int argc, char **argv) {
         fprintf(stderr, "Must specify --audit or --fix.\n");
         return 1;
       }
-      
-      if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) != 0) {
+
+      if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=
+          0) {
         rc = 1;
       }
     }

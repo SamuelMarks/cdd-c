@@ -15,7 +15,8 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
   if (len == 0)
     return 0;
   if (ctx->size + len + 1 > ctx->capacity) {
-    char *new_buf; size_t new_cap = ctx->capacity == 0 ? 1024 : ctx->capacity * 2;
+    char *new_buf;
+    size_t new_cap = ctx->capacity == 0 ? 1024 : ctx->capacity * 2;
     while (ctx->size + len + 1 > new_cap) {
       new_cap *= 2;
     }
@@ -105,7 +106,3 @@ int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
   *out_str = ctx.buf;
   return 0;
 }
-
-
-
-

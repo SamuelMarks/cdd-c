@@ -2439,7 +2439,12 @@ int pp_scan_includes(const char *filename,
                                     &_ast_token_matches_string_116),
                _ast_token_matches_string_116) != 0;
 
-          if (input_is_embed || input_is_include) {
+          int input_is_include_next =
+              (token_matches_string(cmd, "include_next",
+                                    &_ast_token_matches_string_116),
+               _ast_token_matches_string_116) != 0;
+
+          if (input_is_embed || input_is_include || input_is_include_next) {
 
             size_t path_start = next + 1;
 
@@ -2525,6 +2530,8 @@ int pp_scan_includes(const char *filename,
                     info.raw_path = raw_path;
 
                     info.is_system = is_sys;
+
+                    info.is_next = input_is_include_next;
 
                     info.params.limit = -1; /* Default -1 */
 

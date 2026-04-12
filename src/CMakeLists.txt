@@ -98,11 +98,11 @@ set(Source_Files
         "classes/parse/cdd_cst_parser.c"
         "classes/parse/cdd_cst_mutate.c"
         "classes/parse/cdd_cst_query.c"
-        "transformers/extern_c.c"
-        "transformers/msvc_port.c"
-        "transformers/gnu_standardizer.c"
-        "transformers/error_percolator.c"
-        "transformers/safe_crt.c"
+        "transformers/extern_c/extern_c.c"
+        "transformers/msvc_port/msvc_port.c"
+        "transformers/gnu_standardizer/gnu_standardizer.c"
+        "transformers/error_percolator/error_percolator.c"
+        "transformers/safe_crt/safe_crt.c"
         "routes/parse/cli_cst.c"
         "classes/parse/cdd_cst_trivia.c"
         "classes/emit/cdd_cst_emit.c"
@@ -232,11 +232,17 @@ if (WIN32)
 elseif (APPLE)
     # Apple uses CommonCrypto, no OpenSSL needed
 else ()
-    if (NOT HTTP_ONLY)
+    if (C_CDD_USE_LIBCURL AND NOT HTTP_ONLY)
         if(TARGET OpenSSL::SSL)
             target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
         else()
             target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES})
+        endif()
+    elseif (NOT HTTP_ONLY)
+        if(TARGET OpenSSL::SSL)
+            target_link_libraries("${LIBRARY_NAME}" PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        else()
+            target_link_libraries("${LIBRARY_NAME}" PRIVATE ${OPENSSL_LIBRARIES} crypto ssl)
         endif()
     endif ()
 endif ()

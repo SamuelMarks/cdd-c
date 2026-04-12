@@ -433,6 +433,49 @@ TEST test_pp_nested_if(void) {
   PASS();
 }
 
+static int test_include_next_visitor(const struct IncludeInfo *info,
+                                     void *user_data) {
+  int *called = (int *)user_data;
+  (*called)++;
+  ASSERT_EQ_FMT(PP_DIR_INCLUDE, info->kind, "%d");
+  ASSERT_EQ(1, info->is_next);
+  ASSERT_EQ(1, info->is_system);
+  ASSERT(info->resolved_path != NULL);
+  ASSERT(info->raw_path != NULL);
+  ASSERT_STR_EQ("stdlib.h", info->raw_path);
+  return 0;
+}
+
+TEST test_pp_include_next(void) {
+  struct PreprocessorContext ctx;
+  int rc;
+  int called = 0;
+  const char *test_dir = "test_include_next_dir";
+  const char *test_file = "test_include_next_dir/test.c";
+  const char *sys_dir = "test_include_next_sys";
+  const char *sys_file = "test_include_next_sys/stdlib.h";
+
+  makedir(test_dir);
+  makedir(sys_dir);
+  write_to_file(test_file, "#include_next <stdlib.h>\n");
+  write_to_file(sys_file, "int x;\n");
+
+  rc = pp_context_init(&ctx);
+  ASSERT_EQ(0, rc);
+  pp_add_search_path(&ctx, sys_dir);
+
+  rc = pp_scan_includes(test_file, &ctx, test_include_next_visitor, &called);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, called);
+
+  pp_context_free(&ctx);
+  remove(test_file);
+  remove(sys_file);
+  rmdir(test_dir);
+  rmdir(sys_dir);
+  PASS();
+}
+
 SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_eval_arithmetic);
   RUN_TEST(test_pp_eval_logical);
@@ -446,6 +489,8 @@ SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_ifdef_skip);
   RUN_TEST(test_pp_if_else);
   RUN_TEST(test_pp_nested_if);
+
+  RUN_TEST(test_pp_include_next);
 }
 
 #ifdef __cplusplus

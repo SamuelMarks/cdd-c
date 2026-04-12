@@ -95,11 +95,11 @@ static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
 
     return ENOMEM;
 
-  sprintf(buf, 
+  sprintf(buf,
 
-           "\n#if defined(_MSC_VER)\n%s%s\n#else\n%s%s\n#endif\n",
+          "\n#if defined(_MSC_VER)\n%s%s\n#else\n%s%s\n#endif\n",
 
-           indent, msc_ver_stmt, indent, else_stmt);
+          indent, msc_ver_stmt, indent, else_stmt);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &syn_tree);
 
@@ -386,13 +386,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(src_str));
 
-        sprintf(msc_stmt,  "strcpy_s(%s, sizeof(%s), %s);",
+        sprintf(msc_stmt, "strcpy_s(%s, sizeof(%s), %s);",
 
-                 dest_str, dest_str, src_str);
+                dest_str, dest_str, src_str);
 
-        sprintf(else_stmt,  "strcpy(%s, %s);", dest_str,
+        sprintf(else_stmt, "strcpy(%s, %s);", dest_str,
 
-                 src_str);
+                src_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -412,13 +412,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(size_str));
 
-        sprintf(msc_stmt,  "strncpy_s(%s, %s + 1, %s, %s);",
+        sprintf(msc_stmt, "strncpy_s(%s, %s + 1, %s, %s);",
 
-                 dest_str, size_str, src_str, size_str);
+                dest_str, size_str, src_str, size_str);
 
-        sprintf(else_stmt,  "strncpy(%s, %s, %s);", dest_str,
+        sprintf(else_stmt, "strncpy(%s, %s, %s);", dest_str,
 
-                 src_str, size_str);
+                src_str, size_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -434,13 +434,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(src_str));
 
-        sprintf(msc_stmt,  "sprintf_s(%s, sizeof(%s), %s);",
+        sprintf(msc_stmt, "sprintf_s(%s, sizeof(%s), %s);",
 
-                 dest_str, dest_str, src_str);
+                dest_str, dest_str, src_str);
 
-        sprintf(else_stmt,  "sprintf(%s, %s);", dest_str,
+        sprintf(else_stmt, "sprintf(%s, %s);", dest_str,
 
-                 src_str);
+                src_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -472,13 +472,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(src_str));
 
-        sprintf(msc_stmt,  "fopen_s(&%s, %s, %s);", var_str,
+        sprintf(msc_stmt, "fopen_s(&%s, %s, %s);", var_str,
 
-                 dest_str, src_str);
+                dest_str, src_str);
 
-        sprintf(else_stmt,  "%s = fopen(%s, %s);", var_str,
+        sprintf(else_stmt, "%s = fopen(%s, %s);", var_str,
 
-                 dest_str, src_str);
+                dest_str, src_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -494,13 +494,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(src_str));
 
-        sprintf(msc_stmt,  "strcat_s(%s, sizeof(%s), %s);",
+        sprintf(msc_stmt, "strcat_s(%s, sizeof(%s), %s);",
 
-                 dest_str, dest_str, src_str);
+                dest_str, dest_str, src_str);
 
-        sprintf(else_stmt,  "strcat(%s, %s);", dest_str,
+        sprintf(else_stmt, "strcat(%s, %s);", dest_str,
 
-                 src_str);
+                src_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -520,13 +520,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(size_str));
 
-        sprintf(msc_stmt,  "strncat_s(%s, %s + 1, %s, %s);",
+        sprintf(msc_stmt, "strncat_s(%s, %s + 1, %s, %s);",
 
-                 dest_str, size_str, src_str, size_str);
+                dest_str, size_str, src_str, size_str);
 
-        sprintf(else_stmt,  "strncat(%s, %s, %s);", dest_str,
+        sprintf(else_stmt, "strncat(%s, %s, %s);", dest_str,
 
-                 src_str, size_str);
+                src_str, size_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -546,13 +546,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(size_str));
 
-        sprintf(msc_stmt,  "memcpy_s(%s, %s, %s, %s);",
+        sprintf(msc_stmt, "memcpy_s(%s, %s, %s, %s);",
 
-                 dest_str, size_str, src_str, size_str);
+                dest_str, size_str, src_str, size_str);
 
-        sprintf(else_stmt,  "memcpy(%s, %s, %s);", dest_str,
+        sprintf(else_stmt, "memcpy(%s, %s, %s);", dest_str,
 
-                 src_str, size_str);
+                src_str, size_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
 
@@ -572,13 +572,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
                                 sizeof(size_str));
 
-        sprintf(msc_stmt,  "memmove_s(%s, %s, %s, %s);",
+        sprintf(msc_stmt, "memmove_s(%s, %s, %s, %s);",
 
-                 dest_str, size_str, src_str, size_str);
+                dest_str, size_str, src_str, size_str);
 
-        sprintf(else_stmt,  "memmove(%s, %s, %s);", dest_str,
+        sprintf(else_stmt, "memmove(%s, %s, %s);", dest_str,
 
-                 src_str, size_str);
+                src_str, size_str);
 
         replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
       }
