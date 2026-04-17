@@ -6,6 +6,7 @@ on:
     tags:
       - "0.0.1"
       - "v*"
+      - "latest"
 
 permissions:
   contents: write
@@ -19,8 +20,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y binaryen
       - name: Build WASM
         run: |
+          git config --global core.autocrlf false
           if [ -f Makefile ] && grep -q build_wasm Makefile; then
-            make build_wasm || true
+            make build_wasm
             cp bin/*.wasm . 2>/dev/null || cp build/*.wasm . 2>/dev/null || cp target/wasm32-wasip1/release/*.wasm . 2>/dev/null || true
           fi
           # Fallback to dummy if no wasm was found
