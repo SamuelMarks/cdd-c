@@ -23,8 +23,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     else()
         FetchContent_Declare(
             cfs
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
-            GIT_TAG master
+            URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.tar.gz
         )
         FetchContent_MakeAvailable(cfs)
         include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
