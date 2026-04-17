@@ -8,6 +8,7 @@ extern "C" {
 /* clang-format off */
 #include "cdd_cst_node.h"
 #include <c_str_span.h>
+#include "c_cdd_export.h"
 /* clang-format on */
 
 /**
@@ -17,14 +18,14 @@ extern "C" {
  * @param out_tree The generated tree containing nodes and token ownership.
  * @return 0 on success, or ENOMEM/EINVAL.
  */
-int cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree);
+C_CDD_EXPORT int cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree);
 
 /**
  * @brief Free the Concrete Syntax Tree and its constituent structures.
  *
  * @param tree Tree to free.
  */
-void cdd_cst_tree_free(cdd_cst_tree_t *tree);
+C_CDD_EXPORT void cdd_cst_tree_free(cdd_cst_tree_t *tree);
 
 #ifdef __cplusplus
 }
