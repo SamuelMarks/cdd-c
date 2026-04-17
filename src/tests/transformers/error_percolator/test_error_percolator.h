@@ -22,7 +22,7 @@ TEST test_cdd_transform_percolate_errors(void) {
       "bar(int a) {\n  void *b = calloc(1, 1);\n  foo();\n}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2};
+  cdd_transform_config_t config = {0, 2, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
@@ -56,7 +56,7 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
                      "}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2};
+  cdd_transform_config_t config = {0, 2, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
