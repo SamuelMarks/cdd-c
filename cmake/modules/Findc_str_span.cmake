@@ -13,16 +13,23 @@
 include(FetchContent)
 
 if(NOT c_str_span_FOUND)
-    FetchContent_Declare(
-            c_str_span
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
-            GIT_TAG        master
-            GIT_SHALLOW    TRUE
-            #CONFIGURE_COMMAND BUILD_TESTING=OFF
-            CMAKE_ARGS -DBUILD_TESTING=OFF
-    )
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
+        set(c_str_span_FOUND TRUE)
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(c_str_span CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+                c_str_span
+                GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
+                GIT_TAG        master
+                GIT_SHALLOW    TRUE
+                #CONFIGURE_COMMAND BUILD_TESTING=OFF
+                CMAKE_ARGS -DBUILD_TESTING=OFF
+        )
 
-    FetchContent_MakeAvailable(c_str_span)
+        FetchContent_MakeAvailable(c_str_span)
+    endif()
 else()
     message(STATUS "Found c-str-span installed at: ${c_str_span_DIR}")
 endif()

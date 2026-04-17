@@ -16,12 +16,9 @@ The CLI—at a minimum—has:
 - `cdd-c from_openapi -i spec.json`
 - `cdd-c to_openapi -f path/to/code`
 - `cdd-c to_docs_json --no-imports --no-wrapping -i spec.json`
-- `cdd-c serve_json_rpc --port 8082 --listen 0.0.0.0`
 - `cdd-c from_openapi to_sdk_cli -i spec.json -o target_directory`
 - `cdd-c from_openapi to_sdk -i spec.json -o target_directory`
 - `cdd-c from_openapi to_server -i spec.json -o target_directory`
-- `cdd-c transformer extern_c --audit src/my_file.c`
-- `cdd-c transformer msvc_port --fix src/my_file.c`
 
 The goal of this project is to enable rapid application development without tradeoffs. Tradeoffs of Protocol Buffers / Thrift etc. are an untouchable "generated" directory and package, compile-time and/or runtime overhead. Tradeoffs of Java or JavaScript for everything are: overhead in hardware access, offline mode, ML inefficiency, and more. And neither of these alternative approaches are truly integrated into your target system, test frameworks, and bigger abstractions you build in your app. Tradeoffs in CDD are code duplication (but CDD handles the synchronisation for you).
 
@@ -105,48 +102,139 @@ WASM Support: Possible ✅ | Implemented ✅
 
 ## CLI Help
 
-```
-$ ./build_cmake/bin/cdd-c --help
-Usage: ./build_cmake/bin/cdd-c <command> [args]
+Usage: `cdd-c <command> [args]`
 
-Commands:
-  from_openapi to_sdk -i <spec.json> [-o <dir>]
-  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]
-  from_openapi to_sdk_cli -i <spec.json> [-o <dir>]
-  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]
-  from_openapi to_server -i <spec.json> [-o <dir>]
-  from_openapi to_server --input-dir <specs_dir> [-o <dir>]
-      Generate C SDK, Server, and optionally CLI from OpenAPI spec.
-  to_openapi -i <dir> [-o <out.json>]
-      Generate OpenAPI spec from C source code.
-  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>
-      Generate JSON code examples for doc sites.
-  audit <directory>
-      Scan directory for memory safety issues.
-  c2openapi <dir> <out.json>
-      Generate OpenAPI spec from C source code.
-  transformer <toolname> [--audit|--fix] [--dry-run] <files...>
-      Run syntax tree transformations.
-  code2schema <header.h> <schema.json>
-      Convert C header to JSON Schema.
-  generate_build_system <type> <out_dir> <name> [test_file]
-      Generate build system files.
-  schema2code <schema.json> <out_dir>
-      Generate C code from JSON schema.
-  sql2c <schema.sql> <out_dir>
-      Generate C code (c-orm compatible) from SQL DDL.
-  jsonschema2tests <schema.json> <header_to_test.h> <out.h>
-      Generate C tests from JSON schema.
-  migrate <up|down|create> [args...]
-      Manage database migrations.
-  db reset
-      Drop and recreate the database schema, then run UP migrations.
-  schema dump [schema.sql]
-      Dump the current database schema state.
-  seed [seeds.sql]
-      Seed the database with test data.
-  setup_test_db [db_name]
-      Setup a test database dynamically in CI mode.
+### `from_openapi`
+
+Generate C SDK, Server, and optionally CLI from OpenAPI spec.
+
+```shell
+cdd-c from_openapi to_sdk -i <spec.json> [-o <dir>]
+cdd-c from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]
+cdd-c from_openapi to_sdk_cli -i <spec.json> [-o <dir>]
+cdd-c from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]
+cdd-c from_openapi to_server -i <spec.json> [-o <dir>]
+cdd-c from_openapi to_server --input-dir <specs_dir> [-o <dir>]
+```
+
+### `to_openapi`
+
+Generate OpenAPI spec from C source code.
+
+```shell
+cdd-c to_openapi -i <dir> [-o <out.json>]
+```
+
+### `to_docs_json`
+
+Generate JSON code examples for doc sites.
+
+```shell
+cdd-c to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>
+```
+
+### `audit`
+
+Scan directory for memory safety issues.
+
+```shell
+cdd-c audit <directory>
+```
+
+### `c2openapi`
+
+Generate OpenAPI spec from C source code.
+
+```shell
+cdd-c c2openapi <dir> <out.json>
+```
+
+### `transformer`
+
+Run syntax tree transformations.
+
+```shell
+cdd-c transformer <toolname> [--audit|--fix] [--dry-run] <files...>
+```
+
+### `code2schema`
+
+Convert C header to JSON Schema.
+
+```shell
+cdd-c code2schema <header.h> <schema.json>
+```
+
+### `generate_build_system`
+
+Generate build system files.
+
+```shell
+cdd-c generate_build_system <type> <out_dir> <name> [test_file]
+```
+
+### `schema2code`
+
+Generate C code from JSON schema.
+
+```shell
+cdd-c schema2code <schema.json> <out_dir>
+```
+
+### `sql2c`
+
+Generate C code (c-orm compatible) from SQL DDL.
+
+```shell
+cdd-c sql2c <schema.sql> <out_dir>
+```
+
+### `jsonschema2tests`
+
+Generate C tests from JSON schema.
+
+```shell
+cdd-c jsonschema2tests <schema.json> <header_to_test.h> <out.h>
+```
+
+### `migrate`
+
+Manage database migrations.
+
+```shell
+cdd-c migrate <up|down|create> [args...]
+```
+
+### `db`
+
+Drop and recreate the database schema, then run UP migrations.
+
+```shell
+cdd-c db reset
+```
+
+### `schema`
+
+Dump the current database schema state.
+
+```shell
+cdd-c schema dump [schema.sql]
+```
+
+### `seed`
+
+Seed the database with test data.
+
+```shell
+cdd-c seed [seeds.sql]
+```
+
+### `setup_test_db`
+
+Setup a test database dynamically in CI mode.
+
+```shell
+cdd-c setup_test_db [db_name]
 ```
 
 ## Extensive Features & Functionality

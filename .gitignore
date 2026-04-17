@@ -26,7 +26,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-Testing
+Testing/
 
 # Generated headers
 *_export.h
@@ -69,7 +69,7 @@ test_cmake/
 test_patch_repo/
 vcpkg_installed/
 _deps/
- 
+
 # Scratch and log files
 append*.txt
 mingw_errors*.txt
@@ -118,16 +118,10 @@ test_tokenizer_generated.h
 test_proc.cmake
 coverage.js
 coverage.css
-c-orm/# --- End of original .gitignore ---
-# Aggressive Ignore Patterns
 
-# Compiled / Linking Artifacts
-*.o
-*.obj
-*.so
+# Aggressive Ignore Patterns
 *.dll
 *.dylib
-*.a
 *.lib
 *.exe
 *.out
@@ -138,81 +132,80 @@ c-orm/# --- End of original .gitignore ---
 *.idb
 *.map
 *.manifest
-
-# CMake
 CMakeCache.txt
 CMakeFiles/
 CMakeScripts/
 cmake_install.cmake
 install_manifest.txt
-compile_commands.json
 CTestTestfile.cmake
-_deps/
-Testing/
-
-# Build Directories
-build/
 build-*/
 build_*/
-*build*/
-out/
 bin/
 obj/
-
-# Visual Studio & IDEs
 .vs/
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-.vscode/
-.idea/
-cmake-build-*/
-
-# vcpkg
-vcpkg/
-vcpkg_installed/
-.vcpkg/
-
-# OS/System Files
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-# Temporary / Scratch Files
 *.tmp
 *.temp
 *.bak
 *.swp
 *~
-out*.txt
-*log*.txt
-*.log
-append*.txt
-temp_diff.txt
-payload.json
-out.json
-test.json
-tokenizer.json
-
-# Python
-__pycache__/
 *.py[cod]
 *.class
-*.py
-!scripts/**/*.py
 
-# Web / WASM
-node_modules/
-dist/
-*.wasm
-coverage.js
-coverage.css
-*.html
-
-# Misc
-.gemini/
+# Extra Wildcards for Careless git add
+temp.c
+temp*.c
+temp*.cpp
+temp*.h
+temp*.hpp
+*.orig
+*.rej
+*.patch
+*.d
+*.su
+*.gcda
+*.gcno
+*.gcov
+.env
+.env.*
+tags
+cscope.*
+*.tar
+*.tar.gz
+*.zip
+*.rar
+test_*.o
+test_*.exe
+test_*.out
+test_*.dll
+test_*.so
+test_*.dylib
+.cache/
+temp*/
+*test_build*/
+*build_temp*/
+*.swo
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.db
+*.sqlite
+*.sqlite3
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+CMakeUserPresets.json
+*.cmake
+!CMakeLists.txt
+!cmake/modules/*.cmake
+Makefile
+!Makefile

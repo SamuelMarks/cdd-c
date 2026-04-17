@@ -3,17 +3,26 @@ include(FetchContent)
 include(FindPackageHandleStandardArgs)
 
 if (NOT TARGET parson)
-    FetchContent_Declare(
-            parson
-            GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-            GIT_TAG master
-    )
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
+        set(parson_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parson")
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(parson CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+                parson
+                GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
+                GIT_TAG master
+        )
 
-    FetchContent_MakeAvailable(parson)
+        FetchContent_MakeAvailable(parson)
+    endif()
 
-    target_include_directories(parson INTERFACE
-            $<BUILD_INTERFACE:${parson_SOURCE_DIR}>
-    )
+    if(TARGET parson AND DEFINED parson_SOURCE_DIR)
+        target_include_directories(parson INTERFACE
+                $<BUILD_INTERFACE:${parson_SOURCE_DIR}>
+        )
+    endif()
 endif ()
 
 set(parson_LIBRARIES parson)
