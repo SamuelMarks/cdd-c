@@ -13,12 +13,12 @@ The CLI—at a minimum—has:
 
 - `cdd-c --help`
 - `cdd-c --version`
-- `cdd-c from_openapi -i spec.json`
+- `cdd-c from_openapi to_sdk_cli -i spec.json`
+- `cdd-c from_openapi to_sdk -i spec.json`
+- `cdd-c from_openapi to_server -i spec.json`
 - `cdd-c to_openapi -f path/to/code`
 - `cdd-c to_docs_json --no-imports --no-wrapping -i spec.json`
-- `cdd-c from_openapi to_sdk_cli -i spec.json -o target_directory`
-- `cdd-c from_openapi to_sdk -i spec.json -o target_directory`
-- `cdd-c from_openapi to_server -i spec.json -o target_directory`
+- `cdd-c serve_json_rpc --port 8080 --listen 0.0.0.0`
 
 The goal of this project is to enable rapid application development without tradeoffs. Tradeoffs of Protocol Buffers / Thrift etc. are an untouchable "generated" directory and package, compile-time and/or runtime overhead. Tradeoffs of Java or JavaScript for everything are: overhead in hardware access, offline mode, ML inefficiency, and more. And neither of these alternative approaches are truly integrated into your target system, test frameworks, and bigger abstractions you build in your app. Tradeoffs in CDD are code duplication (but CDD handles the synchronisation for you).
 
@@ -27,25 +27,33 @@ The goal of this project is to enable rapid application development without trad
 The `cdd-c` compiler leverages a unified architecture to support various facets of API and code lifecycle management.
 
 - **Compilation**:
-  - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, database schemas, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
-  - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
-  - **`C` → `C` (CST Transforms)**: Natively parse, analyze, and safely refactor `C` syntax (e.g. standardizing GNU extensions, porting to MSVC, percolating errors) with byte-for-byte lossless formatting.
-- **AST-Driven & Safe**: Employs static analysis (Abstract Syntax Trees via a custom whitespace, comment, and macro sensitive parser) instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
+    - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
+    - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
+- **AST-Driven & Safe**: Employs static analysis instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
 - **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
 
-## 📦 Installation
+## 📦 Installation & Build
 
-Requires a C compiler (GCC/Clang/MSVC) and CMake.
+### Native Tooling
 
 ```bash
-# Ubuntu / Debian
-sudo apt-get install gcc cmake pkg-config
+cmake -B build && cmake --build build
+ctest --test-dir build
+```
 
-# Build the CLI
+### Makefile / make.bat
+
+You can also use the included cross-platform Makefiles to fetch dependencies, build, and test:
+
+```bash
+# Install dependencies
+make deps
+
+# Build the project
 make build
 
-# The CLI binary is placed in bin/
-./bin/cdd-c --help
+# Run tests
+make test
 ```
 
 ## 🛠 Usage
@@ -54,10 +62,10 @@ make build
 
 ```bash
 # Generate C models from an OpenAPI spec
-./bin/cdd-c from_openapi to_sdk -i spec.json -o src/models
+cdd-c from_openapi to_sdk -i spec.json -o src/models
 
 # Generate an OpenAPI spec from your C code
-./bin/cdd-c to_openapi -f src/models/my_model.c -o openapi.json
+cdd-c to_openapi -f src/models -o openapi.json
 ```
 
 ### Programmatic SDK / Library
@@ -77,26 +85,27 @@ int main() {
 }
 ```
 
-## Design choices
-
-The `cdd-c` project uses a fully custom whitespace, comment, and macro sensitive parser for Lexing and Parsing C, enabling highly robust, standardized syntax tree creation without relying on complex, heavy external C/C++ parsers like Clang AST for everything, ensuring it stays lightweight.
-
 ## 🏗 Supported Conversions for C
 
-_(The boxes below reflect the features supported by this specific `cdd-c` implementation)_
+*(The boxes below reflect the features supported by this specific `cdd-c` implementation)*
 
-| Concept                       | Parse (From) | Emit (To) |
-| ----------------------------- | ------------ | --------- |
-| OpenAPI (JSON/YAML)           | ✅           | ✅        |
-| `C` Models / Structs / Types  | ✅           | ✅        |
-| `C` Server Routes / Endpoints | ✅           | ✅        |
-| `C` API Clients / SDKs        | ✅           | ✅        |
-| `C` ORM / DB Schemas          | [ ]          | ✅        |
-| `C` CLI Argument Parsers      | ✅           | ✅        |
-| `C` Docstrings / Comments     | ✅           | ✅        |
-| `C` AST Transformation (CST)  | ✅           | ✅        |
+| Features | Parse (From) | Emit (To) |
+| --- | --- | --- |
+| OpenAPI 3.2.0 | ✅ | ✅ |
+| API Client SDK | ✅ | ✅ |
+| API Client CLI | ✅ | ✅ |
+| Server Routes / Endpoints | ✅ | ✅ |
+| ORM / DB Schema | [ ] | [ ] |
+| Mocks + Tests | [ ] | [ ] |
+| Model Context Protocol (MCP) | [ ] | [ ] |
 
-WASM Support: Possible ✅ | Implemented ✅
+### Uncommon Features
+
+`cdd-c` is strictly a **superset** of the standard `cdd-${LANGUAGE}` features. In addition to standard OpenAPI code generation, it features a native, lossless C AST/CST framework. This enables powerful code transformations (like standardizing GNU extensions, porting to MSVC, and safe CRT rewriting) and memory safety auditing natively.
+
+- **Lossless AST Manipulation (Zero-Destruction Rule):** Perfectly captures and preserves "trivia"—inline comments, block comments, and exact whitespace (indentation, newlines).
+- **Built-in Security & Auditing:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, and missing initializations before they hit production.
+- **Safe CRT Transformation:** Automatically enforce safety by running the `safe_crt` transformer, which intelligently rewrites legacy string and memory operations to use bounds-checked equivalents (e.g., `strcpy_s`, `sprintf_s`).
 
 ---
 
@@ -255,42 +264,6 @@ Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a c
 ### 3. Built-in Security & Auditing
 - **Memory Safety Audits:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, and missing initializations before they hit production.
 - **Safe CRT Transformation:** Automatically enforce safety by running the `safe_crt` transformer, which intelligently rewrites legacy string and memory operations to use bounds-checked equivalents (e.g., `strcpy_s`, `sprintf_s`).
-
----
-
-## 🛠 Extending `cdd-c` with Transformers
-
-The true power of `cdd-c` is its extensibility. You can write your own standalone, AST-aware transformers that modify C codebases directly while perfectly preserving all formatting, macros, and comments. 
-
-### What is a Transformer?
-A transformer takes a parsed `cdd_cst_tree_t`, analyzes its geometrical and semantic nodes, and mutates the tree in place. It powers the `cdd-c transformer <toolname> --fix <files...>` CLI command.
-
-### Built-in Transformers
-`cdd-c` ships with several highly complex transformers ready out of the box:
-- **`gnu_standardizer`**: An exhaustive engine that lowers complex GNU C extensions (like `__int128`, `__complex__`, statement expressions, computed gotos, and VLAs) into strictly compliant ISO C89 code.
-- **`msvc_port`**: Automatically patches syntax, header guards, and type declarations to compile cleanly under Microsoft Visual C++ (MSVC).
-- **`extern_c`**: Intelligently wraps headers in `extern "C" { ... }` blocks for flawless C++ interoperability.
-- **`error_percolator`**: Analyzes function return types and automatically propagates nested error enums and exit codes up the call stack.
-- **`safe_crt`**: Upgrades standard library calls to their bounds-checked, secure MSVC equivalents.
-
-### How to Write Your Own Transformer
-
-Want to enforce a new coding standard, deprecate an old API project-wide, or implement a custom language feature? You can plug directly into the `cdd-c` mutator framework.
-
-1. **Create the File:** Create a new directory and source file under `src/transformers/my_tool/my_tool.c`.
-2. **Include the Headers:** Include the core AST and mutator API headers (`classes/parse/cdd_cst_query.h`, `classes/parse/cdd_cst_mutate.h`).
-3. **Define the Signature:** Implement the standard transformer prototype:
-   ```c
-   int cdd_transform_my_tool(cdd_cst_tree_t *tree, const cdd_transform_config_t *config);
-   ```
-4. **Mutate the Tree:** Use `cdd_cst_find_nodes_by_type` to locate your target expressions. You can deeply inspect the `cdd_cst_node_t` structures, check their lexical scopes, or evaluate their compile-time types. Use `cdd_cst_node_replace` or `cdd_cst_node_insert_after` to safely alter the tree.
-5. **Register the Tool:** Add your prototype to `include/cdd_cst_transform.h` and map it to the CLI in `src/routes/parse/cli_cst.c`.
-6. **Compile & Run:** Your tool is now available natively via:
-   ```bash
-   cdd-c transformer my_tool --fix src/**/*.c
-   ```
-
-Because `cdd-c` handles all the Lexing, CST generation, trivia management, and string emitting, your custom transformer only needs to focus on the raw logic of the C tree.
 
 ---
 
