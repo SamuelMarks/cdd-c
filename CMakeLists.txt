@@ -19,7 +19,15 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-fs" "${CMAKE_BINARY_DIR}/cfs")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include")
     elseif(VCPKG_TOOLCHAIN)
-        find_package(cfs CONFIG REQUIRED)
+        find_package(cfs CONFIG QUIET)
+        if(NOT cfs_FOUND)
+            FetchContent_Declare(
+                cfs
+                URL https://github.com/SamuelMarks/c-fs/archive/refs/heads/master.tar.gz
+            )
+            FetchContent_MakeAvailable(cfs)
+            include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
+        endif()
     else()
         FetchContent_Declare(
             cfs
