@@ -67,7 +67,7 @@ TEST test_cdd_transform_safe_crt(void) {
       "}\n";
   char *out = NULL;
   int rc;
-  cdd_transform_config_t config = {0, 2};
+  cdd_transform_config_t config = {0, 2, 0};
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
