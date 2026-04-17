@@ -1,155 +1,837 @@
 /* clang-format off */
-
 #include "cdd_cst_transform.h"
-
 #include "classes/parse/cdd_cst_mutate.h"
-
 #include "classes/parse/cdd_cst_parser.h"
-
 #include "classes/parse/cdd_cst_query.h"
-
 #include "c_str_span.h"
-
 #include <errno.h>
-
 #include <string.h>
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
+#include <ctype.h>
 /* clang-format on */
 
-static void extract_token_range_str(cdd_cst_node_t *stmt, size_t start_idx,
+typedef struct safe_crt_arena_t safe_crt_arena_t;
+struct safe_crt_arena_t {
+  safe_crt_arena_t *next;
+  char data[1];
+};
 
-                                    size_t end_idx, char *out_str,
+static safe_crt_arena_t *global_arena = NULL;
+static cdd_cst_tree_t *current_tree = NULL;
 
-                                    size_t max_len) {
+static void arena_free_all(void) {
+  safe_crt_arena_t *node = global_arena;
+  while (node) {
+    safe_crt_arena_t *next = node->next;
+    free(node);
+    node = next;
+  }
+  global_arena = NULL;
+}
 
-  cdd_token_t *t_start = stmt->children[start_idx].val.token;
+static void *arena_alloc(size_t len) {
+  safe_crt_arena_t *node =
+      (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
+  if (!node)
+    return NULL;
+  node->next = global_arena;
+  global_arena = node;
+  return node->data;
+}
 
-  cdd_token_t *t_end = stmt->children[end_idx].val.token;
+typedef struct expr_t expr_t;
+struct expr_t {
+  int type; /* 0: token, 1: call, 2: group, 3: fopen assign, 4: hidden */
+  cdd_token_t *tok;
+  cdd_token_t *close_tok;
+  expr_t *args[16];
+  size_t num_args;
+  expr_t *next;
+};
 
-  size_t len = (t_end->start + t_end->length) - t_start->start;
+static void append_trivia(char **buf, size_t *len, size_t *cap,
+                          cdd_trivia_t *tr) {
+  while (tr) {
+    if (*len + tr->length + 1 >= *cap) {
+      *cap = (*cap * 2) + tr->length + 1;
+      *buf = (char *)realloc(*buf, *cap);
+    }
+    memcpy(*buf + *len, tr->start, tr->length);
+    *len += tr->length;
+    (*buf)[*len] = '\0';
+    tr = tr->next;
+  }
+}
 
-  if (len >= max_len)
+static void append_str(char **buf, size_t *len, size_t *cap, const char *str,
+                       size_t slen) {
+  if (*len + slen + 1 >= *cap) {
+    *cap = (*cap * 2) + slen + 1;
+    *buf = (char *)realloc(*buf, *cap);
+  }
+  memcpy(*buf + *len, str, slen);
+  *len += slen;
+  (*buf)[*len] = '\0';
+}
 
-    len = max_len - 1;
+static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
+                              int stop_at_comma) {
+  expr_t *head = NULL;
+  expr_t *tail = NULL;
 
-  memcpy(out_str, t_start->start, len);
+  while (*idx < stmt->num_children) {
+    cdd_token_t *t = stmt->children[*idx].val.token;
+    expr_t *node;
 
-  out_str[len] = '\0';
+    if (t->kind == CDD_TOKEN_SEMICOLON && stop_at_comma)
+      break;
+    if (t->kind == CDD_TOKEN_RPAREN || t->kind == CDD_TOKEN_RBRACKET ||
+        t->kind == CDD_TOKEN_RBRACE)
+      break;
+    if (t->kind == CDD_TOKEN_COMMA && stop_at_comma)
+      break;
+
+    node = (expr_t *)arena_alloc(sizeof(expr_t));
+    memset(node, 0, sizeof(expr_t));
+    node->tok = t;
+
+    if (t->kind == CDD_TOKEN_IDENTIFIER && (*idx + 1) < stmt->num_children &&
+        stmt->children[*idx + 1].val.token->kind == CDD_TOKEN_LPAREN) {
+      node->type = 1;
+      (*idx) += 2;
+      while (*idx < stmt->num_children) {
+        if (stmt->children[*idx].val.token->kind == CDD_TOKEN_RPAREN) {
+          node->close_tok = stmt->children[*idx].val.token;
+          (*idx)++;
+          break;
+        }
+        if (node->num_args < 16) {
+          node->args[node->num_args++] = parse_expr_ast(stmt, idx, 1);
+        } else {
+          parse_expr_ast(stmt, idx, 1);
+        }
+        if (*idx < stmt->num_children &&
+            stmt->children[*idx].val.token->kind == CDD_TOKEN_COMMA) {
+          (*idx)++;
+        }
+      }
+    } else if (t->kind == CDD_TOKEN_LPAREN || t->kind == CDD_TOKEN_LBRACKET ||
+               t->kind == CDD_TOKEN_LBRACE) {
+      enum cdd_token_kind_t closing =
+          t->kind == CDD_TOKEN_LPAREN     ? CDD_TOKEN_RPAREN
+          : t->kind == CDD_TOKEN_LBRACKET ? CDD_TOKEN_RBRACKET
+                                          : CDD_TOKEN_RBRACE;
+      node->type = 2;
+      (*idx)++;
+      node->args[0] = parse_expr_ast(stmt, idx, 0);
+      if (*idx < stmt->num_children &&
+          stmt->children[*idx].val.token->kind == closing) {
+        node->close_tok = stmt->children[*idx].val.token;
+        (*idx)++;
+      }
+    } else {
+      node->type = 0;
+      (*idx)++;
+    }
+
+    if (!head) {
+      head = tail = node;
+    } else {
+      tail->next = node;
+      tail = node;
+    }
+  }
+  return head;
+}
+
+static int find_and_mark_fopen(expr_t *head) {
+  expr_t *curr = head;
+  expr_t *lhs_start = head;
+  int found = 0;
+  size_t i;
+
+  while (curr) {
+    if (curr->type == 0 && curr->tok->kind == CDD_TOKEN_SEMICOLON) {
+      lhs_start = curr->next;
+    } else if (curr->type == 0 && curr->tok->kind == CDD_TOKEN_ASSIGN) {
+      if (curr->next && curr->next->type == 1) {
+        char name[16] = {0};
+        size_t nlen =
+            curr->next->tok->length < 15 ? curr->next->tok->length : 15;
+        memcpy(name, curr->next->tok->start, nlen);
+        if (strcmp(name, "fopen") == 0 || strcmp(name, "_wfopen") == 0 ||
+            strcmp(name, "freopen") == 0 || strcmp(name, "tmpfile") == 0) {
+          expr_t *t;
+          curr->type = 3;
+          curr->args[0] = lhs_start;
+          curr->args[1] = curr->next;
+          t = lhs_start;
+          while (t && t != curr) {
+            t->type = 4;
+            t = t->next;
+          }
+          curr->next->type = 5;
+          found = 1;
+        }
+      }
+    }
+
+    if (curr->type == 1 || curr->type == 2) {
+      for (i = 0; i < curr->num_args; i++) {
+        if (find_and_mark_fopen(curr->args[i]))
+          found = 1;
+      }
+      if (curr->type == 2 && find_and_mark_fopen(curr->args[0]))
+        found = 1;
+    }
+
+    curr = curr->next;
+  }
+  return found;
+}
+
+static void check_unsupported_calls(expr_t *head) {
+  size_t i;
+  while (head) {
+    if (head->type == 1) {
+      char name[128] = {0};
+      size_t nlen = head->tok->length < 127 ? head->tok->length : 127;
+      memcpy(name, head->tok->start, nlen);
+      if (strcmp(name, "fopen") == 0 || strcmp(name, "_wfopen") == 0 ||
+          strcmp(name, "freopen") == 0 || strcmp(name, "tmpfile") == 0) {
+        fprintf(stderr, "WARNING: Bare %s call detected without assignment. Cannot refactor automatically.\n", name);
+      }
+      for (i = 0; i < head->num_args; i++) {
+        check_unsupported_calls(head->args[i]);
+      }
+    } else if (head->type == 2) {
+      check_unsupported_calls(head->args[0]);
+    }
+    head = head->next;
+  }
+}
+
+static int check_needs_transform(expr_t *head) {
+  size_t i;
+  while (head) {
+    if (head->type == 1 || head->type == 5) {
+      char name[128] = {0};
+      size_t nlen = head->tok->length < 127 ? head->tok->length : 127;
+      memcpy(name, head->tok->start, nlen);
+      if (strcmp(name, "strcpy") == 0 || strcmp(name, "strncpy") == 0 ||
+          strcmp(name, "sprintf") == 0 || strcmp(name, "vsprintf") == 0 ||
+          strcmp(name, "strcat") == 0 || strcmp(name, "strncat") == 0 ||
+          strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
+          strcmp(name, "snprintf") == 0 || strcmp(name, "vsnprintf") == 0 ||
+          strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
+          strcmp(name, "fprintf") == 0 || strcmp(name, "vfprintf") == 0 ||
+          strcmp(name, "_snprintf") == 0 || strcmp(name, "_vsnprintf") == 0 ||
+          strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0 ||
+          strcmp(name, "wcscpy") == 0 || strcmp(name, "wcsncpy") == 0 ||
+          strcmp(name, "wcscat") == 0 || strcmp(name, "wcsncat") == 0 ||
+          strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbsncpy") == 0 ||
+          strcmp(name, "_mbscat") == 0 || strcmp(name, "_mbsncat") == 0 ||
+          strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
+          strcmp(name, "scanf") == 0 || strcmp(name, "fscanf") == 0 ||
+          strcmp(name, "sscanf") == 0 || strcmp(name, "vscanf") == 0 ||
+          strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0 ||
+          strcmp(name, "_itoa") == 0 || strcmp(name, "_ltoa") == 0 ||
+          strcmp(name, "_ultoa") == 0 || strcmp(name, "_i64toa") == 0 ||
+          strcmp(name, "_ui64toa") == 0 || strcmp(name, "_itow") == 0 ||
+          strcmp(name, "_ltow") == 0 || strcmp(name, "strtok") == 0 ||
+          strcmp(name, "gets") == 0 || strcmp(name, "strlen") == 0 ||
+          strcmp(name, "strerror") == 0 || strcmp(name, "_strerror") == 0 ||
+          strcmp(name, "_stricmp") == 0 || strcmp(name, "_strnicmp") == 0 ||
+          strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
+          strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
+          strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
+          strcmp(name, "_mbsset") == 0 || strcmp(name, "_mbsnset") == 0 ||
+          strcmp(name, "_mbstok") == 0 || strcmp(name, "wcstok") == 0 ||
+          strcmp(name, "_wcslwr") == 0 || strcmp(name, "_wcsupr") == 0 ||
+          strcmp(name, "_wcserror") == 0 || strcmp(name, "mbstowcs") == 0 ||
+          strcmp(name, "wcstombs") == 0 || strcmp(name, "wctomb") == 0 ||
+          strcmp(name, "_gcvt") == 0 || strcmp(name, "_ecvt") == 0 ||
+          strcmp(name, "_fcvt") == 0 || strcmp(name, "tmpfile") == 0 ||
+          strcmp(name, "tmpnam") == 0 || strcmp(name, "_splitpath") == 0 ||
+          strcmp(name, "_makepath") == 0 || strcmp(name, "_wsplitpath") == 0 ||
+          strcmp(name, "_wmakepath") == 0 || strcmp(name, "getenv") == 0 ||
+          strcmp(name, "_wgetenv") == 0 || strcmp(name, "_putenv") == 0 ||
+          strcmp(name, "_wputenv") == 0 || strcmp(name, "_searchenv") == 0 ||
+          strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0 ||
+          strcmp(name, "_ultow") == 0) {
+        return 1;
+      }
+      for (i = 0; i < head->num_args; i++) {
+        if (check_needs_transform(head->args[i]))
+          return 1;
+      }
+    } else if (head->type == 2) {
+      if (check_needs_transform(head->args[0]))
+        return 1;
+    } else if (head->type == 3) {
+      return 1;
+    }
+    head = head->next;
+  }
+  return 0;
+}
+
+static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
+                     int is_msc) {
+  size_t k;
+  while (node) {
+    if (node->type == 0 || (node->type == 4 && !is_msc)) {
+      append_trivia(buf, len, cap, node->tok->leading_trivia);
+      append_str(buf, len, cap, (const char *)node->tok->start,
+                 node->tok->length);
+      append_trivia(buf, len, cap, node->tok->trailing_trivia);
+    } else if (node->type == 2) {
+      append_trivia(buf, len, cap, node->tok->leading_trivia);
+      append_str(buf, len, cap, (const char *)node->tok->start,
+                 node->tok->length);
+      append_trivia(buf, len, cap, node->tok->trailing_trivia);
+
+      emit_ast(node->args[0], buf, len, cap, is_msc);
+
+      if (node->close_tok) {
+        append_trivia(buf, len, cap, node->close_tok->leading_trivia);
+        append_str(buf, len, cap, (const char *)node->close_tok->start,
+                   node->close_tok->length);
+        append_trivia(buf, len, cap, node->close_tok->trailing_trivia);
+      }
+    } else if (node->type == 1 || (node->type == 5 && !is_msc)) {
+      char name[128];
+      size_t nlen = node->tok->length < 127 ? node->tok->length : 127;
+      int is_safe = 0;
+
+      memcpy(name, node->tok->start, nlen);
+      name[nlen] = '\0';
+
+      if (is_msc) {
+        if (strcmp(name, "strcpy") == 0 || strcmp(name, "strcat") == 0 ||
+            strcmp(name, "sprintf") == 0 || strcmp(name, "vsprintf") == 0 ||
+            strcmp(name, "wcscpy") == 0 || strcmp(name, "wcscat") == 0 ||
+            strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbscat") == 0 ||
+            strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
+            strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
+            strcmp(name, "_mbsset") == 0 || strcmp(name, "_mbsnset") == 0)
+          is_safe = 1;
+        else if (strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
+                 strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
+                 strcmp(name, "_wcslwr") == 0 || strcmp(name, "_wcsupr") == 0 ||
+                 strcmp(name, "gets") == 0 || strcmp(name, "tmpnam") == 0 ||
+                 strcmp(name, "strlen") == 0)
+          is_safe = 9;
+        else if (strcmp(name, "strncpy") == 0 || strcmp(name, "strncat") == 0 ||
+                 strcmp(name, "wcsncpy") == 0 || strcmp(name, "wcsncat") == 0 ||
+                 strcmp(name, "_mbsncpy") == 0 || strcmp(name, "_mbsncat") == 0)
+          is_safe = 2;
+        else if (strcmp(name, "snprintf") == 0 ||
+                 strcmp(name, "vsnprintf") == 0 ||
+                 strcmp(name, "_snprintf") == 0 ||
+                 strcmp(name, "_vsnprintf") == 0)
+          is_safe = 3;
+        else if (strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
+                 strcmp(name, "fprintf") == 0 || strcmp(name, "vfprintf") == 0)
+          is_safe = 4;
+        else if (strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
+                 strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0)
+          is_safe = 6;
+        else if (strcmp(name, "scanf") == 0 || strcmp(name, "fscanf") == 0 ||
+                 strcmp(name, "sscanf") == 0 || strcmp(name, "vscanf") == 0 ||
+                 strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0)
+          is_safe = 7;
+        else if (strcmp(name, "_itoa") == 0 || strcmp(name, "_ltoa") == 0 ||
+                 strcmp(name, "_ultoa") == 0 || strcmp(name, "_i64toa") == 0 ||
+                 strcmp(name, "_ui64toa") == 0 || strcmp(name, "_itow") == 0 ||
+                 strcmp(name, "_ltow") == 0 || strcmp(name, "_ultow") == 0)
+          is_safe = 8;
+        else if (strcmp(name, "strlen") == 0)
+          is_safe = 9;
+        else if (strcmp(name, "_splitpath") == 0 || strcmp(name, "_wsplitpath") == 0)
+          is_safe = 10;
+        else if (strcmp(name, "_makepath") == 0 || strcmp(name, "_wmakepath") == 0)
+          is_safe = 11;
+      }
+
+      if (is_safe) {
+        char safe_name[128];
+        sprintf(safe_name, "%s_s", name);
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        append_str(buf, len, cap, safe_name, strlen(safe_name));
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+      } else {
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        append_str(buf, len, cap, (const char *)node->tok->start,
+                   node->tok->length);
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+      }
+
+      append_str(buf, len, cap, "(", 1);
+
+      if (is_safe == 1 && node->num_args >= 2) {
+        char *dummy_buf;
+        size_t dummy_len = 0;
+        size_t dummy_cap = 1024;
+        char *stripped;
+
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+
+        dummy_buf = (char *)malloc(1024);
+        dummy_buf[0] = 0;
+        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+        stripped = dummy_buf;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, stripped, strlen(stripped));
+        free(dummy_buf);
+
+        append_str(buf, len, cap, ")", 1);
+
+        for (k = 1; k < node->num_args; k++) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(node->args[k], buf, len, cap, is_msc);
+        }
+      } else if (is_safe == 2 && node->num_args >= 3) {
+        char *dummy_buf;
+        size_t dummy_len = 0;
+        size_t dummy_cap = 1024;
+        char *stripped;
+
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+
+        dummy_buf = (char *)malloc(1024);
+        dummy_buf[0] = 0;
+        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+        stripped = dummy_buf;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, stripped, strlen(stripped));
+        free(dummy_buf);
+
+        append_str(buf, len, cap, "), ", 3);
+        emit_ast(node->args[1], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", _TRUNCATE", 11);
+      } else if (is_safe == 3 && node->num_args >= 3) {
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", ", 2);
+        emit_ast(node->args[1], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", _TRUNCATE", 11);
+        for (k = 2; k < node->num_args; k++) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(node->args[k], buf, len, cap, is_msc);
+        }
+      } else if (is_safe == 6 && node->num_args >= 3) {
+        char *dummy_buf;
+        size_t dummy_len = 0;
+        size_t dummy_cap = 1024;
+        char *stripped;
+
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+
+        dummy_buf = (char *)malloc(1024);
+        dummy_buf[0] = 0;
+        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+        stripped = dummy_buf;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, stripped, strlen(stripped));
+        free(dummy_buf);
+
+        append_str(buf, len, cap, "), ", 3);
+        emit_ast(node->args[1], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", ", 2);
+        emit_ast(node->args[2], buf, len, cap, is_msc);
+      } else if (is_safe == 8 && node->num_args >= 3) {
+        char *dummy_buf;
+        size_t dummy_len = 0;
+        size_t dummy_cap = 1024;
+        char *stripped;
+
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", ", 2);
+        emit_ast(node->args[1], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+
+        dummy_buf = (char *)malloc(1024);
+        dummy_buf[0] = 0;
+        emit_ast(node->args[1], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+        stripped = dummy_buf;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, stripped, strlen(stripped));
+        free(dummy_buf);
+
+        append_str(buf, len, cap, "), ", 3);
+        emit_ast(node->args[2], buf, len, cap, is_msc);
+      } else if (is_safe == 9 && node->num_args == 1) {
+        char *dummy_buf;
+        size_t dummy_len = 0;
+        size_t dummy_cap = 1024;
+        char *stripped;
+
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+
+        dummy_buf = (char *)malloc(1024);
+        dummy_buf[0] = 0;
+        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+        stripped = dummy_buf;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, stripped, strlen(stripped));
+        free(dummy_buf);
+
+        append_str(buf, len, cap, ")", 1);
+      } else if (is_safe == 10 && node->num_args >= 5) {
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        for (k = 1; k < 5; k++) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(node->args[k], buf, len, cap, is_msc);
+          append_str(buf, len, cap, ", ", 2);
+          
+          {
+            char *dummy_buf;
+            size_t dummy_len = 0;
+            size_t dummy_cap = 1024;
+            char *stripped;
+
+            dummy_buf = (char *)malloc(1024);
+            dummy_buf[0] = 0;
+            emit_ast(node->args[k], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+            stripped = dummy_buf;
+            while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r')
+              stripped++;
+
+            if (strcmp(stripped, "NULL") == 0 || strcmp(stripped, "0") == 0) {
+              append_str(buf, len, cap, "0", 1);
+            } else {
+              append_str(buf, len, cap, "sizeof(", 7);
+              append_str(buf, len, cap, stripped, strlen(stripped));
+              append_str(buf, len, cap, ")", 1);
+            }
+            free(dummy_buf);
+          }
+        }
+      } else if (is_safe == 11 && node->num_args >= 5) {
+        emit_ast(node->args[0], buf, len, cap, is_msc);
+        append_str(buf, len, cap, ", sizeof(", 9);
+        {
+          char *dummy_buf;
+          size_t dummy_len = 0;
+          size_t dummy_cap = 1024;
+          char *stripped;
+
+          dummy_buf = (char *)malloc(1024);
+          dummy_buf[0] = 0;
+          emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+          stripped = dummy_buf;
+          while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r')
+            stripped++;
+
+          append_str(buf, len, cap, stripped, strlen(stripped));
+          free(dummy_buf);
+        }
+        append_str(buf, len, cap, ")", 1);
+
+        for (k = 1; k < node->num_args; k++) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(node->args[k], buf, len, cap, is_msc);
+        }
+      } else if (is_safe == 7) {
+        size_t format_idx = 0;
+        if (strcmp(name, "fscanf") == 0 || strcmp(name, "sscanf") == 0 ||
+            strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0) {
+          format_idx = 1;
+        }
+
+        if (format_idx < node->num_args) {
+          char *fmt_buf = (char *)malloc(1024);
+          size_t fmt_len = 0;
+          size_t fmt_cap = 1024;
+          int needs_size[32] = {0};
+          int num_specifiers = 0;
+          char *start;
+
+          fmt_buf[0] = 0;
+          emit_ast(node->args[format_idx], &fmt_buf, &fmt_len, &fmt_cap, 0);
+
+          start = strchr(fmt_buf, '"');
+          if (start) {
+            start++;
+            while (*start && *start != '"') {
+              if (*start == '%') {
+                start++;
+                if (*start == '%') {
+                  start++;
+                  continue;
+                }
+                if (*start == '*') {
+                  start++;
+                  while (*start && !isalpha(*start) && *start != '[')
+                    start++;
+                  if (*start)
+                    start++;
+                  continue;
+                }
+                while (*start && !isalpha(*start) && *start != '[')
+                  start++;
+                if (*start) {
+                  if (*start == 's' || *start == 'S' || *start == 'c' ||
+                      *start == 'C' || *start == '[') {
+                    if (num_specifiers < 32)
+                      needs_size[num_specifiers] = 1;
+                  }
+                  num_specifiers++;
+                  if (*start == '[') {
+                    start++;
+                    if (*start == '^')
+                      start++;
+                    if (*start == ']')
+                      start++;
+                    while (*start && *start != ']')
+                      start++;
+                  }
+                  start++;
+                }
+              } else {
+                start++;
+              }
+            }
+          }
+
+          for (k = 0; k < node->num_args; k++) {
+            if (k > 0)
+              append_str(buf, len, cap, ", ", 2);
+            emit_ast(node->args[k], buf, len, cap, is_msc);
+
+            if (k > format_idx) {
+              int arg_idx = (int)(k - (format_idx + 1));
+              if (arg_idx < num_specifiers && needs_size[arg_idx]) {
+                char *dummy_buf;
+                size_t dummy_len = 0;
+                size_t dummy_cap = 1024;
+                char *stripped;
+
+                append_str(buf, len, cap, ", (unsigned)sizeof(", 19);
+
+                dummy_buf = (char *)malloc(1024);
+                dummy_buf[0] = 0;
+                emit_ast(node->args[k], &dummy_buf, &dummy_len, &dummy_cap, 0);
+
+                stripped = dummy_buf;
+                while (*stripped == ' ' || *stripped == '\t' ||
+                       *stripped == '\n' || *stripped == '\r')
+                  stripped++;
+
+                if (stripped[0] == '&') {
+                  append_str(buf, len, cap, stripped + 1, strlen(stripped) - 1);
+                } else {
+                  append_str(buf, len, cap, stripped, strlen(stripped));
+                }
+                free(dummy_buf);
+
+                append_str(buf, len, cap, ")", 1);
+              }
+            }
+          }
+          free(fmt_buf);
+        } else {
+          for (k = 0; k < node->num_args; k++) {
+            if (k > 0)
+              append_str(buf, len, cap, ", ", 2);
+            emit_ast(node->args[k], buf, len, cap, is_msc);
+          }
+        }
+      } else {
+        for (k = 0; k < node->num_args; k++) {
+          if (k > 0)
+            append_str(buf, len, cap, ", ", 2);
+          emit_ast(node->args[k], buf, len, cap, is_msc);
+        }
+      }
+
+      if (node->close_tok) {
+        append_trivia(buf, len, cap, node->close_tok->leading_trivia);
+        append_str(buf, len, cap, ")", 1);
+        append_trivia(buf, len, cap, node->close_tok->trailing_trivia);
+      } else {
+        append_str(buf, len, cap, ")", 1);
+      }
+    } else if (node->type == 3) {
+      if (is_msc) {
+        expr_t *lhs = node->args[0];
+        expr_t *call = node->args[1];
+        int is_decl = 0;
+        int token_count = 0;
+        int has_dot_arrow_bracket = 0;
+        int first_is_star = 0;
+        expr_t *last_t = NULL;
+        expr_t *t_iter = lhs;
+
+        while (t_iter && t_iter != node) {
+          if (t_iter->type == 0 && t_iter->tok) {
+            if (token_count == 0 && t_iter->tok->kind == CDD_TOKEN_STAR) {
+              first_is_star = 1;
+            }
+            if (t_iter->tok->kind == CDD_TOKEN_DOT ||
+                t_iter->tok->kind == CDD_TOKEN_ARROW ||
+                t_iter->tok->kind == CDD_TOKEN_LBRACKET) {
+              has_dot_arrow_bracket = 1;
+            }
+          }
+          token_count++;
+          last_t = t_iter;
+          t_iter = t_iter->next;
+        }
+
+        if (token_count > 1 && !has_dot_arrow_bracket && !first_is_star) {
+          is_decl = 1;
+        }
+
+        if (is_decl) {
+          char safe_call[32];
+          size_t nlen = call->tok->length < 15 ? call->tok->length : 15;
+          char call_name[16] = {0};
+          expr_t *t = lhs;
+          memcpy(call_name, call->tok->start, nlen);
+          sprintf(safe_call, "%s_s(&", call_name);
+          while (t && t != node) {
+            append_trivia(buf, len, cap, t->tok->leading_trivia);
+            append_str(buf, len, cap, (const char *)t->tok->start,
+                       t->tok->length);
+            append_trivia(buf, len, cap, t->tok->trailing_trivia);
+            t = t->next;
+          }
+          append_str(buf, len, cap, ";\n", 2);
+          append_str(buf, len, cap, safe_call, strlen(safe_call));
+          append_str(buf, len, cap, (const char *)last_t->tok->start,
+                     last_t->tok->length);
+        } else {
+          char safe_call[32];
+          size_t nlen = call->tok->length < 15 ? call->tok->length : 15;
+          char call_name[16] = {0};
+          expr_t *t = lhs;
+          memcpy(call_name, call->tok->start, nlen);
+          sprintf(safe_call, "%s_s(&", call_name);
+          append_trivia(buf, len, cap, node->tok->leading_trivia);
+          append_str(buf, len, cap, safe_call, strlen(safe_call));
+          while (t && t != node) {
+            append_trivia(buf, len, cap, t->tok->leading_trivia);
+            append_str(buf, len, cap, (const char *)t->tok->start,
+                       t->tok->length);
+            append_trivia(buf, len, cap, t->tok->trailing_trivia);
+            t = t->next;
+          }
+        }
+        if (call->num_args >= 1) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(call->args[0], buf, len, cap, is_msc);
+        }
+        if (call->num_args >= 2) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(call->args[1], buf, len, cap, is_msc);
+        }
+        if (call->num_args >= 3) {
+          append_str(buf, len, cap, ", ", 2);
+          emit_ast(call->args[2], buf, len, cap, is_msc);
+        }
+        append_str(buf, len, cap, ")", 1);
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+      } else {
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        append_str(buf, len, cap, "=", 1);
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+      }
+    }
+
+    node = node->next;
+  }
 }
 
 static void get_indent_string(cdd_token_t *tok, char *out_indent) {
-
   cdd_trivia_t *tr = tok->leading_trivia;
-
   cdd_trivia_t *last_ws = NULL;
 
   out_indent[0] = '\0';
 
   while (tr) {
-
     if (tr->kind == TRIVIA_WHITESPACE) {
-
       last_ws = tr;
-
     } else if (tr->kind == TRIVIA_NEWLINE) {
-
       last_ws = NULL;
     }
-
     tr = tr->next;
   }
 
   if (last_ws) {
-
     size_t len = last_ws->length < 63 ? last_ws->length : 63;
-
     memcpy(out_indent, last_ws->start, len);
-
     out_indent[len] = '\0';
-
   } else {
-
     strcpy(out_indent, "  ");
   }
 }
 
 static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
-
                             const char *msc_ver_stmt, const char *else_stmt,
-
                             const char *indent) {
-
-  char *buf = (char *)calloc(1, 4096);
-
+  size_t buf_len =
+      strlen(msc_ver_stmt) + strlen(else_stmt) + strlen(indent) * 2 + 128;
+  char *buf = (char *)arena_alloc(buf_len);
   cdd_cst_tree_t *syn_tree = NULL;
-
   int rc;
-
   cdd_cst_node_t *cloned;
 
   if (!buf)
-
     return ENOMEM;
 
-  sprintf(buf,
-
-          "\n#if defined(_MSC_VER)\n%s%s\n#else\n%s%s\n#endif\n",
-
-          indent, msc_ver_stmt, indent, else_stmt);
+  sprintf(buf, "\n#if defined(_MSC_VER)\n%s%s\n#else\n%s%s\n#endif\n", indent,
+          msc_ver_stmt, indent, else_stmt);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &syn_tree);
-
   if (rc != 0) {
-
-    free(buf);
-
     return rc;
   }
 
   if (syn_tree->root->num_children > 0) {
-
     cdd_cst_node_t *prev = stmt;
-
     size_t k;
 
     for (k = 0; k < syn_tree->root->num_children; k++) {
-
       if (syn_tree->root->children[k].kind == CDD_CST_CHILD_NODE) {
-
         if (cdd_cst_node_clone(tree, syn_tree->root->children[k].val.node,
-
                                &cloned) == 0) {
-
           if (k == 0) {
-
             cdd_token_t *cloned_first =
-
                 cloned->num_children > 0
-
                     ? (cloned->children[0].kind == CDD_CST_CHILD_TOKEN
-
                            ? cloned->children[0].val.token
-
                            : NULL)
-
                     : NULL;
-
             if (cloned_first)
-
               cloned_first->leading_trivia = NULL;
 
             rc = cdd_cst_node_replace(tree, stmt, cloned);
-
             prev = cloned;
-
           } else {
-
             rc = cdd_cst_node_insert_after(prev, cloned);
-
             prev = cloned;
           }
         }
@@ -158,434 +840,84 @@ static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
   }
 
   cdd_cst_tree_free(syn_tree);
-
-  /* Intentionally leaking buf since cloned tokens point into it. */
-
   return rc;
 }
 
 int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
-
                            const cdd_transform_config_t *config) {
-
   cdd_cst_query_result_t res;
-
   size_t i;
-
   int rc;
+  int replaced_any;
 
   (void)config;
 
   if (!tree || !tree->root)
-
     return EINVAL;
 
-  rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
-
-  if (rc != 0)
-
-    return rc;
-
-  for (i = 0; i < res.size; i++) {
-
-    cdd_cst_node_t *stmt = res.nodes[i];
-
-    size_t j;
-
-    int paren_depth = 0;
-
-    int found_func = 0; /* 1: strcpy, 2: strncpy, 3: sprintf, 4: fopen, 5:
-
-                           strcat, 6: strncat, 7: memcpy, 8: memmove */
-
-    size_t dest_start = (size_t)-1, dest_end = (size_t)-1;
-
-    size_t src_start = (size_t)-1, src_end = (size_t)-1;
-
-    size_t size_start = (size_t)-1, size_end = (size_t)-1;
-
-    size_t assign_idx = (size_t)-1;
-
-    cdd_token_t *first_tok = NULL;
-
-    for (j = 0; j < stmt->num_children; j++) {
-
-      if (stmt->children[j].kind == CDD_CST_CHILD_TOKEN) {
-
-        cdd_token_t *t = stmt->children[j].val.token;
-
-        if (!first_tok)
-
-          first_tok = t;
-
-        if (!found_func) {
-
-          if (t->kind == CDD_TOKEN_ASSIGN) {
-
-            assign_idx = j;
-
-          } else if (t->kind == CDD_TOKEN_IDENTIFIER) {
-
-            if (t->length == 6 && memcmp(t->start, "strcpy", 6) == 0 &&
-
-                assign_idx == (size_t)-1) {
-
-              found_func = 1;
-
-            } else if (t->length == 7 && memcmp(t->start, "strncpy", 7) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 2;
-
-            } else if (t->length == 7 && memcmp(t->start, "sprintf", 7) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 3;
-
-            } else if (t->length == 5 && memcmp(t->start, "fopen", 5) == 0) {
-
-              if (assign_idx != (size_t)-1) {
-
-                found_func = 4;
-
-              } else {
-
-                break; /* bare fopen() call not supported */
-              }
-
-            } else if (t->length == 6 && memcmp(t->start, "strcat", 6) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 5;
-
-            } else if (t->length == 7 && memcmp(t->start, "strncat", 7) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 6;
-
-            } else if (t->length == 6 && memcmp(t->start, "memcpy", 6) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 7;
-
-            } else if (t->length == 7 && memcmp(t->start, "memmove", 7) == 0 &&
-
-                       assign_idx == (size_t)-1) {
-
-              found_func = 8;
-
-            } else if (assign_idx == (size_t)-1) {
-
-              /* allow identifiers before assignment */
-            }
-
-          } else if (assign_idx == (size_t)-1) {
-
-            /* allow other tokens like f = before fopen */
-          }
-
-        } else {
-
-          if (t->kind == CDD_TOKEN_LPAREN) {
-
-            if (paren_depth == 0)
-
-              dest_start = j + 1;
-
-            paren_depth++;
-
-          } else if (t->kind == CDD_TOKEN_RPAREN) {
-
-            paren_depth--;
-
-            if (paren_depth == 0) {
-
-              if (found_func == 1 || found_func == 3 || found_func == 4 ||
-
-                  found_func == 5) {
-
-                src_end = j - 1;
-
-              } else if (found_func == 2 || found_func == 6 ||
-
-                         found_func == 7 || found_func == 8) {
-
-                size_end = j - 1;
-              }
-            }
-
-          } else if (t->kind == CDD_TOKEN_COMMA && paren_depth == 1) {
-
-            if (found_func == 1 || found_func == 3 || found_func == 4 ||
-
-                found_func == 5) {
-
-              if (dest_end == (size_t)-1) {
-
-                dest_end = j - 1;
-
-                src_start = j + 1;
-              }
-
-            } else if (found_func == 2 || found_func == 6 || found_func == 7 ||
-
-                       found_func == 8) {
-
-              if (dest_end == (size_t)-1) {
-
-                dest_end = j - 1;
-
-                src_start = j + 1;
-
-              } else if (src_end == (size_t)-1) {
-
-                src_end = j - 1;
-
-                size_start = j + 1;
-              }
-            }
-
-          } else if (t->kind == CDD_TOKEN_SEMICOLON && paren_depth == 0) {
-
-            /* end */
-          }
+  if (current_tree != tree) {
+    arena_free_all();
+    current_tree = tree;
+  }
+
+  do {
+    replaced_any = 0;
+    rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_UNKNOWN, &res);
+    if (rc != 0)
+      return rc;
+
+    for (i = 0; i < res.size; i++) {
+      cdd_cst_node_t *stmt = res.nodes[i];
+      size_t idx = 0;
+      expr_t *ast;
+      cdd_token_t *first_tok = NULL;
+
+      if (stmt->num_children > 0 &&
+          stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
+        first_tok = stmt->children[0].val.token;
+      }
+
+      ast = parse_expr_ast(stmt, &idx, 0);
+      find_and_mark_fopen(ast);
+      check_unsupported_calls(ast);
+
+      if (check_needs_transform(ast)) {
+        char indent[64];
+        size_t msc_cap = 1024, msc_len = 0;
+        size_t else_cap = 1024, else_len = 0;
+        char *msc_buf = (char *)malloc(msc_cap);
+        char *else_buf = (char *)malloc(else_cap);
+        cdd_trivia_t *saved_trivia = first_tok ? first_tok->leading_trivia : NULL;
+msc_buf[0] = '\0';
+        else_buf[0] = '\0';
+
+        get_indent_string(first_tok, indent);
+
+                if (first_tok)
+          first_tok->leading_trivia = NULL;
+
+        emit_ast(ast, &msc_buf, &msc_len, &msc_cap, 1);
+        emit_ast(ast, &else_buf, &else_len, &else_cap, 0);
+
+        if (first_tok)
+          first_tok->leading_trivia = saved_trivia;
+
+        if (strcmp(msc_buf, else_buf) != 0) {
+          replace_safe_crt(tree, stmt, msc_buf, else_buf, indent);
+          replaced_any = 1;
+        }
+
+        free(msc_buf);
+        free(else_buf);
+
+        if (replaced_any) {
+          break;
         }
       }
     }
 
-    if (found_func && paren_depth == 0 && first_tok) {
-
-      char indent[64];
-
-      char dest_str[1024] = {0};
-
-      char src_str[1024] = {0};
-
-      char size_str[1024] = {0};
-
-      char var_str[1024] = {0};
-
-      char msc_stmt[2048];
-
-      char else_stmt[2048];
-
-      get_indent_string(first_tok, indent);
-
-      if (found_func == 1 && dest_end != (size_t)-1 && src_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        sprintf(msc_stmt, "strcpy_s(%s, sizeof(%s), %s);",
-
-                dest_str, dest_str, src_str);
-
-        sprintf(else_stmt, "strcpy(%s, %s);", dest_str,
-
-                src_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 2 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1 && size_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        extract_token_range_str(stmt, size_start, size_end, size_str,
-
-                                sizeof(size_str));
-
-        sprintf(msc_stmt, "strncpy_s(%s, %s + 1, %s, %s);",
-
-                dest_str, size_str, src_str, size_str);
-
-        sprintf(else_stmt, "strncpy(%s, %s, %s);", dest_str,
-
-                src_str, size_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 3 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        sprintf(msc_stmt, "sprintf_s(%s, sizeof(%s), %s);",
-
-                dest_str, dest_str, src_str);
-
-        sprintf(else_stmt, "sprintf(%s, %s);", dest_str,
-
-                src_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 4 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1) {
-
-        size_t var_start = 0;
-
-        size_t var_end = assign_idx - 1;
-
-        while (var_start < var_end &&
-
-               stmt->children[var_start].kind == CDD_CST_CHILD_TOKEN &&
-
-               stmt->children[var_start].val.token->kind == CDD_TOKEN_OTHER)
-
-          var_start++;
-
-        extract_token_range_str(stmt, var_start, var_end, var_str,
-
-                                sizeof(var_str));
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        sprintf(msc_stmt, "fopen_s(&%s, %s, %s);", var_str,
-
-                dest_str, src_str);
-
-        sprintf(else_stmt, "%s = fopen(%s, %s);", var_str,
-
-                dest_str, src_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 5 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        sprintf(msc_stmt, "strcat_s(%s, sizeof(%s), %s);",
-
-                dest_str, dest_str, src_str);
-
-        sprintf(else_stmt, "strcat(%s, %s);", dest_str,
-
-                src_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 6 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1 && size_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        extract_token_range_str(stmt, size_start, size_end, size_str,
-
-                                sizeof(size_str));
-
-        sprintf(msc_stmt, "strncat_s(%s, %s + 1, %s, %s);",
-
-                dest_str, size_str, src_str, size_str);
-
-        sprintf(else_stmt, "strncat(%s, %s, %s);", dest_str,
-
-                src_str, size_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 7 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1 && size_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        extract_token_range_str(stmt, size_start, size_end, size_str,
-
-                                sizeof(size_str));
-
-        sprintf(msc_stmt, "memcpy_s(%s, %s, %s, %s);",
-
-                dest_str, size_str, src_str, size_str);
-
-        sprintf(else_stmt, "memcpy(%s, %s, %s);", dest_str,
-
-                src_str, size_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-
-      } else if (found_func == 8 && dest_end != (size_t)-1 &&
-
-                 src_end != (size_t)-1 && size_end != (size_t)-1) {
-
-        extract_token_range_str(stmt, dest_start, dest_end, dest_str,
-
-                                sizeof(dest_str));
-
-        extract_token_range_str(stmt, src_start, src_end, src_str,
-
-                                sizeof(src_str));
-
-        extract_token_range_str(stmt, size_start, size_end, size_str,
-
-                                sizeof(size_str));
-
-        sprintf(msc_stmt, "memmove_s(%s, %s, %s, %s);",
-
-                dest_str, size_str, src_str, size_str);
-
-        sprintf(else_stmt, "memmove(%s, %s, %s);", dest_str,
-
-                src_str, size_str);
-
-        replace_safe_crt(tree, stmt, msc_stmt, else_stmt, indent);
-      }
-    }
-  }
-
-  free(res.nodes);
+    free(res.nodes);
+  } while (replaced_any);
 
   return 0;
 }

@@ -15,17 +15,20 @@ endif()
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
-    FetchContent_Declare(
-        cfs
-        GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
-    GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-
-
-    )
-
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-fs" "${CMAKE_BINARY_DIR}/cfs")
+        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include")
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(cfs CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+            cfs
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
+            GIT_TAG master
+        )
         FetchContent_MakeAvailable(cfs)
-    include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
+        include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
+    endif()
 endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
@@ -252,37 +255,50 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     # c-str-span
 
-    FetchContent_Declare(
-        c_str_span
-        GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
-    GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-    
-        
-    )
-    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h")
+            file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h" span_content)
+            string(REPLACE "// size must be >= 0" "/* size must be >= 0 */" span_content "${span_content}")
+            string(REPLACE "/* Size = 1024 */" "Size = 1024" span_content "${span_content}")
+            string(REPLACE "// Size = 1024" "Size = 1024" span_content "${span_content}")
+            file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h" "${span_content}")
+        endif()
+        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span")
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(c_str_span CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+            c_str_span
+            GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
+            GIT_TAG master
+        )
         FetchContent_MakeAvailable(c_str_span)
-    if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
-        file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
-        string(REPLACE "// size must be >= 0" "/* size must be >= 0 */" span_content "${span_content}")
-        string(REPLACE "/* Size = 1024 */" "Size = 1024" span_content "${span_content}")
-        string(REPLACE "// Size = 1024" "Size = 1024" span_content "${span_content}")
-        file(WRITE "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" "${span_content}")
+        if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
+            file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
+            string(REPLACE "// size must be >= 0" "/* size must be >= 0 */" span_content "${span_content}")
+            string(REPLACE "/* Size = 1024 */" "Size = 1024" span_content "${span_content}")
+            string(REPLACE "// Size = 1024" "Size = 1024" span_content "${span_content}")
+            file(WRITE "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" "${span_content}")
+        endif()
+        include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
     endif()
-    include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
 
     # c89stringutils
-    FetchContent_Declare(
-        c89stringutils
-        GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-    GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-    
-        
-    )
-    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
+        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/c89stringutils")
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(c89stringutils CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+            c89stringutils
+            GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
+            GIT_TAG master
+        )
         FetchContent_MakeAvailable(c89stringutils)
-    include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
+        include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
+    endif()
 
     # curl
     if (C_CDD_USE_LIBCURL)
@@ -297,22 +313,28 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif ()
 
     # parson
-    FetchContent_Declare(
-        parson
-        GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-    GIT_TAG master
-    UPDATE_COMMAND git fetch origin master COMMAND git reset --hard origin/master
-    
-        
-    )
-    
-    set(OLD_BSL ${BUILD_SHARED_LIBS})
-    set(BUILD_SHARED_LIBS OFF)
-    FetchContent_MakeAvailable(parson)
-    set(BUILD_SHARED_LIBS ${OLD_BSL})
-    include_directories(SYSTEM ${parson_SOURCE_DIR})
-    if(TARGET parson AND NOT TARGET parson::parson)
-        add_library(parson::parson ALIAS parson)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
+        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../parson")
+        if(TARGET parson AND NOT TARGET parson::parson)
+            add_library(parson::parson ALIAS parson)
+        endif()
+    elseif(VCPKG_TOOLCHAIN)
+        find_package(parson CONFIG REQUIRED)
+    else()
+        FetchContent_Declare(
+            parson
+            GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
+            GIT_TAG master
+        )
+        set(OLD_BSL ${BUILD_SHARED_LIBS})
+        set(BUILD_SHARED_LIBS OFF)
+        FetchContent_MakeAvailable(parson)
+        set(BUILD_SHARED_LIBS ${OLD_BSL})
+        include_directories(SYSTEM ${parson_SOURCE_DIR})
+        if(TARGET parson AND NOT TARGET parson::parson)
+            add_library(parson::parson ALIAS parson)
+        endif()
     endif()
     if (C_CDD_USE_LIBCURL)
         if(TARGET curl AND NOT TARGET CURL::libcurl)
