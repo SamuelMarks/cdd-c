@@ -3,6 +3,10 @@ message(STATUS "RUNNING cdd-c CMakeLists.txt")
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.1 LANGUAGES C)
 
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     option(C_CDD_BUILD_TESTS "Build tests" ON)
 else()
@@ -15,10 +19,7 @@ endif()
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-fs" "${CMAKE_BINARY_DIR}/cfs")
-        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include")
-    elseif(VCPKG_TOOLCHAIN)
+    if(VCPKG_TOOLCHAIN)
         find_package(cfs CONFIG QUIET)
         if(NOT cfs_FOUND)
             FetchContent_Declare(
@@ -166,7 +167,7 @@ endif()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-Wno-long-long;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-fprofile-arcs;-ftest-coverage>>"
+            "$<$<AND:${gcc_like},$<CONFIG:Debug>>:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-Wno-missing-braces;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;-fprofile-arcs;-ftest-coverage>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
     target_link_options(
@@ -206,7 +207,7 @@ endif()
     target_compile_options(
             "${PROJECT_NAME}_compiler_flags"
             INTERFACE
-            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
+            "$<${gcc_like}:$<BUILD_INTERFACE:-Wshadow;-Wformat=2;-Wall;-Wextra;-Wcast-align;-Wpointer-arith;-Wmissing-prototypes;-Wstrict-prototypes;-Wmissing-declarations;-pedantic;-Wno-long-long;-Wno-overlength-strings;-Wno-unused-value;-Wno-unused-variable;>>"
             "$<${msvc}:$<BUILD_INTERFACE:-W4;-Zi;-wd4996;-wd4127;-wd4244;-wd4028;-wd4201;-wd4214;-wd4115>>"
     )
 endif ()
@@ -262,7 +263,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     # c-str-span
 
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
+    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h")
             file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h" span_content)
@@ -292,7 +293,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif()
 
     # c89stringutils
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
+    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/c89stringutils")
     elseif(VCPKG_TOOLCHAIN)
@@ -320,7 +321,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif ()
 
     # parson
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
+    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../parson")
         if(TARGET parson AND NOT TARGET parson::parson)

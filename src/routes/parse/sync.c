@@ -153,25 +153,34 @@ static /**
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     sprintf_s(buf, 512,
+              "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
+              "http_headers_add(&req.headers, \"%s\", %s);\n    if "
+              "(rc != 0) goto cleanup;\n  }\n",
+              p->name, p->name, p->name, p->name);
 #else
     sprintf(buf,
+            "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
+            "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != 0) "
+            "goto cleanup;\n  }\n",
+            p->name, p->name, p->name, p->name);
 #endif
-              "  /* Header Parameter: %s */\n  if (%s) {\n    rc = "
-              "http_headers_add(&req.headers, \"%s\", %s);\n    if (rc != 0) "
-              "goto cleanup;\n  }\n",
-              p->name, p->name, p->name, p->name);
   } else if (strcmp(p->type, "integer") == 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     sprintf_s(buf, 512,
-#else
-    sprintf(buf,
-#endif
               "  /* Header Parameter: %s */\n  {\n    char num_buf[32];\n    "
-              "sprintf(num_buf, \"%%d\", %s);\n    rc = "
+              "sprintf_s(num_buf, sizeof(num_buf), \"%%d\", %s);\n    rc = "
               "http_headers_add(&req.headers, \"%s\", num_buf);\n    if (rc != "
               "0) goto cleanup;\n  }\n",
               p->name, p->name, p->name);
+#else
+    sprintf(buf,
+            "  /* Header Parameter: %s */\n  {\n    char num_buf[32];\n    "
+            "sprintf(num_buf, \"%%d\", %s);\n    rc = "
+            "http_headers_add(&req.headers, \"%s\", num_buf);\n    if (rc != "
+            "0) goto cleanup;\n  }\n",
+            p->name, p->name, p->name);
+#endif
   } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__

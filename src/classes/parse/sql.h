@@ -64,6 +64,8 @@ enum SqlConstraintType {
  * @brief Represents a single SQL Constraint.
  */
 struct sql_constraint_t {
+  /** @brief field */
+  /** @brief field */
   enum SqlConstraintType type;
   char *reference_table;  /**< For FOREIGN KEY */
   char *reference_column; /**< For FOREIGN KEY */
@@ -74,10 +76,18 @@ struct sql_constraint_t {
  * @brief Represents a single SQL Column definition.
  */
 struct sql_column_t {
+  /** @brief field */
+  /** @brief field */
   char *name;
+  /** @brief field */
+  /** @brief field */
   enum SqlDataType type;
   int length; /**< For VARCHAR(n), etc., -1 if not specified */
+  /** @brief field */
+  /** @brief field */
   struct sql_constraint_t *constraints;
+  /** @brief field */
+  /** @brief field */
   size_t n_constraints;
 };
 
@@ -85,10 +95,18 @@ struct sql_column_t {
  * @brief Represents a SQL Table definition.
  */
 struct sql_table_t {
+  /** @brief field */
+  /** @brief field */
   char *name;
+  /** @brief field */
+  /** @brief field */
   struct sql_column_t *columns;
+  /** @brief field */
+  /** @brief field */
   size_t n_columns;
   struct sql_constraint_t *table_constraints; /**< Table-level constraints */
+  /** @brief field */
+  /** @brief field */
   size_t n_table_constraints;
 };
 
@@ -117,8 +135,14 @@ enum SqlTokenKind {
  * @brief A single SQL lexical unit.
  */
 struct sql_token_t {
+  /** @brief field */
+  /** @brief field */
   enum SqlTokenKind kind;
+  /** @brief field */
+  /** @brief field */
   const char *start;
+  /** @brief field */
+  /** @brief field */
   size_t length;
 };
 
@@ -126,8 +150,14 @@ struct sql_token_t {
  * @brief A list of SQL tokens.
  */
 struct sql_token_list_t {
+  /** @brief field */
+  /** @brief field */
   struct sql_token_t *tokens;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 
@@ -135,7 +165,11 @@ struct sql_token_list_t {
  * @brief Error information returned by the SQL parser.
  */
 struct sql_parse_error_t {
+  /** @brief field */
+  /** @brief field */
   const char *message;
+  /** @brief field */
+  /** @brief field */
   const struct sql_token_t *token;
 };
 

@@ -32,8 +32,14 @@ struct MacroOverlayNode {
  * @brief List of macro overlays for a file.
  */
 struct MacroOverlayList {
+  /** @brief field */
+  /** @brief field */
   struct MacroOverlayNode *nodes;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

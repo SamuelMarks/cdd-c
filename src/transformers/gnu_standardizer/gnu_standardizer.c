@@ -70,8 +70,13 @@ static void parse_hex_128_literal(const char *str, size_t len,
   *out_low = low;
 }
 
+/** @brief Struct definition */
 struct magic_ctx {
+  /** @brief field */
+  /** @brief field */
   const uint8_t *func_name;
+  /** @brief field */
+  /** @brief field */
   size_t func_len;
 };
 
@@ -103,10 +108,19 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
   return 0;
 }
 
+/** @brief Struct definition */
 struct tramp_ctx {
+  /** @brief field */
+  /** @brief field */
   const uint8_t *name;
+  /** @brief field */
+  /** @brief field */
   size_t length;
+  /** @brief field */
+  /** @brief field */
   int is_tramp;
+  /** @brief field */
+  /** @brief field */
   cdd_cst_node_t *func_node;
 };
 
@@ -238,11 +252,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           return 129; /* ENOTSUP isn't defined everywhere in old MSVC */
         }
 
-        /* Non-trampoline nested function (called directly)
-           We can safely lift it out of the function scope to global scope 
-           if it does not capture local variables.
-           Closure conversion would require deep CFG analysis to verify escapes.
-        */      }
+      /* Non-trampoline nested function (called directly)
+         We can safely lift it out of the function scope to global scope
+         if it does not capture local variables.
+         Closure conversion would require deep CFG analysis to verify escapes.
+      */      }
     }
     if (res.nodes) {
       free(res.nodes);
@@ -626,62 +640,65 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 7].length = 0;
           tree->base_tokens->tokens[i + 8].length = 0;
 
-          /* The vector arithmetic, bitwise, and casting extensions natively just fail to compile
-             under MSVC without operator overloading, so we map them to pure struct arrays.
-             Fully supporting vector semantics requires full AST-level operator overloading
-             which is beyond standard C89's capabilities without full C++ usage.
-             So, for standardizing C code, vector operations simply become array memory blobs. */        } else if (attr->length == 7 &&
+        /* The vector arithmetic, bitwise, and casting extensions
+           natively just fail to compile under MSVC without
+           operator overloading, so we map them to pure struct
+           arrays. Fully supporting vector semantics requires full
+           AST-level operator overloading which is beyond standard
+           C89's capabilities without full C++ usage. So,
+           for standardizing C code, vector operations simply
+           become array memory blobs. */        } else if (attr->length == 7 &&
                    memcmp(attr->start, "aligned", 7) == 0) {
-            char buf[128];
-            char *heap_buf;
-            sprintf(buf, "_Alignas(%.*s)",
-                    (int)tree->base_tokens->tokens[i + 5].length,
-                    tree->base_tokens->tokens[i + 5].start);
-            heap_buf = strdup(buf);
-            tok->start = (const uint8_t *)heap_buf;
-            tok->length = strlen(heap_buf);
-            tree->base_tokens->tokens[i + 1].length = 0;
-            tree->base_tokens->tokens[i + 2].length = 0;
-            tree->base_tokens->tokens[i + 3].length = 0;
-            tree->base_tokens->tokens[i + 4].length = 0;
-            tree->base_tokens->tokens[i + 5].length = 0;
-            tree->base_tokens->tokens[i + 6].length = 0;
-            tree->base_tokens->tokens[i + 7].length = 0;
-            tree->base_tokens->tokens[i + 8].length = 0;
-          } else if (attr->length == 4 && memcmp(attr->start, "mode", 4) == 0) {
-            cdd_token_t *mode_val = &tree->base_tokens->tokens[i + 5];
-            if (mode_val->length == 2) {
-              const char *map = "";
-              if (memcmp(mode_val->start, "QI", 2) == 0)
-                map = "/* mode(QI) -> int8_t */";
-              else if (memcmp(mode_val->start, "HI", 2) == 0)
-                map = "/* mode(HI) -> int16_t */";
-              else if (memcmp(mode_val->start, "SI", 2) == 0)
-                map = "/* mode(SI) -> int32_t */";
-              else if (memcmp(mode_val->start, "DI", 2) == 0)
-                map = "/* mode(DI) -> int64_t */";
-              else if (memcmp(mode_val->start, "TI", 2) == 0)
-                map = "/* mode(TI) -> int128_t */";
-              if (map[0] != '\0') {
-                tok->start = (const uint8_t *)map;
-                tok->length = strlen(map);
-              } else {
-                tok->start = (const uint8_t *)"";
-                tok->length = 0;
-              }
+          char buf[128];
+          char *heap_buf;
+          sprintf(buf, "_Alignas(%.*s)",
+                  (int)tree->base_tokens->tokens[i + 5].length,
+                  tree->base_tokens->tokens[i + 5].start);
+          heap_buf = strdup(buf);
+          tok->start = (const uint8_t *)heap_buf;
+          tok->length = strlen(heap_buf);
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+          tree->base_tokens->tokens[i + 4].length = 0;
+          tree->base_tokens->tokens[i + 5].length = 0;
+          tree->base_tokens->tokens[i + 6].length = 0;
+          tree->base_tokens->tokens[i + 7].length = 0;
+          tree->base_tokens->tokens[i + 8].length = 0;
+        } else if (attr->length == 4 && memcmp(attr->start, "mode", 4) == 0) {
+          cdd_token_t *mode_val = &tree->base_tokens->tokens[i + 5];
+          if (mode_val->length == 2) {
+            const char *map = "";
+            if (memcmp(mode_val->start, "QI", 2) == 0)
+              map = "/* mode(QI) -> int8_t */";
+            else if (memcmp(mode_val->start, "HI", 2) == 0)
+              map = "/* mode(HI) -> int16_t */";
+            else if (memcmp(mode_val->start, "SI", 2) == 0)
+              map = "/* mode(SI) -> int32_t */";
+            else if (memcmp(mode_val->start, "DI", 2) == 0)
+              map = "/* mode(DI) -> int64_t */";
+            else if (memcmp(mode_val->start, "TI", 2) == 0)
+              map = "/* mode(TI) -> int128_t */";
+            if (map[0] != '\0') {
+              tok->start = (const uint8_t *)map;
+              tok->length = strlen(map);
             } else {
               tok->start = (const uint8_t *)"";
               tok->length = 0;
             }
-            tree->base_tokens->tokens[i + 1].length = 0;
-            tree->base_tokens->tokens[i + 2].length = 0;
-            tree->base_tokens->tokens[i + 3].length = 0;
-            tree->base_tokens->tokens[i + 4].length = 0;
-            tree->base_tokens->tokens[i + 5].length = 0;
-            tree->base_tokens->tokens[i + 6].length = 0;
-            tree->base_tokens->tokens[i + 7].length = 0;
-            tree->base_tokens->tokens[i + 8].length = 0;
+          } else {
+            tok->start = (const uint8_t *)"";
+            tok->length = 0;
           }
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+          tree->base_tokens->tokens[i + 4].length = 0;
+          tree->base_tokens->tokens[i + 5].length = 0;
+          tree->base_tokens->tokens[i + 6].length = 0;
+          tree->base_tokens->tokens[i + 7].length = 0;
+          tree->base_tokens->tokens[i + 8].length = 0;
+        }
       }
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER) {
       if (tok->length == 13 && memcmp(tok->start, "__extension__", 13) == 0) {
@@ -780,22 +797,49 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 #define MAX_LOCAL_LABELS 256
 #define MAX_VLAS 256
 #define MAX_CLEANUPS 256
+    /** @brief Struct definition */
     typedef struct {
+      /** @brief field */
+      /** @brief field */
       const uint8_t *name;
+      /** @brief field */
+      /** @brief field */
       size_t length;
+      /** @brief field */
+      /** @brief field */
       char rename[64];
+      /** @brief field */
+      /** @brief field */
       int depth;
     } local_label_t;
+    /** @brief Struct definition */
     typedef struct {
+      /** @brief field */
+      /** @brief field */
       const uint8_t *name;
+      /** @brief field */
+      /** @brief field */
       size_t length;
+      /** @brief field */
+      /** @brief field */
       int depth;
     } vla_t;
+    /** @brief Struct definition */
     typedef struct {
+      /** @brief field */
+      /** @brief field */
       const uint8_t *var_name;
+      /** @brief field */
+      /** @brief field */
       size_t var_length;
+      /** @brief field */
+      /** @brief field */
       const uint8_t *func_name;
+      /** @brief field */
+      /** @brief field */
       size_t func_length;
+      /** @brief field */
+      /** @brief field */
       int depth;
     } cleanup_t;
     local_label_t local_labels[MAX_LOCAL_LABELS];

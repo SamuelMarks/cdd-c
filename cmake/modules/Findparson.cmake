@@ -3,10 +3,7 @@ include(FetchContent)
 include(FindPackageHandleStandardArgs)
 
 if (NOT TARGET parson)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
-        set(parson_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../parson")
-    elseif(VCPKG_TOOLCHAIN)
+    if(VCPKG_TOOLCHAIN)
         find_package(parson CONFIG REQUIRED)
     else()
         FetchContent_Declare(

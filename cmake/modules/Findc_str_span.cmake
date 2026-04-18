@@ -13,10 +13,7 @@
 include(FetchContent)
 
 if(NOT c_str_span_FOUND)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
-        set(c_str_span_FOUND TRUE)
-    elseif(VCPKG_TOOLCHAIN)
+    if(VCPKG_TOOLCHAIN)
         find_package(c_str_span CONFIG REQUIRED)
     else()
         FetchContent_Declare(

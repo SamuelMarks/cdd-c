@@ -13,10 +13,7 @@
 include(FetchContent)
 
 if(NOT c89stringutils_FOUND)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
-        set(c89stringutils_FOUND TRUE)
-    elseif(VCPKG_TOOLCHAIN)
+    if(VCPKG_TOOLCHAIN)
         find_package(c89stringutils CONFIG REQUIRED)
     else()
         FetchContent_Declare(

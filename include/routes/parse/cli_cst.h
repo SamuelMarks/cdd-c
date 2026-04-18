@@ -1,4 +1,4 @@
-﻿#ifndef ROUTES_PARSE_CLI_CST_H
+#ifndef ROUTES_PARSE_CLI_CST_H
 #define ROUTES_PARSE_CLI_CST_H
 
 #ifdef __cplusplus

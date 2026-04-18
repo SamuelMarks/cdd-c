@@ -30,11 +30,23 @@ struct VcpkgDependency {
  * @brief Builder context for generating vcpkg.json manifests.
  */
 struct VcpkgManifestBuilder {
+  /** @brief field */
+  /** @brief field */
   char *project_name;
+  /** @brief field */
+  /** @brief field */
   char *version_string;
+  /** @brief field */
+  /** @brief field */
   char *description;
+  /** @brief field */
+  /** @brief field */
   struct VcpkgDependency *deps;
+  /** @brief field */
+  /** @brief field */
   size_t deps_count;
+  /** @brief field */
+  /** @brief field */
   size_t deps_capacity;
 };
 

@@ -38,8 +38,14 @@ struct HoistSite {
  * @brief Collection of hoisting sites.
  */
 struct HoistSiteList {
+  /** @brief field */
+  /** @brief field */
   struct HoistSite *sites;
+  /** @brief field */
+  /** @brief field */
   size_t count;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

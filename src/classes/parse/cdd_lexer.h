@@ -18,7 +18,8 @@ extern "C" {
  * @param out_list Pointer to receive the generated token list.
  * @return 0 on success, or error code (ENOMEM, etc).
  */
-C_CDD_EXPORT int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list);
+C_CDD_EXPORT int cdd_lexer_tokenize(az_span source,
+                                    cdd_token_list_t **out_list);
 
 /**
  * @brief Free a token list and its associated trivia.

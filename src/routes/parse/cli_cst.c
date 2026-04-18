@@ -1,4 +1,4 @@
-﻿#include "routes/parse/cli_cst.h"
+#include "routes/parse/cli_cst.h"
 #include "c_str_span.h"
 #include "cdd_cst_transform.h"
 #include "classes/emit/cdd_cst_emit.h"
@@ -106,7 +106,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
   int is_fix = 0;
   int is_dry_run = 0;
   const char *toolname = NULL;
-  cdd_transform_config_t config = {0, 2};
+  cdd_transform_config_t config = {0, 2, 0};
   int (*transform_fn)(cdd_cst_tree_t *, const cdd_transform_config_t *) = NULL;
 
   if (argc < 1) {

@@ -20,8 +20,14 @@ extern "C" {
  * @brief Represents a single Safe CRT injection patch.
  */
 struct SafeCrtPatch {
+  /** @brief field */
+  /** @brief field */
   size_t start_token_idx;
+  /** @brief field */
+  /** @brief field */
   size_t end_token_idx;
+  /** @brief field */
+  /** @brief field */
   char *replacement_text;
 };
 
@@ -29,8 +35,14 @@ struct SafeCrtPatch {
  * @brief List of patches.
  */
 struct SafeCrtPatchList {
+  /** @brief field */
+  /** @brief field */
   struct SafeCrtPatch *patches;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

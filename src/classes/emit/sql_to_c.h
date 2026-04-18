@@ -41,6 +41,7 @@ C_CDD_EXPORT int sql_type_is_string(enum SqlDataType type);
  * @brief Map a SQL data type to a c_orm_type_t enum string.
  *
  * @param type The SQL data type.
+ * @param[out] out_val out_val
  * @return String representing the c_orm_type_t (e.g., "C_ORM_TYPE_INT32").
  */
 C_CDD_EXPORT int sql_type_to_c_orm_type(enum SqlDataType type,
@@ -68,10 +69,12 @@ C_CDD_EXPORT int sql_to_c_header_emit(FILE *fp,
 C_CDD_EXPORT int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
                                       const char *header_name);
 
+/** @cond DOXYGEN_IGNORE */
 C_CDD_EXPORT int
 sql_to_c_projection_struct_emit(FILE *fp, const cdd_c_query_projection_t *proj,
                                 const char *struct_name,
                                 unsigned long long *out_hash);
+/** @endcond */
 C_CDD_EXPORT int
 sql_to_c_projection_free_emit(FILE *fp, const cdd_c_query_projection_t *proj,
                               const char *struct_name);
@@ -81,19 +84,50 @@ sql_to_c_projection_meta_emit(FILE *fp, const cdd_c_query_projection_t *proj,
 C_CDD_EXPORT int
 sql_to_c_projection_hydrate_emit(FILE *fp, const cdd_c_query_projection_t *proj,
                                  const char *struct_name);
+/**
+ * @brief sql_to_c_projection_dehydrate_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 C_CDD_EXPORT int sql_to_c_projection_dehydrate_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
+/**
+ * @brief sql_to_c_projection_nested_struct_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 C_CDD_EXPORT int sql_to_c_projection_nested_struct_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
+/**
+ * @brief sql_to_c_projection_nested_array_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ * @param array_name array_name
+ */
 C_CDD_EXPORT int sql_to_c_projection_nested_array_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name,
     const char *array_name);
+/**
+ * @brief sql_to_c_projection_dirty_bitmask_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 C_CDD_EXPORT int sql_to_c_projection_dirty_bitmask_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
 C_CDD_EXPORT int
 sql_to_c_projection_union_struct_emit(FILE *fp,
                                       const cdd_c_query_projection_t *projs,
                                       size_t n_projs, const char *struct_name);
+/**
+ * @brief sql_to_c_projection_polymorphic_struct_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 C_CDD_EXPORT int sql_to_c_projection_polymorphic_struct_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name);
 

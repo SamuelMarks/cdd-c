@@ -132,8 +132,8 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Convert a JSON array of strings to an EnumMembers container.
  *
- * @param[in] enum_arr JSON array of strings.
- * @param[out] em The container to populate.
+ * @param[in] a array
+ * @param[out] e em
  * @return 0 on success, non-zero on failure.
  */
 

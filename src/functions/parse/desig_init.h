@@ -37,8 +37,14 @@ struct DesigInitSite {
  * @brief Collection of designated initialization sites.
  */
 struct DesigInitList {
+  /** @brief field */
+  /** @brief field */
   struct DesigInitSite *sites;
+  /** @brief field */
+  /** @brief field */
   size_t count;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

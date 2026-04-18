@@ -1,4 +1,4 @@
-﻿/* clang-format off */
+/* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
 #include "classes/parse/cdd_cst_parser.h"
@@ -12,6 +12,7 @@
 
 int cdd_transform_extern_c(cdd_cst_tree_t *tree,
                            const cdd_transform_config_t *config) {
+  int rc;
   cdd_cst_query_result_t res;
   size_t i;
   int rc;
@@ -19,8 +20,10 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
   cdd_cst_node_t *insert_after_node = NULL;
   (void)config;
 
-  if (!tree || !tree->root)
-    return EINVAL;
+  if (!tree || !tree->root) {
+    rc = EINVAL;
+    return rc;
+  }
 
   /* 1. Check if __cplusplus is already checked */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
@@ -122,8 +125,10 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
   int rc;
   (void)config;
 
-  if (!tree || !tree->root)
-    return EINVAL;
+  if (!tree || !tree->root) {
+    rc = EINVAL;
+    return rc;
+  }
 
   /* 1. Wrap unistd.h and sys/time.h */
   rc = cdd_cst_find_nodes_by_type(tree->root, CDD_CST_PREPROC_DIRECTIVE, &res);
@@ -146,10 +151,17 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_node_clone(tree,
+                rc = cdd_cst_node_clone(tree,
                                        wrap_tree->root->children[0].val.node,
-                                       &cloned) == 0) {
-                  cdd_cst_node_replace(tree, dir, cloned);
+                                       &cloned);
+                if (rc == 0) {
+                  rc = cdd_cst_node_replace(tree, dir, cloned);
+                  if (rc != 0) {
+                    /* Handle error */
+                    fprintf(stderr, "Error replacing node: %d\n", rc);
+                  }
+                } else {
+                    fprintf(stderr, "Error cloning node: %d\n", rc);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -164,10 +176,17 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_node_clone(tree,
+                rc = cdd_cst_node_clone(tree,
                                        wrap_tree->root->children[0].val.node,
-                                       &cloned) == 0) {
-                  cdd_cst_node_replace(tree, dir, cloned);
+                                       &cloned);
+                if (rc == 0) {
+                  rc = cdd_cst_node_replace(tree, dir, cloned);
+                  if (rc != 0) {
+                    /* Handle error */
+                    fprintf(stderr, "Error replacing node: %d\n", rc);
+                  }
+                } else {
+                    fprintf(stderr, "Error cloning node: %d\n", rc);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -211,8 +230,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
   size_t i;
   (void)config;
 
-  if (!tree || !tree->root)
-    return EINVAL;
+  if (!tree || !tree->root) {
+    rc = EINVAL;
+    return rc;
+  }
 
   for (i = 0; i < tree->base_tokens->size; i++) {
     cdd_token_t *tok = &tree->base_tokens->tokens[i];
@@ -322,9 +343,22 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (i >= 2) {
             char buf[256];
             char *heap_buf;
-            sprintf(buf, "*%.*s = alloca(%.*s * sizeof(*%.*s));",
-                    (int)prev->length, prev->start, (int)next->length,
-                    next->start, (int)prev->length, prev->start);
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            sprintf_s(buf, sizeof(buf), "*%.*s = alloca(%.*s * sizeof(*%.*s));",
+                      (int)prev->length, prev->start, (int)next->length,
+                      next->start, (int)prev->length, prev->start);
+#else
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+            sprintf_s(buf, sizeof(buf),
+                      "*%.*s = alloca(%.*s * sizeof(*%.*s));
+#else
+            sprintf(buf,
+                    "*%.*s = alloca(%.*s * sizeof(*%.*s));
+#endif ",
+                      (int)prev->length,
+                      prev->start, (int)next->length, next->start,
+                      (int)prev->length, prev->start);
+#endif
             heap_buf = strdup(buf);
             prev->start = (const uint8_t *)heap_buf;
             prev->length = strlen(heap_buf);
@@ -353,8 +387,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
   size_t num_modified = 0;
   (void)config;
 
-  if (!tree || !tree->root)
-    return EINVAL;
+  if (!tree || !tree->root) {
+    rc = EINVAL;
+    return rc;
+  }
 
   rc =
       cdd_cst_find_nodes_by_type(tree->root, CDD_CST_FUNCTION_DEFINITION, &res);
@@ -397,7 +433,12 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
     if (is_void && void_tok && rparen_tok && func_name_tok) {
       if (num_modified < 256) {
         char mbuf[256];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+        sprintf_s(mbuf, sizeof(mbuf), "%.*s", (int)func_name_tok->length,
+                  func_name_tok->start);
+#else
         sprintf(mbuf, "%.*s", (int)func_name_tok->length, func_name_tok->start);
+#endif
         modified_funcs[num_modified++] = strdup(mbuf);
       }
 

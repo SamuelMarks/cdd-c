@@ -79,7 +79,7 @@ extern C_CDD_EXPORT /**
  *   - Note: This mapper assumes `Type *` is a reference to one object by
  * default, unless `is_array` hint is provided.
  *
- * @param[in] c_type The raw C type string (e.g. "unsigned int").
+ * @param[in] c_type_in The raw C type string (e.g. "unsigned int").
  * @param[in] decl_name The declaration name (e.g. "users[]"), used for array
  * heuristics.
  * @param[out] out The result structure.

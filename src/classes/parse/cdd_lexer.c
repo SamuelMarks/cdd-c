@@ -271,8 +271,10 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
             tok->kind = CDD_TOKEN_PREPROC_DEFINE;
           else if (id_len == 5 && memcmp(base + id_start, "ifdef", 5) == 0)
             tok->kind = CDD_TOKEN_PREPROC_IFDEF;
-          else if (id_len == 4 && memcmp(base + id_start, "else", 4) == 0)
-            tok->kind = CDD_TOKEN_PREPROC_ELSE;
+          else if (id_len == 2 && memcmp(base + id_start, "if", 2) == 0)
+            tok->kind = CDD_TOKEN_PREPROC_IFDEF;
+          else if (id_len == 4 && memcmp(base + id_start, "elif", 4) == 0)
+            tok->kind = CDD_TOKEN_PREPROC_ELIF;
           else if (id_len == 4 && memcmp(base + id_start, "else", 4) == 0)
             tok->kind = CDD_TOKEN_PREPROC_ELSE;
           else if (id_len == 6 && memcmp(base + id_start, "ifndef", 6) == 0)

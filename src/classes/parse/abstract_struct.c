@@ -122,6 +122,11 @@ int cdd_c_abstract_struct_array_free(cdd_c_abstract_struct_array_t *arr) {
   return 0;
 }
 
+/**
+ * @brief cdd_c_abstract_struct_array_to_json
+ * @param arr arr
+ * @param out_json out_json
+ */
 int cdd_c_abstract_struct_array_to_json(
     const cdd_c_abstract_struct_array_t *arr, char **out_json) {
   JSON_Value *root_val;
@@ -810,22 +815,25 @@ int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
 
     if (strcmp(prop->type, "C_ORM_TYPE_INT32") == 0) {
       val.type = CDD_C_VARIANT_TYPE_INT;
-      val.value.i_val = *(int *)((char *)in_struct + prop->offset);
+      memcpy(&val.value.i_val, (char *)in_struct + prop->offset, sizeof(int));
     } else if (strcmp(prop->type, "C_ORM_TYPE_INT64") == 0) {
       val.type = CDD_C_VARIANT_TYPE_INT;
-      val.value.i_val = *(long long *)((char *)in_struct + prop->offset);
+      memcpy(&val.value.i_val, (char *)in_struct + prop->offset,
+             sizeof(long long));
     } else if (strcmp(prop->type, "C_ORM_TYPE_FLOAT") == 0) {
       val.type = CDD_C_VARIANT_TYPE_FLOAT;
-      val.value.f_val = *(float *)((char *)in_struct + prop->offset);
+      memcpy(&val.value.f_val, (char *)in_struct + prop->offset, sizeof(float));
     } else if (strcmp(prop->type, "C_ORM_TYPE_DOUBLE") == 0) {
       val.type = CDD_C_VARIANT_TYPE_FLOAT;
-      val.value.f_val = *(double *)((char *)in_struct + prop->offset);
+      memcpy(&val.value.f_val, (char *)in_struct + prop->offset,
+             sizeof(double));
     } else if (strcmp(prop->type, "C_ORM_TYPE_STRING") == 0) {
       val.type = CDD_C_VARIANT_TYPE_STRING;
       if (prop->length > 0) {
         val.value.s_val = (char *)in_struct + prop->offset;
       } else {
-        val.value.s_val = *(char **)((char *)in_struct + prop->offset);
+        memcpy(&val.value.s_val, (char *)in_struct + prop->offset,
+               sizeof(char *));
       }
     }
 
@@ -863,22 +871,30 @@ int cdd_c_abstract_to_specific(void *out_struct,
 
     if (strcmp(prop->type, "C_ORM_TYPE_INT32") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_INT) {
-        *(int *)((char *)out_struct + prop->offset) = (int)val->value.i_val;
+        {
+          int _v = (int)val->value.i_val;
+          memcpy((char *)out_struct + prop->offset, &_v, sizeof(int));
+        }
       } else if (strict_mapping)
         return -1;
     } else if (strcmp(prop->type, "C_ORM_TYPE_INT64") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_INT) {
-        *(long long *)((char *)out_struct + prop->offset) = val->value.i_val;
+        memcpy((char *)out_struct + prop->offset, &val->value.i_val,
+               sizeof(long long));
       } else if (strict_mapping)
         return -1;
     } else if (strcmp(prop->type, "C_ORM_TYPE_FLOAT") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_FLOAT) {
-        *(float *)((char *)out_struct + prop->offset) = (float)val->value.f_val;
+        {
+          float _v = (float)val->value.f_val;
+          memcpy((char *)out_struct + prop->offset, &_v, sizeof(float));
+        }
       } else if (strict_mapping)
         return -1;
     } else if (strcmp(prop->type, "C_ORM_TYPE_DOUBLE") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_FLOAT) {
-        *(double *)((char *)out_struct + prop->offset) = val->value.f_val;
+        memcpy((char *)out_struct + prop->offset, &val->value.f_val,
+               sizeof(double));
       } else if (strict_mapping)
         return -1;
     } else if (strcmp(prop->type, "C_ORM_TYPE_STRING") == 0) {
@@ -893,8 +909,10 @@ int cdd_c_abstract_to_specific(void *out_struct,
 #endif
           ((char *)out_struct + prop->offset)[prop->length - 1] = '\0';
         } else {
-          *(char **)((char *)out_struct + prop->offset) =
-              strdup(val->value.s_val);
+          {
+            char *_v = strdup(val->value.s_val);
+            memcpy((char *)out_struct + prop->offset, &_v, sizeof(char *));
+          }
         }
       } else if (strict_mapping)
         return -1;

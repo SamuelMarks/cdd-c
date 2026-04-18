@@ -40,10 +40,18 @@ typedef struct cdd_cst_node_t cdd_cst_node_t;
 typedef struct cdd_cst_child_t cdd_cst_child_t;
 enum cdd_cst_child_kind_t { CDD_CST_CHILD_TOKEN, CDD_CST_CHILD_NODE };
 
+/** @brief Struct definition */
 struct cdd_cst_child_t {
+  /** @brief field */
+  /** @brief field */
   enum cdd_cst_child_kind_t kind;
+  /** @brief Struct definition */
   union {
+    /** @brief field */
+    /** @brief field */
     cdd_token_t *token;
+    /** @brief field */
+    /** @brief field */
     cdd_cst_node_t *node;
   } val;
 };
@@ -52,10 +60,20 @@ struct cdd_cst_child_t {
  * @brief A Concrete Syntax Tree Node.
  */
 struct cdd_cst_node_t {
+  /** @brief field */
+  /** @brief field */
   enum cdd_cst_node_kind_t kind;
+  /** @brief field */
+  /** @brief field */
   cdd_cst_child_t *children;
+  /** @brief field */
+  /** @brief field */
   size_t num_children;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
+  /** @brief field */
+  /** @brief field */
   cdd_cst_node_t *parent;
 };
 
@@ -63,11 +81,18 @@ struct cdd_cst_node_t {
  * @brief Represents a fully parsed tree, owning the underlying tokens.
  */
 typedef struct cdd_cst_tree_t cdd_cst_tree_t;
+/** @brief Struct definition */
 struct cdd_cst_tree_t {
+  /** @brief field */
+  /** @brief field */
   cdd_cst_node_t *root;
   cdd_token_list_t *base_tokens;    /**< The original tokens from lexer */
   cdd_token_t **synthesized_tokens; /**< Tokens synthesized during mutation */
+  /** @brief field */
+  /** @brief field */
   size_t num_synthesized;
+  /** @brief field */
+  /** @brief field */
   size_t synthesized_capacity;
 };
 
