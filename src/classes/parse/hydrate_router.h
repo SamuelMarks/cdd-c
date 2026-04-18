@@ -35,8 +35,14 @@ struct cdd_c_meta; /* Forward decl */
  * struct codegen.
  */
 typedef struct CddCHydrateRoute {
+  /** @brief field */
+  /** @brief field */
   unsigned long long query_id_hash;
+  /** @brief field */
+  /** @brief field */
   const struct cdd_c_meta *struct_meta;
+  /** @brief field */
+  /** @brief field */
   cdd_c_specific_hydrator_fn hydrate_fn;
 } cdd_c_hydrate_route_t;
 
@@ -44,8 +50,14 @@ typedef struct CddCHydrateRoute {
  * @brief Opaque router instance to handle dynamic struct delegation.
  */
 typedef struct CddCHydrateRouter {
+  /** @brief field */
+  /** @brief field */
   cdd_c_hydrate_route_t *routes;
+  /** @brief field */
+  /** @brief field */
   size_t count;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 } cdd_c_hydrate_router_t;
 

@@ -3,9 +3,9 @@
  * @brief Parser for extracting API metadata from C documentation comments.
  *
  * Scans comments for Doxygen-style annotations:
- * - `@route <VERB> <PATH>` (custom verbs are emitted via
+ * - `@route VERB PATH` (custom verbs are emitted via
  * `additionalOperations`)
- * - `@param <name> [flags] <description>`
+ * - `@param name [flags] <description>`
  *   - flags: `[in:<path|query|header|cookie|querystring>] [required]`
  *     `[style:<form|simple|matrix|label|spaceDelimited|pipeDelimited|deepObject|cookie>]`
  *     `[explode:true|false] [allowReserved:true|false]`
@@ -18,15 +18,15 @@
  * - `@operationId <id>`
  * - `@summary text`
  * - `@description text`
- * - `@tag <name>` or `@tags <name1, name2>`
- * - `@tagMeta <name> [summary:text] [description:<text>] [parent:<name>]`
+ * - `@tag name` or `@tags <name1, name2>`
+ * - `@tagMeta name [summary:text] [description:<text>] [parent:name]`
  *      [kind:<value>] [externalDocs:url]
  *      [externalDocsDescription:text]`
- * - `@webhook <VERB> <PATH>` (emits operation under OpenAPI `webhooks`)
+ * - `webhook VERB PATH` (emits operation under OpenAPI `webhooks`)
  * - `@deprecated [true|false]`
- * - `@externalDocs url [description]`
- * - `@security <scheme> [scope1, scope2]`
- * - `@securityScheme <name>
+ * - `externalDocs url [description]`
+ * - `security scheme [scope1, scope2]`
+ * - `securityScheme name
  * [type:<apiKey|http|mutualTLS|oauth2|openIdConnect>]` [description:text]
  * [deprecated:true|false] [paramName:<param>] [in:<query|header|cookie>]
  *      [scheme:<http-scheme>] [bearerFormat:<fmt>]
@@ -34,9 +34,9 @@
  *      [flow:<implicit|password|clientCredentials|authorizationCode|deviceAuthorization>]
  *      [authorizationUrl:url] [tokenUrl:<url>] [refreshUrl:<url>]
  *      [deviceAuthorizationUrl:url] [scopes:<scope1,scope2,...>]`
- * - `@server url [name=<name>] [description=text]`
- * - `@serverVar <name> [default:<value>] [enum:<v1,v2,...>]
- * [description:text]` (attaches to the most recent @server in the same doc
+ * - `server url [name=name] [description=text]`
+ * - `serverVar name [default:<value>] [enum:<v1,v2,...>]
+ * [description:text]` (attaches to the most recent server in the same doc
  * block)
  * - `@jsonSchemaDialect <uri>`
  * - `@infoTitle text`
@@ -48,13 +48,13 @@
  * - `@license [name:text] [identifier:<spdx>] [url:url]`
  * - `@requestBody [required|required:true|required:false]
  *      [contentType:<media/type>] [example:<json>] <description>`
- * - `@responseHeader <status> <name> [type:<string|integer|number|boolean>]
+ * - `@responseHeader <status> name [type:<string|integer|number|boolean>]
  *      [format:<fmt>] [contentType:<media/type>]
  *      [required|required:true|required:false] [example:<json>] <description>`
- * - `@link <status> <name> [operationId:<id> | operationRef:<uri>]
+ * - `@link <status> name [operationId:<id> | operationRef:<uri>]
  *      [parameters:<json>] [requestBody:<json>]
  *      [summary:text] [description:<text>]
- *      [serverUrl:url] [serverName:<name>] [serverDescription:text]
+ *      [serverUrl:url] [serverName:name] [serverDescription:text]
  *      <description>`
  *
  * @author Samuel Marks

@@ -645,6 +645,13 @@ static int emit_c_orm_queries(FILE *fp, const struct sql_table_t *table,
 }
 /* To be appended to sql_to_c.c */
 
+/**
+ * @brief sql_to_c_projection_struct_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ * @param out_hash out_hash
+ */
 int sql_to_c_projection_struct_emit(FILE *fp,
                                     const cdd_c_query_projection_t *proj,
                                     const char *struct_name,
@@ -741,6 +748,12 @@ int sql_to_c_projection_struct_emit(FILE *fp,
   return 0;
 }
 
+/**
+ * @brief sql_to_c_projection_free_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_free_emit(FILE *fp,
                                   const cdd_c_query_projection_t *proj,
                                   const char *struct_name) {
@@ -784,6 +797,12 @@ int sql_to_c_projection_free_emit(FILE *fp,
   return 0;
 }
 
+/**
+ * @brief sql_to_c_projection_meta_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_meta_emit(FILE *fp,
                                   const cdd_c_query_projection_t *proj,
                                   const char *struct_name) {
@@ -849,6 +868,12 @@ int sql_to_c_projection_meta_emit(FILE *fp,
 
 /* To be appended to sql_to_c.c */
 
+/**
+ * @brief sql_to_c_projection_hydrate_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_hydrate_emit(FILE *fp,
                                      const cdd_c_query_projection_t *proj,
                                      const char *struct_name) {
@@ -957,6 +982,12 @@ int sql_to_c_projection_hydrate_emit(FILE *fp,
   return 0;
 }
 
+/**
+ * @brief sql_to_c_projection_dehydrate_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_dehydrate_emit(FILE *fp,
                                        const cdd_c_query_projection_t *proj,
                                        const char *struct_name) {
@@ -1053,6 +1084,12 @@ int sql_to_c_projection_dehydrate_emit(FILE *fp,
 }
 /* To be appended to sql_to_c.c */
 
+/**
+ * @brief sql_to_c_projection_nested_struct_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_nested_struct_emit(FILE *fp,
                                            const cdd_c_query_projection_t *proj,
                                            const char *struct_name) {
@@ -1068,6 +1105,13 @@ int sql_to_c_projection_nested_struct_emit(FILE *fp,
   return sql_to_c_projection_struct_emit(fp, proj, struct_name, NULL);
 }
 
+/**
+ * @brief sql_to_c_projection_nested_array_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ * @param array_name array_name
+ */
 int sql_to_c_projection_nested_array_emit(FILE *fp,
                                           const cdd_c_query_projection_t *proj,
                                           const char *struct_name,
@@ -1131,6 +1175,12 @@ int sql_to_c_projection_nested_array_emit(FILE *fp,
 
 /* To be appended to sql_to_c.c */
 
+/**
+ * @brief sql_to_c_projection_dirty_bitmask_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_dirty_bitmask_emit(FILE *fp,
                                            const cdd_c_query_projection_t *proj,
                                            const char *struct_name) {
@@ -1179,6 +1229,13 @@ int sql_to_c_projection_dirty_bitmask_emit(FILE *fp,
   return 0;
 }
 
+/**
+ * @brief sql_to_c_projection_union_struct_emit
+ * @param fp fp
+ * @param projs projs
+ * @param n_projs n_projs
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_union_struct_emit(FILE *fp,
                                           const cdd_c_query_projection_t *projs,
                                           size_t n_projs,
@@ -1272,6 +1329,12 @@ int sql_to_c_projection_union_struct_emit(FILE *fp,
   return 0;
 }
 
+/**
+ * @brief sql_to_c_projection_polymorphic_struct_emit
+ * @param fp fp
+ * @param proj proj
+ * @param struct_name struct_name
+ */
 int sql_to_c_projection_polymorphic_struct_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name) {
 

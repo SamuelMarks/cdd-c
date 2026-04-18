@@ -14,8 +14,13 @@ extern "C" {
  * @brief Configuration for trivia generators.
  */
 typedef struct cdd_cst_format_config_t cdd_cst_format_config_t;
+/** @brief Struct definition */
 struct cdd_cst_format_config_t {
+  /** @brief field */
+  /** @brief field */
   int use_tabs;
+  /** @brief field */
+  /** @brief field */
   size_t indent_width;
 };
 

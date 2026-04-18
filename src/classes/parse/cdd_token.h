@@ -24,6 +24,7 @@ enum cdd_trivia_kind_t {
  * @brief Represents a piece of trivia attached to a token.
  */
 typedef struct cdd_trivia_t cdd_trivia_t;
+/** @brief Struct definition */
 struct cdd_trivia_t {
   enum cdd_trivia_kind_t kind; /**< Kind of trivia */
   const uint8_t *start;        /**< Pointer to start of trivia */
@@ -72,6 +73,7 @@ enum cdd_token_kind_t {
   CDD_TOKEN_PREPROC_INCLUDE,
   CDD_TOKEN_PREPROC_DEFINE,
   CDD_TOKEN_PREPROC_IFDEF,
+  CDD_TOKEN_PREPROC_ELIF,
   CDD_TOKEN_PREPROC_ELSE,
   CDD_TOKEN_PREPROC_IFNDEF,
   CDD_TOKEN_PREPROC_ENDIF,
@@ -84,6 +86,7 @@ enum cdd_token_kind_t {
  * @brief Represents a lossless lexical token.
  */
 typedef struct cdd_token_t cdd_token_t;
+/** @brief Struct definition */
 struct cdd_token_t {
   enum cdd_token_kind_t kind;    /**< Token type */
   const uint8_t *start;          /**< Text span pointer */
@@ -99,9 +102,16 @@ struct cdd_token_t {
  * @brief A list of tokens.
  */
 typedef struct cdd_token_list_t cdd_token_list_t;
+/** @brief Struct definition */
 struct cdd_token_list_t {
+  /** @brief field */
+  /** @brief field */
   cdd_token_t *tokens;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

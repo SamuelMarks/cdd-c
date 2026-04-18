@@ -5,9 +5,16 @@
 #include <string.h>
 /* clang-format on */
 
+/** @brief Struct definition */
 typedef struct emit_ctx_t {
+  /** @brief field */
+  /** @brief field */
   char *buf;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 } emit_ctx_t;
 

@@ -24,10 +24,20 @@ extern "C" {
  * @brief Represents an identified VLA site in the token stream.
  */
 struct VLASite {
+  /** @brief field */
+  /** @brief field */
   size_t start_token_idx;
+  /** @brief field */
+  /** @brief field */
   size_t end_token_idx;
+  /** @brief field */
+  /** @brief field */
   char *type_str;
+  /** @brief field */
+  /** @brief field */
   char *var_name;
+  /** @brief field */
+  /** @brief field */
   char *size_expr;
 };
 
@@ -35,8 +45,14 @@ struct VLASite {
  * @brief Collection of identified VLA sites.
  */
 struct VLASiteList {
+  /** @brief field */
+  /** @brief field */
   struct VLASite *sites;
+  /** @brief field */
+  /** @brief field */
   size_t count;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

@@ -116,6 +116,7 @@ static cdd_cst_node_t *parse_block(parser_state_t *s, cdd_cst_node_t *parent) {
   return b;
 }
 
+#if 0
 static cdd_cst_node_t *parse_preproc_conditional(parser_state_t *s,
                                                  cdd_cst_node_t *parent) {
   cdd_cst_node_t *node = alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent);
@@ -152,6 +153,7 @@ static cdd_cst_node_t *parse_preproc_conditional(parser_state_t *s,
   }
   return node;
 }
+#endif
 
 static cdd_cst_node_t *parse_declaration_or_statement(parser_state_t *s,
                                                       cdd_cst_node_t *parent) {
@@ -221,11 +223,11 @@ static cdd_cst_node_t *parse_declaration_or_statement(parser_state_t *s,
 
   {
     size_t i;
-    int is_decl = 0;
+
     int is_func = 0;
     for (i = s->pos; i < s->list->size; i++) {
       if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON) {
-        is_decl = 1;
+        /* is_decl = 1; */
         break;
       }
       if (s->list->tokens[i].kind == CDD_TOKEN_LBRACE) {

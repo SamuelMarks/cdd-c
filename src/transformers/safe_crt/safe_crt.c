@@ -12,8 +12,13 @@
 /* clang-format on */
 
 typedef struct safe_crt_arena_t safe_crt_arena_t;
+/** @brief Struct definition */
 struct safe_crt_arena_t {
+  /** @brief field */
+  /** @brief field */
   safe_crt_arena_t *next;
+  /** @brief field */
+  /** @brief field */
   char data[1];
 };
 
@@ -41,12 +46,23 @@ static void *arena_alloc(size_t len) {
 }
 
 typedef struct expr_t expr_t;
+/** @brief Struct definition */
 struct expr_t {
   int type; /* 0: token, 1: call, 2: group, 3: fopen assign, 4: hidden */
+  /** @brief field */
+  /** @brief field */
   cdd_token_t *tok;
+  /** @brief field */
+  /** @brief field */
   cdd_token_t *close_tok;
+  /** @brief field */
+  /** @brief field */
   expr_t *args[16];
+  /** @brief field */
+  /** @brief field */
   size_t num_args;
+  /** @brief field */
+  /** @brief field */
   expr_t *next;
 };
 
@@ -101,15 +117,31 @@ static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
       node->type = 1;
       (*idx) += 2;
       while (*idx < stmt->num_children) {
+        size_t old_idx;
         if (stmt->children[*idx].val.token->kind == CDD_TOKEN_RPAREN) {
           node->close_tok = stmt->children[*idx].val.token;
           (*idx)++;
           break;
         }
+        if (stmt->children[*idx].val.token->kind == CDD_TOKEN_SEMICOLON) {
+          break;
+        }
+        old_idx = *idx;
         if (node->num_args < 16) {
           node->args[node->num_args++] = parse_expr_ast(stmt, idx, 1);
         } else {
           parse_expr_ast(stmt, idx, 1);
+        }
+        if (*idx == old_idx) {
+          if (*idx < stmt->num_children) {
+            int tk = stmt->children[*idx].val.token->kind;
+            if (tk != CDD_TOKEN_COMMA && tk != CDD_TOKEN_RPAREN &&
+                tk != CDD_TOKEN_SEMICOLON) {
+              (*idx)++;
+            }
+          } else {
+            break;
+          }
         }
         if (*idx < stmt->num_children &&
             stmt->children[*idx].val.token->kind == CDD_TOKEN_COMMA) {
@@ -200,7 +232,10 @@ static void check_unsupported_calls(expr_t *head) {
       memcpy(name, head->tok->start, nlen);
       if (strcmp(name, "fopen") == 0 || strcmp(name, "_wfopen") == 0 ||
           strcmp(name, "freopen") == 0 || strcmp(name, "tmpfile") == 0) {
-        fprintf(stderr, "WARNING: Bare %s call detected without assignment. Cannot refactor automatically.\n", name);
+        fprintf(stderr,
+                "WARNING: Bare %s call detected without assignment. Cannot "
+                "refactor automatically.\n",
+                name);
       }
       for (i = 0; i < head->num_args; i++) {
         check_unsupported_calls(head->args[i]);
@@ -315,7 +350,7 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
             strcmp(name, "_mbscpy") == 0 || strcmp(name, "_mbscat") == 0 ||
             strcmp(name, "swprintf") == 0 || strcmp(name, "vswprintf") == 0 ||
             strcmp(name, "_strnset") == 0 || strcmp(name, "_strset") == 0 ||
-            strcmp(name, "_mbsset") == 0 || strcmp(name, "_mbsnset") == 0)
+            strcmp(name, "_mbsset") == 0)
           is_safe = 1;
         else if (strcmp(name, "_strlwr") == 0 || strcmp(name, "_strupr") == 0 ||
                  strcmp(name, "_mbslwr") == 0 || strcmp(name, "_mbsupr") == 0 ||
@@ -325,7 +360,8 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           is_safe = 9;
         else if (strcmp(name, "strncpy") == 0 || strcmp(name, "strncat") == 0 ||
                  strcmp(name, "wcsncpy") == 0 || strcmp(name, "wcsncat") == 0 ||
-                 strcmp(name, "_mbsncpy") == 0 || strcmp(name, "_mbsncat") == 0)
+                 strcmp(name, "_mbsncpy") == 0 ||
+                 strcmp(name, "_mbsncat") == 0 || strcmp(name, "_mbsnset") == 0)
           is_safe = 2;
         else if (strcmp(name, "snprintf") == 0 ||
                  strcmp(name, "vsnprintf") == 0 ||
@@ -349,15 +385,25 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           is_safe = 8;
         else if (strcmp(name, "strlen") == 0)
           is_safe = 9;
-        else if (strcmp(name, "_splitpath") == 0 || strcmp(name, "_wsplitpath") == 0)
+        else if (strcmp(name, "_splitpath") == 0 ||
+                 strcmp(name, "_wsplitpath") == 0)
           is_safe = 10;
-        else if (strcmp(name, "_makepath") == 0 || strcmp(name, "_wmakepath") == 0)
+        else if (strcmp(name, "_makepath") == 0 ||
+                 strcmp(name, "_wmakepath") == 0)
           is_safe = 11;
       }
 
       if (is_safe) {
         char safe_name[128];
-        sprintf(safe_name, "%s_s", name);
+        if (strcmp(name, "strlen") == 0) {
+          strcpy(safe_name, "strnlen_s");
+        } else {
+          if (strcmp(name, "strlen") == 0) {
+            strcpy(safe_name, "strnlen_s");
+          } else {
+            sprintf(safe_name, "%s_s", name);
+          }
+        }
         append_trivia(buf, len, cap, node->tok->leading_trivia);
         append_str(buf, len, cap, safe_name, strlen(safe_name));
         append_trivia(buf, len, cap, node->tok->trailing_trivia);
@@ -503,7 +549,7 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           append_str(buf, len, cap, ", ", 2);
           emit_ast(node->args[k], buf, len, cap, is_msc);
           append_str(buf, len, cap, ", ", 2);
-          
+
           {
             char *dummy_buf;
             size_t dummy_len = 0;
@@ -515,7 +561,8 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
             emit_ast(node->args[k], &dummy_buf, &dummy_len, &dummy_cap, 0);
 
             stripped = dummy_buf;
-            while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r')
+            while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+                   *stripped == '\r')
               stripped++;
 
             if (strcmp(stripped, "NULL") == 0 || strcmp(stripped, "0") == 0) {
@@ -542,7 +589,8 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
 
           stripped = dummy_buf;
-          while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r')
+          while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+                 *stripped == '\r')
             stripped++;
 
           append_str(buf, len, cap, stripped, strlen(stripped));
@@ -877,6 +925,37 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         first_tok = stmt->children[0].val.token;
       }
 
+      {
+        cdd_trivia_t *tr = first_tok ? first_tok->leading_trivia : NULL;
+        int skip = 0;
+        while (tr) {
+          if (tr->length >= 14 &&
+              memcmp(tr->start, "/*CDD_SAFE_CRT*/", 16) == 0) {
+            skip = 1;
+            break;
+          }
+          tr = tr->next;
+        }
+        if (skip)
+          continue;
+      }
+
+      {
+        cdd_trivia_t *tr = first_tok ? first_tok->leading_trivia : NULL;
+        int skip = 0;
+        while (tr) {
+          if (tr->length >= 14 &&
+              memcmp(tr->start, "/*CDD_SAFE_CRT*/", 16) == 0) {
+            skip = 1;
+            break;
+          }
+          tr = tr->next;
+        }
+        if (skip)
+          continue;
+      }
+      printf("PROCESSING STATEMENT: %.*s\n", (int)first_tok->length,
+             first_tok->start);
       ast = parse_expr_ast(stmt, &idx, 0);
       find_and_mark_fopen(ast);
       check_unsupported_calls(ast);
@@ -887,13 +966,14 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         size_t else_cap = 1024, else_len = 0;
         char *msc_buf = (char *)malloc(msc_cap);
         char *else_buf = (char *)malloc(else_cap);
-        cdd_trivia_t *saved_trivia = first_tok ? first_tok->leading_trivia : NULL;
-msc_buf[0] = '\0';
+        cdd_trivia_t *saved_trivia =
+            first_tok ? first_tok->leading_trivia : NULL;
+        msc_buf[0] = '\0';
         else_buf[0] = '\0';
 
         get_indent_string(first_tok, indent);
 
-                if (first_tok)
+        if (first_tok)
           first_tok->leading_trivia = NULL;
 
         emit_ast(ast, &msc_buf, &msc_len, &msc_cap, 1);

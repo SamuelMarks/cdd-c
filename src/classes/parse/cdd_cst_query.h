@@ -41,9 +41,16 @@ int cdd_cst_traverse_postorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
  * @brief Result struct for node queries.
  */
 typedef struct cdd_cst_query_result_t cdd_cst_query_result_t;
+/** @brief Struct definition */
 struct cdd_cst_query_result_t {
+  /** @brief field */
+  /** @brief field */
   cdd_cst_node_t **nodes;
+  /** @brief field */
+  /** @brief field */
   size_t size;
+  /** @brief field */
+  /** @brief field */
   size_t capacity;
 };
 

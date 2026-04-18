@@ -90,49 +90,73 @@ static /**
                    project_name));
 
   CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
-  CHECK_IO(fprintf(fp, "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs\" \"${CMAKE_BINARY_DIR}/c-fs\")\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM \"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include\")\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs\" "
+          "\"${CMAKE_BINARY_DIR}/c-fs\")\n"));
+  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include\")\n"));
   CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
   CHECK_IO(fprintf(fp, "    find_package(c-fs CONFIG REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
   CHECK_IO(fprintf(fp, "        c-fs\n"));
-  CHECK_IO(fprintf(fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git\n"));
+  CHECK_IO(fprintf(
+      fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git\n"));
   CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
   CHECK_IO(fprintf(fp, "    )\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-fs)\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM ${c-fs_SOURCE_DIR}/include)\n"));
+  CHECK_IO(fprintf(
+      fp, "    include_directories(SYSTEM ${c-fs_SOURCE_DIR}/include)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(fp, "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http\" \"${CMAKE_BINARY_DIR}/c-abstract-http\")\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM \"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/include\")\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "if(EXISTS "
+      "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http\" "
+      "\"${CMAKE_BINARY_DIR}/c-abstract-http\")\n"));
+  CHECK_IO(fprintf(
+      fp, "    include_directories(SYSTEM "
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/include\")\n"));
   CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
   CHECK_IO(fprintf(fp, "    find_package(c-abstract-http CONFIG REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
   CHECK_IO(fprintf(fp, "        c-abstract-http\n"));
-  CHECK_IO(fprintf(fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git\n"));
+  CHECK_IO(fprintf(fp, "        GIT_REPOSITORY "
+                       "https://github.com/SamuelMarks/c-abstract-http.git\n"));
   CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
   CHECK_IO(fprintf(fp, "    )\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-abstract-http)\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM ${c-abstract-http_SOURCE_DIR}/include)\n"));
+  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
+                       "${c-abstract-http_SOURCE_DIR}/include)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(fp, "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm\" \"${CMAKE_BINARY_DIR}/c-orm\")\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM \"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/include\")\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm\" "
+          "\"${CMAKE_BINARY_DIR}/c-orm\")\n"));
+  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/include\")\n"));
   CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
   CHECK_IO(fprintf(fp, "    find_package(c-orm CONFIG REQUIRED)\n"));
   CHECK_IO(fprintf(fp, "else()\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
   CHECK_IO(fprintf(fp, "        c-orm\n"));
-  CHECK_IO(fprintf(fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git\n"));
+  CHECK_IO(fprintf(
+      fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git\n"));
   CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
   CHECK_IO(fprintf(fp, "    )\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-orm)\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM ${c-orm_SOURCE_DIR}/include)\n"));
+  CHECK_IO(fprintf(
+      fp, "    include_directories(SYSTEM ${c-orm_SOURCE_DIR}/include)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
   CHECK_IO(fprintf(
