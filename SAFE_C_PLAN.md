@@ -25,13 +25,13 @@ The current implementation hardcodes only 8 functions. The complete MSVC Safe CR
 - [x] **Critical Sub-task:** The parser MUST understand the format string. For every `%s`, `%S`, `%c`, `%C`, and `%[` parsed, Safe CRT `scanf` functions require an additional `unsigned` size parameter passed *immediately after* the buffer pointer.
 
 ### 1.3 Standard String & Character Manipulation
-- [ ] `strtok` -> `strtok_s` (Requires hoisting a `char *` context pointer variable).
+- [x] `strtok` -> `strtok_s` (Requires hoisting a `char *` context pointer variable).
 - [x] `gets` -> `gets_s`
 - [x] `strlen` -> `strnlen_s`
-- [ ] `strerror` -> `strerror_s`
-- [ ] `_strerror` -> `_strerror_s`
-- [ ] `_stricmp` -> `_stricmp_s`
-- [ ] `_strnicmp` -> `_strnicmp_s`
+- [x] `strerror` -> `strerror_s`
+- [x] `_strerror` -> `_strerror_s`
+- [x] `_stricmp` -> `_stricmp_s` (Noted: Safe CRT alternative doesn't exist, preserving original)
+- [x] `_strnicmp` -> `_strnicmp_s` (Noted: Safe CRT alternative doesn't exist, preserving original)
 - [x] `_strlwr` -> `_strlwr_s`
 - [x] `_strupr` -> `_strupr_s`
 - [x] `_strnset` -> `_strnset_s`
@@ -42,7 +42,7 @@ The current implementation hardcodes only 8 functions. The complete MSVC Safe CR
 - [x] `_mbsncpy` -> `_mbsncpy_s`
 - [x] `_mbscat` -> `_mbscat_s`
 - [x] `_mbsncat` -> `_mbsncat_s`
-- [ ] `_mbstok` -> `_mbstok_s`
+- [x] `_mbstok` -> `_mbstok_s`
 - [x] `_mbslwr` -> `_mbslwr_s`
 - [x] `_mbsupr` -> `_mbsupr_s`
 - [x] `_mbsset` -> `_mbsset_s`
@@ -57,15 +57,15 @@ The current implementation hardcodes only 8 functions. The complete MSVC Safe CR
 - [x] `vswprintf` -> `vswprintf_s`
 - [x] `wmemcpy` -> `wmemcpy_s`
 - [x] `wmemmove` -> `wmemmove_s`
-- [ ] `wcstok` -> `wcstok_s`
+- [x] `wcstok` -> `wcstok_s`
 - [x] `_wcslwr` -> `_wcslwr_s`
 - [x] `_wcsupr` -> `_wcsupr_s`
-- [ ] `_wcserror` -> `_wcserror_s`
+- [x] `_wcserror` -> `_wcserror_s`
 
 ### 1.6 String & Type Conversion
-- [ ] `mbstowcs` -> `mbstowcs_s`
-- [ ] `wcstombs` -> `wcstombs_s`
-- [ ] `wctomb` -> `wctomb_s`
+- [x] `mbstowcs` -> `mbstowcs_s`
+- [x] `wcstombs` -> `wcstombs_s`
+- [x] `wctomb` -> `wctomb_s`
 - [x] `_itoa` -> `_itoa_s`
 - [x] `_ltoa` -> `_ltoa_s`
 - [x] `_ultoa` -> `_ultoa_s`
@@ -74,9 +74,9 @@ The current implementation hardcodes only 8 functions. The complete MSVC Safe CR
 - [x] `_itow` -> `_itow_s`
 - [x] `_ltow` -> `_ltow_s`
 - [x] `_ultow` -> `_ultow_s`
-- [ ] `_gcvt` -> `_gcvt_s`
-- [ ] `_ecvt` -> `_ecvt_s`
-- [ ] `_fcvt` -> `_fcvt_s`
+- [x] `_gcvt` -> `_gcvt_s`
+- [x] `_ecvt` -> `_ecvt_s`
+- [x] `_fcvt` -> `_fcvt_s`
 
 ### 1.7 File System, I/O, and Environment
 - [x] `freopen` -> `freopen_s`
@@ -87,35 +87,35 @@ The current implementation hardcodes only 8 functions. The complete MSVC Safe CR
 - [x] `_makepath` -> `_makepath_s`
 - [x] `_wsplitpath` -> `_wsplitpath_s`
 - [x] `_wmakepath` -> `_wmakepath_s`
-- [ ] `getenv` -> `getenv_s` (or `_dupenv_s`)
-- [ ] `_wgetenv` -> `_wgetenv_s`
-- [ ] `_putenv` -> `_putenv_s`
-- [ ] `_wputenv` -> `_wputenv_s`
-- [ ] `_searchenv` -> `_searchenv_s`
+- [x] `getenv` -> `getenv_s` (or `_dupenv_s`)
+- [x] `_wgetenv` -> `_wgetenv_s`
+- [x] `_putenv` -> `_putenv_s`
+- [x] `_wputenv` -> `_wputenv_s`
+- [x] `_searchenv` -> `_searchenv_s`
 
 ### 1.8 Algorithms & Callbacks
-- [ ] `qsort` -> `qsort_s`
-- [ ] `bsearch` -> `bsearch_s`
-- [ ] **Critical Sub-task:** AST must rewrite the comparison callback function signatures internally to accept the `void *context` pointer passed by Safe CRT sorting functions, then update all invocations.
+- [x] `qsort` -> `qsort_s`
+- [x] `bsearch` -> `bsearch_s`
+- [x] **Critical Sub-task:** AST must rewrite the comparison callback function signatures internally to accept the `void *context` pointer passed by Safe CRT sorting functions, then update all invocations.
 
 ## 2. Advanced Semantic Threats & Memory Vulnerabilities
 The current logic relies on naive string replacements that produce dangerously incorrect C code.
 
-- [ ] **Pointer Arithmetic Masking (`sizeof` bug):** If `dest` is `ptr + 5` or `&arr[2]`, `sizeof(ptr + 5)` returns the size of the pointer type (4 or 8 bytes), which leads to immediate buffer truncation or overflow. The parser must isolate the underlying buffer declaration to calculate remaining bounds correctly.
-- [ ] **Heap vs Stack Buffer Resolution:** If the buffer is dynamically allocated (e.g., `char *buf = malloc(N)`), `sizeof(buf)` fails. The AST must trace the pointer definition and infer capacity from allocation sites, or fallback to an interactive prompt / explicit wrapper logic.
-- [ ] **Variable Length Arrays (VLAs):** C99 VLAs (`char buf[len];`) evaluate `sizeof(buf)` dynamically at runtime, but relying on MSVC compatibility flags introduces cross-platform fragility. Ensure safe translation.
+- [x] **Pointer Arithmetic Masking (`sizeof` bug):** If `dest` is `ptr + 5` or `&arr[2]`, `sizeof(ptr + 5)` returns the size of the pointer type (4 or 8 bytes), which leads to immediate buffer truncation or overflow. The parser must isolate the underlying buffer declaration to calculate remaining bounds correctly.
+- [x] **Heap vs Stack Buffer Resolution:** If the buffer is dynamically allocated (e.g., `char *buf = malloc(N)`), `sizeof(buf)` fails. The AST must trace the pointer definition and infer capacity from allocation sites, or fallback to an interactive prompt / explicit wrapper logic.
+- [x] **Variable Length Arrays (VLAs):** C99 VLAs (`char buf[len];`) evaluate `sizeof(buf)` dynamically at runtime, but relying on MSVC compatibility flags introduces cross-platform fragility. Ensure safe translation.
 - [x] **Capacity vs Copy Length Separation (`memcpy_s`):** `memcpy_s(dest, size, src, size)` is fundamentally insecure. `destsz` MUST be the full capacity of `dest`, not the number of bytes being copied. Blindly passing the exact same `size` parameter defeats the purpose of the security check.
-- [ ] **The `strncpy` Null-Termination Trap:** Standard `strncpy` *does not* guarantee null termination. `strncpy_s` *does*. Blindly refactoring `strncpy` to `strncpy_s` will alter the behavioral semantics of the program if downstream code expects a padded, non-null-terminated buffer. 
+- [x] **The `strncpy` Null-Termination Trap:** Standard `strncpy` *does not* guarantee null termination. `strncpy_s` *does*. Blindly refactoring `strncpy` to `strncpy_s` will alter the behavioral semantics of the program if downstream code expects a padded, non-null-terminated buffer. 
 - [x] **Overflow from `size + 1`:** The tool generates `strncpy_s(dest, size + 1, src, size)`. If the original `size` represented the strict maximum bound of the array, `size + 1` causes memory corruption. The transformer must intelligently utilize `_TRUNCATE`.
 
 ## 3. Contextual Syntax & Preprocessor Clashes
 The `#if defined(_MSC_VER)` textual macro injection breaks C compilation across numerous grammatical scopes.
 
-- [ ] **Ternary Operators:** `condition ? strcpy(a, b) : strcpy(a, c);`. You cannot inject preprocessor blocks inside a ternary expression. The AST must hoist the logic into an `if-else` block *before* transforming.
-- [ ] **Comma Operators:** `(do_prep(), strcpy(a, b))`. Injecting `#if` inside parentheses violates C syntax. The comma operator must be unrolled into a block statement.
-- [ ] **Macro Expansions:** `MY_COPY_MACRO(a, b)`. If `strcpy` is embedded inside a macro definition, modifying the AST output directly might break other usages of the macro.
-- [ ] **Unbraced Control Flow:** `if (cond) strcpy(a, b);`. The current replacement injects `#if` directives directly into an unbraced `if` statement body. The compiler will misinterpret the block scope. The transformer MUST wrap single-statement bodies in `{ ... }` before modifying.
-- [ ] **Declaration Splitting:** `FILE *f = fopen("x", "r");`. Generates invalid syntax `fopen_s(&(FILE *f), ...);`. The transformer must split this into:
+- [x] **Ternary Operators:** `condition ? strcpy(a, b) : strcpy(a, c);`. You cannot inject preprocessor blocks inside a ternary expression. The AST must hoist the logic into an `if-else` block *before* transforming.
+- [x] **Comma Operators:** `(do_prep(), strcpy(a, b))`. Injecting `#if` inside parentheses violates C syntax. The comma operator must be unrolled into a block statement.
+- [x] **Macro Expansions:** `MY_COPY_MACRO(a, b)`. If `strcpy` is embedded inside a macro definition, modifying the AST output directly might break other usages of the macro.
+- [x] **Unbraced Control Flow:** `if (cond) strcpy(a, b);`. The current replacement injects `#if` directives directly into an unbraced `if` statement body. The compiler will misinterpret the block scope. The transformer MUST wrap single-statement bodies in `{ ... }` before modifying.
+- [x] **Declaration Splitting:** `FILE *f = fopen("x", "r");`. Generates invalid syntax `fopen_s(&(FILE *f), ...);`. The transformer must split this into:
   ```c
   FILE *f;
   #if defined(_MSC_VER)
@@ -124,7 +124,7 @@ The `#if defined(_MSC_VER)` textual macro injection breaks C compilation across 
   f = fopen("x", "r");
   #endif
   ```
-- [ ] **Return Value Usage:** `if (strcpy(a, b) != NULL)`. The tool completely ignores these scenarios because `assign_idx == -1` is explicitly required. Safe CRT functions return `errno_t` codes, not pointers. The parser must transform these into block operations, capturing the state of `a` after the mutation.
+- [x] **Return Value Usage:** `if (strcpy(a, b) != NULL)`. The tool completely ignores these scenarios because `assign_idx == -1` is explicitly required. Safe CRT functions return `errno_t` codes, not pointers. The parser must transform these into block operations, capturing the state of `a` after the mutation.
 
 ## 4. Parser Architecture & Engine Flaws
 The transformer implementation itself is fundamentally unsuited for complex ASTs.
@@ -141,6 +141,6 @@ The current tests (`test_cdd_transform_safe_crt`) are insufficient for the depth
 
 - [x] Add explicit AST tests for **nested function evaluation** (`strcpy` within a `sprintf`).
 - [x] Add AST tests validating the **preservation of inline comments**.
-- [ ] Add AST tests proving **single-line unbraced loops** correctly resolve into braced blocks.
-- [ ] Add AST tests to ensure **`sizeof` is only applied** to verified Array types, not Pointers.
-- [ ] Add compilation integration tests verifying the `#if defined(_MSC_VER)` outputs actually compile across both MSVC and GCC/Clang targets.
+- [x] Add AST tests proving **single-line unbraced loops** correctly resolve into braced blocks.
+- [x] Add AST tests to ensure **`sizeof` is only applied** to verified Array types, not Pointers.
+- [x] Add compilation integration tests verifying the `#if defined(_MSC_VER)` outputs actually compile across both MSVC and GCC/Clang targets.

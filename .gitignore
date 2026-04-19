@@ -311,3 +311,10 @@ _deps/
 test_build_dir/
 reports/
 docs/html/
+
+# Generated output files
+stderr.txt
+stdout.txt
+test_out*.txt
+test_*.txt
+

@@ -853,9 +853,9 @@ void write_enum_values(JSON_Object *obj, const char *key, char **values,
 static /**
         * @brief Generates C code for write enum any values.
         */
-    void write_enum_any_values(JSON_Object *obj, const char *key,
-                               const struct OpenAPI_Any *values,
-                               size_t n_values) {
+    void
+    write_enum_any_values(JSON_Object *obj, const char *key,
+                          const struct OpenAPI_Any *values, size_t n_values) {
   JSON_Value *_ast_any_to_json_value_1;
   JSON_Value *enum_val;
   JSON_Array *enum_arr;
