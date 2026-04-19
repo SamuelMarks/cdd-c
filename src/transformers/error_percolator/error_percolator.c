@@ -129,10 +129,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
                 0) {
               if (wrap_tree->root->num_children > 0) {
-                if (cdd_cst_node_clone(tree,
+                if (cdd_cst_clone_tree(tree,
                                        wrap_tree->root->children[0].val.node,
                                        &cloned) == 0) {
-                  cdd_cst_node_insert_after(stmt, cloned);
+                  cdd_cst_insert_node_after(stmt, cloned);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -179,11 +179,11 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
           if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
               0) {
             if (wrap_tree->root->num_children > 0) {
-              if (cdd_cst_node_clone(tree,
+              if (cdd_cst_clone_tree(tree,
                                      wrap_tree->root->children[0].val.node,
                                      &cloned) == 0) {
                 cdd_cst_node_t *last_stmt = stmts_res.nodes[stmts_res.size - 1];
-                cdd_cst_node_insert_after(last_stmt, cloned);
+                cdd_cst_insert_node_after(last_stmt, cloned);
               }
             }
             cdd_cst_tree_free(wrap_tree);

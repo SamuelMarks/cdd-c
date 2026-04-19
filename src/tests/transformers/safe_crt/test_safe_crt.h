@@ -107,8 +107,7 @@ TEST test_cdd_transform_safe_crt(void) {
       strstr(out,
              "(wcstombs_s(NULL, dest, (sizeof(dest)), L\"abc\", 3), dest)") !=
       NULL);
-  ASSERT(strstr(out,
-                "(wctomb_s(NULL, dest, sizeof(dest), L'a'), dest)") !=
+  ASSERT(strstr(out, "(wctomb_s(NULL, dest, sizeof(dest), L'a'), dest)") !=
          NULL);
 
   /* Test file system conversions */

@@ -35,11 +35,11 @@ TEST test_cdd_cst_mutate_replace(void) {
   ASSERT(res.size > 0);
 
   target = res.nodes[0];
-  rc = cdd_cst_node_clone(tree, target, &clone);
+  rc = cdd_cst_clone_tree(tree, target, &clone);
   ASSERT_EQ(0, rc);
 
   /* Just test replace works without crashing and unparses */
-  rc = cdd_cst_node_replace(tree, target, clone);
+  rc = cdd_cst_replace_node(tree, target, clone);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_emit(tree, &out);

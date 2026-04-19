@@ -1,0 +1,241 @@
+# Exhaustive GNU C to Standard C (ISO C89/C99/C11) Transformation Plan
+
+This document serves as the absolute, definitive, and exhaustive architectural roadmap for the `gnu_standardizer` engine within `cdd-c`. It lists every individual GNU C extension, built-in, attribute, preprocessor quirk, and required internal abstract syntax tree (AST) modification necessary to achieve a 100% compliant, zero-edge-case conversion to Standard C, targeting legacy compilers like MSVC.
+
+## Phase 1: True AST Foundation, Memory Lifecycle, & Debt Eradication
+- [ ] **Eradicate Token-Level String Replacements**
+  - [ ] Remove `sprintf` and `strdup` usage from `gnu_standardizer.c`.
+  - [ ] Ensure all transformations strictly output valid `cdd_cst_node_t` structures.
+  - [ ] Implement strict separation between the parsing pass and the mutation pass.
+- [x] **AST Node Mutation API (`cdd_cst_mutate.h`)**
+  - [x] Implement `cdd_cst_insert_node_before(target_node, new_node)`.
+  - [x] Implement `cdd_cst_insert_node_after(target_node, new_node)`.
+  - [x] Implement `cdd_cst_replace_node(old_node, new_node)` preserving parent links.
+  - [x] Implement `cdd_cst_detach_node(node)` with safe tree rebalancing.
+  - [x] Implement deep cloning `cdd_cst_clone_tree(root)` for macro and inline expansion.
+- [ ] **Trivia & Source Map Preservation**
+  - [ ] Guarantee 100% preservation of inline comments `//`.
+  - [ ] Guarantee 100% preservation of block comments `/* */` and docstrings.
+  - [ ] Track precise original file/line/column for error emission on unsupported edge cases.
+  - [ ] Retain original indentation during AST pretty-printing (code emission).
+- [ ] **Semantic Type Engine & Control Flow Graph (CFG)**
+  - [ ] Implement full lexical scope tracking (file, function, block, prototype).
+  - [ ] Implement symbol tables for variables, typedefs, struct/union/enum tags.
+  - [ ] Handle symbol shadowing correctly across nested scopes.
+  - [ ] Implement compile-time `sizeof` evaluation based on target ABI models (ILP32, LP64, LLP64).
+  - [ ] Implement compile-time `_Alignof` evaluation.
+  - [ ] Construct accurate CFG for reachability analysis (handling `goto`, `break`, `continue`, `return`).
+  - [ ] Implement escape analysis for local variables (required for closures/nested functions).
+
+## Phase 2: Preprocessor, Lexical, & File Extensions
+- [ ] **Macro & Preprocessor Quirks**
+  - [ ] Transform GNU variadic macros `MACRO(args...)` to C99 `MACRO(...)`.
+  - [ ] Transform `, ##__VA_ARGS__` (comma swallowing) to C99 standard workarounds or C23 `__VA_OPT__`.
+  - [ ] Emulate `#include_next` behavior by dynamically resolving header search paths during parsing.
+  - [ ] Strip or translate `#pragma GCC poison`.
+  - [ ] Strip or translate `#pragma GCC diagnostic push/pop`.
+  - [ ] Strip or translate `#pragma GCC system_header`.
+  - [ ] Translate `#warning` to standard `#error` or target-specific pragmas (`#pragma message`).
+  - [ ] Handle GNU-specific `#ident` and `#sccs`.
+- [ ] **Magic Identifiers**
+  - [ ] Lower `__FUNCTION__` to C99 `__func__` (or synthesized string literals for C89).
+  - [ ] Lower `__PRETTY_FUNCTION__` to synthesized string literals containing full signatures.
+  - [ ] Resolve string concatenation involving magic identifiers (e.g., `"Error: " __FUNCTION__`) via AST string literal merging or `snprintf` polyfills.
+- [ ] **Lexical Constants & Quirks**
+  - [ ] Parse binary integer literals (`0b0101`) and convert to standard hexadecimal.
+  - [ ] Parse hexadecimal floating-point literals (`0x1.fp3`) and convert to decimal equivalents or `<math.h>` operations.
+  - [ ] Support `$` in identifiers natively (mangle to standard `_DOLLAR_` or similar if required by target C compiler).
+  - [ ] Support escaped newlines `\` inside string literals properly.
+  - [ ] Handle `__extension__` keyword (parse, suppress pedantic warnings, and safely discard from AST).
+  - [ ] Parse and lower `__DATE__`, `__TIME__`, `__TIMESTAMP__`, `__COUNTER__`, `__INCLUDE_LEVEL__`, `__BASE_FILE__`.
+
+## Phase 3: Core GNU Types & Arithmetic Models
+- [ ] **128-Bit Integers (`__int128` / `unsigned __int128`)**
+  - [ ] Define standard ABI-compliant `struct __cdd_uint128 { uint64_t low; uint64_t high; }`.
+  - [ ] Define standard ABI-compliant `struct __cdd_int128 { uint64_t low; int64_t high; }`.
+  - [ ] Lower addition (`+`) to internal `__cdd_int128_add`.
+  - [ ] Lower subtraction (`-`) to internal `__cdd_int128_sub`.
+  - [ ] Lower multiplication (`*`) to internal `__cdd_int128_mul`.
+  - [ ] Lower division (`/`) to internal `__cdd_int128_div`.
+  - [ ] Lower modulo (`%`) to internal `__cdd_int128_mod`.
+  - [ ] Lower bitwise shifts (`<<`, `>>`) to internal `__cdd_int128_shl`, `__cdd_int128_shr`.
+  - [ ] Lower bitwise logic (`&`, `|`, `^`, `~`).
+  - [ ] Handle implicit casting rules to/from 64-bit/32-bit types.
+  - [ ] Handle implicit casting rules to/from `float` and `double`.
+  - [ ] Implement struct-passing conversion for variadic arguments (`va_list`) as standard C dictates different ABIs for structs vs native large ints.
+- [ ] **Type Introspection & Inference**
+  - [ ] Implement `typeof(expr)` resolving to true AST type nodes.
+  - [ ] Implement `typeof(type)` resolving transparently.
+  - [ ] Implement `__auto_type` inference at variable declaration.
+  - [ ] Implement `typeof_unqual` (stripping `const`, `volatile`, `restrict`).
+  - [ ] Resolve `typeof` on bit-fields strictly to the underlying integer type (rejecting address-of semantics).
+- [ ] **Complex & Fractional Types**
+  - [ ] Polyfill `__complex__ float/double/int` to structs (`struct { real, imag; }`).
+  - [ ] Lower `__real__ var` accessors to `var.real`.
+  - [ ] Lower `__imag__ var` accessors to `var.imag`.
+  - [ ] Lower complex arithmetic (addition, subtraction, multiplication, division).
+  - [ ] Detect and reject/polyfill `_Fract` and `_Accum` (fixed-point arithmetic).
+- [ ] **Floating Point Extensions**
+  - [ ] Parse `_Decimal32`, `_Decimal64`, `_Decimal128` (map to software floats if hardware unsupported).
+  - [ ] Parse `__fp16`, `_Float16`, `__bf16` (map to `uint16_t` storage and `<math.h>` up-cast evaluations).
+- [ ] **Vector Extensions**
+  - [ ] Translate `__attribute__((vector_size(N)))` to standard C arrays.
+  - [ ] Lower vector addition/subtraction to explicit standard C `for` loops.
+  - [ ] Lower vector bitwise operations to explicit standard C `for` loops.
+  - [ ] Translate `__builtin_shuffle` / `__builtin_shufflevector`.
+
+## Phase 4: Arrays, Structs, and Initialization
+- [ ] **Variable Length Arrays (VLAs)**
+  - [ ] Track VLA scope entries to evaluate size dimensions dynamically.
+  - [ ] Lower VLAs to `alloca()` (if targeting MSVC/Linux) or `malloc()`/`free()` blocks.
+  - [ ] Lower multidimensional VLAs mathematically (`arr[i][j]` -> `arr[i * cols + j]`).
+  - [ ] Polyfill VLA function parameters (`void f(int n, int a[n])` -> `void f(int n, int *a)`).
+  - [ ] Handle `sizeof(VLA)` evaluating side-effects accurately (e.g., `sizeof(a[i++])`).
+- [ ] **Zero-Length Arrays & Struct Quirks**
+  - [ ] Convert `int arr[0];` at the end of structs to C99 Flexible Array Members `int arr[];` (or `int arr[1];` for C89).
+  - [ ] Reject or manually padding-adjust zero-length arrays declared in the *middle* of structs.
+  - [ ] Synthesize dummy tags for anonymous structs and unions to satisfy strict C89.
+  - [ ] Process `__attribute__((transparent_union))` by rewriting function call sites to cast explicitly to the union type.
+- [ ] **Designated & Range Initializers**
+  - [ ] Convert GNU range initializers `[0 ... 9] = 1` to explicit, unrolled standard C initializers (`[0]=1, [1]=1, ...`).
+  - [ ] Parse obsolete GNU designated initializer syntax `[0] = 1`, `[0] 1`, or `identifier: value` and normalize to C99 `.identifier = value` or explicit assignments.
+- [ ] **Compound Literals & Casts**
+  - [ ] Translate C99 compound literals `(struct foo){1, 2}` back to C89 named temporaries if targeting C89 strictly.
+  - [ ] Reject or lower Lvalues of cast expressions (e.g., `(int)x = 5;` -> `*(int*)&x = 5;`).
+
+## Phase 5: Control Flow, Scoping, & Jump Semantics
+- [ ] **Statement Expressions (`({ ... })`)**
+  - [ ] Accurately infer the return type of the final expression in the block.
+  - [ ] Hoist side-effects and local variables to the nearest standard C block scope.
+  - [ ] Prevent variable shadowing during hoisting via collision-free renaming (`__cdd_se_tmp_1`).
+  - [ ] Handle nested statement expressions recursively.
+  - [ ] Handle statement expressions embedded inside `while()`, `for()`, and `if()` condition headers via complex CFG rewriting.
+- [ ] **Nested Functions & Trampolines**
+  - [ ] Perform precise variable escape analysis.
+  - [ ] Implement Lambda Lifting (hoist nested function to file scope if no local captures exist).
+  - [ ] Implement Closure Conversion (pack captured locals into a heap-allocated struct passed as a hidden `__cdd_ctx` parameter).
+  - [ ] Handle explicit trampolines (returning pointers to nested functions) via dynamic heap allocations (W^X memory) or emit hard standard errors.
+- [ ] **Computed Gotos (Labels as Values)**
+  - [ ] Parse address-of-label `&&label` syntax.
+  - [ ] Parse indirect jump `goto *ptr;` syntax.
+  - [ ] Map jump tables to a synthesized master `switch` statement dynamically injected at the function scope.
+  - [ ] Restructure CFG to route all indirect jumps through the master dispatcher.
+- [ ] **Extended Switch Statements**
+  - [ ] Expand GNU case ranges (`case 1 ... 5:`) into explicit sequential `case 1: case 2: ...` statements.
+  - [ ] Handle overlapping ranges (emit warnings, resolve via first-match priority).
+  - [ ] Handle negative case ranges gracefully.
+- [ ] **Local Labels (`__label__`)**
+  - [ ] Parse `__label__ foo, bar;`.
+  - [ ] Rename `__label__` declarations to globally unique identifiers (e.g., `__cdd_lbl_foo_1`) to prevent collisions when hoisting block logic.
+- [ ] **Scope Jumping Protections**
+  - [ ] Safely reject or intelligently route `goto` jumps that cross VLA initialization boundaries (restoring stack pointers).
+  - [ ] Safely route `goto` jumps that cross `__attribute__((cleanup))` bounds, explicitly triggering cleanups before the jump.
+
+## Phase 6: Expressions, Operations & Precedence
+- [ ] **Conditionals**
+  - [ ] Translate omitted operands `x ? : y` to `__cdd_tmp = x; __cdd_tmp ? __cdd_tmp : y` to prevent double evaluation of side-effects or volatile reads.
+- [ ] **Pointers**
+  - [ ] Polyfill pointer arithmetic on `void*` (cast to `char*` internally).
+  - [ ] Polyfill pointer arithmetic on function pointers (cast to `char*` internally).
+
+## Phase 7: Exhaustive Attribute Mapping (`__attribute__((...))`)
+- [ ] **Function Attributes**
+  - [ ] `alias("target")`: Generate standard wrapper function or MSVC linker pragma (`#pragma comment(linker, "/alternatename:...")`).
+  - [ ] `always_inline`: Map to `inline` or `__forceinline`.
+  - [ ] `noinline`: Map to MSVC `__declspec(noinline)`.
+  - [ ] `noreturn`: Map to C11 `_Noreturn`, C23 `[[noreturn]]`, or `__declspec(noreturn)`.
+  - [ ] `format(printf/scanf, i, j)`: Map to MSVC `_Printf_format_string_` or strip for C89.
+  - [ ] `constructor(priority)`: Map to platform-specific initialization segments (e.g., MSVC `.CRT$XCU`).
+  - [ ] `destructor(priority)`: Map to platform-specific exit segments.
+  - [ ] `weak` / `weakref`: Map to MSVC `__declspec(selectany)` or `#pragma weak` if available.
+  - [ ] `malloc`: Map to MSVC `__declspec(restrict)`.
+  - [ ] `returns_nonnull`: Map to `_Ret_notnull_`.
+  - [ ] `warn_unused_result`: Map to C23 `[[nodiscard]]`.
+  - [ ] `returns_twice`: Relevant for `setjmp` wrapper preservation.
+  - [ ] `flatten`, `cold`, `hot`, `pure`, `const`, `leaf`, `artificial`, `noclone`, `optimize`: Strip (optimization hints).
+  - [ ] `interrupt`: Map to MSVC `__interrupt` or architecture-specific handler signatures.
+- [ ] **Variable Attributes**
+  - [ ] `cleanup(func)`: Deeply integrate into CFG. Generate explicit `func(&var)` calls at *all* normal exits, `return`, `goto`, `break`, and `continue` paths.
+  - [ ] `aligned(N)`: Map to C11 `_Alignas(N)` or MSVC `__declspec(align(N))`.
+  - [ ] `section("name")`: Map to `#pragma alloc_text` or `#pragma section`.
+  - [ ] `packed`: Map to `#pragma pack(push, 1)` and `#pragma pack(pop)`.
+  - [ ] `mode(XX)`: Map `QI`->`int8_t`, `HI`->`int16_t`, `SI`->`int32_t`, `DI`->`int64_t`, `TI`->`__int128`, `SF`->`float`, `DF`->`double`.
+  - [ ] `common` / `nocommon`: Emulate via standard `extern` and global initialization rules.
+  - [ ] `tls_model`: Map to standard thread-local storage models.
+- [ ] **Type Attributes**
+  - [ ] `may_alias`: Strip or emit MSVC specific strict-aliasing bypasses.
+  - [ ] `deprecated("msg")`: Map to C23 `[[deprecated("msg")]]` or `__declspec(deprecated("msg"))`.
+  - [ ] `transparent_union`: See struct quirks.
+  - [ ] `designated_init`: Strip (validation hint only).
+
+## Phase 8: Exhaustive Built-in Functions (`__builtin_*`)
+- [ ] **Compile-Time Evaluation & Flow**
+  - [ ] `__builtin_constant_p(expr)`: Evaluate statically; lower to `1` or `0`.
+  - [ ] `__builtin_choose_expr(c, e1, e2)`: Statically evaluate `c`. Completely discard untaken branch AST to prevent invalid standard C semantics.
+  - [ ] `__builtin_types_compatible_p(t1, t2)`: Evaluate type AST structural equality.
+  - [ ] `__builtin_expect(expr, c)`: Strip down to `(expr)`.
+  - [ ] `__builtin_expect_with_probability(expr, c, p)`: Strip down to `(expr)`.
+  - [ ] `__builtin_unreachable()`: Lower to `abort()` or MSVC `__assume(0)`.
+  - [ ] `__builtin_prefetch(addr, rw, loc)`: Map to MSVC `_mm_prefetch` or strip.
+  - [ ] `__builtin_assume_aligned(ptr, align)`: Strip down to `(ptr)`.
+- [ ] **Math, Bitwise, & Logic Intrinsics**
+  - [ ] `__builtin_clz`, `clzl`, `clzll` (Count Leading Zeros): Map to MSVC `_BitScanReverse` / `_BitScanReverse64` or loop.
+  - [ ] `__builtin_ctz`, `ctzl`, `ctzll` (Count Trailing Zeros): Map to MSVC `_BitScanForward` / `_BitScanForward64` or loop.
+  - [ ] `__builtin_popcount`, `popcountl`, `popcountll`: Map to MSVC `__popcnt` / `__popcnt64` or Brian Kernighan’s algorithm.
+  - [ ] `__builtin_ffs`, `ffsl`, `ffsll` (Find First Set).
+  - [ ] `__builtin_parity`, `parityl`, `parityll`.
+  - [ ] `__builtin_bswap16`, `bswap32`, `bswap64`: Map to `<stdlib.h>` `_byteswap_ushort`, `_byteswap_ulong`, `_byteswap_uint64`.
+  - [ ] `__builtin_clrsb`, `clrsbl`, `clrsbll` (Count leading redundant sign bits).
+- [ ] **Memory & String Overrides**
+  - [ ] `__builtin_alloca`, `__builtin_alloca_with_align`: Map to `<malloc.h>` `alloca()`.
+  - [ ] `__builtin_memcpy`, `memset`, `memcmp`, `strcpy`, `strlen`, etc.: Map to standard `<string.h>` equivalents.
+  - [ ] `__builtin___memcpy_chk`, `__memset_chk`, etc.: Strip bounds checking and map to standard functions.
+  - [ ] `__builtin_object_size`, `__builtin_dynamic_object_size`: Evaluate size of struct statically or default to `-1`/`0`.
+- [ ] **Arithmetic Overflows**
+  - [ ] `__builtin_add_overflow(a, b, res)`: Map to up-cast (`int64_t`) validation checks.
+  - [ ] `__builtin_sub_overflow(a, b, res)`: Map to validation checks.
+  - [ ] `__builtin_mul_overflow(a, b, res)`: Map to validation checks.
+- [ ] **System, Call Stack & Frame Intrinsics**
+  - [ ] `__builtin_offsetof(type, member)`: Map to standard `<stddef.h>` `offsetof()`.
+  - [ ] `__builtin_frame_address(level)`: Map to MSVC `_AddressOfReturnAddress()` or platform specific stub.
+  - [ ] `__builtin_return_address(level)`: Map to MSVC `_ReturnAddress()`.
+  - [ ] `__builtin_extract_return_addr(addr)`: Strip to `(addr)`.
+  - [ ] `__builtin_frob_return_addr(addr)`: Strip to `(addr)`.
+  - [ ] `__builtin_trap()`: Map to MSVC `__debugbreak()` or `abort()`.
+  - [ ] `__builtin_setjmp`, `__builtin_longjmp`: Map to standard `<setjmp.h>` `setjmp`/`longjmp`.
+- [ ] **Variadic Functions (`<stdarg.h>` bypasses)**
+  - [ ] `__builtin_va_arg_pack()`: Polyfill via inline expansion or emit standard error.
+  - [ ] `__builtin_va_arg_pack_len()`: Resolve variadic count statically at call site.
+  - [ ] `__builtin_apply_args()`, `__builtin_apply()`, `__builtin_return()`: Construct manual AB-specific stack frames (extremely hard, fallback to error if targeted architectures do not support native asm thunks).
+- [ ] **Atomics & Synchronization**
+  - [ ] Legacy `__sync_fetch_and_add`, `__sync_sub_and_fetch`, `__sync_bool_compare_and_swap`: Map to `<stdatomic.h>` or MSVC `Interlocked...` APIs.
+  - [ ] Modern `__atomic_load_n`, `__atomic_store_n`, `__atomic_exchange_n`, `__atomic_compare_exchange_n`: Map to `<stdatomic.h>` equivalents.
+  - [ ] `__atomic_thread_fence`, `__atomic_signal_fence`: Map to `<stdatomic.h>` `atomic_thread_fence`.
+
+## Phase 9: Inline Assembly Translation (`__asm__`)
+- [ ] **Parsing & Normalization**
+  - [ ] Standardize keywords: `__asm__`, `asm`, `__asm`, `asm volatile`, `__asm__ __volatile__`.
+  - [ ] Parse string literals containing assembly instructions.
+  - [ ] Parse Output Operands (`=r`, `+m`, etc.).
+  - [ ] Parse Input Operands (`r`, `i`, `g`, etc.).
+  - [ ] Parse Clobber Lists (`"memory"`, `"cc"`, `"eax"`, etc.).
+  - [ ] Parse Goto Labels (`asm goto`).
+- [ ] **Lowering & Emulation (To MSVC `__asm { ... }` or Intrinsic Functions)**
+  - [ ] Detect hardware platform (x86, x64, ARM) to ensure correct constraint mapping.
+  - [ ] Map GNU Register Constraints:
+    - [ ] General: `"r"`, `"m"`, `"i"`, `"g"`, `"X"`, `"V"`, `"E"`, `"p"`.
+    - [ ] x86 Specific: `"a"` (eax), `"b"` (ebx), `"c"` (ecx), `"d"` (edx), `"S"` (esi), `"D"` (edi), `"A"` (edx:eax).
+  - [ ] Translate AT&T assembly syntax into Intel assembly syntax natively.
+  - [ ] Extract variables bound to registers and generate explicit local variable moves into/out of MSVC `__asm` blocks.
+  - [ ] Handle `asm goto` by analyzing branch targets, terminating the ASM block, and inserting conditional standard C `goto`s based on flags.
+  - [ ] Emit stack save/restore operations for clobbered registers implicitly assumed by GCC.
+
+## Phase 10: Validation, Safety & Edge Cases
+- [ ] **Robust Edge Case Handling**
+  - [ ] Prevent infinite recursion in statement expression hoisting.
+  - [ ] Prevent memory leaks during massive AST duplication (use memory pools mapped to the translation unit).
+  - [ ] Validate standard alignment padding changes caused by zero-length array removals.
+- [ ] **Test Suites**
+  - [ ] Integrate with GCC Torture Tests to validate transformations against edge cases.
+  - [ ] Fuzz AST mutation functions to guarantee zero segfaults on malformed code.
+  - [ ] Validate identical executable behavior of polyfilled 128-bit integer math using exhaustive limit tests.

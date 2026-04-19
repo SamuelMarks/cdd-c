@@ -293,9 +293,8 @@ static int check_needs_transform(expr_t *head) {
           strcmp(name, "_wmakepath") == 0 || strcmp(name, "getenv") == 0 ||
           strcmp(name, "_wgetenv") == 0 || strcmp(name, "_putenv") == 0 ||
           strcmp(name, "_wputenv") == 0 || strcmp(name, "_searchenv") == 0 ||
-          strcmp(name, "_wsearchenv") == 0 ||
-          strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0 ||
-          strcmp(name, "_ultow") == 0) {
+          strcmp(name, "_wsearchenv") == 0 || strcmp(name, "qsort") == 0 ||
+          strcmp(name, "bsearch") == 0 || strcmp(name, "_ultow") == 0) {
         return 1;
       }
       for (i = 0; i < head->num_args; i++) {
@@ -424,35 +423,35 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           is_safe = 24;
         else if (strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0)
           is_safe = 25;
-        }
+      }
 
-        if (is_safe && is_safe != 18 && is_safe != 19 && is_safe != 20 &&
+      if (is_safe && is_safe != 18 && is_safe != 19 && is_safe != 20 &&
           is_safe != 21 && is_safe != 22 && is_safe != 23 && is_safe != 24 &&
           is_safe != 25) {
-          char safe_name[128];
+        char safe_name[128];
+        if (strcmp(name, "strlen") == 0) {
+          strcpy(safe_name, "strnlen_s");
+        } else {
           if (strcmp(name, "strlen") == 0) {
             strcpy(safe_name, "strnlen_s");
           } else {
-            if (strcmp(name, "strlen") == 0) {
-              strcpy(safe_name, "strnlen_s");
-            } else {
-              sprintf(safe_name, "%s_s", name);
-            }
+            sprintf(safe_name, "%s_s", name);
           }
-          append_trivia(buf, len, cap, node->tok->leading_trivia);
-          append_str(buf, len, cap, safe_name, strlen(safe_name));
-          append_trivia(buf, len, cap, node->tok->trailing_trivia);
-          append_str(buf, len, cap, "(", 1);
-        } else if (!is_safe) {
-          append_trivia(buf, len, cap, node->tok->leading_trivia);
-          append_str(buf, len, cap, (const char *)node->tok->start,
-                     node->tok->length);
-          append_trivia(buf, len, cap, node->tok->trailing_trivia);
-          append_str(buf, len, cap, "(", 1);
-        } else {
-          /* Do not append function name or ( for custom formatted functions */
-          append_trivia(buf, len, cap, node->tok->leading_trivia);
         }
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        append_str(buf, len, cap, safe_name, strlen(safe_name));
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+        append_str(buf, len, cap, "(", 1);
+      } else if (!is_safe) {
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        append_str(buf, len, cap, (const char *)node->tok->start,
+                   node->tok->length);
+        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+        append_str(buf, len, cap, "(", 1);
+      } else {
+        /* Do not append function name or ( for custom formatted functions */
+        append_trivia(buf, len, cap, node->tok->leading_trivia);
+      }
       if (is_safe == 1 && node->num_args >= 2) {
         char *dummy_buf;
         size_t dummy_len = 0;
@@ -639,7 +638,8 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           append_str(buf, len, cap, ", ", 2);
           emit_ast(node->args[k], buf, len, cap, is_msc);
         }
-      } else if (is_safe == 19 && node->num_args == 3) {        char *dummy_buf;
+      } else if (is_safe == 19 && node->num_args == 3) {
+        char *dummy_buf;
         size_t dummy_len = 0;
         size_t dummy_cap = 1024;
         char *stripped;
@@ -652,7 +652,9 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         dummy_buf[0] = 0;
         emit_ast(node->args[2], &dummy_buf, &dummy_len, &dummy_cap, 0);
         stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r') stripped++;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
         append_str(buf, len, cap, "sizeof(", 7);
         append_str(buf, len, cap, stripped, strlen(stripped));
         append_str(buf, len, cap, "), ", 3);
@@ -679,8 +681,11 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         dummy_buf[0] = 0;
         emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
         stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r') stripped++;
-        append_str(buf, len, cap, "(sizeof(", 8);        append_str(buf, len, cap, stripped, strlen(stripped));
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
+        append_str(buf, len, cap, "(sizeof(", 8);
+        append_str(buf, len, cap, stripped, strlen(stripped));
         if (strcmp(name, "wcstombs") == 0) {
           append_str(buf, len, cap, ")), ", 4);
         } else {
@@ -707,7 +712,9 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         dummy_buf[0] = 0;
         emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
         stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r') stripped++;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
         append_str(buf, len, cap, "sizeof(", 7);
         append_str(buf, len, cap, stripped, strlen(stripped));
         append_str(buf, len, cap, "), ", 3);
@@ -735,7 +742,9 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         dummy_buf[0] = 0;
         emit_ast(node->args[2], &dummy_buf, &dummy_len, &dummy_cap, 0);
         stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' || *stripped == '\r') stripped++;
+        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
+               *stripped == '\r')
+          stripped++;
         append_str(buf, len, cap, "sizeof(", 7);
         append_str(buf, len, cap, stripped, strlen(stripped));
         if (strcmp(name, "_wsearchenv") == 0) {
@@ -746,16 +755,19 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         free(dummy_buf);
       } else if (is_safe == 23 && node->num_args == 1) {
         if (strcmp(name, "_wgetenv") == 0) {
-          if (ctx) ctx->needs_wgetenv_ptr = 1;
+          if (ctx)
+            ctx->needs_wgetenv_ptr = 1;
           append_str(buf, len, cap, "(_wdupenv_s(&__wgetenv_ptr, NULL, ", 34);
           emit_ast(node->args[0], buf, len, cap, is_msc);
           append_str(buf, len, cap, "), __wgetenv_ptr)", 17);
         } else {
-          if (ctx) ctx->needs_getenv_ptr = 1;
+          if (ctx)
+            ctx->needs_getenv_ptr = 1;
           append_str(buf, len, cap, "(_dupenv_s(&__getenv_ptr, NULL, ", 32);
           emit_ast(node->args[0], buf, len, cap, is_msc);
           append_str(buf, len, cap, "), __getenv_ptr)", 16);
-        }      } else if (is_safe == 24 && node->num_args == 1) {
+        }
+      } else if (is_safe == 24 && node->num_args == 1) {
         char *dummy_buf;
         size_t dummy_len = 0;
         size_t dummy_cap = 1024;
@@ -766,7 +778,10 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
 
         eq_ptr = strchr(dummy_buf, '=');
-        if (eq_ptr && (dummy_buf[0] == '"' || (dummy_buf[0] == 'L' && dummy_buf[1] == '"')) && eq_ptr > dummy_buf) {
+        if (eq_ptr &&
+            (dummy_buf[0] == '"' ||
+             (dummy_buf[0] == 'L' && dummy_buf[1] == '"')) &&
+            eq_ptr > dummy_buf) {
           *eq_ptr = '\0';
           if (strcmp(name, "_wputenv") == 0) {
             append_str(buf, len, cap, "_wputenv_s(", 11);
@@ -778,21 +793,25 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
             append_str(buf, len, cap, "\", \"", 4);
           }
           append_str(buf, len, cap, eq_ptr + 1, strlen(eq_ptr + 1) - 1);
-          append_str(buf, len, cap, "\"", 1);        } else {
+          append_str(buf, len, cap, "\"", 1);
+        } else {
           append_str(buf, len, cap, name, strlen(name));
           append_str(buf, len, cap, "(", 1);
           emit_ast(node->args[0], buf, len, cap, is_msc);
         }
         free(dummy_buf);
-      } else if (is_safe == 25 && (node->num_args == 4 || node->num_args == 5)) {
+      } else if (is_safe == 25 &&
+                 (node->num_args == 4 || node->num_args == 5)) {
         append_str(buf, len, cap, name, strlen(name));
         append_str(buf, len, cap, "_s(", 3);
         for (k = 0; k < node->num_args; k++) {
-          if (k > 0) append_str(buf, len, cap, ", ", 2);
+          if (k > 0)
+            append_str(buf, len, cap, ", ", 2);
           emit_ast(node->args[k], buf, len, cap, is_msc);
         }
         append_str(buf, len, cap, ", NULL", 6);
-      } else if (is_safe == 7) {        size_t format_idx = 0;
+      } else if (is_safe == 7) {
+        size_t format_idx = 0;
         if (strcmp(name, "fscanf") == 0 || strcmp(name, "sscanf") == 0 ||
             strcmp(name, "vfscanf") == 0 || strcmp(name, "vsscanf") == 0) {
           format_idx = 1;
@@ -1039,14 +1058,16 @@ static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
   if (!buf)
     return ENOMEM;
 
-  sprintf(buf, "\n#if defined(_MSC_VER)\n/*CDD_SAFE_CRT*/ %s\n#else\n/*CDD_SAFE_CRT*/ %s\n#endif\n",
+  sprintf(buf,
+          "\n#if defined(_MSC_VER)\n/*CDD_SAFE_CRT*/ "
+          "%s\n#else\n/*CDD_SAFE_CRT*/ %s\n#endif\n",
           msc_ver_stmt, else_stmt);
 
   new_node = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
   if (!new_node)
     return ENOMEM;
   new_node->kind = CDD_CST_UNKNOWN;
-  
+
   new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   if (!new_tok) {
     free(new_node);
@@ -1067,20 +1088,25 @@ static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
   new_node->num_children = 1;
 
   if (tree->num_synthesized >= tree->synthesized_capacity) {
-    size_t new_cap = tree->synthesized_capacity ? tree->synthesized_capacity * 2 : 128;
+    size_t new_cap =
+        tree->synthesized_capacity ? tree->synthesized_capacity * 2 : 128;
     tree->synthesized_tokens = (cdd_token_t **)realloc(
         tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
     tree->synthesized_capacity = new_cap;
   }
   tree->synthesized_tokens[tree->num_synthesized++] = new_tok;
 
-  old_first = stmt->num_children > 0 && stmt->children[0].kind == CDD_CST_CHILD_TOKEN ? stmt->children[0].val.token : NULL;
-  old_last = stmt->num_children > 0 && stmt->children[stmt->num_children - 1].kind == CDD_CST_CHILD_TOKEN ? stmt->children[stmt->num_children - 1].val.token : NULL;
+  old_first =
+      stmt->num_children > 0 && stmt->children[0].kind == CDD_CST_CHILD_TOKEN
+          ? stmt->children[0].val.token
+          : NULL;
+  old_last =
+      stmt->num_children > 0 &&
+              stmt->children[stmt->num_children - 1].kind == CDD_CST_CHILD_TOKEN
+          ? stmt->children[stmt->num_children - 1].val.token
+          : NULL;
 
-  if (old_first) new_tok->leading_trivia = old_first->leading_trivia;
-  if (old_last) new_tok->trailing_trivia = old_last->trailing_trivia;
-
-  return cdd_cst_node_replace(tree, stmt, new_node);
+  return cdd_cst_replace_node(tree, stmt, new_node);
 }
 
 int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
@@ -1118,9 +1144,11 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       }
 
       /* Single token skip logic */
-      if (stmt->num_children == 1 && stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
+      if (stmt->num_children == 1 &&
+          stmt->children[0].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = stmt->children[0].val.token;
-        if (tok->length > 14 && memcmp(tok->start, "\n#if defined(_M", 15) == 0) {
+        if (tok->length > 14 &&
+            memcmp(tok->start, "\n#if defined(_M", 15) == 0) {
           continue; /* Skip our synthesized nodes! */
         }
       }

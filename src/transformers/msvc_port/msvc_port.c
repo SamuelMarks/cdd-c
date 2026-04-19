@@ -41,10 +41,10 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_node_clone(tree,
+                if (cdd_cst_clone_tree(tree,
                                        wrap_tree->root->children[0].val.node,
                                        &cloned) == 0) {
-                  cdd_cst_node_replace(tree, dir, cloned);
+                  cdd_cst_replace_node(tree, dir, cloned);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -59,10 +59,10 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_node_clone(tree,
+                if (cdd_cst_clone_tree(tree,
                                        wrap_tree->root->children[0].val.node,
                                        &cloned) == 0) {
-                  cdd_cst_node_replace(tree, dir, cloned);
+                  cdd_cst_replace_node(tree, dir, cloned);
                 }
               }
               cdd_cst_tree_free(wrap_tree);

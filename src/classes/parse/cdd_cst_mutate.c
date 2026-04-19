@@ -90,7 +90,7 @@ static int track_synthesized_token(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   return 0;
 }
 
-int cdd_cst_node_replace(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
+int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
                          cdd_cst_node_t *new_node) {
   cdd_cst_node_t *parent;
   size_t idx;
@@ -158,58 +158,58 @@ static int insert_child_at(cdd_cst_node_t *parent, size_t idx,
   return 0;
 }
 
-int cdd_cst_node_insert_before(cdd_cst_node_t *target,
+int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
                                cdd_cst_node_t *new_node) {
   size_t idx;
   int rc;
-  if (!target || !new_node || !target->parent)
+  if (!target_node || !new_node || !target_node->parent)
     return EINVAL;
 
-  rc = find_child_index(target->parent, target, &idx);
+  rc = find_child_index(target_node->parent, target_node, &idx);
   if (rc != 0)
     return rc;
 
-  return insert_child_at(target->parent, idx, new_node);
+  return insert_child_at(target_node->parent, idx, new_node);
 }
 
-int cdd_cst_node_insert_after(cdd_cst_node_t *target,
+int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
                               cdd_cst_node_t *new_node) {
   size_t idx;
   int rc;
-  if (!target || !new_node || !target->parent)
+  if (!target_node || !new_node || !target_node->parent)
     return EINVAL;
 
-  rc = find_child_index(target->parent, target, &idx);
+  rc = find_child_index(target_node->parent, target_node, &idx);
   if (rc != 0)
     return rc;
 
-  return insert_child_at(target->parent, idx + 1, new_node);
+  return insert_child_at(target_node->parent, idx + 1, new_node);
 }
 
-int cdd_cst_node_delete(cdd_cst_tree_t *tree, cdd_cst_node_t *target) {
+int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   size_t idx;
   int rc;
   cdd_cst_node_t *parent;
   cdd_token_t *first_tok, *last_tok;
 
-  if (!tree || !target || !target->parent)
+  if (!tree || !node || !node->parent)
     return EINVAL;
-  parent = target->parent;
+  parent = node->parent;
 
-  rc = find_child_index(parent, target, &idx);
+  rc = find_child_index(parent, node, &idx);
   if (rc != 0)
     return rc;
 
   /* Free trivia of tokens inside this node so we don't double free or leak them
    * if we don't fully free node immediately */
-  first_tok = find_first_token(target);
+  first_tok = find_first_token(node);
   if (first_tok && first_tok->leading_trivia) {
     /* If we delete this node, we should ideally keep the leading whitespace,
        but for a simple implementation, let's just clear it to avoid crashes. */
     first_tok->leading_trivia = NULL; /* leaking if not tracked, but safe */
   }
 
-  last_tok = find_last_token(target);
+  last_tok = find_last_token(node);
   if (last_tok && last_tok->trailing_trivia) {
     last_tok->trailing_trivia = NULL;
   }
@@ -220,25 +220,27 @@ int cdd_cst_node_delete(cdd_cst_tree_t *tree, cdd_cst_node_t *target) {
   }
   parent->num_children--;
 
+  node->parent = NULL; /* explicitly detach */
+
   return 0;
 }
 
-int cdd_cst_node_clone(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
+int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
                        cdd_cst_node_t **out_clone) {
   cdd_cst_node_t *clone;
   size_t i;
   int rc;
 
-  if (!tree || !node || !out_clone)
+  if (!tree || !root || !out_clone)
     return EINVAL;
 
   clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
   if (!clone)
     return ENOMEM;
 
-  clone->kind = node->kind;
-  if (node->num_children > 0) {
-    clone->capacity = node->capacity;
+  clone->kind = root->kind;
+  if (root->num_children > 0) {
+    clone->capacity = root->capacity;
     clone->children =
         (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
     if (!clone->children) {
@@ -246,9 +248,9 @@ int cdd_cst_node_clone(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
       return ENOMEM;
     }
 
-    for (i = 0; i < node->num_children; i++) {
-      if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
-        cdd_token_t *orig_tok = node->children[i].val.token;
+    for (i = 0; i < root->num_children; i++) {
+      if (root->children[i].kind == CDD_CST_CHILD_TOKEN) {
+        cdd_token_t *orig_tok = root->children[i].val.token;
         cdd_token_t *new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
         if (!new_tok) {
           rc = ENOMEM;
@@ -270,7 +272,7 @@ int cdd_cst_node_clone(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
         clone->num_children++;
       } else {
         cdd_cst_node_t *child_clone;
-        rc = cdd_cst_node_clone(tree, node->children[i].val.node, &child_clone);
+        rc = cdd_cst_clone_tree(tree, root->children[i].val.node, &child_clone);
         if (rc != 0)
           goto err;
 
