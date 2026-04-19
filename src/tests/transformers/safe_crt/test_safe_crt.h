@@ -25,6 +25,11 @@ TEST test_cdd_transform_safe_crt(void) {
       "  wchar_t wdest[10];\n"
       "  int idx;\n"
       "  char ch;\n"
+      "  double d = 1.23;\n"
+      "  char *p = _gcvt(d, 5, dest);\n"
+      "  mbstowcs(wdest, \"abc\", 3);\n"
+      "  wcstombs(dest, L\"abc\", 3);\n"
+      "  wctomb(dest, L'a');\n"
       "  strcpy(dest, \"abc\");\n"
       "  strncpy(dest, \"def\", 3);\n"
       "  sprintf(dest, \"%d\", 1);\n"
@@ -58,13 +63,23 @@ TEST test_cdd_transform_safe_crt(void) {
       "  FILE *f4 = tmpfile();\n"
       "  _splitpath(dest, dest, dest, dest, dest);\n"
       "  _makepath(dest, dest, dest, dest, dest);\n"
+      "  _searchenv(\"x\", \"PATH\", dest);\n"
+      "  _wsearchenv(L\"x\", L\"PATH\", wdest);\n"
+      "  p = getenv(\"PATH\");\n"
+      "  wdest[0] = (wchar_t)_wgetenv(L\"PATH\");\n"
+      "  _putenv(\"A=B\");\n"
+      "  _wputenv(L\"A=B\");\n"
+      "  qsort(dest, 10, 1, foo);\n"
+      "  bsearch(\"a\", dest, 10, 1, foo);\n"
       "  1 ? strcpy(dest, \"b\") : strcpy(dest, \"c\");\n"
       "  (void)0, strcpy(dest, \"d\");\n"
       "  if (1) strcpy(dest, \"e\");\n"
       "  for (;;) strcpy(dest, \"f\");\n"
       "  idx = (int)strlen(dest);\n"
       "  /* prefix */ strcpy(dest, /* src */ \"g\" /* suffix */);\n"
-      "}\n";
+      "}\n"
+      "#define MY_COPY_MACRO(a, b) strcpy(a, b)\n"
+      "void bar() { MY_COPY_MACRO(dest, \"h\"); }\n";
   char *out = NULL;
   int rc;
   cdd_transform_config_t config = {0, 2, 0};
@@ -78,9 +93,41 @@ TEST test_cdd_transform_safe_crt(void) {
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 
+  printf("=== GENERATED CODE ===\n%s\n=== END ===\n", out);
+
   ASSERT(strstr(out, "strcpy_s(dest, sizeof(dest), \"abc\");") != NULL);
   ASSERT(strstr(out, "strncpy_s(dest, sizeof(dest), \"def\", _TRUNCATE);") !=
          NULL);
+
+  /* Test string conversions */
+  ASSERT(strstr(out, "(_gcvt_s(dest, sizeof(dest), d, 5), dest)") != NULL);
+  ASSERT(strstr(out, "(mbstowcs_s(NULL, wdest, (sizeof(wdest)) / "
+                     "sizeof(wchar_t), \"abc\", 3), wdest)") != NULL);
+  ASSERT(
+      strstr(out,
+             "(wcstombs_s(NULL, dest, (sizeof(dest)), L\"abc\", 3), dest)") !=
+      NULL);
+  ASSERT(strstr(out,
+                "(wctomb_s(NULL, dest, sizeof(dest), L'a'), dest)") !=
+         NULL);
+
+  /* Test file system conversions */
+  ASSERT(strstr(out, "_searchenv_s(\"x\", \"PATH\", dest, sizeof(dest))") !=
+         NULL);
+  ASSERT(strstr(out, "_wsearchenv_s(L\"x\", L\"PATH\", wdest, sizeof(wdest) "
+                     "/ sizeof(wchar_t))") != NULL);
+  ASSERT(
+      strstr(out, "(_dupenv_s(&__getenv_ptr, NULL, \"PATH\"), __getenv_ptr)") !=
+      NULL);
+  ASSERT(
+      strstr(out,
+             "(_wdupenv_s(&__wgetenv_ptr, NULL, L\"PATH\"), __wgetenv_ptr)") !=
+      NULL);
+  ASSERT(strstr(out, "_putenv_s(\"A\", \"B\")") != NULL);
+  ASSERT(strstr(out, "_wputenv_s(L\"A\", L\"B\")") != NULL);
+  ASSERT(strstr(out, "qsort_s(dest, 10, 1, foo, NULL)") != NULL);
+  ASSERT(strstr(out, "bsearch_s(\"a\", dest, 10, 1, foo, NULL)") != NULL);
+
   ASSERT(strstr(out, "sprintf_s(dest, sizeof(dest), \"%d\", 1);") != NULL);
   ASSERT(strstr(out, "fopen_s(&f") != NULL);
   ASSERT(strstr(out, "FILE *f2") != NULL);

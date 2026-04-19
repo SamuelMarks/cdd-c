@@ -151,9 +151,8 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                rc = cdd_cst_node_clone(tree,
-                                       wrap_tree->root->children[0].val.node,
-                                       &cloned);
+                rc = cdd_cst_node_clone(
+                    tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
                   rc = cdd_cst_node_replace(tree, dir, cloned);
                   if (rc != 0) {
@@ -161,7 +160,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     fprintf(stderr, "Error replacing node: %d\n", rc);
                   }
                 } else {
-                    fprintf(stderr, "Error cloning node: %d\n", rc);
+                  fprintf(stderr, "Error cloning node: %d\n", rc);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -176,9 +175,8 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                rc = cdd_cst_node_clone(tree,
-                                       wrap_tree->root->children[0].val.node,
-                                       &cloned);
+                rc = cdd_cst_node_clone(
+                    tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
                   rc = cdd_cst_node_replace(tree, dir, cloned);
                   if (rc != 0) {
@@ -186,7 +184,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     fprintf(stderr, "Error replacing node: %d\n", rc);
                   }
                 } else {
-                    fprintf(stderr, "Error cloning node: %d\n", rc);
+                  fprintf(stderr, "Error cloning node: %d\n", rc);
                 }
               }
               cdd_cst_tree_free(wrap_tree);

@@ -259,13 +259,21 @@ static cdd_cst_node_t *parse_declaration_or_statement(parser_state_t *s,
         s->err = ENOMEM;
         return NULL;
       }
-      while (s->pos < s->list->size) {
-        cdd_token_t *nxt = peek(s);
-        if (nxt->kind == CDD_TOKEN_RBRACE)
-          break;
-        append_child_token(n, advance(s));
-        if (nxt->kind == CDD_TOKEN_SEMICOLON)
-          break;
+      {
+        int paren_depth = 0;
+        while (s->pos < s->list->size) {
+          cdd_token_t *nxt = peek(s);
+          if (nxt->kind == CDD_TOKEN_LPAREN) {
+            paren_depth++;
+          } else if (nxt->kind == CDD_TOKEN_RPAREN) {
+            paren_depth--;
+          }
+          if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0)
+            break;
+          append_child_token(n, advance(s));
+          if (nxt->kind == CDD_TOKEN_SEMICOLON && paren_depth <= 0)
+            break;
+        }
       }
       return n;
     }
