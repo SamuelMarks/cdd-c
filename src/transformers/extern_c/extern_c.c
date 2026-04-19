@@ -77,12 +77,12 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       if (top_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
         /* Insert all children of the parsed fragment */
-        if (cdd_cst_node_clone(tree, top_tree->root->children[0].val.node,
+        if (cdd_cst_clone_tree(tree, top_tree->root->children[0].val.node,
                                &cloned) == 0) {
           if (insert_after_node) {
-            cdd_cst_node_insert_after(insert_after_node, cloned);
+            cdd_cst_insert_node_after(insert_after_node, cloned);
           } else if (tree->root->num_children > 0) {
-            cdd_cst_node_insert_before(tree->root->children[0].val.node,
+            cdd_cst_insert_node_before(tree->root->children[0].val.node,
                                        cloned);
           }
         }
@@ -99,12 +99,12 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
         0) {
       if (bot_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
-        if (cdd_cst_node_clone(tree, bot_tree->root->children[0].val.node,
+        if (cdd_cst_clone_tree(tree, bot_tree->root->children[0].val.node,
                                &cloned) == 0) {
           if (tree->root->num_children > 0) {
             cdd_cst_node_t *last_node =
                 tree->root->children[tree->root->num_children - 1].val.node;
-            cdd_cst_node_insert_after(last_node, cloned);
+            cdd_cst_insert_node_after(last_node, cloned);
           }
         }
       }

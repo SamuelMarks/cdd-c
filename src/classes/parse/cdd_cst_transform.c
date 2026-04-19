@@ -80,12 +80,12 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       if (top_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
         /* Insert all children of the parsed fragment */
-        if (cdd_cst_node_clone(tree, top_tree->root->children[0].val.node,
+        if (cdd_cst_clone_tree(tree, top_tree->root->children[0].val.node,
                                &cloned) == 0) {
           if (insert_after_node) {
-            cdd_cst_node_insert_after(insert_after_node, cloned);
+            cdd_cst_insert_node_after(insert_after_node, cloned);
           } else if (tree->root->num_children > 0) {
-            cdd_cst_node_insert_before(tree->root->children[0].val.node,
+            cdd_cst_insert_node_before(tree->root->children[0].val.node,
                                        cloned);
           }
         }
@@ -102,12 +102,12 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
         0) {
       if (bot_tree->root->num_children > 0) {
         cdd_cst_node_t *cloned = NULL;
-        if (cdd_cst_node_clone(tree, bot_tree->root->children[0].val.node,
+        if (cdd_cst_clone_tree(tree, bot_tree->root->children[0].val.node,
                                &cloned) == 0) {
           if (tree->root->num_children > 0) {
             cdd_cst_node_t *last_node =
                 tree->root->children[tree->root->num_children - 1].val.node;
-            cdd_cst_node_insert_after(last_node, cloned);
+            cdd_cst_insert_node_after(last_node, cloned);
           }
         }
       }
@@ -151,10 +151,10 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                rc = cdd_cst_node_clone(
+                rc = cdd_cst_clone_tree(
                     tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
-                  rc = cdd_cst_node_replace(tree, dir, cloned);
+                  rc = cdd_cst_replace_node(tree, dir, cloned);
                   if (rc != 0) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
@@ -175,10 +175,10 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     &wrap_tree) == 0) {
               if (wrap_tree->root->num_children > 0) {
                 cdd_cst_node_t *cloned = NULL;
-                rc = cdd_cst_node_clone(
+                rc = cdd_cst_clone_tree(
                     tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
-                  rc = cdd_cst_node_replace(tree, dir, cloned);
+                  rc = cdd_cst_replace_node(tree, dir, cloned);
                   if (rc != 0) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
@@ -502,10 +502,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
                 0) {
               if (wrap_tree->root->num_children > 0) {
-                if (cdd_cst_node_clone(tree,
+                if (cdd_cst_clone_tree(tree,
                                        wrap_tree->root->children[0].val.node,
                                        &cloned) == 0) {
-                  cdd_cst_node_insert_after(stmt, cloned);
+                  cdd_cst_insert_node_after(stmt, cloned);
                 }
               }
               cdd_cst_tree_free(wrap_tree);
@@ -552,11 +552,11 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
           if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
               0) {
             if (wrap_tree->root->num_children > 0) {
-              if (cdd_cst_node_clone(tree,
+              if (cdd_cst_clone_tree(tree,
                                      wrap_tree->root->children[0].val.node,
                                      &cloned) == 0) {
                 cdd_cst_node_t *last_stmt = stmts_res.nodes[stmts_res.size - 1];
-                cdd_cst_node_insert_after(last_stmt, cloned);
+                cdd_cst_insert_node_after(last_stmt, cloned);
               }
             }
             cdd_cst_tree_free(wrap_tree);

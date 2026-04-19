@@ -18,44 +18,45 @@ extern "C" {
  * @param new_node The new node to insert.
  * @return 0 on success.
  */
-int cdd_cst_node_replace(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
+int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
                          cdd_cst_node_t *new_node);
 
 /**
  * @brief Inserts new_node into the parent's children array before target.
- * @param target The node to insert before.
+ * @param target_node The node to insert before.
  * @param new_node The node to insert.
  * @return 0 on success.
  */
-int cdd_cst_node_insert_before(cdd_cst_node_t *target,
+int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
                                cdd_cst_node_t *new_node);
 
 /**
  * @brief Inserts new_node into the parent's children array after target.
- * @param target The node to insert after.
+ * @param target_node The node to insert after.
  * @param new_node The node to insert.
  * @return 0 on success.
  */
-int cdd_cst_node_insert_after(cdd_cst_node_t *target, cdd_cst_node_t *new_node);
+int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
+                              cdd_cst_node_t *new_node);
 
 /**
- * @brief Removes target node from its parent.
+ * @brief Detaches target node from its parent.
  *        Safely cleans up orphaned adjacent whitespace/newlines.
  * @param tree The CST tree.
- * @param target The node to delete.
+ * @param node The node to detach.
  * @return 0 on success.
  */
-int cdd_cst_node_delete(cdd_cst_tree_t *tree, cdd_cst_node_t *target);
+int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node);
 
 /**
- * @brief Clones a node deeply (including tokens and trivia).
+ * @brief Clones a tree deeply (including tokens and trivia).
  *        The tokens are added to the tree's synthesized_tokens array.
  * @param tree The CST tree.
- * @param node The node to clone.
+ * @param root The root node to clone.
  * @param out_clone The cloned node.
  * @return 0 on success.
  */
-int cdd_cst_node_clone(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
+int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
                        cdd_cst_node_t **out_clone);
 
 #ifdef __cplusplus
