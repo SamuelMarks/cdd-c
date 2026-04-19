@@ -266,7 +266,7 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   /* 18446744073709551616 is 2^64, so high=1, low=0 */
-  ASSERT(strstr(out, "cdd_make_uint128(0x1ULL, 0x0ULL)") != NULL);
+  printf("OUT: %s\n", out); ASSERT(strstr(out, "cdd_make_uint128(0x1ULL, 0x0ULL)") != NULL);
 
   free(out);
   cdd_cst_tree_free(tree);
@@ -437,7 +437,7 @@ TEST test_gnu_standardizer_shuffle(void) {
 
   ASSERT(strstr(out, "cdd_builtin_shuffle(a, b, mask)") != NULL);
   if (strstr(out, "cdd_builtin_shufflevector(a, b, 0, 1)") == NULL) {
-    printf("OUT WAS: %s\n", out);
+    printf("OUT WAS: [%s]\n", out);
   }
   ASSERT(strstr(out, "cdd_builtin_shufflevector(a, b, 0, 1)") != NULL);
 
@@ -507,8 +507,8 @@ TEST test_gnu_standardizer_typeof(void) {
   ASSERT(strstr(out, "float c = 1.0f;") != NULL);
   ASSERT(strstr(out, "double d = 1.0;") != NULL);
   ASSERT(strstr(out, "int e = 2;") != NULL);
-  ASSERT(strstr(out, "typedef int __cdd_typeof_arr_") != NULL);
-  ASSERT(strstr(out, "[5]; __cdd_typeof_arr_") != NULL);
+  printf("OUT: %s\n", out); ASSERT(strstr(out, "typedef int __cdd_typeof_arr_") != NULL);
+  printf("OUT: %s\n", out); ASSERT(strstr(out, "[5]; __cdd_typeof_arr_") != NULL);
   ASSERT(strstr(out, " arr = {1, 2, 3, 4, 5};") != NULL);
   ASSERT(strstr(out, "int x = 0;") != NULL);
   ASSERT(strstr(out, "int y = 0;") != NULL);
@@ -569,7 +569,7 @@ TEST test_cdd_transform_complex_numbers(void) {
 
   printf("COMPLEX MACRO OUT: %s\n", out);
 
-  ASSERT(strstr(out, "struct { float real, imag; }") != NULL);
+  printf("COMPLEX MACRO OUT: [%s]\n", out); ASSERT(strstr(out, "struct { float real, imag; }") != NULL);
   ASSERT(strstr(out, "z . real = 1.0f;") != NULL ||
          strstr(out, "z.real = 1.0f;") != NULL ||
          strstr(out, "z.real  = 1.0f;") != NULL ||
