@@ -97,6 +97,9 @@ set(Source_Files
         "classes/parse/cdd_lexer.c"
         "classes/parse/cdd_cst_parser.c"
         "classes/parse/cdd_cst_mutate.c"
+          "classes/parse/cdd_cst_mutate_splice.c"
+  "classes/parse/cdd_cst_factory.c"
+          "classes/parse/cdd_cst_factory_format.c"
         "classes/parse/cdd_cst_query.c"
         "transformers/extern_c/extern_c.c"
         "transformers/msvc_port/msvc_port.c"
@@ -462,6 +465,11 @@ if (APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
 endif()
+
+
+
+
+
 
 
 
