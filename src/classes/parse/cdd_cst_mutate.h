@@ -59,10 +59,11 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node);
 int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
                        cdd_cst_node_t **out_clone);
 
+int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr, size_t start_idx, size_t consume_count, cdd_cst_child_t *new_children, size_t new_children_count);
+cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok, size_t *out_idx);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr, size_t start_idx, size_t consume_count, cdd_cst_child_t *new_children, size_t new_children_count);
-cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok, size_t *out_idx);
 #endif /* CDD_CST_MUTATE_H */

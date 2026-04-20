@@ -586,6 +586,33 @@ TEST test_cdd_transform_complex_numbers(void) {
   PASS();
 }
 
+TEST test_gnu_standardizer_comment_preservation(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "/* block start */\n"
+                     "int main() { // inline comment\n"
+                     "  int a = ({ int b = 1; /* mid-expr */ b; });\n"
+                     "  int arr[a]; /* vla decl */\n"
+                     "  return 0;\n"
+                     "}\n"
+                     "/* block end */";
+  char *out = NULL;
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_cst_emit(tree, &out));
+
+  ASSERT(strstr(out, "/* block start */") != NULL);
+  ASSERT(strstr(out, "// inline comment") != NULL);
+  ASSERT(strstr(out, "/* mid-expr */") != NULL);
+  ASSERT(strstr(out, "/* vla decl */") != NULL);
+  ASSERT(strstr(out, "/* block end */") != NULL);
+
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_cdd_transform_gnu);
   RUN_TEST(test_gnu_standardizer_stmt_expr);
@@ -611,6 +638,7 @@ SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_gnu_standardizer_typeof);
   RUN_TEST(test_gnu_standardizer_variadic_macros);
   RUN_TEST(test_cdd_transform_complex_numbers);
+  RUN_TEST(test_gnu_standardizer_comment_preservation);
 }
 #ifdef __cplusplus
 }
