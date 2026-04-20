@@ -4,7 +4,7 @@ This document serves as the absolute, definitive, and exhaustive architectural r
 
 ## Phase 1: True AST Foundation, Memory Lifecycle, & Debt Eradication
 - [ ] **Eradicate Token-Level String Replacements**
-  - [ ] Remove `sprintf` and `strdup` usage from `gnu_standardizer.c`.
+  - [x] Remove `sprintf` and `strdup` usage from `gnu_standardizer.c`.
   - [ ] Ensure all transformations strictly output valid `cdd_cst_node_t` structures.
   - [ ] Implement strict separation between the parsing pass and the mutation pass.
 - [x] **AST Node Mutation API (`cdd_cst_mutate.h`)**
@@ -50,11 +50,11 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [ ] Parse and lower `__DATE__`, `__TIME__`, `__TIMESTAMP__`, `__COUNTER__`, `__INCLUDE_LEVEL__`, `__BASE_FILE__`.
 
 ## Phase 3: Core GNU Types & Arithmetic Models
-- [ ] **128-Bit Integers (`__int128` / `unsigned __int128`)**
-  - [ ] Define standard ABI-compliant `struct __cdd_uint128 { uint64_t low; uint64_t high; }`.
-  - [ ] Define standard ABI-compliant `struct __cdd_int128 { uint64_t low; int64_t high; }`.
-  - [ ] Lower addition (`+`) to internal `__cdd_int128_add`.
-  - [ ] Lower subtraction (`-`) to internal `__cdd_int128_sub`.
+- [x] **128-Bit Integers (`__int128` / `unsigned __int128`)**
+  - [x] Define standard ABI-compliant `struct __cdd_uint128 { uint64_t low; uint64_t high; }`.
+  - [x] Define standard ABI-compliant `struct __cdd_int128 { uint64_t low; int64_t high; }`.
+  - [x] Lower addition (`+`) to internal `__cdd_int128_add`.
+  - [x] Lower subtraction (`-`) to internal `__cdd_int128_sub`.
   - [ ] Lower multiplication (`*`) to internal `__cdd_int128_mul`.
   - [ ] Lower division (`/`) to internal `__cdd_int128_div`.
   - [ ] Lower modulo (`%`) to internal `__cdd_int128_mod`.

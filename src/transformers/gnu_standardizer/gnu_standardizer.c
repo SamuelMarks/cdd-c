@@ -13,6 +13,31 @@
 #include <ctype.h>
 /* clang-format on */
 
+static char *append_int(char *p, int v) {
+  char temp[32];
+  int i = 0, j;
+  unsigned int u;
+  if (v == 0) {
+    *p++ = '0';
+    return p;
+  }
+  if (v < 0) {
+    *p++ = '-';
+    u = (unsigned int)-v;
+  } else {
+    u = (unsigned int)v;
+  }
+  while (u > 0) {
+    temp[i++] = (char)('0' + (u % 10));
+    u /= 10;
+  }
+  for (j = i - 1; j >= 0; j--) {
+    *p++ = temp[j];
+  }
+  *p = '\0';
+  return p;
+}
+
 static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
                               uint64_t *out_low) {
   uint64_t high = 0;
@@ -306,7 +331,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     memcpy(var_name, start_id, var_len);
                     var_name[var_len] = '\0';
                   } else {
-                    var_name = strdup("__VA_ARGS__");
+                    var_name = (char *)malloc(12);
+                    if (var_name) {
+                      memcpy(var_name, "__VA_ARGS__", 11);
+                      var_name[11] = '\0';
+                    }
                     var_len = 11;
                   }
 
@@ -401,13 +430,17 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       if (i + 1 < tree->base_tokens->size) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "struct { %.*s real, imag; } ",  (int)next_tok->length, next_tok->start);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 2, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp =
+              cdd_cst_parse_format(tree, "struct { %.*s real, imag; } ",
+                                   (int)next_tok->length, next_tok->start);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
         next_tok->length = 0;
@@ -417,13 +450,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_IDENTIFIER) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "%.*s.real ",  (int)next_tok->length, next_tok->start);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 2, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp = cdd_cst_parse_format(
+              tree, "%.*s.real ", (int)next_tok->length, next_tok->start);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
         next_tok->length = 0;
@@ -433,13 +469,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_IDENTIFIER) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "%.*s.imag ",  (int)next_tok->length, next_tok->start);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 2, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp = cdd_cst_parse_format(
+              tree, "%.*s.imag ", (int)next_tok->length, next_tok->start);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
         next_tok->length = 0;
@@ -454,13 +493,19 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_token_t *type_tok = &tree->base_tokens->tokens[i + 2];
         cdd_token_t *size_tok = &tree->base_tokens->tokens[i + 4];
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "typedef %.*s __cdd_typeof_arr_%d[%.*s]; __cdd_typeof_arr_%d ", (int)type_tok->length, type_tok->start, (int)i, (int)size_tok->length, size_tok->start, (int)i);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 7, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp = cdd_cst_parse_format(
+              tree,
+              "typedef %.*s __cdd_typeof_arr_%d[%.*s]; __cdd_typeof_arr_%d ",
+              (int)type_tok->length, type_tok->start, (int)i,
+              (int)size_tok->length, size_tok->start, (int)i);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 7,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
         tree->base_tokens->tokens[i + 1].length = 0;
@@ -557,13 +602,17 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t child_idx;
-          cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
-              cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "cdd_make_uint128(0x%llxULL, 0x%llxULL)", (unsigned long long)high, (unsigned long long)low);
-              if (temp) {
-                  cdd_cst_splice_children(tree, &owning_node, child_idx, 1, temp->children, temp->num_children);
-                  cdd_cst_free_node_only(temp);
-              }
+            cdd_cst_node_t *temp = cdd_cst_parse_format(
+                tree, "cdd_make_uint128(0x%llxULL, 0x%llxULL)",
+                (unsigned long long)high, (unsigned long long)low);
+            if (temp) {
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                      temp->children, temp->num_children);
+              cdd_cst_free_node_only(temp);
+            }
           }
         }
         tok->length = 0;
@@ -632,12 +681,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         } else {
           /* Generic fallback for any other no-arg attribute like always_inline,
            * pure, const, weak, etc. */
-          char buf[128];
-          char *heap_buf;
-          sprintf(buf, "/* %.*s */", (int)attr->length, attr->start);
-          heap_buf = strdup(buf);
-          tok->start = (const uint8_t *)heap_buf;
-          tok->length = strlen(heap_buf);
+          char *heap_buf = (char *)malloc(attr->length + 7);
+          if (heap_buf) {
+            memcpy(heap_buf, "/* ", 3);
+            memcpy(heap_buf + 3, attr->start, attr->length);
+            memcpy(heap_buf + 3 + attr->length, " */", 3);
+            heap_buf[6 + attr->length] = '\0';
+            tok->start = (const uint8_t *)heap_buf;
+            tok->length = 6 + attr->length;
+          }
           tree->base_tokens->tokens[i + 1].length = 0;
           tree->base_tokens->tokens[i + 2].length = 0;
           tree->base_tokens->tokens[i + 3].length = 0;
@@ -678,13 +730,18 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
            become array memory blobs. */        } else if (attr->length == 7 &&
                    memcmp(attr->start, "aligned", 7) == 0) {
           size_t child_idx;
-          cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
-              cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "_Alignas(%.*s)", (int)tree->base_tokens->tokens[i + 5].length, tree->base_tokens->tokens[i + 5].start);
-              if (temp) {
-                  cdd_cst_splice_children(tree, &owning_node, child_idx, 9, temp->children, temp->num_children);
-                  cdd_cst_free_node_only(temp);
-              }
+            cdd_cst_node_t *temp = cdd_cst_parse_format(
+                tree, "_Alignas(%.*s)",
+                (int)tree->base_tokens->tokens[i + 5].length,
+                tree->base_tokens->tokens[i + 5].start);
+            if (temp) {
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 9,
+                                      temp->children, temp->num_children);
+              cdd_cst_free_node_only(temp);
+            }
           }
           tok->length = 0;
           tree->base_tokens->tokens[i + 1].length = 0;
@@ -760,13 +817,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
          */
         static int anon_counter = 0;
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "struct _cdd_anon_%d", anon_counter++);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 1, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp =
+              cdd_cst_parse_format(tree, "struct _cdd_anon_%d", anon_counter++);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
       }
@@ -777,13 +837,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         /* Anonymous union: GNU extension. Inject dummy name. */
         static int anon_counter = 0;
         size_t child_idx;
-        cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "union _cdd_anon_%d", anon_counter++);
-            if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 1, temp->children, temp->num_children);
-                cdd_cst_free_node_only(temp);
-            }
+          cdd_cst_node_t *temp =
+              cdd_cst_parse_format(tree, "union _cdd_anon_%d", anon_counter++);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
         }
         tok->length = 0;
       }
@@ -969,16 +1032,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
         if (end_idx > i + 2) {
-          char buf[4096];
-          char *p = buf;
-          p += sprintf(p, "/* __attribute__");
-          for (k = i + 1; k <= end_idx; k++) {
-            p += sprintf(p, "%.*s", (int)tree->base_tokens->tokens[k].length,
-                         tree->base_tokens->tokens[k].start);
-          }
-          p += sprintf(p, " */");
-          t->start = (const uint8_t *)strdup(buf);
-          t->length = strlen((const char *)t->start);
+          t->length = 0;
           for (k = i + 1; k <= end_idx; k++) {
             tree->base_tokens->tokens[k].length = 0;
           }
@@ -992,23 +1046,44 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           char buf[4096] = {0};
           char *p = buf;
           int appended = 0;
+          size_t child_idx;
+          cdd_cst_node_t *owning_node =
+              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          if (!owning_node)
+            return EINVAL;
 
           /* Run cleanups in reverse order */
           while (num_cleanups > 0 &&
                  cleanups[num_cleanups - 1].depth == current_depth) {
-            p += sprintf(p, " %.*s(&%.*s);",
-                         (int)cleanups[num_cleanups - 1].func_length,
-                         cleanups[num_cleanups - 1].func_name,
-                         (int)cleanups[num_cleanups - 1].var_length,
-                         cleanups[num_cleanups - 1].var_name);
+            cdd_cst_node_t *temp = cdd_cst_parse_format(
+                tree, "%.*s(&%.*s);",
+                (int)cleanups[num_cleanups - 1].func_length,
+                cleanups[num_cleanups - 1].func_name,
+                (int)cleanups[num_cleanups - 1].var_length,
+                cleanups[num_cleanups - 1].var_name);
+            if (temp) {
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                      temp->children, temp->num_children);
+              child_idx += temp->num_children;
+              cdd_cst_free_node_only(temp);
+              appended = 1;
+            }
             num_cleanups--;
             appended = 1;
           }
 
           if (config && config->fallback_vla_to_malloc) {
             while (num_vlas > 0 && vlas[num_vlas - 1].depth == current_depth) {
-              p += sprintf(p, " free(%.*s);", (int)vlas[num_vlas - 1].length,
-                           vlas[num_vlas - 1].name);
+              cdd_cst_node_t *temp = cdd_cst_parse_format(
+                  tree, "free(%.*s);", (int)vlas[num_vlas - 1].length,
+                  vlas[num_vlas - 1].name);
+              if (temp) {
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                        temp->children, temp->num_children);
+                child_idx += temp->num_children;
+                cdd_cst_free_node_only(temp);
+                appended = 1;
+              }
               num_vlas--;
               appended = 1;
             }
@@ -1021,9 +1096,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (appended) {
             char *heap_buf;
             strcat(p, " }");
-            heap_buf = strdup(buf);
+            heap_buf = (char *)malloc(strlen(buf) + 1);
+            if (heap_buf)
+              strcpy(heap_buf, buf);
             t->start = (const uint8_t *)heap_buf;
-            t->length = strlen(heap_buf);
+            t->length = heap_buf ? strlen(heap_buf) : 0;
           }
         }
         current_depth--;
@@ -1037,51 +1114,89 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               char buf[4096] = {0};
               char *p = buf;
               size_t c_idx, v_idx;
+              cdd_token_t *semi_tok = &tree->base_tokens->tokens[k];
+              size_t child_idx;
+              cdd_cst_node_t *owning_node =
+                  cdd_cst_find_node_for_token(tree->root, semi_tok, &child_idx);
+              if (!owning_node)
+                break;
 
               if (has_expr) {
                 t->start = (const uint8_t *)"{ __auto_type __cdd_ret = (";
                 t->length = 27;
-                p += sprintf(p, ");");
+                strcpy(p, ");");
+                p += 2;
               } else {
                 t->start = (const uint8_t *)"{";
                 t->length = 1;
               }
 
               for (c_idx = num_cleanups; c_idx > 0; c_idx--) {
-                p += sprintf(p, " %.*s(&%.*s);",
-                             (int)cleanups[c_idx - 1].func_length,
-                             cleanups[c_idx - 1].func_name,
-                             (int)cleanups[c_idx - 1].var_length,
-                             cleanups[c_idx - 1].var_name);
+                cdd_cst_node_t *temp = cdd_cst_parse_format(
+                    tree, "%.*s(&%.*s);", (int)cleanups[c_idx - 1].func_length,
+                    cleanups[c_idx - 1].func_name,
+                    (int)cleanups[c_idx - 1].var_length,
+                    cleanups[c_idx - 1].var_name);
+                if (temp) {
+                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                          temp->children, temp->num_children);
+                  child_idx += temp->num_children;
+                  cdd_cst_free_node_only(temp);
+                }
               }
               if (config && config->fallback_vla_to_malloc) {
                 for (v_idx = num_vlas; v_idx > 0; v_idx--) {
-                  p += sprintf(p, " free(%.*s);", (int)vlas[v_idx - 1].length,
-                               vlas[v_idx - 1].name);
+                  cdd_cst_node_t *temp = cdd_cst_parse_format(
+                      tree, "free(%.*s);", (int)vlas[v_idx - 1].length,
+                      vlas[v_idx - 1].name);
+                  if (temp) {
+                    cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                            temp->children, temp->num_children);
+                    child_idx += temp->num_children;
+                    cdd_cst_free_node_only(temp);
+                  }
                 }
               }
 
               if (has_expr) {
-                p += sprintf(p, " return __cdd_ret; }");
+                cdd_cst_node_t *temp =
+                    cdd_cst_parse_format(tree, "return __cdd_ret; }");
+                if (temp) {
+                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                          temp->children, temp->num_children);
+                  cdd_cst_free_node_only(temp);
+                }
               } else {
-                p += sprintf(p, " return; }");
+                cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "return; }");
+                if (temp) {
+                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                          temp->children, temp->num_children);
+                  cdd_cst_free_node_only(temp);
+                }
               }
 
-              tree->base_tokens->tokens[k].start = (const uint8_t *)strdup(buf);
-              tree->base_tokens->tokens[k].length =
-                  strlen((const char *)tree->base_tokens->tokens[k].start);
+              {
+                char *dup = (char *)malloc(strlen(buf) + 1);
+                if (dup)
+                  strcpy(dup, buf);
+                tree->base_tokens->tokens[k].start = (const uint8_t *)dup;
+                tree->base_tokens->tokens[k].length = dup ? strlen(dup) : 0;
+              }
               break;
             }
           }
         }
       } else if (t->kind == CDD_TOKEN_KEYWORD_GOTO) {
         if (num_cleanups > 0) {
-          t->start = (const uint8_t *)"/* warning: goto cross-scope cleanups unsupported */ goto";
+          t->start = (const uint8_t *)"/* warning: goto cross-scope cleanups "
+                                      "unsupported */ goto";
           t->length = 59;
         }
 
         if (num_vlas > 0) {
-          t->start = (const uint8_t *)"/* warning: goto crossing VLA scopes unsupported */ goto";
+          t->start =
+              (const uint8_t
+                   *)"/* warning: goto crossing VLA scopes unsupported */ goto";
           t->length = 58;
         }
 
@@ -1095,13 +1210,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
              MSVC contexts this extension cannot be successfully lowered
              natively without massive hacks.
           */
-          t->start = (const uint8_t *)"/* warning: computed goto converting jump tables to switch internally unsupported */ goto";
+          t->start = (const uint8_t
+                          *)"/* warning: computed goto converting jump tables "
+                            "to switch internally unsupported */ goto";
           t->length = 89;
         }
       } else if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 7 &&
                  memcmp(t->start, "longjmp", 7) == 0) {
         if (num_cleanups > 0) {
-          t->start = (const uint8_t *)"/* warning: longjmp bypasses cleanups */ longjmp";
+          t->start = (const uint8_t
+                          *)"/* warning: longjmp bypasses cleanups */ longjmp";
           t->length = 50;
         }
       } else if (t->kind == CDD_TOKEN_KEYWORD___LABEL__) {
@@ -1114,8 +1232,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               local_labels[num_local_labels].name = nt->start;
               local_labels[num_local_labels].length = nt->length;
               local_labels[num_local_labels].depth = current_depth;
-              sprintf(local_labels[num_local_labels].rename, "__cdd_ll_%.*s_%d",
-                      (int)nt->length, nt->start, ++label_counter);
+              {
+                char *p = local_labels[num_local_labels].rename;
+                strcpy(p, "__cdd_ll_");
+                p += 9;
+                memcpy(p, nt->start, nt->length);
+                p += nt->length;
+                *p++ = '_';
+                append_int(p, ++label_counter);
+              }
               num_local_labels++;
             }
             nt->length = 0;
@@ -1157,9 +1282,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           for (j = num_local_labels; j-- > 0;) {
             if (local_labels[j].length == t->length &&
                 memcmp(local_labels[j].name, t->start, t->length) == 0) {
-              char *dup = strdup(local_labels[j].rename);
+              char *dup = (char *)malloc(strlen(local_labels[j].rename) + 1);
+              if (dup)
+                strcpy(dup, local_labels[j].rename);
               t->start = (const uint8_t *)dup;
-              t->length = strlen(dup);
+              t->length = dup ? strlen(dup) : 0;
               break;
             }
           }
@@ -1199,23 +1326,42 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                  tree->base_tokens->tokens[k + 1].kind ==
                      CDD_TOKEN_IDENTIFIER &&
                  tree->base_tokens->tokens[k + 2].kind == CDD_TOKEN_RBRACKET) {
-            if (dims > 0)
-              p_sz += sprintf(p_sz, " * ");
-            p_sz += sprintf(p_sz, "%.*s",
-                            (int)tree->base_tokens->tokens[k + 1].length,
-                            tree->base_tokens->tokens[k + 1].start);
+            if (dims > 0) {
+              *p_sz++ = ' ';
+              *p_sz++ = '*';
+              *p_sz++ = ' ';
+            }
+            memcpy(p_sz, tree->base_tokens->tokens[k + 1].start,
+                   tree->base_tokens->tokens[k + 1].length);
+            p_sz += tree->base_tokens->tokens[k + 1].length;
             dims++;
             k += 3;
           }
+          *p_sz = '\0';
           if (dims > 0 && k < tree->base_tokens->size) {
             cdd_token_t *end_tok = &tree->base_tokens->tokens[k];
             if (end_tok->kind == CDD_TOKEN_SEMICOLON) {
-              char buf[256];
-              char *heap_buf;
+
               if (config && config->fallback_vla_to_malloc) {
-                sprintf(buf, "*%.*s = malloc((%s) * sizeof(*%.*s));",
+                {
+                  size_t child_idx;
+                  cdd_cst_node_t *owning_node =
+                      cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
+                  if (owning_node) {
+                    cdd_cst_node_t *temp = cdd_cst_parse_format(
+                        tree, "*%.*s = malloc((%s) * sizeof(*%.*s));",
                         (int)prev->length, prev->start, size_expr,
                         (int)prev->length, prev->start);
+                    if (temp) {
+                      cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                              (k - i + 2), temp->children,
+                                              temp->num_children);
+                      cdd_cst_free_node_only(temp);
+                    }
+                  }
+                  prev->length = 0;
+                  end_tok->length = 0;
+                }
                 if (num_vlas < MAX_VLAS) {
                   vlas[num_vlas].name = prev->start;
                   vlas[num_vlas].length = prev->length;
@@ -1223,14 +1369,26 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   num_vlas++;
                 }
               } else {
-                sprintf(buf, "*%.*s = alloca((%s) * sizeof(*%.*s));",
+                {
+                  size_t child_idx;
+                  cdd_cst_node_t *owning_node =
+                      cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
+                  if (owning_node) {
+                    cdd_cst_node_t *temp = cdd_cst_parse_format(
+                        tree, "*%.*s = alloca((%s) * sizeof(*%.*s));",
                         (int)prev->length, prev->start, size_expr,
                         (int)prev->length, prev->start);
+                    if (temp) {
+                      cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                              (k - i + 2), temp->children,
+                                              temp->num_children);
+                      cdd_cst_free_node_only(temp);
+                    }
+                  }
+                  prev->length = 0;
+                  end_tok->length = 0;
+                }
               }
-              heap_buf = strdup(buf);
-              prev->start = (const uint8_t *)heap_buf;
-              prev->length = strlen(heap_buf);
-
               {
                 size_t wipe;
                 for (wipe = i; wipe < k; wipe++) {
@@ -1426,13 +1584,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                    of overlaps is usually left to the underlying compiler, but
                    we add a warning. */
                 if (start_val > end_val) {
-                  p += sprintf(p, "/* WARNING: Invalid case range */ ");
+                  strcpy(p, "/* WARNING: Invalid case range */ ");
+                  p += 34;
                 }
                 for (v = start_val; v <= end_val; v++) {
-                  if (v == end_val) {
-                    p += sprintf(p, "case %d", v);
-                  } else {
-                    p += sprintf(p, "case %d: ", v);
+                  strcpy(p, "case ");
+                  p += 5;
+                  p = append_int(p, v);
+                  if (v != end_val) {
+                    strcpy(p, ": ");
+                    p += 2;
                   }
                 }
                 if (is_neg_start) {
@@ -1470,12 +1631,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 if (heap_buf) {
                   p = heap_buf;
                   for (v = start_val; v <= end_val; v++) {
-                    if (v == end_val) {
-                      p += sprintf(p, "[%d] = %.*s", v, (int)assign_val->length,
-                                   assign_val->start);
-                    } else {
-                      p += sprintf(p, "[%d] = %.*s, ", v,
-                                   (int)assign_val->length, assign_val->start);
+                    *p++ = '[';
+                    p = append_int(p, v);
+                    strcpy(p, "] = ");
+                    p += 4;
+                    memcpy(p, assign_val->start, assign_val->length);
+                    p += assign_val->length;
+                    if (v != end_val) {
+                      strcpy(p, ", ");
+                      p += 2;
                     }
                   }
 
