@@ -828,6 +828,28 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 7].length = 0;
           tree->base_tokens->tokens[i + 8].length = 0;
         }
+      } else if (i + 3 < tree->base_tokens->size &&
+                 tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN &&
+                 tree->base_tokens->tokens[i + 2].kind == CDD_TOKEN_LPAREN) {
+        /* Generic multi-arg attribute parser: find the matching )) */
+        int lparen_count = 2;
+        size_t k;
+        for (k = i + 3; k < tree->base_tokens->size; k++) {
+          if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_LPAREN)
+            lparen_count++;
+          else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_RPAREN)
+            lparen_count--;
+          if (lparen_count == 0) {
+            /* Strip it */
+            size_t wipe;
+            tok->start = (const uint8_t *)"/* attribute */";
+            tok->length = 15;
+            for (wipe = i + 1; wipe <= k; wipe++) {
+              tree->base_tokens->tokens[wipe].length = 0;
+            }
+            break;
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER) {
       if (tok->length == 13 && memcmp(tok->start, "__extension__", 13) == 0) {
@@ -1593,11 +1615,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             next->start = (const uint8_t *)"1";
             next->length = 1;
           } else {
-            /* In the middle of a struct: rewrite struct layout by changing [0]
-               to [1] to be ISO C compliant without relying on GNU extensions.
-             */
-            next->start = (const uint8_t *)"1";
-            next->length = 1;
+            /* Reject zero-length array in the middle of a struct */
+            next->start =
+                (const uint8_t
+                     *)"-1 /* zero-length array in middle of struct */";
+            next->length = 46;
           }
         }
       } else if (t->kind == CDD_TOKEN_COMMA) {

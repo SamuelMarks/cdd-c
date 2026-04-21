@@ -1,0 +1,106 @@
+    } else if (tok->kind == CDD_TOKEN_KEYWORD_TYPEOF) {
+      if (i + 6 < tree->base_tokens->size &&
+          tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN &&
+          tree->base_tokens->tokens[i + 3].kind == CDD_TOKEN_LBRACKET &&
+          tree->base_tokens->tokens[i + 5].kind == CDD_TOKEN_RBRACKET &&
+          tree->base_tokens->tokens[i + 6].kind == CDD_TOKEN_RPAREN) {
+        /* typeof(type[size]) array decay behavior check */
+        cdd_token_t *type_tok = &tree->base_tokens->tokens[i + 2];
+        cdd_token_t *size_tok = &tree->base_tokens->tokens[i + 4];
+        size_t child_idx;
+        cdd_cst_node_t *owning_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        if (owning_node) {
+          cdd_cst_node_t *temp = cdd_cst_parse_format(
+              tree,
+              "typedef %.*s __cdd_typeof_arr_%d[%.*s]; __cdd_typeof_arr_%d ",
+              (int)type_tok->length, type_tok->start, (int)i,
+              (int)size_tok->length, size_tok->start, (int)i);
+          if (temp) {
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 7,
+                                    temp->children, temp->num_children);
+            cdd_cst_free_node_only(temp);
+          }
+        }
+        tok->length = 0;
+        tree->base_tokens->tokens[i + 1].length = 0;
+        tree->base_tokens->tokens[i + 2].length = 0;
+        tree->base_tokens->tokens[i + 3].length = 0;
+        tree->base_tokens->tokens[i + 4].length = 0;
+        tree->base_tokens->tokens[i + 5].length = 0;
+        tree->base_tokens->tokens[i + 6].length = 0;
+      } else if (i + 3 < tree->base_tokens->size &&
+                 tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN &&
+                 tree->base_tokens->tokens[i + 3].kind == CDD_TOKEN_RPAREN) {
+        cdd_token_t *inner = &tree->base_tokens->tokens[i + 2];
+        if (inner->length == 3 && memcmp(inner->start, "int", 3) == 0) {
+          tok->start = (const uint8_t *)"int";
+          tok->length = 3;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        } else if (inner->length == 4 && memcmp(inner->start, "char", 4) == 0) {
+          tok->start = (const uint8_t *)"char";
+          tok->length = 4;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        } else if (inner->length == 5 &&
+                   memcmp(inner->start, "float", 5) == 0) {
+          tok->start = (const uint8_t *)"float";
+          tok->length = 5;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        } else if (inner->length == 6 &&
+                   memcmp(inner->start, "double", 6) == 0) {
+          tok->start = (const uint8_t *)"double";
+          tok->length = 6;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        } else if (inner->length == 4 && memcmp(inner->start, "void", 4) == 0) {
+          tok->start = (const uint8_t *)"void";
+          tok->length = 4;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        } else {
+          tok->start = (const uint8_t *)"int";
+          tok->length = 3;
+          tree->base_tokens->tokens[i + 1].length = 0;
+          tree->base_tokens->tokens[i + 2].length = 0;
+          tree->base_tokens->tokens[i + 3].length = 0;
+        }
+      } else if (i + 5 < tree->base_tokens->size &&
+                 tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN &&
+                 tree->base_tokens->tokens[i + 3].kind == CDD_TOKEN_DOT &&
+                 tree->base_tokens->tokens[i + 5].kind == CDD_TOKEN_RPAREN) {
+        /* typeof(expr.bitfield) - naive polyfill to int */
+        tok->start = (const uint8_t *)"int";
+        tok->length = 3;
+        tree->base_tokens->tokens[i + 1].length = 0;
+        tree->base_tokens->tokens[i + 2].length = 0;
+        tree->base_tokens->tokens[i + 3].length = 0;
+        tree->base_tokens->tokens[i + 4].length = 0;
+        tree->base_tokens->tokens[i + 5].length = 0;
+      } else if (i + 5 < tree->base_tokens->size &&
+                 tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN &&
+                 tree->base_tokens->tokens[i + 3].kind == CDD_TOKEN_ARROW &&
+                 tree->base_tokens->tokens[i + 5].kind == CDD_TOKEN_RPAREN) {
+        /* typeof(expr->bitfield) - naive polyfill to int */
+        tok->start = (const uint8_t *)"int";
+        tok->length = 3;
+        tree->base_tokens->tokens[i + 1].length = 0;
+        tree->base_tokens->tokens[i + 2].length = 0;
+        tree->base_tokens->tokens[i + 3].length = 0;
+        tree->base_tokens->tokens[i + 4].length = 0;
+        tree->base_tokens->tokens[i + 5].length = 0;
+      }
+    } else if (tok->kind == CDD_TOKEN_KEYWORD___AUTO_TYPE) {
+      /* Fallback for now since type inference isn't fully implemented */
+      tok->start = (const uint8_t *)"int";
+      tok->length = 3;
+    } else if (tok->kind == CDD_TOKEN_NUMBER) {
+      char buf[256];
+      size_t copy_len = tok->length < 255 ? tok->length : 255;

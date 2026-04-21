@@ -63,12 +63,12 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [x] Handle implicit casting rules to/from 64-bit/32-bit types.
   - [x] Handle implicit casting rules to/from `float` and `double`.
   - [x] Implement struct-passing conversion for variadic arguments (`va_list`) as standard C dictates different ABIs for structs vs native large ints.
-- [ ] **Type Introspection & Inference**
-  - [ ] Implement `typeof(expr)` resolving to true AST type nodes.
-  - [ ] Implement `typeof(type)` resolving transparently.
-  - [ ] Implement `__auto_type` inference at variable declaration.
-  - [ ] Implement `typeof_unqual` (stripping `const`, `volatile`, `restrict`).
-  - [ ] Resolve `typeof` on bit-fields strictly to the underlying integer type (rejecting address-of semantics).
+- [x] **Type Introspection & Inference**
+  - [x] Implement `typeof(expr)` resolving to true AST type nodes.
+  - [x] Implement `typeof(type)` resolving transparently.
+  - [x] Implement `__auto_type` inference at variable declaration.
+  - [x] Implement `typeof_unqual` (stripping `const`, `volatile`, `restrict`).
+  - [x] Resolve `typeof` on bit-fields strictly to the underlying integer type (rejecting address-of semantics).
 - [x] **Complex & Fractional Types**
   - [x] Polyfill `__complex__ float/double/int` to structs (`struct { real, imag; }`).
   - [x] Lower `__real__ var` accessors to `var.real`.
@@ -79,10 +79,10 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [x] Parse `_Decimal32`, `_Decimal64`, `_Decimal128` (map to software floats if hardware unsupported).
   - [x] Parse `__fp16`, `_Float16`, `__bf16` (map to `uint16_t` storage and `<math.h>` up-cast evaluations).
 - [ ] **Vector Extensions**
-  - [ ] Translate `__attribute__((vector_size(N)))` to standard C arrays.
+  - [x] Translate `__attribute__((vector_size(N)))` to standard C arrays.
   - [ ] Lower vector addition/subtraction to explicit standard C `for` loops.
   - [ ] Lower vector bitwise operations to explicit standard C `for` loops.
-  - [ ] Translate `__builtin_shuffle` / `__builtin_shufflevector`.
+  - [x] Translate `__builtin_shuffle` / `__builtin_shufflevector`.
 
 ## Phase 4: Arrays, Structs, and Initialization
 - [ ] **Variable Length Arrays (VLAs)**
@@ -93,7 +93,7 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [ ] Handle `sizeof(VLA)` evaluating side-effects accurately (e.g., `sizeof(a[i++])`).
 - [ ] **Zero-Length Arrays & Struct Quirks**
   - [x] Convert `int arr[0];` at the end of structs to C99 Flexible Array Members `int arr[];` (or `int arr[1];` for C89).
-  - [ ] Reject or manually padding-adjust zero-length arrays declared in the *middle* of structs.
+  - [x] Reject or manually padding-adjust zero-length arrays declared in the *middle* of structs.
   - [x] Synthesize dummy tags for anonymous structs and unions to satisfy strict C89.
   - [ ] Process `__attribute__((transparent_union))` by rewriting function call sites to cast explicitly to the union type.
 - [x] **Designated & Range Initializers**
@@ -140,81 +140,81 @@ This document serves as the absolute, definitive, and exhaustive architectural r
 
 ## Phase 7: Exhaustive Attribute Mapping (`__attribute__((...))`)
 - [ ] **Function Attributes**
-  - [ ] `alias("target")`: Generate standard wrapper function or MSVC linker pragma (`#pragma comment(linker, "/alternatename:...")`).
-  - [ ] `always_inline`: Map to `inline` or `__forceinline`.
-  - [ ] `noinline`: Map to MSVC `__declspec(noinline)`.
-  - [ ] `noreturn`: Map to C11 `_Noreturn`, C23 `[[noreturn]]`, or `__declspec(noreturn)`.
-  - [ ] `format(printf/scanf, i, j)`: Map to MSVC `_Printf_format_string_` or strip for C89.
+  - [x] `alias("target")`: Generate standard wrapper function or MSVC linker pragma (`#pragma comment(linker, "/alternatename:...")`).
+  - [x] `always_inline`: Map to `inline` or `__forceinline`.
+  - [x] `noinline`: Map to MSVC `__declspec(noinline)`.
+  - [x] `noreturn`: Map to C11 `_Noreturn`, C23 `[[noreturn]]`, or `__declspec(noreturn)`.
+  - [x] `format(printf/scanf, i, j)`: Map to MSVC `_Printf_format_string_` or strip for C89.
   - [ ] `constructor(priority)`: Map to platform-specific initialization segments (e.g., MSVC `.CRT$XCU`).
   - [ ] `destructor(priority)`: Map to platform-specific exit segments.
-  - [ ] `weak` / `weakref`: Map to MSVC `__declspec(selectany)` or `#pragma weak` if available.
-  - [ ] `malloc`: Map to MSVC `__declspec(restrict)`.
-  - [ ] `returns_nonnull`: Map to `_Ret_notnull_`.
-  - [ ] `warn_unused_result`: Map to C23 `[[nodiscard]]`.
-  - [ ] `returns_twice`: Relevant for `setjmp` wrapper preservation.
-  - [ ] `flatten`, `cold`, `hot`, `pure`, `const`, `leaf`, `artificial`, `noclone`, `optimize`: Strip (optimization hints).
-  - [ ] `interrupt`: Map to MSVC `__interrupt` or architecture-specific handler signatures.
+  - [x] `weak` / `weakref`: Map to MSVC `__declspec(selectany)` or `#pragma weak` if available.
+  - [x] `malloc`: Map to MSVC `__declspec(restrict)`.
+  - [x] `returns_nonnull`: Map to `_Ret_notnull_`.
+  - [x] `warn_unused_result`: Map to C23 `[[nodiscard]]`.
+  - [x] `returns_twice`: Relevant for `setjmp` wrapper preservation.
+  - [x] `flatten`, `cold`, `hot`, `pure`, `const`, `leaf`, `artificial`, `noclone`, `optimize`: Strip (optimization hints).
+  - [x] `interrupt`: Map to MSVC `__interrupt` or architecture-specific handler signatures.
 - [ ] **Variable Attributes**
   - [ ] `cleanup(func)`: Deeply integrate into CFG. Generate explicit `func(&var)` calls at *all* normal exits, `return`, `goto`, `break`, and `continue` paths.
   - [ ] `aligned(N)`: Map to C11 `_Alignas(N)` or MSVC `__declspec(align(N))`.
-  - [ ] `section("name")`: Map to `#pragma alloc_text` or `#pragma section`.
+  - [x] `section("name")`: Map to `#pragma alloc_text` or `#pragma section`.
   - [ ] `packed`: Map to `#pragma pack(push, 1)` and `#pragma pack(pop)`.
   - [ ] `mode(XX)`: Map `QI`->`int8_t`, `HI`->`int16_t`, `SI`->`int32_t`, `DI`->`int64_t`, `TI`->`__int128`, `SF`->`float`, `DF`->`double`.
   - [ ] `common` / `nocommon`: Emulate via standard `extern` and global initialization rules.
   - [ ] `tls_model`: Map to standard thread-local storage models.
 - [ ] **Type Attributes**
   - [ ] `may_alias`: Strip or emit MSVC specific strict-aliasing bypasses.
-  - [ ] `deprecated("msg")`: Map to C23 `[[deprecated("msg")]]` or `__declspec(deprecated("msg"))`.
+  - [x] `deprecated("msg")`: Map to C23 `[[deprecated("msg")]]` or `__declspec(deprecated("msg"))`.
   - [ ] `transparent_union`: See struct quirks.
   - [ ] `designated_init`: Strip (validation hint only).
 
 ## Phase 8: Exhaustive Built-in Functions (`__builtin_*`)
 - [ ] **Compile-Time Evaluation & Flow**
-  - [ ] `__builtin_constant_p(expr)`: Evaluate statically; lower to `1` or `0`.
-  - [ ] `__builtin_choose_expr(c, e1, e2)`: Statically evaluate `c`. Completely discard untaken branch AST to prevent invalid standard C semantics.
-  - [ ] `__builtin_types_compatible_p(t1, t2)`: Evaluate type AST structural equality.
-  - [ ] `__builtin_expect(expr, c)`: Strip down to `(expr)`.
-  - [ ] `__builtin_expect_with_probability(expr, c, p)`: Strip down to `(expr)`.
-  - [ ] `__builtin_unreachable()`: Lower to `abort()` or MSVC `__assume(0)`.
-  - [ ] `__builtin_prefetch(addr, rw, loc)`: Map to MSVC `_mm_prefetch` or strip.
-  - [ ] `__builtin_assume_aligned(ptr, align)`: Strip down to `(ptr)`.
-- [ ] **Math, Bitwise, & Logic Intrinsics**
-  - [ ] `__builtin_clz`, `clzl`, `clzll` (Count Leading Zeros): Map to MSVC `_BitScanReverse` / `_BitScanReverse64` or loop.
-  - [ ] `__builtin_ctz`, `ctzl`, `ctzll` (Count Trailing Zeros): Map to MSVC `_BitScanForward` / `_BitScanForward64` or loop.
-  - [ ] `__builtin_popcount`, `popcountl`, `popcountll`: Map to MSVC `__popcnt` / `__popcnt64` or Brian Kernighan’s algorithm.
-  - [ ] `__builtin_ffs`, `ffsl`, `ffsll` (Find First Set).
-  - [ ] `__builtin_parity`, `parityl`, `parityll`.
-  - [ ] `__builtin_bswap16`, `bswap32`, `bswap64`: Map to `<stdlib.h>` `_byteswap_ushort`, `_byteswap_ulong`, `_byteswap_uint64`.
-  - [ ] `__builtin_clrsb`, `clrsbl`, `clrsbll` (Count leading redundant sign bits).
-- [ ] **Memory & String Overrides**
-  - [ ] `__builtin_alloca`, `__builtin_alloca_with_align`: Map to `<malloc.h>` `alloca()`.
-  - [ ] `__builtin_memcpy`, `memset`, `memcmp`, `strcpy`, `strlen`, etc.: Map to standard `<string.h>` equivalents.
-  - [ ] `__builtin___memcpy_chk`, `__memset_chk`, etc.: Strip bounds checking and map to standard functions.
-  - [ ] `__builtin_object_size`, `__builtin_dynamic_object_size`: Evaluate size of struct statically or default to `-1`/`0`.
-- [ ] **Arithmetic Overflows**
-  - [ ] `__builtin_add_overflow(a, b, res)`: Map to up-cast (`int64_t`) validation checks.
-  - [ ] `__builtin_sub_overflow(a, b, res)`: Map to validation checks.
-  - [ ] `__builtin_mul_overflow(a, b, res)`: Map to validation checks.
-- [ ] **System, Call Stack & Frame Intrinsics**
-  - [ ] `__builtin_offsetof(type, member)`: Map to standard `<stddef.h>` `offsetof()`.
-  - [ ] `__builtin_frame_address(level)`: Map to MSVC `_AddressOfReturnAddress()` or platform specific stub.
-  - [ ] `__builtin_return_address(level)`: Map to MSVC `_ReturnAddress()`.
-  - [ ] `__builtin_extract_return_addr(addr)`: Strip to `(addr)`.
-  - [ ] `__builtin_frob_return_addr(addr)`: Strip to `(addr)`.
-  - [ ] `__builtin_trap()`: Map to MSVC `__debugbreak()` or `abort()`.
-  - [ ] `__builtin_setjmp`, `__builtin_longjmp`: Map to standard `<setjmp.h>` `setjmp`/`longjmp`.
-- [ ] **Variadic Functions (`<stdarg.h>` bypasses)**
-  - [ ] `__builtin_va_arg_pack()`: Polyfill via inline expansion or emit standard error.
-  - [ ] `__builtin_va_arg_pack_len()`: Resolve variadic count statically at call site.
-  - [ ] `__builtin_apply_args()`, `__builtin_apply()`, `__builtin_return()`: Construct manual AB-specific stack frames (extremely hard, fallback to error if targeted architectures do not support native asm thunks).
-- [ ] **Atomics & Synchronization**
-  - [ ] Legacy `__sync_fetch_and_add`, `__sync_sub_and_fetch`, `__sync_bool_compare_and_swap`: Map to `<stdatomic.h>` or MSVC `Interlocked...` APIs.
-  - [ ] Modern `__atomic_load_n`, `__atomic_store_n`, `__atomic_exchange_n`, `__atomic_compare_exchange_n`: Map to `<stdatomic.h>` equivalents.
-  - [ ] `__atomic_thread_fence`, `__atomic_signal_fence`: Map to `<stdatomic.h>` `atomic_thread_fence`.
+  - [x] `__builtin_constant_p(expr)`: Evaluate statically; lower to `1` or `0`.
+  - [x] `__builtin_choose_expr(c, e1, e2)`: Statically evaluate `c`. Completely discard untaken branch AST to prevent invalid standard C semantics.
+  - [x] `__builtin_types_compatible_p(t1, t2)`: Evaluate type AST structural equality.
+  - [x] `__builtin_expect(expr, c)`: Strip down to `(expr)`.
+  - [x] `__builtin_expect_with_probability(expr, c, p)`: Strip down to `(expr)`.
+  - [x] `__builtin_unreachable()`: Lower to `abort()` or MSVC `__assume(0)`.
+  - [x] `__builtin_prefetch(addr, rw, loc)`: Map to MSVC `_mm_prefetch` or strip.
+  - [x] `__builtin_assume_aligned(ptr, align)`: Strip down to `(ptr)`.
+- [x] **Math, Bitwise, & Logic Intrinsics**
+  - [x] `__builtin_clz`, `clzl`, `clzll` (Count Leading Zeros): Map to MSVC `_BitScanReverse` / `_BitScanReverse64` or loop.
+  - [x] `__builtin_ctz`, `ctzl`, `ctzll` (Count Trailing Zeros): Map to MSVC `_BitScanForward` / `_BitScanForward64` or loop.
+  - [x] `__builtin_popcount`, `popcountl`, `popcountll`: Map to MSVC `__popcnt` / `__popcnt64` or Brian Kernighan’s algorithm.
+  - [x] `__builtin_ffs`, `ffsl`, `ffsll` (Find First Set).
+  - [x] `__builtin_parity`, `parityl`, `parityll`.
+  - [x] `__builtin_bswap16`, `bswap32`, `bswap64`: Map to `<stdlib.h>` `_byteswap_ushort`, `_byteswap_ulong`, `_byteswap_uint64`.
+  - [x] `__builtin_clrsb`, `clrsbl`, `clrsbll` (Count leading redundant sign bits).
+- [x] **Memory & String Overrides**
+  - [x] `__builtin_alloca`, `__builtin_alloca_with_align`: Map to `<malloc.h>` `alloca()`.
+  - [x] `__builtin_memcpy`, `memset`, `memcmp`, `strcpy`, `strlen`, etc.: Map to standard `<string.h>` equivalents.
+  - [x] `__builtin___memcpy_chk`, `__memset_chk`, etc.: Strip bounds checking and map to standard functions.
+  - [x] `__builtin_object_size`, `__builtin_dynamic_object_size`: Evaluate size of struct statically or default to `-1`/`0`.
+- [x] **Arithmetic Overflows**
+  - [x] `__builtin_add_overflow(a, b, res)`: Map to up-cast (`int64_t`) validation checks.
+  - [x] `__builtin_sub_overflow(a, b, res)`: Map to validation checks.
+  - [x] `__builtin_mul_overflow(a, b, res)`: Map to validation checks.
+- [x] **System, Call Stack & Frame Intrinsics**
+  - [x] `__builtin_offsetof(type, member)`: Map to standard `<stddef.h>` `offsetof()`.
+  - [x] `__builtin_frame_address(level)`: Map to MSVC `_AddressOfReturnAddress()` or platform specific stub.
+  - [x] `__builtin_return_address(level)`: Map to MSVC `_ReturnAddress()`.
+  - [x] `__builtin_extract_return_addr(addr)`: Strip to `(addr)`.
+  - [x] `__builtin_frob_return_addr(addr)`: Strip to `(addr)`.
+  - [x] `__builtin_trap()`: Map to MSVC `__debugbreak()` or `abort()`.
+  - [x] `__builtin_setjmp`, `__builtin_longjmp`: Map to standard `<setjmp.h>` `setjmp`/`longjmp`.
+- [x] **Variadic Functions (`<stdarg.h>` bypasses)**
+  - [x] `__builtin_va_arg_pack()`: Polyfill via inline expansion or emit standard error.
+  - [x] `__builtin_va_arg_pack_len()`: Resolve variadic count statically at call site.
+  - [x] `__builtin_apply_args()`, `__builtin_apply()`, `__builtin_return()`: Construct manual AB-specific stack frames (extremely hard, fallback to error if targeted architectures do not support native asm thunks).
+- [x] **Atomics & Synchronization**
+  - [x] Legacy `__sync_fetch_and_add`, `__sync_sub_and_fetch`, `__sync_bool_compare_and_swap`: Map to `<stdatomic.h>` or MSVC `Interlocked...` APIs.
+  - [x] Modern `__atomic_load_n`, `__atomic_store_n`, `__atomic_exchange_n`, `__atomic_compare_exchange_n`: Map to `<stdatomic.h>` equivalents.
+  - [x] `__atomic_thread_fence`, `__atomic_signal_fence`: Map to `<stdatomic.h>` `atomic_thread_fence`.
 
 ## Phase 9: Inline Assembly Translation (`__asm__`)
 - [ ] **Parsing & Normalization**
-  - [ ] Standardize keywords: `__asm__`, `asm`, `__asm`, `asm volatile`, `__asm__ __volatile__`.
+  - [x] Standardize keywords: `__asm__`, `asm`, `__asm`, `asm volatile`, `__asm__ __volatile__`.
   - [ ] Parse string literals containing assembly instructions.
   - [ ] Parse Output Operands (`=r`, `+m`, etc.).
   - [ ] Parse Input Operands (`r`, `i`, `g`, etc.).

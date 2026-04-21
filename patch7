@@ -1,0 +1,38 @@
+--- src/tests/transformers/gnu_standardizer/test_gnu_standardizer.h
++++ src/tests/transformers/gnu_standardizer/test_gnu_standardizer.h
+@@ -698,6 +698,21 @@ TEST test_gnu_standardizer_lvalue_cast(void) {
+   PASS();
+ }
+ 
++TEST test_gnu_standardizer_omitted_conditional(void) {
++  cdd_cst_tree_t *tree = NULL;
++  const char *code = "int main() {\n"
++                     "  int a = 1, b = 2;\n"
++                     "  int c = a ? : b;\n"
++                     "  int d = (a + b) ? : 5;\n"
++                     "  return a || b ? : c;\n"
++                     "}\n";
++  char *out = NULL;
++  cdd_transform_config_t config;
++  memset(&config, 0, sizeof(config));
++  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
++  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
++  ASSERT_EQ(0, cdd_cst_emit(tree, &out));
++  ASSERT(strstr(out, "a ? a : b") != NULL);
++  ASSERT(strstr(out, "(a + b) ? (a + b) : 5") != NULL);
++  ASSERT(strstr(out, "a || b ? a || b : c") != NULL);
++  free(out);
++  cdd_cst_tree_free(tree);
++  PASS();
++}
++
+ SUITE(transformer_gnu_standardizer_suite) {
+   RUN_TEST(test_cdd_transform_gnu);
+   RUN_TEST(test_gnu_standardizer_stmt_expr);
+@@ -730,6 +745,7 @@ SUITE(transformer_gnu_standardizer_suite) {
+   RUN_TEST(test_gnu_standardizer_float_extensions);
+   RUN_TEST(test_gnu_standardizer_lvalue_cast);
++  RUN_TEST(test_gnu_standardizer_omitted_conditional);
+ }
+ #ifdef __cplusplus
+ }
