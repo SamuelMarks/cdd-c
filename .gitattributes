@@ -7,11 +7,31 @@
 *.sh text eol=lf
 *.Dockerfile text eol=lf
 Dockerfile text eol=lf
+Makefile text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 
-LICENSE-CC0 text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+
+LICENSE* text eol=lf
 README.md text eol=lf
 .gitignore text eol=lf
 .gitattributes text eol=lf
 .editorconfig text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.icns binary
+*.lib binary
+*.exe binary
+*.dll binary
+*.so binary
+*.a binary
+*.o binary
+*.obj binary
