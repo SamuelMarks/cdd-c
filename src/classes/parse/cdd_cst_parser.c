@@ -268,8 +268,13 @@ static cdd_cst_node_t *parse_declaration_or_statement(parser_state_t *s,
           } else if (nxt->kind == CDD_TOKEN_RPAREN) {
             paren_depth--;
           }
-          if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0)
+          if (nxt->kind == CDD_TOKEN_RBRACE && paren_depth <= 0) {
+            if (n->num_children == 0) {
+              free_node(n);
+              return NULL;
+            }
             break;
+          }
           append_child_token(n, advance(s));
           if (nxt->kind == CDD_TOKEN_SEMICOLON && paren_depth <= 0)
             break;

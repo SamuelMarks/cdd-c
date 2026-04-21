@@ -254,7 +254,7 @@ else ()
 endif ()
 
 if (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
-    option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" ON)
+    option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" OFF)
 endif ()
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)

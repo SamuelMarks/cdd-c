@@ -23,7 +23,8 @@ extern "C" {
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out) {
+static int cdd_uint128_add(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
   out->low = a.low + b.low;
   out->high = a.high + b.high + (out->low < a.low ? 1 : 0);
   return 0;
@@ -51,7 +52,8 @@ static int cdd_int128_add(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out) {
+static int cdd_uint128_sub(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
   out->low = a.low - b.low;
   out->high = a.high - b.high - (a.low < b.low ? 1 : 0);
   return 0;
@@ -79,7 +81,8 @@ static int cdd_int128_sub(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out) {
+static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
   uint64_t a_lo = a.low & 0xFFFFFFFF;
   uint64_t a_hi = a.low >> 32;
   uint64_t b_lo = b.low & 0xFFFFFFFF;
@@ -96,7 +99,8 @@ static int cdd_uint128_mul(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out)
   carry += (mid2 < mid1) ? 1ULL : 0ULL;
 
   out->low = (mid2 << 32) | (p00 & 0xFFFFFFFF);
-  out->high = a.high * b.low + a.low * b.high + p11 + (mid2 >> 32) + (carry << 32);
+  out->high =
+      a.high * b.low + a.low * b.high + p11 + (mid2 >> 32) + (carry << 32);
   return 0;
 }
 
@@ -130,7 +134,8 @@ static int cdd_int128_mul(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_uint128_shl(cdd_uint128_t a, unsigned int shift, cdd_uint128_t *out) {
+static int cdd_uint128_shl(cdd_uint128_t a, unsigned int shift,
+                           cdd_uint128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -152,7 +157,8 @@ static int cdd_uint128_shl(cdd_uint128_t a, unsigned int shift, cdd_uint128_t *o
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_uint128_shr(cdd_uint128_t a, unsigned int shift, cdd_uint128_t *out) {
+static int cdd_uint128_shr(cdd_uint128_t a, unsigned int shift,
+                           cdd_uint128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -174,7 +180,8 @@ static int cdd_uint128_shr(cdd_uint128_t a, unsigned int shift, cdd_uint128_t *o
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_int128_shl(cdd_int128_t a, unsigned int shift, cdd_int128_t *out) {
+static int cdd_int128_shl(cdd_int128_t a, unsigned int shift,
+                          cdd_int128_t *out) {
   cdd_uint128_t ua;
   cdd_uint128_t uout;
   ua.low = a.low;
@@ -193,7 +200,8 @@ static int cdd_int128_shl(cdd_int128_t a, unsigned int shift, cdd_int128_t *out)
  * @param out Pointer to result.
  * @return 0 on success.
  */
-static int cdd_int128_shr(cdd_int128_t a, unsigned int shift, cdd_int128_t *out) {
+static int cdd_int128_shr(cdd_int128_t a, unsigned int shift,
+                          cdd_int128_t *out) {
   shift &= 127;
   if (shift == 0) {
     *out = a;
@@ -216,7 +224,8 @@ static int cdd_int128_shr(cdd_int128_t a, unsigned int shift, cdd_int128_t *out)
  * @param rem Pointer to remainder (can be NULL).
  * @return 0 on success, non-zero on division by zero.
  */
-static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den, cdd_uint128_t *quot, cdd_uint128_t *rem) {
+static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den,
+                              cdd_uint128_t *quot, cdd_uint128_t *rem) {
   cdd_uint128_t q;
   cdd_uint128_t r;
   int i;
@@ -228,7 +237,7 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den, cdd_uint128_
 
   for (i = 127; i >= 0; i--) {
     cdd_uint128_shl(r, 1, &r);
-    
+
     /* Get i-th bit of num */
     {
       int bit = 0;
@@ -251,8 +260,10 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den, cdd_uint128_
     }
   }
 
-  if (quot) *quot = q;
-  if (rem) *rem = r;
+  if (quot)
+    *quot = q;
+  if (rem)
+    *rem = r;
   return 0;
 }
 
@@ -264,7 +275,8 @@ static int cdd_uint128_divmod(cdd_uint128_t num, cdd_uint128_t den, cdd_uint128_
  * @param out Pointer to result.
  * @return 0 on success, non-zero on division by zero.
  */
-static int cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out) {
+static int cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
   return cdd_uint128_divmod(a, b, out, NULL);
 }
 
@@ -276,7 +288,8 @@ static int cdd_uint128_div(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out)
  * @param out Pointer to result.
  * @return 0 on success, non-zero on division by zero.
  */
-static int cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b, cdd_uint128_t *out) {
+static int cdd_uint128_mod(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
   return cdd_uint128_divmod(a, b, NULL, out);
 }
 
@@ -300,23 +313,28 @@ static int cdd_int128_div(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
   if (sign_a) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
     cdd_uint128_t tmp;
-    tmp.high = (uint64_t)a.high; tmp.low = a.low;
+    tmp.high = (uint64_t)a.high;
+    tmp.low = a.low;
     cdd_uint128_sub(zero, tmp, &ua);
   } else {
-    ua.high = (uint64_t)a.high; ua.low = a.low;
+    ua.high = (uint64_t)a.high;
+    ua.low = a.low;
   }
 
   if (sign_b) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
     cdd_uint128_t tmp;
-    tmp.high = (uint64_t)b.high; tmp.low = b.low;
+    tmp.high = (uint64_t)b.high;
+    tmp.low = b.low;
     cdd_uint128_sub(zero, tmp, &ub);
   } else {
-    ub.high = (uint64_t)b.high; ub.low = b.low;
+    ub.high = (uint64_t)b.high;
+    ub.low = b.low;
   }
 
   rc = cdd_uint128_divmod(ua, ub, &uq, NULL);
-  if (rc != 0) return rc;
+  if (rc != 0)
+    return rc;
 
   if (sign_res) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
@@ -347,23 +365,28 @@ static int cdd_int128_mod(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
   if (sign_a) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
     cdd_uint128_t tmp;
-    tmp.high = (uint64_t)a.high; tmp.low = a.low;
+    tmp.high = (uint64_t)a.high;
+    tmp.low = a.low;
     cdd_uint128_sub(zero, tmp, &ua);
   } else {
-    ua.high = (uint64_t)a.high; ua.low = a.low;
+    ua.high = (uint64_t)a.high;
+    ua.low = a.low;
   }
 
   if (sign_b) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
     cdd_uint128_t tmp;
-    tmp.high = (uint64_t)b.high; tmp.low = b.low;
+    tmp.high = (uint64_t)b.high;
+    tmp.low = b.low;
     cdd_uint128_sub(zero, tmp, &ub);
   } else {
-    ub.high = (uint64_t)b.high; ub.low = b.low;
+    ub.high = (uint64_t)b.high;
+    ub.low = b.low;
   }
 
   rc = cdd_uint128_divmod(ua, ub, NULL, &ur);
-  if (rc != 0) return rc;
+  if (rc != 0)
+    return rc;
 
   if (sign_a) {
     cdd_uint128_t zero = cdd_make_uint128(0, 0);
@@ -372,6 +395,141 @@ static int cdd_int128_mod(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
 
   out->high = (int64_t)ur.high;
   out->low = ur.low;
+  return 0;
+}
+
+/**
+ * @brief Bitwise AND of two 128-bit integers.
+ */
+static int cdd_uint128_and(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
+  out->low = a.low & b.low;
+  out->high = a.high & b.high;
+  return 0;
+}
+
+static int cdd_int128_and(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+  out->low = a.low & b.low;
+  out->high = a.high & b.high;
+  return 0;
+}
+
+/**
+ * @brief Bitwise OR of two 128-bit integers.
+ */
+static int cdd_uint128_or(cdd_uint128_t a, cdd_uint128_t b,
+                          cdd_uint128_t *out) {
+  out->low = a.low | b.low;
+  out->high = a.high | b.high;
+  return 0;
+}
+
+static int cdd_int128_or(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+  out->low = a.low | b.low;
+  out->high = a.high | b.high;
+  return 0;
+}
+
+/**
+ * @brief Bitwise XOR of two 128-bit integers.
+ */
+static int cdd_uint128_xor(cdd_uint128_t a, cdd_uint128_t b,
+                           cdd_uint128_t *out) {
+  out->low = a.low ^ b.low;
+  out->high = a.high ^ b.high;
+  return 0;
+}
+
+static int cdd_int128_xor(cdd_int128_t a, cdd_int128_t b, cdd_int128_t *out) {
+  out->low = a.low ^ b.low;
+  out->high = a.high ^ b.high;
+  return 0;
+}
+
+/**
+ * @brief Bitwise NOT of a 128-bit integer.
+ */
+static int cdd_uint128_not(cdd_uint128_t a, cdd_uint128_t *out) {
+  out->low = ~a.low;
+  out->high = ~a.high;
+  return 0;
+}
+
+static int cdd_int128_not(cdd_int128_t a, cdd_int128_t *out) {
+  out->low = ~a.low;
+  out->high = ~a.high;
+  return 0;
+}
+
+/**
+ * @brief Cast 64-bit unsigned to 128-bit unsigned.
+ */
+static int cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
+  out->low = val;
+  out->high = 0;
+  return 0;
+}
+
+/**
+ * @brief Cast 64-bit signed to 128-bit signed.
+ */
+static int cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
+  out->low = (uint64_t)val;
+  out->high = (val < 0) ? -1LL : 0LL;
+  return 0;
+}
+
+/**
+ * @brief Cast 128-bit unsigned to 64-bit unsigned.
+ */
+static int cdd_uint128_to_uint64(cdd_uint128_t val, uint64_t *out) {
+  *out = val.low;
+  return 0;
+}
+
+/**
+ * @brief Cast 128-bit signed to 64-bit signed.
+ */
+static int cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
+  *out = (int64_t)val.low;
+  return 0;
+}
+
+/**
+ * @brief Cast float to 128-bit signed integer.
+ */
+static int cdd_float_to_int128(float val, cdd_int128_t *out) {
+  /* Stub implementation */
+  out->low = (uint64_t)val;
+  out->high = (val < 0) ? -1LL : 0LL;
+  return 0;
+}
+
+/**
+ * @brief Cast double to 128-bit signed integer.
+ */
+static int cdd_double_to_int128(double val, cdd_int128_t *out) {
+  /* Stub implementation */
+  out->low = (uint64_t)val;
+  out->high = (val < 0) ? -1LL : 0LL;
+  return 0;
+}
+
+/**
+ * @brief Cast 128-bit signed integer to float.
+ */
+static int cdd_int128_to_float(cdd_int128_t val, float *out) {
+  /* Stub implementation */
+  *out = (float)(int64_t)val.low;
+  return 0;
+}
+
+/**
+ * @brief Cast 128-bit signed integer to double.
+ */
+static int cdd_int128_to_double(cdd_int128_t val, double *out) {
+  /* Stub implementation */
+  *out = (double)(int64_t)val.low;
   return 0;
 }
 

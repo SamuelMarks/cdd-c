@@ -36,12 +36,20 @@ TEST test_cdd_transform_gnu(void) {
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
 
+  for (size_t i = 0; i < tree->base_tokens->size; i++) {
+    cdd_token_t *t = &tree->base_tokens->tokens[i];
+    if (t->length > 0) {
+      fprintf(stderr, "TOKEN: [%.*s]\n", (int)t->length, t->start);
+    }
+  }
+
   rc = cdd_transform_gnu(tree, &config);
   ASSERT_EQ(0, rc);
 
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 
+  fprintf(stderr, "OUT WAS: [%s]\n", out);
   ASSERT(strstr(out, "/* unused */") != NULL);
   ASSERT(strstr(out, "_Noreturn") != NULL);
   ASSERT(strstr(out, "pack(push, 1)") != NULL);
@@ -169,6 +177,9 @@ TEST test_gnu_standardizer_vla_malloc(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   ASSERT(strstr(out, "int *arr = malloc((n) * sizeof(*arr))") != NULL);
+  if (strstr(out, "free(arr)") == NULL) {
+    printf("OUTPUT:\n%s\n", out);
+  }
   ASSERT(strstr(out, "free(arr)") != NULL);
 
   free(out);
@@ -192,6 +203,9 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   ASSERT(strstr(out, "int *arr = malloc((x * y * z) * sizeof(*arr))") != NULL);
+  if (strstr(out, "free(arr)") == NULL) {
+    printf("OUTPUT:\n%s\n", out);
+  }
   ASSERT(strstr(out, "free(arr)") != NULL);
 
   free(out);
@@ -266,7 +280,8 @@ TEST test_gnu_standardizer_128_bit_literals(void) {
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
   /* 18446744073709551616 is 2^64, so high=1, low=0 */
-  printf("OUT: %s\n", out); ASSERT(strstr(out, "cdd_make_uint128(0x1ULL, 0x0ULL)") != NULL);
+  printf("OUT: %s\n", out);
+  ASSERT(strstr(out, "cdd_make_uint128(0x1ULL, 0x0ULL)") != NULL);
 
   free(out);
   cdd_cst_tree_free(tree);
@@ -502,13 +517,16 @@ TEST test_gnu_standardizer_typeof(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
+  printf("TYPEOF OUT: %s\n", out);
   ASSERT(strstr(out, "int a = 1;") != NULL);
   ASSERT(strstr(out, "char b = 'A';") != NULL);
   ASSERT(strstr(out, "float c = 1.0f;") != NULL);
   ASSERT(strstr(out, "double d = 1.0;") != NULL);
   ASSERT(strstr(out, "int e = 2;") != NULL);
-  printf("OUT: %s\n", out); ASSERT(strstr(out, "typedef int __cdd_typeof_arr_") != NULL);
-  printf("OUT: %s\n", out); ASSERT(strstr(out, "[5]; __cdd_typeof_arr_") != NULL);
+  printf("OUT: %s\n", out);
+  ASSERT(strstr(out, "typedef int __cdd_typeof_arr_") != NULL);
+  printf("OUT: %s\n", out);
+  ASSERT(strstr(out, "[5]; __cdd_typeof_arr_") != NULL);
   ASSERT(strstr(out, " arr = {1, 2, 3, 4, 5};") != NULL);
   ASSERT(strstr(out, "int x = 0;") != NULL);
   ASSERT(strstr(out, "int y = 0;") != NULL);
@@ -569,7 +587,8 @@ TEST test_cdd_transform_complex_numbers(void) {
 
   printf("COMPLEX MACRO OUT: %s\n", out);
 
-  printf("COMPLEX MACRO OUT: [%s]\n", out); ASSERT(strstr(out, "struct { float real, imag; }") != NULL);
+  printf("COMPLEX MACRO OUT: [%s]\n", out);
+  ASSERT(strstr(out, "struct { float real, imag; }") != NULL);
   ASSERT(strstr(out, "z . real = 1.0f;") != NULL ||
          strstr(out, "z.real = 1.0f;") != NULL ||
          strstr(out, "z.real  = 1.0f;") != NULL ||
@@ -613,6 +632,73 @@ TEST test_gnu_standardizer_comment_preservation(void) {
   PASS();
 }
 
+TEST test_gnu_standardizer_float_extensions(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "_Decimal32 a;\n"
+                     "_Decimal64 b;\n"
+                     "_Decimal128 c;\n"
+                     "__fp16 d;\n"
+                     "_Float16 e;\n"
+                     "__bf16 f;\n"
+                     "_Fract g;\n"
+                     "_Accum h;\n";
+  char *out = NULL;
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_cst_emit(tree, &out));
+  ASSERT(strstr(out, "float a;") != NULL);
+  ASSERT(strstr(out, "double b;") != NULL);
+  ASSERT(strstr(out, "double c;") != NULL);
+  ASSERT(strstr(out, "uint16_t d;") != NULL);
+  ASSERT(strstr(out, "uint16_t e;") != NULL);
+  ASSERT(strstr(out, "uint16_t f;") != NULL);
+  ASSERT(strstr(out, "float g;") != NULL);
+  ASSERT(strstr(out, "double h;") != NULL);
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
+TEST test_gnu_standardizer_lvalue_cast(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "void f() { int x; (char)x = 5; }\n";
+  char *out = NULL;
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_cst_emit(tree, &out));
+  printf("LVALUE OUT: %s\n", out);
+  ASSERT(strstr(out, "*(char*)&x = 5;") != NULL);
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
+TEST test_gnu_standardizer_omitted_conditional(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "int main() {\n"
+                     "  int a = 1, b = 2;\n"
+                     "  int c = a ? : b;\n"
+                     "  int d = (a + b) ? : 5;\n"
+                     "  return a || b ? : c;\n"
+                     "}\n";
+  char *out = NULL;
+  cdd_transform_config_t config;
+  memset(&config, 0, sizeof(config));
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
+  ASSERT_EQ(0, cdd_cst_emit(tree, &out));
+  ASSERT(strstr(out, "a ? a  : b") != NULL);
+  ASSERT(strstr(out, "(a + b) ? (a + b)  : 5") != NULL);
+  ASSERT(strstr(out, "a || b ? a || b  : c") != NULL);
+  free(out);
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_cdd_transform_gnu);
   RUN_TEST(test_gnu_standardizer_stmt_expr);
@@ -639,6 +725,9 @@ SUITE(transformer_gnu_standardizer_suite) {
   RUN_TEST(test_gnu_standardizer_variadic_macros);
   RUN_TEST(test_cdd_transform_complex_numbers);
   RUN_TEST(test_gnu_standardizer_comment_preservation);
+  RUN_TEST(test_gnu_standardizer_float_extensions);
+  RUN_TEST(test_gnu_standardizer_lvalue_cast);
+  RUN_TEST(test_gnu_standardizer_omitted_conditional);
 }
 #ifdef __cplusplus
 }

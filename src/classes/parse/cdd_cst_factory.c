@@ -108,7 +108,8 @@ cdd_cst_node_t *cdd_cst_create_stmt_from_tokens(cdd_cst_tree_t *tree, ...) {
   va_start(args, tree);
   while ((tok = va_arg(args, cdd_token_t *)) != NULL) {
     if (cdd_cst_append_child_token(n, tok) != 0) {
-      /* Handle memory leak locally or assume caller frees. For now, best effort */
+      /* Handle memory leak locally or assume caller frees. For now, best effort
+       */
       va_end(args);
       return NULL;
     }
@@ -119,7 +120,9 @@ cdd_cst_node_t *cdd_cst_create_stmt_from_tokens(cdd_cst_tree_t *tree, ...) {
 }
 
 void cdd_cst_free_node_only(cdd_cst_node_t *node) {
-    if (!node) return;
-    if (node->children) free(node->children);
-    free(node);
+  if (!node)
+    return;
+  if (node->children)
+    free(node->children);
+  free(node);
 }
