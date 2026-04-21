@@ -582,8 +582,7 @@ out_error:
 static /**
         * @brief Executes the maybe mkdir operation.
         */
-    int
-    maybe_mkdir(const char *path) {
+    int maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 

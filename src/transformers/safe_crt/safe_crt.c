@@ -1054,6 +1054,8 @@ static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
   cdd_cst_node_t *new_node;
   cdd_token_t *new_tok;
   cdd_token_t *old_first, *old_last;
+  (void)old_first;
+  (void)old_last;
 
   if (!buf)
     return ENOMEM;

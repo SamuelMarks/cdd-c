@@ -121,7 +121,7 @@ TEST test_cdd_uint128_div(void) {
   ASSERT_EQ(0, cdd_uint128_div(a, b, &res));
   ASSERT_EQ(0, res.high);
   ASSERT_EQ(0x8000000000000000ULL, res.low);
-  
+
   ASSERT_EQ(1, cdd_uint128_div(a, cdd_make_uint128(0, 0), &res));
   PASS();
 }

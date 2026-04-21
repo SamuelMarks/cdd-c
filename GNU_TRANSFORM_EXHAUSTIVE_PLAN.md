@@ -3,51 +3,51 @@
 This document serves as the absolute, definitive, and exhaustive architectural roadmap for the `gnu_standardizer` engine within `cdd-c`. It lists every individual GNU C extension, built-in, attribute, preprocessor quirk, and required internal abstract syntax tree (AST) modification necessary to achieve a 100% compliant, zero-edge-case conversion to Standard C, targeting legacy compilers like MSVC.
 
 ## Phase 1: True AST Foundation, Memory Lifecycle, & Debt Eradication
-- [ ] **Eradicate Token-Level String Replacements**
+- [x] **Eradicate Token-Level String Replacements**
   - [x] Remove `sprintf` and `strdup` usage from `gnu_standardizer.c`.
-  - [ ] Ensure all transformations strictly output valid `cdd_cst_node_t` structures.
-  - [ ] Implement strict separation between the parsing pass and the mutation pass.
+  - [x] Ensure all transformations strictly output valid `cdd_cst_node_t` structures.
+  - [x] Implement strict separation between the parsing pass and the mutation pass.
 - [x] **AST Node Mutation API (`cdd_cst_mutate.h`)**
   - [x] Implement `cdd_cst_insert_node_before(target_node, new_node)`.
   - [x] Implement `cdd_cst_insert_node_after(target_node, new_node)`.
   - [x] Implement `cdd_cst_replace_node(old_node, new_node)` preserving parent links.
   - [x] Implement `cdd_cst_detach_node(node)` with safe tree rebalancing.
   - [x] Implement deep cloning `cdd_cst_clone_tree(root)` for macro and inline expansion.
-- [ ] **Trivia & Source Map Preservation**
-  - [ ] Guarantee 100% preservation of inline comments `//`.
-  - [ ] Guarantee 100% preservation of block comments `/* */` and docstrings.
-  - [ ] Track precise original file/line/column for error emission on unsupported edge cases.
-  - [ ] Retain original indentation during AST pretty-printing (code emission).
-- [ ] **Semantic Type Engine & Control Flow Graph (CFG)**
-  - [ ] Implement full lexical scope tracking (file, function, block, prototype).
-  - [ ] Implement symbol tables for variables, typedefs, struct/union/enum tags.
-  - [ ] Handle symbol shadowing correctly across nested scopes.
-  - [ ] Implement compile-time `sizeof` evaluation based on target ABI models (ILP32, LP64, LLP64).
-  - [ ] Implement compile-time `_Alignof` evaluation.
-  - [ ] Construct accurate CFG for reachability analysis (handling `goto`, `break`, `continue`, `return`).
-  - [ ] Implement escape analysis for local variables (required for closures/nested functions).
+- [x] **Trivia & Source Map Preservation**
+  - [x] Guarantee 100% preservation of inline comments `//`.
+  - [x] Guarantee 100% preservation of block comments `/* */` and docstrings.
+  - [x] Track precise original file/line/column for error emission on unsupported edge cases.
+  - [x] Retain original indentation during AST pretty-printing (code emission).
+- [x] **Semantic Type Engine & Control Flow Graph (CFG)**
+  - [x] Implement full lexical scope tracking (file, function, block, prototype).
+  - [x] Implement symbol tables for variables, typedefs, struct/union/enum tags.
+  - [x] Handle symbol shadowing correctly across nested scopes.
+  - [x] Implement compile-time `sizeof` evaluation based on target ABI models (ILP32, LP64, LLP64).
+  - [x] Implement compile-time `_Alignof` evaluation.
+  - [x] Construct accurate CFG for reachability analysis (handling `goto`, `break`, `continue`, `return`).
+  - [x] Implement escape analysis for local variables (required for closures/nested functions).
 
 ## Phase 2: Preprocessor, Lexical, & File Extensions
-- [ ] **Macro & Preprocessor Quirks**
-  - [ ] Transform GNU variadic macros `MACRO(args...)` to C99 `MACRO(...)`.
-  - [ ] Transform `, ##__VA_ARGS__` (comma swallowing) to C99 standard workarounds or C23 `__VA_OPT__`.
-  - [ ] Emulate `#include_next` behavior by dynamically resolving header search paths during parsing.
-  - [ ] Strip or translate `#pragma GCC poison`.
-  - [ ] Strip or translate `#pragma GCC diagnostic push/pop`.
-  - [ ] Strip or translate `#pragma GCC system_header`.
-  - [ ] Translate `#warning` to standard `#error` or target-specific pragmas (`#pragma message`).
-  - [ ] Handle GNU-specific `#ident` and `#sccs`.
-- [ ] **Magic Identifiers**
-  - [ ] Lower `__FUNCTION__` to C99 `__func__` (or synthesized string literals for C89).
-  - [ ] Lower `__PRETTY_FUNCTION__` to synthesized string literals containing full signatures.
-  - [ ] Resolve string concatenation involving magic identifiers (e.g., `"Error: " __FUNCTION__`) via AST string literal merging or `snprintf` polyfills.
-- [ ] **Lexical Constants & Quirks**
-  - [ ] Parse binary integer literals (`0b0101`) and convert to standard hexadecimal.
-  - [ ] Parse hexadecimal floating-point literals (`0x1.fp3`) and convert to decimal equivalents or `<math.h>` operations.
-  - [ ] Support `$` in identifiers natively (mangle to standard `_DOLLAR_` or similar if required by target C compiler).
-  - [ ] Support escaped newlines `\` inside string literals properly.
-  - [ ] Handle `__extension__` keyword (parse, suppress pedantic warnings, and safely discard from AST).
-  - [ ] Parse and lower `__DATE__`, `__TIME__`, `__TIMESTAMP__`, `__COUNTER__`, `__INCLUDE_LEVEL__`, `__BASE_FILE__`.
+- [x] **Macro & Preprocessor Quirks**
+  - [x] Transform GNU variadic macros `MACRO(args...)` to C99 `MACRO(...)`.
+  - [x] Transform `, ##__VA_ARGS__` (comma swallowing) to C99 standard workarounds or C23 `__VA_OPT__`.
+  - [x] Emulate `#include_next` behavior by dynamically resolving header search paths during parsing.
+  - [x] Strip or translate `#pragma GCC poison`.
+  - [x] Strip or translate `#pragma GCC diagnostic push/pop`.
+  - [x] Strip or translate `#pragma GCC system_header`.
+  - [x] Translate `#warning` to standard `#error` or target-specific pragmas (`#pragma message`).
+  - [x] Handle GNU-specific `#ident` and `#sccs`.
+- [x] **Magic Identifiers**
+  - [x] Lower `__FUNCTION__` to C99 `__func__` (or synthesized string literals for C89).
+  - [x] Lower `__PRETTY_FUNCTION__` to synthesized string literals containing full signatures.
+  - [x] Resolve string concatenation involving magic identifiers (e.g., `"Error: " __FUNCTION__`) via AST string literal merging or `snprintf` polyfills.
+- [x] **Lexical Constants & Quirks**
+  - [x] Parse binary integer literals (`0b0101`) and convert to standard hexadecimal.
+  - [x] Parse hexadecimal floating-point literals (`0x1.fp3`) and convert to decimal equivalents or `<math.h>` operations.
+  - [x] Support `$` in identifiers natively (mangle to standard `_DOLLAR_` or similar if required by target C compiler).
+  - [x] Support escaped newlines `\` inside string literals properly.
+  - [x] Handle `__extension__` keyword (parse, suppress pedantic warnings, and safely discard from AST).
+  - [x] Parse and lower `__DATE__`, `__TIME__`, `__TIMESTAMP__`, `__COUNTER__`, `__INCLUDE_LEVEL__`, `__BASE_FILE__`.
 
 ## Phase 3: Core GNU Types & Arithmetic Models
 - [x] **128-Bit Integers (`__int128` / `unsigned __int128`)**
@@ -55,29 +55,29 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [x] Define standard ABI-compliant `struct __cdd_int128 { uint64_t low; int64_t high; }`.
   - [x] Lower addition (`+`) to internal `__cdd_int128_add`.
   - [x] Lower subtraction (`-`) to internal `__cdd_int128_sub`.
-  - [ ] Lower multiplication (`*`) to internal `__cdd_int128_mul`.
-  - [ ] Lower division (`/`) to internal `__cdd_int128_div`.
-  - [ ] Lower modulo (`%`) to internal `__cdd_int128_mod`.
-  - [ ] Lower bitwise shifts (`<<`, `>>`) to internal `__cdd_int128_shl`, `__cdd_int128_shr`.
-  - [ ] Lower bitwise logic (`&`, `|`, `^`, `~`).
-  - [ ] Handle implicit casting rules to/from 64-bit/32-bit types.
-  - [ ] Handle implicit casting rules to/from `float` and `double`.
-  - [ ] Implement struct-passing conversion for variadic arguments (`va_list`) as standard C dictates different ABIs for structs vs native large ints.
+  - [x] Lower multiplication (`*`) to internal `__cdd_int128_mul`.
+  - [x] Lower division (`/`) to internal `__cdd_int128_div`.
+  - [x] Lower modulo (`%`) to internal `__cdd_int128_mod`.
+  - [x] Lower bitwise shifts (`<<`, `>>`) to internal `__cdd_int128_shl`, `__cdd_int128_shr`.
+  - [x] Lower bitwise logic (`&`, `|`, `^`, `~`).
+  - [x] Handle implicit casting rules to/from 64-bit/32-bit types.
+  - [x] Handle implicit casting rules to/from `float` and `double`.
+  - [x] Implement struct-passing conversion for variadic arguments (`va_list`) as standard C dictates different ABIs for structs vs native large ints.
 - [ ] **Type Introspection & Inference**
   - [ ] Implement `typeof(expr)` resolving to true AST type nodes.
   - [ ] Implement `typeof(type)` resolving transparently.
   - [ ] Implement `__auto_type` inference at variable declaration.
   - [ ] Implement `typeof_unqual` (stripping `const`, `volatile`, `restrict`).
   - [ ] Resolve `typeof` on bit-fields strictly to the underlying integer type (rejecting address-of semantics).
-- [ ] **Complex & Fractional Types**
-  - [ ] Polyfill `__complex__ float/double/int` to structs (`struct { real, imag; }`).
-  - [ ] Lower `__real__ var` accessors to `var.real`.
-  - [ ] Lower `__imag__ var` accessors to `var.imag`.
-  - [ ] Lower complex arithmetic (addition, subtraction, multiplication, division).
-  - [ ] Detect and reject/polyfill `_Fract` and `_Accum` (fixed-point arithmetic).
-- [ ] **Floating Point Extensions**
-  - [ ] Parse `_Decimal32`, `_Decimal64`, `_Decimal128` (map to software floats if hardware unsupported).
-  - [ ] Parse `__fp16`, `_Float16`, `__bf16` (map to `uint16_t` storage and `<math.h>` up-cast evaluations).
+- [x] **Complex & Fractional Types**
+  - [x] Polyfill `__complex__ float/double/int` to structs (`struct { real, imag; }`).
+  - [x] Lower `__real__ var` accessors to `var.real`.
+  - [x] Lower `__imag__ var` accessors to `var.imag`.
+  - [x] Lower complex arithmetic (addition, subtraction, multiplication, division).
+  - [x] Detect and reject/polyfill `_Fract` and `_Accum` (fixed-point arithmetic).
+- [x] **Floating Point Extensions**
+  - [x] Parse `_Decimal32`, `_Decimal64`, `_Decimal128` (map to software floats if hardware unsupported).
+  - [x] Parse `__fp16`, `_Float16`, `__bf16` (map to `uint16_t` storage and `<math.h>` up-cast evaluations).
 - [ ] **Vector Extensions**
   - [ ] Translate `__attribute__((vector_size(N)))` to standard C arrays.
   - [ ] Lower vector addition/subtraction to explicit standard C `for` loops.
@@ -86,54 +86,54 @@ This document serves as the absolute, definitive, and exhaustive architectural r
 
 ## Phase 4: Arrays, Structs, and Initialization
 - [ ] **Variable Length Arrays (VLAs)**
-  - [ ] Track VLA scope entries to evaluate size dimensions dynamically.
-  - [ ] Lower VLAs to `alloca()` (if targeting MSVC/Linux) or `malloc()`/`free()` blocks.
-  - [ ] Lower multidimensional VLAs mathematically (`arr[i][j]` -> `arr[i * cols + j]`).
-  - [ ] Polyfill VLA function parameters (`void f(int n, int a[n])` -> `void f(int n, int *a)`).
+  - [x] Track VLA scope entries to evaluate size dimensions dynamically.
+  - [x] Lower VLAs to `alloca()` (if targeting MSVC/Linux) or `malloc()`/`free()` blocks.
+  - [x] Lower multidimensional VLAs mathematically (`arr[i][j]` -> `arr[i * cols + j]`).
+  - [x] Polyfill VLA function parameters (`void f(int n, int a[n])` -> `void f(int n, int *a)`).
   - [ ] Handle `sizeof(VLA)` evaluating side-effects accurately (e.g., `sizeof(a[i++])`).
 - [ ] **Zero-Length Arrays & Struct Quirks**
-  - [ ] Convert `int arr[0];` at the end of structs to C99 Flexible Array Members `int arr[];` (or `int arr[1];` for C89).
+  - [x] Convert `int arr[0];` at the end of structs to C99 Flexible Array Members `int arr[];` (or `int arr[1];` for C89).
   - [ ] Reject or manually padding-adjust zero-length arrays declared in the *middle* of structs.
-  - [ ] Synthesize dummy tags for anonymous structs and unions to satisfy strict C89.
+  - [x] Synthesize dummy tags for anonymous structs and unions to satisfy strict C89.
   - [ ] Process `__attribute__((transparent_union))` by rewriting function call sites to cast explicitly to the union type.
-- [ ] **Designated & Range Initializers**
-  - [ ] Convert GNU range initializers `[0 ... 9] = 1` to explicit, unrolled standard C initializers (`[0]=1, [1]=1, ...`).
-  - [ ] Parse obsolete GNU designated initializer syntax `[0] = 1`, `[0] 1`, or `identifier: value` and normalize to C99 `.identifier = value` or explicit assignments.
+- [x] **Designated & Range Initializers**
+  - [x] Convert GNU range initializers `[0 ... 9] = 1` to explicit, unrolled standard C initializers (`[0]=1, [1]=1, ...`).
+  - [x] Parse obsolete GNU designated initializer syntax `[0] = 1`, `[0] 1`, or `identifier: value` and normalize to C99 `.identifier = value` or explicit assignments.
 - [ ] **Compound Literals & Casts**
   - [ ] Translate C99 compound literals `(struct foo){1, 2}` back to C89 named temporaries if targeting C89 strictly.
-  - [ ] Reject or lower Lvalues of cast expressions (e.g., `(int)x = 5;` -> `*(int*)&x = 5;`).
+  - [x] Reject or lower Lvalues of cast expressions (e.g., `(int)x = 5;` -> `*(int*)&x = 5;`).
 
 ## Phase 5: Control Flow, Scoping, & Jump Semantics
-- [ ] **Statement Expressions (`({ ... })`)**
-  - [ ] Accurately infer the return type of the final expression in the block.
-  - [ ] Hoist side-effects and local variables to the nearest standard C block scope.
-  - [ ] Prevent variable shadowing during hoisting via collision-free renaming (`__cdd_se_tmp_1`).
-  - [ ] Handle nested statement expressions recursively.
-  - [ ] Handle statement expressions embedded inside `while()`, `for()`, and `if()` condition headers via complex CFG rewriting.
-- [ ] **Nested Functions & Trampolines**
-  - [ ] Perform precise variable escape analysis.
-  - [ ] Implement Lambda Lifting (hoist nested function to file scope if no local captures exist).
-  - [ ] Implement Closure Conversion (pack captured locals into a heap-allocated struct passed as a hidden `__cdd_ctx` parameter).
-  - [ ] Handle explicit trampolines (returning pointers to nested functions) via dynamic heap allocations (W^X memory) or emit hard standard errors.
-- [ ] **Computed Gotos (Labels as Values)**
-  - [ ] Parse address-of-label `&&label` syntax.
-  - [ ] Parse indirect jump `goto *ptr;` syntax.
-  - [ ] Map jump tables to a synthesized master `switch` statement dynamically injected at the function scope.
-  - [ ] Restructure CFG to route all indirect jumps through the master dispatcher.
-- [ ] **Extended Switch Statements**
-  - [ ] Expand GNU case ranges (`case 1 ... 5:`) into explicit sequential `case 1: case 2: ...` statements.
-  - [ ] Handle overlapping ranges (emit warnings, resolve via first-match priority).
-  - [ ] Handle negative case ranges gracefully.
-- [ ] **Local Labels (`__label__`)**
-  - [ ] Parse `__label__ foo, bar;`.
-  - [ ] Rename `__label__` declarations to globally unique identifiers (e.g., `__cdd_lbl_foo_1`) to prevent collisions when hoisting block logic.
-- [ ] **Scope Jumping Protections**
-  - [ ] Safely reject or intelligently route `goto` jumps that cross VLA initialization boundaries (restoring stack pointers).
-  - [ ] Safely route `goto` jumps that cross `__attribute__((cleanup))` bounds, explicitly triggering cleanups before the jump.
+- [x] **Statement Expressions (`({ ... })`)**
+  - [x] Accurately infer the return type of the final expression in the block.
+  - [x] Hoist side-effects and local variables to the nearest standard C block scope.
+  - [x] Prevent variable shadowing during hoisting via collision-free renaming (`__cdd_se_tmp_1`).
+  - [x] Handle nested statement expressions recursively.
+  - [x] Handle statement expressions embedded inside `while()`, `for()`, and `if()` condition headers via complex CFG rewriting.
+- [x] **Nested Functions & Trampolines**
+  - [x] Perform precise variable escape analysis.
+  - [x] Implement Lambda Lifting (hoist nested function to file scope if no local captures exist).
+  - [x] Implement Closure Conversion (pack captured locals into a heap-allocated struct passed as a hidden `__cdd_ctx` parameter).
+  - [x] Handle explicit trampolines (returning pointers to nested functions) via dynamic heap allocations (W^X memory) or emit hard standard errors.
+- [x] **Computed Gotos (Labels as Values)**
+  - [x] Parse address-of-label `&&label` syntax.
+  - [x] Parse indirect jump `goto *ptr;` syntax.
+  - [x] Map jump tables to a synthesized master `switch` statement dynamically injected at the function scope.
+  - [x] Restructure CFG to route all indirect jumps through the master dispatcher.
+- [x] **Extended Switch Statements**
+  - [x] Expand GNU case ranges (`case 1 ... 5:`) into explicit sequential `case 1: case 2: ...` statements.
+  - [x] Handle overlapping ranges (emit warnings, resolve via first-match priority).
+  - [x] Handle negative case ranges gracefully.
+- [x] **Local Labels (`__label__`)**
+  - [x] Parse `__label__ foo, bar;`.
+  - [x] Rename `__label__` declarations to globally unique identifiers (e.g., `__cdd_lbl_foo_1`) to prevent collisions when hoisting block logic.
+- [x] **Scope Jumping Protections**
+  - [x] Safely reject or intelligently route `goto` jumps that cross VLA initialization boundaries (restoring stack pointers).
+  - [x] Safely route `goto` jumps that cross `__attribute__((cleanup))` bounds, explicitly triggering cleanups before the jump.
 
 ## Phase 6: Expressions, Operations & Precedence
-- [ ] **Conditionals**
-  - [ ] Translate omitted operands `x ? : y` to `__cdd_tmp = x; __cdd_tmp ? __cdd_tmp : y` to prevent double evaluation of side-effects or volatile reads.
+- [x] **Conditionals**
+  - [x] Translate omitted operands `x ? : y` to `__cdd_tmp = x; __cdd_tmp ? __cdd_tmp : y` to prevent double evaluation of side-effects or volatile reads.
 - [ ] **Pointers**
   - [ ] Polyfill pointer arithmetic on `void*` (cast to `char*` internally).
   - [ ] Polyfill pointer arithmetic on function pointers (cast to `char*` internally).

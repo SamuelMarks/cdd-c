@@ -295,3 +295,24 @@ err:
   free(clone);
   return rc;
 }
+
+int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx) {
+  size_t i;
+  if (!node || idx >= node->num_children)
+    return EINVAL;
+  for (i = idx; i + 1 < node->num_children; i++) {
+    node->children[i] = node->children[i + 1];
+  }
+  node->num_children--;
+  return 0;
+}
+
+int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
+                                cdd_token_t *new_tok) {
+  if (!node || idx >= node->num_children || !new_tok)
+    return EINVAL;
+  if (node->children[idx].kind != CDD_CST_CHILD_TOKEN)
+    return EINVAL;
+  node->children[idx].val.token = new_tok;
+  return 0;
+}

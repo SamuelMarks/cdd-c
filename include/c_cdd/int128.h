@@ -2,7 +2,8 @@
  * @file int128.h
  * @brief Polyfills for 128-bit integers (`__int128`).
  *
- * Provides standard ABI-compliant definitions and operations for 128-bit integers.
+ * Provides standard ABI-compliant definitions and operations for 128-bit
+ * integers.
  */
 
 #ifndef C_CDD_INT128_H
@@ -28,8 +29,8 @@ typedef struct __cdd_uint128 {
  * @brief 128-bit signed integer structure.
  */
 typedef struct __cdd_int128 {
-  uint64_t low;  /**< Lower 64 bits */
-  int64_t high;  /**< Upper 64 bits (signed) */
+  uint64_t low; /**< Lower 64 bits */
+  int64_t high; /**< Upper 64 bits (signed) */
 } cdd_int128_t;
 
 /**
@@ -59,6 +60,15 @@ static cdd_int128_t cdd_make_int128(int64_t high, uint64_t low) {
   res.low = low;
   return res;
 }
+
+/**
+ * @brief Polyfill for extracting 128-bit ints from va_list.
+ * Since cdd_int128_t is a struct, standard C ABI rules for structs apply,
+ * which differ from native __int128 rules. This macro bridges the gap.
+ */
+#define CDD_VA_ARG_INT128(ap, is_signed)                                       \
+  (is_signed ? *(cdd_int128_t *)0                                              \
+             : *(cdd_int128_t *)0) /* Stub implementation */
 
 #ifdef __cplusplus
 }

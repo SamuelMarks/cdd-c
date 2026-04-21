@@ -60,6 +60,22 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
     return CDD_TOKEN_KEYWORD___IMAG__;
   if (len == 9 && memcmp(start, "__label__", 9) == 0)
     return CDD_TOKEN_KEYWORD___LABEL__;
+  if (len == 10 && memcmp(start, "_Decimal32", 10) == 0)
+    return CDD_TOKEN_KEYWORD__DECIMAL32;
+  if (len == 10 && memcmp(start, "_Decimal64", 10) == 0)
+    return CDD_TOKEN_KEYWORD__DECIMAL64;
+  if (len == 11 && memcmp(start, "_Decimal128", 11) == 0)
+    return CDD_TOKEN_KEYWORD__DECIMAL128;
+  if (len == 6 && memcmp(start, "__fp16", 6) == 0)
+    return CDD_TOKEN_KEYWORD___FP16;
+  if (len == 8 && memcmp(start, "_Float16", 8) == 0)
+    return CDD_TOKEN_KEYWORD__FLOAT16;
+  if (len == 6 && memcmp(start, "__bf16", 6) == 0)
+    return CDD_TOKEN_KEYWORD___BF16;
+  if (len == 6 && memcmp(start, "_Fract", 6) == 0)
+    return CDD_TOKEN_KEYWORD__FRACT;
+  if (len == 6 && memcmp(start, "_Accum", 6) == 0)
+    return CDD_TOKEN_KEYWORD__ACCUM;
   if (len == 6 && memcmp(start, "struct", 6) == 0)
     return CDD_TOKEN_KEYWORD_STRUCT;
   if (len == 2 && memcmp(start, "if", 2) == 0)

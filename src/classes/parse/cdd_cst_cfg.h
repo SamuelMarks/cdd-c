@@ -1,0 +1,73 @@
+#ifndef CDD_CST_CFG_H
+#define CDD_CST_CFG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* clang-format off */
+#include "cdd_cst_node.h"
+#include <stddef.h>
+/* clang-format on */
+
+/**
+ * @brief Represents the kind of a basic block.
+ */
+enum cdd_cst_cfg_block_kind_t {
+  CDD_CST_CFG_BLOCK_ENTRY,
+  CDD_CST_CFG_BLOCK_NORMAL,
+  CDD_CST_CFG_BLOCK_CONDITION,
+  CDD_CST_CFG_BLOCK_EXIT
+};
+
+typedef struct cdd_cst_cfg_edge_t cdd_cst_cfg_edge_t;
+typedef struct cdd_cst_cfg_block_t cdd_cst_cfg_block_t;
+
+/** @brief Struct definition */
+struct cdd_cst_cfg_edge_t {
+  cdd_cst_cfg_block_t *target;
+  int is_conditional;
+  int condition_value; /* 1 for true branch, 0 for false branch */
+  cdd_cst_cfg_edge_t *next;
+};
+
+/** @brief Struct definition */
+struct cdd_cst_cfg_block_t {
+  int id;
+  enum cdd_cst_cfg_block_kind_t kind;
+  cdd_cst_node_t **statements;
+  size_t num_statements;
+  size_t capacity;
+  cdd_cst_cfg_edge_t *successors;
+  cdd_cst_cfg_edge_t *predecessors;
+};
+
+/** @brief Struct definition */
+typedef struct cdd_cst_cfg_t cdd_cst_cfg_t;
+struct cdd_cst_cfg_t {
+  cdd_cst_cfg_block_t *entry_block;
+  cdd_cst_cfg_block_t *exit_block;
+  cdd_cst_cfg_block_t **blocks;
+  size_t num_blocks;
+  size_t capacity;
+};
+
+/**
+ * @brief Constructs a Control Flow Graph (CFG) from a function definition node.
+ * @param function_node The AST node representing the function.
+ * @param out_cfg Pointer to store the constructed CFG.
+ * @return 0 on success.
+ */
+int cdd_cst_cfg_build(cdd_cst_node_t *function_node, cdd_cst_cfg_t **out_cfg);
+
+/**
+ * @brief Frees a CFG and all its blocks and edges.
+ * @param cfg The CFG to free.
+ */
+void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* CDD_CST_CFG_H */

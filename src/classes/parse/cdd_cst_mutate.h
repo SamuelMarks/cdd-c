@@ -59,11 +59,33 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node);
 int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
                        cdd_cst_node_t **out_clone);
 
-int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr, size_t start_idx, size_t consume_count, cdd_cst_child_t *new_children, size_t new_children_count);
-cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok, size_t *out_idx);
+int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
+                            size_t start_idx, size_t consume_count,
+                            cdd_cst_child_t *new_children,
+                            size_t new_children_count);
+cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root,
+                                            cdd_token_t *tok, size_t *out_idx);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif /* CDD_CST_MUTATE_H */
+
+/**
+ * @brief Removes a child from a node's children array in-place.
+ * @param node The node to modify.
+ * @param idx The index of the child to remove.
+ * @return 0 on success.
+ */
+int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx);
+
+/**
+ * @brief Replaces a token child with a new token in-place.
+ * @param node The node to modify.
+ * @param idx The index of the child to replace.
+ * @param new_tok The new token.
+ * @return 0 on success.
+ */
+int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
+                                cdd_token_t *new_tok);
