@@ -8,3 +8,9 @@ trim_trailing_whitespace = true
 
 [*.{cmd,bat,ps1}]
 end_of_line = crlf
+
+[*.{c,h,cpp,hpp,md,txt,cmake,sh,yml,yaml,Dockerfile,in}]
+end_of_line = lf
+
+[Makefile]
+end_of_line = lf
