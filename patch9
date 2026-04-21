@@ -1,0 +1,41 @@
+--- src/transformers/gnu_standardizer/gnu_standardizer.c
++++ src/transformers/gnu_standardizer/gnu_standardizer.c
+@@ -743,6 +743,36 @@
+           tree->base_tokens->tokens[i + 3].length = 0;
+           tree->base_tokens->tokens[i + 4].length = 0;
+           tree->base_tokens->tokens[i + 5].length = 0;
++        } else if (attr->length == 13 && memcmp(attr->start, "always_inline", 13) == 0) {
++          tok->start = (const uint8_t *)"inline"; /* Map to inline for C99, __inline for C89 MSVC handled in headers */
++          tok->length = 6;
++          tree->base_tokens->tokens[i + 1].length = 0;
++          tree->base_tokens->tokens[i + 2].length = 0;
++          tree->base_tokens->tokens[i + 3].length = 0;
++          tree->base_tokens->tokens[i + 4].length = 0;
++          tree->base_tokens->tokens[i + 5].length = 0;
++        } else if (attr->length == 8 && memcmp(attr->start, "noinline", 8) == 0) {
++          tok->start = (const uint8_t *)"/* noinline */";
++          tok->length = 14;
++          tree->base_tokens->tokens[i + 1].length = 0;
++          tree->base_tokens->tokens[i + 2].length = 0;
++          tree->base_tokens->tokens[i + 3].length = 0;
++          tree->base_tokens->tokens[i + 4].length = 0;
++          tree->base_tokens->tokens[i + 5].length = 0;
++        } else if (attr->length == 6 && memcmp(attr->start, "malloc", 6) == 0) {
++          tok->start = (const uint8_t *)"/* malloc */";
++          tok->length = 12;
++          tree->base_tokens->tokens[i + 1].length = 0;
++          tree->base_tokens->tokens[i + 2].length = 0;
++          tree->base_tokens->tokens[i + 3].length = 0;
++          tree->base_tokens->tokens[i + 4].length = 0;
++          tree->base_tokens->tokens[i + 5].length = 0;
++        } else if (attr->length == 15 && memcmp(attr->start, "returns_nonnull", 15) == 0) {
++          tok->start = (const uint8_t *)"/* returns_nonnull */";
++          tok->length = 21;
++          tree->base_tokens->tokens[i + 1].length = 0;
++          tree->base_tokens->tokens[i + 2].length = 0;
++          tree->base_tokens->tokens[i + 3].length = 0;
++          tree->base_tokens->tokens[i + 4].length = 0;
++          tree->base_tokens->tokens[i + 5].length = 0;
+         } else if (attr->length == 6 && memcmp(attr->start, "packed", 6) == 0) {
+           tok->start = (const uint8_t *)"\n#pragma pack(push, 1)\n";
+           tok->length = 23;

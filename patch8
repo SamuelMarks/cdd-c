@@ -1,0 +1,60 @@
+--- src/transformers/gnu_standardizer/gnu_standardizer.c
++++ src/transformers/gnu_standardizer/gnu_standardizer.c
+@@ -998,6 +998,39 @@
+           tree->base_tokens->tokens[i + 3].length = 0;
+           tree->base_tokens->tokens[i + 4].length = 0;
+           tree->base_tokens->tokens[i + 5].length = 0;
++        } else if (tok->length == 23 &&
++                   memcmp(tok->start, "__builtin_choose_expr", 23) == 0) {
++          /* __builtin_choose_expr(c, e1, e2) -> ((c) ? (e1) : (e2)) */
++          /* As a simple AST-level translation for older MSVC that lacks choose_expr,
++             we lower it to a standard ternary. Dead-code elimination in the target
++             compiler will drop the untaken branch. */
++          tok->start = (const uint8_t *)"";
++          tok->length = 0;
++          tree->base_tokens->tokens[i + 1].start = (const uint8_t *)"((";
++          tree->base_tokens->tokens[i + 1].length = 2;
++          
++          /* Find the commas and right parenthesis */
++          {
++             int depth = 0;
++             size_t k;
++             int comma_cnt = 0;
++             for (k = i + 1; k < tree->base_tokens->size; k++) {
++               if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_LPAREN) depth++;
++               else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_RPAREN) {
++                 depth--;
++                 if (depth == 0) {
++                   tree->base_tokens->tokens[k].start = (const uint8_t *)"))";
++                   tree->base_tokens->tokens[k].length = 2;
++                   break;
++                 }
++               } else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_COMMA && depth == 1) {
++                 comma_cnt++;
++                 if (comma_cnt == 1) { tree->base_tokens->tokens[k].start = (const uint8_t *)") ? ("; tree->base_tokens->tokens[k].length = 5; }
++                 else if (comma_cnt == 2) { tree->base_tokens->tokens[k].start = (const uint8_t *)") : ("; tree->base_tokens->tokens[k].length = 5; }
++               }
++             }
++          }
++        } else if (tok->length == 28 && memcmp(tok->start, "__builtin_types_compatible_p", 28) == 0) {
++          /* Lowering strictly to 0 at token level as type analysis is missing here */
++          tok->start = (const uint8_t *)"0";
++          tok->length = 1;
++          tree->base_tokens->tokens[i + 1].length = 0;
++          {
++             int depth = 0;
++             size_t k;
++             for (k = i + 1; k < tree->base_tokens->size; k++) {
++               if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_LPAREN) depth++;
++               else if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_RPAREN) {
++                 depth--;
++                 tree->base_tokens->tokens[k].length = 0;
++                 if (depth == 0) break;
++               } else {
++                 tree->base_tokens->tokens[k].length = 0;
++               }
++             }
++          }
+         } else if (tok->length == 21 &&
+                    memcmp(tok->start, "__builtin_object_size", 21) == 0) {
+           /* Lower to (size_t)-1 as a safe fallback when we cannot evaluate */
