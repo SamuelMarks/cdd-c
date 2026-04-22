@@ -78,29 +78,29 @@ This document serves as the absolute, definitive, and exhaustive architectural r
 - [x] **Floating Point Extensions**
   - [x] Parse `_Decimal32`, `_Decimal64`, `_Decimal128` (map to software floats if hardware unsupported).
   - [x] Parse `__fp16`, `_Float16`, `__bf16` (map to `uint16_t` storage and `<math.h>` up-cast evaluations).
-- [ ] **Vector Extensions**
+- [x] **Vector Extensions**
   - [x] Translate `__attribute__((vector_size(N)))` to standard C arrays.
-  - [ ] Lower vector addition/subtraction to explicit standard C `for` loops.
-  - [ ] Lower vector bitwise operations to explicit standard C `for` loops.
+  - [x] Lower vector addition/subtraction to explicit standard C `for` loops.
+  - [x] Lower vector bitwise operations to explicit standard C `for` loops.
   - [x] Translate `__builtin_shuffle` / `__builtin_shufflevector`.
 
 ## Phase 4: Arrays, Structs, and Initialization
-- [ ] **Variable Length Arrays (VLAs)**
+- [x] **Variable Length Arrays (VLAs)**
   - [x] Track VLA scope entries to evaluate size dimensions dynamically.
   - [x] Lower VLAs to `alloca()` (if targeting MSVC/Linux) or `malloc()`/`free()` blocks.
   - [x] Lower multidimensional VLAs mathematically (`arr[i][j]` -> `arr[i * cols + j]`).
   - [x] Polyfill VLA function parameters (`void f(int n, int a[n])` -> `void f(int n, int *a)`).
-  - [ ] Handle `sizeof(VLA)` evaluating side-effects accurately (e.g., `sizeof(a[i++])`).
-- [ ] **Zero-Length Arrays & Struct Quirks**
+  - [x] Handle `sizeof(VLA)` evaluating side-effects accurately (e.g., `sizeof(a[i++])`).
+- [x] **Zero-Length Arrays & Struct Quirks**
   - [x] Convert `int arr[0];` at the end of structs to C99 Flexible Array Members `int arr[];` (or `int arr[1];` for C89).
   - [x] Reject or manually padding-adjust zero-length arrays declared in the *middle* of structs.
   - [x] Synthesize dummy tags for anonymous structs and unions to satisfy strict C89.
-  - [ ] Process `__attribute__((transparent_union))` by rewriting function call sites to cast explicitly to the union type.
+  - [x] Process `__attribute__((transparent_union))` by rewriting function call sites to cast explicitly to the union type.
 - [x] **Designated & Range Initializers**
   - [x] Convert GNU range initializers `[0 ... 9] = 1` to explicit, unrolled standard C initializers (`[0]=1, [1]=1, ...`).
   - [x] Parse obsolete GNU designated initializer syntax `[0] = 1`, `[0] 1`, or `identifier: value` and normalize to C99 `.identifier = value` or explicit assignments.
-- [ ] **Compound Literals & Casts**
-  - [ ] Translate C99 compound literals `(struct foo){1, 2}` back to C89 named temporaries if targeting C89 strictly.
+- [x] **Compound Literals & Casts**
+  - [x] Translate C99 compound literals `(struct foo){1, 2}` back to C89 named temporaries if targeting C89 strictly.
   - [x] Reject or lower Lvalues of cast expressions (e.g., `(int)x = 5;` -> `*(int*)&x = 5;`).
 
 ## Phase 5: Control Flow, Scoping, & Jump Semantics
@@ -134,19 +134,19 @@ This document serves as the absolute, definitive, and exhaustive architectural r
 ## Phase 6: Expressions, Operations & Precedence
 - [x] **Conditionals**
   - [x] Translate omitted operands `x ? : y` to `__cdd_tmp = x; __cdd_tmp ? __cdd_tmp : y` to prevent double evaluation of side-effects or volatile reads.
-- [ ] **Pointers**
-  - [ ] Polyfill pointer arithmetic on `void*` (cast to `char*` internally).
-  - [ ] Polyfill pointer arithmetic on function pointers (cast to `char*` internally).
+- [x] **Pointers**
+  - [x] Polyfill pointer arithmetic on `void*` (cast to `char*` internally).
+  - [x] Polyfill pointer arithmetic on function pointers (cast to `char*` internally).
 
 ## Phase 7: Exhaustive Attribute Mapping (`__attribute__((...))`)
-- [ ] **Function Attributes**
+- [x] **Function Attributes**
   - [x] `alias("target")`: Generate standard wrapper function or MSVC linker pragma (`#pragma comment(linker, "/alternatename:...")`).
   - [x] `always_inline`: Map to `inline` or `__forceinline`.
   - [x] `noinline`: Map to MSVC `__declspec(noinline)`.
   - [x] `noreturn`: Map to C11 `_Noreturn`, C23 `[[noreturn]]`, or `__declspec(noreturn)`.
   - [x] `format(printf/scanf, i, j)`: Map to MSVC `_Printf_format_string_` or strip for C89.
-  - [ ] `constructor(priority)`: Map to platform-specific initialization segments (e.g., MSVC `.CRT$XCU`).
-  - [ ] `destructor(priority)`: Map to platform-specific exit segments.
+  - [x] `constructor(priority)`: Map to platform-specific initialization segments (e.g., MSVC `.CRT$XCU`).
+  - [x] `destructor(priority)`: Map to platform-specific exit segments.
   - [x] `weak` / `weakref`: Map to MSVC `__declspec(selectany)` or `#pragma weak` if available.
   - [x] `malloc`: Map to MSVC `__declspec(restrict)`.
   - [x] `returns_nonnull`: Map to `_Ret_notnull_`.
@@ -154,22 +154,22 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [x] `returns_twice`: Relevant for `setjmp` wrapper preservation.
   - [x] `flatten`, `cold`, `hot`, `pure`, `const`, `leaf`, `artificial`, `noclone`, `optimize`: Strip (optimization hints).
   - [x] `interrupt`: Map to MSVC `__interrupt` or architecture-specific handler signatures.
-- [ ] **Variable Attributes**
-  - [ ] `cleanup(func)`: Deeply integrate into CFG. Generate explicit `func(&var)` calls at *all* normal exits, `return`, `goto`, `break`, and `continue` paths.
-  - [ ] `aligned(N)`: Map to C11 `_Alignas(N)` or MSVC `__declspec(align(N))`.
+- [x] **Variable Attributes**
+  - [x] `cleanup(func)`: Deeply integrate into CFG. Generate explicit `func(&var)` calls at *all* normal exits, `return`, `goto`, `break`, and `continue` paths.
+  - [x] `aligned(N)`: Map to C11 `_Alignas(N)` or MSVC `__declspec(align(N))`.
   - [x] `section("name")`: Map to `#pragma alloc_text` or `#pragma section`.
-  - [ ] `packed`: Map to `#pragma pack(push, 1)` and `#pragma pack(pop)`.
-  - [ ] `mode(XX)`: Map `QI`->`int8_t`, `HI`->`int16_t`, `SI`->`int32_t`, `DI`->`int64_t`, `TI`->`__int128`, `SF`->`float`, `DF`->`double`.
-  - [ ] `common` / `nocommon`: Emulate via standard `extern` and global initialization rules.
-  - [ ] `tls_model`: Map to standard thread-local storage models.
-- [ ] **Type Attributes**
-  - [ ] `may_alias`: Strip or emit MSVC specific strict-aliasing bypasses.
+  - [x] `packed`: Map to `#pragma pack(push, 1)` and `#pragma pack(pop)`.
+  - [x] `mode(XX)`: Map `QI`->`int8_t`, `HI`->`int16_t`, `SI`->`int32_t`, `DI`->`int64_t`, `TI`->`__int128`, `SF`->`float`, `DF`->`double`.
+  - [x] `common` / `nocommon`: Emulate via standard `extern` and global initialization rules.
+  - [x] `tls_model`: Map to standard thread-local storage models.
+- [x] **Type Attributes**
+  - [x] `may_alias`: Strip or emit MSVC specific strict-aliasing bypasses.
   - [x] `deprecated("msg")`: Map to C23 `[[deprecated("msg")]]` or `__declspec(deprecated("msg"))`.
-  - [ ] `transparent_union`: See struct quirks.
-  - [ ] `designated_init`: Strip (validation hint only).
+  - [x] `transparent_union`: See struct quirks.
+  - [x] `designated_init`: Strip (validation hint only).
 
 ## Phase 8: Exhaustive Built-in Functions (`__builtin_*`)
-- [ ] **Compile-Time Evaluation & Flow**
+- [x] **Compile-Time Evaluation & Flow**
   - [x] `__builtin_constant_p(expr)`: Evaluate statically; lower to `1` or `0`.
   - [x] `__builtin_choose_expr(c, e1, e2)`: Statically evaluate `c`. Completely discard untaken branch AST to prevent invalid standard C semantics.
   - [x] `__builtin_types_compatible_p(t1, t2)`: Evaluate type AST structural equality.
@@ -213,29 +213,29 @@ This document serves as the absolute, definitive, and exhaustive architectural r
   - [x] `__atomic_thread_fence`, `__atomic_signal_fence`: Map to `<stdatomic.h>` `atomic_thread_fence`.
 
 ## Phase 9: Inline Assembly Translation (`__asm__`)
-- [ ] **Parsing & Normalization**
+- [x] **Parsing & Normalization**
   - [x] Standardize keywords: `__asm__`, `asm`, `__asm`, `asm volatile`, `__asm__ __volatile__`.
-  - [ ] Parse string literals containing assembly instructions.
-  - [ ] Parse Output Operands (`=r`, `+m`, etc.).
-  - [ ] Parse Input Operands (`r`, `i`, `g`, etc.).
-  - [ ] Parse Clobber Lists (`"memory"`, `"cc"`, `"eax"`, etc.).
-  - [ ] Parse Goto Labels (`asm goto`).
-- [ ] **Lowering & Emulation (To MSVC `__asm { ... }` or Intrinsic Functions)**
-  - [ ] Detect hardware platform (x86, x64, ARM) to ensure correct constraint mapping.
-  - [ ] Map GNU Register Constraints:
-    - [ ] General: `"r"`, `"m"`, `"i"`, `"g"`, `"X"`, `"V"`, `"E"`, `"p"`.
-    - [ ] x86 Specific: `"a"` (eax), `"b"` (ebx), `"c"` (ecx), `"d"` (edx), `"S"` (esi), `"D"` (edi), `"A"` (edx:eax).
-  - [ ] Translate AT&T assembly syntax into Intel assembly syntax natively.
-  - [ ] Extract variables bound to registers and generate explicit local variable moves into/out of MSVC `__asm` blocks.
-  - [ ] Handle `asm goto` by analyzing branch targets, terminating the ASM block, and inserting conditional standard C `goto`s based on flags.
-  - [ ] Emit stack save/restore operations for clobbered registers implicitly assumed by GCC.
+  - [x] Parse string literals containing assembly instructions.
+  - [x] Parse Output Operands (`=r`, `+m`, etc.).
+  - [x] Parse Input Operands (`r`, `i`, `g`, etc.).
+  - [x] Parse Clobber Lists (`"memory"`, `"cc"`, `"eax"`, etc.).
+  - [x] Parse Goto Labels (`asm goto`).
+- [x] **Lowering & Emulation (To MSVC `__asm { ... }` or Intrinsic Functions)**
+  - [x] Detect hardware platform (x86, x64, ARM) to ensure correct constraint mapping.
+  - [x] Map GNU Register Constraints:
+    - [x] General: `"r"`, `"m"`, `"i"`, `"g"`, `"X"`, `"V"`, `"E"`, `"p"`.
+    - [x] x86 Specific: `"a"` (eax), `"b"` (ebx), `"c"` (ecx), `"d"` (edx), `"S"` (esi), `"D"` (edi), `"A"` (edx:eax).
+  - [x] Translate AT&T assembly syntax into Intel assembly syntax natively.
+  - [x] Extract variables bound to registers and generate explicit local variable moves into/out of MSVC `__asm` blocks.
+  - [x] Handle `asm goto` by analyzing branch targets, terminating the ASM block, and inserting conditional standard C `goto`s based on flags.
+  - [x] Emit stack save/restore operations for clobbered registers implicitly assumed by GCC.
 
 ## Phase 10: Validation, Safety & Edge Cases
-- [ ] **Robust Edge Case Handling**
-  - [ ] Prevent infinite recursion in statement expression hoisting.
-  - [ ] Prevent memory leaks during massive AST duplication (use memory pools mapped to the translation unit).
-  - [ ] Validate standard alignment padding changes caused by zero-length array removals.
-- [ ] **Test Suites**
-  - [ ] Integrate with GCC Torture Tests to validate transformations against edge cases.
-  - [ ] Fuzz AST mutation functions to guarantee zero segfaults on malformed code.
-  - [ ] Validate identical executable behavior of polyfilled 128-bit integer math using exhaustive limit tests.
+- [x] **Robust Edge Case Handling**
+  - [x] Prevent infinite recursion in statement expression hoisting.
+  - [x] Prevent memory leaks during massive AST duplication (use memory pools mapped to the translation unit).
+  - [x] Validate standard alignment padding changes caused by zero-length array removals.
+- [x] **Test Suites**
+  - [x] Integrate with GCC Torture Tests to validate transformations against edge cases.
+  - [x] Fuzz AST mutation functions to guarantee zero segfaults on malformed code.
+  - [x] Validate identical executable behavior of polyfilled 128-bit integer math using exhaustive limit tests.

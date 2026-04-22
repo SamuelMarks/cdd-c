@@ -474,7 +474,7 @@ static int cdd_uint64_to_uint128(uint64_t val, cdd_uint128_t *out) {
  * @brief Cast 64-bit signed to 128-bit signed.
  */
 static int cdd_int64_to_int128(int64_t val, cdd_int128_t *out) {
-  out->low = (uint64_t)val;
+  out->low = (uint64_t)(int64_t)val;
   out->high = (val < 0) ? -1LL : 0LL;
   return 0;
 }
@@ -500,7 +500,7 @@ static int cdd_int128_to_int64(cdd_int128_t val, int64_t *out) {
  */
 static int cdd_float_to_int128(float val, cdd_int128_t *out) {
   /* Stub implementation */
-  out->low = (uint64_t)val;
+  out->low = (uint64_t)(int64_t)val;
   out->high = (val < 0) ? -1LL : 0LL;
   return 0;
 }
@@ -510,7 +510,7 @@ static int cdd_float_to_int128(float val, cdd_int128_t *out) {
  */
 static int cdd_double_to_int128(double val, cdd_int128_t *out) {
   /* Stub implementation */
-  out->low = (uint64_t)val;
+  out->low = (uint64_t)(int64_t)val;
   out->high = (val < 0) ? -1LL : 0LL;
   return 0;
 }
