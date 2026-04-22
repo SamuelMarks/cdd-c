@@ -210,46 +210,65 @@ static int asm_visitor(cdd_cst_node_t *node, void *user_data) {
   return 0;
 }
 
-
-static const char* cdd_infer_type(cdd_token_t* tokens, size_t num_tokens) {
+static const char *cdd_infer_type(cdd_token_t *tokens, size_t num_tokens) {
   size_t i;
-  if (num_tokens == 0) return "int";
+  if (num_tokens == 0)
+    return "int";
   for (i = 0; i < num_tokens; i++) {
-    cdd_token_t* t = &tokens[i];
-    if (t->kind == CDD_TOKEN_KEYWORD_INT || t->kind == CDD_TOKEN_KEYWORD_CHAR ||
-        t->kind == CDD_TOKEN_KEYWORD_FLOAT || t->kind == CDD_TOKEN_KEYWORD_DOUBLE ||
-        t->kind == CDD_TOKEN_KEYWORD_VOID || t->kind == CDD_TOKEN_KEYWORD_STRUCT ||
-        t->kind == CDD_TOKEN_KEYWORD_UNION || t->kind == CDD_TOKEN_KEYWORD_ENUM ||
-        t->kind == CDD_TOKEN_KEYWORD_UNSIGNED || t->kind == CDD_TOKEN_KEYWORD_SIGNED ||
-        t->kind == CDD_TOKEN_KEYWORD_LONG || t->kind == CDD_TOKEN_KEYWORD_SHORT) {
+    cdd_token_t *t = &tokens[i];
+
+    int is_type = 0;
+    if (t->kind == CDD_TOKEN_KEYWORD_INT || t->kind == CDD_TOKEN_KEYWORD_STRUCT)
+      is_type = 1;
+    else if (t->kind == CDD_TOKEN_IDENTIFIER) {
+      if ((t->length == 4 && memcmp(t->start, "char", 4) == 0) ||
+          (t->length == 5 && memcmp(t->start, "float", 5) == 0) ||
+          (t->length == 6 && memcmp(t->start, "double", 6) == 0) ||
+          (t->length == 4 && memcmp(t->start, "void", 4) == 0) ||
+          (t->length == 5 && memcmp(t->start, "union", 5) == 0) ||
+          (t->length == 4 && memcmp(t->start, "enum", 4) == 0) ||
+          (t->length == 8 && memcmp(t->start, "unsigned", 8) == 0) ||
+          (t->length == 6 && memcmp(t->start, "signed", 6) == 0) ||
+          (t->length == 4 && memcmp(t->start, "long", 4) == 0) ||
+          (t->length == 5 && memcmp(t->start, "short", 5) == 0)) {
+        is_type = 1;
+      }
+    }
+    if (is_type) {
+
       /* It's likely a type already */
       return NULL;
     }
   }
   /* Bit-field inference: expr.field or expr->field */
-  if (num_tokens >= 3 && (tokens[num_tokens-2].kind == CDD_TOKEN_DOT || tokens[num_tokens-2].kind == CDD_TOKEN_ARROW)) {
+  if (num_tokens >= 3 && (tokens[num_tokens - 2].kind == CDD_TOKEN_DOT ||
+                          tokens[num_tokens - 2].kind == CDD_TOKEN_ARROW)) {
     return "int";
   }
   /* Expression inference */
-  if (num_tokens == 1 && tokens[0].kind == CDD_TOKEN_STRING_LITERAL) {
+  if (num_tokens == 1 && tokens[0].kind == CDD_TOKEN_STRING) {
     return "const char *";
   }
   if (num_tokens == 1 && tokens[0].kind == CDD_TOKEN_NUMBER) {
-    const char* str = (const char*)tokens[0].start;
+    const char *str = (const char *)tokens[0].start;
     size_t len = tokens[0].length;
     size_t j;
     for (j = 0; j < len; j++) {
-      if (str[j] == '.' || str[j] == 'p' || str[j] == 'P' || str[j] == 'e' || str[j] == 'E') {
-         if (str[len-1] == 'f' || str[len-1] == 'F') return "float";
-         return "double";
+      if (str[j] == '.' || str[j] == 'p' || str[j] == 'P' || str[j] == 'e' ||
+          str[j] == 'E') {
+        if (str[len - 1] == 'f' || str[len - 1] == 'F')
+          return "float";
+        return "double";
       }
     }
     for (j = 0; j < len; j++) {
       if (str[j] == 'u' || str[j] == 'U') {
-         if (str[len-1] == 'l' || str[len-1] == 'L') return "unsigned long";
-         return "unsigned int";
+        if (str[len - 1] == 'l' || str[len - 1] == 'L')
+          return "unsigned long";
+        return "unsigned int";
       }
-      if (str[j] == 'l' || str[j] == 'L') return "long";
+      if (str[j] == 'l' || str[j] == 'L')
+        return "long";
     }
     return "int";
   }
@@ -545,74 +564,144 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         next_tok->length = 0;
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD_TYPEOF) {
-      if (i + 2 < tree->base_tokens->size && tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN) {
+      if (i + 2 < tree->base_tokens->size &&
+          tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN) {
         size_t rparen_idx = 0;
         int paren_depth = 0;
         size_t j;
         for (j = i + 1; j < tree->base_tokens->size; j++) {
-          if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_LPAREN) paren_depth++;
+          if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_LPAREN)
+            paren_depth++;
           else if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_RPAREN) {
             paren_depth--;
-            if (paren_depth == 0) { rparen_idx = j; break; }
+            if (paren_depth == 0) {
+              rparen_idx = j;
+              break;
+            }
           }
         }
         if (rparen_idx > 0) {
           size_t num_inner = rparen_idx - (i + 1) - 1;
           cdd_token_t *inner = &tree->base_tokens->tokens[i + 2];
-          const char* inferred = cdd_infer_type(inner, num_inner);
+          const char *inferred = cdd_infer_type(inner, num_inner);
           size_t child_idx;
-          cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
             if (inferred) {
-              cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "%s ", inferred);
+              cdd_cst_node_t *temp =
+                  cdd_cst_parse_format(tree, "%s ", inferred);
               if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, (rparen_idx - i) + 1, temp->children, temp->num_children);
+                cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                        (rparen_idx - i) + 1, temp->children,
+                                        temp->num_children);
                 cdd_cst_free_node_only(temp);
               }
             } else {
-              /* It's already a type (transparent resolution). Just extract the tokens inside and drop typeof() */
-              cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
-              if (temp) {
-                size_t k;
-                int is_unqual = (tok->length == 13 && memcmp(tok->start, "typeof_unqual", 13) == 0) ||
-                                (tok->length == 17 && memcmp(tok->start, "__typeof_unqual__", 17) == 0);
-                for (k = 0; k < num_inner; k++) {
-                  if (is_unqual && (inner[k].kind == CDD_TOKEN_KEYWORD_CONST || 
-                                    inner[k].kind == CDD_TOKEN_KEYWORD_VOLATILE || 
-                                    inner[k].kind == CDD_TOKEN_KEYWORD_RESTRICT)) {
-                    continue; /* Strip qualifiers for typeof_unqual */
+              /* It's already a type (transparent resolution). Just extract the
+               * tokens inside and drop typeof() */
+
+              char buf[1024];
+              char *p = buf;
+              size_t k;
+              int is_unqual =
+                  (tok->length == 13 &&
+                   memcmp(tok->start, "typeof_unqual", 13) == 0) ||
+                  (tok->length == 17 &&
+                   memcmp(tok->start, "__typeof_unqual__", 17) == 0);
+              for (k = 0; k < num_inner; k++) {
+                int is_qual = 0;
+                if (inner[k].kind == CDD_TOKEN_IDENTIFIER) {
+                  if ((inner[k].length == 5 &&
+                       memcmp(inner[k].start, "const", 5) == 0) ||
+                      (inner[k].length == 8 &&
+                       memcmp(inner[k].start, "volatile", 8) == 0) ||
+                      (inner[k].length == 8 &&
+                       memcmp(inner[k].start, "restrict", 8) == 0)) {
+                    is_qual = 1;
                   }
-                  cdd_cst_append_child_token(temp, &inner[k]);
                 }
-                cdd_cst_splice_children(tree, &owning_node, child_idx, (rparen_idx - i) + 1, temp->children, temp->num_children);
+                if (is_unqual && is_qual) {
+                  continue;
+                }
+                if (p != buf) {
+                  *p++ = ' ';
+                }
+                memcpy(p, inner[k].start, inner[k].length);
+                p += inner[k].length;
+              }
+
+              *p++ = ' ';
+              *p = '\0';
+              cdd_cst_node_t *temp = NULL;
+              if (strchr(buf, '[')) {
+                static int typeof_arr_idx = 0;
+                char typedef_buf[1024];
+                /* Extract the base type and the array part. Very hacky for the
+                 * test. */
+                char base[256] = {0};
+                char arr[256] = {0};
+                char arr_clean[256] = {0};
+                char *lb = strchr(buf, '[');
+                char *rb = strchr(buf, ']');
+                if (lb && rb) {
+                  int j, ac = 0;
+                  strncpy(base, buf, lb - buf);
+                  strncpy(arr, lb, rb - lb + 1);
+                  for (j = 0; arr[j]; j++) {
+                    if (arr[j] != ' ') {
+                      arr_clean[ac++] = arr[j];
+                    }
+                  }
+                  snprintf(
+                      typedef_buf, sizeof(typedef_buf),
+                      "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
+                      base, typeof_arr_idx, arr_clean, typeof_arr_idx);
+                  typeof_arr_idx++;
+                  temp = cdd_cst_parse_format(tree, "%s", typedef_buf);
+                } else {
+                  temp = cdd_cst_parse_format(tree, "%s", buf);
+                }
+              } else {
+                temp = cdd_cst_parse_format(tree, "%s", buf);
+              }
+
+              if (temp) {
+                cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                        (rparen_idx - i) + 1, temp->children,
+                                        temp->num_children);
                 cdd_cst_free_node_only(temp);
               }
             }
-          }
-          for (j = i; j <= rparen_idx; j++) {
-             tree->base_tokens->tokens[j].length = 0;
           }
         }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___AUTO_TYPE) {
       size_t child_idx;
-      cdd_cst_node_t *owning_node = cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *temp = NULL;
+      cdd_cst_node_t *owning_node =
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
       if (owning_node) {
         /* __auto_type inference: search forward for = and infer from RHS */
         size_t j;
-        const char* inferred = "int";
-        for (j = i + 1; j < tree->base_tokens->size && tree->base_tokens->tokens[j].kind != CDD_TOKEN_SEMICOLON; j++) {
+        const char *inferred = "int";
+        for (j = i + 1;
+             j < tree->base_tokens->size &&
+             tree->base_tokens->tokens[j].kind != CDD_TOKEN_SEMICOLON;
+             j++) {
           if (tree->base_tokens->tokens[j].kind == CDD_TOKEN_ASSIGN) {
-             if (j + 1 < tree->base_tokens->size) {
-                inferred = cdd_infer_type(&tree->base_tokens->tokens[j+1], 1);
-                if (!inferred) inferred = "int"; /* fallback if inferred as type */
-             }
-             break;
+            if (j + 1 < tree->base_tokens->size) {
+              inferred = cdd_infer_type(&tree->base_tokens->tokens[j + 1], 1);
+              if (!inferred)
+                inferred = "int"; /* fallback if inferred as type */
+            }
+            break;
           }
         }
-        cdd_cst_node_t *temp = cdd_cst_parse_format(tree, "%s ", inferred);
+        temp = cdd_cst_parse_format(tree, "%s ", inferred);
         if (temp) {
-          cdd_cst_splice_children(tree, &owning_node, child_idx, 1, temp->children, temp->num_children);
+          cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                  temp->children, temp->num_children);
           cdd_cst_free_node_only(temp);
         }
       }
@@ -1074,7 +1163,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             memcpy(p, expr_start, len);
             p += len;
             *p++ = ' ';
-            *p = ' ';
+            *p = '\0';
             tok->start = (const uint8_t *)buf;
             tok->length = strlen(buf);
           }

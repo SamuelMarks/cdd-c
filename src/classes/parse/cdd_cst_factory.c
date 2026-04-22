@@ -94,7 +94,8 @@ int cdd_cst_append_child_token(cdd_cst_node_t *parent, cdd_token_t *token) {
   parent->num_children++;
   return 0;
 }
-cdd_cst_node_t *cdd_cst_create_stmt_from_tokens(cdd_cst_tree_t *tree, ...) {
+static cdd_cst_node_t *cdd_cst_create_stmt_from_tokens(cdd_cst_tree_t *tree,
+                                                       ...) {
   cdd_cst_node_t *n;
   va_list args;
   cdd_token_t *tok;

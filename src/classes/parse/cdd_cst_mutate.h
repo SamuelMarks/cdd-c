@@ -70,8 +70,6 @@ cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root,
 }
 #endif /* __cplusplus */
 
-#endif /* CDD_CST_MUTATE_H */
-
 /**
  * @brief Removes a child from a node's children array in-place.
  * @param node The node to modify.
@@ -89,3 +87,4 @@ int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx);
  */
 int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
                                 cdd_token_t *new_tok);
+#endif /* CDD_CST_MUTATE_H */
