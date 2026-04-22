@@ -13,6 +13,7 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   cdd_cst_node_t *node = node_ptr ? *node_ptr : NULL;
   cdd_cst_node_t *new_node;
   size_t i;
+  int rc;
   if (!tree || !node)
     return EINVAL;
 
@@ -49,7 +50,7 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   }
 
   printf("Replace node\\n");
-  int rc = cdd_cst_replace_node(tree, node, new_node);
+  rc = cdd_cst_replace_node(tree, node, new_node);
   if (rc == 0 && node_ptr)
     *node_ptr = new_node;
   printf("Done splice\\n");
@@ -59,6 +60,7 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
 cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root,
                                             cdd_token_t *tok, size_t *out_idx) {
   size_t i;
+  int rc;
   if (!root || !tok || !out_idx)
     return NULL;
 

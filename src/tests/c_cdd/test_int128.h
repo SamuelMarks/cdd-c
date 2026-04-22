@@ -157,8 +157,10 @@ TEST test_cdd_int128_mod(void) {
 }
 
 TEST test_cdd_uint128_bitwise(void) {
-  cdd_uint128_t a = cdd_make_uint128(0xAAAAAAAAAAAAAAAAULL, 0x5555555555555555ULL);
-  cdd_uint128_t b = cdd_make_uint128(0x5555555555555555ULL, 0xAAAAAAAAAAAAAAAAULL);
+  cdd_uint128_t a =
+      cdd_make_uint128(0xAAAAAAAAAAAAAAAAULL, 0x5555555555555555ULL);
+  cdd_uint128_t b =
+      cdd_make_uint128(0x5555555555555555ULL, 0xAAAAAAAAAAAAAAAAULL);
   cdd_uint128_t res;
   ASSERT_EQ(0, cdd_uint128_and(a, b, &res));
   ASSERT_EQ(0, res.high);
@@ -176,8 +178,10 @@ TEST test_cdd_uint128_bitwise(void) {
 }
 
 TEST test_cdd_int128_bitwise(void) {
-  cdd_int128_t a = cdd_make_int128(0xAAAAAAAAAAAAAAAAULL, 0x5555555555555555ULL);
-  cdd_int128_t b = cdd_make_int128(0x5555555555555555ULL, 0xAAAAAAAAAAAAAAAAULL);
+  cdd_int128_t a =
+      cdd_make_int128(0xAAAAAAAAAAAAAAAAULL, 0x5555555555555555ULL);
+  cdd_int128_t b =
+      cdd_make_int128(0x5555555555555555ULL, 0xAAAAAAAAAAAAAAAAULL);
   cdd_int128_t res;
   ASSERT_EQ(0, cdd_int128_and(a, b, &res));
   ASSERT_EQ(0, res.high);
@@ -221,7 +225,8 @@ TEST test_cdd_128_casts(void) {
   ASSERT_EQ(456, ires.low);
   ASSERT_EQ(0, cdd_int128_to_float(cdd_make_int128(0, 100), &f));
   ASSERT_EQ(100.0f, f);
-  ASSERT_EQ(0, cdd_int128_to_double(cdd_make_int128(-1LL, 0xFFFFFFFFFFFFFF9CULL), &d));
+  ASSERT_EQ(0, cdd_int128_to_double(
+                   cdd_make_int128(-1LL, 0xFFFFFFFFFFFFFF9CULL), &d));
   ASSERT_EQ(-100.0, d);
   PASS();
 }
