@@ -1,6 +1,9 @@
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
+#include "classes/parse/cdd_cst_builder.h"
+#include "classes/parse/cdd_cst_factory.h"
+
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 #include "c_str_span.h"
@@ -65,31 +68,6 @@ struct expr_t {
   /** @brief field */
   expr_t *next;
 };
-
-static void append_trivia(char **buf, size_t *len, size_t *cap,
-                          cdd_trivia_t *tr) {
-  while (tr) {
-    if (*len + tr->length + 1 >= *cap) {
-      *cap = (*cap * 2) + tr->length + 1;
-      *buf = (char *)realloc(*buf, *cap);
-    }
-    memcpy(*buf + *len, tr->start, tr->length);
-    *len += tr->length;
-    (*buf)[*len] = '\0';
-    tr = tr->next;
-  }
-}
-
-static void append_str(char **buf, size_t *len, size_t *cap, const char *str,
-                       size_t slen) {
-  if (*len + slen + 1 >= *cap) {
-    *cap = (*cap * 2) + slen + 1;
-    *buf = (char *)realloc(*buf, *cap);
-  }
-  memcpy(*buf + *len, str, slen);
-  *len += slen;
-  (*buf)[*len] = '\0';
-}
 
 static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
                               int stop_at_comma) {
@@ -328,37 +306,132 @@ typedef struct {
 
 static emit_ctx_t *g_msc_ctx = NULL;
 
-static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
-                     int is_msc) {
+static int expr_is_null_or_zero(expr_t *node) {
+  if (node && node->type == 0 && node->tok && !node->next) {
+    if (node->tok->length == 4 && memcmp(node->tok->start, "NULL", 4) == 0)
+      return 1;
+    if (node->tok->length == 1 && node->tok->start[0] == '0')
+      return 1;
+  }
+  return 0;
+}
+
+static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
+  char *dup;
+  if (!tree || !str)
+    return NULL;
+  dup = strdup(str);
+  if (!dup)
+    return NULL;
+  if (tree->num_strings >= tree->string_capacity) {
+    size_t new_cap =
+        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+    char **new_pool =
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+    if (!new_pool) {
+      free(dup);
+      return NULL;
+    }
+    tree->string_pool = new_pool;
+    tree->string_capacity = new_cap;
+  }
+  tree->string_pool[tree->num_strings++] = dup;
+  return dup;
+}
+
+static cdd_trivia_t *clone_trivia(cdd_trivia_t *head) {
+  cdd_trivia_t *new_head = NULL;
+  cdd_trivia_t *tail = NULL;
+  while (head) {
+    cdd_trivia_t *tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    if (!tr)
+      break;
+    tr->kind = head->kind;
+    tr->start = head->start;
+    tr->length = head->length;
+    if (!new_head)
+      new_head = tr;
+    else
+      tail->next = tr;
+    tail = tr;
+    head = head->next;
+  }
+  return new_head;
+}
+
+static cdd_token_t *clone_token(cdd_token_t *tok) {
+  cdd_token_t *ct = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+  if (!ct)
+    return NULL;
+  ct->kind = tok->kind;
+  ct->start = tok->start;
+  ct->length = tok->length;
+  ct->leading_trivia = clone_trivia(tok->leading_trivia);
+  ct->trailing_trivia = clone_trivia(tok->trailing_trivia);
+  return ct;
+}
+
+static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc);
+
+static int emit_ast_bld_strip(expr_t *node, cdd_cst_builder_t *bld,
+                              int is_msc) {
+  int rc = 0;
+  size_t old_num_children =
+      bld->target_node ? bld->target_node->num_children : 0;
+  rc = emit_ast_bld(node, bld, is_msc);
+  if (bld->target_node && bld->target_node->num_children > old_num_children) {
+    if (bld->target_node->children[old_num_children].kind ==
+        CDD_CST_CHILD_TOKEN) {
+      cdd_trivia_t *tr = bld->target_node->children[old_num_children]
+                             .val.token->leading_trivia;
+      while (tr) {
+        cdd_trivia_t *next = tr->next;
+        free(tr);
+        tr = next;
+      }
+      bld->target_node->children[old_num_children].val.token->leading_trivia =
+          NULL;
+    }
+  }
+  return rc;
+}
+
+static int emit_ast_bld_strip_ampersand(expr_t *node, cdd_cst_builder_t *bld,
+                                        int is_msc) {
+  if (node && node->type == 0 && node->tok && node->tok->length == 1 &&
+      node->tok->start[0] == '&') {
+    return emit_ast_bld_strip(node->next, bld, is_msc);
+  }
+  return emit_ast_bld_strip(node, bld, is_msc);
+}
+
+static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
+  int changes = 0;
   size_t k;
   emit_ctx_t *ctx = is_msc ? g_msc_ctx : NULL;
+  cdd_cst_tree_t *tree = bld->tree;
+
   while (node) {
     if (node->type == 0 || (node->type == 4 && !is_msc)) {
-      append_trivia(buf, len, cap, node->tok->leading_trivia);
-      append_str(buf, len, cap, (const char *)node->tok->start,
-                 node->tok->length);
-      append_trivia(buf, len, cap, node->tok->trailing_trivia);
+      cdd_token_t *ct = clone_token(node->tok);
+      if (ct)
+        cdd_cst_append_child_token(bld->target_node, ct);
     } else if (node->type == 2) {
-      append_trivia(buf, len, cap, node->tok->leading_trivia);
-      append_str(buf, len, cap, (const char *)node->tok->start,
-                 node->tok->length);
-      append_trivia(buf, len, cap, node->tok->trailing_trivia);
-
-      emit_ast(node->args[0], buf, len, cap, is_msc);
-
+      cdd_token_t *ct = clone_token(node->tok);
+      if (ct)
+        cdd_cst_append_child_token(bld->target_node, ct);
+      changes += emit_ast_bld(node->args[0], bld, is_msc);
       if (node->close_tok) {
-        append_trivia(buf, len, cap, node->close_tok->leading_trivia);
-        append_str(buf, len, cap, (const char *)node->close_tok->start,
-                   node->close_tok->length);
-        append_trivia(buf, len, cap, node->close_tok->trailing_trivia);
+        cdd_token_t *ct_close = clone_token(node->close_tok);
+        if (ct_close)
+          cdd_cst_append_child_token(bld->target_node, ct_close);
       }
     } else if (node->type == 1 || (node->type == 5 && !is_msc)) {
-      char name[128];
+      char name[128] = {0};
       size_t nlen = node->tok->length < 127 ? node->tok->length : 127;
       int is_safe = 0;
 
       memcpy(name, node->tok->start, nlen);
-      name[nlen] = '\0';
 
       if (is_msc) {
         if (strcmp(name, "strcpy") == 0 || strcmp(name, "strcat") == 0 ||
@@ -400,8 +473,6 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
                  strcmp(name, "_ui64toa") == 0 || strcmp(name, "_itow") == 0 ||
                  strcmp(name, "_ltow") == 0 || strcmp(name, "_ultow") == 0)
           is_safe = 8;
-        else if (strcmp(name, "strlen") == 0)
-          is_safe = 9;
         else if (strcmp(name, "_splitpath") == 0 ||
                  strcmp(name, "_wsplitpath") == 0)
           is_safe = 10;
@@ -425,391 +496,372 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           is_safe = 25;
       }
 
+      if (is_safe > 0)
+        changes++;
+
       if (is_safe && is_safe != 18 && is_safe != 19 && is_safe != 20 &&
           is_safe != 21 && is_safe != 22 && is_safe != 23 && is_safe != 24 &&
           is_safe != 25) {
         char safe_name[128];
+        cdd_token_t *ct;
         if (strcmp(name, "strlen") == 0) {
           strcpy(safe_name, "strnlen_s");
         } else {
-          if (strcmp(name, "strlen") == 0) {
-            strcpy(safe_name, "strnlen_s");
-          } else {
-            sprintf(safe_name, "%s_s", name);
-          }
+          sprintf(safe_name, "%s_s", name);
         }
-        append_trivia(buf, len, cap, node->tok->leading_trivia);
-        append_str(buf, len, cap, safe_name, strlen(safe_name));
-        append_trivia(buf, len, cap, node->tok->trailing_trivia);
-        append_str(buf, len, cap, "(", 1);
+
+        ct = clone_token(node->tok);
+        if (ct) {
+          char *pooled = (char *)malloc(strlen(safe_name) + 1);
+          strcpy(pooled, safe_name);
+          if (tree->num_strings >= tree->string_capacity) {
+            tree->string_capacity =
+                tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+            tree->string_pool = (char **)realloc(
+                tree->string_pool, tree->string_capacity * sizeof(char *));
+          }
+          tree->string_pool[tree->num_strings++] = pooled;
+          ct->start = (const uint8_t *)pooled;
+          ct->length = strlen(pooled);
+          cdd_cst_append_child_token(bld->target_node, ct);
+        }
+        cdd_cst_bld_punct(bld, "(");
       } else if (!is_safe) {
-        append_trivia(buf, len, cap, node->tok->leading_trivia);
-        append_str(buf, len, cap, (const char *)node->tok->start,
-                   node->tok->length);
-        append_trivia(buf, len, cap, node->tok->trailing_trivia);
-        append_str(buf, len, cap, "(", 1);
+        cdd_token_t *ct = clone_token(node->tok);
+        if (ct)
+          cdd_cst_append_child_token(bld->target_node, ct);
+        cdd_cst_bld_punct(bld, "(");
       } else {
-        /* Do not append function name or ( for custom formatted functions */
-        append_trivia(buf, len, cap, node->tok->leading_trivia);
+        cdd_token_t *ct = clone_token(node->tok);
+        if (ct) {
+          ct->length = 0;
+          ct->start = (const uint8_t *)"";
+          cdd_cst_append_child_token(bld->target_node, ct);
+        }
       }
+
       if (is_safe == 1 && node->num_args >= 2) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        free(dummy_buf);
-
-        append_str(buf, len, cap, ")", 1);
-
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
         for (k = 1; k < node->num_args; k++) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
         }
       } else if (is_safe == 2 && node->num_args >= 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        free(dummy_buf);
-
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", _TRUNCATE", 11);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "_TRUNCATE");
       } else if (is_safe == 3 && node->num_args >= 3) {
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", _TRUNCATE", 11);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "_TRUNCATE");
         for (k = 2; k < node->num_args; k++) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
         }
       } else if (is_safe == 6 && node->num_args >= 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        free(dummy_buf);
-
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[2], bld, is_msc);
       } else if (is_safe == 8 && node->num_args >= 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[1], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        free(dummy_buf);
-
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[1], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[2], bld, is_msc);
       } else if (is_safe == 9 && node->num_args == 1) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        free(dummy_buf);
-
-        append_str(buf, len, cap, ")", 1);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
       } else if (is_safe == 10 && node->num_args >= 5) {
-        emit_ast(node->args[0], buf, len, cap, is_msc);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
         for (k = 1; k < 5; k++) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
-          append_str(buf, len, cap, ", ", 2);
-
-          {
-            char *dummy_buf;
-            size_t dummy_len = 0;
-            size_t dummy_cap = 1024;
-            char *stripped;
-
-            dummy_buf = (char *)malloc(1024);
-            dummy_buf[0] = 0;
-            emit_ast(node->args[k], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-            stripped = dummy_buf;
-            while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-                   *stripped == '\r')
-              stripped++;
-
-            if (strcmp(stripped, "NULL") == 0 || strcmp(stripped, "0") == 0) {
-              append_str(buf, len, cap, "0", 1);
-            } else {
-              append_str(buf, len, cap, "sizeof(", 7);
-              append_str(buf, len, cap, stripped, strlen(stripped));
-              append_str(buf, len, cap, ")", 1);
-            }
-            free(dummy_buf);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          if (expr_is_null_or_zero(node->args[k])) {
+            cdd_cst_bld_int(bld, 0);
+          } else {
+            cdd_cst_bld_ident(bld, "sizeof");
+            cdd_cst_bld_punct(bld, "(");
+            emit_ast_bld_strip(node->args[k], bld, 0);
+            cdd_cst_bld_punct(bld, ")");
           }
         }
       } else if (is_safe == 11 && node->num_args >= 5) {
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", sizeof(", 9);
-        {
-          char *dummy_buf;
-          size_t dummy_len = 0;
-          size_t dummy_cap = 1024;
-          char *stripped;
-
-          dummy_buf = (char *)malloc(1024);
-          dummy_buf[0] = 0;
-          emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-          stripped = dummy_buf;
-          while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-                 *stripped == '\r')
-            stripped++;
-
-          append_str(buf, len, cap, stripped, strlen(stripped));
-          free(dummy_buf);
-        }
-        append_str(buf, len, cap, ")", 1);
-
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
         for (k = 1; k < node->num_args; k++) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
         }
       } else if (is_safe == 19 && node->num_args == 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        append_str(buf, len, cap, "(_gcvt_s(", 9);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[2], &dummy_buf, &dummy_len, &dummy_cap, 0);
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, "sizeof(", 7);
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        append_str(buf, len, cap, "), ", 3);
-        free(dummy_buf);
-
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, "_gcvt_s");
+        cdd_cst_bld_punct(bld, "(");
+        changes += emit_ast_bld(node->args[2], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[2], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        emit_ast_bld_strip(node->args[2], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
       } else if (is_safe == 20 && node->num_args == 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        append_str(buf, len, cap, "(", 1);
-        append_str(buf, len, cap, name, strlen(name));
-        append_str(buf, len, cap, "_s(NULL, ", 9);
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, "(sizeof(", 8);
-        append_str(buf, len, cap, stripped, strlen(stripped));
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+        cdd_cst_bld_ident(bld, "_s");
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, "NULL");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
         if (strcmp(name, "wcstombs") == 0) {
-          append_str(buf, len, cap, ")), ", 4);
+          cdd_cst_bld_punct(bld, ")");
         } else {
-          append_str(buf, len, cap, ")) / sizeof(wchar_t), ", 22);
+          cdd_cst_bld_punct(bld, ")");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_punct(bld, "/");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "sizeof");
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_ident(bld, "wchar_t");
+          cdd_cst_bld_punct(bld, ")");
         }
-        free(dummy_buf);
-
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[0], buf, len, cap, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[2], bld, is_msc);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
       } else if (is_safe == 21 && node->num_args == 2) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        append_str(buf, len, cap, "(wctomb_s(NULL, ", 16);
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, "sizeof(", 7);
-        append_str(buf, len, cap, stripped, strlen(stripped));
-        append_str(buf, len, cap, "), ", 3);
-        free(dummy_buf);
-
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, "), ", 3);
-        emit_ast(node->args[0], buf, len, cap, is_msc);
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, "wctomb_s");
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, "NULL");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        emit_ast_bld_strip(node->args[0], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
       } else if (is_safe == 22 && node->num_args == 3) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *stripped;
-
-        append_str(buf, len, cap, name, strlen(name));
-        append_str(buf, len, cap, "_s(", 3);
-        emit_ast(node->args[0], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[1], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-        emit_ast(node->args[2], buf, len, cap, is_msc);
-        append_str(buf, len, cap, ", ", 2);
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[2], &dummy_buf, &dummy_len, &dummy_cap, 0);
-        stripped = dummy_buf;
-        while (*stripped == ' ' || *stripped == '\t' || *stripped == '\n' ||
-               *stripped == '\r')
-          stripped++;
-        append_str(buf, len, cap, "sizeof(", 7);
-        append_str(buf, len, cap, stripped, strlen(stripped));
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+        cdd_cst_bld_ident(bld, "_s");
+        cdd_cst_bld_punct(bld, "(");
+        changes += emit_ast_bld(node->args[0], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[1], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        changes += emit_ast_bld(node->args[2], bld, is_msc);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "sizeof");
+        cdd_cst_bld_punct(bld, "(");
+        emit_ast_bld_strip(node->args[2], bld, 0);
+        cdd_cst_bld_punct(bld, ")");
         if (strcmp(name, "_wsearchenv") == 0) {
-          append_str(buf, len, cap, ") / sizeof(wchar_t)", 19);
-        } else {
-          append_str(buf, len, cap, ")", 1);
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_punct(bld, "/");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "sizeof");
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_ident(bld, "wchar_t");
+          cdd_cst_bld_punct(bld, ")");
         }
-        free(dummy_buf);
       } else if (is_safe == 23 && node->num_args == 1) {
         if (strcmp(name, "_wgetenv") == 0) {
           if (ctx)
             ctx->needs_wgetenv_ptr = 1;
-          append_str(buf, len, cap, "(_wdupenv_s(&__wgetenv_ptr, NULL, ", 34);
-          emit_ast(node->args[0], buf, len, cap, is_msc);
-          append_str(buf, len, cap, "), __wgetenv_ptr)", 17);
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_ident(bld, "_wdupenv_s");
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_punct(bld, "&");
+          cdd_cst_bld_ident(bld, "__wgetenv_ptr");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "NULL");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[0], bld, is_msc);
+          cdd_cst_bld_punct(bld, ")");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "__wgetenv_ptr");
+          cdd_cst_bld_punct(bld, ")");
         } else {
           if (ctx)
             ctx->needs_getenv_ptr = 1;
-          append_str(buf, len, cap, "(_dupenv_s(&__getenv_ptr, NULL, ", 32);
-          emit_ast(node->args[0], buf, len, cap, is_msc);
-          append_str(buf, len, cap, "), __getenv_ptr)", 16);
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_ident(bld, "_dupenv_s");
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_punct(bld, "&");
+          cdd_cst_bld_ident(bld, "__getenv_ptr");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "NULL");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[0], bld, is_msc);
+          cdd_cst_bld_punct(bld, ")");
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          cdd_cst_bld_ident(bld, "__getenv_ptr");
+          cdd_cst_bld_punct(bld, ")");
         }
       } else if (is_safe == 24 && node->num_args == 1) {
-        char *dummy_buf;
-        size_t dummy_len = 0;
-        size_t dummy_cap = 1024;
-        char *eq_ptr = NULL;
-
-        dummy_buf = (char *)malloc(1024);
-        dummy_buf[0] = 0;
-        emit_ast(node->args[0], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-        eq_ptr = strchr(dummy_buf, '=');
-        if (eq_ptr &&
-            (dummy_buf[0] == '"' ||
-             (dummy_buf[0] == 'L' && dummy_buf[1] == '"')) &&
-            eq_ptr > dummy_buf) {
-          *eq_ptr = '\0';
-          if (strcmp(name, "_wputenv") == 0) {
-            append_str(buf, len, cap, "_wputenv_s(", 11);
-            append_str(buf, len, cap, dummy_buf, strlen(dummy_buf));
-            append_str(buf, len, cap, "\", L\"", 5);
-          } else {
-            append_str(buf, len, cap, "_putenv_s(", 10);
-            append_str(buf, len, cap, dummy_buf, strlen(dummy_buf));
-            append_str(buf, len, cap, "\", \"", 4);
-          }
-          append_str(buf, len, cap, eq_ptr + 1, strlen(eq_ptr + 1) - 1);
-          append_str(buf, len, cap, "\"", 1);
-        } else {
-          append_str(buf, len, cap, name, strlen(name));
-          append_str(buf, len, cap, "(", 1);
-          emit_ast(node->args[0], buf, len, cap, is_msc);
+        /* _putenv. We need to split the "A=B" string if it is a literal */
+        int split = 0;
+        expr_t *str_node = node->args[0];
+        if (str_node && str_node->type == 0 && str_node->tok &&
+            str_node->tok->kind == CDD_TOKEN_IDENTIFIER &&
+            str_node->tok->length == 1 && str_node->tok->start[0] == 'L') {
+          str_node = str_node->next;
         }
-        free(dummy_buf);
+        if (str_node && str_node->type == 0 && str_node->tok &&
+            str_node->tok->kind == CDD_TOKEN_STRING) {
+          const char *s = (const char *)str_node->tok->start;
+          size_t slen = str_node->tok->length;
+          char *eq = memchr(s, '=', slen);
+          if (eq && (s[0] == '"' || (s[0] == 'L' && s[1] == '"')) && eq > s) {
+            split = 1;
+            cdd_cst_bld_ident(bld, strcmp(name, "_wputenv") == 0 ? "_wputenv_s"
+                                                                 : "_putenv_s");
+            cdd_cst_bld_punct(bld, "(");
+            {
+              char left[256] = {0};
+              char right[256] = {0};
+              int ll = eq - s;
+              int rl = slen - (eq - s) - 1;
+              if (strcmp(name, "_wputenv") == 0) {
+                left[0] = 'L';
+                left[1] = '"';
+                memcpy(left + 2, s + 1, ll - 1);
+                left[ll + 1] = '"';
+                right[0] = 'L';
+                right[1] = '"';
+                memcpy(right + 2, eq + 1, rl);
+              } else {
+                memcpy(left, s, ll);
+                left[ll] = '"';
+                right[0] = '"';
+                memcpy(right + 1, eq + 1, rl);
+              }
+              cdd_cst_bld_token(bld, CDD_TOKEN_STRING,
+                                pool_string_safe(bld->tree, left));
+              cdd_cst_bld_punct(bld, ",");
+              cdd_cst_bld_space(bld);
+              cdd_cst_bld_token(bld, CDD_TOKEN_STRING,
+                                pool_string_safe(bld->tree, right));
+            }
+          }
+        }
+        if (!split) {
+          cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+          cdd_cst_bld_punct(bld, "(");
+          changes += emit_ast_bld(node->args[0], bld, is_msc);
+        }
       } else if (is_safe == 25 &&
                  (node->num_args == 4 || node->num_args == 5)) {
-        append_str(buf, len, cap, name, strlen(name));
-        append_str(buf, len, cap, "_s(", 3);
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+        cdd_cst_bld_ident(bld, "_s");
+        cdd_cst_bld_punct(bld, "(");
         for (k = 0; k < node->num_args; k++) {
-          if (k > 0)
-            append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
+          if (k > 0) {
+            cdd_cst_bld_punct(bld, ",");
+            cdd_cst_bld_space(bld);
+          }
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
         }
-        append_str(buf, len, cap, ", NULL", 6);
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, "NULL");
       } else if (is_safe == 7) {
         size_t format_idx = 0;
         if (strcmp(name, "fscanf") == 0 || strcmp(name, "sscanf") == 0 ||
@@ -818,37 +870,33 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
         }
 
         if (format_idx < node->num_args) {
-          char *fmt_buf = (char *)malloc(1024);
-          size_t fmt_len = 0;
-          size_t fmt_cap = 1024;
           int needs_size[32] = {0};
           int num_specifiers = 0;
-          char *start;
 
-          fmt_buf[0] = 0;
-          emit_ast(node->args[format_idx], &fmt_buf, &fmt_len, &fmt_cap, 0);
-
-          start = strchr(fmt_buf, '"');
-          if (start) {
-            start++;
-            while (*start && *start != '"') {
+          if (node->args[format_idx] && node->args[format_idx]->type == 0 &&
+              node->args[format_idx]->tok &&
+              node->args[format_idx]->tok->kind == CDD_TOKEN_STRING) {
+            const char *start =
+                (const char *)node->args[format_idx]->tok->start;
+            const char *end = start + node->args[format_idx]->tok->length;
+            while (start < end) {
               if (*start == '%') {
                 start++;
-                if (*start == '%') {
+                if (start < end && *start == '%') {
                   start++;
                   continue;
                 }
-                if (*start == '*') {
+                if (start < end && *start == '*') {
                   start++;
-                  while (*start && !isalpha(*start) && *start != '[')
+                  while (start < end && !isalpha(*start) && *start != '[')
                     start++;
-                  if (*start)
+                  if (start < end)
                     start++;
                   continue;
                 }
-                while (*start && !isalpha(*start) && *start != '[')
+                while (start < end && !isalpha(*start) && *start != '[')
                   start++;
-                if (*start) {
+                if (start < end) {
                   if (*start == 's' || *start == 'S' || *start == 'c' ||
                       *start == 'C' || *start == '[') {
                     if (num_specifiers < 32)
@@ -857,11 +905,11 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
                   num_specifiers++;
                   if (*start == '[') {
                     start++;
-                    if (*start == '^')
+                    if (start < end && *start == '^')
                       start++;
-                    if (*start == ']')
+                    if (start < end && *start == ']')
                       start++;
-                    while (*start && *start != ']')
+                    while (start < end && *start != ']')
                       start++;
                   }
                   start++;
@@ -873,64 +921,55 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           }
 
           for (k = 0; k < node->num_args; k++) {
-            if (k > 0)
-              append_str(buf, len, cap, ", ", 2);
-            emit_ast(node->args[k], buf, len, cap, is_msc);
+            if (k > 0) {
+              cdd_cst_bld_punct(bld, ",");
+              cdd_cst_bld_space(bld);
+            }
+            changes += emit_ast_bld(node->args[k], bld, is_msc);
 
             if (k > format_idx) {
               int arg_idx = (int)(k - (format_idx + 1));
               if (arg_idx < num_specifiers && needs_size[arg_idx]) {
-                char *dummy_buf;
-                size_t dummy_len = 0;
-                size_t dummy_cap = 1024;
-                char *stripped;
-
-                append_str(buf, len, cap, ", (unsigned)sizeof(", 19);
-
-                dummy_buf = (char *)malloc(1024);
-                dummy_buf[0] = 0;
-                emit_ast(node->args[k], &dummy_buf, &dummy_len, &dummy_cap, 0);
-
-                stripped = dummy_buf;
-                while (*stripped == ' ' || *stripped == '\t' ||
-                       *stripped == '\n' || *stripped == '\r')
-                  stripped++;
-
-                if (stripped[0] == '&') {
-                  append_str(buf, len, cap, stripped + 1, strlen(stripped) - 1);
-                } else {
-                  append_str(buf, len, cap, stripped, strlen(stripped));
-                }
-                free(dummy_buf);
-
-                append_str(buf, len, cap, ")", 1);
+                cdd_cst_bld_punct(bld, ",");
+                cdd_cst_bld_space(bld);
+                cdd_cst_bld_punct(bld, "(");
+                cdd_cst_bld_ident(bld, "unsigned");
+                cdd_cst_bld_punct(bld, ")");
+                cdd_cst_bld_ident(bld, "sizeof");
+                cdd_cst_bld_punct(bld, "(");
+                emit_ast_bld_strip_ampersand(node->args[k], bld, 0);
+                cdd_cst_bld_punct(bld, ")");
               }
             }
           }
-          free(fmt_buf);
         } else {
           for (k = 0; k < node->num_args; k++) {
-            if (k > 0)
-              append_str(buf, len, cap, ", ", 2);
-            emit_ast(node->args[k], buf, len, cap, is_msc);
+            if (k > 0) {
+              cdd_cst_bld_punct(bld, ",");
+              cdd_cst_bld_space(bld);
+            }
+            changes += emit_ast_bld(node->args[k], bld, is_msc);
           }
         }
       } else {
         for (k = 0; k < node->num_args; k++) {
-          if (k > 0)
-            append_str(buf, len, cap, ", ", 2);
-          emit_ast(node->args[k], buf, len, cap, is_msc);
+          if (k > 0) {
+            cdd_cst_bld_punct(bld, ",");
+            cdd_cst_bld_space(bld);
+          }
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
         }
       }
 
       if (node->close_tok) {
-        append_trivia(buf, len, cap, node->close_tok->leading_trivia);
-        append_str(buf, len, cap, ")", 1);
-        append_trivia(buf, len, cap, node->close_tok->trailing_trivia);
+        cdd_token_t *ct_close = clone_token(node->close_tok);
+        if (ct_close)
+          cdd_cst_append_child_token(bld->target_node, ct_close);
       } else {
-        append_str(buf, len, cap, ")", 1);
+        cdd_cst_bld_punct(bld, ")");
       }
     } else if (node->type == 3) {
+      changes++;
       if (is_msc) {
         expr_t *lhs = node->args[0];
         expr_t *call = node->args[1];
@@ -943,23 +982,20 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
 
         while (t_iter && t_iter != node) {
           if (t_iter->type == 0 && t_iter->tok) {
-            if (token_count == 0 && t_iter->tok->kind == CDD_TOKEN_STAR) {
+            if (token_count == 0 && t_iter->tok->kind == CDD_TOKEN_STAR)
               first_is_star = 1;
-            }
             if (t_iter->tok->kind == CDD_TOKEN_DOT ||
                 t_iter->tok->kind == CDD_TOKEN_ARROW ||
-                t_iter->tok->kind == CDD_TOKEN_LBRACKET) {
+                t_iter->tok->kind == CDD_TOKEN_LBRACKET)
               has_dot_arrow_bracket = 1;
-            }
           }
           token_count++;
           last_t = t_iter;
           t_iter = t_iter->next;
         }
 
-        if (token_count > 1 && !has_dot_arrow_bracket && !first_is_star) {
+        if (token_count > 1 && !has_dot_arrow_bracket && !first_is_star)
           is_decl = 1;
-        }
 
         if (is_decl) {
           char safe_call[32];
@@ -967,58 +1003,96 @@ static void emit_ast(expr_t *node, char **buf, size_t *len, size_t *cap,
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
-          sprintf(safe_call, "%s_s(&", call_name);
+          sprintf(safe_call, "%s_s", call_name);
           while (t && t != node) {
-            append_trivia(buf, len, cap, t->tok->leading_trivia);
-            append_str(buf, len, cap, (const char *)t->tok->start,
-                       t->tok->length);
-            append_trivia(buf, len, cap, t->tok->trailing_trivia);
+            cdd_token_t *ct = clone_token(t->tok);
+            if (ct)
+              cdd_cst_append_child_token(bld->target_node, ct);
             t = t->next;
           }
-          append_str(buf, len, cap, ";\n", 2);
-          append_str(buf, len, cap, safe_call, strlen(safe_call));
-          append_str(buf, len, cap, (const char *)last_t->tok->start,
-                     last_t->tok->length);
+          cdd_cst_bld_punct(bld, ";");
+          cdd_cst_bld_newline(bld);
+          cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, safe_call));
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_punct(bld, "&");
+          {
+            cdd_token_t *ct = clone_token(last_t->tok);
+            if (ct) {
+              ct->leading_trivia = NULL;
+              ct->trailing_trivia = NULL;
+              cdd_cst_append_child_token(bld->target_node, ct);
+            }
+          }
         } else {
           char safe_call[32];
           size_t nlen = call->tok->length < 15 ? call->tok->length : 15;
           char call_name[16] = {0};
           expr_t *t = lhs;
           memcpy(call_name, call->tok->start, nlen);
-          sprintf(safe_call, "%s_s(&", call_name);
-          append_trivia(buf, len, cap, node->tok->leading_trivia);
-          append_str(buf, len, cap, safe_call, strlen(safe_call));
+          sprintf(safe_call, "%s_s", call_name);
+
+          if (node->tok->leading_trivia) {
+            cdd_token_t *ct_space =
+                (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+            ct_space->kind = CDD_TOKEN_OTHER;
+            ct_space->start = (const uint8_t *)"";
+            ct_space->leading_trivia = clone_trivia(node->tok->leading_trivia);
+            cdd_cst_append_child_token(bld->target_node, ct_space);
+          }
+          cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, safe_call));
+          cdd_cst_bld_punct(bld, "(");
+          cdd_cst_bld_punct(bld, "&");
           while (t && t != node) {
-            append_trivia(buf, len, cap, t->tok->leading_trivia);
-            append_str(buf, len, cap, (const char *)t->tok->start,
-                       t->tok->length);
-            append_trivia(buf, len, cap, t->tok->trailing_trivia);
+            cdd_token_t *ct = clone_token(t->tok);
+            if (ct)
+              cdd_cst_append_child_token(bld->target_node, ct);
             t = t->next;
           }
         }
         if (call->num_args >= 1) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(call->args[0], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          emit_ast_bld(call->args[0], bld, is_msc);
         }
         if (call->num_args >= 2) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(call->args[1], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          emit_ast_bld(call->args[1], bld, is_msc);
         }
         if (call->num_args >= 3) {
-          append_str(buf, len, cap, ", ", 2);
-          emit_ast(call->args[2], buf, len, cap, is_msc);
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          emit_ast_bld(call->args[2], bld, is_msc);
         }
-        append_str(buf, len, cap, ")", 1);
-        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+        cdd_cst_bld_punct(bld, ")");
+        if (node->tok->trailing_trivia) {
+          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+          ct_space->kind = CDD_TOKEN_OTHER;
+          ct_space->start = (const uint8_t *)"";
+          ct_space->trailing_trivia = clone_trivia(node->tok->trailing_trivia);
+          cdd_cst_append_child_token(bld->target_node, ct_space);
+        }
       } else {
-        append_trivia(buf, len, cap, node->tok->leading_trivia);
-        append_str(buf, len, cap, "=", 1);
-        append_trivia(buf, len, cap, node->tok->trailing_trivia);
+        if (node->tok->leading_trivia) {
+          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+          ct_space->kind = CDD_TOKEN_OTHER;
+          ct_space->start = (const uint8_t *)"";
+          ct_space->leading_trivia = clone_trivia(node->tok->leading_trivia);
+          cdd_cst_append_child_token(bld->target_node, ct_space);
+        }
+        cdd_cst_bld_punct(bld, "=");
+        if (node->tok->trailing_trivia) {
+          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+          ct_space->kind = CDD_TOKEN_OTHER;
+          ct_space->start = (const uint8_t *)"";
+          ct_space->trailing_trivia = clone_trivia(node->tok->trailing_trivia);
+          cdd_cst_append_child_token(bld->target_node, ct_space);
+        }
       }
     }
-
     node = node->next;
   }
+  return changes;
 }
 
 static void get_indent_string(cdd_token_t *tok, char *out_indent) {
@@ -1043,72 +1117,6 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
   } else {
     strcpy(out_indent, "  ");
   }
-}
-
-static int replace_safe_crt(cdd_cst_tree_t *tree, cdd_cst_node_t *stmt,
-                            const char *msc_ver_stmt, const char *else_stmt,
-                            const char *indent) {
-  size_t buf_len =
-      strlen(msc_ver_stmt) + strlen(else_stmt) + strlen(indent) * 2 + 128;
-  char *buf = (char *)arena_alloc(buf_len);
-  cdd_cst_node_t *new_node;
-  cdd_token_t *new_tok;
-  cdd_token_t *old_first, *old_last;
-  (void)old_first;
-  (void)old_last;
-
-  if (!buf)
-    return ENOMEM;
-
-  sprintf(buf,
-          "\n#if defined(_MSC_VER)\n/*CDD_SAFE_CRT*/ "
-          "%s\n#else\n/*CDD_SAFE_CRT*/ %s\n#endif\n",
-          msc_ver_stmt, else_stmt);
-
-  new_node = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-  if (!new_node)
-    return ENOMEM;
-  new_node->kind = CDD_CST_UNKNOWN;
-
-  new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-  if (!new_tok) {
-    free(new_node);
-    return ENOMEM;
-  }
-  new_tok->kind = CDD_TOKEN_IDENTIFIER;
-  new_tok->start = (const uint8_t *)buf;
-  new_tok->length = strlen(buf);
-
-  new_node->children = (cdd_cst_child_t *)calloc(1, sizeof(cdd_cst_child_t));
-  if (!new_node->children) {
-    free(new_tok);
-    free(new_node);
-    return ENOMEM;
-  }
-  new_node->children[0].kind = CDD_CST_CHILD_TOKEN;
-  new_node->children[0].val.token = new_tok;
-  new_node->num_children = 1;
-
-  if (tree->num_synthesized >= tree->synthesized_capacity) {
-    size_t new_cap =
-        tree->synthesized_capacity ? tree->synthesized_capacity * 2 : 128;
-    tree->synthesized_tokens = (cdd_token_t **)realloc(
-        tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
-    tree->synthesized_capacity = new_cap;
-  }
-  tree->synthesized_tokens[tree->num_synthesized++] = new_tok;
-
-  old_first =
-      stmt->num_children > 0 && stmt->children[0].kind == CDD_CST_CHILD_TOKEN
-          ? stmt->children[0].val.token
-          : NULL;
-  old_last =
-      stmt->num_children > 0 &&
-              stmt->children[stmt->num_children - 1].kind == CDD_CST_CHILD_TOKEN
-          ? stmt->children[stmt->num_children - 1].val.token
-          : NULL;
-
-  return cdd_cst_replace_node(tree, stmt, new_node);
 }
 
 int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
@@ -1192,100 +1200,238 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
       if (check_needs_transform(ast)) {
         char indent[64];
-        size_t msc_cap = 1024, msc_len = 0;
-        size_t else_cap = 1024, else_len = 0;
-        char *msc_buf = (char *)malloc(msc_cap);
-        char *else_buf = (char *)malloc(else_cap);
+        cdd_cst_builder_t msc_bld, else_bld, bld;
+        cdd_cst_node_t *msc_node, *else_node, *new_node;
+        int msc_changes = 0;
+
         cdd_trivia_t *saved_trivia =
             first_tok ? first_tok->leading_trivia : NULL;
         emit_ctx_t msc_ctx = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        msc_buf[0] = '\0';
-        else_buf[0] = '\0';
 
         get_indent_string(first_tok, indent);
 
         if (first_tok)
           first_tok->leading_trivia = NULL;
 
+        new_node = cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL);
+        if (!new_node)
+          break;
+        cdd_cst_builder_init(&bld, tree, new_node);
+        cdd_cst_bld_newline(&bld);
+        cdd_cst_bld_ifdef(&bld, "_MSC_VER");
+        cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
+        cdd_cst_bld_space(&bld);
+
+        msc_node = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+        cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
-        emit_ast(ast, &msc_buf, &msc_len, &msc_cap, 1);
+        msc_changes = emit_ast_bld(ast, &msc_bld, 1);
         g_msc_ctx = NULL;
 
-        {
-          emit_ast(ast, &else_buf, &else_len, &else_cap, 0);
-        }
+        else_node = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+        cdd_cst_builder_init(&else_bld, tree, else_node);
+        emit_ast_bld(ast, &else_bld, 0);
 
         if (first_tok)
           first_tok->leading_trivia = saved_trivia;
 
-        if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
-            msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
-            msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
-            msc_ctx.needs_fcvtbuf || msc_ctx.needs_retbuf ||
-            msc_ctx.needs_getenv_ptr || msc_ctx.needs_wgetenv_ptr) {
-          char prefix[1024] = "{\n";
-          if (msc_ctx.needs_errbuf) {
-            strcat(prefix, indent);
-            strcat(prefix, "  char __errbuf[94];\n");
+        if (msc_changes > 0) {
+          size_t _ci;
+          if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
+              msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
+              msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
+              msc_ctx.needs_fcvtbuf || msc_ctx.needs_retbuf ||
+              msc_ctx.needs_getenv_ptr || msc_ctx.needs_wgetenv_ptr) {
+            cdd_cst_bld_punct(&bld, "{");
+            cdd_cst_bld_newline(&bld);
+            if (msc_ctx.needs_errbuf) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "__errbuf");
+              cdd_cst_bld_punct(&bld, "[");
+              cdd_cst_bld_int(&bld, 94);
+              cdd_cst_bld_punct(&bld, "]");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_wcserrbuf) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "wchar_t");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "__wcserrbuf");
+              cdd_cst_bld_punct(&bld, "[");
+              cdd_cst_bld_int(&bld, 94);
+              cdd_cst_bld_punct(&bld, "]");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_strtokctx) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "*");
+              cdd_cst_bld_ident(&bld, "__strtokctx");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "=");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "NULL");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_wcstokctx) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "wchar_t");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "*");
+              cdd_cst_bld_ident(&bld, "__wcstokctx");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "=");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "NULL");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_mbstokctx) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "unsigned");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "*");
+              cdd_cst_bld_ident(&bld, "__mbstokctx");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "=");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "NULL");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_ecvtbuf) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "__ecvtbuf");
+              cdd_cst_bld_punct(&bld, "[");
+              cdd_cst_bld_int(&bld, 128);
+              cdd_cst_bld_punct(&bld, "]");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_fcvtbuf) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "__fcvtbuf");
+              cdd_cst_bld_punct(&bld, "[");
+              cdd_cst_bld_int(&bld, 128);
+              cdd_cst_bld_punct(&bld, "]");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_retbuf) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "size_t");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "__ret");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_getenv_ptr) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "char");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "*");
+              cdd_cst_bld_ident(&bld, "__getenv_ptr");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (msc_ctx.needs_wgetenv_ptr) {
+              if (indent[0] != '\0')
+                cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                  pool_string_safe(tree, indent));
+              cdd_cst_bld_ident(&bld, "wchar_t");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "*");
+              cdd_cst_bld_ident(&bld, "__wgetenv_ptr");
+              cdd_cst_bld_punct(&bld, ";");
+              cdd_cst_bld_newline(&bld);
+            }
+            if (indent[0] != '\0')
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                pool_string_safe(tree, indent));
+            cdd_cst_bld_space(&bld);
           }
-          if (msc_ctx.needs_wcserrbuf) {
-            strcat(prefix, indent);
-            strcat(prefix, "  wchar_t __wcserrbuf[94];\n");
-          }
-          if (msc_ctx.needs_strtokctx) {
-            strcat(prefix, indent);
-            strcat(prefix, "  char *__strtokctx = NULL;\n");
-          }
-          if (msc_ctx.needs_wcstokctx) {
-            strcat(prefix, indent);
-            strcat(prefix, "  wchar_t *__wcstokctx = NULL;\n");
-          }
-          if (msc_ctx.needs_mbstokctx) {
-            strcat(prefix, indent);
-            strcat(prefix, "  unsigned char *__mbstokctx = NULL;\n");
-          }
-          if (msc_ctx.needs_ecvtbuf) {
-            strcat(prefix, indent);
-            strcat(prefix, "  char __ecvtbuf[128];\n");
-          }
-          if (msc_ctx.needs_fcvtbuf) {
-            strcat(prefix, indent);
-            strcat(prefix, "  char __fcvtbuf[128];\n");
-          }
-          if (msc_ctx.needs_retbuf) {
-            strcat(prefix, indent);
-            strcat(prefix, "  size_t __ret;\n");
-          }
-          if (msc_ctx.needs_getenv_ptr) {
-            strcat(prefix, indent);
-            strcat(prefix, "  char *__getenv_ptr;\n");
-          }
-          if (msc_ctx.needs_wgetenv_ptr) {
-            strcat(prefix, indent);
-            strcat(prefix, "  wchar_t *__wgetenv_ptr;\n");
-          }
-          strcat(prefix, indent);
-          strcat(prefix, "  ");
 
-          {
-            char *new_msc_buf = (char *)malloc(msc_len + strlen(prefix) + 64);
-            strcpy(new_msc_buf, prefix);
-            strcat(new_msc_buf, msc_buf);
-            strcat(new_msc_buf, "\n");
-            strcat(new_msc_buf, indent);
-            strcat(new_msc_buf, "}");
-            free(msc_buf);
-            msc_buf = new_msc_buf;
+          for (_ci = 0; _ci < msc_node->num_children; _ci++) {
+            if (msc_node->children[_ci].kind == CDD_CST_CHILD_TOKEN)
+              cdd_cst_append_child_token(bld.target_node,
+                                         msc_node->children[_ci].val.token);
+            else
+              cdd_cst_append_child_node(bld.target_node,
+                                        msc_node->children[_ci].val.node);
           }
+
+          if (msc_ctx.needs_errbuf || msc_ctx.needs_wcserrbuf ||
+              msc_ctx.needs_strtokctx || msc_ctx.needs_wcstokctx ||
+              msc_ctx.needs_mbstokctx || msc_ctx.needs_ecvtbuf ||
+              msc_ctx.needs_fcvtbuf || msc_ctx.needs_retbuf ||
+              msc_ctx.needs_getenv_ptr || msc_ctx.needs_wgetenv_ptr) {
+            cdd_cst_bld_newline(&bld);
+            if (indent[0] != '\0')
+              cdd_cst_bld_token(&bld, CDD_TOKEN_OTHER,
+                                pool_string_safe(tree, indent));
+            cdd_cst_bld_punct(&bld, "}");
+          }
+          cdd_cst_bld_newline(&bld);
+          cdd_cst_bld_else(&bld);
+          cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
+          cdd_cst_bld_space(&bld);
+
+          for (_ci = 0; _ci < else_node->num_children; _ci++) {
+            if (else_node->children[_ci].kind == CDD_CST_CHILD_TOKEN)
+              cdd_cst_append_child_token(bld.target_node,
+                                         else_node->children[_ci].val.token);
+            else
+              cdd_cst_append_child_node(bld.target_node,
+                                        else_node->children[_ci].val.node);
+          }
+          cdd_cst_bld_newline(&bld);
+          cdd_cst_bld_endif(&bld);
+
+          if (!cdd_cst_builder_has_error(&bld)) {
+            cdd_cst_replace_node(tree, stmt, new_node);
+            replaced_any = 1;
+          } else {
+            cdd_cst_free_node_only(new_node);
+          }
+        } else {
+          cdd_cst_free_node_only(new_node);
         }
 
-        if (strcmp(msc_buf, else_buf) != 0) {
-          replace_safe_crt(tree, stmt, msc_buf, else_buf, indent);
-          replaced_any = 1;
-        }
-
-        free(msc_buf);
-        free(else_buf);
+        cdd_cst_builder_free(&msc_bld);
+        cdd_cst_builder_free(&else_bld);
+        cdd_cst_builder_free(&bld);
+        cdd_cst_free_node_only(msc_node);
+        cdd_cst_free_node_only(else_node);
 
         if (replaced_any) {
           break;

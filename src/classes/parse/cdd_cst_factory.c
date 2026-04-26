@@ -94,31 +94,6 @@ int cdd_cst_append_child_token(cdd_cst_node_t *parent, cdd_token_t *token) {
   parent->num_children++;
   return 0;
 }
-static cdd_cst_node_t *cdd_cst_create_stmt_from_tokens(cdd_cst_tree_t *tree,
-                                                       ...) {
-  cdd_cst_node_t *n;
-  va_list args;
-  cdd_token_t *tok;
-
-  (void)tree;
-
-  n = cdd_cst_alloc_node(CDD_CST_STATEMENT);
-  if (!n)
-    return NULL;
-
-  va_start(args, tree);
-  while ((tok = va_arg(args, cdd_token_t *)) != NULL) {
-    if (cdd_cst_append_child_token(n, tok) != 0) {
-      /* Handle memory leak locally or assume caller frees. For now, best effort
-       */
-      va_end(args);
-      return NULL;
-    }
-  }
-  va_end(args);
-
-  return n;
-}
 
 void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)

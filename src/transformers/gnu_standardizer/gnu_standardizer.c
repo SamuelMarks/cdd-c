@@ -1,6 +1,7 @@
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
+#include "classes/parse/cdd_cst_builder.h"
 #include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
@@ -13,6 +14,54 @@
 #include <ctype.h>
 /* clang-format on */
 
+static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
+  char *dup;
+  if (!tree || !str)
+    return NULL;
+  dup = strdup(str);
+  if (!dup)
+    return NULL;
+  if (tree->num_strings >= tree->string_capacity) {
+    size_t new_cap =
+        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+    char **new_pool =
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+    if (!new_pool) {
+      free(dup);
+      return NULL;
+    }
+    tree->string_pool = new_pool;
+    tree->string_capacity = new_cap;
+  }
+  tree->string_pool[tree->num_strings++] = dup;
+  return dup;
+}
+
+static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
+                                        size_t len) {
+  char *dup;
+  if (!tree || !str)
+    return NULL;
+  dup = (char *)malloc(len + 1);
+  if (!dup)
+    return NULL;
+  memcpy(dup, str, len);
+  dup[len] = '\0';
+  if (tree->num_strings >= tree->string_capacity) {
+    size_t new_cap =
+        tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+    char **new_pool =
+        (char **)realloc(tree->string_pool, new_cap * sizeof(char *));
+    if (!new_pool) {
+      free(dup);
+      return NULL;
+    }
+    tree->string_pool = new_pool;
+    tree->string_capacity = new_cap;
+  }
+  tree->string_pool[tree->num_strings++] = dup;
+  return dup;
+}
 static char *append_int(char *p, int v) {
   char temp[32];
   int i = 0, j;
@@ -98,7 +147,7 @@ static void parse_hex_128_literal(const char *str, size_t len,
 
 /** @brief Struct definition */
 struct magic_ctx {
-  /** @brief field */
+  cdd_cst_tree_t *tree;
   /** @brief field */
   const uint8_t *func_name;
   /** @brief field */
@@ -120,12 +169,21 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             (tok->length == 8 && memcmp(tok->start, "__func__", 8) == 0)) {
           char *buf = (char *)malloc(ctx->func_len + 3);
           if (buf) {
+            cdd_token_t *new_tok;
             buf[0] = '"';
             memcpy(buf + 1, ctx->func_name, ctx->func_len);
             buf[1 + ctx->func_len] = '"';
             buf[2 + ctx->func_len] = '\0';
-            tok->start = (const uint8_t *)buf;
-            tok->length = ctx->func_len + 2;
+
+            new_tok = cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, buf,
+                                               ctx->func_len + 2);
+            if (new_tok) {
+              new_tok->leading_trivia = tok->leading_trivia;
+              new_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(node, i, new_tok);
+            }
           }
         }
       }
@@ -300,6 +358,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             if (j > 0 && func->children[j - 1].kind == CDD_CST_CHILD_TOKEN) {
               struct magic_ctx ctx;
               name_tok = func->children[j - 1].val.token;
+              ctx.tree = tree;
               ctx.func_name = name_tok->start;
               ctx.func_len = name_tok->length;
               cdd_cst_traverse_preorder(func, magic_visitor, &ctx);
@@ -467,8 +526,24 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                         }
                       }
                       *out_p = '\0';
-                      tok->start = (const uint8_t *)out_buf;
-                      tok->length = out_p - out_buf;
+                      {
+                        size_t child_idx;
+                        cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
+                            tree->root, tok, &child_idx);
+                        if (parent) {
+                          cdd_token_t *new_tok = cdd_cst_create_token_len(
+                              tree, CDD_TOKEN_PREPROC_DEFINE, out_buf,
+                              out_p - out_buf);
+                          if (new_tok) {
+                            new_tok->leading_trivia = tok->leading_trivia;
+                            new_tok->trailing_trivia = tok->trailing_trivia;
+                            tok->leading_trivia = NULL;
+                            tok->trailing_trivia = NULL;
+                            cdd_cst_replace_token_child(parent, child_idx,
+                                                        new_tok);
+                          }
+                        }
+                      }
                     }
                   }
                   free(var_name);
@@ -480,31 +555,96 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         free(buf);
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___INT128) {
-      if (i > 0 &&
-          tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_IDENTIFIER &&
-          tree->base_tokens->tokens[i - 1].length == 8 &&
-          memcmp(tree->base_tokens->tokens[i - 1].start, "unsigned", 8) == 0) {
-        tree->base_tokens->tokens[i - 1].length = 0;
-        tok->start = (const uint8_t *)"cdd_uint128_t";
-        tok->length = 13;
-      } else {
-        tok->start = (const uint8_t *)"cdd_int128_t";
-        tok->length = 12;
+      size_t child_idx;
+      cdd_cst_node_t *parent =
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      if (parent) {
+        cdd_token_t *new_tok = NULL;
+        if (i > 0 &&
+            tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_IDENTIFIER &&
+            tree->base_tokens->tokens[i - 1].length == 8 &&
+            memcmp(tree->base_tokens->tokens[i - 1].start, "unsigned", 8) ==
+                0) {
+          size_t prev_idx;
+          cdd_cst_node_t *prev_parent = cdd_cst_find_node_for_token(
+              tree->root, &tree->base_tokens->tokens[i - 1], &prev_idx);
+          if (prev_parent) {
+            cdd_token_t *empty_tok =
+                cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0);
+            if (empty_tok) {
+              empty_tok->leading_trivia =
+                  tree->base_tokens->tokens[i - 1].leading_trivia;
+              empty_tok->trailing_trivia =
+                  tree->base_tokens->tokens[i - 1].trailing_trivia;
+              tree->base_tokens->tokens[i - 1].leading_trivia = NULL;
+              tree->base_tokens->tokens[i - 1].trailing_trivia = NULL;
+              cdd_cst_replace_token_child(prev_parent, prev_idx, empty_tok);
+            }
+          }
+          new_tok = cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
+                                             "cdd_uint128_t", 13);
+        } else {
+          new_tok = cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
+                                             "cdd_int128_t", 12);
+        }
+        if (new_tok) {
+          new_tok->leading_trivia = tok->leading_trivia;
+          new_tok->trailing_trivia = tok->trailing_trivia;
+          tok->leading_trivia = NULL;
+          tok->trailing_trivia = NULL;
+          cdd_cst_replace_token_child(parent, child_idx, new_tok);
+        }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD__DECIMAL32 ||
                tok->kind == CDD_TOKEN_KEYWORD__FRACT) {
-      tok->start = (const uint8_t *)"float";
-      tok->length = 5;
+      size_t child_idx;
+      cdd_cst_node_t *parent =
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      if (parent) {
+        cdd_token_t *new_tok =
+            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "float", 5);
+        if (new_tok) {
+          new_tok->leading_trivia = tok->leading_trivia;
+          new_tok->trailing_trivia = tok->trailing_trivia;
+          tok->leading_trivia = NULL;
+          tok->trailing_trivia = NULL;
+          cdd_cst_replace_token_child(parent, child_idx, new_tok);
+        }
+      }
     } else if (tok->kind == CDD_TOKEN_KEYWORD__DECIMAL64 ||
                tok->kind == CDD_TOKEN_KEYWORD__DECIMAL128 ||
                tok->kind == CDD_TOKEN_KEYWORD__ACCUM) {
-      tok->start = (const uint8_t *)"double";
-      tok->length = 6;
+      size_t child_idx;
+      cdd_cst_node_t *parent =
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      if (parent) {
+        cdd_token_t *new_tok =
+            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "double", 6);
+        if (new_tok) {
+          new_tok->leading_trivia = tok->leading_trivia;
+          new_tok->trailing_trivia = tok->trailing_trivia;
+          tok->leading_trivia = NULL;
+          tok->trailing_trivia = NULL;
+          cdd_cst_replace_token_child(parent, child_idx, new_tok);
+        }
+      }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___FP16 ||
                tok->kind == CDD_TOKEN_KEYWORD__FLOAT16 ||
                tok->kind == CDD_TOKEN_KEYWORD___BF16) {
-      tok->start = (const uint8_t *)"uint16_t";
-      tok->length = 8;
+      size_t child_idx;
+      cdd_cst_node_t *parent =
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      if (parent) {
+        cdd_token_t *new_tok =
+            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "uint16_t", 8);
+        if (new_tok) {
+          new_tok->leading_trivia = tok->leading_trivia;
+          new_tok->trailing_trivia = tok->trailing_trivia;
+          tok->leading_trivia = NULL;
+          tok->trailing_trivia = NULL;
+          cdd_cst_replace_token_child(parent, child_idx, new_tok);
+        }
+      }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___COMPLEX__) {
       /* `__complex__ int` -> `struct { int real, imag; }` */
       if (i + 1 < tree->base_tokens->size) {
@@ -513,17 +653,65 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_node_t *owning_node =
             cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-          cdd_cst_node_t *temp =
-              cdd_cst_parse_format(tree, "struct { %.*s real, imag; } ",
-                                   (int)next_tok->length, next_tok->start);
+          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
           if (temp) {
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
-                                    temp->children, temp->num_children);
+            cdd_cst_builder_t bld;
+            cdd_cst_builder_init(&bld, tree, temp);
+            cdd_cst_bld_ident(&bld, "struct");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_punct(&bld, "{");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_ident(
+                &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
+                                           next_tok->length));
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_ident(&bld, "real");
+            cdd_cst_bld_punct(&bld, ",");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_ident(&bld, "imag");
+            cdd_cst_bld_punct(&bld, ";");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_punct(&bld, "}");
+            cdd_cst_bld_space(&bld);
+            if (!cdd_cst_builder_has_error(&bld))
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                      temp->children, temp->num_children);
+            cdd_cst_builder_free(&bld);
             cdd_cst_free_node_only(temp);
           }
         }
-        tok->length = 0;
-        next_tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = next_tok->leading_trivia;
+              n_tok->trailing_trivia = next_tok->trailing_trivia;
+              next_tok->leading_trivia = NULL;
+              next_tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___REAL__) {
       if (i + 1 < tree->base_tokens->size &&
@@ -533,16 +721,55 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_node_t *owning_node =
             cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_parse_format(
-              tree, "%.*s.real ", (int)next_tok->length, next_tok->start);
+          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
           if (temp) {
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
-                                    temp->children, temp->num_children);
+            cdd_cst_builder_t bld;
+            cdd_cst_builder_init(&bld, tree, temp);
+            cdd_cst_bld_ident(
+                &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
+                                           next_tok->length));
+            cdd_cst_bld_punct(&bld, ".");
+            cdd_cst_bld_ident(&bld, "real");
+            cdd_cst_bld_space(&bld);
+            if (!cdd_cst_builder_has_error(&bld))
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                      temp->children, temp->num_children);
+            cdd_cst_builder_free(&bld);
             cdd_cst_free_node_only(temp);
           }
         }
-        tok->length = 0;
-        next_tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = next_tok->leading_trivia;
+              n_tok->trailing_trivia = next_tok->trailing_trivia;
+              next_tok->leading_trivia = NULL;
+              next_tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___IMAG__) {
       if (i + 1 < tree->base_tokens->size &&
@@ -552,16 +779,55 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_node_t *owning_node =
             cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_parse_format(
-              tree, "%.*s.imag ", (int)next_tok->length, next_tok->start);
+          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
           if (temp) {
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
-                                    temp->children, temp->num_children);
+            cdd_cst_builder_t bld;
+            cdd_cst_builder_init(&bld, tree, temp);
+            cdd_cst_bld_ident(
+                &bld, pool_string_safe_len(tree, (const char *)next_tok->start,
+                                           next_tok->length));
+            cdd_cst_bld_punct(&bld, ".");
+            cdd_cst_bld_ident(&bld, "imag");
+            cdd_cst_bld_space(&bld);
+            if (!cdd_cst_builder_has_error(&bld))
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 2,
+                                      temp->children, temp->num_children);
+            cdd_cst_builder_free(&bld);
             cdd_cst_free_node_only(temp);
           }
         }
-        tok->length = 0;
-        next_tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = next_tok->leading_trivia;
+              n_tok->trailing_trivia = next_tok->trailing_trivia;
+              next_tok->leading_trivia = NULL;
+              next_tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD_TYPEOF) {
       if (i + 2 < tree->base_tokens->size &&
@@ -588,13 +854,19 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_cst_node_t *owning_node =
               cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
+            cdd_cst_node_t *temp = NULL;
             if (inferred) {
-              cdd_cst_node_t *temp =
-                  cdd_cst_parse_format(tree, "%s ", inferred);
+              temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
               if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                        (rparen_idx - i) + 1, temp->children,
-                                        temp->num_children);
+                cdd_cst_builder_t bld;
+                cdd_cst_builder_init(&bld, tree, temp);
+                cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
+                cdd_cst_bld_space(&bld);
+                if (!cdd_cst_builder_has_error(&bld))
+                  cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                          (rparen_idx - i) + 1, temp->children,
+                                          temp->num_children);
+                cdd_cst_builder_free(&bld);
                 cdd_cst_free_node_only(temp);
               }
             } else {
@@ -633,7 +905,6 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
               *p++ = ' ';
               *p = '\0';
-              cdd_cst_node_t *temp = NULL;
               if (strchr(buf, '[')) {
                 static int typeof_arr_idx = 0;
                 char typedef_buf[1024];
@@ -645,12 +916,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 char *lb = strchr(buf, '[');
                 char *rb = strchr(buf, ']');
                 if (lb && rb) {
-                  int j, ac = 0;
+                  int m, ac = 0;
                   strncpy(base, buf, lb - buf);
                   strncpy(arr, lb, rb - lb + 1);
-                  for (j = 0; arr[j]; j++) {
-                    if (arr[j] != ' ') {
-                      arr_clean[ac++] = arr[j];
+                  for (m = 0; arr[m]; m++) {
+                    if (arr[m] != ' ') {
+                      arr_clean[ac++] = arr[m];
                     }
                   }
                   snprintf(
@@ -658,19 +929,62 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
                       base, typeof_arr_idx, arr_clean, typeof_arr_idx);
                   typeof_arr_idx++;
-                  temp = cdd_cst_parse_format(tree, "%s", typedef_buf);
+                  temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                  if (temp) {
+                    cdd_cst_builder_t bld;
+                    cdd_cst_builder_init(&bld, tree, temp);
+                    cdd_cst_bld_ident(&bld, "typedef");
+                    cdd_cst_bld_space(&bld);
+                    cdd_cst_bld_ident(&bld, pool_string_safe(tree, base));
+                    {
+                      char tb2[128];
+                      snprintf(tb2, 128, "__cdd_typeof_arr_%d", typeof_arr_idx);
+                      cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+                    }
+                    cdd_cst_bld_snippet(&bld, arr_clean);
+                    cdd_cst_bld_punct(&bld, ";");
+                    cdd_cst_bld_space(&bld);
+                    {
+                      char tb2[128];
+                      snprintf(tb2, 128, "__cdd_typeof_arr_%d", typeof_arr_idx);
+                      cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+                    }
+                    cdd_cst_bld_space(&bld);
+                    typeof_arr_idx++;
+                    if (!cdd_cst_builder_has_error(&bld))
+                      cdd_cst_splice_children(
+                          tree, &owning_node, child_idx, (rparen_idx - i) + 1,
+                          temp->children, temp->num_children);
+                    cdd_cst_builder_free(&bld);
+                    cdd_cst_free_node_only(temp);
+                  }
                 } else {
-                  temp = cdd_cst_parse_format(tree, "%s", buf);
+                  temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                  if (temp) {
+                    cdd_cst_builder_t bld;
+                    cdd_cst_builder_init(&bld, tree, temp);
+                    cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
+                    if (!cdd_cst_builder_has_error(&bld))
+                      cdd_cst_splice_children(
+                          tree, &owning_node, child_idx, (rparen_idx - i) + 1,
+                          temp->children, temp->num_children);
+                    cdd_cst_builder_free(&bld);
+                    cdd_cst_free_node_only(temp);
+                  }
                 }
               } else {
-                temp = cdd_cst_parse_format(tree, "%s", buf);
-              }
-
-              if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                        (rparen_idx - i) + 1, temp->children,
-                                        temp->num_children);
-                cdd_cst_free_node_only(temp);
+                temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                if (temp) {
+                  cdd_cst_builder_t bld;
+                  cdd_cst_builder_init(&bld, tree, temp);
+                  cdd_cst_bld_ident(&bld, pool_string_safe(tree, buf));
+                  if (!cdd_cst_builder_has_error(&bld))
+                    cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                            (rparen_idx - i) + 1,
+                                            temp->children, temp->num_children);
+                  cdd_cst_builder_free(&bld);
+                  cdd_cst_free_node_only(temp);
+                }
               }
             }
           }
@@ -698,14 +1012,34 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             break;
           }
         }
-        temp = cdd_cst_parse_format(tree, "%s ", inferred);
+        temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
         if (temp) {
-          cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                  temp->children, temp->num_children);
+          cdd_cst_builder_t bld;
+          cdd_cst_builder_init(&bld, tree, temp);
+          cdd_cst_bld_ident(&bld, pool_string_safe(tree, inferred));
+          cdd_cst_bld_space(&bld);
+          if (!cdd_cst_builder_has_error(&bld))
+            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                    temp->children, temp->num_children);
+          cdd_cst_builder_free(&bld);
           cdd_cst_free_node_only(temp);
         }
       }
-      tok->length = 0;
+      {
+        size_t c_idx;
+        cdd_cst_node_t *p_node =
+            cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+        if (p_node) {
+          cdd_token_t *n_tok = cdd_cst_create_token_len(tree, tok->kind, "", 0);
+          if (n_tok) {
+            n_tok->leading_trivia = tok->leading_trivia;
+            n_tok->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+          }
+        }
+      }
     } else if (tok->kind == CDD_TOKEN_NUMBER) {
       char buf[256];
       size_t copy_len = tok->length < 255 ? tok->length : 255;
@@ -725,17 +1059,49 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_cst_node_t *owning_node =
               cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(
-                tree, "cdd_make_uint128(0x%llxULL, 0x%llxULL)",
-                (unsigned long long)high, (unsigned long long)low);
+            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
             if (temp) {
-              cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                      temp->children, temp->num_children);
+              cdd_cst_builder_t bld;
+              cdd_cst_builder_init(&bld, tree, temp);
+              cdd_cst_bld_ident(&bld, "cdd_make_uint128");
+              cdd_cst_bld_punct(&bld, "(");
+              {
+                char tb2[128];
+                snprintf(tb2, 128, "0x%llxULL", (unsigned long long)high);
+                cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+              }
+              cdd_cst_bld_punct(&bld, ",");
+              cdd_cst_bld_space(&bld);
+              {
+                char tb2[128];
+                snprintf(tb2, 128, "0x%llxULL", (unsigned long long)low);
+                cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+              }
+              cdd_cst_bld_punct(&bld, ")");
+              if (!cdd_cst_builder_has_error(&bld))
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                        temp->children, temp->num_children);
+              cdd_cst_builder_free(&bld);
               cdd_cst_free_node_only(temp);
             }
           }
         }
-        tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER && tok->length == 13 &&
                memcmp(tok->start, "__attribute__", 13) == 0) {
@@ -758,38 +1124,150 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
         cdd_token_t *attr = &tree->base_tokens->tokens[i + 3];
         if (attr->length == 8 && memcmp(attr->start, "noreturn", 8) == 0) {
-          tok->start = (const uint8_t *)"_Noreturn";
-          tok->length = 9;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "_Noreturn", 9);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+          {
+            size_t w;
+            for (w = i + 1; w <= i + 5; w++) {
+              cdd_cst_node_t *wp;
+              wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[w].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[w].trailing_trivia;
+                  tree->base_tokens->tokens[w].leading_trivia = NULL;
+                  tree->base_tokens->tokens[w].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
+            }
+          }
         } else if (attr->length == 6 && memcmp(attr->start, "unused", 6) == 0) {
-          tok->start = (const uint8_t *)"/* unused */";
-          tok->length = 12;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "/* unused */", 12);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+          {
+            size_t w;
+            for (w = i + 1; w <= i + 5; w++) {
+              cdd_cst_node_t *wp;
+              wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[w].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[w].trailing_trivia;
+                  tree->base_tokens->tokens[w].leading_trivia = NULL;
+                  tree->base_tokens->tokens[w].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
+            }
+          }
         } else if (attr->length == 17 &&
                    memcmp(attr->start, "transparent_union", 17) == 0) {
-          tok->start = (const uint8_t *)"/* transparent_union */";
-          tok->length = 23;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok = cdd_cst_create_token_len(
+                tree, tok->kind, "/* transparent_union */", 23);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+          {
+            size_t w;
+            for (w = i + 1; w <= i + 5; w++) {
+              cdd_cst_node_t *wp;
+              wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[w].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[w].trailing_trivia;
+                  tree->base_tokens->tokens[w].leading_trivia = NULL;
+                  tree->base_tokens->tokens[w].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
+            }
+          }
         } else if (attr->length == 6 && memcmp(attr->start, "packed", 6) == 0) {
-          tok->start = (const uint8_t *)"\n#pragma pack(push, 1)\n";
-          tok->length = 23;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok = cdd_cst_create_token_len(
+                tree, tok->kind, "\n#pragma pack(push, 1)\n", 23);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+          {
+            size_t w;
+            for (w = i + 1; w <= i + 5; w++) {
+              cdd_cst_node_t *wp;
+              wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[w].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[w].trailing_trivia;
+                  tree->base_tokens->tokens[w].leading_trivia = NULL;
+                  tree->base_tokens->tokens[w].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
+            }
+          }
 
           /* scan forward for closing brace and semicolon */
           {
@@ -814,12 +1292,27 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
            * pure, const, weak, etc. */
           char *heap_buf = (char *)malloc(attr->length + 7);
           if (heap_buf) {
-            memcpy(heap_buf, "/* ", 3);
-            memcpy(heap_buf + 3, attr->start, attr->length);
-            memcpy(heap_buf + 3 + attr->length, " */", 3);
-            heap_buf[6 + attr->length] = '\0';
-            tok->start = (const uint8_t *)heap_buf;
-            tok->length = 6 + attr->length;
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok;
+              memcpy(heap_buf, "/* ", 3);
+              memcpy(heap_buf + 3, attr->start, attr->length);
+              memcpy(heap_buf + 3 + attr->length, " */", 3);
+              heap_buf[6 + attr->length] = '\0';
+              n_tok = cdd_cst_create_token_len(tree, tok->kind, heap_buf,
+                                               6 + attr->length);
+              if (n_tok) {
+                n_tok->leading_trivia = tok->leading_trivia;
+                n_tok->trailing_trivia = tok->trailing_trivia;
+                tok->leading_trivia = NULL;
+                tok->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            } else {
+              free(heap_buf);
+            }
           }
           tree->base_tokens->tokens[i + 1].length = 0;
           tree->base_tokens->tokens[i + 2].length = 0;
@@ -840,13 +1333,41 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
              identifier This is a simplistic lowering that just drops the vector
              semantic and treats it as an array, satisfying `v[0]` indexing
              automatically without rewrite overhead. */
-          tok->start = (const uint8_t *)"";
-          tok->length = 0;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+          {
+            size_t w;
+            for (w = i + 1; w <= i + 5; w++) {
+              cdd_cst_node_t *wp;
+              wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[w].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[w].trailing_trivia;
+                  tree->base_tokens->tokens[w].leading_trivia = NULL;
+                  tree->base_tokens->tokens[w].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
+            }
+          }
           tree->base_tokens->tokens[i + 6].length = 0;
           tree->base_tokens->tokens[i + 7].length = 0;
           tree->base_tokens->tokens[i + 8].length = 0;
@@ -864,19 +1385,78 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_cst_node_t *owning_node =
               cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
           if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(
-                tree, "_Alignas(%.*s)",
-                (int)tree->base_tokens->tokens[i + 5].length,
-                tree->base_tokens->tokens[i + 5].start);
+            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
             if (temp) {
-              cdd_cst_splice_children(tree, &owning_node, child_idx, 9,
-                                      temp->children, temp->num_children);
+              cdd_cst_builder_t bld;
+              cdd_cst_builder_init(&bld, tree, temp);
+              cdd_cst_bld_ident(&bld, "_Alignas");
+              cdd_cst_bld_punct(&bld, "(");
+              cdd_cst_bld_ident(
+                  &bld,
+                  pool_string_safe_len(
+                      tree,
+                      (const char *)tree->base_tokens->tokens[i + 5].start,
+                      tree->base_tokens->tokens[i + 5].length));
+              cdd_cst_bld_punct(&bld, ")");
+              if (!cdd_cst_builder_has_error(&bld))
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 9,
+                                        temp->children, temp->num_children);
+              cdd_cst_builder_free(&bld);
               cdd_cst_free_node_only(temp);
             }
           }
-          tok->length = 0;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
+          {
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok =
+                  cdd_cst_create_token_len(tree, tok->kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia = tok->leading_trivia;
+                n_tok->trailing_trivia = tok->trailing_trivia;
+                tok->leading_trivia = NULL;
+                tok->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
+          }
+          {
+            size_t c_idx;
+            cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[i + 1], &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok = cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia =
+                    tree->base_tokens->tokens[i + 1].leading_trivia;
+                n_tok->trailing_trivia =
+                    tree->base_tokens->tokens[i + 1].trailing_trivia;
+                tree->base_tokens->tokens[i + 1].leading_trivia = NULL;
+                tree->base_tokens->tokens[i + 1].trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
+          }
+          {
+            size_t c_idx;
+            cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[i + 2], &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok = cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[i + 2].kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia =
+                    tree->base_tokens->tokens[i + 2].leading_trivia;
+                n_tok->trailing_trivia =
+                    tree->base_tokens->tokens[i + 2].trailing_trivia;
+                tree->base_tokens->tokens[i + 2].leading_trivia = NULL;
+                tree->base_tokens->tokens[i + 2].trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
+          }
           tree->base_tokens->tokens[i + 3].length = 0;
           tree->base_tokens->tokens[i + 4].length = 0;
           tree->base_tokens->tokens[i + 5].length = 0;
@@ -898,15 +1478,51 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             else if (memcmp(mode_val->start, "TI", 2) == 0)
               map = "/* mode(TI) -> int128_t */";
             if (map[0] != '\0') {
-              tok->start = (const uint8_t *)map;
-              tok->length = strlen(map);
+              size_t c_idx;
+              cdd_cst_node_t *p_node =
+                  cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok =
+                    cdd_cst_create_token_len(tree, tok->kind, map, strlen(map));
+                if (n_tok) {
+                  n_tok->leading_trivia = tok->leading_trivia;
+                  n_tok->trailing_trivia = tok->trailing_trivia;
+                  tok->leading_trivia = NULL;
+                  tok->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
             } else {
-              tok->start = (const uint8_t *)"";
-              tok->length = 0;
+              size_t c_idx;
+              cdd_cst_node_t *p_node =
+                  cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok =
+                    cdd_cst_create_token_len(tree, tok->kind, "", 0);
+                if (n_tok) {
+                  n_tok->leading_trivia = tok->leading_trivia;
+                  n_tok->trailing_trivia = tok->trailing_trivia;
+                  tok->leading_trivia = NULL;
+                  tok->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
             }
           } else {
-            tok->start = (const uint8_t *)"";
-            tok->length = 0;
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok =
+                  cdd_cst_create_token_len(tree, tok->kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia = tok->leading_trivia;
+                n_tok->trailing_trivia = tok->trailing_trivia;
+                tok->leading_trivia = NULL;
+                tok->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
           }
           tree->base_tokens->tokens[i + 1].length = 0;
           tree->base_tokens->tokens[i + 2].length = 0;
@@ -931,10 +1547,36 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (lparen_count == 0) {
             /* Strip it */
             size_t wipe;
-            tok->start = (const uint8_t *)"/* attribute */";
-            tok->length = 15;
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok = cdd_cst_create_token_len(
+                  tree, tok->kind, "/* attribute */", 15);
+              if (n_tok) {
+                n_tok->leading_trivia = tok->leading_trivia;
+                n_tok->trailing_trivia = tok->trailing_trivia;
+                tok->leading_trivia = NULL;
+                tok->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
             for (wipe = i + 1; wipe <= k; wipe++) {
-              tree->base_tokens->tokens[wipe].length = 0;
+              cdd_cst_node_t *wp = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[wipe], &c_idx);
+              if (wp) {
+                cdd_token_t *e_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[wipe].kind, "", 0);
+                if (e_tok) {
+                  e_tok->leading_trivia =
+                      tree->base_tokens->tokens[wipe].leading_trivia;
+                  e_tok->trailing_trivia =
+                      tree->base_tokens->tokens[wipe].trailing_trivia;
+                  tree->base_tokens->tokens[wipe].leading_trivia = NULL;
+                  tree->base_tokens->tokens[wipe].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(wp, c_idx, e_tok);
+                }
+              }
             }
             break;
           }
@@ -942,16 +1584,52 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       }
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER) {
       if (tok->length == 13 && memcmp(tok->start, "__extension__", 13) == 0) {
-        tok->start = (const uint8_t *)"";
-        tok->length = 0;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        if (parent) {
+          cdd_token_t *new_tok =
+              cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0);
+          if (new_tok) {
+            new_tok->leading_trivia = tok->leading_trivia;
+            new_tok->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, new_tok);
+          }
+        }
       } else if (tok->length == 17 &&
                  memcmp(tok->start, "__builtin_shuffle", 17) == 0) {
-        tok->start = (const uint8_t *)"cdd_builtin_shuffle";
-        tok->length = 19;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        if (parent) {
+          cdd_token_t *new_tok = cdd_cst_create_token_len(
+              tree, CDD_TOKEN_IDENTIFIER, "cdd_builtin_shuffle", 19);
+          if (new_tok) {
+            new_tok->leading_trivia = tok->leading_trivia;
+            new_tok->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, new_tok);
+          }
+        }
       } else if (tok->length == 23 &&
                  memcmp(tok->start, "__builtin_shufflevector", 23) == 0) {
-        tok->start = (const uint8_t *)"cdd_builtin_shufflevector";
-        tok->length = 25;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        if (parent) {
+          cdd_token_t *new_tok = cdd_cst_create_token_len(
+              tree, CDD_TOKEN_IDENTIFIER, "cdd_builtin_shufflevector", 25);
+          if (new_tok) {
+            new_tok->leading_trivia = tok->leading_trivia;
+            new_tok->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, new_tok);
+          }
+        }
       } else if ((tok->length == 11 &&
                   memcmp(tok->start, "__alignof__", 11) == 0) ||
                  (tok->length == 9 &&
@@ -960,8 +1638,20 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
            For now we just map to _Alignof.
            In a full AST, we would check if the child is an expression or type.
          */
-        tok->start = (const uint8_t *)"_Alignof";
-        tok->length = 8;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        if (parent) {
+          cdd_token_t *new_tok = cdd_cst_create_token_len(
+              tree, CDD_TOKEN_IDENTIFIER, "_Alignof", 8);
+          if (new_tok) {
+            new_tok->leading_trivia = tok->leading_trivia;
+            new_tok->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, new_tok);
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD_STRUCT) {
       if (i + 1 < tree->base_tokens->size &&
@@ -973,15 +1663,40 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_node_t *owning_node =
             cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-          cdd_cst_node_t *temp =
-              cdd_cst_parse_format(tree, "struct _cdd_anon_%d", anon_counter++);
+          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
           if (temp) {
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                    temp->children, temp->num_children);
+            cdd_cst_builder_t bld;
+            cdd_cst_builder_init(&bld, tree, temp);
+            cdd_cst_bld_ident(&bld, "struct");
+            cdd_cst_bld_space(&bld);
+            {
+              char tb2[128];
+              snprintf(tb2, 128, "_cdd_anon_%d", anon_counter++);
+              cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+            }
+            if (!cdd_cst_builder_has_error(&bld))
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                      temp->children, temp->num_children);
+            cdd_cst_builder_free(&bld);
             cdd_cst_free_node_only(temp);
           }
         }
-        tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER && tok->length == 5 &&
                memcmp(tok->start, "union", 5) == 0) {
@@ -993,15 +1708,40 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_cst_node_t *owning_node =
             cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
         if (owning_node) {
-          cdd_cst_node_t *temp =
-              cdd_cst_parse_format(tree, "union _cdd_anon_%d", anon_counter++);
+          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
           if (temp) {
-            cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
-                                    temp->children, temp->num_children);
+            cdd_cst_builder_t bld;
+            cdd_cst_builder_init(&bld, tree, temp);
+            cdd_cst_bld_ident(&bld, "union");
+            cdd_cst_bld_space(&bld);
+            {
+              char tb2[128];
+              snprintf(tb2, 128, "_cdd_anon_%d", anon_counter++);
+              cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
+            }
+            if (!cdd_cst_builder_has_error(&bld))
+              cdd_cst_splice_children(tree, &owning_node, child_idx, 1,
+                                      temp->children, temp->num_children);
+            cdd_cst_builder_free(&bld);
             cdd_cst_free_node_only(temp);
           }
         }
-        tok->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok =
+                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = tok->leading_trivia;
+              n_tok->trailing_trivia = tok->trailing_trivia;
+              tok->leading_trivia = NULL;
+              tok->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
       }
     } else if (tok->kind == CDD_TOKEN_LPAREN && tok->length > 0) {
       size_t k;
@@ -1044,36 +1784,100 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       if (is_cast_lvalue == 2) {
         size_t fwd;
         int tk;
-        /* Rewrite cast to compound literal `(union U){val}` */
-        tree->base_tokens->tokens[rparen_idx].start = (const uint8_t *)"){";
-        tree->base_tokens->tokens[rparen_idx].length = 2;
+        size_t rparen_cidx;
+        cdd_cst_node_t *rparen_parent = cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[rparen_idx], &rparen_cidx);
+        if (rparen_parent) {
+          cdd_token_t *new_rparen =
+              cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "){", 2);
+          if (new_rparen) {
+            new_rparen->leading_trivia =
+                tree->base_tokens->tokens[rparen_idx].leading_trivia;
+            new_rparen->trailing_trivia =
+                tree->base_tokens->tokens[rparen_idx].trailing_trivia;
+            tree->base_tokens->tokens[rparen_idx].leading_trivia = NULL;
+            tree->base_tokens->tokens[rparen_idx].trailing_trivia = NULL;
+            cdd_cst_replace_token_child(rparen_parent, rparen_cidx, new_rparen);
+          }
+        }
 
         /* Find end of expression heuristic to add `}` */
         for (fwd = rparen_idx + 1; fwd < tree->base_tokens->size; fwd++) {
           tk = tree->base_tokens->tokens[fwd].kind;
           if (tk == (int)CDD_TOKEN_SEMICOLON || tk == (int)CDD_TOKEN_ASSIGN) {
-            tree->base_tokens->tokens[fwd - 1].start = (const uint8_t *)"}";
-            tree->base_tokens->tokens[fwd - 1].length = 1;
+            size_t end_cidx;
+            cdd_cst_node_t *end_parent = cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[fwd - 1], &end_cidx);
+            if (end_parent) {
+              cdd_token_t *new_end = cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[fwd - 1].kind, "}", 1);
+              if (new_end) {
+                new_end->leading_trivia =
+                    tree->base_tokens->tokens[fwd - 1].leading_trivia;
+                new_end->trailing_trivia =
+                    tree->base_tokens->tokens[fwd - 1].trailing_trivia;
+                tree->base_tokens->tokens[fwd - 1].leading_trivia = NULL;
+                tree->base_tokens->tokens[fwd - 1].trailing_trivia = NULL;
+                cdd_cst_replace_token_child(end_parent, end_cidx, new_end);
+              }
+            }
             break;
           }
         }
       } else if (is_cast_lvalue == 1) {
-        char *buf;
-        /* Change `(type)val =` to `*(type*)&val =` */
-        tok->start = (const uint8_t *)"*(";
-        tok->length = 2;
-        tree->base_tokens->tokens[rparen_idx].start = (const uint8_t *)"*)";
-        tree->base_tokens->tokens[rparen_idx].length = 2;
-        buf = (char *)malloc(tree->base_tokens->tokens[rparen_idx + 1].length +
-                             2);
-        if (buf) {
-          buf[0] = '&';
-          memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
-                 tree->base_tokens->tokens[rparen_idx + 1].length);
-          buf[tree->base_tokens->tokens[rparen_idx + 1].length + 1] = '\0';
-          tree->base_tokens->tokens[rparen_idx + 1].start =
-              (const uint8_t *)buf;
-          tree->base_tokens->tokens[rparen_idx + 1].length++;
+        size_t child_idx, rparen_cidx, val_cidx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *rparen_parent = cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[rparen_idx], &rparen_cidx);
+        cdd_cst_node_t *val_parent = cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[rparen_idx + 1], &val_cidx);
+
+        if (parent && rparen_parent && val_parent) {
+          cdd_token_t *new_lparen =
+              cdd_cst_create_token_len(tree, CDD_TOKEN_LPAREN, "*(", 2);
+          cdd_token_t *new_rparen =
+              cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "*)", 2);
+
+          if (new_lparen && new_rparen) {
+            size_t val_len = tree->base_tokens->tokens[rparen_idx + 1].length;
+            char *buf;
+            new_lparen->leading_trivia = tok->leading_trivia;
+            new_lparen->trailing_trivia = tok->trailing_trivia;
+            tok->leading_trivia = NULL;
+            tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, new_lparen);
+
+            new_rparen->leading_trivia =
+                tree->base_tokens->tokens[rparen_idx].leading_trivia;
+            new_rparen->trailing_trivia =
+                tree->base_tokens->tokens[rparen_idx].trailing_trivia;
+            tree->base_tokens->tokens[rparen_idx].leading_trivia = NULL;
+            tree->base_tokens->tokens[rparen_idx].trailing_trivia = NULL;
+            cdd_cst_replace_token_child(rparen_parent, rparen_cidx, new_rparen);
+
+            buf = (char *)malloc(val_len + 2);
+            if (buf) {
+              cdd_token_t *new_val;
+              buf[0] = '&';
+              memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
+                     val_len);
+              buf[val_len + 1] = '\0';
+              new_val = cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[rparen_idx + 1].kind, buf,
+                  val_len + 1);
+              if (new_val) {
+                new_val->leading_trivia =
+                    tree->base_tokens->tokens[rparen_idx + 1].leading_trivia;
+                new_val->trailing_trivia =
+                    tree->base_tokens->tokens[rparen_idx + 1].trailing_trivia;
+                tree->base_tokens->tokens[rparen_idx + 1].leading_trivia = NULL;
+                tree->base_tokens->tokens[rparen_idx + 1].trailing_trivia =
+                    NULL;
+                cdd_cst_replace_token_child(val_parent, val_cidx, new_val);
+              }
+            }
+          }
         }
       }
     } else if (tok->kind == CDD_TOKEN_OTHER && tok->length == 1 &&
@@ -1164,8 +1968,22 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             p += len;
             *p++ = ' ';
             *p = '\0';
-            tok->start = (const uint8_t *)buf;
-            tok->length = strlen(buf);
+            {
+              size_t child_idx;
+              cdd_cst_node_t *parent =
+                  cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+              if (parent) {
+                cdd_token_t *new_tok =
+                    cdd_cst_create_token_len(tree, tok->kind, buf, strlen(buf));
+                if (new_tok) {
+                  new_tok->leading_trivia = tok->leading_trivia;
+                  new_tok->trailing_trivia = tok->trailing_trivia;
+                  tok->leading_trivia = NULL;
+                  tok->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(parent, child_idx, new_tok);
+                }
+              }
+            }
           }
         }
       }
@@ -1181,10 +1999,36 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         size_t k;
         for (k = i + 4; k < tree->base_tokens->size; k++) {
           if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_SEMICOLON) {
-            tok->start = (const uint8_t *)"";
-            tok->length = 0;
-            tree->base_tokens->tokens[k].start = (const uint8_t *)"; return;";
-            tree->base_tokens->tokens[k].length = 9;
+            size_t child_idx;
+            cdd_cst_node_t *parent =
+                cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+            cdd_cst_node_t *semi_parent;
+            if (parent) {
+              cdd_token_t *empty_tok = cdd_cst_create_token_len(
+                  tree, CDD_TOKEN_KEYWORD_RETURN, "", 0);
+              if (empty_tok) {
+                empty_tok->leading_trivia = tok->leading_trivia;
+                empty_tok->trailing_trivia = tok->trailing_trivia;
+                tok->leading_trivia = NULL;
+                tok->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+              }
+            }
+            semi_parent = cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[k], &child_idx);
+            if (semi_parent) {
+              cdd_token_t *semi_tok = cdd_cst_create_token_len(
+                  tree, CDD_TOKEN_SEMICOLON, "; return;", 9);
+              if (semi_tok) {
+                semi_tok->leading_trivia =
+                    tree->base_tokens->tokens[k].leading_trivia;
+                semi_tok->trailing_trivia =
+                    tree->base_tokens->tokens[k].trailing_trivia;
+                tree->base_tokens->tokens[k].leading_trivia = NULL;
+                tree->base_tokens->tokens[k].trailing_trivia = NULL;
+                cdd_cst_replace_token_child(semi_parent, child_idx, semi_tok);
+              }
+            }
             break;
           }
         }
@@ -1293,16 +2137,28 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             num_cleanups++;
           }
 
-          t->start = (const uint8_t *)"";
-          t->length = 0;
-          tree->base_tokens->tokens[i + 1].length = 0;
-          tree->base_tokens->tokens[i + 2].length = 0;
-          tree->base_tokens->tokens[i + 3].length = 0;
-          tree->base_tokens->tokens[i + 4].length = 0;
-          tree->base_tokens->tokens[i + 5].length = 0;
-          tree->base_tokens->tokens[i + 6].length = 0;
-          tree->base_tokens->tokens[i + 7].length = 0;
-          tree->base_tokens->tokens[i + 8].length = 0;
+          {
+            size_t tk_idx;
+            for (tk_idx = 0; tk_idx <= 8; tk_idx++) {
+              size_t child_idx;
+              cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[i + tk_idx],
+                  &child_idx);
+              if (parent) {
+                cdd_token_t *empty_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[i + tk_idx].kind, "", 0);
+                if (empty_tok) {
+                  empty_tok->leading_trivia =
+                      tree->base_tokens->tokens[i + tk_idx].leading_trivia;
+                  empty_tok->trailing_trivia =
+                      tree->base_tokens->tokens[i + tk_idx].trailing_trivia;
+                  tree->base_tokens->tokens[i + tk_idx].leading_trivia = NULL;
+                  tree->base_tokens->tokens[i + tk_idx].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+                }
+              }
+            }
+          }
           i += 8;
         }
       } else if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 13 &&
@@ -1327,9 +2183,41 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
         if (end_idx > i + 2) {
-          t->length = 0;
+          {
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok =
+                  cdd_cst_create_token_len(tree, t->kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia = t->leading_trivia;
+                n_tok->trailing_trivia = t->trailing_trivia;
+                t->leading_trivia = NULL;
+                t->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
+          }
           for (k = i + 1; k <= end_idx; k++) {
-            tree->base_tokens->tokens[k].length = 0;
+            {
+              size_t c_idx;
+              cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[k], &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok = cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[k].kind, "", 0);
+                if (n_tok) {
+                  n_tok->leading_trivia =
+                      tree->base_tokens->tokens[k].leading_trivia;
+                  n_tok->trailing_trivia =
+                      tree->base_tokens->tokens[k].trailing_trivia;
+                  tree->base_tokens->tokens[k].leading_trivia = NULL;
+                  tree->base_tokens->tokens[k].trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
+            }
           }
         }
       } else if (t->kind == CDD_TOKEN_RBRACE) {
@@ -1350,18 +2238,29 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           /* Run cleanups in reverse order */
           while (num_cleanups > 0 &&
                  cleanups[num_cleanups - 1].depth == current_depth) {
-            cdd_cst_node_t *temp = cdd_cst_parse_format(
-                tree, "%.*s(&%.*s);",
-                (int)cleanups[num_cleanups - 1].func_length,
-                cleanups[num_cleanups - 1].func_name,
-                (int)cleanups[num_cleanups - 1].var_length,
-                cleanups[num_cleanups - 1].var_name);
+            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
             if (temp) {
-              cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                      temp->children, temp->num_children);
-              child_idx += temp->num_children;
+              cdd_cst_builder_t bld;
+              cdd_cst_builder_init(&bld, tree, temp);
+              cdd_cst_bld_ident(
+                  &bld,
+                  pool_string_safe_len(
+                      tree, (const char *)cleanups[num_cleanups - 1].func_name,
+                      cleanups[num_cleanups - 1].func_length));
+              cdd_cst_bld_punct(&bld, "(");
+              cdd_cst_bld_punct(&bld, "&");
+              cdd_cst_bld_ident(
+                  &bld,
+                  pool_string_safe_len(
+                      tree, (const char *)cleanups[num_cleanups - 1].var_name,
+                      cleanups[num_cleanups - 1].var_length));
+              cdd_cst_bld_punct(&bld, ")");
+              cdd_cst_bld_punct(&bld, ";");
+              if (!cdd_cst_builder_has_error(&bld))
+                cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                        temp->children, temp->num_children);
+              cdd_cst_builder_free(&bld);
               cdd_cst_free_node_only(temp);
-              appended = 1;
             }
             num_cleanups--;
             appended = 1;
@@ -1369,15 +2268,23 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
           if (config && config->fallback_vla_to_malloc) {
             while (num_vlas > 0 && vlas[num_vlas - 1].depth == current_depth) {
-              cdd_cst_node_t *temp = cdd_cst_parse_format(
-                  tree, "free(%.*s);", (int)vlas[num_vlas - 1].length,
-                  vlas[num_vlas - 1].name);
+              cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
               if (temp) {
-                cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
-                                        temp->children, temp->num_children);
-                child_idx += temp->num_children;
+                cdd_cst_builder_t bld;
+                cdd_cst_builder_init(&bld, tree, temp);
+                cdd_cst_bld_ident(&bld, "free");
+                cdd_cst_bld_punct(&bld, "(");
+                cdd_cst_bld_ident(
+                    &bld, pool_string_safe_len(
+                              tree, (const char *)vlas[num_vlas - 1].name,
+                              vlas[num_vlas - 1].length));
+                cdd_cst_bld_punct(&bld, ")");
+                cdd_cst_bld_punct(&bld, ";");
+                if (!cdd_cst_builder_has_error(&bld))
+                  cdd_cst_splice_children(tree, &owning_node, child_idx, 0,
+                                          temp->children, temp->num_children);
+                cdd_cst_builder_free(&bld);
                 cdd_cst_free_node_only(temp);
-                appended = 1;
               }
               num_vlas--;
               appended = 1;
@@ -1392,10 +2299,27 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             char *heap_buf;
             strcat(p, " }");
             heap_buf = (char *)malloc(strlen(buf) + 1);
-            if (heap_buf)
-              strcpy(heap_buf, buf);
-            t->start = (const uint8_t *)heap_buf;
-            t->length = heap_buf ? strlen(heap_buf) : 0;
+            if (heap_buf) {
+              size_t child_idx_shadow;
+              cdd_cst_node_t *parent =
+                  cdd_cst_find_node_for_token(tree->root, t, &child_idx_shadow);
+              if (parent) {
+                cdd_token_t *new_tok;
+                strcpy(heap_buf, buf);
+                new_tok = cdd_cst_create_token_len(tree, t->kind, heap_buf,
+                                                   strlen(heap_buf));
+                if (new_tok) {
+                  new_tok->leading_trivia = t->leading_trivia;
+                  new_tok->trailing_trivia = t->trailing_trivia;
+                  t->leading_trivia = NULL;
+                  t->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(parent, child_idx_shadow,
+                                              new_tok);
+                }
+              } else {
+                free(heap_buf);
+              }
+            }
           }
         }
         current_depth--;
@@ -1411,13 +2335,37 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               size_t c_idx, v_idx;
 
               if (has_expr) {
-                t->start = (const uint8_t *)"{ __auto_type __cdd_ret = (";
-                t->length = 27;
+                size_t child_idx;
+                cdd_cst_node_t *parent =
+                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                if (parent) {
+                  cdd_token_t *new_tok = cdd_cst_create_token_len(
+                      tree, t->kind, "{ __auto_type __cdd_ret = (", 27);
+                  if (new_tok) {
+                    new_tok->leading_trivia = t->leading_trivia;
+                    new_tok->trailing_trivia = t->trailing_trivia;
+                    t->leading_trivia = NULL;
+                    t->trailing_trivia = NULL;
+                    cdd_cst_replace_token_child(parent, child_idx, new_tok);
+                  }
+                }
                 strcpy(p, "); ");
                 p += 3;
               } else {
-                t->start = (const uint8_t *)"{ ";
-                t->length = 2;
+                size_t child_idx;
+                cdd_cst_node_t *parent =
+                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                if (parent) {
+                  cdd_token_t *new_tok =
+                      cdd_cst_create_token_len(tree, t->kind, "{ ", 2);
+                  if (new_tok) {
+                    new_tok->leading_trivia = t->leading_trivia;
+                    new_tok->trailing_trivia = t->trailing_trivia;
+                    t->leading_trivia = NULL;
+                    t->trailing_trivia = NULL;
+                    cdd_cst_replace_token_child(parent, child_idx, new_tok);
+                  }
+                }
               }
 
               for (c_idx = num_cleanups; c_idx > 0; c_idx--) {
@@ -1443,10 +2391,31 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
               {
                 char *dup = (char *)malloc(strlen(buf) + 1);
-                if (dup)
-                  strcpy(dup, buf);
-                tree->base_tokens->tokens[k].start = (const uint8_t *)dup;
-                tree->base_tokens->tokens[k].length = dup ? strlen(dup) : 0;
+                if (dup) {
+                  size_t child_idx_dup;
+                  cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
+                      tree->root, &tree->base_tokens->tokens[k],
+                      &child_idx_dup);
+                  if (parent) {
+                    cdd_token_t *new_tok;
+                    strcpy(dup, buf);
+                    new_tok = cdd_cst_create_token_len(
+                        tree, tree->base_tokens->tokens[k].kind, dup,
+                        strlen(dup));
+                    if (new_tok) {
+                      new_tok->leading_trivia =
+                          tree->base_tokens->tokens[k].leading_trivia;
+                      new_tok->trailing_trivia =
+                          tree->base_tokens->tokens[k].trailing_trivia;
+                      tree->base_tokens->tokens[k].leading_trivia = NULL;
+                      tree->base_tokens->tokens[k].trailing_trivia = NULL;
+                      cdd_cst_replace_token_child(parent, child_idx_dup,
+                                                  new_tok);
+                    }
+                  } else {
+                    free(dup);
+                  }
+                }
               }
               break;
             }
@@ -1454,16 +2423,40 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
       } else if (t->kind == CDD_TOKEN_KEYWORD_GOTO) {
         if (num_cleanups > 0) {
-          t->start = (const uint8_t *)"/* warning: goto cross-scope cleanups "
-                                      "unsupported */ goto";
-          t->length = 59;
+          size_t c_idx2;
+          cdd_cst_node_t *parent =
+              cdd_cst_find_node_for_token(tree->root, t, &c_idx2);
+          if (parent) {
+            cdd_token_t *new_tok = cdd_cst_create_token_len(
+                tree, t->kind,
+                "/* warning: goto cross-scope cleanups unsupported */ goto",
+                59);
+            if (new_tok) {
+              new_tok->leading_trivia = t->leading_trivia;
+              new_tok->trailing_trivia = t->trailing_trivia;
+              t->leading_trivia = NULL;
+              t->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(parent, c_idx2, new_tok);
+            }
+          }
         }
 
         if (num_vlas > 0) {
-          t->start =
-              (const uint8_t
-                   *)"/* warning: goto crossing VLA scopes unsupported */ goto";
-          t->length = 58;
+          size_t c_idx3;
+          cdd_cst_node_t *parent =
+              cdd_cst_find_node_for_token(tree->root, t, &c_idx3);
+          if (parent) {
+            cdd_token_t *new_tok = cdd_cst_create_token_len(
+                tree, t->kind,
+                "/* warning: goto crossing VLA scopes unsupported */ goto", 58);
+            if (new_tok) {
+              new_tok->leading_trivia = t->leading_trivia;
+              new_tok->trailing_trivia = t->trailing_trivia;
+              t->leading_trivia = NULL;
+              t->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(parent, c_idx3, new_tok);
+            }
+          }
         }
 
         if (i + 1 < tree->base_tokens->size &&
@@ -1476,20 +2469,59 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
              MSVC contexts this extension cannot be successfully lowered
              natively without massive hacks.
           */
-          t->start = (const uint8_t
-                          *)"/* warning: computed goto converting jump tables "
-                            "to switch internally unsupported */ goto";
-          t->length = 89;
+          size_t child_idx;
+          cdd_cst_node_t *parent =
+              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          if (parent) {
+            cdd_token_t *new_tok = cdd_cst_create_token_len(
+                tree, t->kind,
+                "/* warning: computed goto converting jump tables to switch "
+                "internally unsupported */ goto",
+                89);
+            if (new_tok) {
+              new_tok->leading_trivia = t->leading_trivia;
+              new_tok->trailing_trivia = t->trailing_trivia;
+              t->leading_trivia = NULL;
+              t->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(parent, child_idx, new_tok);
+            }
+          }
         }
       } else if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 7 &&
                  memcmp(t->start, "longjmp", 7) == 0) {
         if (num_cleanups > 0) {
-          t->start = (const uint8_t
-                          *)"/* warning: longjmp bypasses cleanups */ longjmp";
-          t->length = 50;
+          size_t child_idx;
+          cdd_cst_node_t *parent =
+              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          if (parent) {
+            cdd_token_t *new_tok = cdd_cst_create_token_len(
+                tree, t->kind,
+                "/* warning: longjmp bypasses cleanups */ longjmp", 50);
+            if (new_tok) {
+              new_tok->leading_trivia = t->leading_trivia;
+              new_tok->trailing_trivia = t->trailing_trivia;
+              t->leading_trivia = NULL;
+              t->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(parent, child_idx, new_tok);
+            }
+          }
         }
       } else if (t->kind == CDD_TOKEN_KEYWORD___LABEL__) {
-        t->length = 0;
+        {
+          size_t c_idx;
+          cdd_cst_node_t *p_node =
+              cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+          if (p_node) {
+            cdd_token_t *n_tok = cdd_cst_create_token_len(tree, t->kind, "", 0);
+            if (n_tok) {
+              n_tok->leading_trivia = t->leading_trivia;
+              n_tok->trailing_trivia = t->trailing_trivia;
+              t->leading_trivia = NULL;
+              t->trailing_trivia = NULL;
+              cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+            }
+          }
+        }
         i++;
         while (i < tree->base_tokens->size) {
           cdd_token_t *nt = &tree->base_tokens->tokens[i];
@@ -1509,11 +2541,56 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
               num_local_labels++;
             }
-            nt->length = 0;
+            {
+              size_t c_idx;
+              cdd_cst_node_t *p_node =
+                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok =
+                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                if (n_tok) {
+                  n_tok->leading_trivia = nt->leading_trivia;
+                  n_tok->trailing_trivia = nt->trailing_trivia;
+                  nt->leading_trivia = NULL;
+                  nt->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
+            }
           } else if (nt->kind == CDD_TOKEN_COMMA) {
-            nt->length = 0;
+            {
+              size_t c_idx;
+              cdd_cst_node_t *p_node =
+                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok =
+                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                if (n_tok) {
+                  n_tok->leading_trivia = nt->leading_trivia;
+                  n_tok->trailing_trivia = nt->trailing_trivia;
+                  nt->leading_trivia = NULL;
+                  nt->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
+            }
           } else if (nt->kind == CDD_TOKEN_SEMICOLON) {
-            nt->length = 0;
+            {
+              size_t c_idx;
+              cdd_cst_node_t *p_node =
+                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              if (p_node) {
+                cdd_token_t *n_tok =
+                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                if (n_tok) {
+                  n_tok->leading_trivia = nt->leading_trivia;
+                  n_tok->trailing_trivia = nt->trailing_trivia;
+                  nt->leading_trivia = NULL;
+                  nt->trailing_trivia = NULL;
+                  cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                }
+              }
+            }
             break;
           } else {
             break;
@@ -1549,10 +2626,26 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             if (local_labels[j].length == t->length &&
                 memcmp(local_labels[j].name, t->start, t->length) == 0) {
               char *dup = (char *)malloc(strlen(local_labels[j].rename) + 1);
-              if (dup)
-                strcpy(dup, local_labels[j].rename);
-              t->start = (const uint8_t *)dup;
-              t->length = dup ? strlen(dup) : 0;
+              if (dup) {
+                size_t child_idx;
+                cdd_cst_node_t *parent =
+                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                if (parent) {
+                  cdd_token_t *new_tok;
+                  strcpy(dup, local_labels[j].rename);
+                  new_tok =
+                      cdd_cst_create_token_len(tree, t->kind, dup, strlen(dup));
+                  if (new_tok) {
+                    new_tok->leading_trivia = t->leading_trivia;
+                    new_tok->trailing_trivia = t->trailing_trivia;
+                    t->leading_trivia = NULL;
+                    t->trailing_trivia = NULL;
+                    cdd_cst_replace_token_child(parent, child_idx, new_tok);
+                  }
+                } else {
+                  free(dup);
+                }
+              }
               break;
             }
           }
@@ -1563,18 +2656,70 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       if (t->kind == CDD_TOKEN_LPAREN && i + 1 < tree->base_tokens->size &&
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LBRACE) {
         /* Remove ({ */
-        t->start = (const uint8_t *)"";
-        t->length = 0;
-        tree->base_tokens->tokens[i + 1].start = (const uint8_t *)"";
-        tree->base_tokens->tokens[i + 1].length = 0;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+        if (parent) {
+          cdd_token_t *empty_tok =
+              cdd_cst_create_token_len(tree, t->kind, "", 0);
+          if (empty_tok) {
+            empty_tok->leading_trivia = t->leading_trivia;
+            empty_tok->trailing_trivia = t->trailing_trivia;
+            t->leading_trivia = NULL;
+            t->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+          }
+        }
+
+        parent = cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx);
+        if (parent) {
+          cdd_token_t *empty_tok = cdd_cst_create_token_len(
+              tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+          if (empty_tok) {
+            empty_tok->leading_trivia =
+                tree->base_tokens->tokens[i + 1].leading_trivia;
+            empty_tok->trailing_trivia =
+                tree->base_tokens->tokens[i + 1].trailing_trivia;
+            tree->base_tokens->tokens[i + 1].leading_trivia = NULL;
+            tree->base_tokens->tokens[i + 1].trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+          }
+        }
       } else if (t->kind == CDD_TOKEN_RBRACE &&
                  i + 1 < tree->base_tokens->size &&
                  tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_RPAREN) {
         /* Remove }) */
-        t->start = (const uint8_t *)"";
-        t->length = 0;
-        tree->base_tokens->tokens[i + 1].start = (const uint8_t *)"";
-        tree->base_tokens->tokens[i + 1].length = 0;
+        size_t child_idx;
+        cdd_cst_node_t *parent =
+            cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+        if (parent) {
+          cdd_token_t *empty_tok =
+              cdd_cst_create_token_len(tree, t->kind, "", 0);
+          if (empty_tok) {
+            empty_tok->leading_trivia = t->leading_trivia;
+            empty_tok->trailing_trivia = t->trailing_trivia;
+            t->leading_trivia = NULL;
+            t->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+          }
+        }
+
+        parent = cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx);
+        if (parent) {
+          cdd_token_t *empty_tok = cdd_cst_create_token_len(
+              tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+          if (empty_tok) {
+            empty_tok->leading_trivia =
+                tree->base_tokens->tokens[i + 1].leading_trivia;
+            empty_tok->trailing_trivia =
+                tree->base_tokens->tokens[i + 1].trailing_trivia;
+            tree->base_tokens->tokens[i + 1].leading_trivia = NULL;
+            tree->base_tokens->tokens[i + 1].trailing_trivia = NULL;
+            cdd_cst_replace_token_child(parent, child_idx, empty_tok);
+          }
+        }
       } else if (t->kind == CDD_TOKEN_LBRACKET && i > 0) {
         cdd_token_t *prev = &tree->base_tokens->tokens[i - 1];
         cdd_token_t *next = &tree->base_tokens->tokens[i + 1];
@@ -1614,14 +2759,41 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   cdd_cst_node_t *owning_node =
                       cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
                   if (owning_node) {
-                    cdd_cst_node_t *temp = cdd_cst_parse_format(
-                        tree, "*%.*s = malloc((%s) * sizeof(*%.*s));",
-                        (int)prev->length, prev->start, size_expr,
-                        (int)prev->length, prev->start);
+                    cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
                     if (temp) {
-                      cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                              (k - i + 2), temp->children,
-                                              temp->num_children);
+                      cdd_cst_builder_t bld;
+                      cdd_cst_builder_init(&bld, tree, temp);
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_ident(
+                          &bld,
+                          pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length));
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_punct(&bld, "=");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_ident(&bld, "malloc");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_snippet(&bld, size_expr);
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_ident(&bld, "sizeof");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_ident(
+                          &bld,
+                          pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length));
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_punct(&bld, ";");
+                      if (!cdd_cst_builder_has_error(&bld))
+                        cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                                0, temp->children,
+                                                temp->num_children);
+                      cdd_cst_builder_free(&bld);
                       cdd_cst_free_node_only(temp);
                     }
                   }
@@ -1633,8 +2805,38 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   num_vlas++;
                 }
                 {
-                  prev->length = 0;
-                  end_tok->length = 0;
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node =
+                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = prev->leading_trivia;
+                        n_tok->trailing_trivia = prev->trailing_trivia;
+                        prev->leading_trivia = NULL;
+                        prev->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, end_tok, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, end_tok->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = end_tok->leading_trivia;
+                        n_tok->trailing_trivia = end_tok->trailing_trivia;
+                        end_tok->leading_trivia = NULL;
+                        end_tok->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
 
                   vlas[num_vlas].depth = current_depth;
                   num_vlas++;
@@ -1645,19 +2847,76 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   cdd_cst_node_t *owning_node =
                       cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
                   if (owning_node) {
-                    cdd_cst_node_t *temp = cdd_cst_parse_format(
-                        tree, "*%.*s = alloca((%s) * sizeof(*%.*s));",
-                        (int)prev->length, prev->start, size_expr,
-                        (int)prev->length, prev->start);
+                    cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
                     if (temp) {
-                      cdd_cst_splice_children(tree, &owning_node, child_idx,
-                                              (k - i + 2), temp->children,
-                                              temp->num_children);
+                      cdd_cst_builder_t bld;
+                      cdd_cst_builder_init(&bld, tree, temp);
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_ident(
+                          &bld,
+                          pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length));
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_punct(&bld, "=");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_ident(&bld, "alloca");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_snippet(&bld, size_expr);
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_space(&bld);
+                      cdd_cst_bld_ident(&bld, "sizeof");
+                      cdd_cst_bld_punct(&bld, "(");
+                      cdd_cst_bld_punct(&bld, "*");
+                      cdd_cst_bld_ident(
+                          &bld,
+                          pool_string_safe_len(tree, (const char *)prev->start,
+                                               prev->length));
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_punct(&bld, ")");
+                      cdd_cst_bld_punct(&bld, ";");
+                      if (!cdd_cst_builder_has_error(&bld))
+                        cdd_cst_splice_children(tree, &owning_node, child_idx,
+                                                0, temp->children,
+                                                temp->num_children);
+                      cdd_cst_builder_free(&bld);
                       cdd_cst_free_node_only(temp);
                     }
                   }
-                  prev->length = 0;
-                  end_tok->length = 0;
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node =
+                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = prev->leading_trivia;
+                        n_tok->trailing_trivia = prev->trailing_trivia;
+                        prev->leading_trivia = NULL;
+                        prev->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, end_tok, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, end_tok->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = end_tok->leading_trivia;
+                        n_tok->trailing_trivia = end_tok->trailing_trivia;
+                        end_tok->leading_trivia = NULL;
+                        end_tok->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
                 }
               }
               {
@@ -1701,14 +2960,37 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
           if (found_rbrace) {
             /* Flexible Array Member polyfill -> change [0] to [1] */
-            next->start = (const uint8_t *)"1";
-            next->length = 1;
+            size_t child_idx;
+            cdd_cst_node_t *parent =
+                cdd_cst_find_node_for_token(tree->root, next, &child_idx);
+            if (parent) {
+              cdd_token_t *new_tok =
+                  cdd_cst_create_token_len(tree, next->kind, "1", 1);
+              if (new_tok) {
+                new_tok->leading_trivia = next->leading_trivia;
+                new_tok->trailing_trivia = next->trailing_trivia;
+                next->leading_trivia = NULL;
+                next->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(parent, child_idx, new_tok);
+              }
+            }
           } else {
             /* Reject zero-length array in the middle of a struct */
-            next->start =
-                (const uint8_t
-                     *)"-1 /* zero-length array in middle of struct */";
-            next->length = 46;
+            size_t child_idx;
+            cdd_cst_node_t *parent =
+                cdd_cst_find_node_for_token(tree->root, next, &child_idx);
+            if (parent) {
+              cdd_token_t *new_tok = cdd_cst_create_token_len(
+                  tree, next->kind,
+                  "-1 /* zero-length array in middle of struct */", 46);
+              if (new_tok) {
+                new_tok->leading_trivia = next->leading_trivia;
+                new_tok->trailing_trivia = next->trailing_trivia;
+                next->leading_trivia = NULL;
+                next->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(parent, child_idx, new_tok);
+              }
+            }
           }
         }
       } else if (t->kind == CDD_TOKEN_COMMA) {
@@ -1720,7 +3002,22 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         if (next_idx < tree->base_tokens->size &&
             tree->base_tokens->tokens[next_idx].kind == CDD_TOKEN_RBRACE) {
-          t->length = 0;
+          {
+            size_t c_idx;
+            cdd_cst_node_t *p_node =
+                cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+            if (p_node) {
+              cdd_token_t *n_tok =
+                  cdd_cst_create_token_len(tree, t->kind, "", 0);
+              if (n_tok) {
+                n_tok->leading_trivia = t->leading_trivia;
+                n_tok->trailing_trivia = t->trailing_trivia;
+                t->leading_trivia = NULL;
+                t->trailing_trivia = NULL;
+                cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+              }
+            }
+          }
         }
       } else if (t->kind == CDD_TOKEN_LBRACE &&
                  i + 1 < tree->base_tokens->size &&
@@ -1874,14 +3171,59 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     (const uint8_t *)heap_buf;
                 tree->base_tokens->tokens[is_case_idx].length =
                     strlen(heap_buf);
-                prev->length = 0;
-                t->length = 0;
+                {
+                  size_t c_idx;
+                  cdd_cst_node_t *p_node =
+                      cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                  if (p_node) {
+                    cdd_token_t *n_tok =
+                        cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                    if (n_tok) {
+                      n_tok->leading_trivia = prev->leading_trivia;
+                      n_tok->trailing_trivia = prev->trailing_trivia;
+                      prev->leading_trivia = NULL;
+                      prev->trailing_trivia = NULL;
+                      cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                    }
+                  }
+                }
+                {
+                  size_t c_idx;
+                  cdd_cst_node_t *p_node =
+                      cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+                  if (p_node) {
+                    cdd_token_t *n_tok =
+                        cdd_cst_create_token_len(tree, t->kind, "", 0);
+                    if (n_tok) {
+                      n_tok->leading_trivia = t->leading_trivia;
+                      n_tok->trailing_trivia = t->trailing_trivia;
+                      t->leading_trivia = NULL;
+                      t->trailing_trivia = NULL;
+                      cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                    }
+                  }
+                }
                 tree->base_tokens->tokens[i + 1].length = 0;
                 tree->base_tokens->tokens[i + 2].length = 0;
                 if (is_neg_end) {
                   tree->base_tokens->tokens[i + 3].length = 0;
                 }
-                next->length = 0;
+                {
+                  size_t c_idx;
+                  cdd_cst_node_t *p_node =
+                      cdd_cst_find_node_for_token(tree->root, next, &c_idx);
+                  if (p_node) {
+                    cdd_token_t *n_tok =
+                        cdd_cst_create_token_len(tree, next->kind, "", 0);
+                    if (n_tok) {
+                      n_tok->leading_trivia = next->leading_trivia;
+                      n_tok->trailing_trivia = next->trailing_trivia;
+                      next->leading_trivia = NULL;
+                      next->trailing_trivia = NULL;
+                      cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                    }
+                  }
+                }
               }
             } else if (is_range_init && start_val <= end_val) {
               char *heap_buf;
@@ -1918,14 +3260,138 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       (const uint8_t *)heap_buf;
                   tree->base_tokens->tokens[is_range_idx].length =
                       strlen(heap_buf);
-                  prev->length = 0;
-                  t->length = 0;
-                  tree->base_tokens->tokens[i + 1].length = 0;
-                  tree->base_tokens->tokens[i + 2].length = 0;
-                  next->length = 0;
-                  (next + 1)->length = 0; /* ] */
-                  (next + 2)->length = 0; /* = */
-                  assign_val->length = 0;
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node =
+                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = prev->leading_trivia;
+                        n_tok->trailing_trivia = prev->trailing_trivia;
+                        prev->leading_trivia = NULL;
+                        prev->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node =
+                        cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, t->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = t->leading_trivia;
+                        n_tok->trailing_trivia = t->trailing_trivia;
+                        t->leading_trivia = NULL;
+                        t->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, &tree->base_tokens->tokens[i + 1], &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok = cdd_cst_create_token_len(
+                          tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia =
+                            tree->base_tokens->tokens[i + 1].leading_trivia;
+                        n_tok->trailing_trivia =
+                            tree->base_tokens->tokens[i + 1].trailing_trivia;
+                        tree->base_tokens->tokens[i + 1].leading_trivia = NULL;
+                        tree->base_tokens->tokens[i + 1].trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, &tree->base_tokens->tokens[i + 2], &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok = cdd_cst_create_token_len(
+                          tree, tree->base_tokens->tokens[i + 2].kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia =
+                            tree->base_tokens->tokens[i + 2].leading_trivia;
+                        n_tok->trailing_trivia =
+                            tree->base_tokens->tokens[i + 2].trailing_trivia;
+                        tree->base_tokens->tokens[i + 2].leading_trivia = NULL;
+                        tree->base_tokens->tokens[i + 2].trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node =
+                        cdd_cst_find_node_for_token(tree->root, next, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok =
+                          cdd_cst_create_token_len(tree, next->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = next->leading_trivia;
+                        n_tok->trailing_trivia = next->trailing_trivia;
+                        next->leading_trivia = NULL;
+                        next->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, (next + 1), &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok = cdd_cst_create_token_len(
+                          tree, (next + 1)->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = (next + 1)->leading_trivia;
+                        n_tok->trailing_trivia = (next + 1)->trailing_trivia;
+                        (next + 1)->leading_trivia = NULL;
+                        (next + 1)->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, (next + 2), &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok = cdd_cst_create_token_len(
+                          tree, (next + 2)->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = (next + 2)->leading_trivia;
+                        n_tok->trailing_trivia = (next + 2)->trailing_trivia;
+                        (next + 2)->leading_trivia = NULL;
+                        (next + 2)->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
+                  {
+                    size_t c_idx;
+                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
+                        tree->root, assign_val, &c_idx);
+                    if (p_node) {
+                      cdd_token_t *n_tok = cdd_cst_create_token_len(
+                          tree, assign_val->kind, "", 0);
+                      if (n_tok) {
+                        n_tok->leading_trivia = assign_val->leading_trivia;
+                        n_tok->trailing_trivia = assign_val->trailing_trivia;
+                        assign_val->leading_trivia = NULL;
+                        assign_val->trailing_trivia = NULL;
+                        cdd_cst_replace_token_child(p_node, c_idx, n_tok);
+                      }
+                    }
+                  }
                 }
               }
             }

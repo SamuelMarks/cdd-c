@@ -1,6 +1,8 @@
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
+#include "classes/parse/cdd_cst_builder.h"
+#include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 #include "c_str_span.h"
@@ -9,6 +11,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 /* clang-format on */
+
+static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
+                                     cdd_cst_node_t *node) {
+  size_t i;
+  if (!node)
+    return;
+  for (i = 0; i < node->num_children; i++) {
+    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+      cdd_token_t *t = node->children[i].val.token;
+      if (t->kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *new_tok = NULL;
+        if (t->length == 10 && memcmp(t->start, "strcasecmp", 10) == 0) {
+          new_tok =
+              cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_stricmp");
+        } else if (t->length == 11 &&
+                   memcmp(t->start, "strncasecmp", 11) == 0) {
+          new_tok =
+              cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_strnicmp");
+        } else if (t->length == 6 && memcmp(t->start, "strdup", 6) == 0) {
+          new_tok = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "_strdup");
+        } else if (t->length == 7 && memcmp(t->start, "ssize_t", 7) == 0) {
+          new_tok = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "SSIZE_T");
+        } else if (t->length == 16 &&
+                   memcmp(t->start, "__builtin_expect", 16) == 0) {
+          new_tok = cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER,
+                                         "cdd_builtin_expect");
+        }
+        if (new_tok) {
+          new_tok->leading_trivia = t->leading_trivia;
+          new_tok->trailing_trivia = t->trailing_trivia;
+          t->leading_trivia = NULL;
+          t->trailing_trivia = NULL;
+          cdd_cst_replace_token_child(node, i, new_tok);
+        }
+      }
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      replace_msvc_identifiers(tree, node->children[i].val.node);
+    }
+  }
+}
 
 int cdd_transform_msvc(cdd_cst_tree_t *tree,
                        const cdd_transform_config_t *config) {
@@ -31,41 +73,34 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
         if (tok->kind == CDD_TOKEN_PREPROC_INCLUDE && dir->num_children > 1 &&
             dir->children[1].kind == CDD_CST_CHILD_TOKEN) {
           cdd_token_t *inc_tok = dir->children[1].val.token;
+          const char *inc_str = NULL;
           if (inc_tok->length == 10 &&
               memcmp(inc_tok->start, "<unistd.h>", 10) == 0) {
-            cdd_cst_tree_t *wrap_tree = NULL;
-            if (cdd_cst_parse(
-                    az_span_create_from_str("#ifndef _MSC_VER\n#include "
-                                            "<unistd.h>\n#else\n#include "
-                                            "\"win_compat_sym.h\"\n#endif\n"),
-                    &wrap_tree) == 0) {
-              if (wrap_tree->root->num_children > 0) {
-                cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_clone_tree(tree,
-                                       wrap_tree->root->children[0].val.node,
-                                       &cloned) == 0) {
-                  cdd_cst_replace_node(tree, dir, cloned);
-                }
-              }
-              cdd_cst_tree_free(wrap_tree);
-            }
+            inc_str = "unistd.h";
           } else if (inc_tok->length == 12 &&
                      memcmp(inc_tok->start, "<sys/time.h>", 12) == 0) {
-            cdd_cst_tree_t *wrap_tree = NULL;
-            if (cdd_cst_parse(
-                    az_span_create_from_str("#ifndef _MSC_VER\n#include "
-                                            "<sys/time.h>\n#else\n#include "
-                                            "\"win_compat_sym.h\"\n#endif\n"),
-                    &wrap_tree) == 0) {
-              if (wrap_tree->root->num_children > 0) {
-                cdd_cst_node_t *cloned = NULL;
-                if (cdd_cst_clone_tree(tree,
-                                       wrap_tree->root->children[0].val.node,
-                                       &cloned) == 0) {
-                  cdd_cst_replace_node(tree, dir, cloned);
-                }
+            inc_str = "sys/time.h";
+          }
+          if (inc_str) {
+            cdd_cst_builder_t bld;
+            cdd_cst_node_t *wrap_node =
+                (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+            if (wrap_node) {
+              wrap_node->kind = CDD_CST_UNKNOWN;
+              cdd_cst_builder_init(&bld, tree, wrap_node);
+              cdd_cst_bld_ifndef(&bld, "_MSC_VER");
+              cdd_cst_bld_include(&bld, inc_str, 1);
+              cdd_cst_bld_else(&bld);
+              cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
+              cdd_cst_bld_endif(&bld);
+
+              if (!cdd_cst_builder_has_error(&bld)) {
+                cdd_cst_replace_node(tree, dir, wrap_node);
+              } else {
+                free(wrap_node->children);
+                free(wrap_node);
               }
-              cdd_cst_tree_free(wrap_tree);
+              cdd_cst_builder_free(&bld);
             }
           }
         }
@@ -75,28 +110,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
   }
 
   /* 2. Traverse tokens and replace POSIX identifiers directly */
-  for (i = 0; i < tree->base_tokens->size; i++) {
-    cdd_token_t *t = &tree->base_tokens->tokens[i];
-    if (t->kind == CDD_TOKEN_IDENTIFIER) {
-      if (t->length == 10 && memcmp(t->start, "strcasecmp", 10) == 0) {
-        t->start = (const uint8_t *)"_stricmp";
-        t->length = 8;
-      } else if (t->length == 11 && memcmp(t->start, "strncasecmp", 11) == 0) {
-        t->start = (const uint8_t *)"_strnicmp";
-        t->length = 9;
-      } else if (t->length == 6 && memcmp(t->start, "strdup", 6) == 0) {
-        t->start = (const uint8_t *)"_strdup";
-        t->length = 7;
-      } else if (t->length == 7 && memcmp(t->start, "ssize_t", 7) == 0) {
-        t->start = (const uint8_t *)"SSIZE_T";
-        t->length = 7;
-      } else if (t->length == 16 &&
-                 memcmp(t->start, "__builtin_expect", 16) == 0) {
-        t->start = (const uint8_t *)"cdd_builtin_expect";
-        t->length = 18;
-      }
-    }
-  }
+  replace_msvc_identifiers(tree, tree->root);
 
   return 0;
 }

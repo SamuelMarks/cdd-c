@@ -30,13 +30,14 @@ TEST test_cdd_transform_gnu(void) {
                      "}\n";
   char *out = NULL;
   int rc;
+  size_t i;
   cdd_transform_config_t config;
   memset(&config, 0, sizeof(config));
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
 
-  for (size_t i = 0; i < tree->base_tokens->size; i++) {
+  for (i = 0; i < tree->base_tokens->size; i++) {
     cdd_token_t *t = &tree->base_tokens->tokens[i];
     if (t->length > 0) {
       fprintf(stderr, "TOKEN: [%.*s]\n", (int)t->length, t->start);

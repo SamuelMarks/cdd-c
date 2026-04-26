@@ -109,6 +109,7 @@ set(Source_Files
           "classes/parse/cdd_cst_cfg.c"
           "classes/parse/cdd_cst_escape.c"
   "classes/parse/cdd_cst_factory.c"
+          "classes/parse/cdd_cst_builder.c"
           "classes/parse/cdd_cst_factory_format.c"
         "classes/parse/cdd_cst_query.c"
         "transformers/extern_c/extern_c.c"
