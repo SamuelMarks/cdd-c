@@ -352,7 +352,6 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
     free_node(tree->root);
   if (tree->base_tokens)
     cdd_lexer_free_token_list(tree->base_tokens);
-
   if (tree->synthesized_tokens) {
     for (i = 0; i < tree->num_synthesized; i++) {
       if (tree->synthesized_tokens[i]) {
@@ -373,6 +372,12 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
       }
     }
     free(tree->synthesized_tokens);
+  }
+  if (tree->string_pool) {
+    for (i = 0; i < tree->num_strings; i++) {
+      free(tree->string_pool[i]);
+    }
+    free(tree->string_pool);
   }
   free(tree);
 }

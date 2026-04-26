@@ -318,3 +318,38 @@ stdout.txt
 test_out*.txt
 test_*.txt
 
+
+# Additional wildcards to ignore scratch scripts and backups
+*.bak[0-9]*
+*.bak
+fix_*.sh
+test_dbg*.sh
+final_*.sh
+attr_script*.txt
+debug_*.c
+debug_*/
+debug_safe
+clean_*.sh
+delete_*.sh
+finish_*.sh
+update_*.sh
+print_*.sh
+rewrite_*.sh
+run_test.sh
+preprocess.sh
+dbg_safe.sh
+
+# Additional wildcards for root scratch files
+/out*.bin
+/out*.c
+/bld_*.c
+/dump_*.c
+/diff*.txt
+/err*.txt
+/make_*.txt
+/patch[0-9]*
+*.temp-stream-*
+/test_out*
+/test_strstr
+/debug*.c*
+/debug*/

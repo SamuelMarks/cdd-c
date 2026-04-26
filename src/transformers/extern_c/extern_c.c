@@ -1,6 +1,8 @@
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
+#include "classes/parse/cdd_cst_builder.h"
+#include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 #include "c_str_span.h"
@@ -69,46 +71,54 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
 
   /* 3. Synthesize Top Nodes */
   {
-    cdd_cst_tree_t *top_tree = NULL;
-    const char *top_str =
-        "\n#ifdef __cplusplus\nextern \"C\" {\n#endif /* __cplusplus */\n";
-    if (cdd_cst_parse(az_span_create_from_str((char *)top_str), &top_tree) ==
-        0) {
-      if (top_tree->root->num_children > 0) {
-        cdd_cst_node_t *cloned = NULL;
-        /* Insert all children of the parsed fragment */
-        if (cdd_cst_clone_tree(tree, top_tree->root->children[0].val.node,
-                               &cloned) == 0) {
-          if (insert_after_node) {
-            cdd_cst_insert_node_after(insert_after_node, cloned);
-          } else if (tree->root->num_children > 0) {
-            cdd_cst_insert_node_before(tree->root->children[0].val.node,
-                                       cloned);
-          }
+    cdd_cst_builder_t bld;
+    cdd_cst_node_t *top_node =
+        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+    if (top_node) {
+      top_node->kind = CDD_CST_UNKNOWN;
+      cdd_cst_builder_init(&bld, tree, top_node);
+      cdd_cst_bld_newline(&bld);
+      cdd_cst_bld_extern_c_open(&bld);
+      if (!cdd_cst_builder_has_error(&bld)) {
+        if (insert_after_node) {
+          cdd_cst_insert_node_after(insert_after_node, top_node);
+        } else if (tree->root->num_children > 0) {
+          cdd_cst_insert_node_before(tree->root->children[0].val.node,
+                                     top_node);
         }
+      } else {
+        free(top_node->children);
+        free(top_node);
       }
-      cdd_cst_tree_free(top_tree);
+      cdd_cst_builder_free(&bld);
     }
   }
 
   /* 4. Synthesize Bottom Nodes */
   {
-    cdd_cst_tree_t *bot_tree = NULL;
-    const char *bot_str = "\n#ifdef __cplusplus\n}\n#endif /* __cplusplus */\n";
-    if (cdd_cst_parse(az_span_create_from_str((char *)bot_str), &bot_tree) ==
-        0) {
-      if (bot_tree->root->num_children > 0) {
-        cdd_cst_node_t *cloned = NULL;
-        if (cdd_cst_clone_tree(tree, bot_tree->root->children[0].val.node,
-                               &cloned) == 0) {
-          if (tree->root->num_children > 0) {
-            cdd_cst_node_t *last_node =
-                tree->root->children[tree->root->num_children - 1].val.node;
-            cdd_cst_insert_node_after(last_node, cloned);
+    cdd_cst_builder_t bld;
+    cdd_cst_node_t *bot_node =
+        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+    if (bot_node) {
+      bot_node->kind = CDD_CST_UNKNOWN;
+      cdd_cst_builder_init(&bld, tree, bot_node);
+      cdd_cst_bld_newline(&bld);
+      cdd_cst_bld_extern_c_close(&bld);
+      if (!cdd_cst_builder_has_error(&bld)) {
+        if (tree->root->num_children > 0) {
+          cdd_cst_node_t *last_node =
+              tree->root->children[tree->root->num_children - 1].val.node;
+          if (last_node != bot_node) {
+            cdd_cst_insert_node_after(last_node, bot_node);
           }
+        } else {
+          cdd_cst_append_child_node(tree->root, bot_node);
         }
+      } else {
+        free(bot_node->children);
+        free(bot_node);
       }
-      cdd_cst_tree_free(bot_tree);
+      cdd_cst_builder_free(&bld);
     }
   }
 

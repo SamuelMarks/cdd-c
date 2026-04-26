@@ -21,7 +21,6 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   if (!new_node)
     return ENOMEM;
 
-  printf("Loop 1, start_idx=%zu\\n", start_idx);
   for (i = 0; i < start_idx; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_cst_append_child_token(new_node, node->children[i].val.token);
@@ -30,7 +29,6 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
-  printf("Loop 2, new_children_count=%zu\\n", new_children_count);
   for (i = 0; i < new_children_count; i++) {
     if (new_children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_cst_append_child_token(new_node, new_children[i].val.token);
@@ -39,8 +37,6 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
-  printf("Loop 3, node->num_children=%zu, start=%zu\\n", node->num_children,
-         start_idx + consume_count);
   for (i = start_idx + consume_count; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_cst_append_child_token(new_node, node->children[i].val.token);
@@ -49,11 +45,9 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
-  printf("Replace node\\n");
   rc = cdd_cst_replace_node(tree, node, new_node);
   if (rc == 0 && node_ptr)
     *node_ptr = new_node;
-  printf("Done splice\\n");
   return rc;
 }
 

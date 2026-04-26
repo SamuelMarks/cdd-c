@@ -94,6 +94,9 @@ struct cdd_cst_tree_t {
   /** @brief field */
   /** @brief field */
   size_t synthesized_capacity;
+  char **string_pool;
+  size_t num_strings;
+  size_t string_capacity;
 };
 
 #ifdef __cplusplus

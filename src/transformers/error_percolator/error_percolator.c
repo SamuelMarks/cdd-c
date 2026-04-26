@@ -1,6 +1,8 @@
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
+#include "classes/parse/cdd_cst_builder.h"
+#include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 #include "c_str_span.h"
@@ -10,12 +12,231 @@
 #include <stdlib.h>
 /* clang-format on */
 
+static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
+                               cdd_token_t **modified_funcs,
+                               size_t num_modified) {
+  size_t i;
+  if (!node)
+    return;
+  for (i = 0; i < node->num_children; i++) {
+    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+      cdd_token_t *tok = node->children[i].val.token;
+      if (tok->kind == CDD_TOKEN_IDENTIFIER) {
+        size_t m;
+        for (m = 0; m < num_modified; m++) {
+          if (modified_funcs[m]->length == tok->length &&
+              memcmp(modified_funcs[m]->start, tok->start, tok->length) == 0) {
+
+            int is_call = 0;
+            int is_def = 0;
+            size_t j;
+            size_t rparen_idx = 0;
+            size_t semi_idx = 0;
+            int depth = 0;
+            cdd_token_t *rparen_tok = NULL;
+            cdd_token_t *prev_rparen_tok = NULL;
+
+            for (j = i + 1; j < node->num_children; j++) {
+              if (node->children[j].kind == CDD_CST_CHILD_TOKEN) {
+                if (node->children[j].val.token->kind == CDD_TOKEN_LPAREN) {
+                  is_call = 1;
+                }
+                break;
+              }
+            }
+            if (!is_call)
+              continue;
+
+            for (j = i; j-- > 0;) {
+              if (node->children[j].kind == CDD_CST_CHILD_TOKEN) {
+                cdd_token_t *prev = node->children[j].val.token;
+                if (prev->kind == CDD_TOKEN_KEYWORD_INT ||
+                    (prev->kind == CDD_TOKEN_IDENTIFIER && prev->length == 4 &&
+                     memcmp(prev->start, "void", 4) == 0)) {
+                  is_def = 1;
+                }
+                break;
+              }
+            }
+            if (is_def)
+              continue;
+
+            for (j = i + 1; j < node->num_children; j++) {
+              if (node->children[j].kind == CDD_CST_CHILD_TOKEN) {
+                cdd_token_t *t = node->children[j].val.token;
+                if (t->kind == CDD_TOKEN_LPAREN) {
+                  depth++;
+                } else if (t->kind == CDD_TOKEN_RPAREN) {
+                  depth--;
+                  if (depth == 0) {
+                    rparen_idx = j;
+                    rparen_tok = t;
+                    if (j > 0 &&
+                        node->children[j - 1].kind == CDD_CST_CHILD_TOKEN) {
+                      prev_rparen_tok = node->children[j - 1].val.token;
+                    }
+                  }
+                } else if (depth == 0 && t->kind == CDD_TOKEN_SEMICOLON &&
+                           rparen_tok) {
+                  semi_idx = j;
+                  break;
+                }
+              }
+            }
+
+            if (rparen_tok) {
+              {
+                cdd_cst_builder_t bld;
+                cdd_cst_node_t *temp =
+                    (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                if (temp) {
+                  char id_buf[256];
+                  char *dup_id = NULL;
+                  temp->kind = CDD_CST_UNKNOWN;
+                  cdd_cst_builder_init(&bld, tree, temp);
+                  snprintf(id_buf, sizeof(id_buf), "out_%.*s", (int)tok->length,
+                           tok->start);
+
+                  {
+                    size_t c_len = strlen(id_buf);
+                    cdd_token_t *t_dummy = cdd_cst_create_token_len(
+                        tree, CDD_TOKEN_IDENTIFIER, id_buf, c_len);
+                    if (t_dummy)
+                      dup_id = (char *)t_dummy->start;
+                  }
+
+                  cdd_cst_bld_ident(&bld, "void");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "*");
+                  if (dup_id)
+                    cdd_cst_bld_ident(&bld, dup_id);
+                  cdd_cst_bld_punct(&bld, ";");
+                  cdd_cst_bld_newline(&bld);
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_ident(&bld, "if");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "(");
+
+                  if (!cdd_cst_builder_has_error(&bld)) {
+                    cdd_trivia_t *lt = tok->leading_trivia;
+                    cdd_cst_node_t *parent_ptr = node;
+                    tok->leading_trivia = NULL;
+                    if (temp->num_children > 0 &&
+                        temp->children[0].kind == CDD_CST_CHILD_TOKEN) {
+                      temp->children[0].val.token->leading_trivia = lt;
+                    }
+                    cdd_cst_splice_children(tree, &parent_ptr, i, 0,
+                                            temp->children, temp->num_children);
+                    i += temp->num_children;
+                    rparen_idx += temp->num_children;
+                    if (semi_idx)
+                      semi_idx += temp->num_children;
+                    node = parent_ptr;
+                  }
+                  cdd_cst_builder_free(&bld);
+                  free(temp->children);
+                  free(temp);
+                }
+              }
+
+              {
+                cdd_cst_builder_t bld;
+                cdd_cst_node_t *temp =
+                    (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                if (temp) {
+                  char id_buf[256];
+                  char *dup_id = NULL;
+                  temp->kind = CDD_CST_UNKNOWN;
+                  cdd_cst_builder_init(&bld, tree, temp);
+                  snprintf(id_buf, sizeof(id_buf), "out_%.*s",
+                           (int)modified_funcs[m]->length,
+                           modified_funcs[m]->start);
+
+                  {
+                    size_t c_len = strlen(id_buf);
+                    cdd_token_t *t_dummy = cdd_cst_create_token_len(
+                        tree, CDD_TOKEN_IDENTIFIER, id_buf, c_len);
+                    if (t_dummy)
+                      dup_id = (char *)t_dummy->start;
+                  }
+
+                  if (!(prev_rparen_tok &&
+                        prev_rparen_tok->kind == CDD_TOKEN_LPAREN)) {
+                    cdd_cst_bld_punct(&bld, ",");
+                    cdd_cst_bld_space(&bld);
+                  }
+
+                  cdd_cst_bld_punct(&bld, "&");
+                  if (dup_id)
+                    cdd_cst_bld_ident(&bld, dup_id);
+                  cdd_cst_bld_punct(&bld, ")");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "!=");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_int(&bld, 0);
+                  cdd_cst_bld_punct(&bld, ")");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "{");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_ident(&bld, "return");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_ident(&bld, "ENOMEM");
+                  cdd_cst_bld_punct(&bld, ";");
+                  cdd_cst_bld_space(&bld);
+                  cdd_cst_bld_punct(&bld, "}");
+
+                  if (!cdd_cst_builder_has_error(&bld) &&
+                      temp->num_children > 0) {
+                    cdd_trivia_t *rt = rparen_tok->trailing_trivia;
+                    if (semi_idx > 0) {
+                      cdd_token_t *semi_tok =
+                          node->children[semi_idx].val.token;
+                      if (semi_tok->trailing_trivia && !rt) {
+                        rt = semi_tok->trailing_trivia;
+                        semi_tok->trailing_trivia = NULL;
+                      }
+                    }
+                    rparen_tok->trailing_trivia = NULL;
+                    if (temp->children[temp->num_children - 1].kind ==
+                        CDD_CST_CHILD_TOKEN) {
+                      temp->children[temp->num_children - 1]
+                          .val.token->trailing_trivia = rt;
+                    }
+
+                    {
+                      size_t consume_count =
+                          semi_idx > 0 ? (semi_idx - rparen_idx + 1) : 1;
+                      cdd_cst_node_t *parent_ptr = node;
+                      cdd_cst_splice_children(tree, &parent_ptr, rparen_idx,
+                                              consume_count, temp->children,
+                                              temp->num_children);
+                      node = parent_ptr;
+                    }
+                  }
+                  cdd_cst_builder_free(&bld);
+                  free(temp->children);
+                  free(temp);
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      rewrite_call_sites(tree, node->children[i].val.node, modified_funcs,
+                         num_modified);
+    }
+  }
+}
+
 int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                    const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
   size_t i, j;
   int rc;
-  char *modified_funcs[256];
+  cdd_token_t *modified_funcs[256];
   size_t num_modified = 0;
   (void)config;
 
@@ -62,20 +283,65 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
     if (is_void && void_tok && rparen_tok && func_name_tok) {
       if (num_modified < 256) {
-        char mbuf[256];
-        sprintf(mbuf, "%.*s", (int)func_name_tok->length, func_name_tok->start);
-        modified_funcs[num_modified++] = strdup(mbuf);
+        modified_funcs[num_modified++] = func_name_tok;
       }
 
-      void_tok->start = (const uint8_t *)"int";
-      void_tok->length = 3;
+      {
+        size_t void_idx;
+        cdd_cst_node_t *void_parent =
+            cdd_cst_find_node_for_token(tree->root, void_tok, &void_idx);
+        if (void_parent) {
+          cdd_token_t *new_void =
+              cdd_cst_create_token(tree, CDD_TOKEN_KEYWORD_INT, "int");
+          if (new_void) {
+            new_void->leading_trivia = void_tok->leading_trivia;
+            new_void->trailing_trivia = void_tok->trailing_trivia;
+            void_tok->leading_trivia = NULL;
+            void_tok->trailing_trivia = NULL;
+            cdd_cst_replace_token_child(void_parent, void_idx, new_void);
+          }
+        }
+      }
 
-      if (prev_rparen_tok && prev_rparen_tok->kind == CDD_TOKEN_LPAREN) {
-        rparen_tok->start = (const uint8_t *)"void **out_result)";
-        rparen_tok->length = 18;
-      } else {
-        rparen_tok->start = (const uint8_t *)", void **out_result)";
-        rparen_tok->length = 20;
+      {
+        size_t rparen_idx;
+        cdd_cst_node_t *rparen_parent =
+            cdd_cst_find_node_for_token(tree->root, rparen_tok, &rparen_idx);
+        if (rparen_parent) {
+          cdd_cst_builder_t bld;
+          cdd_cst_node_t *temp =
+              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+          if (temp) {
+            temp->kind = CDD_CST_UNKNOWN;
+            cdd_cst_builder_init(&bld, tree, temp);
+            if (!(prev_rparen_tok &&
+                  prev_rparen_tok->kind == CDD_TOKEN_LPAREN)) {
+              cdd_cst_bld_punct(&bld, ",");
+              cdd_cst_bld_space(&bld);
+            }
+            cdd_cst_bld_ident(&bld, "void");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_punct(&bld, "*");
+            cdd_cst_bld_punct(&bld, "*");
+            cdd_cst_bld_ident(&bld, "out_result");
+            cdd_cst_bld_punct(&bld, ")");
+
+            if (!cdd_cst_builder_has_error(&bld) && temp->num_children > 0) {
+              cdd_trivia_t *rt = rparen_tok->trailing_trivia;
+              rparen_tok->trailing_trivia = NULL;
+              if (temp->children[temp->num_children - 1].kind ==
+                  CDD_CST_CHILD_TOKEN) {
+                temp->children[temp->num_children - 1]
+                    .val.token->trailing_trivia = rt;
+              }
+              cdd_cst_splice_children(tree, &rparen_parent, rparen_idx, 1,
+                                      temp->children, temp->num_children);
+            }
+            cdd_cst_builder_free(&bld);
+            free(temp->children);
+            free(temp);
+          }
+        }
       }
     }
 
@@ -113,29 +379,68 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
           }
 
           if (has_alloc && ptr_tok) {
-            cdd_cst_tree_t *wrap_tree = NULL;
-            char buf[256];
-            char *heap_buf;
-            cdd_cst_node_t *cloned = NULL;
-            if (allocs_seen == 0) {
-              sprintf(buf, "\n  if (!%.*s) { return ENOMEM; }",
-                      (int)ptr_tok->length, ptr_tok->start);
-            } else {
-              sprintf(buf, "\n  if (!%.*s) { rc = ENOMEM; goto cleanup; }",
-                      (int)ptr_tok->length, ptr_tok->start);
-            }
-            allocs_seen++;
-            heap_buf = strdup(buf);
-            if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
-                0) {
-              if (wrap_tree->root->num_children > 0) {
-                if (cdd_cst_clone_tree(tree,
-                                       wrap_tree->root->children[0].val.node,
-                                       &cloned) == 0) {
-                  cdd_cst_insert_node_after(stmt, cloned);
-                }
+            cdd_cst_builder_t bld;
+            cdd_cst_node_t *cloned =
+                (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+            if (cloned) {
+              char *tmp_name;
+              size_t len = ptr_tok->length;
+              tmp_name = (char *)malloc(len + 1);
+              if (!tmp_name) {
+                free(cloned);
+                continue;
               }
-              cdd_cst_tree_free(wrap_tree);
+              memcpy(tmp_name, ptr_tok->start, len);
+              tmp_name[len] = '\0';
+              if (tree->num_strings >= tree->string_capacity) {
+                tree->string_capacity =
+                    tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
+                tree->string_pool = (char **)realloc(
+                    tree->string_pool, tree->string_capacity * sizeof(char *));
+              }
+              tree->string_pool[tree->num_strings++] = tmp_name;
+              cloned->kind = CDD_CST_UNKNOWN;
+              cdd_cst_builder_init(&bld, tree, cloned);
+              cdd_cst_bld_newline(&bld);
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_ident(&bld, "if");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "(");
+              cdd_cst_bld_punct(&bld, "!");
+              cdd_cst_bld_ident(&bld, tmp_name);
+              cdd_cst_bld_punct(&bld, ")");
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "{");
+              cdd_cst_bld_space(&bld);
+              if (allocs_seen == 0) {
+                cdd_cst_bld_ident(&bld, "return");
+                cdd_cst_bld_space(&bld);
+                cdd_cst_bld_ident(&bld, "ENOMEM");
+                cdd_cst_bld_punct(&bld, ";");
+              } else {
+                cdd_cst_bld_ident(&bld, "rc");
+                cdd_cst_bld_space(&bld);
+                cdd_cst_bld_punct(&bld, "=");
+                cdd_cst_bld_space(&bld);
+                cdd_cst_bld_ident(&bld, "ENOMEM");
+                cdd_cst_bld_punct(&bld, ";");
+                cdd_cst_bld_space(&bld);
+                cdd_cst_bld_ident(&bld, "goto");
+                cdd_cst_bld_space(&bld);
+                cdd_cst_bld_ident(&bld, "cleanup");
+                cdd_cst_bld_punct(&bld, ";");
+              }
+              cdd_cst_bld_space(&bld);
+              cdd_cst_bld_punct(&bld, "}");
+              if (!cdd_cst_builder_has_error(&bld)) {
+                cdd_cst_insert_node_after(stmt, cloned);
+              } else {
+                free(cloned->children);
+                free(cloned);
+              }
+              cdd_cst_builder_free(&bld);
+              allocs_seen++;
             }
           }
 
@@ -160,12 +465,56 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (semi_idx > 0 &&
                   stmt->children[semi_idx - 1].kind == CDD_CST_CHILD_TOKEN &&
                   stmt->children[semi_idx - 1].val.token == ret_tok) {
-                if (allocs_seen > 0) {
-                  ret_tok->start = (const uint8_t *)"rc = 0; goto cleanup";
-                  ret_tok->length = 20;
-                } else {
-                  ret_tok->start = (const uint8_t *)"return 0";
-                  ret_tok->length = 8;
+                {
+                  size_t ret_idx;
+                  cdd_cst_node_t *ret_parent = cdd_cst_find_node_for_token(
+                      tree->root, ret_tok, &ret_idx);
+                  if (ret_parent) {
+                    cdd_cst_builder_t bld;
+                    cdd_cst_node_t *temp =
+                        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+                    if (temp) {
+                      temp->kind = CDD_CST_UNKNOWN;
+                      cdd_cst_builder_init(&bld, tree, temp);
+                      if (allocs_seen > 0) {
+                        cdd_cst_bld_ident(&bld, "rc");
+                        cdd_cst_bld_space(&bld);
+                        cdd_cst_bld_punct(&bld, "=");
+                        cdd_cst_bld_space(&bld);
+                        cdd_cst_bld_int(&bld, 0);
+                        cdd_cst_bld_punct(&bld, ";");
+                        cdd_cst_bld_space(&bld);
+                        cdd_cst_bld_ident(&bld, "goto");
+                        cdd_cst_bld_space(&bld);
+                        cdd_cst_bld_ident(&bld, "cleanup");
+                      } else {
+                        cdd_cst_bld_ident(&bld, "return");
+                        cdd_cst_bld_space(&bld);
+                        cdd_cst_bld_int(&bld, 0);
+                      }
+                      if (!cdd_cst_builder_has_error(&bld) &&
+                          temp->num_children > 0) {
+                        cdd_trivia_t *lt = ret_tok->leading_trivia;
+                        cdd_trivia_t *rt = ret_tok->trailing_trivia;
+                        ret_tok->leading_trivia = NULL;
+                        ret_tok->trailing_trivia = NULL;
+                        if (temp->children[0].kind == CDD_CST_CHILD_TOKEN) {
+                          temp->children[0].val.token->leading_trivia = lt;
+                        }
+                        if (temp->children[temp->num_children - 1].kind ==
+                            CDD_CST_CHILD_TOKEN) {
+                          temp->children[temp->num_children - 1]
+                              .val.token->trailing_trivia = rt;
+                        }
+                        cdd_cst_splice_children(tree, &ret_parent, ret_idx, 1,
+                                                temp->children,
+                                                temp->num_children);
+                      }
+                      cdd_cst_builder_free(&bld);
+                      free(temp->children);
+                      free(temp);
+                    }
+                  }
                 }
               }
             }
@@ -173,20 +522,50 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
         }
 
         if (allocs_seen > 0) {
-          cdd_cst_tree_t *wrap_tree = NULL;
-          char *heap_buf = strdup("\ncleanup:\n  return rc;");
-          cdd_cst_node_t *cloned = NULL;
-          if (cdd_cst_parse(az_span_create_from_str(heap_buf), &wrap_tree) ==
-              0) {
-            if (wrap_tree->root->num_children > 0) {
-              if (cdd_cst_clone_tree(tree,
-                                     wrap_tree->root->children[0].val.node,
-                                     &cloned) == 0) {
-                cdd_cst_node_t *last_stmt = stmts_res.nodes[stmts_res.size - 1];
-                cdd_cst_insert_node_after(last_stmt, cloned);
+          cdd_cst_builder_t bld;
+          cdd_cst_node_t *cleanup_node =
+              (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+          if (cleanup_node) {
+            cleanup_node->kind = CDD_CST_UNKNOWN;
+            cdd_cst_builder_init(&bld, tree, cleanup_node);
+            cdd_cst_bld_newline(&bld);
+            cdd_cst_bld_ident(&bld, "cleanup");
+            cdd_cst_bld_punct(&bld, ":");
+            cdd_cst_bld_newline(&bld);
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_ident(&bld, "return");
+            cdd_cst_bld_space(&bld);
+            cdd_cst_bld_ident(&bld, "rc");
+            cdd_cst_bld_punct(&bld, ";");
+            if (!cdd_cst_builder_has_error(&bld)) {
+              size_t k;
+              for (k = func->num_children; k-- > 0;) {
+                if (func->children[k].kind == CDD_CST_CHILD_NODE) {
+                  cdd_cst_node_t *cmp = func->children[k].val.node;
+                  if (cmp->kind == CDD_CST_BLOCK ||
+                      cmp->kind == CDD_CST_UNKNOWN) {
+                    size_t m;
+                    for (m = cmp->num_children; m-- > 0;) {
+                      if (cmp->children[m].kind == CDD_CST_CHILD_TOKEN &&
+                          cmp->children[m].val.token->kind ==
+                              CDD_TOKEN_RBRACE) {
+                        cdd_cst_splice_children(tree, &cmp, m, 0,
+                                                cleanup_node->children,
+                                                cleanup_node->num_children);
+                        break;
+                      }
+                    }
+                    if (m < cmp->num_children)
+                      break;
+                  }
+                }
               }
+            } else {
+              free(cleanup_node->children);
             }
-            cdd_cst_tree_free(wrap_tree);
+            cdd_cst_builder_free(&bld);
+            free(cleanup_node);
           }
         }
 
@@ -197,101 +576,8 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
   free(res.nodes);
 
-  /* Call Site Updates */
   if (num_modified > 0) {
-    for (i = 0; i < tree->base_tokens->size; i++) {
-      cdd_token_t *tok = &tree->base_tokens->tokens[i];
-      if (tok->kind == CDD_TOKEN_IDENTIFIER) {
-        size_t m;
-        for (m = 0; m < num_modified; m++) {
-          if (strlen(modified_funcs[m]) == tok->length &&
-              memcmp(modified_funcs[m], tok->start, tok->length) == 0) {
-            /* Check if it's a function call */
-            if (i + 1 < tree->base_tokens->size &&
-                tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LPAREN) {
-              size_t k;
-              int depth = 0;
-              cdd_token_t *rparen_tok = NULL;
-              cdd_token_t *prev_rparen_tok = NULL;
-              int is_def = 0;
-              for (k = i + 1; k-- > 0;) {
-                if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_IDENTIFIER &&
-                    ((tree->base_tokens->tokens[k].length == 4 &&
-                      memcmp(tree->base_tokens->tokens[k].start, "void", 4) ==
-                          0) ||
-                     (tree->base_tokens->tokens[k].length == 3 &&
-                      memcmp(tree->base_tokens->tokens[k].start, "int", 3) ==
-                          0))) {
-                  is_def = 1;
-                  break;
-                } else if (tree->base_tokens->tokens[k].kind ==
-                               CDD_TOKEN_SEMICOLON ||
-                           tree->base_tokens->tokens[k].kind ==
-                               CDD_TOKEN_RBRACE ||
-                           tree->base_tokens->tokens[k].kind ==
-                               CDD_TOKEN_LBRACE) {
-                  break;
-                }
-              }
-
-              if (!is_def) {
-                for (k = i + 1; k < tree->base_tokens->size; k++) {
-                  if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_LPAREN) {
-                    depth++;
-                  } else if (tree->base_tokens->tokens[k].kind ==
-                             CDD_TOKEN_RPAREN) {
-                    depth--;
-                    if (depth == 0) {
-                      rparen_tok = &tree->base_tokens->tokens[k];
-                      prev_rparen_tok = &tree->base_tokens->tokens[k - 1];
-                      break;
-                    }
-                  }
-                }
-
-                if (rparen_tok) {
-                  char buf[256];
-                  char *heap_buf;
-                  sprintf(buf, "void *out_%.*s;\n  if (%.*s", (int)tok->length,
-                          tok->start, (int)tok->length, tok->start);
-                  heap_buf = strdup(buf);
-                  tok->start = (const uint8_t *)heap_buf;
-                  tok->length = strlen(heap_buf);
-
-                  if (prev_rparen_tok &&
-                      prev_rparen_tok->kind == CDD_TOKEN_LPAREN) {
-                    sprintf(buf, "&out_%.*s) != 0) { return ENOMEM; }",
-                            (int)tok->length, modified_funcs[m]);
-                  } else {
-                    sprintf(buf, ", &out_%.*s) != 0) { return ENOMEM; }",
-                            (int)tok->length, modified_funcs[m]);
-                  }
-                  heap_buf = strdup(buf);
-                  rparen_tok->start = (const uint8_t *)heap_buf;
-                  rparen_tok->length = strlen(heap_buf);
-
-                  for (k = i + 1; k < tree->base_tokens->size; k++) {
-                    if (tree->base_tokens->tokens[k].kind ==
-                        CDD_TOKEN_SEMICOLON) {
-                      tree->base_tokens->tokens[k].length = 0;
-                      tree->base_tokens->tokens[k].start = (const uint8_t *)"";
-                      break;
-                    } else if (tree->base_tokens->tokens[k].kind ==
-                               CDD_TOKEN_RBRACE) {
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  for (i = 0; i < num_modified; i++) {
-    free(modified_funcs[i]);
+    rewrite_call_sites(tree, tree->root, modified_funcs, num_modified);
   }
 
   return 0;
