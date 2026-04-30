@@ -716,7 +716,8 @@ static /**
     parse_additional_operations(const JSON_Object *path_obj,
                                 struct OpenAPI_Path *path,
                                 const struct OpenAPI_Spec *spec);
-void openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
+void openapi_free_servers_array(struct OpenAPI_Server *servers,
+                                size_t n_servers);
 
 /* --- Lifecycle Implementation --- */
 
@@ -1349,7 +1350,8 @@ static /**
     free(set->extensions_json);
 }
 
-void openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers) {
+void openapi_free_servers_array(struct OpenAPI_Server *servers,
+                                size_t n_servers) {
   size_t i;
   if (!servers)
     return;

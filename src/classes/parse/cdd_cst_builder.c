@@ -114,6 +114,11 @@ int cdd_cst_bld_string(cdd_cst_builder_t *builder, const char *text) {
 int cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   char buf[32];
   const char *pooled;
+  if (!builder)
+    return EINVAL;
+  if (builder->error_state != 0)
+    return builder->error_state;
+
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "%d", value);
 #else

@@ -2553,7 +2553,13 @@ int pp_scan_includes(const char *filename,
 
                     if (cb(&info, user_data) != 0) {
 
-                      i = tokens->size; /* Stop scanning */
+                      if (input_is_embed) {
+                        pp_embed_params_free(&info.params);
+                      }
+
+                      free(resolved);
+                      free(raw_path);
+                      goto cleanup_and_exit;
                     }
 
                     if (input_is_embed) {
@@ -2578,8 +2584,8 @@ int pp_scan_includes(const char *filename,
     }
   }
 
+cleanup_and_exit:
   ctx->current_file_dir = NULL;
-
   free(dir_name);
 
   free_token_list(tokens);

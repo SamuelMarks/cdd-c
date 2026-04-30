@@ -20,12 +20,29 @@ TEST test_cdd_cst_trivia_detect(void) {
   int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
 
+  ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(NULL, &config));
+  ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(tree, NULL));
+
   rc = cdd_cst_detect_format_config(tree, &config);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(4, config.indent_width); /* "    " is 4 spaces */
 
   cdd_cst_tree_free(tree);
+
+  cdd_cst_tree_t tree2 = {0};
+  ASSERT_EQ(0, cdd_cst_detect_format_config(&tree2, &config));
+
+  tree = NULL;
+  code = "int main() {\n  return 0;\n}";
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  ASSERT_EQ(0, rc);
+  rc = cdd_cst_detect_format_config(tree, &config);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(0, config.use_tabs);
+  ASSERT_EQ(2, config.indent_width); /* "  " is 2 spaces */
+  cdd_cst_tree_free(tree);
+
   PASS();
 }
 
@@ -47,6 +64,18 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
 TEST test_cdd_cst_trivia_generate(void) {
   cdd_trivia_t *t = NULL;
   cdd_cst_format_config_t config = {0, 4};
+  cdd_cst_format_config_t config_tabs = {1, 1};
+
+  ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
+  ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, &config, 2, NULL));
+
+  ASSERT_EQ(0, cdd_cst_generate_indent_trivia(NULL, &config, 0, &t));
+  ASSERT(t != NULL);
+  ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
+  ASSERT_EQ(NULL, t->next);
+  free(t);
+  t = NULL;
+
   int rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
   ASSERT_EQ(0, rc);
   ASSERT(t != NULL);
@@ -58,6 +87,20 @@ TEST test_cdd_cst_trivia_generate(void) {
   free((void *)t->next->start);
   free(t->next);
   free(t);
+
+  rc = cdd_cst_generate_indent_trivia(NULL, &config_tabs, 2, &t);
+  ASSERT_EQ(0, rc);
+  ASSERT(t != NULL);
+  ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
+  ASSERT(t->next != NULL);
+  ASSERT_EQ(TRIVIA_WHITESPACE, t->next->kind);
+  ASSERT_EQ(2, t->next->length);
+  ASSERT_EQ('\t', t->next->start[0]);
+
+  free((void *)t->next->start);
+  free(t->next);
+  free(t);
+
   PASS();
 }
 

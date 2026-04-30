@@ -463,6 +463,8 @@ static /**
       return 0;
     }
   }
+  *_out_val = NULL;
+  return 1;
 }
 
 static /**
@@ -553,6 +555,11 @@ static /**
   case DOC_OAUTH_FLOW_DEVICE_AUTHORIZATION: {
     *_out_val = OA_OAUTH_FLOW_DEVICE_AUTHORIZATION;
     return 0;
+  }
+  case DOC_OAUTH_FLOW_UNSET:
+  default: {
+    *_out_val = OA_OAUTH_FLOW_UNKNOWN;
+    return 1;
   }
   }
 }

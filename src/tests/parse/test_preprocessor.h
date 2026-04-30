@@ -476,6 +476,59 @@ TEST test_pp_include_next(void) {
   PASS();
 }
 
+static int abort_cb(const struct IncludeInfo *info, void *user_data) {
+  int *called = (int *)user_data;
+  (*called)++;
+  return 1; /* Abort on first */
+}
+
+TEST test_preprocessor_abort(void) {
+  struct PreprocessorContext ctx;
+  int rc;
+  int called = 0;
+  char *tmp = NULL;
+  char *test_dir = NULL;
+  char *test_file = NULL;
+  char *sys_dir = NULL;
+  char *sys_file1 = NULL;
+  char *sys_file2 = NULL;
+
+  tempdir(&tmp);
+  asprintf(&test_dir, "%s%cpp_abort_test_%d", tmp, PATH_SEP_CHAR, rand());
+  asprintf(&test_file, "%s%ctest.c", test_dir, PATH_SEP_CHAR);
+  asprintf(&sys_dir, "%s%cpp_abort_sys_%d", tmp, PATH_SEP_CHAR, rand());
+  asprintf(&sys_file1, "%s%cstdio.h", sys_dir, PATH_SEP_CHAR);
+  asprintf(&sys_file2, "%s%cstdlib.h", sys_dir, PATH_SEP_CHAR);
+
+  makedir(test_dir);
+  makedir(sys_dir);
+  write_to_file(test_file, "#include <stdio.h>\n#include <stdlib.h>\n");
+  write_to_file(sys_file1, "int x;\n");
+  write_to_file(sys_file2, "int y;\n");
+
+  rc = pp_context_init(&ctx);
+  ASSERT_EQ(0, rc);
+  pp_add_search_path(&ctx, sys_dir);
+
+  rc = pp_scan_includes(test_file, &ctx, abort_cb, &called);
+  printf("called=%d\n", called);
+  ASSERT_EQ(0, rc);     /* It just stops scanning, rc is still 0 */
+  ASSERT_EQ(1, called); /* It should have stopped after the first include */
+
+  pp_context_free(&ctx);
+  remove(test_file);
+  remove(sys_file1);
+  remove(sys_file2);
+  rmdir(test_dir);
+  rmdir(sys_dir);
+  free(test_dir);
+  free(test_file);
+  free(sys_dir);
+  free(sys_file1);
+  free(sys_file2);
+  PASS();
+}
+
 SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_eval_arithmetic);
   RUN_TEST(test_pp_eval_logical);
@@ -491,6 +544,7 @@ SUITE(preprocessor_suite) {
   RUN_TEST(test_pp_nested_if);
 
   RUN_TEST(test_pp_include_next);
+  RUN_TEST(test_preprocessor_abort);
 }
 
 #ifdef __cplusplus

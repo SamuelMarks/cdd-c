@@ -138,7 +138,7 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
     return ENOMEM;
   }
 
-  if (cdd_strdup(name, &sym->name) != 0)
+  if (cdd_strdup(name, (char **)&sym->name) != 0)
     sym->name = NULL;
   if (!sym->name) {
     free(sym);
