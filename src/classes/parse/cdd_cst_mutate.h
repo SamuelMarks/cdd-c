@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "cdd_cst_node.h"
 /* clang-format on */
 
@@ -18,8 +19,9 @@ extern "C" {
  * @param new_node The new node to insert.
  * @return 0 on success.
  */
-int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
-                         cdd_cst_node_t *new_node);
+C_CDD_EXPORT int cdd_cst_replace_node(cdd_cst_tree_t *tree,
+                                      cdd_cst_node_t *old_node,
+                                      cdd_cst_node_t *new_node);
 
 /**
  * @brief Inserts new_node into the parent's children array before target.
@@ -27,8 +29,8 @@ int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
  * @param new_node The node to insert.
  * @return 0 on success.
  */
-int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
-                               cdd_cst_node_t *new_node);
+C_CDD_EXPORT int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
+                                            cdd_cst_node_t *new_node);
 
 /**
  * @brief Inserts new_node into the parent's children array after target.
@@ -36,8 +38,8 @@ int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
  * @param new_node The node to insert.
  * @return 0 on success.
  */
-int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
-                              cdd_cst_node_t *new_node);
+C_CDD_EXPORT int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
+                                           cdd_cst_node_t *new_node);
 
 /**
  * @brief Detaches target node from its parent.
@@ -46,7 +48,8 @@ int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
  * @param node The node to detach.
  * @return 0 on success.
  */
-int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node);
+C_CDD_EXPORT int cdd_cst_detach_node(cdd_cst_tree_t *tree,
+                                     cdd_cst_node_t *node);
 
 /**
  * @brief Clones a tree deeply (including tokens and trivia).
@@ -56,15 +59,17 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node);
  * @param out_clone The cloned node.
  * @return 0 on success.
  */
-int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
-                       cdd_cst_node_t **out_clone);
+C_CDD_EXPORT int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
+                                    cdd_cst_node_t **out_clone);
 
-int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
-                            size_t start_idx, size_t consume_count,
-                            cdd_cst_child_t *new_children,
-                            size_t new_children_count);
-int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
-                                size_t *out_idx, cdd_cst_node_t **out_node);
+C_CDD_EXPORT int cdd_cst_splice_children(cdd_cst_tree_t *tree,
+                                         cdd_cst_node_t **node_ptr,
+                                         size_t start_idx, size_t consume_count,
+                                         cdd_cst_child_t *new_children,
+                                         size_t new_children_count);
+C_CDD_EXPORT int cdd_cst_find_node_for_token(cdd_cst_node_t *root,
+                                             cdd_token_t *tok, size_t *out_idx,
+                                             cdd_cst_node_t **out_node);
 
 #ifdef __cplusplus
 }
@@ -76,7 +81,7 @@ int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
  * @param idx The index of the child to remove.
  * @return 0 on success.
  */
-int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx);
+C_CDD_EXPORT int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx);
 
 /**
  * @brief Replaces a token child with a new token in-place.
@@ -85,6 +90,6 @@ int cdd_cst_remove_child(cdd_cst_node_t *node, size_t idx);
  * @param new_tok The new token.
  * @return 0 on success.
  */
-int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
-                                cdd_token_t *new_tok);
+C_CDD_EXPORT int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
+                                             cdd_token_t *new_tok);
 #endif /* CDD_CST_MUTATE_H */

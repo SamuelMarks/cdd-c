@@ -54,7 +54,7 @@ static int append_result(cdd_cst_query_result_t *res, cdd_cst_node_t *node) {
     cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
         res->nodes, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     res->nodes = new_arr;

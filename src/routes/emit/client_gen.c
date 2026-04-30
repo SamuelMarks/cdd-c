@@ -455,7 +455,7 @@ static /**
 
   params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
   if (!params) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

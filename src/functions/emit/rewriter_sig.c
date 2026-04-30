@@ -109,7 +109,7 @@ static /**
 
   buf = (char *)malloc(len + 1);
   if (!buf) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

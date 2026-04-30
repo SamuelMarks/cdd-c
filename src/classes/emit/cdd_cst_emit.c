@@ -30,7 +30,7 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
     }
     new_buf = (char *)realloc(ctx->buf, new_cap);
     if (!new_buf) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     ctx->buf = new_buf;

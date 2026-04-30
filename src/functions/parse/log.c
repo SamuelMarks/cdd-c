@@ -1,2 +1,0 @@
-void cdd_c_log_debug(const char *fmt, ...) {}
-int LOG_DEBUG(const char *fmt, ...) { return 0; }

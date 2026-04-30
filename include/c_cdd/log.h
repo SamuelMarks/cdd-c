@@ -9,7 +9,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef LOG_DEBUG
+#ifndef C_CDD_LOG_DEBUG
 #ifdef DEBUG
 /**
  * @brief Logs debug messages.
@@ -17,7 +17,7 @@ extern "C" {
  * @param ... Arguments.
  */
 void c_cdd_log_debug(const char *fmt, ...);
-#define LOG_DEBUG c_cdd_log_debug
+#define C_CDD_LOG_DEBUG c_cdd_log_debug
 #else
 /**
  * @brief Logs debug messages.
@@ -25,9 +25,9 @@ void c_cdd_log_debug(const char *fmt, ...);
  * @param ... Arguments.
  */
 void c_cdd_log_debug(const char *fmt, ...);
-#define LOG_DEBUG 1 ? (void)0 : c_cdd_log_debug
+#define C_CDD_LOG_DEBUG 1 ? (void)0 : c_cdd_log_debug
 #endif /* DEBUG */
-#endif /* !LOG_DEBUG */
+#endif /* !C_CDD_LOG_DEBUG */
 
 #ifdef __cplusplus
 }

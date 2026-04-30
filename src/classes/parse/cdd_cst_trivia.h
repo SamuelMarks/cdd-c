@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "cdd_cst_node.h"
 #include <stddef.h>
 /* clang-format on */
@@ -30,8 +31,9 @@ struct cdd_cst_format_config_t {
  * @param out_config Populated format configuration.
  * @return 0 on success.
  */
-int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
-                                 cdd_cst_format_config_t *out_config);
+C_CDD_EXPORT int
+cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
+                             cdd_cst_format_config_t *out_config);
 
 /**
  * @brief Generates trivia nodes (newlines and indentation).
@@ -41,10 +43,10 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
  * @param out_trivia Head of the generated trivia list.
  * @return 0 on success.
  */
-int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
-                                   const cdd_cst_format_config_t *config,
-                                   size_t indent_level,
-                                   cdd_trivia_t **out_trivia);
+C_CDD_EXPORT int
+cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
+                               const cdd_cst_format_config_t *config,
+                               size_t indent_level, cdd_trivia_t **out_trivia);
 
 #ifdef __cplusplus
 }

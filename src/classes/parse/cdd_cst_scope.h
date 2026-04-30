@@ -6,6 +6,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "cdd_cst_node.h"
 #include <stddef.h>
 /* clang-format on */
@@ -65,13 +66,13 @@ struct cdd_cst_scope_env_t {
  * @param out_env Pointer to the env to initialize.
  * @return 0 on success.
  */
-int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env);
+C_CDD_EXPORT int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env);
 
 /**
  * @brief Free a scope environment.
  * @param env The environment to free.
  */
-void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env);
+C_CDD_EXPORT void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env);
 
 /**
  * @brief Push a new scope.
@@ -79,15 +80,15 @@ void cdd_cst_scope_env_free(cdd_cst_scope_env_t *env);
  * @param kind The kind of scope.
  * @return 0 on success.
  */
-int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
-                        enum cdd_cst_scope_kind_t kind);
+C_CDD_EXPORT int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
+                                     enum cdd_cst_scope_kind_t kind);
 
 /**
  * @brief Pop the current scope.
  * @param env The environment.
  * @return 0 on success.
  */
-int cdd_cst_scope_leave(cdd_cst_scope_env_t *env);
+C_CDD_EXPORT int cdd_cst_scope_leave(cdd_cst_scope_env_t *env);
 
 /**
  * @brief Add a symbol to the current scope.
@@ -97,9 +98,10 @@ int cdd_cst_scope_leave(cdd_cst_scope_env_t *env);
  * @param decl_node The associated declaration node.
  * @return 0 on success.
  */
-int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
-                             enum cdd_cst_symbol_kind_t kind,
-                             cdd_cst_node_t *decl_node);
+C_CDD_EXPORT int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env,
+                                          const char *name,
+                                          enum cdd_cst_symbol_kind_t kind,
+                                          cdd_cst_node_t *decl_node);
 
 /**
  * @brief Lookup a symbol by name in the current and parent scopes.
@@ -109,16 +111,17 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
  * @param out_symbol Pointer to store the found symbol.
  * @return 0 on success (found), or ENOENT if not found.
  */
-int cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env, const char *name,
-                                enum cdd_cst_symbol_kind_t kind,
-                                cdd_cst_symbol_t **out_symbol);
+C_CDD_EXPORT int cdd_cst_scope_lookup_symbol(cdd_cst_scope_env_t *env,
+                                             const char *name,
+                                             enum cdd_cst_symbol_kind_t kind,
+                                             cdd_cst_symbol_t **out_symbol);
 
 /**
  * @brief Check if a symbol kind is in the tag namespace (struct, union, enum).
  * @param kind The symbol kind.
  * @return 1 if it is a tag, 0 otherwise.
  */
-int cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind);
+C_CDD_EXPORT int cdd_cst_symbol_is_tag(enum cdd_cst_symbol_kind_t kind);
 
 #ifdef __cplusplus
 }

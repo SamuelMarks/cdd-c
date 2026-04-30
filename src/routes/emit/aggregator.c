@@ -64,7 +64,7 @@ static /**
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
   if (!new_arr) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -98,7 +98,7 @@ static /**
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
   if (!new_ops) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

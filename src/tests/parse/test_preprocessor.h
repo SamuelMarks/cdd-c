@@ -477,7 +477,9 @@ TEST test_pp_include_next(void) {
 }
 
 static int abort_cb(const struct IncludeInfo *info, void *user_data) {
-  int *called = (int *)user_data;
+  int *called;
+  (void)info;
+  called = (int *)user_data;
   (*called)++;
   return 1; /* Abort on first */
 }

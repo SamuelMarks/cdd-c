@@ -51,10 +51,10 @@ TEST test_cdd_c_ir_projection(void) {
   cdd_c_query_projection_init(&proj);
   proj.source_table = "test";
   proj.mapping_meta.target_name = "test_map";
-  
+
   cdd_c_ir_init(&ir);
   ASSERT_EQ(0, cdd_c_ir_add_projection(&ir, &proj));
-  
+
   cdd_c_ir_free(&ir);
   PASS();
 }
@@ -65,7 +65,6 @@ SUITE(cdd_c_ir_suite) {
   RUN_TEST(test_cdd_c_ir_projection);
 
   RUN_TEST(test_cdd_c_ir_projection);
-
 }
 
 #endif /* !TEST_CDD_C_IR_H */
@@ -75,10 +74,10 @@ TEST test_cdd_c_ir_projection(void) {
   cdd_c_query_projection_init(&proj);
   proj.source_table = "test";
   proj.mapping_meta.target_name = "test_map";
-  
+
   cdd_c_ir_init(&ir);
   ASSERT_EQ(0, cdd_c_ir_add_projection(&ir, &proj));
-  
+
   cdd_c_ir_free(&ir);
   PASS();
 }
@@ -86,16 +85,16 @@ TEST test_cdd_c_ir_alloc(void) {
   /* We hit the allocations by growing n_tables and n_projections */
   cdd_c_ir_t ir;
   cdd_c_ir_init(&ir);
-  
+
   struct sql_table_t tbl = {0};
   cdd_c_query_projection_t proj;
   cdd_c_query_projection_init(&proj);
-  
+
   for (int i = 0; i < 6; i++) {
     cdd_c_ir_add_table(&ir, &tbl);
     cdd_c_ir_add_projection(&ir, &proj);
   }
-  
+
   cdd_c_ir_free(&ir);
   PASS();
 }

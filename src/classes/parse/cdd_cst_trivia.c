@@ -88,7 +88,7 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
 
   nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!nl) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   nl->kind = TRIVIA_NEWLINE;

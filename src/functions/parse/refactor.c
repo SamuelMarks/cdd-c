@@ -63,7 +63,7 @@ int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
   new_alloc = (struct RefactoredFunction *)realloc(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
   if (!new_alloc) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

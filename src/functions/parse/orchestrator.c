@@ -316,7 +316,7 @@ static /**
     size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
     size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     callee->callers = new_arr;

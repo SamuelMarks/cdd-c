@@ -54,7 +54,7 @@ static /**
     struct MacroOverlayNode *new_arr =
         realloc(list->nodes, new_cap * sizeof(struct MacroOverlayNode));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     list->nodes = new_arr;
@@ -87,7 +87,7 @@ int cst_build_macro_overlay(const struct CstNodeList *cst,
       struct CstNodeList *dummy_expanded =
           calloc(1, sizeof(struct CstNodeList));
       if (!dummy_expanded) {
-        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
       }
       /* cst_list_init is not available, we can just zero it and let it be empty
