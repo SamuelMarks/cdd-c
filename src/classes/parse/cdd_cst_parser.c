@@ -108,9 +108,9 @@ static int parse_declaration_or_statement(parser_state_t *s,
 
 static int parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                        cdd_cst_node_t **out_node) {
+  cdd_token_t *t;
   cdd_cst_node_t *b = NULL;
   alloc_node(CDD_CST_BLOCK, parent, &b);
-  cdd_token_t *t;
   if (!b) {
     s->err = ENOMEM;
     *out_node = NULL;

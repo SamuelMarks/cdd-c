@@ -1880,21 +1880,21 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       } else if (is_cast_lvalue == 1) {
         size_t child_idx, rparen_cidx, val_cidx;
         cdd_cst_node_t *parent = NULL;
-        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         cdd_cst_node_t *rparen_parent = NULL;
+        cdd_cst_node_t *val_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         cdd_cst_find_node_for_token(tree->root,
                                     &tree->base_tokens->tokens[rparen_idx],
                                     &rparen_cidx, &rparen_parent);
-        cdd_cst_node_t *val_parent = NULL;
         cdd_cst_find_node_for_token(tree->root,
                                     &tree->base_tokens->tokens[rparen_idx + 1],
                                     &val_cidx, &val_parent);
 
         if (parent && rparen_parent && val_parent) {
           cdd_token_t *new_lparen = NULL;
+          cdd_token_t *new_rparen = NULL;
           cdd_cst_create_token_len(tree, CDD_TOKEN_LPAREN, "*(", 2,
                                    &new_lparen);
-          cdd_token_t *new_rparen = NULL;
           cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "*)", 2,
                                    &new_rparen);
 
@@ -2061,8 +2061,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_SEMICOLON) {
             size_t child_idx;
             cdd_cst_node_t *parent = NULL;
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
             cdd_cst_node_t *semi_parent;
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
             if (parent) {
               cdd_token_t *empty_tok = NULL;
               cdd_cst_create_token_len(tree, CDD_TOKEN_KEYWORD_RETURN, "", 0,

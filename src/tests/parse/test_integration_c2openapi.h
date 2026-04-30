@@ -520,7 +520,6 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   PASS();
 }
 
-
 TEST test_c2o_cli_source_file_checks(void) {
   char *tmp_dir = NULL;
   char *src_dir = NULL;
@@ -536,7 +535,7 @@ TEST test_c2o_cli_source_file_checks(void) {
   asprintf(&txt_file, "%s%cnotes.txt", src_dir, PATH_SEP_C);
   asprintf(&no_ext_file, "%s%cREADME", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, "int foo(void);\n");
   write_to_file(txt_file, "just some notes");
   write_to_file(no_ext_file, "no extension here");
@@ -545,7 +544,7 @@ TEST test_c2o_cli_source_file_checks(void) {
   extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(txt_file);
   remove(no_ext_file);
@@ -564,23 +563,44 @@ TEST test_c2o_cli_source_file_checks(void) {
 TEST test_c2o_cli_doc_sec_unset(void) {
   const char *snippets[] = {
       "/**\n * @securityScheme my_bad_sec\n */\nint foo1(void);\n",
-      "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint foo2(void);\n",
-      "/**\n * @securityScheme my_http [type:http] [in:unknownIn]\n */\nint foo3(void);\n",
-      "/**\n * @securityScheme my_apikey [type:apiKey] [in:unknownIn]\n */\nint foo4(void);\n",
-      "/**\n * @securityScheme my_apikey2 [type:apiKey]\n */\nint foo5(void);\n",
-      "/**\n * @securityScheme my_oauth2 [type:oauth2] [flow:deviceAuthorization] [deviceAuthorizationUrl:https://auth.com/device] [tokenUrl:https://auth.com/token] [refreshUrl:https://auth.com/refresh] [scopes:scope1=Scope1]\n */\nint foo6(void);\n",
-      "/**\n * @securityScheme my_oauth2_bad [type:oauth2] [flow:unknownFlow]\n */\nint foo7(void);\n",
-      "/**\n * @securityScheme my_oauth2_unset [type:oauth2]\n */\nint foo8(void);\n",
-      "/**\n * @securityScheme my_mutual [type:mutualTLS]\n */\nint foo9(void);\n",
-      "/**\n * @securityScheme my_openid [type:openIdConnect] [openIdConnectUrl:https://auth.com/openid]\n */\nint foo10(void);\n",
-      "/**\n * @securityScheme my_apikey_query [type:apiKey] [in:query] [name:foo]\n */\nint foo11(void);\n",
-      "/**\n * @securityScheme my_apikey_cookie [type:apiKey] [in:cookie] [name:foo]\n */\nint foo12(void);\n",
-      "/**\n * @securityScheme my_oauth2_implicit [type:oauth2] [flow:implicit] [authorizationUrl:https://auth.com/auth]\n */\nint foo13(void);\n",
-      "/**\n * @securityScheme my_oauth2_password [type:oauth2] [flow:password] [tokenUrl:https://auth.com/token]\n */\nint foo14(void);\n",
-      "/**\n * @securityScheme my_oauth2_client [type:oauth2] [flow:clientCredentials] [tokenUrl:https://auth.com/token]\n */\nint foo15(void);\n",
-      "/**\n * @securityScheme my_oauth2_auth [type:oauth2] [flow:authorizationCode] [authorizationUrl:https://auth.com/auth] [tokenUrl:https://auth.com/token]\n */\nint foo16(void);\n"
-  };
-  
+      "/**\n * @securityScheme my_bad_sec2 [type:unknownType]\n */\nint "
+      "foo2(void);\n",
+      "/**\n * @securityScheme my_http [type:http] [in:unknownIn]\n */\nint "
+      "foo3(void);\n",
+      "/**\n * @securityScheme my_apikey [type:apiKey] [in:unknownIn]\n "
+      "*/\nint foo4(void);\n",
+      "/**\n * @securityScheme my_apikey2 [type:apiKey]\n */\nint "
+      "foo5(void);\n",
+      "/**\n * @securityScheme my_oauth2 [type:oauth2] "
+      "[flow:deviceAuthorization] "
+      "[deviceAuthorizationUrl:https://auth.com/device] "
+      "[tokenUrl:https://auth.com/token] [refreshUrl:https://auth.com/refresh] "
+      "[scopes:scope1=Scope1]\n */\nint foo6(void);\n",
+      "/**\n * @securityScheme my_oauth2_bad [type:oauth2] "
+      "[flow:unknownFlow]\n */\nint foo7(void);\n",
+      "/**\n * @securityScheme my_oauth2_unset [type:oauth2]\n */\nint "
+      "foo8(void);\n",
+      "/**\n * @securityScheme my_mutual [type:mutualTLS]\n */\nint "
+      "foo9(void);\n",
+      "/**\n * @securityScheme my_openid [type:openIdConnect] "
+      "[openIdConnectUrl:https://auth.com/openid]\n */\nint foo10(void);\n",
+      "/**\n * @securityScheme my_apikey_query [type:apiKey] [in:query] "
+      "[name:foo]\n */\nint foo11(void);\n",
+      "/**\n * @securityScheme my_apikey_cookie [type:apiKey] [in:cookie] "
+      "[name:foo]\n */\nint foo12(void);\n",
+      "/**\n * @securityScheme my_oauth2_implicit [type:oauth2] "
+      "[flow:implicit] [authorizationUrl:https://auth.com/auth]\n */\nint "
+      "foo13(void);\n",
+      "/**\n * @securityScheme my_oauth2_password [type:oauth2] "
+      "[flow:password] [tokenUrl:https://auth.com/token]\n */\nint "
+      "foo14(void);\n",
+      "/**\n * @securityScheme my_oauth2_client [type:oauth2] "
+      "[flow:clientCredentials] [tokenUrl:https://auth.com/token]\n */\nint "
+      "foo15(void);\n",
+      "/**\n * @securityScheme my_oauth2_auth [type:oauth2] "
+      "[flow:authorizationCode] [authorizationUrl:https://auth.com/auth] "
+      "[tokenUrl:https://auth.com/token]\n */\nint foo16(void);\n"};
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *out_json = NULL;
@@ -589,7 +609,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   asprintf(&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   size_t i;
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
     char *c_file = NULL;
@@ -619,13 +639,12 @@ TEST test_c2o_cli_doc_sec_unset(void) {
 }
 
 TEST test_c2o_cli_spec_has_tag_nulls(void) {
-  const char *src =
-      "/**\n"
-      " * @tag duplicated\n"
-      " * @tag duplicated\n"
-      " */\n"
-      "int foo(void);\n";
-      
+  const char *src = "/**\n"
+                    " * @tag duplicated\n"
+                    " * @tag duplicated\n"
+                    " */\n"
+                    "int foo(void);\n";
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -637,14 +656,14 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -660,12 +679,17 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
-      " * @securityScheme my_http [type:http] [scheme:bearer] [bearerFormat:JWT]\n"
-      " * @securityScheme my_http [type:http] [scheme:bearer] [bearerFormat:JWT]\n"
-      " * @securityScheme my_oauth2 [type:oauth2] [flow:deviceAuthorization] [authorizationUrl:https://auth.com/auth] [tokenUrl:https://auth.com/token] [refreshUrl:https://auth.com/refresh] [scopes:scope1=Scope1]\n"
+      " * @securityScheme my_http [type:http] [scheme:bearer] "
+      "[bearerFormat:JWT]\n"
+      " * @securityScheme my_http [type:http] [scheme:bearer] "
+      "[bearerFormat:JWT]\n"
+      " * @securityScheme my_oauth2 [type:oauth2] [flow:deviceAuthorization] "
+      "[authorizationUrl:https://auth.com/auth] "
+      "[tokenUrl:https://auth.com/token] [refreshUrl:https://auth.com/refresh] "
+      "[scopes:scope1=Scope1]\n"
       " */\n"
       "int foo(void);\n";
-      
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -677,14 +701,14 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -697,13 +721,12 @@ TEST test_c2o_cli_mappings_errors_find(void) {
 }
 
 TEST test_c2o_cli_set_str_mismatch(void) {
-  const char *src =
-      "/**\n"
-      " * @securityScheme my_http [type:http] [scheme:bearer]\n"
-      " * @securityScheme my_http [type:http] [scheme:basic]\n"
-      " */\n"
-      "int foo17(void);\n";
-      
+  const char *src = "/**\n"
+                    " * @securityScheme my_http [type:http] [scheme:bearer]\n"
+                    " * @securityScheme my_http [type:http] [scheme:basic]\n"
+                    " */\n"
+                    "int foo17(void);\n";
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -714,14 +737,14 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -734,15 +757,14 @@ TEST test_c2o_cli_set_str_mismatch(void) {
 }
 
 TEST test_c2o_cli_server_variables(void) {
-  const char *src =
-      "/**\n"
-      " * GLOBAL META:\n"
-      " * @server https://api.com [description:prod]\n"
-      " * @serverVar env [default:prod] [enum:prod,dev]\n"
-      " * @server https://api.com [description:mismatch_fail]\n"
-      " */\n"
-      "int foo18(void);\n";
-      
+  const char *src = "/**\n"
+                    " * GLOBAL META:\n"
+                    " * @server https://api.com [description:prod]\n"
+                    " * @serverVar env [default:prod] [enum:prod,dev]\n"
+                    " * @server https://api.com [description:mismatch_fail]\n"
+                    " */\n"
+                    "int foo18(void);\n";
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -753,14 +775,14 @@ TEST test_c2o_cli_server_variables(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -781,7 +803,7 @@ TEST test_c2o_cli_server_variables_validation(void) {
       " * @serverVar bad [default:wrong] [enum:prod,dev] [description:fail]\n"
       " */\n"
       "int foo19(void);\n";
-      
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -792,14 +814,14 @@ TEST test_c2o_cli_server_variables_validation(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -815,12 +837,15 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   const char *src =
       "/**\n"
       " * GLOBAL META:\n"
-      " * @securityScheme merge_oauth [type:oauth2] [flow:implicit] [authorizationUrl:https://auth.com/auth] [scopes:read,write]\n"
-      " * @securityScheme merge_oauth [type:oauth2] [flow:implicit] [authorizationUrl:https://auth.com/auth] [scopes:read,admin]\n"
-      " * @securityScheme merge_oauth [type:oauth2] [flow:password] [tokenUrl:https://auth.com/token]\n"
+      " * @securityScheme merge_oauth [type:oauth2] [flow:implicit] "
+      "[authorizationUrl:https://auth.com/auth] [scopes:read,write]\n"
+      " * @securityScheme merge_oauth [type:oauth2] [flow:implicit] "
+      "[authorizationUrl:https://auth.com/auth] [scopes:read,admin]\n"
+      " * @securityScheme merge_oauth [type:oauth2] [flow:password] "
+      "[tokenUrl:https://auth.com/token]\n"
       " */\n"
       "int foo20(void);\n";
-      
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *c_file = NULL;
@@ -831,14 +856,14 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   makedir(src_dir);
   asprintf(&c_file, "%s%capi.c", src_dir, PATH_SEP_C);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
   extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
-  
+
   remove(c_file);
   remove(out_json);
   rmdir(src_dir);
@@ -850,18 +875,25 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   PASS();
 }
 
-
-
 TEST test_c2o_cli_oauth_validation_errors(void) {
   const char *snippets[] = {
-      "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n */\nint foo21(void);\n", // Missing authorizationUrl
-      "/**\n * @securityScheme oauth_bad2 [type:oauth2] [flow:password]\n */\nint foo22(void);\n", // Missing tokenUrl
-      "/**\n * @securityScheme oauth_bad3 [type:oauth2] [flow:clientCredentials]\n */\nint foo23(void);\n", // Missing tokenUrl
-      "/**\n * @securityScheme oauth_bad4 [type:oauth2] [flow:authorizationCode] [authorizationUrl:https://auth.com/auth]\n */\nint foo24(void);\n", // Missing tokenUrl
-      "/**\n * @securityScheme oauth_bad5 [type:oauth2] [flow:authorizationCode] [tokenUrl:https://auth.com/token]\n */\nint foo25(void);\n", // Missing authUrl
-      "/**\n * @securityScheme oauth_bad6 [type:oauth2] [flow:deviceAuthorization] [tokenUrl:https://auth.com/token]\n */\nint foo26(void);\n" // Missing deviceAuthorizationUrl
+      "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
+      "*/\nint foo21(void);\n", // Missing authorizationUrl
+      "/**\n * @securityScheme oauth_bad2 [type:oauth2] [flow:password]\n "
+      "*/\nint foo22(void);\n", // Missing tokenUrl
+      "/**\n * @securityScheme oauth_bad3 [type:oauth2] "
+      "[flow:clientCredentials]\n */\nint foo23(void);\n", // Missing tokenUrl
+      "/**\n * @securityScheme oauth_bad4 [type:oauth2] "
+      "[flow:authorizationCode] [authorizationUrl:https://auth.com/auth]\n "
+      "*/\nint foo24(void);\n", // Missing tokenUrl
+      "/**\n * @securityScheme oauth_bad5 [type:oauth2] "
+      "[flow:authorizationCode] [tokenUrl:https://auth.com/token]\n */\nint "
+      "foo25(void);\n", // Missing authUrl
+      "/**\n * @securityScheme oauth_bad6 [type:oauth2] "
+      "[flow:deviceAuthorization] [tokenUrl:https://auth.com/token]\n */\nint "
+      "foo26(void);\n" // Missing deviceAuthorizationUrl
   };
-  
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *out_json = NULL;
@@ -870,7 +902,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   asprintf(&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   size_t i;
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
     char *c_file = NULL;
@@ -901,12 +933,31 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
 
 TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   const char *snippets[] = {
-      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] [flow:implicit] [authorizationUrl:https://auth.com/auth1]\n * @securityScheme merge_oauth [type:oauth2] [flow:implicit] [authorizationUrl:https://auth.com/auth2]\n */\nint foo27(void);\n",
-      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] [flow:password] [tokenUrl:https://auth.com/token1]\n * @securityScheme merge_oauth [type:oauth2] [flow:password] [tokenUrl:https://auth.com/token2]\n */\nint foo28(void);\n",
-      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] [flow:deviceAuthorization] [deviceAuthorizationUrl:https://auth.com/device1] [tokenUrl:https://auth.com/token]\n * @securityScheme merge_oauth [type:oauth2] [flow:deviceAuthorization] [deviceAuthorizationUrl:https://auth.com/device2] [tokenUrl:https://auth.com/token]\n */\nint foo29(void);\n",
-      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] [flow:deviceAuthorization] [deviceAuthorizationUrl:https://auth.com/device] [refreshUrl:https://auth.com/refresh1] [tokenUrl:https://auth.com/token]\n * @securityScheme merge_oauth [type:oauth2] [flow:deviceAuthorization] [deviceAuthorizationUrl:https://auth.com/device] [refreshUrl:https://auth.com/refresh2] [tokenUrl:https://auth.com/token]\n */\nint foo30(void);\n"
-  };
-  
+      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
+      "[flow:implicit] [authorizationUrl:https://auth.com/auth1]\n * "
+      "@securityScheme merge_oauth [type:oauth2] [flow:implicit] "
+      "[authorizationUrl:https://auth.com/auth2]\n */\nint foo27(void);\n",
+      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
+      "[flow:password] [tokenUrl:https://auth.com/token1]\n * @securityScheme "
+      "merge_oauth [type:oauth2] [flow:password] "
+      "[tokenUrl:https://auth.com/token2]\n */\nint foo28(void);\n",
+      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
+      "[flow:deviceAuthorization] "
+      "[deviceAuthorizationUrl:https://auth.com/device1] "
+      "[tokenUrl:https://auth.com/token]\n * @securityScheme merge_oauth "
+      "[type:oauth2] [flow:deviceAuthorization] "
+      "[deviceAuthorizationUrl:https://auth.com/device2] "
+      "[tokenUrl:https://auth.com/token]\n */\nint foo29(void);\n",
+      "/**\n * GLOBAL META:\n * @securityScheme merge_oauth [type:oauth2] "
+      "[flow:deviceAuthorization] "
+      "[deviceAuthorizationUrl:https://auth.com/device] "
+      "[refreshUrl:https://auth.com/refresh1] "
+      "[tokenUrl:https://auth.com/token]\n * @securityScheme merge_oauth "
+      "[type:oauth2] [flow:deviceAuthorization] "
+      "[deviceAuthorizationUrl:https://auth.com/device] "
+      "[refreshUrl:https://auth.com/refresh2] "
+      "[tokenUrl:https://auth.com/token]\n */\nint foo30(void);\n"};
+
   char *tmp_dir = NULL;
   char *src_dir = NULL;
   char *out_json = NULL;
@@ -915,7 +966,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   asprintf(&src_dir, "%s%cc2o_test_err_%d", tmp_dir, PATH_SEP_C, rand());
   makedir(src_dir);
   asprintf(&out_json, "%s%cspec.json", src_dir, PATH_SEP_C);
-  
+
   size_t i;
   for (i = 0; i < sizeof(snippets) / sizeof(snippets[0]); ++i) {
     char *c_file = NULL;

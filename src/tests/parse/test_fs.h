@@ -188,47 +188,51 @@ TEST test_fs_cp(void) {
   PASS();
 }
 
-
 TEST test_fs_basename_dirname_edge_cases(void) {
   char *out = NULL;
-  
+
   // get_basename edges
   ASSERT_EQ(EINVAL, get_basename("foo", NULL));
-  
+
   ASSERT_EQ(0, get_basename("///", &out));
   ASSERT_STR_EQ(PATH_SEP, out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   // get_dirname edges
   ASSERT_EQ(EINVAL, get_dirname("foo", NULL));
-  
+
   ASSERT_EQ(0, get_dirname("foo///", &out));
   ASSERT_STR_EQ(".", out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   ASSERT_EQ(0, get_dirname("///", &out));
   ASSERT_STR_EQ(PATH_SEP, out);
-  free(out); out = NULL;
+  free(out);
+  out = NULL;
 
   PASS();
 }
 
-
 TEST test_fs_dirname_more_edge_cases(void) {
   char *out = NULL;
-  
+
   ASSERT_EQ(0, get_dirname("", &out));
   ASSERT_STR_EQ(".", out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   ASSERT_EQ(0, get_dirname("foo//bar", &out));
   ASSERT_STR_EQ("foo", out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   ASSERT_EQ(0, get_dirname("foo/bar///", &out));
   ASSERT_STR_EQ("foo", out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   PASS();
 }
 
@@ -237,67 +241,65 @@ TEST test_fs_write_to_file(void) {
   char *file_path = NULL;
   char *out_data = NULL;
   size_t sz = 0;
-  
+
   tempdir(&tmp_dir);
   asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C);
-  
+
   ASSERT_EQ(EINVAL, fs_write_to_file(NULL, "data"));
   ASSERT_EQ(EINVAL, fs_write_to_file(file_path, NULL));
-  
+
   ASSERT_EQ(0, fs_write_to_file(file_path, "hello world"));
-  
+
   read_to_file(file_path, "r", &out_data, &sz);
   ASSERT_STR_EQ("hello world", out_data);
-  
+
   free(out_data);
   remove(file_path);
   rmdir(tmp_dir);
   free(file_path);
   free(tmp_dir);
-  
+
   PASS();
 }
-
 
 TEST test_fs_dirname_foo(void) {
   char *out = NULL;
-  
+
   ASSERT_EQ(0, get_dirname("foo", &out));
   ASSERT_STR_EQ(".", out);
-  free(out); out = NULL;
-  
+  free(out);
+  out = NULL;
+
   PASS();
 }
-
 
 TEST test_fs_cdd_fopen_too_long(void) {
   enum FopenError err;
   extern int fopen_error_from(int fopen_error, enum FopenError *_out_val);
-  
+
   ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
   ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
-  
+
   PASS();
 }
-
 
 TEST test_fs_write_to_file_errors(void) {
-  ASSERT_NEQ(0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
+  ASSERT_NEQ(
+      0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
   PASS();
 }
 
-
 TEST test_read_from_fh_errors(void) {
-  extern int read_from_fh(FILE *fh, char **out_data, size_t *out_size);
+  extern int read_from_fh(FILE * fh, char **out_data, size_t *out_size);
   FILE *f = tmpfile();
   char *data = NULL;
   size_t sz = 0;
-  
+
   // Test invalid args
   ASSERT_EQ(EINVAL, read_from_fh(NULL, &data, &sz));
   ASSERT_EQ(EINVAL, read_from_fh(f, NULL, &sz));
   ASSERT_EQ(EINVAL, read_from_fh(f, &data, NULL));
-  
+
   fclose(f);
   PASS();
 }

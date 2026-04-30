@@ -24,7 +24,14 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
   }
 
   va_start(args, fmt);
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
   vsnprintf(buf, 4096, fmt, args);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);

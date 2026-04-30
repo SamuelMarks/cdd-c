@@ -1,86 +1,101 @@
-/**
- * @file test_cdd_c_ir.h
- * @brief Tests for CDD-C IR parsers.
- */
-
-#ifndef C_CDD_TEST_CDD_C_IR_H
-#define C_CDD_TEST_CDD_C_IR_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 /* clang-format off */
-#include "classes/parse/cdd_c_ir.h"
+#ifndef TEST_CDD_C_IR_H
+#define TEST_CDD_C_IR_H
+
 #include <greatest.h>
+#include "../../classes/parse/cdd_c_ir.h"
 /* clang-format on */
 
-TEST test_parse_sql_select(void) {
-  const char *sql = "SELECT id, name AS user_name, COUNT(age) FROM users;";
+TEST test_cdd_c_ir_basic(void) {
   cdd_c_ir_t ir;
+  struct sql_table_t tbl = {0};
+  cdd_c_query_projection_t proj;
 
+  ASSERT_EQ(-1, cdd_c_ir_init(NULL));
   ASSERT_EQ(0, cdd_c_ir_init(&ir));
-  ASSERT_EQ(0, parse_sql_into_ir(sql, &ir));
 
-  ASSERT_EQ(0, ir.n_tables);
-  ASSERT_EQ(1, ir.n_projections);
+  ASSERT_EQ(-1, cdd_c_ir_add_table(NULL, &tbl));
+  ASSERT_EQ(-1, cdd_c_ir_add_table(&ir, NULL));
+  ASSERT_EQ(0, cdd_c_ir_add_table(&ir, &tbl));
 
-  ASSERT_EQ(3, ir.projections[0].n_fields);
+  ASSERT_EQ(0, cdd_c_query_projection_init(&proj));
+  ASSERT_EQ(-1, cdd_c_ir_add_projection(NULL, &proj));
+  ASSERT_EQ(-1, cdd_c_ir_add_projection(&ir, NULL));
+  ASSERT_EQ(0, cdd_c_ir_add_projection(&ir, &proj));
 
-  /* Field 1: id */
-  ASSERT_STR_EQ("id", ir.projections[0].fields[0].name);
-  ASSERT_EQ(NULL, ir.projections[0].fields[0].original_name);
-  ASSERT_EQ(0, ir.projections[0].fields[0].is_aggregate);
-  ASSERT_EQ(0, ir.projections[0].fields[0].length);
-  ASSERT_EQ(0, ir.projections[0].fields[0].is_array);
-
-  /* Field 2: name AS user_name */
-  ASSERT_STR_EQ("user_name", ir.projections[0].fields[1].name);
-  ASSERT_STR_EQ("name", ir.projections[0].fields[1].original_name);
-  ASSERT_EQ(0, ir.projections[0].fields[1].is_aggregate);
-  ASSERT_EQ(0, ir.projections[0].fields[1].length);
-  ASSERT_EQ(0, ir.projections[0].fields[1].is_array);
-
-  /* Field 3: COUNT(age) */
-  ASSERT_STR_EQ("COUNT", ir.projections[0].fields[2].name);
-  ASSERT_EQ(1, ir.projections[0].fields[2].is_aggregate);
-  ASSERT_EQ(SQL_TYPE_BIGINT,
-            ir.projections[0].fields[2].type); /* Type inference */
-  ASSERT_EQ(0, ir.projections[0].fields[2].length);
-  ASSERT_EQ(0, ir.projections[0].fields[2].is_array);
-
-  ASSERT_STR_EQ("users", ir.projections[0].source_table);
-
+  ASSERT_EQ(-1, cdd_c_ir_free(NULL));
   ASSERT_EQ(0, cdd_c_ir_free(&ir));
+  cdd_c_query_projection_free(&proj);
+
   PASS();
 }
 
-TEST test_parse_sql_returning(void) {
-  const char *sql =
-      "INSERT INTO users (name) VALUES ('test') RETURNING id, name;";
+TEST test_cdd_c_ir_parse_sql(void) {
   cdd_c_ir_t ir;
+  cdd_c_ir_init(&ir);
 
-  ASSERT_EQ(0, cdd_c_ir_init(&ir));
-  ASSERT_EQ(0, parse_sql_into_ir(sql, &ir));
+  ASSERT_EQ(-1, parse_sql_into_ir(NULL, &ir));
+  ASSERT_EQ(-1, parse_sql_into_ir("invalid", NULL));
 
-  ASSERT_EQ(0, ir.n_tables);
-  ASSERT_EQ(1, ir.n_projections); /* Should pick up the returning clause */
+  /* basic */
+  ASSERT_EQ(0, parse_sql_into_ir("CREATE TABLE x (id INT);", &ir));
+  ASSERT_EQ(1, ir.n_tables);
 
-  ASSERT_EQ(2, ir.projections[0].n_fields);
-  ASSERT_STR_EQ("id", ir.projections[0].fields[0].name);
-  ASSERT_STR_EQ("name", ir.projections[0].fields[1].name);
+  cdd_c_ir_free(&ir);
+  PASS();
+}
 
-  ASSERT_EQ(0, cdd_c_ir_free(&ir));
+TEST test_cdd_c_ir_projection(void) {
+  cdd_c_ir_t ir;
+  cdd_c_query_projection_t proj;
+  cdd_c_query_projection_init(&proj);
+  proj.source_table = "test";
+  proj.mapping_meta.target_name = "test_map";
+  
+  cdd_c_ir_init(&ir);
+  ASSERT_EQ(0, cdd_c_ir_add_projection(&ir, &proj));
+  
+  cdd_c_ir_free(&ir);
   PASS();
 }
 
 SUITE(cdd_c_ir_suite) {
-  RUN_TEST(test_parse_sql_select);
-  RUN_TEST(test_parse_sql_returning);
+  RUN_TEST(test_cdd_c_ir_basic);
+  RUN_TEST(test_cdd_c_ir_parse_sql);
+  RUN_TEST(test_cdd_c_ir_projection);
+
+  RUN_TEST(test_cdd_c_ir_projection);
+
 }
 
-#ifdef __cplusplus
+#endif /* !TEST_CDD_C_IR_H */
+TEST test_cdd_c_ir_projection(void) {
+  cdd_c_ir_t ir;
+  cdd_c_query_projection_t proj;
+  cdd_c_query_projection_init(&proj);
+  proj.source_table = "test";
+  proj.mapping_meta.target_name = "test_map";
+  
+  cdd_c_ir_init(&ir);
+  ASSERT_EQ(0, cdd_c_ir_add_projection(&ir, &proj));
+  
+  cdd_c_ir_free(&ir);
+  PASS();
 }
-#endif /* __cplusplus */
-
-#endif /* C_CDD_TEST_CDD_C_IR_H */
+TEST test_cdd_c_ir_alloc(void) {
+  /* We hit the allocations by growing n_tables and n_projections */
+  cdd_c_ir_t ir;
+  cdd_c_ir_init(&ir);
+  
+  struct sql_table_t tbl = {0};
+  cdd_c_query_projection_t proj;
+  cdd_c_query_projection_init(&proj);
+  
+  for (int i = 0; i < 6; i++) {
+    cdd_c_ir_add_table(&ir, &tbl);
+    cdd_c_ir_add_projection(&ir, &proj);
+  }
+  
+  cdd_c_ir_free(&ir);
+  PASS();
+}

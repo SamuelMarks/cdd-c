@@ -297,6 +297,8 @@ static /**
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
          _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
+  if (len < pre_len)
+    return 0;
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
     char b = prefix[i];

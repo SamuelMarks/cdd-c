@@ -112,6 +112,8 @@
 #include "parse/test_migration.h"
 #include "parse/test_cli_cst.h"
 #include "parse/test_cdd_cst_builder.h"
+#include "parse/test_cdd_cst_factory.h"
+
 #include "c_cdd/test_int128.h"
 /* clang-format on */
 
@@ -218,6 +220,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(server_json_rpc_suite);
   RUN_SUITE(migration_suite);
   RUN_SUITE(cli_cst_suite);
+  RUN_SUITE(cdd_cst_factory_suite);
+
   RUN_SUITE(cdd_cst_builder_suite);
   RUN_SUITE(c_cdd_int128_suite);
 
