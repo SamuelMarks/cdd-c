@@ -126,7 +126,7 @@ int cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
 #endif
   pooled = pool_string(builder->tree, buf);
   if (!pooled) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
@@ -195,7 +195,7 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
       {
         const char *pooled = pool_string(builder->tree, buf);
         if (!pooled) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
@@ -502,7 +502,7 @@ static int create_trivia(cdd_cst_tree_t *tree, const char *text,
   *out_trivia = NULL;
   t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!t) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 #if defined(_MSC_VER)

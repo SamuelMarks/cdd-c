@@ -28,7 +28,7 @@ int patch_list_init(struct PatchList *list) {
   list->capacity = 8;
   list->patches = (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
   if (!list->patches) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   return 0;
@@ -133,7 +133,7 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
 
   output = (char *)malloc(out_cap);
   if (!output) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   output[0] = '\0';

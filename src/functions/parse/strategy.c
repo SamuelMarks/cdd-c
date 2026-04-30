@@ -176,13 +176,13 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
         (range_to_string(tokens, call_idx, semi_idx, &_ast_range_to_string_2),
          _ast_range_to_string_2);
     if (!call_expr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
 
     /* Build safe block */
-    /* { void *_safe_tmp = call_expr; if (!_safe_tmp) { LOG_DEBUG("ENOMEM: OOM
-     * in %s\n", __func__); return ENOMEM; } var = _safe_tmp; } */
+    /* { void *_safe_tmp = call_expr; if (!_safe_tmp) { C_CDD_LOG_DEBUG("ENOMEM:
+     * OOM in %s\n", __func__); return ENOMEM; } var = _safe_tmp; } */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     /* Use explicit size calc + sprintf_s or malloc+sprintf in C89 portable
@@ -283,7 +283,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection) {
-        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -298,7 +298,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection) {
-        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -313,7 +313,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
       if (!injection) {
-        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

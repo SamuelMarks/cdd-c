@@ -46,7 +46,7 @@ static int arena_alloc(size_t len, void **out_ptr) {
   *out_ptr = NULL;
   node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
   if (!node) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   node->next = global_arena;
@@ -373,7 +373,7 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   while (head) {
     cdd_trivia_t *tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
     if (!tr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     tr->kind = head->kind;
@@ -397,7 +397,7 @@ static int clone_token(cdd_token_t *tok, cdd_token_t **out_token) {
   *out_token = NULL;
   ct = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   if (!ct) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   ct->kind = tok->kind;

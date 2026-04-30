@@ -75,7 +75,7 @@ static /**
     struct AuditViolation *new_items = (struct AuditViolation *)realloc(
         list->items, new_cap * sizeof(struct AuditViolation));
     if (!new_items) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     list->items = new_items;

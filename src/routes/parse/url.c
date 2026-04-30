@@ -407,7 +407,7 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
     struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     qp->params = new_arr;
@@ -446,7 +446,7 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
     struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     qp->params = new_arr;
@@ -534,7 +534,7 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
   /* 2. Allocate */
   buf = (char *)malloc(total_len + 1);
   if (!buf) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -617,7 +617,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
     char *e_val;
     size_t kl, vl;
     if (!e_key) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     if (qp->params[i].value_is_encoded) {
@@ -642,7 +642,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
 
   buf = (char *)malloc(total_len + 1);
   if (!buf) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   ptr = buf;
@@ -705,7 +705,7 @@ static /**
       new_cap *= 2;
     tmp = (char *)realloc(*buf, new_cap);
     if (!tmp) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     *buf = tmp;

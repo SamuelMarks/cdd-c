@@ -404,20 +404,20 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   cdd_cst_builder_init(&b, tree, root);
-  
+
   ASSERT_EQ(EINVAL, cdd_cst_quote(NULL, "abc"));
   ASSERT_EQ(EINVAL, cdd_cst_quote(&b, NULL));
-  
+
   b.error_state = EINVAL;
   ASSERT_EQ(EINVAL, cdd_cst_quote(&b, "abc"));
   b.error_state = 0;
-  
+
   /* buffer overflow */
   char buf[3000];
   memset(buf, 'a', 2999);
   buf[2999] = '\0';
   cdd_cst_quote(&b, "123%s", buf);
-  
+
   cdd_cst_tree_free(tree);
   PASS();
 }

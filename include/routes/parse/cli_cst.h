@@ -1,6 +1,11 @@
 #ifndef ROUTES_PARSE_CLI_CST_H
 #define ROUTES_PARSE_CLI_CST_H
 
+/* clang-format off */
+#include "c_cdd_export.h"
+/* clang-format on */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -12,7 +17,7 @@ extern "C" {
  * @param argv Argument values.
  * @return 0 on success.
  */
-int cli_cst_transformer_main(int argc, char **argv);
+C_CDD_EXPORT int cli_cst_transformer_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

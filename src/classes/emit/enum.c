@@ -45,7 +45,7 @@ int enum_members_init(struct EnumMembers *em) {
   em->capacity = 8;
   em->members = (char **)calloc(em->capacity, sizeof(char *));
   if (!em->members) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   return 0;
@@ -82,7 +82,7 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
     char **new_members =
         (char **)realloc(em->members, new_cap * sizeof(char *));
     if (!new_members) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     em->members = new_members;

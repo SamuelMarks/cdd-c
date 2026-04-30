@@ -130,7 +130,7 @@ int scrape_makefile(struct ExtractedBuildInfo *info,
 
   copy = my_strdup(makefile_content);
   if (!copy) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -163,7 +163,7 @@ int scrape_configure_ac(
 
   copy = my_strdup(configure_ac_content);
   if (!copy) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -194,7 +194,7 @@ int build_info_to_cmake(const struct ExtractedBuildInfo *info,
 
   buf = (char *)malloc(cap);
   if (!buf) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

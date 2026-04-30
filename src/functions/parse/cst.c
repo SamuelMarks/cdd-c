@@ -90,7 +90,7 @@ int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
     new_arr = (struct CstNode *)realloc(list->nodes,
                                         new_cap * sizeof(struct CstNode));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     list->nodes = new_arr;

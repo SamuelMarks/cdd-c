@@ -220,7 +220,7 @@ int get_basename(const char *path, char **out) {
   len = (size_t)(p - start_p) + 1;
   ret = (char *)malloc(len + 1);
   if (!ret) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -289,7 +289,7 @@ int get_dirname(const char *path, char **out) {
 
   ret = (char *)malloc(len + 1);
   if (!ret) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -500,7 +500,7 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* Empty file case, allocate distinct empty string */
     buffer = (char *)malloc(1);
     if (!buffer) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     buffer[0] = '\0';
@@ -645,7 +645,7 @@ int makedirs(const char *path) {
 
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
   if (dup_path == NULL) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

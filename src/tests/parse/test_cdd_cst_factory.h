@@ -22,17 +22,17 @@ TEST test_cdd_cst_factory_format(void) {
   rc = cdd_cst_parse_format(dest_tree, &out_node, "int %s = %d;", "my_var", 42);
   ASSERT_EQ(0, rc);
   ASSERT_NEQ(NULL, out_node);
-  
+
   if (out_node) {
-      cdd_cst_free_node_only(out_node);
+    cdd_cst_free_node_only(out_node);
   }
-  
+
   /* Test error formatting invalid syntax to trigger empty parse */
   rc = cdd_cst_parse_format(dest_tree, &out_node, "/* just a comment */");
   ASSERT_EQ(0, rc);
   ASSERT_NEQ(NULL, out_node);
   if (out_node) {
-      cdd_cst_free_node_only(out_node);
+    cdd_cst_free_node_only(out_node);
   }
 
   /* Test appending multiple statements */
@@ -40,13 +40,14 @@ TEST test_cdd_cst_factory_format(void) {
   ASSERT_EQ(0, rc);
   ASSERT_NEQ(NULL, out_node);
   if (out_node) {
-      cdd_cst_free_node_only(out_node);
+    cdd_cst_free_node_only(out_node);
   }
-  
-  /* Missing parameters / allocation failure mock not simple without framework, check out out NULL handling */
+
+  /* Missing parameters / allocation failure mock not simple without framework,
+   * check out out NULL handling */
   rc = cdd_cst_parse_format(dest_tree, &out_node, "");
   if (out_node) {
-      cdd_cst_free_node_only(out_node);
+    cdd_cst_free_node_only(out_node);
   }
 
   cdd_cst_tree_free(dest_tree);
@@ -54,9 +55,7 @@ TEST test_cdd_cst_factory_format(void) {
   PASS();
 }
 
-SUITE(cdd_cst_factory_suite) {
-  RUN_TEST(test_cdd_cst_factory_format);
-}
+SUITE(cdd_cst_factory_suite) { RUN_TEST(test_cdd_cst_factory_format); }
 
 #ifdef __cplusplus
 }

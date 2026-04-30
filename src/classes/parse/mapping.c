@@ -52,7 +52,7 @@ static /**
   out->kind = OA_TYPE_PRIMITIVE;
   out->oa_type = (c_cdd_strdup(type, &_ast_strdup_0), _ast_strdup_0);
   if (!out->oa_type) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   if (fmt) {
@@ -78,7 +78,7 @@ static /**
      The ref_name holds the target. */
   out->ref_name = (c_cdd_strdup(ref, &_ast_strdup_2), _ast_strdup_2);
   if (!out->ref_name) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   return 0;
@@ -214,7 +214,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
     clean =
         (clean_type_str(c_type, &_ast_clean_type_str_1), _ast_clean_type_str_1);
     if (!clean) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
 

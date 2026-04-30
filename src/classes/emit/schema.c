@@ -53,7 +53,7 @@ static /**
     return 0;
   out = (char **)calloc(src_count, sizeof(char *));
   if (!out) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   for (i = 0; i < src_count; ++i) {
@@ -142,7 +142,7 @@ static /**
     dst->schema_extra_json =
         (c_cdd_strdup(src->schema_extra_json, &_ast_strdup_1), _ast_strdup_1);
     if (!dst->schema_extra_json) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
   }
@@ -173,7 +173,7 @@ static /**
         dst_field->schema_extra_json =
             (c_cdd_strdup(f->schema_extra_json, &_ast_strdup_2), _ast_strdup_2);
         if (!dst_field->schema_extra_json) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
       }
@@ -181,7 +181,7 @@ static /**
         dst_field->items_extra_json =
             (c_cdd_strdup(f->items_extra_json, &_ast_strdup_3), _ast_strdup_3);
         if (!dst_field->items_extra_json) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
       }
@@ -231,7 +231,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         new_names = (char **)realloc(spec->defined_schema_names,
                                      new_cap * sizeof(char *));
         if (!new_names) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
         spec->defined_schema_names = new_names;
@@ -240,7 +240,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         new_schemas = (struct StructFields *)realloc(
             spec->defined_schemas, new_cap * sizeof(struct StructFields));
         if (!new_schemas) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
         spec->defined_schemas = new_schemas;
@@ -268,7 +268,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         new_names = (char **)realloc(spec->defined_schema_names,
                                      new_cap * sizeof(char *));
         if (!new_names) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
         spec->defined_schema_names = new_names;
@@ -276,7 +276,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         new_schemas = (struct StructFields *)realloc(
             spec->defined_schemas, new_cap * sizeof(struct StructFields));
         if (!new_schemas) {
-          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
         }
         spec->defined_schemas = new_schemas;

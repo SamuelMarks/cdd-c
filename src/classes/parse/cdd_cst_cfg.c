@@ -12,7 +12,7 @@ static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,
     return EINVAL;
   block = (cdd_cst_cfg_block_t *)calloc(1, sizeof(cdd_cst_cfg_block_t));
   if (!block) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -89,7 +89,7 @@ static int build_block(cdd_cst_cfg_t *cfg, cdd_cst_cfg_block_t *curr_block,
     cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
         curr_block->statements, new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     curr_block->statements = new_arr;
@@ -115,7 +115,7 @@ static int walk_function_body(cdd_cst_cfg_t *cfg,
 
   alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &current);
   if (!current) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -157,7 +157,7 @@ int cdd_cst_cfg_build(cdd_cst_node_t *function_node, cdd_cst_cfg_t **out_cfg) {
 
   cfg = (cdd_cst_cfg_t *)calloc(1, sizeof(cdd_cst_cfg_t));
   if (!cfg) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

@@ -44,7 +44,7 @@ int cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
   mod->link_libs_n = 0;
 
   if (!mod->filepath) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -61,7 +61,7 @@ int cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt) {
   mod->compile_opts = (char **)realloc(
       mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
   if (!mod->compile_opts) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 
@@ -83,7 +83,7 @@ int cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib) {
   mod->link_libs =
       (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
   if (!mod->link_libs) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

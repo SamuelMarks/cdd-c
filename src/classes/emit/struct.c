@@ -81,7 +81,7 @@ int struct_fields_init(struct StructFields *sf) {
   sf->fields =
       (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
   if (!sf->fields) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   sf->is_enum = 0;
@@ -181,7 +181,7 @@ int struct_fields_add(struct StructFields *sf, const char *name,
     struct StructField *new_arr = (struct StructField *)realloc(
         sf->fields, new_cap * sizeof(struct StructField));
     if (!new_arr) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     sf->fields = new_arr;

@@ -85,7 +85,7 @@ static /**
     struct TypeDefinition *new_items = (struct TypeDefinition *)realloc(
         list->items, new_cap * sizeof(struct TypeDefinition));
     if (!new_items) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     list->items = new_items;
@@ -96,7 +96,7 @@ static /**
   item->kind = kind;
   item->name = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
   if (!item->name) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
 

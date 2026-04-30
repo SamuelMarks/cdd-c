@@ -1000,7 +1000,7 @@ static /**
 
   examples_val = json_value_init_object();
   if (!examples_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   examples_obj = json_value_get_object(examples_val);
@@ -1985,7 +1985,7 @@ static /**
     JSON_Value *item_val = json_value_init_object();
     JSON_Object *item_obj = json_value_get_object(item_val);
     if (!item_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     if (write_encoding_object(item_obj, enc->item_encoding) != 0) {
@@ -2017,7 +2017,7 @@ static /**
 
   enc_val = json_value_init_object();
   if (!enc_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   enc_obj = json_value_get_object(enc_val);
@@ -2029,7 +2029,7 @@ static /**
     const char *name = enc->name ? enc->name : "encoding";
 
     if (!e_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     if (write_encoding_object(e_obj, enc) != 0) {
@@ -2059,7 +2059,7 @@ static /**
 
   arr_val = json_value_init_array();
   if (!arr_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   arr = json_value_get_array(arr_val);
@@ -2068,7 +2068,7 @@ static /**
     JSON_Value *e_val = json_value_init_object();
     JSON_Object *e_obj = json_value_get_object(e_val);
     if (!e_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     if (write_encoding_object(e_obj, &encoding[i]) != 0) {
@@ -2115,7 +2115,7 @@ static /**
     JSON_Value *item_val = json_value_init_object();
     JSON_Object *item_obj = json_value_get_object(item_val);
     if (!item_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     if (write_encoding_object(item_obj, mt->item_encoding) != 0) {
@@ -2144,7 +2144,7 @@ static /**
 
   content_val = json_value_init_object();
   if (!content_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   content_obj = json_value_get_object(content_val);
@@ -2247,7 +2247,7 @@ static /**
 
   headers_val = json_value_init_object();
   if (!headers_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   headers_obj = json_value_get_object(headers_val);
@@ -2300,7 +2300,7 @@ static /**
 
   links_val = json_value_init_object();
   if (!links_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   links_obj = json_value_get_object(links_val);
@@ -2401,7 +2401,7 @@ static /**
 
   arr_val = json_value_init_array();
   if (arr_val == NULL) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   arr = json_value_get_array(arr_val);
@@ -2449,7 +2449,7 @@ static /**
   } else if (rb->content_ref) {
     content_val = json_value_init_object();
     if (!content_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     content_obj = json_value_get_object(content_val);
@@ -2470,7 +2470,7 @@ static /**
   } else {
     content_val = json_value_init_object();
     if (!content_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     content_obj = json_value_get_object(content_val);
@@ -2521,7 +2521,7 @@ static /**
   if (op->req_body_ref) {
     rb_val = json_value_init_object();
     if (!rb_val) {
-      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
     }
     rb_obj = json_value_get_object(rb_val);
@@ -2542,7 +2542,7 @@ static /**
 
   rb_val = json_value_init_object();
   if (!rb_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   rb_obj = json_value_get_object(rb_val);
@@ -2622,7 +2622,7 @@ static /**
 
   cbs_val = json_value_init_object();
   if (!cbs_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   cbs_obj = json_value_get_object(cbs_val);
@@ -2792,7 +2792,7 @@ static /**
 
   add_val = json_value_init_object();
   if (!add_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   add_obj = json_value_get_object(add_val);
@@ -2936,7 +2936,7 @@ static /**
 
   arr_val = json_value_init_array();
   if (!arr_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   arr = json_value_get_array(arr_val);
@@ -2974,7 +2974,7 @@ static /**
 
   arr_val = json_value_init_array();
   if (!arr_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   arr = json_value_get_array(arr_val);
@@ -3024,7 +3024,7 @@ static /**
 
   hooks_val = json_value_init_object();
   if (!hooks_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   hooks_obj = json_value_get_object(hooks_val);
@@ -3071,7 +3071,7 @@ static /**
 
   arr_val = json_value_init_array();
   if (!arr_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   arr = json_value_get_array(arr_val);
@@ -3141,7 +3141,7 @@ static /**
 
   sec_val = json_value_init_object();
   if (!sec_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   sec_obj = json_value_get_object(sec_val);
@@ -3279,7 +3279,7 @@ static /**
 
   params_val = json_value_init_object();
   if (!params_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   params_obj = json_value_get_object(params_val);
@@ -3316,7 +3316,7 @@ static /**
 
   resp_val = json_value_init_object();
   if (!resp_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   resp_obj = json_value_get_object(resp_val);
@@ -3353,7 +3353,7 @@ static /**
 
   hdrs_val = json_value_init_object();
   if (!hdrs_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   hdrs_obj = json_value_get_object(hdrs_val);
@@ -3390,7 +3390,7 @@ static /**
 
   media_val = json_value_init_object();
   if (!media_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   media_obj = json_value_get_object(media_val);
@@ -3432,7 +3432,7 @@ static /**
 
   examples_val = json_value_init_object();
   if (!examples_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   examples_obj = json_value_get_object(examples_val);
@@ -3469,7 +3469,7 @@ static /**
 
   links_val = json_value_init_object();
   if (!links_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   links_obj = json_value_get_object(links_val);
@@ -3503,7 +3503,7 @@ static /**
 
   cbs_val = json_value_init_object();
   if (!cbs_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   cbs_obj = json_value_get_object(cbs_val);
@@ -3538,7 +3538,7 @@ static /**
 
   paths_val = json_value_init_object();
   if (!paths_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   paths_obj = json_value_get_object(paths_val);
@@ -3585,7 +3585,7 @@ static /**
 
   rbs_val = json_value_init_object();
   if (!rbs_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   rbs_obj = json_value_get_object(rbs_val);
@@ -3637,7 +3637,7 @@ static /**
 
   comps_val = json_value_init_object();
   if (!comps_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   comps_obj = json_value_get_object(comps_val);
@@ -3781,7 +3781,7 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
 
   root_val = json_value_init_object();
   if (!root_val) {
-    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
   }
   root_obj = json_value_get_object(root_val);
