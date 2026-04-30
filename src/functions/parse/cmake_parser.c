@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "functions/parse/cmake_parser.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static /**
@@ -42,8 +43,10 @@ int cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
   mod->link_libs = NULL;
   mod->link_libs_n = 0;
 
-  if (!mod->filepath)
+  if (!mod->filepath) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   return 0;
 }
@@ -57,8 +60,10 @@ int cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt) {
 
   mod->compile_opts = (char **)realloc(
       mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
-  if (!mod->compile_opts)
+  if (!mod->compile_opts) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   mod->compile_opts[mod->compile_opts_n] = my_strdup(opt);
   if (!mod->compile_opts[mod->compile_opts_n])
@@ -77,8 +82,10 @@ int cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib) {
 
   mod->link_libs =
       (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
-  if (!mod->link_libs)
+  if (!mod->link_libs) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   mod->link_libs[mod->link_libs_n] = my_strdup(lib);
   if (!mod->link_libs[mod->link_libs_n])

@@ -913,6 +913,8 @@ extern C_CDD_EXPORT /**
     void
     openapi_spec_free(struct OpenAPI_Spec *spec);
 
+extern C_CDD_EXPORT void openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
+
 /* --- Loader --- */
 
 /**

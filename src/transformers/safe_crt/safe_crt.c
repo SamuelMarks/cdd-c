@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 typedef struct safe_crt_arena_t safe_crt_arena_t;
@@ -38,19 +39,26 @@ static void arena_free_all(void) {
   global_arena = NULL;
 }
 
-static void *arena_alloc(size_t len) {
-  safe_crt_arena_t *node =
-      (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
-  if (!node)
-    return NULL;
+static int arena_alloc(size_t len, void **out_ptr) {
+  safe_crt_arena_t *node;
+  if (!out_ptr)
+    return EINVAL;
+  *out_ptr = NULL;
+  node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
+  if (!node) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
   node->next = global_arena;
   global_arena = node;
-  return node->data;
+  *out_ptr = node->data;
+  return 0;
 }
 
 typedef struct expr_t expr_t;
 /** @brief Struct definition */
 struct expr_t {
+  /** @brief type field */
   int type; /* 0: token, 1: call, 2: group, 3: fopen assign, 4: hidden */
   /** @brief field */
   /** @brief field */
@@ -69,10 +77,13 @@ struct expr_t {
   expr_t *next;
 };
 
-static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
-                              int stop_at_comma) {
+static int parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx, int stop_at_comma,
+                          expr_t **out_expr) {
   expr_t *head = NULL;
   expr_t *tail = NULL;
+  if (!out_expr)
+    return EINVAL;
+  *out_expr = NULL;
 
   while (*idx < stmt->num_children) {
     cdd_token_t *t = stmt->children[*idx].val.token;
@@ -86,7 +97,7 @@ static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
     if (t->kind == CDD_TOKEN_COMMA && stop_at_comma)
       break;
 
-    node = (expr_t *)arena_alloc(sizeof(expr_t));
+    arena_alloc(sizeof(expr_t), (void **)&node);
     memset(node, 0, sizeof(expr_t));
     node->tok = t;
 
@@ -106,9 +117,12 @@ static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
         }
         old_idx = *idx;
         if (node->num_args < 16) {
-          node->args[node->num_args++] = parse_expr_ast(stmt, idx, 1);
+          parse_expr_ast(stmt, idx, 1, &node->args[node->num_args++]);
         } else {
-          parse_expr_ast(stmt, idx, 1);
+          {
+            expr_t *tmp_expr = NULL;
+            parse_expr_ast(stmt, idx, 1, &tmp_expr);
+          }
         }
         if (*idx == old_idx) {
           if (*idx < stmt->num_children) {
@@ -134,7 +148,7 @@ static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
                                           : CDD_TOKEN_RBRACE;
       node->type = 2;
       (*idx)++;
-      node->args[0] = parse_expr_ast(stmt, idx, 0);
+      parse_expr_ast(stmt, idx, 0, &node->args[0]);
       if (*idx < stmt->num_children &&
           stmt->children[*idx].val.token->kind == closing) {
         node->close_tok = stmt->children[*idx].val.token;
@@ -152,7 +166,8 @@ static expr_t *parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx,
       tail = node;
     }
   }
-  return head;
+  *out_expr = head;
+  return head ? 0 : ENOENT;
 }
 
 static int find_and_mark_fopen(expr_t *head) {
@@ -291,14 +306,23 @@ static int check_needs_transform(expr_t *head) {
 }
 
 typedef struct {
+  /** @brief is_msc field */
   int is_msc;
+  /** @brief needs_wcserrbuf field */
   int needs_errbuf;
+  /** @brief needs_wcstokctx field */
   int needs_wcserrbuf;
+  /** @brief needs_ecvtbuf field */
   int needs_strtokctx;
+  /** @brief needs_retbuf field */
   int needs_wcstokctx;
+  /** @brief needs_wgetenv_ptr field */
   int needs_mbstokctx;
+  /** @brief needs_ecvtbuf field */
   int needs_ecvtbuf;
+  /** @brief needs_retbuf field */
   int needs_fcvtbuf;
+  /** @brief needs_wgetenv_ptr field */
   int needs_retbuf;
   int needs_getenv_ptr;
   int needs_wgetenv_ptr;
@@ -339,13 +363,19 @@ static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
   return dup;
 }
 
-static cdd_trivia_t *clone_trivia(cdd_trivia_t *head) {
+static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
+  if (!out_trivia)
+    return EINVAL;
+  *out_trivia = NULL;
+
   while (head) {
     cdd_trivia_t *tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
-    if (!tr)
-      break;
+    if (!tr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      return ENOMEM;
+    }
     tr->kind = head->kind;
     tr->start = head->start;
     tr->length = head->length;
@@ -356,19 +386,27 @@ static cdd_trivia_t *clone_trivia(cdd_trivia_t *head) {
     tail = tr;
     head = head->next;
   }
-  return new_head;
+  *out_trivia = new_head;
+  return 0;
 }
 
-static cdd_token_t *clone_token(cdd_token_t *tok) {
-  cdd_token_t *ct = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-  if (!ct)
-    return NULL;
+static int clone_token(cdd_token_t *tok, cdd_token_t **out_token) {
+  cdd_token_t *ct;
+  if (!tok || !out_token)
+    return EINVAL;
+  *out_token = NULL;
+  ct = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+  if (!ct) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
   ct->kind = tok->kind;
   ct->start = tok->start;
   ct->length = tok->length;
-  ct->leading_trivia = clone_trivia(tok->leading_trivia);
-  ct->trailing_trivia = clone_trivia(tok->trailing_trivia);
-  return ct;
+  clone_trivia(tok->leading_trivia, &ct->leading_trivia);
+  clone_trivia(tok->trailing_trivia, &ct->trailing_trivia);
+  *out_token = ct;
+  return 0;
 }
 
 static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc);
@@ -413,16 +451,19 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
 
   while (node) {
     if (node->type == 0 || (node->type == 4 && !is_msc)) {
-      cdd_token_t *ct = clone_token(node->tok);
+      cdd_token_t *ct = NULL;
+      clone_token(node->tok, &ct);
       if (ct)
         cdd_cst_append_child_token(bld->target_node, ct);
     } else if (node->type == 2) {
-      cdd_token_t *ct = clone_token(node->tok);
+      cdd_token_t *ct = NULL;
+      clone_token(node->tok, &ct);
       if (ct)
         cdd_cst_append_child_token(bld->target_node, ct);
       changes += emit_ast_bld(node->args[0], bld, is_msc);
       if (node->close_tok) {
-        cdd_token_t *ct_close = clone_token(node->close_tok);
+        cdd_token_t *ct_close = NULL;
+        clone_token(node->close_tok, &ct_close);
         if (ct_close)
           cdd_cst_append_child_token(bld->target_node, ct_close);
       }
@@ -510,7 +551,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           sprintf(safe_name, "%s_s", name);
         }
 
-        ct = clone_token(node->tok);
+        clone_token(node->tok, &ct);
         if (ct) {
           char *pooled = (char *)malloc(strlen(safe_name) + 1);
           strcpy(pooled, safe_name);
@@ -527,12 +568,14 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
         }
         cdd_cst_bld_punct(bld, "(");
       } else if (!is_safe) {
-        cdd_token_t *ct = clone_token(node->tok);
+        cdd_token_t *ct = NULL;
+        clone_token(node->tok, &ct);
         if (ct)
           cdd_cst_append_child_token(bld->target_node, ct);
         cdd_cst_bld_punct(bld, "(");
       } else {
-        cdd_token_t *ct = clone_token(node->tok);
+        cdd_token_t *ct = NULL;
+        clone_token(node->tok, &ct);
         if (ct) {
           ct->length = 0;
           ct->start = (const uint8_t *)"";
@@ -962,7 +1005,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
       }
 
       if (node->close_tok) {
-        cdd_token_t *ct_close = clone_token(node->close_tok);
+        cdd_token_t *ct_close = NULL;
+        clone_token(node->close_tok, &ct_close);
         if (ct_close)
           cdd_cst_append_child_token(bld->target_node, ct_close);
       } else {
@@ -1005,7 +1049,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           memcpy(call_name, call->tok->start, nlen);
           sprintf(safe_call, "%s_s", call_name);
           while (t && t != node) {
-            cdd_token_t *ct = clone_token(t->tok);
+            cdd_token_t *ct = NULL;
+            clone_token(t->tok, &ct);
             if (ct)
               cdd_cst_append_child_token(bld->target_node, ct);
             t = t->next;
@@ -1016,7 +1061,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           cdd_cst_bld_punct(bld, "(");
           cdd_cst_bld_punct(bld, "&");
           {
-            cdd_token_t *ct = clone_token(last_t->tok);
+            cdd_token_t *ct = NULL;
+            clone_token(last_t->tok, &ct);
             if (ct) {
               ct->leading_trivia = NULL;
               ct->trailing_trivia = NULL;
@@ -1036,14 +1082,15 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
                 (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
             ct_space->kind = CDD_TOKEN_OTHER;
             ct_space->start = (const uint8_t *)"";
-            ct_space->leading_trivia = clone_trivia(node->tok->leading_trivia);
+            clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
             cdd_cst_append_child_token(bld->target_node, ct_space);
           }
           cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, safe_call));
           cdd_cst_bld_punct(bld, "(");
           cdd_cst_bld_punct(bld, "&");
           while (t && t != node) {
-            cdd_token_t *ct = clone_token(t->tok);
+            cdd_token_t *ct = NULL;
+            clone_token(t->tok, &ct);
             if (ct)
               cdd_cst_append_child_token(bld->target_node, ct);
             t = t->next;
@@ -1069,7 +1116,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
           ct_space->kind = CDD_TOKEN_OTHER;
           ct_space->start = (const uint8_t *)"";
-          ct_space->trailing_trivia = clone_trivia(node->tok->trailing_trivia);
+          clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }
       } else {
@@ -1077,7 +1124,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
           ct_space->kind = CDD_TOKEN_OTHER;
           ct_space->start = (const uint8_t *)"";
-          ct_space->leading_trivia = clone_trivia(node->tok->leading_trivia);
+          clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }
         cdd_cst_bld_punct(bld, "=");
@@ -1085,7 +1132,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
           ct_space->kind = CDD_TOKEN_OTHER;
           ct_space->start = (const uint8_t *)"";
-          ct_space->trailing_trivia = clone_trivia(node->tok->trailing_trivia);
+          clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }
       }
@@ -1194,7 +1241,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       }
       printf("PROCESSING STATEMENT: %.*s\n", (int)first_tok->length,
              first_tok->start);
-      ast = parse_expr_ast(stmt, &idx, 0);
+      parse_expr_ast(stmt, &idx, 0, &ast);
       find_and_mark_fopen(ast);
       check_unsupported_calls(ast);
 
@@ -1213,7 +1260,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (first_tok)
           first_tok->leading_trivia = NULL;
 
-        new_node = cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL);
+        cdd_cst_alloc_node(CDD_CST_PREPROC_CONDITIONAL, &new_node);
         if (!new_node)
           break;
         cdd_cst_builder_init(&bld, tree, new_node);
@@ -1222,13 +1269,13 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         cdd_cst_bld_block_comment(&bld, "CDD_SAFE_CRT");
         cdd_cst_bld_space(&bld);
 
-        msc_node = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &msc_node);
         cdd_cst_builder_init(&msc_bld, tree, msc_node);
         g_msc_ctx = &msc_ctx;
         msc_changes = emit_ast_bld(ast, &msc_bld, 1);
         g_msc_ctx = NULL;
 
-        else_node = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &else_node);
         cdd_cst_builder_init(&else_bld, tree, else_node);
         emit_ast_bld(ast, &else_bld, 0);
 

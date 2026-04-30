@@ -24,6 +24,7 @@
 #if defined(_UI64_MAX)
 #define UINT64_MAX _UI64_MAX
 #else
+/** @brief UINT64_MAX macro */
 #define UINT64_MAX ((uint64_t)-1)
 #endif
 #endif

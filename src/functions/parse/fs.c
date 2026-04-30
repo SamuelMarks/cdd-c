@@ -82,6 +82,7 @@
 #else
 #if !defined(_MSC_VER)
 #include <unistd.h>
+#include "c_cdd/log.h"
 #endif
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
@@ -218,8 +219,10 @@ int get_basename(const char *path, char **out) {
 
   len = (size_t)(p - start_p) + 1;
   ret = (char *)malloc(len + 1);
-  if (!ret)
+  if (!ret) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   memcpy(ret, start_p, len);
   ret[len] = '\0';
@@ -285,8 +288,10 @@ int get_dirname(const char *path, char **out) {
   }
 
   ret = (char *)malloc(len + 1);
-  if (!ret)
+  if (!ret) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   memcpy(ret, path, len);
   ret[len] = '\0';
@@ -494,8 +499,10 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
   } else {
     /* Empty file case, allocate distinct empty string */
     buffer = (char *)malloc(1);
-    if (!buffer)
+    if (!buffer) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     buffer[0] = '\0';
   }
 
@@ -637,8 +644,10 @@ int makedirs(const char *path) {
 #endif
 
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
-  if (dup_path == NULL)
+  if (dup_path == NULL) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   p = dup_path;
 #if defined(_WIN32)

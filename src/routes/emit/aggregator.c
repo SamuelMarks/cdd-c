@@ -13,6 +13,7 @@
 
 #include "functions/parse/str.h"
 #include "routes/emit/aggregator.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -62,8 +63,10 @@ static /**
   new_count = *n_paths + 1;
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
-  if (!new_arr)
+  if (!new_arr) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   *paths = new_arr;
   *n_paths = new_count;
@@ -94,8 +97,10 @@ static /**
   new_count = *count + 1;
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
-  if (!new_ops)
+  if (!new_ops) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   *ops = new_ops;
   (*ops)[new_count - 1] = *op;

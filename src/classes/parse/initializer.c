@@ -13,6 +13,7 @@
 
 #include "classes/parse/initializer.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helper: Token Joiner --- */
@@ -128,8 +129,10 @@ static /**
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
     struct InitItem *new_arr = (struct InitItem *)realloc(
         list->items, new_cap * sizeof(struct InitItem));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->items = new_arr;
     list->capacity = new_cap;
   }

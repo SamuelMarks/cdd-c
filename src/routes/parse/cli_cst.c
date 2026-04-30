@@ -1,8 +1,10 @@
 #include "routes/parse/cli_cst.h"
+#include "c_cdd/log.h"
 #include "c_str_span.h"
 #include "cdd_cst_transform.h"
 #include "classes/emit/cdd_cst_emit.h"
 #include "classes/parse/cdd_cst_parser.h"
+#include <errno.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +26,7 @@ static int process_file(const char *filepath,
   f = fopen(filepath, "rb");
   if (!f) {
     fprintf(stderr, "Error opening %s\n", filepath);
-    return 1;
+    return EINVAL;
   }
   fseek(f, 0, SEEK_END);
   fsize = ftell(f);
@@ -33,7 +35,8 @@ static int process_file(const char *filepath,
   str = (char *)malloc((size_t)fsize + 1);
   if (!str) {
     fclose(f);
-    return 1;
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
   }
   fread(str, 1, (size_t)fsize, f);
   str[fsize] = '\0';
@@ -82,7 +85,7 @@ static int process_file(const char *filepath,
           fprintf(stderr, "Error opening %s for writing\n", filepath);
           free(str);
           free(out);
-          return 1;
+          return EINVAL;
         }
         fwrite(out, 1, strlen(out), out_f);
         fclose(out_f);
@@ -112,7 +115,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
                     "[--dry-run] <files...>\n");
-    return 1;
+    return EINVAL;
   }
 
   toolname = argv[0];
@@ -138,7 +141,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
     return 0;
   } else {
     fprintf(stderr, "Unknown tool: %s\n", toolname);
-    return 1;
+    return EINVAL;
   }
 
   for (i = 1; i < argc; i++) {
@@ -160,7 +163,7 @@ int cli_cst_transformer_main(int argc, char **argv) {
         /* Default to fix if neither specified, to be safe or maybe require it?
            ADD_NEW_TOOLS.md says: my-ts-tool --audit /path */
         fprintf(stderr, "Must specify --audit or --fix.\n");
-        return 1;
+        return EINVAL;
       }
 
       if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=

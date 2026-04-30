@@ -58,7 +58,7 @@ C_CDD_EXPORT /**
 /**
  * @brief Extract CLI command parameters from a CST containing a getopt loop.
  *
- * @param root The root CST node (e.g. function body of main).
+ * @param nodes The root CST node (e.g. function body of main).
  * @param tokens The token list.
  * @param cmd The output command.
  * @return 0 on success, non-zero on failure.

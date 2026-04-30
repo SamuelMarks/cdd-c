@@ -66,7 +66,51 @@ TEST test_form_urlencoded_generation(void) {
   PASS();
 }
 
-SUITE(codegen_form_suite) { RUN_TEST(test_form_urlencoded_generation); }
+TEST test_form_urlencoded_exhaustive(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  char *content = NULL;
+  long sz;
+
+  ASSERT(tmp);
+  ASSERT_EQ(0, struct_fields_init(&sf));
+
+  struct_fields_add(&sf, "username", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "is_active", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "unsupported_field", "unknown", NULL, NULL, NULL);
+
+  ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "FullForm", &sf));
+
+  // Test error conditions
+  ASSERT_EQ(EINVAL,
+            write_struct_to_form_urlencoded_func(NULL, "FullForm", &sf));
+  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
+  ASSERT_EQ(EINVAL,
+            write_struct_to_form_urlencoded_func(tmp, "FullForm", NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  fread(content, 1, (size_t)sz, tmp);
+
+  ASSERT(strstr(content, "FullForm_to_form_urlencoded"));
+  ASSERT(strstr(content, "FullForm_url_encode_form"));
+  ASSERT(strstr(content, "obj->username"));
+  ASSERT(strstr(content, "obj->age"));
+  ASSERT(strstr(content, "obj->is_active"));
+
+  free(content);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
+SUITE(codegen_form_suite) {
+  RUN_TEST(test_form_urlencoded_generation);
+  RUN_TEST(test_form_urlencoded_exhaustive);
+}
 
 #ifdef __cplusplus
 }

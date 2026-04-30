@@ -398,7 +398,7 @@ extern C_CDD_EXPORT /**
  * @brief Identify if a token text corresponds to a known keyword or identifier.
  *
  * @param start Start of the token.
- * @param len Length of the token.
+ * @param length Length of the token.
  * @return The detected TokenKind (keyword kind or TOKEN_IDENTIFIER).
  */
 

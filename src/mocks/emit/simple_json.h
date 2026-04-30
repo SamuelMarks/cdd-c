@@ -26,8 +26,8 @@ typedef unsigned char bool;
 #define false 0
 #endif
 #else
-/* clang-format off */
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
+/* clang-format off */
 #include <stdbool.h>
 #endif
 #endif
@@ -64,8 +64,10 @@ extern SIMPLE_MOCKS_EXPORT /**
     Tank_from_str(const char *, enum Tank *);
 
 struct SIMPLE_MOCKS_EXPORT HazE {
-  /** @brief haz */
-  struct HazE *haz;
+  /** @brief bzr */
+  const char *bzr;
+  /** @brief tank */
+  enum Tank tank;
 };
 
 extern SIMPLE_MOCKS_EXPORT /**

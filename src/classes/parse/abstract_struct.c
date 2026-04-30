@@ -8,6 +8,7 @@
 /* clang-format off */
 #include "classes/parse/abstract_struct.h"
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <stdio.h>
 #include "parson.h"
@@ -27,18 +28,30 @@
 static size_t cdd_c_memory_allocated = 0;
 static size_t cdd_c_memory_freed = 0;
 
-static void *cdd_c_malloc(size_t size) {
-  void *ptr = malloc(size);
+static int cdd_c_malloc(size_t size, void **out_ptr) {
+  void *ptr;
+  if (!out_ptr)
+    return EINVAL;
+  ptr = malloc(size);
   if (ptr)
     cdd_c_memory_allocated += size;
-  return ptr;
+  else
+    return ENOMEM;
+  *out_ptr = ptr;
+  return 0;
 }
 
-static void *cdd_c_realloc(void *ptr, size_t size) {
-  void *new_ptr = realloc(ptr, size);
+static int cdd_c_realloc(void *ptr, size_t size, void **out_ptr) {
+  void *new_ptr;
+  if (!out_ptr)
+    return EINVAL;
+  new_ptr = realloc(ptr, size);
   if (new_ptr && !ptr)
     cdd_c_memory_allocated += size; /* Rough estimate */
-  return new_ptr;
+  if (!new_ptr && size != 0)
+    return ENOMEM;
+  *out_ptr = new_ptr;
+  return 0;
 }
 
 static void cdd_c_free(void *ptr) {
@@ -50,14 +63,14 @@ static void cdd_c_free(void *ptr) {
 
 int cdd_c_get_allocated_bytes(size_t *out_bytes) {
   if (!out_bytes)
-    return -1;
+    return EINVAL;
   *out_bytes = cdd_c_memory_allocated;
   return 0;
 }
 
 int cdd_c_get_freed_calls(size_t *out_calls) {
   if (!out_calls)
-    return -1;
+    return EINVAL;
   *out_calls = cdd_c_memory_freed;
   return 0;
 }
@@ -66,15 +79,15 @@ int cdd_c_get_freed_calls(size_t *out_calls) {
 int cdd_c_abstract_struct_array_init(cdd_c_abstract_struct_array_t *arr,
                                      size_t capacity) {
   if (!arr)
-    return -1;
+    return EINVAL;
   arr->items = NULL;
   arr->count = 0;
   arr->capacity = capacity;
   if (capacity > 0) {
-    arr->items = (cdd_c_abstract_struct_t *)cdd_c_malloc(
-        capacity * sizeof(cdd_c_abstract_struct_t));
+    cdd_c_malloc(arr->capacity * sizeof(cdd_c_abstract_struct_t),
+                 (void **)&arr->items);
     if (!arr->items)
-      return -1;
+      return EINVAL;
     /* Initialize children to 0 counts so deep frees don't blow up on partial
      * errors */
     memset(arr->items, 0, capacity * sizeof(cdd_c_abstract_struct_t));
@@ -85,14 +98,14 @@ int cdd_c_abstract_struct_array_init(cdd_c_abstract_struct_array_t *arr,
 int cdd_c_abstract_struct_array_append(cdd_c_abstract_struct_array_t *arr,
                                        cdd_c_abstract_struct_t *astruct) {
   if (!arr || !astruct)
-    return -1;
+    return EINVAL;
   if (arr->count >= arr->capacity) {
     size_t new_cap = arr->capacity == 0 ? 4 : arr->capacity * 2;
-    cdd_c_abstract_struct_t *new_items =
-        (cdd_c_abstract_struct_t *)cdd_c_realloc(
-            arr->items, new_cap * sizeof(cdd_c_abstract_struct_t));
+    cdd_c_abstract_struct_t *new_items = NULL;
+    cdd_c_realloc(arr->items, new_cap * sizeof(cdd_c_abstract_struct_t),
+                  (void **)&new_items);
     if (!new_items)
-      return -1;
+      return EINVAL;
     arr->items = new_items;
     arr->capacity = new_cap;
   }
@@ -109,7 +122,7 @@ int cdd_c_abstract_struct_array_append(cdd_c_abstract_struct_array_t *arr,
 int cdd_c_abstract_struct_array_free(cdd_c_abstract_struct_array_t *arr) {
   size_t i;
   if (!arr)
-    return -1;
+    return EINVAL;
   if (arr->items) {
     for (i = 0; i < arr->count; ++i) {
       cdd_c_abstract_struct_free(&arr->items[i]);
@@ -133,11 +146,11 @@ int cdd_c_abstract_struct_array_to_json(
   JSON_Array *root_arr;
   size_t i, j;
   if (!arr || !out_json)
-    return -1;
+    return EINVAL;
 
   root_val = json_value_init_array();
   if (!root_val)
-    return -1;
+    return EINVAL;
   root_arr = json_value_get_array(root_val);
 
   for (i = 0; i < arr->count; ++i) {
@@ -183,15 +196,15 @@ int cdd_c_abstract_struct_init(cdd_c_abstract_struct_t *astruct) {
 int cdd_c_abstract_struct_init_with_capacity(cdd_c_abstract_struct_t *astruct,
                                              size_t capacity) {
   if (!astruct)
-    return -1;
+    return EINVAL;
   astruct->kvs = NULL;
   astruct->count = 0;
   astruct->capacity = capacity;
   if (capacity > 0) {
-    astruct->kvs = (cdd_c_abstract_struct_kv_t *)cdd_c_malloc(
-        capacity * sizeof(cdd_c_abstract_struct_kv_t));
+    cdd_c_malloc(astruct->capacity * sizeof(cdd_c_abstract_struct_kv_t),
+                 (void **)&astruct->kvs);
     if (!astruct->kvs)
-      return -1;
+      return EINVAL;
   }
   return 0;
 }
@@ -199,11 +212,11 @@ int cdd_c_abstract_struct_init_with_capacity(cdd_c_abstract_struct_t *astruct,
 static int duplicate_string(const char *src, char **dest) {
   size_t len;
   if (!src || !dest)
-    return -1;
+    return EINVAL;
   len = strlen(src);
-  *dest = (char *)cdd_c_malloc(len + 1);
+  cdd_c_malloc(len + 1, (void **)dest);
   if (!*dest)
-    return -1;
+    return EINVAL;
   memcpy(*dest, src, len + 1);
   return 0;
 }
@@ -211,17 +224,17 @@ static int duplicate_string(const char *src, char **dest) {
 static int duplicate_blob(const unsigned char *src, size_t size,
                           unsigned char **dest) {
   if (!src || !dest)
-    return -1;
-  *dest = (unsigned char *)cdd_c_malloc(size);
+    return EINVAL;
+  cdd_c_malloc(size, (void **)dest);
   if (!*dest)
-    return -1;
+    return EINVAL;
   memcpy(*dest, src, size);
   return 0;
 }
 
 int cdd_c_variant_free(cdd_c_variant_t *variant) {
   if (!variant)
-    return -1;
+    return EINVAL;
   switch (variant->type) {
   case CDD_C_VARIANT_TYPE_STRING:
     if (variant->value.s_val) {
@@ -244,7 +257,7 @@ int cdd_c_variant_free(cdd_c_variant_t *variant) {
 
 static int copy_variant(cdd_c_variant_t *dest, const cdd_c_variant_t *src) {
   if (!dest || !src)
-    return -1;
+    return EINVAL;
   dest->type = src->type;
   switch (src->type) {
   case CDD_C_VARIANT_TYPE_INT:
@@ -255,13 +268,13 @@ static int copy_variant(cdd_c_variant_t *dest, const cdd_c_variant_t *src) {
     break;
   case CDD_C_VARIANT_TYPE_STRING:
     if (duplicate_string(src->value.s_val, &dest->value.s_val) != 0) {
-      return -1;
+      return EINVAL;
     }
     break;
   case CDD_C_VARIANT_TYPE_BLOB:
     if (duplicate_blob(src->value.b_val.data, src->value.b_val.size,
                        &dest->value.b_val.data) != 0) {
-      return -1;
+      return EINVAL;
     }
     dest->value.b_val.size = src->value.b_val.size;
     break;
@@ -289,7 +302,7 @@ int cdd_c_abstract_set(cdd_c_abstract_struct_t *astruct, const char *key,
   cdd_c_abstract_struct_kv_t *new_kvs;
   unsigned long khash;
   if (!astruct || !key || !value)
-    return -1;
+    return EINVAL;
 
   khash = hash_string(key);
 
@@ -303,22 +316,22 @@ int cdd_c_abstract_set(cdd_c_abstract_struct_t *astruct, const char *key,
 
   if (astruct->count >= astruct->capacity) {
     size_t new_cap = astruct->capacity == 0 ? 4 : astruct->capacity * 2;
-    new_kvs = (cdd_c_abstract_struct_kv_t *)cdd_c_realloc(
-        astruct->kvs, new_cap * sizeof(cdd_c_abstract_struct_kv_t));
+    cdd_c_realloc(astruct->kvs, new_cap * sizeof(cdd_c_abstract_struct_kv_t),
+                  (void **)&new_kvs);
     if (!new_kvs)
-      return -1;
+      return EINVAL;
     astruct->kvs = new_kvs;
     astruct->capacity = new_cap;
   }
 
   if (duplicate_string(key, &astruct->kvs[astruct->count].key) != 0) {
-    return -1;
+    return EINVAL;
   }
   astruct->kvs[astruct->count].key_hash = khash;
 
   if (copy_variant(&astruct->kvs[astruct->count].value, value) != 0) {
     cdd_c_free(astruct->kvs[astruct->count].key);
-    return -1;
+    return EINVAL;
   }
 
   astruct->count++;
@@ -330,7 +343,7 @@ int cdd_c_abstract_get(const cdd_c_abstract_struct_t *astruct, const char *key,
   size_t i;
   unsigned long khash;
   if (!astruct || !key || !out_value)
-    return -1;
+    return EINVAL;
 
   khash = hash_string(key);
 
@@ -341,22 +354,22 @@ int cdd_c_abstract_get(const cdd_c_abstract_struct_t *astruct, const char *key,
       return 0;
     }
   }
-  return -1; /* Not found */
+  return EINVAL; /* Not found */
 }
 
 int cdd_c_abstract_struct_deep_copy(cdd_c_abstract_struct_t *dest,
                                     const cdd_c_abstract_struct_t *src) {
   size_t i;
   if (!dest || !src)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(dest) != 0)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < src->count; ++i) {
     if (cdd_c_abstract_set(dest, src->kvs[i].key, &src->kvs[i].value) != 0) {
       cdd_c_abstract_struct_free(dest);
-      return -1;
+      return EINVAL;
     }
   }
   return 0;
@@ -365,7 +378,7 @@ int cdd_c_abstract_struct_deep_copy(cdd_c_abstract_struct_t *dest,
 int cdd_c_abstract_struct_free(cdd_c_abstract_struct_t *astruct) {
   size_t i;
   if (!astruct)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < astruct->count; ++i) {
     cdd_c_free(astruct->kvs[i].key);
@@ -424,12 +437,12 @@ int cdd_c_abstract_struct_to_json(const cdd_c_abstract_struct_t *astruct,
   size_t i;
 
   if (!astruct || !out_json)
-    return -1;
+    return EINVAL;
 
   root_val = json_value_init_object();
   root_obj = json_value_get_object(root_val);
   if (!root_val || !root_obj)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < astruct->count; ++i) {
     const cdd_c_abstract_struct_kv_t *kv = &astruct->kvs[i];
@@ -457,7 +470,7 @@ int cdd_c_abstract_struct_to_json(const cdd_c_abstract_struct_t *astruct,
   *out_json = json_serialize_to_string(root_val);
   json_value_free(root_val);
   if (!*out_json)
-    return -1;
+    return EINVAL;
 
   return 0;
 }
@@ -469,19 +482,19 @@ int cdd_c_abstract_struct_from_json(const char *json_str,
   size_t count, i;
 
   if (!json_str || !out_astruct)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(out_astruct) != 0)
-    return -1;
+    return EINVAL;
 
   root_val = json_parse_string(json_str);
   if (!root_val)
-    return -1;
+    return EINVAL;
 
   if (json_value_get_type(root_val) != JSONObject) {
     json_value_free(root_val);
     cdd_c_abstract_struct_free(out_astruct);
-    return -1;
+    return EINVAL;
   }
 
   root_obj = json_value_get_object(root_val);
@@ -523,7 +536,7 @@ int cdd_c_abstract_struct_from_json(const char *json_str,
     if (cdd_c_abstract_set(out_astruct, key, &variant) != 0) {
       json_value_free(root_val);
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -536,10 +549,10 @@ int cdd_c_abstract_hydrate(cdd_c_abstract_struct_t *out_astruct,
                            size_t n_cols) {
   size_t i;
   if (!out_astruct || !row_data || !cols)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init_with_capacity(out_astruct, n_cols) != 0)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < n_cols; ++i) {
     cdd_c_variant_t variant;
@@ -574,7 +587,7 @@ int cdd_c_abstract_hydrate(cdd_c_abstract_struct_t *out_astruct,
 
     if (cdd_c_abstract_set(out_astruct, col->name, &variant) != 0) {
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -587,10 +600,10 @@ int cdd_c_abstract_hydrate_sqlite3(cdd_c_abstract_struct_t *out_astruct,
   sqlite3_stmt *s = (sqlite3_stmt *)stmt;
   int i, n_cols;
   if (!out_astruct || !s)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(out_astruct) != 0)
-    return -1;
+    return EINVAL;
 
   n_cols = sqlite3_column_count(s);
   for (i = 0; i < n_cols; ++i) {
@@ -628,7 +641,7 @@ int cdd_c_abstract_hydrate_sqlite3(cdd_c_abstract_struct_t *out_astruct,
 
     if (cdd_c_abstract_set(out_astruct, col_name, &variant) != 0) {
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -636,7 +649,7 @@ int cdd_c_abstract_hydrate_sqlite3(cdd_c_abstract_struct_t *out_astruct,
 #else
   (void)out_astruct;
   (void)stmt;
-  return -1;
+  return EINVAL;
 #endif
 }
 int cdd_c_abstract_hydrate_libpq(cdd_c_abstract_struct_t *out_astruct,
@@ -645,10 +658,10 @@ int cdd_c_abstract_hydrate_libpq(cdd_c_abstract_struct_t *out_astruct,
   PGresult *pq_res = (PGresult *)res;
   int i, n_cols;
   if (!out_astruct || !pq_res)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(out_astruct) != 0)
-    return -1;
+    return EINVAL;
 
   n_cols = PQnfields(pq_res);
   for (i = 0; i < n_cols; ++i) {
@@ -684,7 +697,7 @@ int cdd_c_abstract_hydrate_libpq(cdd_c_abstract_struct_t *out_astruct,
           PQfreemem(unescaped);
           if (set_res != 0) {
             cdd_c_abstract_struct_free(out_astruct);
-            return -1;
+            return EINVAL;
           }
           continue;
         } else {
@@ -699,7 +712,7 @@ int cdd_c_abstract_hydrate_libpq(cdd_c_abstract_struct_t *out_astruct,
 
     if (cdd_c_abstract_set(out_astruct, col_name, &variant) != 0) {
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -708,7 +721,7 @@ int cdd_c_abstract_hydrate_libpq(cdd_c_abstract_struct_t *out_astruct,
   (void)out_astruct;
   (void)res;
   (void)row_index;
-  return -1;
+  return EINVAL;
 #endif
 }
 int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
@@ -719,10 +732,10 @@ int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
   MYSQL_FIELD *mysql_fields = (MYSQL_FIELD *)fields;
   unsigned int i;
   if (!out_astruct || !mysql_row || !mysql_fields)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(out_astruct) != 0)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < num_fields; ++i) {
     cdd_c_variant_t variant;
@@ -768,7 +781,7 @@ int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
 
     if (cdd_c_abstract_set(out_astruct, col_name, &variant) != 0) {
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -778,7 +791,7 @@ int cdd_c_abstract_hydrate_mysql(cdd_c_abstract_struct_t *out_astruct,
   (void)row;
   (void)fields;
   (void)num_fields;
-  return -1;
+  return EINVAL;
 #endif
 }
 int cdd_c_meta_offsetof(const struct cdd_c_meta *struct_meta, const char *field,
@@ -786,7 +799,7 @@ int cdd_c_meta_offsetof(const struct cdd_c_meta *struct_meta, const char *field,
   size_t i;
   const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!meta || !field || !out_offset)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < meta->num_props; ++i) {
     if (strcmp(meta->props[i].name, field) == 0) {
@@ -794,7 +807,7 @@ int cdd_c_meta_offsetof(const struct cdd_c_meta *struct_meta, const char *field,
       return 0;
     }
   }
-  return -1;
+  return EINVAL;
 }
 
 int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
@@ -803,10 +816,10 @@ int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
   size_t i;
   const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!out_astruct || !in_struct || !meta)
-    return -1;
+    return EINVAL;
 
   if (cdd_c_abstract_struct_init(out_astruct) != 0)
-    return -1;
+    return EINVAL;
 
   for (i = 0; i < meta->num_props; ++i) {
     const cdd_c_prop_meta_t *prop = &meta->props[i];
@@ -839,7 +852,7 @@ int cdd_c_specific_to_abstract(cdd_c_abstract_struct_t *out_astruct,
 
     if (cdd_c_abstract_set(out_astruct, prop->name, &val) != 0) {
       cdd_c_abstract_struct_free(out_astruct);
-      return -1;
+      return EINVAL;
     }
   }
 
@@ -853,10 +866,10 @@ int cdd_c_abstract_to_specific(void *out_struct,
   size_t i;
   const cdd_c_meta_t *meta = (const cdd_c_meta_t *)struct_meta;
   if (!out_struct || !in_astruct || !meta)
-    return -1;
+    return EINVAL;
 
   if (strict_mapping && in_astruct->count != meta->num_props) {
-    return -1;
+    return EINVAL;
   }
 
   for (i = 0; i < meta->num_props; ++i) {
@@ -865,7 +878,7 @@ int cdd_c_abstract_to_specific(void *out_struct,
 
     if (cdd_c_abstract_get(in_astruct, prop->name, &val) != 0) {
       if (strict_mapping)
-        return -1;
+        return EINVAL;
       continue; /* Partial mapping allowed */
     }
 
@@ -876,13 +889,13 @@ int cdd_c_abstract_to_specific(void *out_struct,
           memcpy((char *)out_struct + prop->offset, &_v, sizeof(int));
         }
       } else if (strict_mapping)
-        return -1;
+        return EINVAL;
     } else if (strcmp(prop->type, "C_ORM_TYPE_INT64") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_INT) {
         memcpy((char *)out_struct + prop->offset, &val->value.i_val,
                sizeof(long long));
       } else if (strict_mapping)
-        return -1;
+        return EINVAL;
     } else if (strcmp(prop->type, "C_ORM_TYPE_FLOAT") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_FLOAT) {
         {
@@ -890,13 +903,13 @@ int cdd_c_abstract_to_specific(void *out_struct,
           memcpy((char *)out_struct + prop->offset, &_v, sizeof(float));
         }
       } else if (strict_mapping)
-        return -1;
+        return EINVAL;
     } else if (strcmp(prop->type, "C_ORM_TYPE_DOUBLE") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_FLOAT) {
         memcpy((char *)out_struct + prop->offset, &val->value.f_val,
                sizeof(double));
       } else if (strict_mapping)
-        return -1;
+        return EINVAL;
     } else if (strcmp(prop->type, "C_ORM_TYPE_STRING") == 0) {
       if (val->type == CDD_C_VARIANT_TYPE_STRING) {
         if (prop->length > 0) {
@@ -915,7 +928,7 @@ int cdd_c_abstract_to_specific(void *out_struct,
           }
         }
       } else if (strict_mapping)
-        return -1;
+        return EINVAL;
     }
   }
 
@@ -931,11 +944,11 @@ cdd_c_inspect_schema_sqlite3(void *db, const char *table_name,
   char query[512];
 
   if (!db || !table_name || !out_schema)
-    return -1;
+    return EINVAL;
 
   snprintf(query, sizeof(query), "PRAGMA table_info('%s')", table_name);
   if (sqlite3_prepare_v2(sql_db, query, -1, &stmt, NULL) != SQLITE_OK) {
-    return -1;
+    return EINVAL;
   }
 
   while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -969,7 +982,7 @@ cdd_c_inspect_schema_sqlite3(void *db, const char *table_name,
   (void)db;
   (void)table_name;
   (void)out_schema;
-  return -1;
+  return EINVAL;
 #endif
 }
 
@@ -983,7 +996,7 @@ cdd_c_inspect_schema_libpq(void *conn, const char *table_name,
   int i, num_rows;
 
   if (!conn || !table_name || !out_schema)
-    return -1;
+    return EINVAL;
 
   snprintf(query, sizeof(query),
            "SELECT column_name, data_type, is_nullable FROM "
@@ -992,7 +1005,7 @@ cdd_c_inspect_schema_libpq(void *conn, const char *table_name,
   res = PQexec(pq_conn, query);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     PQclear(res);
-    return -1;
+    return EINVAL;
   }
 
   num_rows = PQntuples(res);
@@ -1029,7 +1042,7 @@ cdd_c_inspect_schema_libpq(void *conn, const char *table_name,
   (void)conn;
   (void)table_name;
   (void)out_schema;
-  return -1;
+  return EINVAL;
 #endif
 }
 
@@ -1043,16 +1056,16 @@ cdd_c_inspect_schema_mysql(void *conn, const char *table_name,
   char query[512];
 
   if (!conn || !table_name || !out_schema)
-    return -1;
+    return EINVAL;
 
   snprintf(query, sizeof(query), "SHOW COLUMNS FROM `%s`", table_name);
   if (mysql_query(mysql_conn, query)) {
-    return -1;
+    return EINVAL;
   }
 
   res = mysql_store_result(mysql_conn);
   if (!res) {
-    return -1;
+    return EINVAL;
   }
 
   while ((row = mysql_fetch_row(res))) {
@@ -1090,6 +1103,6 @@ cdd_c_inspect_schema_mysql(void *conn, const char *table_name,
   (void)conn;
   (void)table_name;
   (void)out_schema;
-  return -1;
+  return EINVAL;
 #endif
 }

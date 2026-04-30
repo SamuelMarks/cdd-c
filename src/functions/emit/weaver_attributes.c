@@ -8,6 +8,7 @@
 #include "functions/parse/cst.h"
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -26,8 +27,10 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
       /* Extract text from tokens directly */
       size_t len = node->length;
       char *attr_text = (char *)malloc(len + 1);
-      if (!attr_text)
+      if (!attr_text) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       memcpy(attr_text, node->start, len);
       attr_text[len] = '\0';
 

@@ -80,10 +80,26 @@ TEST test_parse_migration_file_no_markers(void) {
   PASS();
 }
 
+TEST test_migration_runner_stubs(void) {
+#ifndef USE_LIBPQ
+  ASSERT_EQ(ENOSYS, apply_migration("dummy"));
+  ASSERT_EQ(ENOSYS, rollback_migration("dummy"));
+  ASSERT_EQ(ENOSYS, run_pending_migrations("dummy"));
+  ASSERT_EQ(ENOSYS, rollback_last_migration("dummy"));
+  ASSERT_EQ(ENOSYS, create_migration_file("dummy", "dummy"));
+  ASSERT_EQ(ENOSYS, reset_database("dummy"));
+  ASSERT_EQ(ENOSYS, dump_schema("dummy"));
+  ASSERT_EQ(ENOSYS, setup_test_database("dummy", "dummy"));
+  ASSERT_EQ(ENOSYS, seed_database("dummy"));
+#endif
+  PASS();
+}
+
 SUITE(migration_suite) {
   RUN_TEST(test_parse_migration_file_valid);
   RUN_TEST(test_parse_migration_file_no_down);
   RUN_TEST(test_parse_migration_file_no_markers);
+  RUN_TEST(test_migration_runner_stubs);
 }
 
 #ifdef __cplusplus

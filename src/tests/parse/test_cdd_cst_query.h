@@ -33,6 +33,82 @@ TEST test_cdd_cst_query_types(void) {
   free(res.nodes);
 
   cdd_cst_tree_free(tree);
+
+  {
+    cdd_cst_query_result_t res2;
+    cdd_cst_node_t dummy_root2;
+    cdd_cst_node_t dummy_call_ident;
+    cdd_cst_node_t dummy_call_node;
+    cdd_cst_node_t dummy_unknown2;
+    cdd_token_t dummy_lparen2;
+    cdd_token_t dummy_tok2;
+    cdd_cst_node_t dummy_child3;
+    memset(&dummy_root2, 0, sizeof(dummy_root2));
+    memset(&dummy_call_ident, 0, sizeof(dummy_call_ident));
+    memset(&dummy_call_node, 0, sizeof(dummy_call_node));
+    memset(&dummy_unknown2, 0, sizeof(dummy_unknown2));
+    memset(&dummy_lparen2, 0, sizeof(dummy_lparen2));
+    memset(&dummy_tok2, 0, sizeof(dummy_tok2));
+    memset(&dummy_child3, 0, sizeof(dummy_child3));
+
+    dummy_tok2.kind = CDD_TOKEN_IDENTIFIER;
+    dummy_tok2.start = (const uint8_t *)"test";
+    dummy_tok2.length = 4;
+    dummy_lparen2.kind = CDD_TOKEN_LPAREN;
+
+    dummy_unknown2.kind = CDD_CST_UNKNOWN;
+    dummy_unknown2.num_children = 2;
+    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[0].val.token = &dummy_tok2;
+    dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[1].val.token = &dummy_lparen2;
+
+    dummy_call_ident.kind = CDD_CST_CALL_EXPR;
+    dummy_call_ident.num_children = 1;
+    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_call_ident.children[0].val.token = &dummy_tok2;
+
+    dummy_call_node.kind = CDD_CST_CALL_EXPR;
+    dummy_call_node.num_children = 1;
+    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_call_node.children[0].val.node = &dummy_child3;
+
+    dummy_child3.kind = CDD_CST_IDENTIFIER;
+    dummy_child3.num_children = 1;
+    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_child3.children[0].val.token = &dummy_tok2;
+
+    dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
+    dummy_root2.num_children = 3;
+    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[0].val.node = &dummy_unknown2;
+    dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[1].val.node = &dummy_call_ident;
+    dummy_root2.children[2].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[2].val.node = &dummy_call_node;
+
+    res2.nodes = NULL;
+    res2.size = 0;
+    res2.capacity = 0;
+    cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
+    free(res2.nodes);
+
+    /* Enomem simulation by making capacity large enough but size nearly there,
+     * no we can't easily simulate realloc failure here unless we override.
+     * We'll just leave it. */
+
+    free(dummy_root2.children);
+    free(dummy_unknown2.children);
+    free(dummy_call_ident.children);
+    free(dummy_call_node.children);
+    free(dummy_child3.children);
+  }
+
   PASS();
 }
 
@@ -54,12 +130,183 @@ TEST test_cdd_cst_query_calls(void) {
   free(res.nodes);
 
   cdd_cst_tree_free(tree);
+
+  {
+    cdd_cst_query_result_t res2;
+    cdd_cst_node_t dummy_root2;
+    cdd_cst_node_t dummy_call_ident;
+    cdd_cst_node_t dummy_call_node;
+    cdd_cst_node_t dummy_unknown2;
+    cdd_token_t dummy_lparen2;
+    cdd_token_t dummy_tok2;
+    cdd_cst_node_t dummy_child3;
+    memset(&dummy_root2, 0, sizeof(dummy_root2));
+    memset(&dummy_call_ident, 0, sizeof(dummy_call_ident));
+    memset(&dummy_call_node, 0, sizeof(dummy_call_node));
+    memset(&dummy_unknown2, 0, sizeof(dummy_unknown2));
+    memset(&dummy_lparen2, 0, sizeof(dummy_lparen2));
+    memset(&dummy_tok2, 0, sizeof(dummy_tok2));
+    memset(&dummy_child3, 0, sizeof(dummy_child3));
+
+    dummy_tok2.kind = CDD_TOKEN_IDENTIFIER;
+    dummy_tok2.start = (const uint8_t *)"test";
+    dummy_tok2.length = 4;
+    dummy_lparen2.kind = CDD_TOKEN_LPAREN;
+
+    dummy_unknown2.kind = CDD_CST_UNKNOWN;
+    dummy_unknown2.num_children = 2;
+    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[0].val.token = &dummy_tok2;
+    dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[1].val.token = &dummy_lparen2;
+
+    dummy_call_ident.kind = CDD_CST_CALL_EXPR;
+    dummy_call_ident.num_children = 1;
+    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_call_ident.children[0].val.token = &dummy_tok2;
+
+    dummy_call_node.kind = CDD_CST_CALL_EXPR;
+    dummy_call_node.num_children = 1;
+    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_call_node.children[0].val.node = &dummy_child3;
+
+    dummy_child3.kind = CDD_CST_IDENTIFIER;
+    dummy_child3.num_children = 1;
+    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_child3.children[0].val.token = &dummy_tok2;
+
+    dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
+    dummy_root2.num_children = 3;
+    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[0].val.node = &dummy_unknown2;
+    dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[1].val.node = &dummy_call_ident;
+    dummy_root2.children[2].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[2].val.node = &dummy_call_node;
+
+    res2.nodes = NULL;
+    res2.size = 0;
+    res2.capacity = 0;
+    cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
+    free(res2.nodes);
+
+    /* Enomem simulation by making capacity large enough but size nearly there,
+     * no we can't easily simulate realloc failure here unless we override.
+     * We'll just leave it. */
+
+    free(dummy_root2.children);
+    free(dummy_unknown2.children);
+    free(dummy_call_ident.children);
+    free(dummy_call_node.children);
+    free(dummy_child3.children);
+  }
+
+  PASS();
+}
+
+TEST test_cdd_cst_query_extra(void) {
+  cdd_cst_query_result_t res;
+  ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type(NULL, CDD_CST_UNKNOWN, &res));
+  ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type((cdd_cst_node_t *)1,
+                                               CDD_CST_UNKNOWN, NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(NULL, NULL, &res));
+  ASSERT_EQ(EINVAL,
+            cdd_cst_find_function_calls_named((cdd_cst_node_t *)1, NULL, &res));
+  ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(NULL, NULL, NULL));
+
+  res.nodes = NULL;
+  res.size = 0;
+  res.capacity = 0;
+  free(res.nodes);
+
+  {
+    cdd_cst_query_result_t res2;
+    cdd_cst_node_t dummy_root2;
+    cdd_cst_node_t dummy_call_ident;
+    cdd_cst_node_t dummy_call_node;
+    cdd_cst_node_t dummy_unknown2;
+    cdd_token_t dummy_lparen2;
+    cdd_token_t dummy_tok2;
+    cdd_cst_node_t dummy_child3;
+    memset(&dummy_root2, 0, sizeof(dummy_root2));
+    memset(&dummy_call_ident, 0, sizeof(dummy_call_ident));
+    memset(&dummy_call_node, 0, sizeof(dummy_call_node));
+    memset(&dummy_unknown2, 0, sizeof(dummy_unknown2));
+    memset(&dummy_lparen2, 0, sizeof(dummy_lparen2));
+    memset(&dummy_tok2, 0, sizeof(dummy_tok2));
+    memset(&dummy_child3, 0, sizeof(dummy_child3));
+
+    dummy_tok2.kind = CDD_TOKEN_IDENTIFIER;
+    dummy_tok2.start = (const uint8_t *)"test";
+    dummy_tok2.length = 4;
+    dummy_lparen2.kind = CDD_TOKEN_LPAREN;
+
+    dummy_unknown2.kind = CDD_CST_UNKNOWN;
+    dummy_unknown2.num_children = 2;
+    dummy_unknown2.children = calloc(2, sizeof(*dummy_unknown2.children));
+    dummy_unknown2.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[0].val.token = &dummy_tok2;
+    dummy_unknown2.children[1].kind = CDD_CST_CHILD_TOKEN;
+    dummy_unknown2.children[1].val.token = &dummy_lparen2;
+
+    dummy_call_ident.kind = CDD_CST_CALL_EXPR;
+    dummy_call_ident.num_children = 1;
+    dummy_call_ident.children = calloc(1, sizeof(*dummy_call_ident.children));
+    dummy_call_ident.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_call_ident.children[0].val.token = &dummy_tok2;
+
+    dummy_call_node.kind = CDD_CST_CALL_EXPR;
+    dummy_call_node.num_children = 1;
+    dummy_call_node.children = calloc(1, sizeof(*dummy_call_node.children));
+    dummy_call_node.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_call_node.children[0].val.node = &dummy_child3;
+
+    dummy_child3.kind = CDD_CST_IDENTIFIER;
+    dummy_child3.num_children = 1;
+    dummy_child3.children = calloc(1, sizeof(*dummy_child3.children));
+    dummy_child3.children[0].kind = CDD_CST_CHILD_TOKEN;
+    dummy_child3.children[0].val.token = &dummy_tok2;
+
+    dummy_root2.kind = CDD_CST_TRANSLATION_UNIT;
+    dummy_root2.num_children = 3;
+    dummy_root2.children = calloc(3, sizeof(*dummy_root2.children));
+    dummy_root2.children[0].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[0].val.node = &dummy_unknown2;
+    dummy_root2.children[1].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[1].val.node = &dummy_call_ident;
+    dummy_root2.children[2].kind = CDD_CST_CHILD_NODE;
+    dummy_root2.children[2].val.node = &dummy_call_node;
+
+    res2.nodes = NULL;
+    res2.size = 0;
+    res2.capacity = 0;
+    cdd_cst_find_function_calls_named(&dummy_root2, "test", &res2);
+    free(res2.nodes);
+
+    /* Enomem simulation by making capacity large enough but size nearly there,
+     * no we can't easily simulate realloc failure here unless we override.
+     * We'll just leave it. */
+
+    free(dummy_root2.children);
+    free(dummy_unknown2.children);
+    free(dummy_call_ident.children);
+    free(dummy_call_node.children);
+    free(dummy_child3.children);
+  }
+
   PASS();
 }
 
 SUITE(cdd_cst_query_suite) {
   RUN_TEST(test_cdd_cst_query_types);
   RUN_TEST(test_cdd_cst_query_calls);
+  RUN_TEST(test_cdd_cst_query_extra);
 }
 
 #ifdef __cplusplus

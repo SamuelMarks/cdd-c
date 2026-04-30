@@ -17,6 +17,7 @@
 #include "functions/emit/build_system.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -223,8 +224,10 @@ int generate_cmake_project(const char *output_path, const char *project_name,
 
     len = strlen(output_path) + strlen(filename) + 2;
     full_path = malloc(len);
-    if (!full_path)
+    if (!full_path) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     sprintf_s(full_path, len, "%s/%s", output_path, filename);
 #else
@@ -232,8 +235,10 @@ int generate_cmake_project(const char *output_path, const char *project_name,
 #endif
   } else {
     full_path = strdup(filename);
-    if (!full_path)
+    if (!full_path) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

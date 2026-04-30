@@ -223,8 +223,6 @@ static /**
         */
     int
     is_primitive_type(const char *type) {
-  if (!type)
-    return 0;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -234,8 +232,6 @@ static /**
         */
     int
     is_object_ref_type(const char *type) {
-  if (!type)
-    return 0;
   if (is_primitive_type(type))
     return 0;
   if (strcmp(type, "object") == 0)
@@ -253,8 +249,6 @@ static /**
     int
     struct_fields_all_primitive(const struct StructFields *sf) {
   size_t i;
-  if (!sf)
-    return 0;
   for (i = 0; i < sf->size; ++i) {
     const char *t = sf->fields[i].type;
     if (!is_primitive_type(t))
@@ -300,20 +294,14 @@ static /**
   size_t i;
   size_t len;
   size_t pre_len;
-  if (!media_type || !prefix)
-    return 0;
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
          _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
-  if (len < pre_len)
-    return 0;
   for (i = 0; i < pre_len; ++i) {
     char a = media_type[i];
     char b = prefix[i];
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
     if (a != b)
       return 0;
   }
@@ -330,21 +318,15 @@ static /**
   size_t len;
   size_t suf_len;
   size_t start;
-  if (!media_type || !suffix)
-    return 0;
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
          _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
-  if (len < suf_len)
-    return 0;
   start = len - suf_len;
   for (i = 0; i < suf_len; ++i) {
     char a = media_type[start + i];
     char b = suffix[i];
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
     if (a != b)
       return 0;
   }
@@ -360,8 +342,6 @@ static /**
   size_t i;
   size_t len;
   size_t exp_len;
-  if (!media_type || !expected)
-    return 0;
   len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
          _ast_media_type_base_len_2);
   exp_len = strlen(expected);
@@ -372,8 +352,6 @@ static /**
     char b = expected[i];
     if (a >= 'A' && a <= 'Z')
       a = (char)(a - 'A' + 'a');
-    if (b >= 'A' && b <= 'Z')
-      b = (char)(b - 'A' + 'a');
     if (a != b)
       return 0;
   }
@@ -385,8 +363,6 @@ static /**
         */
     int
     media_type_is_json(const char *media_type) {
-  if (!media_type)
-    return 0;
   if (media_type_ieq(media_type, "application/json"))
     return 1;
   return media_type_has_suffix(media_type, "+json");
@@ -432,10 +408,6 @@ static /**
                              const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
-  if (!content_type || !buf || buf_sz == 0) {
-    *_out_val = content_type;
-    return 0;
-  }
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
     ++i;
   }
@@ -446,14 +418,8 @@ static /**
   while (j > 0 && isspace((unsigned char)buf[j - 1]))
     --j;
   buf[j] = '\0';
-  if (j == 0) {
-    *_out_val = content_type;
-    return 0;
-  }
-  {
-    *_out_val = buf;
-    return 0;
-  }
+  *_out_val = buf;
+  return 0;
 }
 
 static /**
@@ -463,11 +429,7 @@ static /**
     sanitize_ident(char *out, size_t outsz, const char *in) {
   size_t i = 0;
   size_t j = 0;
-  if (!out || outsz == 0)
-    return;
   out[0] = '\0';
-  if (!in)
-    return;
   for (i = 0; in[i] && j + 1 < outsz; ++i) {
     const unsigned char c = (unsigned char)in[i];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -479,12 +441,7 @@ static /**
   }
   out[j] = '\0';
   if (j > 0 && out[0] >= '0' && out[0] <= '9') {
-    if (j + 1 < outsz) {
-      memmove(out + 1, out, j + 1);
-      out[0] = '_';
-    } else {
-      out[0] = '_';
-    }
+    out[0] = '_';
   }
 }
 
@@ -495,12 +452,7 @@ static /**
     multipart_header_param_name(char *out, size_t outsz, const char *field,
                                 const char *header) {
   char hdr_sanitized[128];
-  if (!out || outsz == 0) {
-    return;
-  }
   out[0] = '\0';
-  if (!field || !header)
-    return;
   sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
   snprintf(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
 }
@@ -511,8 +463,6 @@ static /**
     int
     header_name_is_content_type(const char *name) {
   bool _ast_iequal_10 = false;
-  if (!name)
-    return 0;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
           _ast_iequal_10) != 0;
 }
@@ -522,8 +472,6 @@ static /**
         */
     int
     media_type_is_textual(const char *media_type) {
-  if (!media_type)
-    return 0;
   if (media_type_is_text_plain(media_type))
     return 1;
   if (media_type_has_prefix(media_type, "text/"))
@@ -540,8 +488,6 @@ static /**
         */
     int
     media_type_is_binary(const char *media_type) {
-  if (!media_type)
-    return 0;
   if (media_type_is_json(media_type))
     return 0;
   if (media_type_is_form(media_type))
@@ -598,8 +544,6 @@ static /**
         */
     int
     write_text_plain_success(FILE *fp) {
-  if (!fp)
-    return EINVAL;
   CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
   CHECK_IO(fprintf(fp, "        size_t body_len = res->body_len;\n"));
   CHECK_IO(fprintf(fp, "        char *tmp = (char *)malloc(body_len + 1);\n"));
@@ -618,8 +562,6 @@ static /**
         */
     int
     write_binary_success(FILE *fp) {
-  if (!fp)
-    return EINVAL;
   CHECK_IO(fprintf(fp, "      if (out && out_len) {\n"));
   CHECK_IO(fprintf(fp, "        if (!res->body || res->body_len == 0) {\n"));
   CHECK_IO(fprintf(fp, "          *out = NULL;\n"));

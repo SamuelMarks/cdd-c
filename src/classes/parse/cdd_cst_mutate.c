@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static int find_child_index(cdd_cst_node_t *parent, cdd_cst_node_t *child,
@@ -20,46 +21,59 @@ static int find_child_index(cdd_cst_node_t *parent, cdd_cst_node_t *child,
   return ENOENT;
 }
 
-static cdd_token_t *find_first_token(cdd_cst_node_t *node) {
+static int find_first_token(cdd_cst_node_t *node, cdd_token_t **out_token) {
   size_t i;
-  if (!node)
-    return NULL;
+  if (!node || !out_token)
+    return EINVAL;
+  *out_token = NULL;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
-      return node->children[i].val.token;
+      *out_token = node->children[i].val.token;
+      return 0;
     } else {
-      cdd_token_t *t = find_first_token(node->children[i].val.node);
-      if (t)
-        return t;
+      cdd_token_t *t = NULL;
+      if (find_first_token(node->children[i].val.node, &t) == 0 && t) {
+        *out_token = t;
+        return 0;
+      }
     }
   }
-  return NULL;
+  return ENOENT;
 }
 
-static cdd_token_t *find_last_token(cdd_cst_node_t *node) {
+static int find_last_token(cdd_cst_node_t *node, cdd_token_t **out_tok) {
   size_t i;
-  if (!node)
-    return NULL;
+  if (!node || !out_tok)
+    return EINVAL;
+  *out_tok = NULL;
   for (i = node->num_children; i > 0; i--) {
     size_t idx = i - 1;
     if (node->children[idx].kind == CDD_CST_CHILD_TOKEN) {
-      return node->children[idx].val.token;
+      *out_tok = node->children[idx].val.token;
+      return 0;
     } else {
-      cdd_token_t *t = find_last_token(node->children[idx].val.node);
-      if (t)
-        return t;
+      cdd_token_t *t = NULL;
+      if (find_last_token(node->children[idx].val.node, &t) == 0 && t) {
+        *out_tok = t;
+        return 0;
+      }
     }
   }
-  return NULL;
+  return ENOENT;
 }
 
-static cdd_trivia_t *clone_trivia_list(cdd_trivia_t *head) {
+static int clone_trivia_list(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   cdd_trivia_t *new_head = NULL;
   cdd_trivia_t *tail = NULL;
+  if (!out_trivia)
+    return EINVAL;
+  *out_trivia = NULL;
   while (head) {
     cdd_trivia_t *t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
-    if (!t)
-      return new_head; /* leak on err, but this is a rough implementation */
+    if (!t) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      return ENOMEM;
+    }
     t->kind = head->kind;
     t->start = head->start;
     t->length = head->length;
@@ -72,7 +86,8 @@ static cdd_trivia_t *clone_trivia_list(cdd_trivia_t *head) {
     }
     head = head->next;
   }
-  return new_head;
+  *out_trivia = new_head;
+  return 0;
 }
 
 static int track_synthesized_token(cdd_cst_tree_t *tree, cdd_token_t *tok) {
@@ -81,8 +96,10 @@ static int track_synthesized_token(cdd_cst_tree_t *tree, cdd_token_t *tok) {
         tree->synthesized_capacity == 0 ? 16 : tree->synthesized_capacity * 2;
     cdd_token_t **new_arr = (cdd_token_t **)realloc(
         tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     tree->synthesized_tokens = new_arr;
     tree->synthesized_capacity = new_cap;
   }
@@ -108,15 +125,19 @@ int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
     return rc;
 
   /* Swap trivia */
-  old_first = find_first_token(old_node);
-  new_first = find_first_token(new_node);
+  if (find_first_token(old_node, &old_first) != 0)
+    old_first = NULL;
+  if (find_first_token(new_node, &new_first) != 0)
+    new_first = NULL;
   if (old_first && new_first && !new_first->leading_trivia) {
     new_first->leading_trivia = old_first->leading_trivia;
     old_first->leading_trivia = NULL;
   }
 
-  old_last = find_last_token(old_node);
-  new_last = find_last_token(new_node);
+  if (find_last_token(old_node, &old_last) != 0)
+    old_last = NULL;
+  if (find_last_token(new_node, &new_last) != 0)
+    new_last = NULL;
   if (old_last && new_last && !new_last->trailing_trivia) {
     new_last->trailing_trivia = old_last->trailing_trivia;
     old_last->trailing_trivia = NULL;
@@ -139,8 +160,10 @@ static int insert_child_at(cdd_cst_node_t *parent, size_t idx,
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
     cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
         parent->children, new_cap * sizeof(cdd_cst_child_t));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     parent->children = new_arr;
     parent->capacity = new_cap;
   }
@@ -202,14 +225,15 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
 
   /* Free trivia of tokens inside this node so we don't double free or leak them
    * if we don't fully free node immediately */
-  first_tok = find_first_token(node);
+  if (find_first_token(node, &first_tok) != 0)
+    first_tok = NULL;
   if (first_tok && first_tok->leading_trivia) {
     /* If we delete this node, we should ideally keep the leading whitespace,
        but for a simple implementation, let's just clear it to avoid crashes. */
     first_tok->leading_trivia = NULL; /* leaking if not tracked, but safe */
   }
 
-  last_tok = find_last_token(node);
+  find_last_token(node, &last_tok);
   if (last_tok && last_tok->trailing_trivia) {
     last_tok->trailing_trivia = NULL;
   }
@@ -235,8 +259,10 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
     return EINVAL;
 
   clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-  if (!clone)
+  if (!clone) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   clone->kind = root->kind;
   if (root->num_children > 0) {
@@ -258,8 +284,8 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         }
 
         *new_tok = *orig_tok;
-        new_tok->leading_trivia = clone_trivia_list(orig_tok->leading_trivia);
-        new_tok->trailing_trivia = clone_trivia_list(orig_tok->trailing_trivia);
+        clone_trivia_list(orig_tok->leading_trivia, &new_tok->leading_trivia);
+        clone_trivia_list(orig_tok->trailing_trivia, &new_tok->trailing_trivia);
 
         rc = track_synthesized_token(tree, new_tok);
         if (rc != 0) {

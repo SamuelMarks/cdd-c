@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 int cdd_cst_eval_primitive_type(const char *type_name,
@@ -137,8 +138,10 @@ static int extract_type_name(cdd_cst_node_t *node, char **out_name,
 
   if (buf_len > 0) {
     char *ret = (char *)malloc(buf_len + 1);
-    if (!ret)
+    if (!ret) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     memcpy(ret, buf, buf_len + 1);
     *out_name = ret;
     return 0;

@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
@@ -86,8 +87,10 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     return EINVAL;
 
   nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
-  if (!nl)
+  if (!nl) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   nl->kind = TRIVIA_NEWLINE;
   nl->start = (const uint8_t *)"\n";
   nl->length = 1;

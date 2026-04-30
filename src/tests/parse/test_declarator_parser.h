@@ -227,6 +227,67 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
   PASS();
 }
 
+TEST test_parse_func_ptr(void) {
+  const char *code = "int (*func)(void)";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_STR_EQ("func", info.identifier);
+  CHECK_CALL(verify_chain(info.type, 3, DECL_PTR, DECL_FUNC, DECL_BASE));
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_parse_func_array(void) {
+  const char *code = "int (*a[5])(void)";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_STR_EQ("a", info.identifier);
+  CHECK_CALL(
+      verify_chain(info.type, 4, DECL_ARRAY, DECL_PTR, DECL_FUNC, DECL_BASE));
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_abstract_func_ptr(void) {
+  const char *code = "int (*)(void)";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_EQ(NULL, info.identifier);
+  CHECK_CALL(verify_chain(info.type, 3, DECL_PTR, DECL_FUNC, DECL_BASE));
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_abstract_array(void) {
+  const char *code = "int[5]";
+  struct TokenList *tl = setup_tokens(code);
+  struct DeclInfo info;
+  int rc = parse_declaration(tl, 0, tl->size, &info);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_EQ(NULL, info.identifier);
+  CHECK_CALL(verify_chain(info.type, 2, DECL_ARRAY, DECL_BASE));
+
+  decl_info_free(&info);
+  free_token_list(tl);
+  PASS();
+}
+
 SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
@@ -236,6 +297,10 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_atomic_qualifier_on_ptr);
   RUN_TEST(test_parse_atomic_qualifier_on_base);
   RUN_TEST(test_abstract_atomic_ptr);
+  RUN_TEST(test_parse_func_ptr);
+  RUN_TEST(test_parse_func_array);
+  RUN_TEST(test_abstract_func_ptr);
+  RUN_TEST(test_abstract_array);
 }
 
 #ifdef __cplusplus

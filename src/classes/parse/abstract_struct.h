@@ -339,8 +339,14 @@ C_CDD_EXPORT int cdd_c_meta_offsetof(const struct cdd_c_meta *meta,
 /**
  * @brief Provide reflection utility macro helper checking metadata matching
  * dynamic row layouts.
+ * @param c_orm_meta meta
  */
 #define CDD_C_TYPEOF(c_orm_meta) ((c_orm_meta)->name)
+/**
+ * @brief CDD_C_OFFSETOF macro
+ * @param c_orm_meta meta
+ * @param field field
+ */
 #define CDD_C_OFFSETOF(c_orm_meta, field)                                      \
   cdd_c_meta_offsetof((c_orm_meta), (field))
 

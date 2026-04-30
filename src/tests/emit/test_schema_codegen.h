@@ -10,6 +10,7 @@ extern "C" {
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"
+#include "classes/emit/cdd_c_orm_meta.h"
 
 #include "cdd_test_helpers/cdd_helpers.h"
 

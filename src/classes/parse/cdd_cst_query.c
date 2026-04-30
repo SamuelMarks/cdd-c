@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 int cdd_cst_traverse_preorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
@@ -52,8 +53,10 @@ static int append_result(cdd_cst_query_result_t *res, cdd_cst_node_t *node) {
     size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
     cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
         res->nodes, new_cap * sizeof(cdd_cst_node_t *));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     res->nodes = new_arr;
     res->capacity = new_cap;
   }
@@ -61,8 +64,11 @@ static int append_result(cdd_cst_query_result_t *res, cdd_cst_node_t *node) {
   return 0;
 }
 
+/** @brief type_query_ctx_t struct */
 typedef struct type_query_ctx_t {
+  /** @brief res field */
   enum cdd_cst_node_kind_t target_kind;
+  /** @brief res field */
   cdd_cst_query_result_t *res;
   int err;
 } type_query_ctx_t;
@@ -106,9 +112,14 @@ int cdd_cst_find_nodes_by_type(cdd_cst_node_t *root,
   return 0;
 }
 
+/** @brief func_name field */
+/** @brief call_query_ctx_t struct */
 typedef struct call_query_ctx_t {
+  /** @brief err field */
   const char *func_name;
+  /** @brief func_name_len field */
   size_t func_name_len;
+  /** @brief err field */
   cdd_cst_query_result_t *res;
   int err;
 } call_query_ctx_t;

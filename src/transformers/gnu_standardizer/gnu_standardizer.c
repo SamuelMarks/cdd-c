@@ -62,13 +62,17 @@ static const char *pool_string_safe_len(cdd_cst_tree_t *tree, const char *str,
   tree->string_pool[tree->num_strings++] = dup;
   return dup;
 }
-static char *append_int(char *p, int v) {
+static int append_int(char *p, int v, char **out_p) {
   char temp[32];
   int i = 0, j;
   unsigned int u;
+  if (!p || !out_p)
+    return EINVAL;
   if (v == 0) {
     *p++ = '0';
-    return p;
+    *p = '\0';
+    *out_p = p;
+    return 0;
   }
   if (v < 0) {
     *p++ = '-';
@@ -84,7 +88,8 @@ static char *append_int(char *p, int v) {
     *p++ = temp[j];
   }
   *p = '\0';
-  return p;
+  *out_p = p;
+  return 0;
 }
 
 static void parse_128_literal(const char *str, size_t len, uint64_t *out_high,
@@ -147,6 +152,7 @@ static void parse_hex_128_literal(const char *str, size_t len,
 
 /** @brief Struct definition */
 struct magic_ctx {
+  /** @brief tree field */
   cdd_cst_tree_t *tree;
   /** @brief field */
   const uint8_t *func_name;
@@ -175,8 +181,8 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             buf[1 + ctx->func_len] = '"';
             buf[2 + ctx->func_len] = '\0';
 
-            new_tok = cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, buf,
-                                               ctx->func_len + 2);
+            cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, buf,
+                                     ctx->func_len + 2, &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = tok->leading_trivia;
               new_tok->trailing_trivia = tok->trailing_trivia;
@@ -528,12 +534,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       *out_p = '\0';
                       {
                         size_t child_idx;
-                        cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
-                            tree->root, tok, &child_idx);
+                        cdd_cst_node_t *parent = NULL;
+                        cdd_cst_find_node_for_token(tree->root, tok, &child_idx,
+                                                    &parent);
                         if (parent) {
-                          cdd_token_t *new_tok = cdd_cst_create_token_len(
+                          cdd_token_t *new_tok = NULL;
+                          cdd_cst_create_token_len(
                               tree, CDD_TOKEN_PREPROC_DEFINE, out_buf,
-                              out_p - out_buf);
+                              out_p - out_buf, &new_tok);
                           if (new_tok) {
                             new_tok->leading_trivia = tok->leading_trivia;
                             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -556,8 +564,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       }
     } else if (tok->kind == CDD_TOKEN_KEYWORD___INT128) {
       size_t child_idx;
-      cdd_cst_node_t *parent =
-          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *parent = NULL;
+      cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
       if (parent) {
         cdd_token_t *new_tok = NULL;
         if (i > 0 &&
@@ -566,11 +574,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             memcmp(tree->base_tokens->tokens[i - 1].start, "unsigned", 8) ==
                 0) {
           size_t prev_idx;
-          cdd_cst_node_t *prev_parent = cdd_cst_find_node_for_token(
-              tree->root, &tree->base_tokens->tokens[i - 1], &prev_idx);
+          cdd_cst_node_t *prev_parent = NULL;
+          cdd_cst_find_node_for_token(tree->root,
+                                      &tree->base_tokens->tokens[i - 1],
+                                      &prev_idx, &prev_parent);
           if (prev_parent) {
-            cdd_token_t *empty_tok =
-                cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0);
+            cdd_token_t *empty_tok = NULL;
+            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0,
+                                     &empty_tok);
             if (empty_tok) {
               empty_tok->leading_trivia =
                   tree->base_tokens->tokens[i - 1].leading_trivia;
@@ -581,11 +592,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_replace_token_child(prev_parent, prev_idx, empty_tok);
             }
           }
-          new_tok = cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
-                                             "cdd_uint128_t", 13);
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "cdd_uint128_t",
+                                   13, &new_tok);
         } else {
-          new_tok = cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
-                                             "cdd_int128_t", 12);
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "cdd_int128_t",
+                                   12, &new_tok);
         }
         if (new_tok) {
           new_tok->leading_trivia = tok->leading_trivia;
@@ -598,11 +609,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     } else if (tok->kind == CDD_TOKEN_KEYWORD__DECIMAL32 ||
                tok->kind == CDD_TOKEN_KEYWORD__FRACT) {
       size_t child_idx;
-      cdd_cst_node_t *parent =
-          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *parent = NULL;
+      cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
       if (parent) {
-        cdd_token_t *new_tok =
-            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "float", 5);
+        cdd_token_t *new_tok = NULL;
+        cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "float", 5,
+                                 &new_tok);
         if (new_tok) {
           new_tok->leading_trivia = tok->leading_trivia;
           new_tok->trailing_trivia = tok->trailing_trivia;
@@ -615,11 +627,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                tok->kind == CDD_TOKEN_KEYWORD__DECIMAL128 ||
                tok->kind == CDD_TOKEN_KEYWORD__ACCUM) {
       size_t child_idx;
-      cdd_cst_node_t *parent =
-          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *parent = NULL;
+      cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
       if (parent) {
-        cdd_token_t *new_tok =
-            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "double", 6);
+        cdd_token_t *new_tok = NULL;
+        cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "double", 6,
+                                 &new_tok);
         if (new_tok) {
           new_tok->leading_trivia = tok->leading_trivia;
           new_tok->trailing_trivia = tok->trailing_trivia;
@@ -632,11 +645,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                tok->kind == CDD_TOKEN_KEYWORD__FLOAT16 ||
                tok->kind == CDD_TOKEN_KEYWORD___BF16) {
       size_t child_idx;
-      cdd_cst_node_t *parent =
-          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *parent = NULL;
+      cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
       if (parent) {
-        cdd_token_t *new_tok =
-            cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "uint16_t", 8);
+        cdd_token_t *new_tok = NULL;
+        cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "uint16_t", 8,
+                                 &new_tok);
         if (new_tok) {
           new_tok->leading_trivia = tok->leading_trivia;
           new_tok->trailing_trivia = tok->trailing_trivia;
@@ -650,10 +664,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       if (i + 1 < tree->base_tokens->size) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+          cdd_cst_node_t *temp = NULL;
+          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -682,11 +697,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -698,11 +713,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, next_tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = next_tok->leading_trivia;
               n_tok->trailing_trivia = next_tok->trailing_trivia;
@@ -718,10 +733,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_IDENTIFIER) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+          cdd_cst_node_t *temp = NULL;
+          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -740,11 +756,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -756,11 +772,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, next_tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = next_tok->leading_trivia;
               n_tok->trailing_trivia = next_tok->trailing_trivia;
@@ -776,10 +792,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_IDENTIFIER) {
         cdd_token_t *next_tok = &tree->base_tokens->tokens[i + 1];
         size_t child_idx;
-        cdd_cst_node_t *owning_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+          cdd_cst_node_t *temp = NULL;
+          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -798,11 +815,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -814,11 +831,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, next_tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, next_tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, next_tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = next_tok->leading_trivia;
               n_tok->trailing_trivia = next_tok->trailing_trivia;
@@ -851,12 +868,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           cdd_token_t *inner = &tree->base_tokens->tokens[i + 2];
           const char *inferred = cdd_infer_type(inner, num_inner);
           size_t child_idx;
-          cdd_cst_node_t *owning_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx,
+                                      &owning_node);
           if (owning_node) {
             cdd_cst_node_t *temp = NULL;
             if (inferred) {
-              temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+              cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
               if (temp) {
                 cdd_cst_builder_t bld;
                 cdd_cst_builder_init(&bld, tree, temp);
@@ -929,7 +947,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
                       base, typeof_arr_idx, arr_clean, typeof_arr_idx);
                   typeof_arr_idx++;
-                  temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
                   if (temp) {
                     cdd_cst_builder_t bld;
                     cdd_cst_builder_init(&bld, tree, temp);
@@ -959,7 +977,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_free_node_only(temp);
                   }
                 } else {
-                  temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                  cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
                   if (temp) {
                     cdd_cst_builder_t bld;
                     cdd_cst_builder_init(&bld, tree, temp);
@@ -973,7 +991,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                 }
               } else {
-                temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
                 if (temp) {
                   cdd_cst_builder_t bld;
                   cdd_cst_builder_init(&bld, tree, temp);
@@ -993,8 +1011,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     } else if (tok->kind == CDD_TOKEN_KEYWORD___AUTO_TYPE) {
       size_t child_idx;
       cdd_cst_node_t *temp = NULL;
-      cdd_cst_node_t *owning_node =
-          cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+      cdd_cst_node_t *owning_node = NULL;
+      cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
       if (owning_node) {
         /* __auto_type inference: search forward for = and infer from RHS */
         size_t j;
@@ -1012,7 +1030,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             break;
           }
         }
-        temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+        cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
         if (temp) {
           cdd_cst_builder_t bld;
           cdd_cst_builder_init(&bld, tree, temp);
@@ -1027,10 +1045,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       }
       {
         size_t c_idx;
-        cdd_cst_node_t *p_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+        cdd_cst_node_t *p_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
         if (p_node) {
-          cdd_token_t *n_tok = cdd_cst_create_token_len(tree, tok->kind, "", 0);
+          cdd_token_t *n_tok = NULL;
+          cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
           if (n_tok) {
             n_tok->leading_trivia = tok->leading_trivia;
             n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1056,10 +1075,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t child_idx;
-          cdd_cst_node_t *owning_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx,
+                                      &owning_node);
           if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+            cdd_cst_node_t *temp = NULL;
+            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -1088,11 +1109,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1125,11 +1146,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         cdd_token_t *attr = &tree->base_tokens->tokens[i + 3];
         if (attr->length == 8 && memcmp(attr->start, "noreturn", 8) == 0) {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "_Noreturn", 9);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "_Noreturn", 9, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1142,11 +1163,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t w;
             for (w = i + 1; w <= i + 5; w++) {
               cdd_cst_node_t *wp;
-              wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[w].leading_trivia;
@@ -1161,11 +1183,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         } else if (attr->length == 6 && memcmp(attr->start, "unused", 6) == 0) {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "/* unused */", 12);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "/* unused */", 12,
+                                     &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1178,11 +1201,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t w;
             for (w = i + 1; w <= i + 5; w++) {
               cdd_cst_node_t *wp;
-              wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[w].leading_trivia;
@@ -1198,11 +1222,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         } else if (attr->length == 17 &&
                    memcmp(attr->start, "transparent_union", 17) == 0) {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok = cdd_cst_create_token_len(
-                tree, tok->kind, "/* transparent_union */", 23);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "/* transparent_union */",
+                                     23, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1215,11 +1240,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t w;
             for (w = i + 1; w <= i + 5; w++) {
               cdd_cst_node_t *wp;
-              wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[w].leading_trivia;
@@ -1234,11 +1260,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         } else if (attr->length == 6 && memcmp(attr->start, "packed", 6) == 0) {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok = cdd_cst_create_token_len(
-                tree, tok->kind, "\n#pragma pack(push, 1)\n", 23);
+            cdd_token_t *n_tok = NULL;
+            if (cdd_cst_create_token_len(tree, tok->kind,
+                                         "\n#pragma pack(push, 1)\n", 23,
+                                         &n_tok) != 0)
+              n_tok = NULL;
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1251,11 +1280,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t w;
             for (w = i + 1; w <= i + 5; w++) {
               cdd_cst_node_t *wp;
-              wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[w].leading_trivia;
@@ -1293,16 +1323,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           char *heap_buf = (char *)malloc(attr->length + 7);
           if (heap_buf) {
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
             if (p_node) {
               cdd_token_t *n_tok;
               memcpy(heap_buf, "/* ", 3);
               memcpy(heap_buf + 3, attr->start, attr->length);
               memcpy(heap_buf + 3 + attr->length, " */", 3);
               heap_buf[6 + attr->length] = '\0';
-              n_tok = cdd_cst_create_token_len(tree, tok->kind, heap_buf,
-                                               6 + attr->length);
+              cdd_cst_create_token_len(tree, tok->kind, heap_buf,
+                                       6 + attr->length, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = tok->leading_trivia;
                 n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1334,11 +1364,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
              semantic and treats it as an array, satisfying `v[0]` indexing
              automatically without rewrite overhead. */
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1351,11 +1381,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t w;
             for (w = i + 1; w <= i + 5; w++) {
               cdd_cst_node_t *wp;
-              wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[w], &c_idx);
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[w], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[w].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[w].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[w].leading_trivia;
@@ -1382,10 +1413,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
            become array memory blobs. */        } else if (attr->length == 7 &&
                    memcmp(attr->start, "aligned", 7) == 0) {
           size_t child_idx;
-          cdd_cst_node_t *owning_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+          cdd_cst_node_t *owning_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &child_idx,
+                                      &owning_node);
           if (owning_node) {
-            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+            cdd_cst_node_t *temp = NULL;
+            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -1407,11 +1440,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
           {
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok =
-                  cdd_cst_create_token_len(tree, tok->kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = tok->leading_trivia;
                 n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1423,11 +1456,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
           {
             size_t c_idx;
-            cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                tree->root, &tree->base_tokens->tokens[i + 1], &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[i + 1], &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok = cdd_cst_create_token_len(
-                  tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[i + 1].kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia =
                     tree->base_tokens->tokens[i + 1].leading_trivia;
@@ -1441,11 +1476,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
           {
             size_t c_idx;
-            cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                tree->root, &tree->base_tokens->tokens[i + 2], &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(
+                tree->root, &tree->base_tokens->tokens[i + 2], &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok = cdd_cst_create_token_len(
-                  tree, tree->base_tokens->tokens[i + 2].kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(
+                  tree, tree->base_tokens->tokens[i + 2].kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia =
                     tree->base_tokens->tokens[i + 2].leading_trivia;
@@ -1479,11 +1516,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               map = "/* mode(TI) -> int128_t */";
             if (map[0] != '\0') {
               size_t c_idx;
-              cdd_cst_node_t *p_node =
-                  cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok =
-                    cdd_cst_create_token_len(tree, tok->kind, map, strlen(map));
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(tree, tok->kind, map, strlen(map),
+                                         &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia = tok->leading_trivia;
                   n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1494,11 +1532,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
             } else {
               size_t c_idx;
-              cdd_cst_node_t *p_node =
-                  cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok =
-                    cdd_cst_create_token_len(tree, tok->kind, "", 0);
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia = tok->leading_trivia;
                   n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1510,11 +1548,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             }
           } else {
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok =
-                  cdd_cst_create_token_len(tree, tok->kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = tok->leading_trivia;
                 n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1548,11 +1586,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             /* Strip it */
             size_t wipe;
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok = cdd_cst_create_token_len(
-                  tree, tok->kind, "/* attribute */", 15);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(tree, tok->kind, "/* attribute */", 15,
+                                       &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = tok->leading_trivia;
                 n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1562,11 +1601,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
             }
             for (wipe = i + 1; wipe <= k; wipe++) {
-              cdd_cst_node_t *wp = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[wipe], &c_idx);
+              cdd_cst_node_t *wp = NULL;
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[wipe], &c_idx, &wp);
               if (wp) {
-                cdd_token_t *e_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[wipe].kind, "", 0);
+                cdd_token_t *e_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[wipe].kind, "", 0, &e_tok);
                 if (e_tok) {
                   e_tok->leading_trivia =
                       tree->base_tokens->tokens[wipe].leading_trivia;
@@ -1585,11 +1626,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     } else if (tok->kind == CDD_TOKEN_IDENTIFIER) {
       if (tok->length == 13 && memcmp(tok->start, "__extension__", 13) == 0) {
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *new_tok =
-              cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0);
+          cdd_token_t *new_tok = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "", 0, &new_tok);
           if (new_tok) {
             new_tok->leading_trivia = tok->leading_trivia;
             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -1601,11 +1642,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       } else if (tok->length == 17 &&
                  memcmp(tok->start, "__builtin_shuffle", 17) == 0) {
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *new_tok = cdd_cst_create_token_len(
-              tree, CDD_TOKEN_IDENTIFIER, "cdd_builtin_shuffle", 19);
+          cdd_token_t *new_tok = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
+                                   "cdd_builtin_shuffle", 19, &new_tok);
           if (new_tok) {
             new_tok->leading_trivia = tok->leading_trivia;
             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -1617,11 +1659,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       } else if (tok->length == 23 &&
                  memcmp(tok->start, "__builtin_shufflevector", 23) == 0) {
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *new_tok = cdd_cst_create_token_len(
-              tree, CDD_TOKEN_IDENTIFIER, "cdd_builtin_shufflevector", 25);
+          cdd_token_t *new_tok = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER,
+                                   "cdd_builtin_shufflevector", 25, &new_tok);
           if (new_tok) {
             new_tok->leading_trivia = tok->leading_trivia;
             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -1639,11 +1682,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
            In a full AST, we would check if the child is an expression or type.
          */
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *new_tok = cdd_cst_create_token_len(
-              tree, CDD_TOKEN_IDENTIFIER, "_Alignof", 8);
+          cdd_token_t *new_tok = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, "_Alignof", 8,
+                                   &new_tok);
           if (new_tok) {
             new_tok->leading_trivia = tok->leading_trivia;
             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -1660,10 +1704,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
          */
         static int anon_counter = 0;
         size_t child_idx;
-        cdd_cst_node_t *owning_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+          cdd_cst_node_t *temp = NULL;
+          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -1683,11 +1728,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1705,10 +1750,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         /* Anonymous union: GNU extension. Inject dummy name. */
         static int anon_counter = 0;
         size_t child_idx;
-        cdd_cst_node_t *owning_node =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+        cdd_cst_node_t *owning_node = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &owning_node);
         if (owning_node) {
-          cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+          cdd_cst_node_t *temp = NULL;
+          cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
           if (temp) {
             cdd_cst_builder_t bld;
             cdd_cst_builder_init(&bld, tree, temp);
@@ -1728,11 +1774,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, tok, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok =
-                cdd_cst_create_token_len(tree, tok->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, tok->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = tok->leading_trivia;
               n_tok->trailing_trivia = tok->trailing_trivia;
@@ -1785,11 +1831,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         size_t fwd;
         int tk;
         size_t rparen_cidx;
-        cdd_cst_node_t *rparen_parent = cdd_cst_find_node_for_token(
-            tree->root, &tree->base_tokens->tokens[rparen_idx], &rparen_cidx);
+        cdd_cst_node_t *rparen_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root,
+                                    &tree->base_tokens->tokens[rparen_idx],
+                                    &rparen_cidx, &rparen_parent);
         if (rparen_parent) {
-          cdd_token_t *new_rparen =
-              cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "){", 2);
+          cdd_token_t *new_rparen = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "){", 2,
+                                   &new_rparen);
           if (new_rparen) {
             new_rparen->leading_trivia =
                 tree->base_tokens->tokens[rparen_idx].leading_trivia;
@@ -1806,11 +1855,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tk = tree->base_tokens->tokens[fwd].kind;
           if (tk == (int)CDD_TOKEN_SEMICOLON || tk == (int)CDD_TOKEN_ASSIGN) {
             size_t end_cidx;
-            cdd_cst_node_t *end_parent = cdd_cst_find_node_for_token(
-                tree->root, &tree->base_tokens->tokens[fwd - 1], &end_cidx);
+            cdd_cst_node_t *end_parent = NULL;
+            cdd_cst_find_node_for_token(tree->root,
+                                        &tree->base_tokens->tokens[fwd - 1],
+                                        &end_cidx, &end_parent);
             if (end_parent) {
-              cdd_token_t *new_end = cdd_cst_create_token_len(
-                  tree, tree->base_tokens->tokens[fwd - 1].kind, "}", 1);
+              cdd_token_t *new_end = NULL;
+              cdd_cst_create_token_len(tree,
+                                       tree->base_tokens->tokens[fwd - 1].kind,
+                                       "}", 1, &new_end);
               if (new_end) {
                 new_end->leading_trivia =
                     tree->base_tokens->tokens[fwd - 1].leading_trivia;
@@ -1826,18 +1879,24 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         }
       } else if (is_cast_lvalue == 1) {
         size_t child_idx, rparen_cidx, val_cidx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
-        cdd_cst_node_t *rparen_parent = cdd_cst_find_node_for_token(
-            tree->root, &tree->base_tokens->tokens[rparen_idx], &rparen_cidx);
-        cdd_cst_node_t *val_parent = cdd_cst_find_node_for_token(
-            tree->root, &tree->base_tokens->tokens[rparen_idx + 1], &val_cidx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
+        cdd_cst_node_t *rparen_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root,
+                                    &tree->base_tokens->tokens[rparen_idx],
+                                    &rparen_cidx, &rparen_parent);
+        cdd_cst_node_t *val_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root,
+                                    &tree->base_tokens->tokens[rparen_idx + 1],
+                                    &val_cidx, &val_parent);
 
         if (parent && rparen_parent && val_parent) {
-          cdd_token_t *new_lparen =
-              cdd_cst_create_token_len(tree, CDD_TOKEN_LPAREN, "*(", 2);
-          cdd_token_t *new_rparen =
-              cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "*)", 2);
+          cdd_token_t *new_lparen = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_LPAREN, "*(", 2,
+                                   &new_lparen);
+          cdd_token_t *new_rparen = NULL;
+          cdd_cst_create_token_len(tree, CDD_TOKEN_RPAREN, "*)", 2,
+                                   &new_rparen);
 
           if (new_lparen && new_rparen) {
             size_t val_len = tree->base_tokens->tokens[rparen_idx + 1].length;
@@ -1863,9 +1922,9 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
                      val_len);
               buf[val_len + 1] = '\0';
-              new_val = cdd_cst_create_token_len(
+              cdd_cst_create_token_len(
                   tree, tree->base_tokens->tokens[rparen_idx + 1].kind, buf,
-                  val_len + 1);
+                  val_len + 1, &new_val);
               if (new_val) {
                 new_val->leading_trivia =
                     tree->base_tokens->tokens[rparen_idx + 1].leading_trivia;
@@ -1970,11 +2029,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             *p = '\0';
             {
               size_t child_idx;
-              cdd_cst_node_t *parent =
-                  cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+              cdd_cst_node_t *parent = NULL;
+              cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
               if (parent) {
-                cdd_token_t *new_tok =
-                    cdd_cst_create_token_len(tree, tok->kind, buf, strlen(buf));
+                cdd_token_t *new_tok = NULL;
+                cdd_cst_create_token_len(tree, tok->kind, buf, strlen(buf),
+                                         &new_tok);
                 if (new_tok) {
                   new_tok->leading_trivia = tok->leading_trivia;
                   new_tok->trailing_trivia = tok->trailing_trivia;
@@ -2000,12 +2060,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         for (k = i + 4; k < tree->base_tokens->size; k++) {
           if (tree->base_tokens->tokens[k].kind == CDD_TOKEN_SEMICOLON) {
             size_t child_idx;
-            cdd_cst_node_t *parent =
-                cdd_cst_find_node_for_token(tree->root, tok, &child_idx);
+            cdd_cst_node_t *parent = NULL;
+            cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
             cdd_cst_node_t *semi_parent;
             if (parent) {
-              cdd_token_t *empty_tok = cdd_cst_create_token_len(
-                  tree, CDD_TOKEN_KEYWORD_RETURN, "", 0);
+              cdd_token_t *empty_tok = NULL;
+              cdd_cst_create_token_len(tree, CDD_TOKEN_KEYWORD_RETURN, "", 0,
+                                       &empty_tok);
               if (empty_tok) {
                 empty_tok->leading_trivia = tok->leading_trivia;
                 empty_tok->trailing_trivia = tok->trailing_trivia;
@@ -2014,11 +2075,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_replace_token_child(parent, child_idx, empty_tok);
               }
             }
-            semi_parent = cdd_cst_find_node_for_token(
-                tree->root, &tree->base_tokens->tokens[k], &child_idx);
+            cdd_cst_find_node_for_token(tree->root,
+                                        &tree->base_tokens->tokens[k],
+                                        &child_idx, &semi_parent);
             if (semi_parent) {
-              cdd_token_t *semi_tok = cdd_cst_create_token_len(
-                  tree, CDD_TOKEN_SEMICOLON, "; return;", 9);
+              cdd_token_t *semi_tok = NULL;
+              if (cdd_cst_create_token_len(tree, CDD_TOKEN_SEMICOLON,
+                                           "; return;", 9, &semi_tok) != 0)
+                semi_tok = NULL;
               if (semi_tok) {
                 semi_tok->leading_trivia =
                     tree->base_tokens->tokens[k].leading_trivia;
@@ -2141,12 +2205,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             size_t tk_idx;
             for (tk_idx = 0; tk_idx <= 8; tk_idx++) {
               size_t child_idx;
-              cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
+              cdd_cst_node_t *parent = NULL;
+              cdd_cst_find_node_for_token(
                   tree->root, &tree->base_tokens->tokens[i + tk_idx],
-                  &child_idx);
+                  &child_idx, &parent);
               if (parent) {
-                cdd_token_t *empty_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[i + tk_idx].kind, "", 0);
+                cdd_token_t *empty_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[i + tk_idx].kind, "", 0,
+                    &empty_tok);
                 if (empty_tok) {
                   empty_tok->leading_trivia =
                       tree->base_tokens->tokens[i + tk_idx].leading_trivia;
@@ -2185,11 +2252,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
         if (end_idx > i + 2) {
           {
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, t, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok =
-                  cdd_cst_create_token_len(tree, t->kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(tree, t->kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = t->leading_trivia;
                 n_tok->trailing_trivia = t->trailing_trivia;
@@ -2202,11 +2269,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           for (k = i + 1; k <= end_idx; k++) {
             {
               size_t c_idx;
-              cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                  tree->root, &tree->base_tokens->tokens[k], &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(
+                  tree->root, &tree->base_tokens->tokens[k], &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok = cdd_cst_create_token_len(
-                    tree, tree->base_tokens->tokens[k].kind, "", 0);
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(
+                    tree, tree->base_tokens->tokens[k].kind, "", 0, &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia =
                       tree->base_tokens->tokens[k].leading_trivia;
@@ -2230,15 +2299,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           char *p = buf;
           int appended = 0;
           size_t child_idx;
-          cdd_cst_node_t *owning_node =
-              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          cdd_cst_node_t *owning_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &child_idx, &owning_node);
           if (!owning_node)
             return EINVAL;
 
           /* Run cleanups in reverse order */
           while (num_cleanups > 0 &&
                  cleanups[num_cleanups - 1].depth == current_depth) {
-            cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+            cdd_cst_node_t *temp = NULL;
+            cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
             if (temp) {
               cdd_cst_builder_t bld;
               cdd_cst_builder_init(&bld, tree, temp);
@@ -2268,7 +2338,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
           if (config && config->fallback_vla_to_malloc) {
             while (num_vlas > 0 && vlas[num_vlas - 1].depth == current_depth) {
-              cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+              cdd_cst_node_t *temp = NULL;
+              cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
               if (temp) {
                 cdd_cst_builder_t bld;
                 cdd_cst_builder_init(&bld, tree, temp);
@@ -2301,13 +2372,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             heap_buf = (char *)malloc(strlen(buf) + 1);
             if (heap_buf) {
               size_t child_idx_shadow;
-              cdd_cst_node_t *parent =
-                  cdd_cst_find_node_for_token(tree->root, t, &child_idx_shadow);
+              cdd_cst_node_t *parent = NULL;
+              cdd_cst_find_node_for_token(tree->root, t, &child_idx_shadow,
+                                          &parent);
               if (parent) {
                 cdd_token_t *new_tok;
                 strcpy(heap_buf, buf);
-                new_tok = cdd_cst_create_token_len(tree, t->kind, heap_buf,
-                                                   strlen(heap_buf));
+                cdd_cst_create_token_len(tree, t->kind, heap_buf,
+                                         strlen(heap_buf), &new_tok);
                 if (new_tok) {
                   new_tok->leading_trivia = t->leading_trivia;
                   new_tok->trailing_trivia = t->trailing_trivia;
@@ -2336,11 +2408,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
               if (has_expr) {
                 size_t child_idx;
-                cdd_cst_node_t *parent =
-                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                cdd_cst_node_t *parent = NULL;
+                cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
                 if (parent) {
-                  cdd_token_t *new_tok = cdd_cst_create_token_len(
-                      tree, t->kind, "{ __auto_type __cdd_ret = (", 27);
+                  cdd_token_t *new_tok = NULL;
+                  cdd_cst_create_token_len(tree, t->kind,
+                                           "{ __auto_type __cdd_ret = (", 27,
+                                           &new_tok);
                   if (new_tok) {
                     new_tok->leading_trivia = t->leading_trivia;
                     new_tok->trailing_trivia = t->trailing_trivia;
@@ -2353,11 +2427,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 p += 3;
               } else {
                 size_t child_idx;
-                cdd_cst_node_t *parent =
-                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                cdd_cst_node_t *parent = NULL;
+                cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
                 if (parent) {
-                  cdd_token_t *new_tok =
-                      cdd_cst_create_token_len(tree, t->kind, "{ ", 2);
+                  cdd_token_t *new_tok = NULL;
+                  cdd_cst_create_token_len(tree, t->kind, "{ ", 2, &new_tok);
                   if (new_tok) {
                     new_tok->leading_trivia = t->leading_trivia;
                     new_tok->trailing_trivia = t->trailing_trivia;
@@ -2393,15 +2467,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 char *dup = (char *)malloc(strlen(buf) + 1);
                 if (dup) {
                   size_t child_idx_dup;
-                  cdd_cst_node_t *parent = cdd_cst_find_node_for_token(
-                      tree->root, &tree->base_tokens->tokens[k],
-                      &child_idx_dup);
+                  cdd_cst_node_t *parent = NULL;
+                  cdd_cst_find_node_for_token(tree->root,
+                                              &tree->base_tokens->tokens[k],
+                                              &child_idx_dup, &parent);
                   if (parent) {
                     cdd_token_t *new_tok;
                     strcpy(dup, buf);
-                    new_tok = cdd_cst_create_token_len(
-                        tree, tree->base_tokens->tokens[k].kind, dup,
-                        strlen(dup));
+                    cdd_cst_create_token_len(tree,
+                                             tree->base_tokens->tokens[k].kind,
+                                             dup, strlen(dup), &new_tok);
                     if (new_tok) {
                       new_tok->leading_trivia =
                           tree->base_tokens->tokens[k].leading_trivia;
@@ -2424,13 +2499,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       } else if (t->kind == CDD_TOKEN_KEYWORD_GOTO) {
         if (num_cleanups > 0) {
           size_t c_idx2;
-          cdd_cst_node_t *parent =
-              cdd_cst_find_node_for_token(tree->root, t, &c_idx2);
+          cdd_cst_node_t *parent = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &c_idx2, &parent);
           if (parent) {
-            cdd_token_t *new_tok = cdd_cst_create_token_len(
+            cdd_token_t *new_tok = NULL;
+            cdd_cst_create_token_len(
                 tree, t->kind,
-                "/* warning: goto cross-scope cleanups unsupported */ goto",
-                59);
+                "/* warning: goto cross-scope cleanups unsupported */ goto", 59,
+                &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
               new_tok->trailing_trivia = t->trailing_trivia;
@@ -2443,12 +2519,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
         if (num_vlas > 0) {
           size_t c_idx3;
-          cdd_cst_node_t *parent =
-              cdd_cst_find_node_for_token(tree->root, t, &c_idx3);
+          cdd_cst_node_t *parent = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &c_idx3, &parent);
           if (parent) {
-            cdd_token_t *new_tok = cdd_cst_create_token_len(
+            cdd_token_t *new_tok = NULL;
+            cdd_cst_create_token_len(
                 tree, t->kind,
-                "/* warning: goto crossing VLA scopes unsupported */ goto", 58);
+                "/* warning: goto crossing VLA scopes unsupported */ goto", 58,
+                &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
               new_tok->trailing_trivia = t->trailing_trivia;
@@ -2470,14 +2548,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
              natively without massive hacks.
           */
           size_t child_idx;
-          cdd_cst_node_t *parent =
-              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          cdd_cst_node_t *parent = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
           if (parent) {
-            cdd_token_t *new_tok = cdd_cst_create_token_len(
+            cdd_token_t *new_tok = NULL;
+            cdd_cst_create_token_len(
                 tree, t->kind,
                 "/* warning: computed goto converting jump tables to switch "
                 "internally unsupported */ goto",
-                89);
+                89, &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
               new_tok->trailing_trivia = t->trailing_trivia;
@@ -2491,12 +2570,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                  memcmp(t->start, "longjmp", 7) == 0) {
         if (num_cleanups > 0) {
           size_t child_idx;
-          cdd_cst_node_t *parent =
-              cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+          cdd_cst_node_t *parent = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
           if (parent) {
-            cdd_token_t *new_tok = cdd_cst_create_token_len(
+            cdd_token_t *new_tok = NULL;
+            cdd_cst_create_token_len(
                 tree, t->kind,
-                "/* warning: longjmp bypasses cleanups */ longjmp", 50);
+                "/* warning: longjmp bypasses cleanups */ longjmp", 50,
+                &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
               new_tok->trailing_trivia = t->trailing_trivia;
@@ -2509,10 +2590,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
       } else if (t->kind == CDD_TOKEN_KEYWORD___LABEL__) {
         {
           size_t c_idx;
-          cdd_cst_node_t *p_node =
-              cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+          cdd_cst_node_t *p_node = NULL;
+          cdd_cst_find_node_for_token(tree->root, t, &c_idx, &p_node);
           if (p_node) {
-            cdd_token_t *n_tok = cdd_cst_create_token_len(tree, t->kind, "", 0);
+            cdd_token_t *n_tok = NULL;
+            cdd_cst_create_token_len(tree, t->kind, "", 0, &n_tok);
             if (n_tok) {
               n_tok->leading_trivia = t->leading_trivia;
               n_tok->trailing_trivia = t->trailing_trivia;
@@ -2537,17 +2619,18 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 memcpy(p, nt->start, nt->length);
                 p += nt->length;
                 *p++ = '_';
-                append_int(p, ++label_counter);
+                if (append_int(p, ++label_counter, &p) != 0)
+                  return ENOMEM;
               }
               num_local_labels++;
             }
             {
               size_t c_idx;
-              cdd_cst_node_t *p_node =
-                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(tree->root, nt, &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok =
-                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(tree, nt->kind, "", 0, &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia = nt->leading_trivia;
                   n_tok->trailing_trivia = nt->trailing_trivia;
@@ -2560,11 +2643,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           } else if (nt->kind == CDD_TOKEN_COMMA) {
             {
               size_t c_idx;
-              cdd_cst_node_t *p_node =
-                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(tree->root, nt, &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok =
-                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(tree, nt->kind, "", 0, &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia = nt->leading_trivia;
                   n_tok->trailing_trivia = nt->trailing_trivia;
@@ -2577,11 +2660,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           } else if (nt->kind == CDD_TOKEN_SEMICOLON) {
             {
               size_t c_idx;
-              cdd_cst_node_t *p_node =
-                  cdd_cst_find_node_for_token(tree->root, nt, &c_idx);
+              cdd_cst_node_t *p_node = NULL;
+              cdd_cst_find_node_for_token(tree->root, nt, &c_idx, &p_node);
               if (p_node) {
-                cdd_token_t *n_tok =
-                    cdd_cst_create_token_len(tree, nt->kind, "", 0);
+                cdd_token_t *n_tok = NULL;
+                cdd_cst_create_token_len(tree, nt->kind, "", 0, &n_tok);
                 if (n_tok) {
                   n_tok->leading_trivia = nt->leading_trivia;
                   n_tok->trailing_trivia = nt->trailing_trivia;
@@ -2628,13 +2711,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               char *dup = (char *)malloc(strlen(local_labels[j].rename) + 1);
               if (dup) {
                 size_t child_idx;
-                cdd_cst_node_t *parent =
-                    cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+                cdd_cst_node_t *parent = NULL;
+                cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
                 if (parent) {
                   cdd_token_t *new_tok;
                   strcpy(dup, local_labels[j].rename);
-                  new_tok =
-                      cdd_cst_create_token_len(tree, t->kind, dup, strlen(dup));
+                  cdd_cst_create_token_len(tree, t->kind, dup, strlen(dup),
+                                           &new_tok);
                   if (new_tok) {
                     new_tok->leading_trivia = t->leading_trivia;
                     new_tok->trailing_trivia = t->trailing_trivia;
@@ -2657,11 +2740,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_LBRACE) {
         /* Remove ({ */
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *empty_tok =
-              cdd_cst_create_token_len(tree, t->kind, "", 0);
+          cdd_token_t *empty_tok = NULL;
+          cdd_cst_create_token_len(tree, t->kind, "", 0, &empty_tok);
           if (empty_tok) {
             empty_tok->leading_trivia = t->leading_trivia;
             empty_tok->trailing_trivia = t->trailing_trivia;
@@ -2671,11 +2754,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
 
-        parent = cdd_cst_find_node_for_token(
-            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx);
+        cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx, &parent);
         if (parent) {
-          cdd_token_t *empty_tok = cdd_cst_create_token_len(
-              tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+          cdd_token_t *empty_tok = NULL;
+          cdd_cst_create_token_len(tree, tree->base_tokens->tokens[i + 1].kind,
+                                   "", 0, &empty_tok);
           if (empty_tok) {
             empty_tok->leading_trivia =
                 tree->base_tokens->tokens[i + 1].leading_trivia;
@@ -2691,11 +2775,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                  tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_RPAREN) {
         /* Remove }) */
         size_t child_idx;
-        cdd_cst_node_t *parent =
-            cdd_cst_find_node_for_token(tree->root, t, &child_idx);
+        cdd_cst_node_t *parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
         if (parent) {
-          cdd_token_t *empty_tok =
-              cdd_cst_create_token_len(tree, t->kind, "", 0);
+          cdd_token_t *empty_tok = NULL;
+          cdd_cst_create_token_len(tree, t->kind, "", 0, &empty_tok);
           if (empty_tok) {
             empty_tok->leading_trivia = t->leading_trivia;
             empty_tok->trailing_trivia = t->trailing_trivia;
@@ -2705,11 +2789,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
 
-        parent = cdd_cst_find_node_for_token(
-            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx);
+        cdd_cst_find_node_for_token(
+            tree->root, &tree->base_tokens->tokens[i + 1], &child_idx, &parent);
         if (parent) {
-          cdd_token_t *empty_tok = cdd_cst_create_token_len(
-              tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+          cdd_token_t *empty_tok = NULL;
+          cdd_cst_create_token_len(tree, tree->base_tokens->tokens[i + 1].kind,
+                                   "", 0, &empty_tok);
           if (empty_tok) {
             empty_tok->leading_trivia =
                 tree->base_tokens->tokens[i + 1].leading_trivia;
@@ -2756,10 +2841,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               if (config && config->fallback_vla_to_malloc) {
                 {
                   size_t child_idx;
-                  cdd_cst_node_t *owning_node =
-                      cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
+                  cdd_cst_node_t *owning_node = NULL;
+                  cdd_cst_find_node_for_token(tree->root, prev, &child_idx,
+                                              &owning_node);
                   if (owning_node) {
-                    cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                    cdd_cst_node_t *temp = NULL;
+                    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
                     if (temp) {
                       cdd_cst_builder_t bld;
                       cdd_cst_builder_init(&bld, tree, temp);
@@ -2807,11 +2894,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 {
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node =
-                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, prev, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, prev->kind, "", 0, &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = prev->leading_trivia;
                         n_tok->trailing_trivia = prev->trailing_trivia;
@@ -2823,11 +2911,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, end_tok, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, end_tok, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, end_tok->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, end_tok->kind, "", 0,
+                                               &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = end_tok->leading_trivia;
                         n_tok->trailing_trivia = end_tok->trailing_trivia;
@@ -2837,17 +2927,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       }
                     }
                   }
-
-                  vlas[num_vlas].depth = current_depth;
-                  num_vlas++;
                 }
               } else {
                 {
                   size_t child_idx;
-                  cdd_cst_node_t *owning_node =
-                      cdd_cst_find_node_for_token(tree->root, prev, &child_idx);
+                  cdd_cst_node_t *owning_node = NULL;
+                  cdd_cst_find_node_for_token(tree->root, prev, &child_idx,
+                                              &owning_node);
                   if (owning_node) {
-                    cdd_cst_node_t *temp = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+                    cdd_cst_node_t *temp = NULL;
+                    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &temp);
                     if (temp) {
                       cdd_cst_builder_t bld;
                       cdd_cst_builder_init(&bld, tree, temp);
@@ -2887,11 +2976,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node =
-                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, prev, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, prev->kind, "", 0, &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = prev->leading_trivia;
                         n_tok->trailing_trivia = prev->trailing_trivia;
@@ -2903,11 +2993,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, end_tok, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, end_tok, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, end_tok->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, end_tok->kind, "", 0,
+                                               &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = end_tok->leading_trivia;
                         n_tok->trailing_trivia = end_tok->trailing_trivia;
@@ -2961,11 +3053,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           if (found_rbrace) {
             /* Flexible Array Member polyfill -> change [0] to [1] */
             size_t child_idx;
-            cdd_cst_node_t *parent =
-                cdd_cst_find_node_for_token(tree->root, next, &child_idx);
+            cdd_cst_node_t *parent = NULL;
+            cdd_cst_find_node_for_token(tree->root, next, &child_idx, &parent);
             if (parent) {
-              cdd_token_t *new_tok =
-                  cdd_cst_create_token_len(tree, next->kind, "1", 1);
+              cdd_token_t *new_tok = NULL;
+              cdd_cst_create_token_len(tree, next->kind, "1", 1, &new_tok);
               if (new_tok) {
                 new_tok->leading_trivia = next->leading_trivia;
                 new_tok->trailing_trivia = next->trailing_trivia;
@@ -2977,12 +3069,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           } else {
             /* Reject zero-length array in the middle of a struct */
             size_t child_idx;
-            cdd_cst_node_t *parent =
-                cdd_cst_find_node_for_token(tree->root, next, &child_idx);
+            cdd_cst_node_t *parent = NULL;
+            cdd_cst_find_node_for_token(tree->root, next, &child_idx, &parent);
             if (parent) {
-              cdd_token_t *new_tok = cdd_cst_create_token_len(
+              cdd_token_t *new_tok = NULL;
+              cdd_cst_create_token_len(
                   tree, next->kind,
-                  "-1 /* zero-length array in middle of struct */", 46);
+                  "-1 /* zero-length array in middle of struct */", 46,
+                  &new_tok);
               if (new_tok) {
                 new_tok->leading_trivia = next->leading_trivia;
                 new_tok->trailing_trivia = next->trailing_trivia;
@@ -3004,11 +3098,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             tree->base_tokens->tokens[next_idx].kind == CDD_TOKEN_RBRACE) {
           {
             size_t c_idx;
-            cdd_cst_node_t *p_node =
-                cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+            cdd_cst_node_t *p_node = NULL;
+            cdd_cst_find_node_for_token(tree->root, t, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok =
-                  cdd_cst_create_token_len(tree, t->kind, "", 0);
+              cdd_token_t *n_tok = NULL;
+              cdd_cst_create_token_len(tree, t->kind, "", 0, &n_tok);
               if (n_tok) {
                 n_tok->leading_trivia = t->leading_trivia;
                 n_tok->trailing_trivia = t->trailing_trivia;
@@ -3158,7 +3252,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 for (v = start_val; v <= end_val; v++) {
                   strcpy(p, "case ");
                   p += 5;
-                  p = append_int(p, v);
+                  if (append_int(p, v, &p) != 0)
+                    return ENOMEM;
                   if (v != end_val) {
                     strcpy(p, ": ");
                     p += 2;
@@ -3173,11 +3268,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     strlen(heap_buf);
                 {
                   size_t c_idx;
-                  cdd_cst_node_t *p_node =
-                      cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                  cdd_cst_node_t *p_node = NULL;
+                  cdd_cst_find_node_for_token(tree->root, prev, &c_idx,
+                                              &p_node);
                   if (p_node) {
-                    cdd_token_t *n_tok =
-                        cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                    cdd_token_t *n_tok = NULL;
+                    cdd_cst_create_token_len(tree, prev->kind, "", 0, &n_tok);
                     if (n_tok) {
                       n_tok->leading_trivia = prev->leading_trivia;
                       n_tok->trailing_trivia = prev->trailing_trivia;
@@ -3189,11 +3285,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 }
                 {
                   size_t c_idx;
-                  cdd_cst_node_t *p_node =
-                      cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+                  cdd_cst_node_t *p_node = NULL;
+                  cdd_cst_find_node_for_token(tree->root, t, &c_idx, &p_node);
                   if (p_node) {
-                    cdd_token_t *n_tok =
-                        cdd_cst_create_token_len(tree, t->kind, "", 0);
+                    cdd_token_t *n_tok = NULL;
+                    cdd_cst_create_token_len(tree, t->kind, "", 0, &n_tok);
                     if (n_tok) {
                       n_tok->leading_trivia = t->leading_trivia;
                       n_tok->trailing_trivia = t->trailing_trivia;
@@ -3210,11 +3306,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 }
                 {
                   size_t c_idx;
-                  cdd_cst_node_t *p_node =
-                      cdd_cst_find_node_for_token(tree->root, next, &c_idx);
+                  cdd_cst_node_t *p_node = NULL;
+                  cdd_cst_find_node_for_token(tree->root, next, &c_idx,
+                                              &p_node);
                   if (p_node) {
-                    cdd_token_t *n_tok =
-                        cdd_cst_create_token_len(tree, next->kind, "", 0);
+                    cdd_token_t *n_tok = NULL;
+                    cdd_cst_create_token_len(tree, next->kind, "", 0, &n_tok);
                     if (n_tok) {
                       n_tok->leading_trivia = next->leading_trivia;
                       n_tok->trailing_trivia = next->trailing_trivia;
@@ -3245,7 +3342,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   p = heap_buf;
                   for (v = start_val; v <= end_val; v++) {
                     *p++ = '[';
-                    p = append_int(p, v);
+                    if (append_int(p, v, &p) != 0)
+                      return ENOMEM;
                     strcpy(p, "] = ");
                     p += 4;
                     memcpy(p, assign_val->start, assign_val->length);
@@ -3262,11 +3360,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       strlen(heap_buf);
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node =
-                        cdd_cst_find_node_for_token(tree->root, prev, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, prev, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, prev->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, prev->kind, "", 0, &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = prev->leading_trivia;
                         n_tok->trailing_trivia = prev->trailing_trivia;
@@ -3278,11 +3377,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node =
-                        cdd_cst_find_node_for_token(tree->root, t, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, t, &c_idx, &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, t->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, t->kind, "", 0, &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = t->leading_trivia;
                         n_tok->trailing_trivia = t->trailing_trivia;
@@ -3294,11 +3393,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, &tree->base_tokens->tokens[i + 1], &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(
+                        tree->root, &tree->base_tokens->tokens[i + 1], &c_idx,
+                        &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok = cdd_cst_create_token_len(
-                          tree, tree->base_tokens->tokens[i + 1].kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(
+                          tree, tree->base_tokens->tokens[i + 1].kind, "", 0,
+                          &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia =
                             tree->base_tokens->tokens[i + 1].leading_trivia;
@@ -3312,11 +3415,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, &tree->base_tokens->tokens[i + 2], &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(
+                        tree->root, &tree->base_tokens->tokens[i + 2], &c_idx,
+                        &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok = cdd_cst_create_token_len(
-                          tree, tree->base_tokens->tokens[i + 2].kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(
+                          tree, tree->base_tokens->tokens[i + 2].kind, "", 0,
+                          &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia =
                             tree->base_tokens->tokens[i + 2].leading_trivia;
@@ -3330,11 +3437,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node =
-                        cdd_cst_find_node_for_token(tree->root, next, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, next, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok =
-                          cdd_cst_create_token_len(tree, next->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, next->kind, "", 0, &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = next->leading_trivia;
                         n_tok->trailing_trivia = next->trailing_trivia;
@@ -3346,11 +3454,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, (next + 1), &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, (next + 1), &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok = cdd_cst_create_token_len(
-                          tree, (next + 1)->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, (next + 1)->kind, "", 0,
+                                               &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = (next + 1)->leading_trivia;
                         n_tok->trailing_trivia = (next + 1)->trailing_trivia;
@@ -3362,11 +3472,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, (next + 2), &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, (next + 2), &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok = cdd_cst_create_token_len(
-                          tree, (next + 2)->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, (next + 2)->kind, "", 0,
+                                               &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = (next + 2)->leading_trivia;
                         n_tok->trailing_trivia = (next + 2)->trailing_trivia;
@@ -3378,11 +3490,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   {
                     size_t c_idx;
-                    cdd_cst_node_t *p_node = cdd_cst_find_node_for_token(
-                        tree->root, assign_val, &c_idx);
+                    cdd_cst_node_t *p_node = NULL;
+                    cdd_cst_find_node_for_token(tree->root, assign_val, &c_idx,
+                                                &p_node);
                     if (p_node) {
-                      cdd_token_t *n_tok = cdd_cst_create_token_len(
-                          tree, assign_val->kind, "", 0);
+                      cdd_token_t *n_tok = NULL;
+                      cdd_cst_create_token_len(tree, assign_val->kind, "", 0,
+                                               &n_tok);
                       if (n_tok) {
                         n_tok->leading_trivia = assign_val->leading_trivia;
                         n_tok->trailing_trivia = assign_val->trailing_trivia;

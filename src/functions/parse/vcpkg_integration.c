@@ -13,6 +13,7 @@
 
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vcpkg_integration.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static /**
@@ -98,8 +99,10 @@ int vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
         builder->deps_capacity == 0 ? 4 : builder->deps_capacity * 2;
     struct VcpkgDependency *new_deps = (struct VcpkgDependency *)realloc(
         builder->deps, new_cap * sizeof(struct VcpkgDependency));
-    if (!new_deps)
+    if (!new_deps) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     builder->deps = new_deps;
     builder->deps_capacity = new_cap;
   }
@@ -196,8 +199,10 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     return EINVAL;
 
   json = (char *)malloc(cap);
-  if (!json)
+  if (!json) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   /* Basic manual string builder without heavy dependencies */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

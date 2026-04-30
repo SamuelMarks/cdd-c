@@ -116,10 +116,106 @@ TEST test_sql_parser_basic(void) {
   PASS();
 }
 
+TEST test_sql_lexer_strings_unknown(void) {
+  const char *sql = "DEFAULT 'some_string' ^ ~";
+  az_span span = az_span_create_from_str((char *)sql);
+  struct sql_token_list_t *list = NULL;
+  int err;
+
+  err = sql_lex(span, &list);
+  ASSERT_EQ(0, err);
+  ASSERT(list != NULL);
+
+  // DEFAULT
+  // space
+  // 'some_string' -> SQL_TOKEN_STRING
+  // space
+  // ^ -> SQL_TOKEN_UNKNOWN
+  // space
+  // ~ -> SQL_TOKEN_UNKNOWN
+
+  int has_str = 0;
+  int has_unknown = 0;
+  size_t i;
+  for (i = 0; i < list->size; i++) {
+    if (list->tokens[i].kind == SQL_TOKEN_STRING)
+      has_str = 1;
+    if (list->tokens[i].kind == SQL_TOKEN_UNKNOWN)
+      has_unknown = 1;
+  }
+
+  ASSERT_EQ(1, has_str);
+  ASSERT_EQ(1, has_unknown);
+
+  sql_token_list_free(list);
+
+  // also unclosed string
+  sql = "'unclosed";
+  span = az_span_create_from_str((char *)sql);
+  err = sql_lex(span, &list);
+  ASSERT_EQ(0, err);
+  sql_token_list_free(list);
+
+  PASS();
+}
+
+TEST test_sql_parser_foreign_keys_defaults(void) {
+  const char *sql = "CREATE TABLE t1 (id INT PRIMARY KEY, "
+                    "ref_id INT REFERENCES other_table(id), "
+                    "status VARCHAR(255) DEFAULT 'active');";
+  struct sql_table_t *tables = NULL;
+  size_t n_tables = 0;
+  int err;
+
+  struct sql_token_list_t *list = NULL;
+  err = sql_lex(az_span_create_from_str((char *)sql), &list);
+  ASSERT_EQ(0, err);
+
+  err = parse_sql_ddl(sql, &tables, &n_tables);
+  if (err != 0) {
+    printf("SQL ERROR!\n");
+  }
+  ASSERT_EQ(0, err);
+
+  // Add a test for parser error (e.g. invalid syntax)
+  const char *sql_err = "CREATE TABLE t2 (";
+  struct sql_table_t *tables_err = NULL;
+  size_t n_tables_err = 0;
+  struct sql_token_list_t *list_err = NULL;
+  err = sql_lex(az_span_create_from_str((char *)sql_err), &list_err);
+  ASSERT_EQ(0, err);
+
+  err = parse_sql_ddl(sql_err, &tables_err, &n_tables_err);
+  ASSERT_EQ(0, n_tables_err);
+
+  if (tables) {
+    size_t i;
+    for (i = 0; i < n_tables; ++i) {
+      sql_table_free(&tables[i]);
+    }
+    free(tables);
+  }
+
+  if (tables_err) {
+    size_t i;
+    for (i = 0; i < n_tables_err; ++i) {
+      sql_table_free(&tables_err[i]);
+    }
+    free(tables_err);
+  }
+
+  sql_token_list_free(list);
+  sql_token_list_free(list_err);
+
+  PASS();
+}
+
 SUITE(sql_suite) {
   RUN_TEST(test_sql_lexer_basic);
   RUN_TEST(test_sql_lexer_types);
   RUN_TEST(test_sql_parser_basic);
+  RUN_TEST(test_sql_lexer_strings_unknown);
+  RUN_TEST(test_sql_parser_foreign_keys_defaults);
 }
 
 #ifdef __cplusplus

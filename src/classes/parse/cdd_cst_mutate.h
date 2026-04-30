@@ -63,8 +63,8 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
                             size_t start_idx, size_t consume_count,
                             cdd_cst_child_t *new_children,
                             size_t new_children_count);
-cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root,
-                                            cdd_token_t *tok, size_t *out_idx);
+int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
+                                size_t *out_idx, cdd_cst_node_t **out_node);
 
 #ifdef __cplusplus
 }

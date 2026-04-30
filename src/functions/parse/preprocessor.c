@@ -47,6 +47,7 @@
 #define PATH_SEP_CHAR '/'
 
 #include <errno.h>
+#include "c_cdd/log.h"
 
 #endif
 /* clang-format on */
@@ -204,9 +205,10 @@ static /**
 
         ctx->macros, new_cap * sizeof(struct MacroDef));
 
-    if (!new_arr)
-
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     ctx->macros = new_arr;
 
@@ -403,9 +405,10 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
 
   copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
-  if (!copy)
-
+  if (!copy) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   if (ctx->size >= ctx->capacity) {
 
@@ -1866,9 +1869,10 @@ static /**
     name = (token_to_string(&tokens->tokens[i], &_ast_token_to_string_94),
             _ast_token_to_string_94);
 
-    if (!name)
-
+    if (!name) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     i++;
 

@@ -17,6 +17,7 @@
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
 #include "routes/emit/operation.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helpers --- */
@@ -147,8 +148,10 @@ static /**
   case JSONObject:
   case JSONArray:
     json_str = json_serialize_to_string((JSON_Value *)val);
-    if (!json_str)
+    if (!json_str) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     out->type = OA_ANY_JSON;
     out->json = (c_cdd_strdup(json_str, &_ast_strdup_7), _ast_strdup_7);
     json_free_serialized_string(json_str);
@@ -372,8 +375,10 @@ static /**
 
   dst->variables = (struct OpenAPI_ServerVariable *)calloc(
       src->n_variables, sizeof(struct OpenAPI_ServerVariable));
-  if (!dst->variables)
+  if (!dst->variables) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   dst->n_variables = src->n_variables;
 
   for (i = 0; i < src->n_variables; ++i) {
@@ -639,19 +644,25 @@ static /**
       if (dh->description && !hdr->description) {
         hdr->description =
             (c_cdd_strdup(dh->description, &_ast_strdup_20), _ast_strdup_20);
-        if (!hdr->description)
+        if (!hdr->description) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
       }
       if (dh->type && !hdr->type) {
         hdr->type = (c_cdd_strdup(dh->type, &_ast_strdup_21), _ast_strdup_21);
-        if (!hdr->type)
+        if (!hdr->type) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
       }
       if (dh->content_type && !hdr->content_type) {
         hdr->content_type =
             (c_cdd_strdup(dh->content_type, &_ast_strdup_22), _ast_strdup_22);
-        if (!hdr->content_type)
+        if (!hdr->content_type) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
       }
       if (dh->format) {
         hdr->schema_set = 1;
@@ -684,29 +695,39 @@ static /**
 
   new_headers = (struct OpenAPI_Header *)realloc(
       resp->headers, (resp->n_headers + 1) * sizeof(struct OpenAPI_Header));
-  if (!new_headers)
+  if (!new_headers) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   resp->headers = new_headers;
   hdr = &resp->headers[resp->n_headers++];
   memset(hdr, 0, sizeof(*hdr));
   hdr->name = (c_cdd_strdup(dh->name, &_ast_strdup_25), _ast_strdup_25);
-  if (!hdr->name)
+  if (!hdr->name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (dh->description) {
     hdr->description =
         (c_cdd_strdup(dh->description, &_ast_strdup_26), _ast_strdup_26);
-    if (!hdr->description)
+    if (!hdr->description) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   hdr->type = (c_cdd_strdup(dh->type ? dh->type : "string", &_ast_strdup_27),
                _ast_strdup_27);
-  if (!hdr->type)
+  if (!hdr->type) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (dh->content_type) {
     hdr->content_type =
         (c_cdd_strdup(dh->content_type, &_ast_strdup_28), _ast_strdup_28);
-    if (!hdr->content_type)
+    if (!hdr->content_type) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (dh->format) {
     hdr->schema_set = 1;
@@ -765,38 +786,50 @@ static /**
 
   new_links = (struct OpenAPI_Link *)realloc(
       resp->links, (resp->n_links + 1) * sizeof(struct OpenAPI_Link));
-  if (!new_links)
+  if (!new_links) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   resp->links = new_links;
   link = &resp->links[resp->n_links++];
   memset(link, 0, sizeof(*link));
 
   link->name = (c_cdd_strdup(dl->name, &_ast_strdup_31), _ast_strdup_31);
-  if (!link->name)
+  if (!link->name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (dl->summary) {
     link->summary =
         (c_cdd_strdup(dl->summary, &_ast_strdup_32), _ast_strdup_32);
-    if (!link->summary)
+    if (!link->summary) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (dl->description) {
     link->description =
         (c_cdd_strdup(dl->description, &_ast_strdup_33), _ast_strdup_33);
-    if (!link->description)
+    if (!link->description) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (dl->operation_id) {
     link->operation_id =
         (c_cdd_strdup(dl->operation_id, &_ast_strdup_34), _ast_strdup_34);
-    if (!link->operation_id)
+    if (!link->operation_id) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (dl->operation_ref) {
     link->operation_ref =
         (c_cdd_strdup(dl->operation_ref, &_ast_strdup_35), _ast_strdup_35);
-    if (!link->operation_ref)
+    if (!link->operation_ref) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (dl->parameters_json) {
     int rc = parse_link_params_json(dl->parameters_json, &link->parameters,
@@ -811,8 +844,10 @@ static /**
   }
   if (dl->server_url) {
     link->server = (struct OpenAPI_Server *)calloc(1, sizeof(*link->server));
-    if (!link->server)
+    if (!link->server) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     link->server_set = 1;
     link->server->url =
         (c_cdd_strdup(dl->server_url, &_ast_strdup_36), _ast_strdup_36);
@@ -862,8 +897,10 @@ static /**
 
   new_arr = (struct OpenAPI_Parameter *)realloc(
       op->parameters, new_count * sizeof(struct OpenAPI_Parameter));
-  if (!new_arr)
+  if (!new_arr) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   op->parameters = new_arr;
   op->parameters[op->n_parameters] = *p; /* Copy struct */
@@ -901,38 +938,50 @@ static /**
   if (src->ref_name) {
     dst->ref_name =
         (c_cdd_strdup(src->ref_name, &_ast_strdup_39), _ast_strdup_39);
-    if (!dst->ref_name)
+    if (!dst->ref_name) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (src->ref) {
     dst->ref = (c_cdd_strdup(src->ref, &_ast_strdup_40), _ast_strdup_40);
-    if (!dst->ref)
+    if (!dst->ref) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   dst->ref_is_dynamic = src->ref_is_dynamic;
   if (src->inline_type) {
     dst->inline_type =
         (c_cdd_strdup(src->inline_type, &_ast_strdup_41), _ast_strdup_41);
-    if (!dst->inline_type)
+    if (!dst->inline_type) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (src->items_ref) {
     dst->items_ref =
         (c_cdd_strdup(src->items_ref, &_ast_strdup_42), _ast_strdup_42);
-    if (!dst->items_ref)
+    if (!dst->items_ref) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   dst->items_ref_is_dynamic = src->items_ref_is_dynamic;
   if (src->format) {
     dst->format = (c_cdd_strdup(src->format, &_ast_strdup_43), _ast_strdup_43);
-    if (!dst->format)
+    if (!dst->format) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (src->items_format) {
     dst->items_format =
         (c_cdd_strdup(src->items_format, &_ast_strdup_44), _ast_strdup_44);
-    if (!dst->items_format)
+    if (!dst->items_format) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   return 0;
 }
@@ -971,8 +1020,10 @@ static /**
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
   mt->name = (c_cdd_strdup(name, &_ast_strdup_45), _ast_strdup_45);
-  if (!mt->name)
+  if (!mt->name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (schema_ref_has_data_basic(&resp->schema)) {
     if (is_item_schema) {
       if (copy_schema_ref_basic(&mt->item_schema, &resp->schema) != 0)
@@ -1003,8 +1054,10 @@ static /**
     size_t base = resp->content_type ? 1 : 0;
     resp->content_media_types = (struct OpenAPI_MediaType *)calloc(
         base + 1, sizeof(struct OpenAPI_MediaType));
-    if (!resp->content_media_types)
+    if (!resp->content_media_types) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     resp->n_content_media_types = 0;
     if (resp->content_type) {
       if (init_media_type_from_response(&resp->content_media_types[0],
@@ -1021,8 +1074,10 @@ static /**
   new_count = resp->n_content_media_types + 1;
   new_mts = (struct OpenAPI_MediaType *)realloc(
       resp->content_media_types, new_count * sizeof(struct OpenAPI_MediaType));
-  if (!new_mts)
+  if (!new_mts) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   resp->content_media_types = new_mts;
   if (init_media_type_from_response(
           &resp->content_media_types[resp->n_content_media_types], name, resp,
@@ -1066,8 +1121,10 @@ static /**
     return EINVAL;
   memset(mt, 0, sizeof(*mt));
   mt->name = (c_cdd_strdup(name, &_ast_strdup_46), _ast_strdup_46);
-  if (!mt->name)
+  if (!mt->name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (schema_ref_has_data_basic(&op->req_body)) {
     if (is_item_schema) {
       if (copy_schema_ref_basic(&mt->item_schema, &op->req_body) != 0)
@@ -1098,8 +1155,10 @@ static /**
     size_t base = op->req_body.content_type ? 1 : 0;
     op->req_body_media_types = (struct OpenAPI_MediaType *)calloc(
         base + 1, sizeof(struct OpenAPI_MediaType));
-    if (!op->req_body_media_types)
+    if (!op->req_body_media_types) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     op->n_req_body_media_types = 0;
     if (op->req_body.content_type) {
       if (init_media_type_from_request_body(&op->req_body_media_types[0],
@@ -1116,8 +1175,10 @@ static /**
   new_count = op->n_req_body_media_types + 1;
   new_mts = (struct OpenAPI_MediaType *)realloc(
       op->req_body_media_types, new_count * sizeof(struct OpenAPI_MediaType));
-  if (!new_mts)
+  if (!new_mts) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   op->req_body_media_types = new_mts;
   if (init_media_type_from_request_body(
           &op->req_body_media_types[op->n_req_body_media_types], name, op,
@@ -1153,13 +1214,17 @@ static /**
   if (type_map->kind == OA_TYPE_ARRAY) {
     param->is_array = 1;
     param->type = (c_cdd_strdup("array", &_ast_strdup_48), _ast_strdup_48);
-    if (!param->type)
+    if (!param->type) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (type_map->oa_type) {
       param->items_type =
           (c_cdd_strdup(type_map->oa_type, &_ast_strdup_49), _ast_strdup_49);
-      if (!param->items_type)
+      if (!param->items_type) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     return 0;
   }
@@ -1212,26 +1277,34 @@ static /**
     if (!schema->inline_type) {
       schema->inline_type =
           (c_cdd_strdup(map->oa_type, &_ast_strdup_52), _ast_strdup_52);
-      if (!schema->inline_type)
+      if (!schema->inline_type) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     if (schema->items_format)
       free(schema->items_format);
     schema->items_format = (c_cdd_strdup(fmt, &_ast_strdup_53), _ast_strdup_53);
-    if (!schema->items_format)
+    if (!schema->items_format) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   } else {
     if (!schema->inline_type) {
       schema->inline_type =
           (c_cdd_strdup(map->oa_type, &_ast_strdup_54), _ast_strdup_54);
-      if (!schema->inline_type)
+      if (!schema->inline_type) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     if (schema->format)
       free(schema->format);
     schema->format = (c_cdd_strdup(fmt, &_ast_strdup_55), _ast_strdup_55);
-    if (!schema->format)
+    if (!schema->format) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   return 1;
 }
@@ -1413,8 +1486,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
       out_op->is_additional = 1;
       out_op->method =
           (c_cdd_strdup(doc->verb, &_ast_strdup_56), _ast_strdup_56);
-      if (!out_op->method)
+      if (!out_op->method) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
   } else {
     /* Guess from name? e.g. "api_get_..." */
@@ -1450,19 +1525,25 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
     out_op->operation_id =
         (c_cdd_strdup(ctx->func_name, &_ast_strdup_61), _ast_strdup_61);
   }
-  if (!out_op->operation_id)
+  if (!out_op->operation_id) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (doc && doc->summary) {
     out_op->summary =
         (c_cdd_strdup(doc->summary, &_ast_strdup_62), _ast_strdup_62);
-    if (!out_op->summary)
+    if (!out_op->summary) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (doc && doc->description) {
     out_op->description =
         (c_cdd_strdup(doc->description, &_ast_strdup_63), _ast_strdup_63);
-    if (!out_op->description)
+    if (!out_op->description) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (doc && doc->deprecated_set) {
     out_op->deprecated = doc->deprecated ? 1 : 0;
@@ -1483,8 +1564,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
   if (doc && doc->n_tags > 0) {
     size_t t;
     out_op->tags = (char **)calloc(doc->n_tags, sizeof(char *));
-    if (!out_op->tags)
+    if (!out_op->tags) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     out_op->n_tags = doc->n_tags;
     for (t = 0; t < doc->n_tags; ++t) {
       out_op->tags[t] =
@@ -1499,8 +1582,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
     size_t s;
     out_op->security = (struct OpenAPI_SecurityRequirementSet *)calloc(
         doc->n_security, sizeof(struct OpenAPI_SecurityRequirementSet));
-    if (!out_op->security)
+    if (!out_op->security) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     out_op->n_security = doc->n_security;
     out_op->security_set = 1;
     for (s = 0; s < doc->n_security; ++s) {
@@ -1508,8 +1593,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
       const struct DocSecurityRequirement *src = &doc->security[s];
       set->requirements = (struct OpenAPI_SecurityRequirement *)calloc(
           1, sizeof(struct OpenAPI_SecurityRequirement));
-      if (!set->requirements)
+      if (!set->requirements) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       set->n_requirements = 1;
       set->requirements[0].scheme =
           (c_cdd_strdup(src->scheme ? src->scheme : "", &_ast_strdup_67),
@@ -1539,8 +1626,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
     size_t s;
     out_op->servers = (struct OpenAPI_Server *)calloc(
         doc->n_servers, sizeof(struct OpenAPI_Server));
-    if (!out_op->servers)
+    if (!out_op->servers) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     out_op->n_servers = doc->n_servers;
     for (s = 0; s < doc->n_servers; ++s) {
       const struct DocServer *src = &doc->servers[s];
@@ -1956,8 +2045,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
       out_op->req_body_description =
           (c_cdd_strdup(doc->request_body_description, &_ast_strdup_91),
            _ast_strdup_91);
-      if (!out_op->req_body_description)
+      if (!out_op->req_body_description) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     if (doc->request_body_required_set) {
       out_op->req_body_required_set = 1;
@@ -2031,8 +2122,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
             out_op->responses,
             (out_op->n_responses + 1) * sizeof(struct OpenAPI_Response));
         struct OpenAPI_Response *r;
-        if (!new_resps)
+        if (!new_resps) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
         out_op->responses = new_resps;
         r = &out_op->responses[out_op->n_responses++];
         memset(r, 0, sizeof(*r));
@@ -2041,15 +2134,19 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
         if (doc->returns[i].summary) {
           r->summary = (c_cdd_strdup(doc->returns[i].summary, &_ast_strdup_97),
                         _ast_strdup_97);
-          if (!r->summary)
+          if (!r->summary) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         if (doc->returns[i].description) {
           r->description =
               (c_cdd_strdup(doc->returns[i].description, &_ast_strdup_98),
                _ast_strdup_98);
-          if (!r->description)
+          if (!r->description) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         if (doc->returns[i].content_type) {
           int add_rc = add_response_media_type(r, doc->returns[i].content_type,
@@ -2059,8 +2156,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
           r->content_type =
               (c_cdd_strdup(doc->returns[i].content_type, &_ast_strdup_99),
                _ast_strdup_99);
-          if (!r->content_type)
+          if (!r->content_type) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         if (doc->returns[i].example) {
           int ex_rc = apply_example_to_response(r, doc->returns[i].example,
@@ -2080,8 +2179,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
           (ensure_response_for_code(out_op, doc->response_headers[i].code,
                                     &_ast_ensure_response_for_code_7),
            _ast_ensure_response_for_code_7);
-      if (!resp)
+      if (!resp) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       if (!resp->description) {
         resp->description =
             (c_cdd_strdup((c_cdd_str_iequal(doc->response_headers[i].code,
@@ -2091,8 +2192,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
                               : "Response",
                           &_ast_strdup_100),
              _ast_strdup_100);
-        if (!resp->description)
+        if (!resp->description) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
       }
       if (add_header_to_response(resp, &doc->response_headers[i]) != 0)
         return ENOMEM;
@@ -2105,8 +2208,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
           (ensure_response_for_code(out_op, doc->links[i].code,
                                     &_ast_ensure_response_for_code_8),
            _ast_ensure_response_for_code_8);
-      if (!resp)
+      if (!resp) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       if (!resp->description) {
         resp->description =
             (c_cdd_strdup(
@@ -2116,8 +2221,10 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
                      : "Response",
                  &_ast_strdup_102),
              _ast_strdup_102);
-        if (!resp->description)
+        if (!resp->description) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
       }
       if (add_link_to_response(resp, &doc->links[i]) != 0)
         return ENOMEM;
@@ -2128,18 +2235,24 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
     struct OpenAPI_Response *new_resps = (struct OpenAPI_Response *)realloc(
         out_op->responses, sizeof(struct OpenAPI_Response));
     struct OpenAPI_Response *r;
-    if (!new_resps)
+    if (!new_resps) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     out_op->responses = new_resps;
     r = &out_op->responses[out_op->n_responses++];
     memset(r, 0, sizeof(*r));
     r->code = (c_cdd_strdup("200", &_ast_strdup_104), _ast_strdup_104);
-    if (!r->code)
+    if (!r->code) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     r->description =
         (c_cdd_strdup("Success", &_ast_strdup_105), _ast_strdup_105);
-    if (!r->description)
+    if (!r->description) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
 
   /* 3. Global Tags */

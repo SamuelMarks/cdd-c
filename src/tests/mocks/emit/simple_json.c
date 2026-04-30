@@ -17,6 +17,7 @@
 #include <c89stringutils_string_extras.h>
 
 #include "simple_json.h"
+
 /* clang-format on */
 
 static int quote_or_null(const char *const s, char **s1) {

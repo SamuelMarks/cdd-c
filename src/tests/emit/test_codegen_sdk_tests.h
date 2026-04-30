@@ -95,9 +95,68 @@ TEST test_gen_sdk_test_nulls(void) {
   PASS();
 }
 
+TEST test_gen_sdk_test_exhaustive(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Path path;
+  struct OpenAPI_Operation op = {0};
+  struct OpenAPI_Parameter param[3];
+  struct SdkTestsConfig config;
+  struct OpenAPI_Response responses[2];
+  FILE *tmp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&path, 0, sizeof(path));
+  memset(&op, 0, sizeof(op));
+  memset(param, 0, sizeof(param));
+  memset(responses, 0, sizeof(responses));
+
+  spec.paths = &path;
+  spec.n_paths = 1;
+
+  path.operations = &op;
+  path.n_operations = 1;
+  path.route = "/api/test";
+
+  op.operation_id = "runExhaustive";
+  op.parameters = param;
+  op.n_parameters = 3;
+
+  param[0].name = "count";
+  param[0].type = "integer";
+  param[1].name = "flag";
+  param[1].type = "boolean";
+  param[1].is_array = 1;
+  param[2].name = "str";
+  param[2].type = "string";
+
+  op.req_body.ref_name = "MyRequestBody";
+  op.req_body.is_array = 0;
+
+  op.n_responses = 2;
+  op.responses = responses;
+  responses[0].code = "200";
+  responses[0].schema.ref_name = "MyResponse";
+  responses[1].code = "400";
+  responses[1].schema.ref_name = "MyError";
+
+  config.client_header = "client.h";
+  config.func_prefix = "api_";
+  config.mock_server_url = "http://loopback";
+
+  ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+
+  // Also test array request body
+  op.req_body.is_array = 1;
+  ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
+
+  fclose(tmp);
+  PASS();
+}
+
 SUITE(codegen_sdk_tests_suite) {
   RUN_TEST(test_gen_sdk_test_basic);
   RUN_TEST(test_gen_sdk_test_nulls);
+  RUN_TEST(test_gen_sdk_test_exhaustive);
 }
 
 #ifdef __cplusplus

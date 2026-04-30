@@ -15,6 +15,7 @@
 
 #include "functions/emit/patcher.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup, though we use raw memcpy here mostly */
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -26,8 +27,10 @@ int patch_list_init(struct PatchList *list) {
   list->size = 0;
   list->capacity = 8;
   list->patches = (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
-  if (!list->patches)
+  if (!list->patches) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   return 0;
 }
 
@@ -129,8 +132,10 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
   patch_list_sort(list);
 
   output = (char *)malloc(out_cap);
-  if (!output)
+  if (!output) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   output[0] = '\0';
 
   while (current_token < tokens->size) {

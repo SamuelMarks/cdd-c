@@ -17,6 +17,7 @@
 #include "functions/parse/str.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /** @brief CHECK_IO definition */
@@ -1457,8 +1458,10 @@ static /**
           cap = (cap == 0) ? 8 : cap * 2;
           segs = (struct UrlSegment *)realloc(segs,
                                               cap * sizeof(struct UrlSegment));
-          if (!segs)
+          if (!segs) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         segs[count].is_var = 0;
         segs[count].text = malloc(len + 1);
@@ -1484,8 +1487,10 @@ static /**
             cap = (cap == 0) ? 8 : cap * 2;
             segs = (struct UrlSegment *)realloc(
                 segs, cap * sizeof(struct UrlSegment));
-            if (!segs)
+            if (!segs) {
+              LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
               return ENOMEM;
+            }
           }
           segs[count].is_var = 1;
           segs[count].text = malloc(len + 1);
@@ -1508,8 +1513,10 @@ static /**
       cap = (cap == 0) ? 8 : cap * 2;
       segs =
           (struct UrlSegment *)realloc(segs, cap * sizeof(struct UrlSegment));
-      if (!segs)
+      if (!segs) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     segs[count].is_var = 0;
     segs[count].text = malloc(len + 1);

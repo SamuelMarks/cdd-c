@@ -14,6 +14,7 @@
 
 #include "docstrings/parse/doc.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helpers --- */
@@ -147,8 +148,10 @@ static /**
   if (!out || !tag || !*tag)
     return 0;
   new_tags = (char **)realloc(out->tags, (out->n_tags + 1) * sizeof(char *));
-  if (!new_tags)
+  if (!new_tags) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->tags = new_tags;
   out->tags[out->n_tags] = (c_cdd_strdup(tag, &_ast_strdup_0), _ast_strdup_0);
   if (!out->tags[out->n_tags])
@@ -167,8 +170,10 @@ static /**
     return 0;
   new_meta = (struct DocTagMeta *)realloc(
       out->tag_meta, (out->n_tag_meta + 1) * sizeof(struct DocTagMeta));
-  if (!new_meta)
+  if (!new_meta) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->tag_meta = new_meta;
   out->tag_meta[out->n_tag_meta] = *meta;
   out->n_tag_meta++;
@@ -754,8 +759,10 @@ static /**
   new_headers = (struct DocResponseHeader *)realloc(
       out->response_headers,
       (out->n_response_headers + 1) * sizeof(struct DocResponseHeader));
-  if (!new_headers)
+  if (!new_headers) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->response_headers = new_headers;
   h = &out->response_headers[out->n_response_headers];
   memset(h, 0, sizeof(*h));
@@ -880,8 +887,10 @@ static /**
 
   new_links =
       (struct DocLink *)realloc(out->links, (out->n_links + 1) * sizeof(*link));
-  if (!new_links)
+  if (!new_links) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->links = new_links;
   link = &out->links[out->n_links];
   memset(link, 0, sizeof(*link));
@@ -1306,8 +1315,10 @@ static /**
   /* Realloc array */
   new_params = (struct DocParam *)realloc(
       out->params, (out->n_params + 1) * sizeof(struct DocParam));
-  if (!new_params)
+  if (!new_params) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->params = new_params;
   p = &out->params[out->n_params];
   memset(p, 0, sizeof(*p));
@@ -1417,8 +1428,10 @@ static /**
 
   new_resps = (struct DocResponse *)realloc(
       out->returns, (out->n_returns + 1) * sizeof(struct DocResponse));
-  if (!new_resps)
+  if (!new_resps) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->returns = new_resps;
   r = &out->returns[out->n_returns];
   memset(r, 0, sizeof(*r));
@@ -1511,8 +1524,10 @@ static /**
     return 0;
 
   buf = (c_cdd_strdup(input, &_ast_strdup_34), _ast_strdup_34);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
 #ifdef _WIN32
   token = strtok_s(buf, ", \t", &saveptr);
@@ -1811,8 +1826,10 @@ static /**
   new_schemes = (struct DocSecurityScheme *)realloc(
       out->security_schemes,
       (out->n_security_schemes + 1) * sizeof(struct DocSecurityScheme));
-  if (!new_schemes)
+  if (!new_schemes) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->security_schemes = new_schemes;
   scheme = &out->security_schemes[out->n_security_schemes];
   memset(scheme, 0, sizeof(*scheme));
@@ -2165,8 +2182,10 @@ static /**
     return 0;
 
   buf = (c_cdd_strdup(input, &_ast_strdup_49), _ast_strdup_49);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   for (i = 0; buf[i]; ++i) {
     if (buf[i] == '|')
       buf[i] = ',';
@@ -2334,8 +2353,10 @@ static /**
 
   new_arr = (struct DocEncoding *)realloc(
       out->encodings, (out->n_encodings + 1) * sizeof(struct DocEncoding));
-  if (!new_arr)
+  if (!new_arr) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   out->encodings = new_arr;
   entry = &out->encodings[out->n_encodings];
   memset(entry, 0, sizeof(*entry));
@@ -2353,8 +2374,10 @@ static /**
     if (name_end > cur) {
       entry->name = (extract_rest(cur, name_end, &_ast_extract_rest_101),
                      _ast_extract_rest_101);
-      if (!entry->name)
+      if (!entry->name) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
     cur = name_end;
     cur = (skip_ws(cur, &_ast_skip_ws_102), _ast_skip_ws_102);
@@ -2523,16 +2546,20 @@ static /**
       free(out->request_body_content_type);
     out->request_body_content_type =
         (c_cdd_strdup(entry->content_type, &_ast_strdup_56), _ast_strdup_56);
-    if (!out->request_body_content_type)
+    if (!out->request_body_content_type) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   if (entry->description) {
     if (out->request_body_description)
       free(out->request_body_description);
     out->request_body_description =
         (c_cdd_strdup(entry->description, &_ast_strdup_57), _ast_strdup_57);
-    if (!out->request_body_description)
+    if (!out->request_body_description) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
   }
   return 0;
 }

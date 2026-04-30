@@ -14,6 +14,7 @@
 
 #include "functions/parse/str.h" /* For c_cdd_strdup helpers */
 #include "routes/parse/url.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Standard definitions for C89 compatibility */
@@ -405,8 +406,10 @@ int url_query_add(struct UrlQueryParams *qp, const char *key,
     size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;
     struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     qp->params = new_arr;
     qp->capacity = new_cap;
   }
@@ -442,8 +445,10 @@ int url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
     size_t new_cap = (qp->capacity == 0) ? 4 : qp->capacity * 2;
     struct UrlQueryParam *new_arr = (struct UrlQueryParam *)realloc(
         qp->params, new_cap * sizeof(struct UrlQueryParam));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     qp->params = new_arr;
     qp->capacity = new_cap;
   }
@@ -528,8 +533,10 @@ int url_query_build(const struct UrlQueryParams *qp, char **out_str) {
 
   /* 2. Allocate */
   buf = (char *)malloc(total_len + 1);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   /* 3. Build */
   ptr = buf;
@@ -609,8 +616,10 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
                    _ast_url_encode_form_14);
     char *e_val;
     size_t kl, vl;
-    if (!e_key)
+    if (!e_key) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (qp->params[i].value_is_encoded) {
       e_val =
           (c_cdd_strdup(qp->params[i].value, &_ast_strdup_7), _ast_strdup_7);
@@ -632,8 +641,10 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
   }
 
   buf = (char *)malloc(total_len + 1);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   ptr = buf;
 
   for (i = 0; i < qp->count; ++i) {
@@ -693,8 +704,10 @@ static /**
     while (new_cap < need)
       new_cap *= 2;
     tmp = (char *)realloc(*buf, new_cap);
-    if (!tmp)
+    if (!tmp) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     *buf = tmp;
     *cap = new_cap;
   }

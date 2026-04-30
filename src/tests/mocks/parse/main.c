@@ -43,7 +43,7 @@ int main(void) {
   free(haz_e_json);
 
   assert(HazE_from_json(haz_e_mock0, &haz_e0) == 0);
-  assert(HazE_eq(haz_e0, &haz_e));
+  assert(HazE_eq(haz_e0, &haz_e) == 0);
   free(haz_e0);
 
   assert(FooE_to_json(&foo_e, &foo_e_json) == 0);
@@ -51,7 +51,7 @@ int main(void) {
   free(foo_e_json);
 
   assert(FooE_from_json(foo_e_mock0, &foo_e0) == 0);
-  assert(FooE_eq(foo_e0, &foo_e));
+  assert(FooE_eq(foo_e0, &foo_e) == 0);
   free(foo_e0);
 
   return EXIT_SUCCESS;
