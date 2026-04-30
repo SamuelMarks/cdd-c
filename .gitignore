@@ -394,3 +394,5 @@ mock_*.h
 
 # Other common artifacts
 .gemini/
+*mock.h
+alloc_mock.h
