@@ -21,7 +21,7 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
           struct_name);
   fprintf(fp, "  size_t len = 0, idx = 0, out_idx = 0;\n");
   fprintf(fp, "  char *res;\n");
-  fprintf(fp, "  if (!str || !out) return 1;\n");
+  fprintf(fp, "  if (!str || !out) return ENOMEM;\n");
   fprintf(fp, "  for (idx = 0; str[idx]; ++idx) {\n");
   fprintf(fp, "    unsigned char c = (unsigned char)str[idx];\n");
   fprintf(fp, "    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||\n");
@@ -35,7 +35,7 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   fprintf(fp, "    }\n");
   fprintf(fp, "  }\n");
   fprintf(fp, "  res = (char *)malloc(len + 1);\n");
-  fprintf(fp, "  if (!res) return 1;\n");
+  fprintf(fp, "  if (!res) return ENOMEM;\n");
   fprintf(fp, "  for (idx = 0; str[idx]; ++idx) {\n");
   fprintf(fp, "    unsigned char c = (unsigned char)str[idx];\n");
   fprintf(fp, "    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||\n");
@@ -66,9 +66,9 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
   fprintf(fp, "  char *res = NULL;\n");
   fprintf(fp, "  size_t capacity = 128, length = 0;\n");
   fprintf(fp, "  int is_first = 1;\n");
-  fprintf(fp, "  if (!obj || !out) return 1;\n");
+  fprintf(fp, "  if (!obj || !out) return ENOMEM;\n");
   fprintf(fp, "  res = (char *)malloc(capacity);\n");
-  fprintf(fp, "  if (!res) return 1;\n");
+  fprintf(fp, "  if (!res) return ENOMEM;\n");
   fprintf(fp, "  res[0] = '\\0';\n\n");
 
   fprintf(fp, "  /* Helper logic to append strings with dynamic resizing */\n");
@@ -85,8 +85,9 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "        char *tmp;\n");
       fprintf(fp, "        capacity = (length + slen + 1) * 2;\n");
       fprintf(fp, "        tmp = (char *)realloc(res, capacity);\n");
-      fprintf(fp,
-              "        if (!tmp) { free(res); free(encoded); return 1; }\n");
+      fprintf(
+          fp,
+          "        if (!tmp) { free(res); free(encoded); return ENOMEM; }\n");
       fprintf(fp, "        res = tmp;\n");
       fprintf(fp, "      }\n");
       fprintf(fp, "      if (!is_first) {\n");
@@ -115,7 +116,7 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "      is_first = 0;\n");
       fprintf(fp, "    } else {\n");
       fprintf(fp, "      free(res);\n");
-      fprintf(fp, "      return 1;\n");
+      fprintf(fp, "      return ENOMEM;\n");
       fprintf(fp, "    }\n");
       fprintf(fp, "  }\n");
     } else if (strcmp(f->type, "integer") == 0) {
@@ -133,7 +134,7 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "      char *tmp;\n");
       fprintf(fp, "      capacity = (length + slen + 1) * 2;\n");
       fprintf(fp, "      tmp = (char *)realloc(res, capacity);\n");
-      fprintf(fp, "      if (!tmp) { free(res); return 1; }\n");
+      fprintf(fp, "      if (!tmp) { free(res); return ENOMEM; }\n");
       fprintf(fp, "      res = tmp;\n");
       fprintf(fp, "    }\n");
       fprintf(fp, "      if (!is_first) {\n");
@@ -158,7 +159,7 @@ int write_struct_to_form_urlencoded_func(FILE *fp, const char *struct_name,
       fprintf(fp, "      char *tmp;\n");
       fprintf(fp, "      capacity = (length + slen + 1) * 2;\n");
       fprintf(fp, "      tmp = (char *)realloc(res, capacity);\n");
-      fprintf(fp, "      if (!tmp) { free(res); return 1; }\n");
+      fprintf(fp, "      if (!tmp) { free(res); return ENOMEM; }\n");
       fprintf(fp, "      res = tmp;\n");
       fprintf(fp, "    }\n");
       fprintf(fp, "      if (!is_first) {\n");

@@ -28,6 +28,7 @@
 #endif
 #else
 #include <errno.h>
+#include "c_cdd/log.h"
 #endif
 /* clang-format on */
 
@@ -107,8 +108,10 @@ static /**
   }
 
   buf = (char *)malloc(len + 1);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   p = buf;
   for (i = start; i < end; ++i) {

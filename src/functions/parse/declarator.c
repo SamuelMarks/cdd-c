@@ -21,6 +21,7 @@
 
 #include "functions/parse/declarator.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 #ifndef SIZE_MAX
@@ -462,8 +463,10 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
     out_info->identifier = (join_tokens_range(tokens, pivot, pivot + 1,
                                               &_ast_join_tokens_range_15),
                             _ast_join_tokens_range_15);
-    if (!out_info->identifier)
+    if (!out_info->identifier) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     left = (skip_ws_back(tokens, pivot, start, &_ast_skip_ws_back_16),
             _ast_skip_ws_back_16);
     right =

@@ -19,6 +19,7 @@
 #include "classes/parse/code2schema.h"
 #include "functions/parse/str.h"
 #include "openapi/emit/openapi.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Helper Prototypes --- */
@@ -998,8 +999,10 @@ static /**
     return 0;
 
   examples_val = json_value_init_object();
-  if (!examples_val)
+  if (!examples_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   examples_obj = json_value_get_object(examples_val);
 
   for (i = 0; i < n_examples; ++i) {
@@ -1981,8 +1984,10 @@ static /**
   if (enc->item_encoding && enc->item_encoding_set) {
     JSON_Value *item_val = json_value_init_object();
     JSON_Object *item_obj = json_value_get_object(item_val);
-    if (!item_val)
+    if (!item_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (write_encoding_object(item_obj, enc->item_encoding) != 0) {
       json_value_free(item_val);
       return ENOMEM;
@@ -2011,8 +2016,10 @@ static /**
     return 0;
 
   enc_val = json_value_init_object();
-  if (!enc_val)
+  if (!enc_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   enc_obj = json_value_get_object(enc_val);
 
   for (i = 0; i < n_encoding; ++i) {
@@ -2021,8 +2028,10 @@ static /**
     JSON_Object *e_obj = json_value_get_object(e_val);
     const char *name = enc->name ? enc->name : "encoding";
 
-    if (!e_val)
+    if (!e_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (write_encoding_object(e_obj, enc) != 0) {
       json_value_free(e_val);
       return ENOMEM;
@@ -2049,15 +2058,19 @@ static /**
     return 0;
 
   arr_val = json_value_init_array();
-  if (!arr_val)
+  if (!arr_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   arr = json_value_get_array(arr_val);
 
   for (i = 0; i < n_encoding; ++i) {
     JSON_Value *e_val = json_value_init_object();
     JSON_Object *e_obj = json_value_get_object(e_val);
-    if (!e_val)
+    if (!e_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (write_encoding_object(e_obj, &encoding[i]) != 0) {
       json_value_free(e_val);
       return ENOMEM;
@@ -2101,8 +2114,10 @@ static /**
   if (mt->item_encoding && mt->item_encoding_set) {
     JSON_Value *item_val = json_value_init_object();
     JSON_Object *item_obj = json_value_get_object(item_val);
-    if (!item_val)
+    if (!item_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     if (write_encoding_object(item_obj, mt->item_encoding) != 0) {
       json_value_free(item_val);
       return ENOMEM;
@@ -2128,8 +2143,10 @@ static /**
     return 0;
 
   content_val = json_value_init_object();
-  if (!content_val)
+  if (!content_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   content_obj = json_value_get_object(content_val);
 
   for (i = 0; i < n_mts; ++i) {
@@ -2229,8 +2246,10 @@ static /**
     return 0;
 
   headers_val = json_value_init_object();
-  if (!headers_val)
+  if (!headers_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   headers_obj = json_value_get_object(headers_val);
 
   for (i = 0; i < n_headers; ++i) {
@@ -2280,8 +2299,10 @@ static /**
     return 0;
 
   links_val = json_value_init_object();
-  if (!links_val)
+  if (!links_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   links_obj = json_value_get_object(links_val);
 
   for (i = 0; i < resp->n_links; ++i) {
@@ -2379,8 +2400,10 @@ static /**
     return 0;
 
   arr_val = json_value_init_array();
-  if (arr_val == NULL)
+  if (arr_val == NULL) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   arr = json_value_get_array(arr_val);
 
   for (i = 0; i < n_params; ++i) {
@@ -2425,8 +2448,10 @@ static /**
       return ENOMEM;
   } else if (rb->content_ref) {
     content_val = json_value_init_object();
-    if (!content_val)
+    if (!content_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     content_obj = json_value_get_object(content_val);
 
     media_val = json_value_init_object();
@@ -2444,8 +2469,10 @@ static /**
     json_object_set_value(rb_obj, "content", content_val);
   } else {
     content_val = json_value_init_object();
-    if (!content_val)
+    if (!content_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     content_obj = json_value_get_object(content_val);
 
     media_val = json_value_init_object();
@@ -2493,8 +2520,10 @@ static /**
 
   if (op->req_body_ref) {
     rb_val = json_value_init_object();
-    if (!rb_val)
+    if (!rb_val) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     rb_obj = json_value_get_object(rb_val);
     json_object_set_string(rb_obj, "$ref", op->req_body_ref);
     if (op->req_body_description)
@@ -2512,8 +2541,10 @@ static /**
   }
 
   rb_val = json_value_init_object();
-  if (!rb_val)
+  if (!rb_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   rb_obj = json_value_get_object(rb_val);
 
   {
@@ -2590,8 +2621,10 @@ static /**
     return 0;
 
   cbs_val = json_value_init_object();
-  if (!cbs_val)
+  if (!cbs_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   cbs_obj = json_value_get_object(cbs_val);
 
   for (i = 0; i < op->n_callbacks; ++i) {
@@ -2758,8 +2791,10 @@ static /**
     return 0;
 
   add_val = json_value_init_object();
-  if (!add_val)
+  if (!add_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   add_obj = json_value_get_object(add_val);
 
   for (i = 0; i < path->n_additional_operations; ++i) {
@@ -2900,8 +2935,10 @@ static /**
     return 0;
 
   arr_val = json_value_init_array();
-  if (!arr_val)
+  if (!arr_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   arr = json_value_get_array(arr_val);
 
   for (i = 0; i < n_servers; ++i) {
@@ -2936,8 +2973,10 @@ static /**
     return 0;
 
   arr_val = json_value_init_array();
-  if (!arr_val)
+  if (!arr_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   arr = json_value_get_array(arr_val);
 
   for (i = 0; i < spec->n_tags; ++i) {
@@ -2984,8 +3023,10 @@ static /**
     return 0;
 
   hooks_val = json_value_init_object();
-  if (!hooks_val)
+  if (!hooks_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   hooks_obj = json_value_get_object(hooks_val);
 
   if (spec->webhooks_extensions_json) {
@@ -3029,8 +3070,10 @@ static /**
     return 0;
 
   arr_val = json_value_init_array();
-  if (!arr_val)
+  if (!arr_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   arr = json_value_get_array(arr_val);
 
   if (count == 0) {
@@ -3097,8 +3140,10 @@ static /**
     return 0;
 
   sec_val = json_value_init_object();
-  if (!sec_val)
+  if (!sec_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   sec_obj = json_value_get_object(sec_val);
 
   for (i = 0; i < spec->n_security_schemes; ++i) {
@@ -3233,8 +3278,10 @@ static /**
     return 0;
 
   params_val = json_value_init_object();
-  if (!params_val)
+  if (!params_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   params_obj = json_value_get_object(params_val);
 
   for (i = 0; i < spec->n_component_parameters; ++i) {
@@ -3268,8 +3315,10 @@ static /**
     return 0;
 
   resp_val = json_value_init_object();
-  if (!resp_val)
+  if (!resp_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   resp_obj = json_value_get_object(resp_val);
 
   for (i = 0; i < spec->n_component_responses; ++i) {
@@ -3303,8 +3352,10 @@ static /**
     return 0;
 
   hdrs_val = json_value_init_object();
-  if (!hdrs_val)
+  if (!hdrs_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   hdrs_obj = json_value_get_object(hdrs_val);
 
   for (i = 0; i < spec->n_component_headers; ++i) {
@@ -3338,8 +3389,10 @@ static /**
     return 0;
 
   media_val = json_value_init_object();
-  if (!media_val)
+  if (!media_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   media_obj = json_value_get_object(media_val);
 
   for (i = 0; i < spec->n_component_media_types; ++i) {
@@ -3378,8 +3431,10 @@ static /**
     return 0;
 
   examples_val = json_value_init_object();
-  if (!examples_val)
+  if (!examples_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   examples_obj = json_value_get_object(examples_val);
 
   for (i = 0; i < spec->n_component_examples; ++i) {
@@ -3413,8 +3468,10 @@ static /**
     return 0;
 
   links_val = json_value_init_object();
-  if (!links_val)
+  if (!links_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   links_obj = json_value_get_object(links_val);
 
   for (i = 0; i < spec->n_component_links; ++i) {
@@ -3445,8 +3502,10 @@ static /**
     return 0;
 
   cbs_val = json_value_init_object();
-  if (!cbs_val)
+  if (!cbs_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   cbs_obj = json_value_get_object(cbs_val);
 
   for (i = 0; i < spec->n_component_callbacks; ++i) {
@@ -3478,8 +3537,10 @@ static /**
     return 0;
 
   paths_val = json_value_init_object();
-  if (!paths_val)
+  if (!paths_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   paths_obj = json_value_get_object(paths_val);
 
   for (i = 0; i < spec->n_component_path_items; ++i) {
@@ -3523,8 +3584,10 @@ static /**
     return 0;
 
   rbs_val = json_value_init_object();
-  if (!rbs_val)
+  if (!rbs_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   rbs_obj = json_value_get_object(rbs_val);
 
   for (i = 0; i < spec->n_component_request_bodies; ++i) {
@@ -3573,8 +3636,10 @@ static /**
   }
 
   comps_val = json_value_init_object();
-  if (!comps_val)
+  if (!comps_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   comps_obj = json_value_get_object(comps_val);
 
   if (spec->components_extensions_json)
@@ -3715,8 +3780,10 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
     return EINVAL;
 
   root_val = json_value_init_object();
-  if (!root_val)
+  if (!root_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   root_obj = json_value_get_object(root_val);
 
   json_object_set_string(root_obj, "openapi",

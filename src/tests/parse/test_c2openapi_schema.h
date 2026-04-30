@@ -186,12 +186,59 @@ TEST test_register_enum_schema(void) {
   PASS();
 }
 
+TEST test_register_type_union_copy(void) {
+  struct OpenAPI_Spec spec;
+  struct TypeDefList types;
+  char *header_file = "test_reg_union.h";
+  int rc;
+  char *types_arr[] = {"string", "integer"};
+
+  openapi_spec_init(&spec);
+  type_def_list_init(&types);
+
+  // Instead of scanning a file, we manually construct a TypeDefList
+  types.items = calloc(1, sizeof(struct TypeDefinition));
+  types.size = 1;
+  types.capacity = 1;
+  types.items[0].name = "TestUnion";
+  types.items[0].kind = KIND_STRUCT;
+  types.items[0].details.struct_fields = calloc(1, sizeof(struct StructFields));
+
+  struct StructFields *sf = types.items[0].details.struct_fields;
+  struct_fields_init(sf);
+  struct_fields_add(sf, "prop1", "union", NULL, NULL, NULL);
+
+  sf->fields[0].type_union = types_arr;
+  sf->fields[0].n_type_union = 2;
+  sf->fields[0].items_type_union = types_arr;
+  sf->fields[0].n_items_type_union = 2;
+
+  rc = c2openapi_register_types(&spec, &types);
+  ASSERT_EQ(0, rc);
+
+  ASSERT_EQ(1, spec.n_defined_schemas);
+  ASSERT_STR_EQ("TestUnion", spec.defined_schema_names[0]);
+  ASSERT_EQ(2, spec.defined_schemas[0].fields[0].n_type_union);
+  ASSERT_STR_EQ("string", spec.defined_schemas[0].fields[0].type_union[0]);
+
+  openapi_spec_free(&spec);
+
+  sf->fields[0].type_union = NULL;
+  sf->fields[0].items_type_union = NULL;
+  // struct_fields_free(sf) is handled by type_def_list_free!
+  types.items[0].name = NULL; // prevent free
+  type_def_list_free(&types);
+
+  PASS();
+}
+
 SUITE(c2openapi_schema_suite) {
   RUN_TEST(test_register_single_struct);
   RUN_TEST(test_register_deduplication);
   RUN_TEST(test_register_multiple_structs);
   RUN_TEST(test_register_null_safety);
   RUN_TEST(test_register_enum_schema);
+  RUN_TEST(test_register_type_union_copy);
 }
 
 #ifdef __cplusplus

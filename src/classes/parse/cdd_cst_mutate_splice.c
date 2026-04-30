@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
@@ -17,9 +18,11 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   if (!tree || !node)
     return EINVAL;
 
-  new_node = cdd_cst_alloc_node(node->kind);
-  if (!new_node)
+  cdd_cst_alloc_node(node->kind, &new_node);
+  if (!new_node) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   for (i = 0; i < start_idx; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -51,24 +54,30 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   return rc;
 }
 
-cdd_cst_node_t *cdd_cst_find_node_for_token(cdd_cst_node_t *root,
-                                            cdd_token_t *tok, size_t *out_idx) {
+int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
+                                size_t *out_idx, cdd_cst_node_t **out_node) {
   size_t i;
-  int rc;
+  if (!out_node)
+    return EINVAL;
+  *out_node = NULL;
   if (!root || !tok || !out_idx)
-    return NULL;
+    return EINVAL;
 
   for (i = 0; i < root->num_children; i++) {
     if (root->children[i].kind == CDD_CST_CHILD_TOKEN &&
         root->children[i].val.token == tok) {
       *out_idx = i;
-      return root;
+      *out_node = root;
+      return 0;
     } else if (root->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_cst_node_t *found =
-          cdd_cst_find_node_for_token(root->children[i].val.node, tok, out_idx);
-      if (found)
-        return found;
+      cdd_cst_node_t *found = NULL;
+      if (cdd_cst_find_node_for_token(root->children[i].val.node, tok, out_idx,
+                                      &found) == 0 &&
+          found) {
+        *out_node = found;
+        return 0;
+      }
     }
   }
-  return NULL;
+  return ENOENT;
 }

@@ -101,9 +101,64 @@ TEST test_sql_to_c_source_emit(void) {
   PASS();
 }
 
+TEST test_sql_to_c_errors(void) {
+  ASSERT_EQ(EINVAL, sql_to_c_header_emit(NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_source_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_struct_emit(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_free_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_meta_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_hydrate_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_dehydrate_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_nested_struct_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL,
+            sql_to_c_projection_nested_array_emit(NULL, NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_dirty_bitmask_emit(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, sql_to_c_projection_union_struct_emit(NULL, NULL, 0, NULL));
+  ASSERT_EQ(EINVAL,
+            sql_to_c_projection_polymorphic_struct_emit(NULL, NULL, NULL));
+  PASS();
+}
+
+TEST test_sql_to_c_projections(void) {
+  FILE *fp = tmpfile();
+  cdd_c_query_projection_t proj;
+  unsigned long long out_hash;
+  memset(&proj, 0, sizeof(proj));
+
+  proj.n_fields = 2;
+  proj.fields = calloc(2, sizeof(*proj.fields));
+  proj.fields[0].name = "id";
+  proj.fields[0].type = SQL_TYPE_INT;
+  proj.fields[0].is_array = 0;
+
+  proj.fields[1].name = "tags";
+  proj.fields[1].type = SQL_TYPE_VARCHAR;
+  proj.fields[1].is_array = 1;
+
+  ASSERT_EQ(0,
+            sql_to_c_projection_struct_emit(fp, &proj, "ProjTest", &out_hash));
+  ASSERT_EQ(0, sql_to_c_projection_free_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_meta_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_hydrate_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_dehydrate_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_nested_struct_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_nested_array_emit(fp, &proj, "ProjTest",
+                                                     "ProjTestArray"));
+  ASSERT_EQ(0, sql_to_c_projection_dirty_bitmask_emit(fp, &proj, "ProjTest"));
+  ASSERT_EQ(0, sql_to_c_projection_union_struct_emit(fp, &proj, 1, "ProjTest"));
+  ASSERT_EQ(0,
+            sql_to_c_projection_polymorphic_struct_emit(fp, &proj, "ProjTest"));
+
+  free(proj.fields);
+  fclose(fp);
+  PASS();
+}
+
 SUITE(sql_to_c_suite) {
   RUN_TEST(test_sql_to_c_header_emit);
   RUN_TEST(test_sql_to_c_source_emit);
+  RUN_TEST(test_sql_to_c_errors);
+  RUN_TEST(test_sql_to_c_projections);
 }
 
 #ifdef __cplusplus

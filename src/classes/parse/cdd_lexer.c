@@ -4,17 +4,24 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
-static cdd_trivia_t *alloc_trivia(enum cdd_trivia_kind_t kind,
-                                  const uint8_t *start, size_t length) {
-  cdd_trivia_t *t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
-  if (t) {
-    t->kind = kind;
-    t->start = start;
-    t->length = length;
+static int alloc_trivia(enum cdd_trivia_kind_t kind, const uint8_t *start,
+                        size_t length, cdd_trivia_t **out_trivia) {
+  cdd_trivia_t *t;
+  if (!out_trivia)
+    return EINVAL;
+  t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+  if (!t) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
   }
-  return t;
+  t->kind = kind;
+  t->start = start;
+  t->length = length;
+  *out_trivia = t;
+  return 0;
 }
 
 static void append_trivia(cdd_trivia_t **head, cdd_trivia_t **tail,
@@ -104,8 +111,10 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
     return EINVAL;
 
   list = (cdd_token_list_t *)calloc(1, sizeof(cdd_token_list_t));
-  if (!list)
+  if (!list) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   list->capacity = 64;
   list->tokens = (cdd_token_t *)calloc(list->capacity, sizeof(cdd_token_t));
@@ -131,9 +140,9 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         pos++;
       }
       {
-        cdd_trivia_t *t =
-            alloc_trivia(is_newline ? TRIVIA_NEWLINE : TRIVIA_WHITESPACE,
-                         base + start, pos - start);
+        cdd_trivia_t *t = NULL;
+        alloc_trivia(is_newline ? TRIVIA_NEWLINE : TRIVIA_WHITESPACE,
+                     base + start, pos - start, &t);
         if (!t)
           goto error;
         if (!is_newline && prev_token && !pending_trivia_head) {
@@ -181,9 +190,9 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         }
       }
       {
-        cdd_trivia_t *t =
-            alloc_trivia(is_block ? TRIVIA_BLOCK_COMMENT : TRIVIA_LINE_COMMENT,
-                         base + start, pos - start);
+        cdd_trivia_t *t = NULL;
+        alloc_trivia(is_block ? TRIVIA_BLOCK_COMMENT : TRIVIA_LINE_COMMENT,
+                     base + start, pos - start, &t);
         if (!t)
           goto error;
         append_trivia(&pending_trivia_head, &pending_trivia_tail, t);

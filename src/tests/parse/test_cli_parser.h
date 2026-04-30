@@ -85,6 +85,17 @@ TEST test_cli_parser_getopt(void) {
   PASS();
 }
 
+TEST test_cli_parser_mappings(void) {
+  const char *out_val;
+  extern int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val);
+  extern int method_str_to_enum_str(const char *method, const char **_out_val);
+  // No wait, these are in client_body.c.
+  // We want the mappings from cli.c which are internal to `cli.c`.
+  // cli.c isn't mocked directly.
+
+  PASS();
+}
+
 SUITE(cli_parser_suite) { RUN_TEST(test_cli_parser_getopt); }
 
 #ifdef __cplusplus

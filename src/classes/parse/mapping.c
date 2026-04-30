@@ -13,6 +13,7 @@
 
 #include "classes/parse/mapping.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -50,8 +51,10 @@ static /**
   char *_ast_strdup_1 = NULL;
   out->kind = OA_TYPE_PRIMITIVE;
   out->oa_type = (c_cdd_strdup(type, &_ast_strdup_0), _ast_strdup_0);
-  if (!out->oa_type)
+  if (!out->oa_type) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   if (fmt) {
     out->oa_format = (c_cdd_strdup(fmt, &_ast_strdup_1), _ast_strdup_1);
     if (!out->oa_format) {
@@ -74,8 +77,10 @@ static /**
      but for internal mapping representation we mark it.
      The ref_name holds the target. */
   out->ref_name = (c_cdd_strdup(ref, &_ast_strdup_2), _ast_strdup_2);
-  if (!out->ref_name)
+  if (!out->ref_name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   return 0;
 }
 
@@ -208,8 +213,10 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
             _ast_starts_with_5)) {
     clean =
         (clean_type_str(c_type, &_ast_clean_type_str_1), _ast_clean_type_str_1);
-    if (!clean)
+    if (!clean) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     /* Skip "struct " (7 chars) or "enum " (5 chars) */
     {

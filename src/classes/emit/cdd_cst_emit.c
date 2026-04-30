@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /** @brief Struct definition */
@@ -28,8 +29,10 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
       new_cap *= 2;
     }
     new_buf = (char *)realloc(ctx->buf, new_cap);
-    if (!new_buf)
+    if (!new_buf) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     ctx->buf = new_buf;
     ctx->capacity = new_cap;
   }

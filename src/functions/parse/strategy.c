@@ -13,6 +13,7 @@
 
 #include "functions/parse/str.h" /* For string duplication utilities if specific needed */
 #include "functions/parse/strategy.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Common constants */
@@ -174,12 +175,14 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     call_expr =
         (range_to_string(tokens, call_idx, semi_idx, &_ast_range_to_string_2),
          _ast_range_to_string_2);
-    if (!call_expr)
+    if (!call_expr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     /* Build safe block */
-    /* { void *_safe_tmp = call_expr; if (!_safe_tmp) return ENOMEM; var =
-     * _safe_tmp; } */
+    /* { void *_safe_tmp = call_expr; if (!_safe_tmp) { LOG_DEBUG("ENOMEM: OOM
+     * in %s\n", __func__); return ENOMEM; } var = _safe_tmp; } */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     /* Use explicit size calc + sprintf_s or malloc+sprintf in C89 portable
@@ -279,8 +282,10 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
       /* " if (!var) { return ENOMEM; }" */
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
-      if (!injection)
+      if (!injection) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (!%s) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);
@@ -292,8 +297,10 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
     } else if (site->spec->check_style == CHECK_INT_NEGATIVE) {
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
-      if (!injection)
+      if (!injection) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (%s < 0) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);
@@ -305,8 +312,10 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
     } else if (site->spec->check_style == CHECK_INT_NONZERO) {
       size_t len = strlen(site->var_name) + 40;
       injection = (char *)malloc(len);
-      if (!injection)
+      if (!injection) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
       sprintf_s(injection, len, " if (%s != 0) { return %s; }", site->var_name,
                 DEFAULT_ERROR_CODE);

@@ -32,7 +32,9 @@ typedef enum CddCMappingKind {
  * @brief Represents mapping metadata for a projection.
  */
 typedef struct CddCMappingMetadata {
+  /** @brief target_name field */
   char *target_name;
+  /** @brief kind field */
   cdd_c_mapping_kind_t kind;
 } cdd_c_mapping_metadata_t;
 
@@ -52,8 +54,11 @@ typedef struct CddCQueryProjectionField {
 /**
  * @brief Represents a complete SQL SELECT projection output.
  */
+/** @brief fields field */
 typedef struct CddCQueryProjection {
+  /** @brief capacity field */
   cdd_c_query_projection_field_t *fields;
+  /** @brief capacity field */
   size_t n_fields;
   size_t capacity;
   char *source_table;                    /**< Primary FROM table */

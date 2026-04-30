@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "functions/emit/safe_crt.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -52,8 +53,10 @@ static /**
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
     struct SafeCrtPatch *new_arr =
         realloc(list->patches, new_cap * sizeof(struct SafeCrtPatch));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->patches = new_arr;
     list->capacity = new_cap;
   }
@@ -68,8 +71,10 @@ static /**
   p->replacement_text = strdup(text);
 #endif
 
-  if (!p->replacement_text)
+  if (!p->replacement_text) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   return 0;
 }
 

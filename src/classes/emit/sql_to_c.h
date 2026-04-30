@@ -23,7 +23,7 @@ extern "C" {
  * @brief Map a SQL data type to a C type string.
  *
  * @param type The SQL data type.
- * @param is_nullable Whether the field can be NULL (if 1, returns a pointer
+ * @param _out_val Whether the field can be NULL (if 1, returns a pointer
  * type for certain types if needed, though usually handled by the caller).
  * @return String representing the C type (e.g., "int32_t", "char*").
  */

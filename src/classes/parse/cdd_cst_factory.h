@@ -13,7 +13,8 @@ extern "C" {
  * @param kind The node kind.
  * @return The new node, or NULL on memory error.
  */
-cdd_cst_node_t *cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind);
+int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
+                       cdd_cst_node_t **out_node);
 
 /**
  * @brief Creates a synthetic token. The text must be a static string literal or
@@ -23,8 +24,8 @@ cdd_cst_node_t *cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind);
  * @param text The literal string text.
  * @return The new token, or NULL on error.
  */
-cdd_token_t *cdd_cst_create_token(cdd_cst_tree_t *tree,
-                                  enum cdd_token_kind_t kind, const char *text);
+int cdd_cst_create_token(cdd_cst_tree_t *tree, enum cdd_token_kind_t kind,
+                         const char *text, cdd_token_t **out_token);
 
 /**
  * @brief Creates a synthetic token from a non-null terminated buffer.
@@ -34,9 +35,9 @@ cdd_token_t *cdd_cst_create_token(cdd_cst_tree_t *tree,
  * @param length The text length.
  * @return The new token, or NULL on error.
  */
-cdd_token_t *cdd_cst_create_token_len(cdd_cst_tree_t *tree,
-                                      enum cdd_token_kind_t kind,
-                                      const char *text, size_t length);
+int cdd_cst_create_token_len(cdd_cst_tree_t *tree, enum cdd_token_kind_t kind,
+                             const char *text, size_t length,
+                             cdd_token_t **out_token);
 
 /**
  * @brief Appends a child node to a parent node.
@@ -58,7 +59,7 @@ int cdd_cst_append_child_token(cdd_cst_node_t *parent, cdd_token_t *token);
 }
 #endif /* __cplusplus */
 
-cdd_cst_node_t *cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, const char *fmt,
-                                     ...);
+int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
+                         const char *fmt, ...);
 void cdd_cst_free_node_only(cdd_cst_node_t *node);
 #endif /* CDD_CST_FACTORY_H */

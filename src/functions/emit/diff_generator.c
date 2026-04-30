@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "functions/emit/diff_generator.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Simplified diff engine. In a real scenario we'd do a line-by-line diff.
@@ -29,8 +30,10 @@ int patch_list_generate_diff(const struct TokenList *tokens,
     return EINVAL;
 
   diff_buf = malloc(diff_cap);
-  if (!diff_buf)
+  if (!diff_buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   diff_buf[0] = '\0';
 
@@ -69,8 +72,10 @@ int patch_list_generate_diff(const struct TokenList *tokens,
         if (diff_len + tokens->tokens[j].length + 10 > diff_cap) {
           diff_cap *= 2;
           diff_buf = realloc(diff_buf, diff_cap);
-          if (!diff_buf)
+          if (!diff_buf) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         memcpy(diff_buf + diff_len, tokens->tokens[j].start,
                tokens->tokens[j].length);
@@ -84,8 +89,10 @@ int patch_list_generate_diff(const struct TokenList *tokens,
     if (diff_len + strlen(p->text) + 10 > diff_cap) {
       diff_cap = diff_cap * 2 + strlen(p->text);
       diff_buf = realloc(diff_buf, diff_cap);
-      if (!diff_buf)
+      if (!diff_buf) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__

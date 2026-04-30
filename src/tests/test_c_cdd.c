@@ -50,6 +50,7 @@
 #include "emit/test_schema2tests.h"
 #include "emit/test_schema_codegen.h"
 #include "emit/test_sql_to_c.h"
+#include "parse/test_sql.h"
 #include "emit/test_c_to_sql.h"
 #include "emit/test_sync_code.h"
 #include "emit/test_text_patcher.h"
@@ -97,6 +98,7 @@
 /* New Suites */
 #include "emit/test_aggregator.h"
 #include "emit/test_cli_gen.h"
+#include "emit/test_client_gui_gen.h"
 #include "emit/test_openapi_writer.h"
 #include "emit/test_server_gen.h"
 #include "emit/test_server_json_rpc.h"
@@ -108,10 +110,22 @@
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
 #include "parse/test_migration.h"
+#include "parse/test_cli_cst.h"
+#include "parse/test_cdd_cst_builder.h"
 #include "c_cdd/test_int128.h"
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
+
+TEST test_cdd_helpers(void) {
+  cdd_precondition_failed();
+  ASSERT_EQ(EXIT_FAILURE, write_to_file(NULL, NULL));
+  ASSERT_EQ(EXIT_FAILURE,
+            write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
+  PASS();
+}
+
+SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
 
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
@@ -175,6 +189,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(schema2tests_suite);
   RUN_SUITE(schema_codegen_suite);
   RUN_SUITE(sql_to_c_suite);
+  RUN_SUITE(sql_suite);
   RUN_SUITE(test_c_to_sql_suite);
   RUN_SUITE(schema_constraints_suite);
   RUN_SUITE(schema_enum_required_suite);
@@ -197,9 +212,13 @@ int main(int argc, char **argv) {
   RUN_SUITE(to_docs_json_suite);
   RUN_SUITE(main_suite);
   RUN_SUITE(cli_gen_suite);
+  RUN_SUITE(cdd_helpers_suite);
+  RUN_SUITE(client_gui_gen_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(server_json_rpc_suite);
   RUN_SUITE(migration_suite);
+  RUN_SUITE(cli_cst_suite);
+  RUN_SUITE(cdd_cst_builder_suite);
   RUN_SUITE(c_cdd_int128_suite);
 
   GREATEST_MAIN_END();

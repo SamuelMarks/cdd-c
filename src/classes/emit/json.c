@@ -20,6 +20,7 @@
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "functions/parse/str.h" /* for string helpers */
 #include "win_compat_sym.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)

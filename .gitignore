@@ -353,3 +353,44 @@ dbg_safe.sh
 /test_strstr
 /debug*.c*
 /debug*/
+
+# Absolute guarantee wildcards for any dynamically generated test sources, scratch scripts, coverage dumps
+*.info
+coverage.info
+doxy_warnings.txt
+missing_lines.txt
+old_typeof.txt
+fix_*.py
+fix_*.sh
+run_*.sh
+run_manual.c
+print_enums.c
+add_*.sh
+codecov_badge_gen.sh
+generated_*.c
+generated_*.h
+fix_sql.c
+more_builtins.c
+builtins.c
+bin_cdd.c
+
+# Project-specific generated directories that shouldn't be tracked
+c2o_test_err_*/
+cdd_project_*/
+fix_rec_test_*/
+audit_edge_*/
+build_s2t_*/
+c2o_base_*/
+c2o_self_*/
+c2o_global_*/
+
+# Temp / mock output files
+*_out.c
+*_out.h
+*.mock.c
+*.mock.h
+mock_*.c
+mock_*.h
+
+# Other common artifacts
+.gemini/

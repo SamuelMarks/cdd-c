@@ -99,8 +99,9 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
 
                   {
                     size_t c_len = strlen(id_buf);
-                    cdd_token_t *t_dummy = cdd_cst_create_token_len(
-                        tree, CDD_TOKEN_IDENTIFIER, id_buf, c_len);
+                    cdd_token_t *t_dummy = NULL;
+                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, id_buf,
+                                             c_len, &t_dummy);
                     if (t_dummy)
                       dup_id = (char *)t_dummy->start;
                   }
@@ -155,8 +156,9 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
 
                   {
                     size_t c_len = strlen(id_buf);
-                    cdd_token_t *t_dummy = cdd_cst_create_token_len(
-                        tree, CDD_TOKEN_IDENTIFIER, id_buf, c_len);
+                    cdd_token_t *t_dummy = NULL;
+                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, id_buf,
+                                             c_len, &t_dummy);
                     if (t_dummy)
                       dup_id = (char *)t_dummy->start;
                   }
@@ -288,11 +290,12 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
       {
         size_t void_idx;
-        cdd_cst_node_t *void_parent =
-            cdd_cst_find_node_for_token(tree->root, void_tok, &void_idx);
+        cdd_cst_node_t *void_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, void_tok, &void_idx,
+                                    &void_parent);
         if (void_parent) {
-          cdd_token_t *new_void =
-              cdd_cst_create_token(tree, CDD_TOKEN_KEYWORD_INT, "int");
+          cdd_token_t *new_void = NULL;
+          cdd_cst_create_token(tree, CDD_TOKEN_KEYWORD_INT, "int", &new_void);
           if (new_void) {
             new_void->leading_trivia = void_tok->leading_trivia;
             new_void->trailing_trivia = void_tok->trailing_trivia;
@@ -305,8 +308,9 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
       {
         size_t rparen_idx;
-        cdd_cst_node_t *rparen_parent =
-            cdd_cst_find_node_for_token(tree->root, rparen_tok, &rparen_idx);
+        cdd_cst_node_t *rparen_parent = NULL;
+        cdd_cst_find_node_for_token(tree->root, rparen_tok, &rparen_idx,
+                                    &rparen_parent);
         if (rparen_parent) {
           cdd_cst_builder_t bld;
           cdd_cst_node_t *temp =
@@ -467,8 +471,9 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                   stmt->children[semi_idx - 1].val.token == ret_tok) {
                 {
                   size_t ret_idx;
-                  cdd_cst_node_t *ret_parent = cdd_cst_find_node_for_token(
-                      tree->root, ret_tok, &ret_idx);
+                  cdd_cst_node_t *ret_parent = NULL;
+                  cdd_cst_find_node_for_token(tree->root, ret_tok, &ret_idx,
+                                              &ret_parent);
                   if (ret_parent) {
                     cdd_cst_builder_t bld;
                     cdd_cst_node_t *temp =

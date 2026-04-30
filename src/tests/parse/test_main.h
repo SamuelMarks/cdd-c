@@ -66,12 +66,41 @@ TEST test_main_subcommands(void) {
   PASS();
 }
 
+TEST test_main_from_openapi_cli_options(void) {
+  char *argv_cli[] = {"cdd-c", "from_openapi", "to_sdk_cli", "-i", "spec.json"};
+  char *argv_server[] = {"cdd-c", "from_openapi", "to_server", "-i",
+                         "spec.json"};
+  char *argv_help[] = {"cdd-c", "from_openapi", "--help"};
+  char *argv_err[] = {"cdd-c", "from_openapi", "to_sdk", "-o", "out_dir"};
+  char *argv_dir[] = {"cdd-c", "from_openapi", "to_sdk", "--input-dir",
+                      "dir",   "-o",           "out_dir"};
+
+  // Note: we can't test actual execution easily without creating a dummy
+  // spec.json, but we can at least hit the help and error paths.
+  ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help));
+  ASSERT_EQ(EXIT_FAILURE, cdd_main(5, argv_err)); // missing input
+
+  // Create a dummy spec to test the execution
+  FILE *f = fopen("spec.json", "w");
+  fprintf(f, "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"Test\", "
+             "\"version\": \"1.0\"}, \"paths\": {}}");
+  fclose(f);
+
+  ASSERT_EQ(0, cdd_main(5, argv_cli));
+  ASSERT_EQ(0, cdd_main(5, argv_server));
+
+  remove("spec.json");
+
+  PASS();
+}
+
 SUITE(main_suite) {
   RUN_TEST(test_main_no_args);
   RUN_TEST(test_main_help);
   RUN_TEST(test_main_version);
   RUN_TEST(test_main_invalid_command);
   RUN_TEST(test_main_subcommands);
+  RUN_TEST(test_main_from_openapi_cli_options);
 }
 
 #ifdef __cplusplus

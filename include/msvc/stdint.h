@@ -1,3 +1,7 @@
+/**
+ * @file stdint.h
+ * @brief MSVC stdint port.
+ */
 #if defined(_MSC_VER) && _MSC_VER < 1600
 
 #ifdef __cplusplus

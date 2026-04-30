@@ -7,18 +7,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
-cdd_cst_node_t *cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, const char *fmt,
-                                     ...) {
+int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
+                         const char *fmt, ...) {
   char *buf = (char *)malloc(4096);
   va_list args;
   cdd_cst_tree_t *temp_tree = NULL;
   cdd_cst_node_t *result = NULL;
   int rc;
 
-  if (!buf)
-    return NULL;
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
 
   va_start(args, fmt);
   vsnprintf(buf, 4096, fmt, args);
@@ -27,10 +30,11 @@ cdd_cst_node_t *cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, const char *fmt,
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
   if (rc == 0 && temp_tree && temp_tree->root) {
     size_t i, j;
-    result = cdd_cst_alloc_node(CDD_CST_UNKNOWN);
+    cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
     if (!result) {
       cdd_cst_tree_free(temp_tree);
-      return NULL;
+      *out_node = NULL;
+      return ENOENT;
     }
 
     for (i = 0; i < temp_tree->root->num_children; i++) {
@@ -60,5 +64,6 @@ cdd_cst_node_t *cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, const char *fmt,
   if (temp_tree) {
     cdd_cst_tree_free(temp_tree);
   }
-  return result;
+  *out_node = result;
+  return 0;
 }

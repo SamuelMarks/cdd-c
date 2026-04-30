@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "functions/parse/cst.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -88,8 +89,10 @@ int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
     const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
     new_arr = (struct CstNode *)realloc(list->nodes,
                                         new_cap * sizeof(struct CstNode));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->nodes = new_arr;
     list->capacity = new_cap;
   }

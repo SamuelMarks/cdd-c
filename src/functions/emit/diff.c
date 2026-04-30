@@ -15,18 +15,29 @@
 #include "functions/emit/diff.h"
 /* clang-format on */
 
+/** @brief DiffLine struct */
 struct DiffLine {
+  /** @brief len field */
   const char *text;
+  /** @brief len field */
   size_t len;
 };
 
+/** @brief patch_start_idx field */
+/** @brief Block struct */
 struct Block {
+  /** @brief old_end_line field */
   size_t patch_start_idx;
+  /** @brief patch_end_idx field */
   size_t patch_end_idx;
+  /** @brief type field */
   size_t old_start_line;
   size_t old_end_line;
+  /** @brief Op struct */
 };
+/** @brief type field */
 
+/** @brief Op struct */
 struct Op {
   int type; /* 0: keep, 1: del, 2: ins */
   struct DiffLine line;

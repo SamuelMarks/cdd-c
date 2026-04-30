@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "functions/parse/makefile_scraper.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static /**
@@ -128,8 +129,10 @@ int scrape_makefile(struct ExtractedBuildInfo *info,
     return EINVAL;
 
   copy = my_strdup(makefile_content);
-  if (!copy)
+  if (!copy) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   tok = strtok_s(copy, " \t
 \r\\", &saveptr);
@@ -159,8 +162,10 @@ int scrape_configure_ac(
     return EINVAL;
 
   copy = my_strdup(configure_ac_content);
-  if (!copy)
+  if (!copy) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   tok = strtok_s(copy, " \t
 \r\\", &saveptr);
@@ -188,8 +193,10 @@ int build_info_to_cmake(const struct ExtractedBuildInfo *info,
     return EINVAL;
 
   buf = (char *)malloc(cap);
-  if (!buf)
+  if (!buf) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(buf + len, cap - len, _TRUNCATE,

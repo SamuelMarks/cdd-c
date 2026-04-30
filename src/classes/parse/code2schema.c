@@ -28,6 +28,7 @@
 #include "classes/parse/numeric.h"
 #include "functions/emit/codegen.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /** @brief MAX_LINE_LENGTH definition */
@@ -386,8 +387,10 @@ static /**
   if (!src || src_count == 0)
     return 0;
   out = (char **)calloc(src_count, sizeof(char *));
-  if (!out)
+  if (!out) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
       out[i] = (c_cdd_strdup(src[i], &_ast_strdup_1), _ast_strdup_1);
@@ -627,8 +630,10 @@ static /**
     return 0;
 
   types = (char **)calloc(count, sizeof(char *));
-  if (!types)
+  if (!types) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   for (i = 0; i < count; ++i) {
     const char *t = json_array_get_string(arr, i);
@@ -879,8 +884,10 @@ static /**
     return EINVAL;
 
   extras_val = json_value_init_object();
-  if (!extras_val)
+  if (!extras_val) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   extras_obj = json_value_get_object(extras_val);
 
   count = json_object_get_count(obj);
@@ -3379,8 +3386,10 @@ static /**
   if (count == 0)
     return 0;
   vals = (char **)calloc(count, sizeof(char *));
-  if (!vals)
+  if (!vals) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   for (i = 0; i < count; ++i) {
     const char *s = json_array_get_string(arr, i);
     if (s) {
@@ -3602,8 +3611,10 @@ static /**
   if (count == 0)
     return 0;
   vals = (char **)calloc(count, sizeof(char *));
-  if (!vals)
+  if (!vals) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   for (i = 0; i < count; ++i) {
     const char *name = json_object_get_name(props, i);
     if (name) {
@@ -3934,8 +3945,10 @@ static /**
   name = (make_inline_schema_name(schema_name, variant_name, suffix,
                                   &_ast_make_inline_schema_name_7),
           _ast_make_inline_schema_name_7);
-  if (!name)
+  if (!name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   if (!json_object_has_value(root, name)) {
     JSON_Value *copy = (clone_json_value(schema_val, &_ast_clone_json_value_8),
@@ -4367,8 +4380,10 @@ static /**
       dest_field =
           (struct_fields_get(dest, src_field->name, &_ast_struct_fields_get_10),
            _ast_struct_fields_get_10);
-      if (!dest_field)
+      if (!dest_field) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       {
         struct StructField tmp = *src_field;
         *dest_field = tmp;
@@ -4382,15 +4397,19 @@ static /**
           dest_field->schema_extra_json =
               (c_cdd_strdup(src_field->schema_extra_json, &_ast_strdup_20),
                _ast_strdup_20);
-          if (!dest_field->schema_extra_json)
+          if (!dest_field->schema_extra_json) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         if (src_field->items_extra_json) {
           dest_field->items_extra_json =
               (c_cdd_strdup(src_field->items_extra_json, &_ast_strdup_21),
                _ast_strdup_21);
-          if (!dest_field->items_extra_json)
+          if (!dest_field->items_extra_json) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
         }
         if (src_field->type_union && src_field->n_type_union > 0) {
           if (copy_string_array(
@@ -5199,15 +5218,19 @@ static /**
     if (prop && *prop) {
       dest->union_discriminator =
           (c_cdd_strdup(prop, &_ast_strdup_22), _ast_strdup_22);
-      if (!dest->union_discriminator)
+      if (!dest->union_discriminator) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
     }
   }
 
   dest->union_variants =
       (struct UnionVariantMeta *)calloc(count, sizeof(struct UnionVariantMeta));
-  if (!dest->union_variants)
+  if (!dest->union_variants) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   dest->n_union_variants = count;
 
   for (i = 0; i < count; ++i) {
@@ -5256,8 +5279,10 @@ static /**
     variant_name = (make_unique_variant_name(dest, name_hint, i,
                                              &_ast_make_unique_variant_name_17),
                     _ast_make_unique_variant_name_17);
-    if (!variant_name)
+    if (!variant_name) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     if (jtype == UNION_JSON_OBJECT && !ref) {
       if (allow_inline && root && sub_val) {

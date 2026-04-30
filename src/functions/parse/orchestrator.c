@@ -38,6 +38,7 @@
 #endif
 #else
 #include <errno.h>
+#include "c_cdd/log.h"
 #endif
 /* clang-format on */
 
@@ -314,8 +315,10 @@ static /**
   if (callee->num_callers >= callee->alloc_callers) {
     size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
     size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     callee->callers = new_arr;
     callee->alloc_callers = new_cap;
   }

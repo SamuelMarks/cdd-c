@@ -14,6 +14,7 @@
 #include "classes/emit/types.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Wrapper for fprintf to check errors tersely */

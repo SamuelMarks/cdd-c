@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "functions/parse/crypto_types.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -40,8 +41,10 @@ int crypto_sha256(const void *data, size_t data_len,
     return EIO;
 
   mdctx = EVP_MD_CTX_new();
-  if (!mdctx)
+  if (!mdctx) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   if (EVP_DigestInit_ex(mdctx, md, NULL) != 1) {
     rc = EIO;

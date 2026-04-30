@@ -21,10 +21,12 @@
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 #include "routes/emit/client_gen.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Helper macro for I/O checking */
 /** @def CHECK_IO_CLEANUP @brief CHECK_IO macro */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -452,8 +454,10 @@ static /**
     return 0;
 
   params = (struct OpenAPI_Parameter *)calloc(cap, sizeof(*params));
-  if (!params)
+  if (!params) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   if (path && path->parameters) {
     size_t i;

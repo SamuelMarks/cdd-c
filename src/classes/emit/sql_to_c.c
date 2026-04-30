@@ -5,6 +5,7 @@
 
 /* clang-format off */
 #include "classes/emit/sql_to_c.h"
+#include <errno.h>
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -50,7 +51,7 @@ static int is_nullable(const struct sql_column_t *col) {
       return 0; /* NOT nullable */
     }
   }
-  return 1; /* nullable */
+  return EINVAL; /* nullable */
 }
 
 int sql_type_to_c_type(enum SqlDataType type, char **_out_val) {
@@ -98,7 +99,7 @@ int sql_type_is_string(enum SqlDataType type) {
   case SQL_TYPE_CHAR:
   case SQL_TYPE_DATE:
   case SQL_TYPE_TIMESTAMP:
-    return 1;
+    return EINVAL;
   default:
     return 0;
   }
@@ -116,7 +117,7 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   size_t i;
 
   if (!fp || !table || !table->name) {
-    return 1;
+    return EINVAL;
   }
 
   str_to_upper(table_name_upper, table->name);
@@ -131,11 +132,11 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
   fprintf(fp, "#ifndef C_ORM_MODEL_%s_H\n", table_name_upper);
   fprintf(fp, "#define C_ORM_MODEL_%s_H\n\n", table_name_upper);
 
-  fprintf(fp, "#ifdef __cplusplus\n");
+  fprintf(fp, "# ifdef __cplusplus\n");
   fprintf(fp, "extern \"C\" {\n");
-  fprintf(fp, "#endif /* __cplusplus */\n\n");
+  fprintf(fp, "# endif /* __cplusplus */\n\n");
 
-  fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+  fprintf(fp, "# if defined(_MSC_VER) && _MSC_VER < 1600\n"
               "typedef signed __int8 int8_t;\n"
               "typedef unsigned __int8 uint8_t;\n"
               "typedef signed __int16 int16_t;\n"
@@ -146,30 +147,30 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
               "typedef unsigned __int64 uint64_t;\n"
               "#else\n"
               "#include <stdint.h>\n"
-              "#endif\n");
-  fprintf(fp, "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-              "#if !defined(__cplusplus)\n"
-              "#ifndef bool\n"
+              "# endif\n");
+  fprintf(fp, "# if defined(_MSC_VER) && _MSC_VER < 1800\n"
+              "# if !defined(__cplusplus)\n"
+              "# ifndef bool\n"
               "#define bool unsigned char\n"
-              "#endif\n"
-              "#ifndef true\n"
+              "# endif\n"
+              "# ifndef true\n"
               "#define true 1\n"
-              "#endif\n"
-              "#ifndef false\n"
+              "# endif\n"
+              "# ifndef false\n"
               "#define false 0\n"
-              "#endif\n"
-              "#endif\n"
+              "# endif\n"
+              "# endif\n"
               "#else\n"
               "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
               "#ifndef __cplusplus\n"
               "          typedef unsigned char bool;\n"
               "#define true 1\n"
               "#define false 0\n"
-              "#endif\n"
+              "# endif\n"
               "#else\n"
               "#include <stdbool.h>\n"
               "#endif \n "
-              "#endif\n");
+              "# endif\n");
   fprintf(fp, "#include <stddef.h>\n\n");
 
   /* Emit row struct */
@@ -246,12 +247,12 @@ int sql_to_c_header_emit(FILE *fp, const struct sql_table_t *table) {
           "*dest);\n\n",
           struct_name, struct_name, struct_name);
 
-  fprintf(fp, "#ifdef __cplusplus\n");
+  fprintf(fp, "# ifdef __cplusplus\n");
   fprintf(fp, "}\n");
-  fprintf(fp, "#endif /* __cplusplus */\n\n");
+  fprintf(fp, "# endif /* __cplusplus */\n\n");
 
   fprintf(fp, "extern const c_orm_table_meta_t %s_meta;\n\n", struct_name);
-  fprintf(fp, "#endif /* C_ORM_MODEL_%s_H */\n", table_name_upper);
+  fprintf(fp, "# endif /* C_ORM_MODEL_%s_H */\n", table_name_upper);
 
   return 0;
 }
@@ -263,7 +264,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
   size_t i;
 
   if (!fp || !table || !table->name) {
-    return 1;
+    return EINVAL;
   }
 
   str_to_title(struct_name, table->name);
@@ -279,7 +280,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
       fp,
       "int %s_Array_init(struct %s_Array *arr, size_t initial_capacity) {\n",
       struct_name, struct_name);
-  fprintf(fp, "  if (!arr) return 1;\n");
+  fprintf(fp, "  if (!arr) return EINVAL;\n");
   fprintf(fp, "  arr->length = 0;\n");
   fprintf(fp, "  arr->capacity = initial_capacity;\n");
   fprintf(fp, "  if (initial_capacity > 0) {\n");
@@ -287,7 +288,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
           "    arr->data = (struct %s *)calloc(initial_capacity, sizeof(struct "
           "%s));\n",
           struct_name, struct_name);
-  fprintf(fp, "    if (!arr->data) return 1;\n");
+  fprintf(fp, "    if (!arr->data) return EINVAL;\n");
   fprintf(fp, "  } else {\n");
   fprintf(fp, "    arr->data = NULL;\n");
   fprintf(fp, "  }\n");
@@ -336,7 +337,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
   /* Deepcopy */
   fprintf(fp, "int %s_deepcopy(const struct %s *src, struct %s *dest) {\n",
           struct_name, struct_name, struct_name);
-  fprintf(fp, "  if (!src || !dest) return 1;\n");
+  fprintf(fp, "  if (!src || !dest) return EINVAL;\n");
   for (i = 0; i < table->n_columns; ++i) {
     const struct sql_column_t *col = &table->columns[i];
     int is_str = sql_type_is_string(col->type);
@@ -349,7 +350,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
       fprintf(fp, "  if (src->%s) {\n", col->name);
       fprintf(fp, "    dest->%s = (char*)malloc(strlen(src->%s) + 1);\n",
               col->name, col->name);
-      fprintf(fp, "    if (!dest->%s) return 1;\n", col->name);
+      fprintf(fp, "    if (!dest->%s) return EINVAL;\n", col->name);
       fprintf(fp,
               "#if defined(_MSC_VER)\n    strcpy_s(dest->%s, strlen(src->%s) + "
               "1, src->%s);\n#else\n    strcpy(dest->%s, src->%s);\n#endif\n",
@@ -359,7 +360,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
       fprintf(fp, "  if (src->%s) {\n", col->name);
       fprintf(fp, "    dest->%s = (%s*)malloc(sizeof(%s));\n", col->name,
               c_type, c_type);
-      fprintf(fp, "    if (!dest->%s) return 1;\n", col->name);
+      fprintf(fp, "    if (!dest->%s) return EINVAL;\n", col->name);
       fprintf(fp, "    *dest->%s = *src->%s;\n", col->name, col->name);
       fprintf(fp, "  } else {\n    dest->%s = NULL;\n  }\n", col->name);
     } else {
@@ -376,7 +377,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
           struct_name, struct_name, struct_name);
   fprintf(fp, "  size_t i;\n");
   fprintf(fp, "  int err;\n");
-  fprintf(fp, "  if (!src || !dest) return 1;\n");
+  fprintf(fp, "  if (!src || !dest) return EINVAL;\n");
   fprintf(fp, "  err = %s_Array_init(dest, src->capacity);\n", struct_name);
   fprintf(fp, "  if (err) return err;\n");
   fprintf(fp, "  for (i = 0; i < src->length; ++i) {\n");
@@ -403,7 +404,7 @@ int sql_to_c_source_emit(FILE *fp, const struct sql_table_t *table,
  */
 int sql_type_to_c_orm_type(enum SqlDataType type, const char **out_val) {
   if (!out_val)
-    return 1;
+    return EINVAL;
   switch (type) {
   case SQL_TYPE_INT:
     *out_val = "C_ORM_TYPE_INT32";
@@ -660,7 +661,7 @@ int sql_to_c_projection_struct_emit(FILE *fp,
   size_t i;
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   if (out_hash) {
     /* Simplified fast query string hash simulation for external routing
@@ -761,7 +762,7 @@ int sql_to_c_projection_free_emit(FILE *fp,
   size_t i;
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   fprintf(fp, "void %s_free(%s *obj) {\n", struct_name, struct_name);
 
@@ -811,7 +812,7 @@ int sql_to_c_projection_meta_emit(FILE *fp,
   const char *orm_type_str;
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   fprintf(fp, "/* Metadata for %s */\n", struct_name);
 
@@ -881,7 +882,7 @@ int sql_to_c_projection_hydrate_emit(FILE *fp,
   size_t i;
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   fprintf(
       fp,
@@ -890,7 +891,7 @@ int sql_to_c_projection_hydrate_emit(FILE *fp,
 
   fprintf(fp, "    cdd_c_variant_t *val;\n");
 
-  fprintf(fp, "    if (!out_struct || !row) return -1;\n");
+  fprintf(fp, "    if (!out_struct || !row) return EINVAL;\n");
 
   for (i = 0; i < proj->n_fields; ++i) {
 
@@ -995,7 +996,7 @@ int sql_to_c_projection_dehydrate_emit(FILE *fp,
   size_t i;
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   fprintf(fp,
           "int %s_dehydrate(const %s *in_struct, cdd_c_abstract_struct_t "
@@ -1004,9 +1005,10 @@ int sql_to_c_projection_dehydrate_emit(FILE *fp,
 
   fprintf(fp, "    cdd_c_variant_t val;\n");
 
-  fprintf(fp, "    if (!in_struct || !out_row) return -1;\n");
+  fprintf(fp, "    if (!in_struct || !out_row) return EINVAL;\n");
 
-  fprintf(fp, "    if (cdd_c_abstract_struct_init(out_row) != 0) return -1;\n");
+  fprintf(fp,
+          "    if (cdd_c_abstract_struct_init(out_row) != 0) return EINVAL;\n");
 
   for (i = 0; i < proj->n_fields; ++i) {
 
@@ -1071,7 +1073,7 @@ int sql_to_c_projection_dehydrate_emit(FILE *fp,
 
     fprintf(fp, "        cdd_c_abstract_struct_free(out_row);\n");
 
-    fprintf(fp, "        return -1;\n");
+    fprintf(fp, "        return EINVAL;\n");
 
     fprintf(fp, "    }\n");
   }
@@ -1095,7 +1097,7 @@ int sql_to_c_projection_nested_struct_emit(FILE *fp,
                                            const char *struct_name) {
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   /* A nested 1-to-1 struct uses the exact same codegen logic as a top level
      projection,
@@ -1118,12 +1120,12 @@ int sql_to_c_projection_nested_array_emit(FILE *fp,
                                           const char *array_name) {
 
   if (!fp || !proj || !struct_name || !array_name)
-    return -1;
+    return EINVAL;
 
   /* First emit the base struct */
 
   if (sql_to_c_projection_struct_emit(fp, proj, struct_name, NULL) != 0)
-    return -1;
+    return EINVAL;
 
   /* Then emit the array wrapper struct used for 1-to-Many nested responses */
 
@@ -1186,7 +1188,7 @@ int sql_to_c_projection_dirty_bitmask_emit(FILE *fp,
                                            const char *struct_name) {
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   fprintf(fp, "/**\n");
 
@@ -1244,7 +1246,7 @@ int sql_to_c_projection_union_struct_emit(FILE *fp,
   size_t i, j;
 
   if (!fp || !projs || !struct_name || n_projs == 0)
-    return -1;
+    return EINVAL;
 
   fprintf(fp, "/**\n");
 
@@ -1339,7 +1341,7 @@ int sql_to_c_projection_polymorphic_struct_emit(
     FILE *fp, const cdd_c_query_projection_t *proj, const char *struct_name) {
 
   if (!fp || !proj || !struct_name)
-    return -1;
+    return EINVAL;
 
   /* Polymorphic mappings simply bind the exact target struct directly
 

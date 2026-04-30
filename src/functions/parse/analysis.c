@@ -13,6 +13,7 @@
 #include "c_cdd_stdbool.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/str.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
@@ -37,8 +38,10 @@ int allocation_site_list_init(struct AllocationSiteList *list) {
   list->capacity = 8;
   list->sites = (struct AllocationSite *)malloc(list->capacity *
                                                 sizeof(struct AllocationSite));
-  if (!list->sites)
+  if (!list->sites) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   return 0;
 }
 
@@ -75,8 +78,10 @@ int allocation_site_list_add(struct AllocationSiteList *list, size_t index,
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
     struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
         list->sites, new_cap * sizeof(struct AllocationSite));
-    if (!new_sites)
+    if (!new_sites) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->sites = new_sites;
     list->capacity = new_cap;
   }

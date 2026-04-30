@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
@@ -13,8 +14,10 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
     return EINVAL;
 
   env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
-  if (!env)
+  if (!env) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!global) {
@@ -71,8 +74,10 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
   parent = env->current_scope;
 
   new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
-  if (!new_scope)
+  if (!new_scope) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   new_scope->kind = kind;
   new_scope->parent = parent;
@@ -103,13 +108,20 @@ int cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
   return 0;
 }
 
-static char *cdd_strdup(const char *s) {
-  size_t len = strlen(s);
-  char *d = (char *)malloc(len + 1);
-  if (!d)
-    return NULL;
+static int cdd_strdup(const char *s, char **out_s) {
+  size_t len;
+  char *d;
+  if (!s || !out_s)
+    return EINVAL;
+  len = strlen(s);
+  d = (char *)malloc(len + 1);
+  if (!d) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
   memcpy(d, s, len + 1);
-  return d;
+  *out_s = d;
+  return 0;
 }
 
 int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
@@ -121,10 +133,13 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
     return EINVAL;
 
   sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
-  if (!sym)
+  if (!sym) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
-  sym->name = cdd_strdup(name);
+  if (cdd_strdup(name, &sym->name) != 0)
+    sym->name = NULL;
   if (!sym->name) {
     free(sym);
     return ENOMEM;

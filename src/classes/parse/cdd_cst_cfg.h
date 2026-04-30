@@ -25,26 +25,40 @@ typedef struct cdd_cst_cfg_block_t cdd_cst_cfg_block_t;
 
 /** @brief Struct definition */
 struct cdd_cst_cfg_edge_t {
+  /** @brief target field */
   cdd_cst_cfg_block_t *target;
+  /** @brief condition_value field */
   int is_conditional;
+  /** @brief condition_value field */
   int condition_value; /* 1 for true branch, 0 for false branch */
   cdd_cst_cfg_edge_t *next;
 };
 
 /** @brief Struct definition */
 struct cdd_cst_cfg_block_t {
+  /** @brief id field */
   int id;
+  /** @brief statements field */
   enum cdd_cst_cfg_block_kind_t kind;
+  /** @brief capacity field */
   cdd_cst_node_t **statements;
+  /** @brief predecessors field */
   size_t num_statements;
+  /** @brief capacity field */
   size_t capacity;
   cdd_cst_cfg_edge_t *successors;
+  /** @brief entry_block field */
   cdd_cst_cfg_edge_t *predecessors;
+  /** @brief blocks field */
 };
+/** @brief capacity field */
 
 /** @brief Struct definition */
 typedef struct cdd_cst_cfg_t cdd_cst_cfg_t;
+/** @brief entry_block field */
+/** @brief cdd_cst_cfg_t struct */
 struct cdd_cst_cfg_t {
+  /** @brief num_blocks field */
   cdd_cst_cfg_block_t *entry_block;
   cdd_cst_cfg_block_t *exit_block;
   cdd_cst_cfg_block_t **blocks;

@@ -2,14 +2,19 @@
 #include "cdd_cst_cfg.h"
 #include <errno.h>
 #include <stdlib.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
-static cdd_cst_cfg_block_t *alloc_block(cdd_cst_cfg_t *cfg,
-                                        enum cdd_cst_cfg_block_kind_t kind) {
-  cdd_cst_cfg_block_t *block =
-      (cdd_cst_cfg_block_t *)calloc(1, sizeof(cdd_cst_cfg_block_t));
-  if (!block)
-    return NULL;
+static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,
+                       cdd_cst_cfg_block_t **out_block) {
+  cdd_cst_cfg_block_t *block;
+  if (!cfg || !out_block)
+    return EINVAL;
+  block = (cdd_cst_cfg_block_t *)calloc(1, sizeof(cdd_cst_cfg_block_t));
+  if (!block) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
 
   block->id = (int)cfg->num_blocks;
   block->kind = kind;
@@ -20,14 +25,14 @@ static cdd_cst_cfg_block_t *alloc_block(cdd_cst_cfg_t *cfg,
         cfg->blocks, new_cap * sizeof(cdd_cst_cfg_block_t *));
     if (!new_arr) {
       free(block);
-      return NULL;
+      return ENOMEM;
     }
     cfg->blocks = new_arr;
     cfg->capacity = new_cap;
   }
-
   cfg->blocks[cfg->num_blocks++] = block;
-  return block;
+  *out_block = block;
+  return 0;
 }
 
 static int add_edge(cdd_cst_cfg_block_t *from, cdd_cst_cfg_block_t *to,
@@ -83,8 +88,10 @@ static int build_block(cdd_cst_cfg_t *cfg, cdd_cst_cfg_block_t *curr_block,
     size_t new_cap = curr_block->capacity == 0 ? 8 : curr_block->capacity * 2;
     cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
         curr_block->statements, new_cap * sizeof(cdd_cst_node_t *));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     curr_block->statements = new_arr;
     curr_block->capacity = new_cap;
   }
@@ -106,9 +113,11 @@ static int walk_function_body(cdd_cst_cfg_t *cfg,
   size_t i, j;
   int rc;
 
-  current = alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL);
-  if (!current)
+  alloc_block(cfg, CDD_CST_CFG_BLOCK_NORMAL, &current);
+  if (!current) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   rc = add_edge(cfg->entry_block, current, 0, 0);
   if (rc != 0)
@@ -147,11 +156,13 @@ int cdd_cst_cfg_build(cdd_cst_node_t *function_node, cdd_cst_cfg_t **out_cfg) {
     return EINVAL;
 
   cfg = (cdd_cst_cfg_t *)calloc(1, sizeof(cdd_cst_cfg_t));
-  if (!cfg)
+  if (!cfg) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
-  cfg->entry_block = alloc_block(cfg, CDD_CST_CFG_BLOCK_ENTRY);
-  cfg->exit_block = alloc_block(cfg, CDD_CST_CFG_BLOCK_EXIT);
+  alloc_block(cfg, CDD_CST_CFG_BLOCK_ENTRY, &cfg->entry_block);
+  alloc_block(cfg, CDD_CST_CFG_BLOCK_EXIT, &cfg->exit_block);
 
   if (!cfg->entry_block || !cfg->exit_block) {
     cdd_cst_cfg_free(cfg);

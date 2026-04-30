@@ -21,6 +21,7 @@
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
 #include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* Select correct strdup function name for generated code */
@@ -79,8 +80,10 @@ int struct_fields_init(struct StructFields *sf) {
   sf->capacity = 8;
   sf->fields =
       (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
-  if (!sf->fields)
+  if (!sf->fields) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   sf->is_enum = 0;
   sf->enum_members.members = NULL;
   sf->enum_members.size = 0;
@@ -177,8 +180,10 @@ int struct_fields_add(struct StructFields *sf, const char *name,
     const size_t new_cap = sf->capacity * 2;
     struct StructField *new_arr = (struct StructField *)realloc(
         sf->fields, new_cap * sizeof(struct StructField));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     sf->fields = new_arr;
     sf->capacity = new_cap;
   }

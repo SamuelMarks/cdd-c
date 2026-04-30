@@ -13,11 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf
 #else
+/** @brief SNPRINTF macro */
 #define SNPRINTF snprintf
 #endif
 
@@ -255,8 +257,10 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  if (!model_h)
+  if (!model_h) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   SNPRINTF(path_h, sizeof(path_h), "%s", model_h);
   SNPRINTF(path_c, sizeof(path_c), "%.*s.c", (int)(strlen(model_h) - 2),

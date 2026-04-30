@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
@@ -16,8 +17,10 @@ static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
           char *name = (char *)malloc(tok->length + 1);
-          if (!name)
+          if (!name) {
+            LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
             return ENOMEM;
+          }
           memcpy(name, tok->start, tok->length);
           name[tok->length] = '\0';
           *out_name = name;

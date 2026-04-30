@@ -30,6 +30,9 @@ TEST test_get_basename(void) {
   ASSERT_STR_EQ("baz.txt", res);
   free(res);
 
+  ASSERT_EQ(0, fs_is_directory(NULL));
+  ASSERT_EQ(0, fs_is_directory("/path/that/does/not/exist/ever/ever/ever"));
+
   rc = get_basename("file.txt", &res);
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("file.txt", res);
@@ -142,11 +145,177 @@ TEST test_makedir_check(void) {
   PASS();
 }
 
+TEST test_fs_fopen_error_from(void) {
+  enum FopenError err;
+  extern int fopen_error_from(int fopen_error, enum FopenError *_out_val);
+
+  fopen_error_from(0, &err);
+  ASSERT_EQ(FOPEN_OK, err);
+  fopen_error_from(EINVAL, &err);
+  ASSERT_EQ(FOPEN_INVALID_PARAMETER, err);
+  fopen_error_from(EMFILE, &err);
+  ASSERT_EQ(FOPEN_TOO_MANY_OPEN_FILES, err);
+  fopen_error_from(ENOMEM, &err);
+  ASSERT_EQ(FOPEN_OUT_OF_MEMORY, err);
+  fopen_error_from(ENOENT, &err);
+  ASSERT_EQ(FOPEN_FILE_NOT_FOUND, err);
+  fopen_error_from(EACCES, &err);
+  ASSERT_EQ(FOPEN_PERMISSION_DENIED, err);
+  fopen_error_from(EIO, &err);
+  ASSERT_EQ(FOPEN_UNKNOWN_ERROR, err);
+
+  PASS();
+}
+
+TEST test_fs_cp(void) {
+  extern int cp(const char *dst, const char *src);
+
+  FILE *f = fopen("test_cp_src.txt", "w");
+  fprintf(f, "test");
+  fclose(f);
+
+  int rc = cp("test_cp_dst.txt", "test_cp_src.txt");
+  ASSERT_EQ(0, rc);
+
+  remove("test_cp_src.txt");
+  remove("test_cp_dst.txt");
+
+  // Test error
+  rc = cp("invalid/dst/path", "invalid_src.txt");
+  printf("\nCP ERROR RC = %d\n", rc);
+  ASSERT(rc != 0);
+
+  PASS();
+}
+
+
+TEST test_fs_basename_dirname_edge_cases(void) {
+  char *out = NULL;
+  
+  // get_basename edges
+  ASSERT_EQ(EINVAL, get_basename("foo", NULL));
+  
+  ASSERT_EQ(0, get_basename("///", &out));
+  ASSERT_STR_EQ(PATH_SEP, out);
+  free(out); out = NULL;
+  
+  // get_dirname edges
+  ASSERT_EQ(EINVAL, get_dirname("foo", NULL));
+  
+  ASSERT_EQ(0, get_dirname("foo///", &out));
+  ASSERT_STR_EQ(".", out);
+  free(out); out = NULL;
+  
+  ASSERT_EQ(0, get_dirname("///", &out));
+  ASSERT_STR_EQ(PATH_SEP, out);
+  free(out); out = NULL;
+
+  PASS();
+}
+
+
+TEST test_fs_dirname_more_edge_cases(void) {
+  char *out = NULL;
+  
+  ASSERT_EQ(0, get_dirname("", &out));
+  ASSERT_STR_EQ(".", out);
+  free(out); out = NULL;
+  
+  ASSERT_EQ(0, get_dirname("foo//bar", &out));
+  ASSERT_STR_EQ("foo", out);
+  free(out); out = NULL;
+  
+  ASSERT_EQ(0, get_dirname("foo/bar///", &out));
+  ASSERT_STR_EQ("foo", out);
+  free(out); out = NULL;
+  
+  PASS();
+}
+
+TEST test_fs_write_to_file(void) {
+  char *tmp_dir = NULL;
+  char *file_path = NULL;
+  char *out_data = NULL;
+  size_t sz = 0;
+  
+  tempdir(&tmp_dir);
+  asprintf(&file_path, "%s%ctest_write.txt", tmp_dir, PATH_SEP_C);
+  
+  ASSERT_EQ(EINVAL, fs_write_to_file(NULL, "data"));
+  ASSERT_EQ(EINVAL, fs_write_to_file(file_path, NULL));
+  
+  ASSERT_EQ(0, fs_write_to_file(file_path, "hello world"));
+  
+  read_to_file(file_path, "r", &out_data, &sz);
+  ASSERT_STR_EQ("hello world", out_data);
+  
+  free(out_data);
+  remove(file_path);
+  rmdir(tmp_dir);
+  free(file_path);
+  free(tmp_dir);
+  
+  PASS();
+}
+
+
+TEST test_fs_dirname_foo(void) {
+  char *out = NULL;
+  
+  ASSERT_EQ(0, get_dirname("foo", &out));
+  ASSERT_STR_EQ(".", out);
+  free(out); out = NULL;
+  
+  PASS();
+}
+
+
+TEST test_fs_cdd_fopen_too_long(void) {
+  enum FopenError err;
+  extern int fopen_error_from(int fopen_error, enum FopenError *_out_val);
+  
+  ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
+  ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
+  
+  PASS();
+}
+
+
+TEST test_fs_write_to_file_errors(void) {
+  ASSERT_NEQ(0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
+  PASS();
+}
+
+
+TEST test_read_from_fh_errors(void) {
+  extern int read_from_fh(FILE *fh, char **out_data, size_t *out_size);
+  FILE *f = tmpfile();
+  char *data = NULL;
+  size_t sz = 0;
+  
+  // Test invalid args
+  ASSERT_EQ(EINVAL, read_from_fh(NULL, &data, &sz));
+  ASSERT_EQ(EINVAL, read_from_fh(f, NULL, &sz));
+  ASSERT_EQ(EINVAL, read_from_fh(f, &data, NULL));
+  
+  fclose(f);
+  PASS();
+}
+
 SUITE(fs_suite) {
+  RUN_TEST(test_fs_fopen_error_from);
+  RUN_TEST(test_fs_cp);
   RUN_TEST(test_get_basename);
   RUN_TEST(test_read_to_file_error);
+  RUN_TEST(test_read_from_fh_errors);
   RUN_TEST(test_walk_directory);
   RUN_TEST(test_makedir_check);
+  RUN_TEST(test_fs_basename_dirname_edge_cases);
+  RUN_TEST(test_fs_dirname_more_edge_cases);
+  RUN_TEST(test_fs_write_to_file);
+  RUN_TEST(test_fs_write_to_file_errors);
+  RUN_TEST(test_fs_dirname_foo);
+  RUN_TEST(test_fs_cdd_fopen_too_long);
 }
 
 #ifdef __cplusplus

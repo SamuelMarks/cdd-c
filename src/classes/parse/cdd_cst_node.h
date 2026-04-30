@@ -94,8 +94,11 @@ struct cdd_cst_tree_t {
   /** @brief field */
   /** @brief field */
   size_t synthesized_capacity;
+  /** @brief string_pool field */
   char **string_pool;
+  /** @brief string_capacity field */
   size_t num_strings;
+  /** @brief string_capacity field */
   size_t string_capacity;
 };
 

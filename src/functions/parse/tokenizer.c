@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Phase 1 & 2 Logic --- */
@@ -199,9 +200,10 @@ static /**
 
         (struct Token *)realloc(tl->tokens, new_cap * sizeof(struct Token));
 
-    if (!new_arr)
-
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
 
     tl->tokens = new_arr;
 
@@ -910,9 +912,10 @@ int tokenize(const az_span source, struct TokenList **const out) {
 
   list = (struct TokenList *)calloc(1, sizeof(struct TokenList));
 
-  if (!list)
-
+  if (!list) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   while (pos < len) {
 

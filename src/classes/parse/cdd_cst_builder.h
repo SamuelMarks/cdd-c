@@ -30,6 +30,7 @@ struct cdd_cst_builder_t {
   /** @brief Internal error state (0 on success, non-zero on error e.g., ENOMEM)
    */
   int error_state;
+  /** @brief indent_level field */
   int indent_level;
 };
 
@@ -211,7 +212,8 @@ int cdd_cst_bld_line_comment(cdd_cst_builder_t *builder, const char *text);
  * @param node The node to extract from.
  * @return The extracted trivia list (or NULL if none).
  */
-cdd_trivia_t *cdd_cst_extract_leading_trivia(cdd_cst_node_t *node);
+int cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
+                                   cdd_trivia_t **out_trivia);
 
 /**
  * @brief Extracts trailing trivia from a source node, removing it from that
@@ -220,7 +222,8 @@ cdd_trivia_t *cdd_cst_extract_leading_trivia(cdd_cst_node_t *node);
  * @param node The node to extract from.
  * @return The extracted trivia list (or NULL if none).
  */
-cdd_trivia_t *cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node);
+int cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
+                                    cdd_trivia_t **out_trivia);
 
 /**
  * @brief Transfers all leading and trailing trivia from the source node to the

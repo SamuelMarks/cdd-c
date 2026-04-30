@@ -24,6 +24,7 @@
 #include "functions/parse/cst.h" /* For CST analysis */
 #include "functions/parse/str.h" /* For string duplication and utilities */
 #include "functions/parse/tokenizer.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /* --- Type Definitions Logic --- */
@@ -83,8 +84,10 @@ static /**
     size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
     struct TypeDefinition *new_items = (struct TypeDefinition *)realloc(
         list->items, new_cap * sizeof(struct TypeDefinition));
-    if (!new_items)
+    if (!new_items) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->items = new_items;
     list->capacity = new_cap;
   }
@@ -92,8 +95,10 @@ static /**
   item = &list->items[list->size];
   item->kind = kind;
   item->name = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
-  if (!item->name)
+  if (!item->name) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
 
   if (kind == KIND_ENUM)
     item->details.enum_members = (struct EnumMembers *)details;

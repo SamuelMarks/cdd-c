@@ -18,6 +18,7 @@
 #include <parson.h>
 #include <stdlib.h>
 #include <string.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 
 #if defined(_WIN32)
@@ -73,8 +74,10 @@ static /**
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
     struct AuditViolation *new_items = (struct AuditViolation *)realloc(
         list->items, new_cap * sizeof(struct AuditViolation));
-    if (!new_items)
+    if (!new_items) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->items = new_items;
     list->capacity = new_cap;
   }

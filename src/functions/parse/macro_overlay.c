@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "functions/parse/macro_overlay.h"
+#include "c_cdd/log.h"
 /* clang-format on */
 
 /**
@@ -52,8 +53,10 @@ static /**
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
     struct MacroOverlayNode *new_arr =
         realloc(list->nodes, new_cap * sizeof(struct MacroOverlayNode));
-    if (!new_arr)
+    if (!new_arr) {
+      LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
       return ENOMEM;
+    }
     list->nodes = new_arr;
     list->capacity = new_cap;
   }
@@ -83,8 +86,10 @@ int cst_build_macro_overlay(const struct CstNodeList *cst,
          evaluation is a complex step that requires building a full env. */
       struct CstNodeList *dummy_expanded =
           calloc(1, sizeof(struct CstNodeList));
-      if (!dummy_expanded)
+      if (!dummy_expanded) {
+        LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
         return ENOMEM;
+      }
       /* cst_list_init is not available, we can just zero it and let it be empty
        */
       dummy_expanded->nodes = NULL;

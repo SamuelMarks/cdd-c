@@ -8,9 +8,10 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include "c_cdd/log.h"
 /* clang-format on */
 static const char *pool_string(cdd_cst_tree_t *tree, const char *str);
-static cdd_token_t *get_last_token(cdd_cst_node_t *node);
+static int get_last_token(cdd_cst_node_t *node, cdd_token_t **out_tok);
 
 int cdd_cst_builder_init(cdd_cst_builder_t *builder, cdd_cst_tree_t *tree,
                          cdd_cst_node_t *target_node) {
@@ -62,7 +63,8 @@ int cdd_cst_bld_token(cdd_cst_builder_t *builder, enum cdd_token_kind_t kind,
   if (builder->error_state != 0)
     return builder->error_state;
 
-  tok = cdd_cst_create_token(builder->tree, kind, text);
+  if (cdd_cst_create_token(builder->tree, kind, text, &tok) != 0)
+    tok = NULL;
   if (!tok) {
     builder->error_state = ENOMEM;
     return ENOMEM;
@@ -118,8 +120,10 @@ int cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
   snprintf(buf, sizeof(buf), "%d", value);
 #endif
   pooled = pool_string(builder->tree, buf);
-  if (!pooled)
+  if (!pooled) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
     return ENOMEM;
+  }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
 }
 
@@ -185,8 +189,10 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
 #endif
       {
         const char *pooled = pool_string(builder->tree, buf);
-        if (!pooled)
+        if (!pooled) {
+          LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
           return ENOMEM;
+        }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
       }
     } else {
@@ -395,7 +401,8 @@ int cdd_cst_bld_snippet(cdd_cst_builder_t *builder, const char *snippet) {
       if (rc != 0)
         break;
       {
-        cdd_token_t *last = get_last_token(builder->target_node);
+        cdd_token_t *last = NULL;
+        get_last_token(builder->target_node, &last);
         if (last) {
           last->leading_trivia = t->leading_trivia;
           last->trailing_trivia = t->trailing_trivia;
@@ -481,11 +488,18 @@ int cdd_cst_bld_line_comment(cdd_cst_builder_t *builder, const char *text) {
   return cdd_cst_bld_block_comment(builder, text);
 }
 
-static cdd_trivia_t *create_trivia(cdd_cst_tree_t *tree, const char *text) {
-  cdd_trivia_t *t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+static int create_trivia(cdd_cst_tree_t *tree, const char *text,
+                         cdd_trivia_t **out_trivia) {
+  cdd_trivia_t *t;
   char *dup;
-  if (!t)
-    return NULL;
+  if (!tree || !text || !out_trivia)
+    return EINVAL;
+  *out_trivia = NULL;
+  t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+  if (!t) {
+    LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    return ENOMEM;
+  }
 #if defined(_MSC_VER)
   dup = _strdup(text);
 #else
@@ -493,12 +507,9 @@ static cdd_trivia_t *create_trivia(cdd_cst_tree_t *tree, const char *text) {
 #endif
   if (!dup) {
     free(t);
-    return NULL;
+    return ENOMEM;
   }
 
-  /* we track in the string pool for safety if possible, but tree doesn't own
-     trivia memory automatically. Trivia memory is normally bound to tokens.
-     We'll put it in the string pool so it gets freed. */
   if (tree->num_strings >= tree->string_capacity) {
     size_t new_cap =
         tree->string_capacity == 0 ? 32 : tree->string_capacity * 2;
@@ -507,18 +518,25 @@ static cdd_trivia_t *create_trivia(cdd_cst_tree_t *tree, const char *text) {
     if (!new_pool) {
       free(dup);
       free(t);
-      return NULL;
+      return ENOMEM;
     }
     tree->string_pool = new_pool;
     tree->string_capacity = new_cap;
   }
   tree->string_pool[tree->num_strings++] = dup;
 
-  t->kind =
-      TRIVIA_BLOCK_COMMENT; /* Assuming kind 0 is comment/general in trivia */
+  t->kind = TRIVIA_WHITESPACE;
+  if (text[0] == '\n')
+    t->kind = TRIVIA_NEWLINE;
+  else if (text[0] == '/' && text[1] == '/')
+    t->kind = TRIVIA_LINE_COMMENT;
+  else if (text[0] == '/' && text[1] == '*')
+    t->kind = TRIVIA_BLOCK_COMMENT;
+
   t->start = (const uint8_t *)dup;
   t->length = strlen(dup);
-  return t;
+  *out_trivia = t;
+  return 0;
 }
 
 int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder, const char *text) {
@@ -537,7 +555,7 @@ int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder, const char *text) {
   snprintf(buf, sizeof(buf), "/* %s */", text);
 #endif
 
-  trivia = create_trivia(builder->tree, buf);
+  create_trivia(builder->tree, buf, &trivia);
   if (!trivia) {
     builder->error_state = ENOMEM;
     return ENOMEM;
@@ -577,56 +595,72 @@ int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder, const char *text) {
   }
 }
 
-static cdd_token_t *get_first_token(cdd_cst_node_t *node) {
+static int get_first_token(cdd_cst_node_t *node, cdd_token_t **out_tok) {
   size_t i;
-  if (!node)
-    return NULL;
+  if (!node || !out_tok)
+    return EINVAL;
+  *out_tok = NULL;
   for (i = 0; i < node->num_children; i++) {
-    if (node->children[i].kind == CDD_CST_CHILD_TOKEN)
-      return node->children[i].val.token;
-    else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_token_t *t = get_first_token(node->children[i].val.node);
-      if (t)
-        return t;
+    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+      *out_tok = node->children[i].val.token;
+      return 0;
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_token_t *t = NULL;
+      if (get_first_token(node->children[i].val.node, &t) == 0 && t) {
+        *out_tok = t;
+        return 0;
+      }
     }
   }
-  return NULL;
+  return ENOENT;
 }
 
-static cdd_token_t *get_last_token(cdd_cst_node_t *node) {
+static int get_last_token(cdd_cst_node_t *node, cdd_token_t **out_tok) {
   int i;
-  if (!node)
-    return NULL;
+  if (!node || !out_tok)
+    return EINVAL;
+  *out_tok = NULL;
   for (i = (int)node->num_children - 1; i >= 0; i--) {
-    if (node->children[i].kind == CDD_CST_CHILD_TOKEN)
-      return node->children[i].val.token;
-    else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
-      cdd_token_t *t = get_last_token(node->children[i].val.node);
-      if (t)
-        return t;
+    if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
+      *out_tok = node->children[i].val.token;
+      return 0;
+    } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_token_t *t = NULL;
+      if (get_last_token(node->children[i].val.node, &t) == 0 && t) {
+        *out_tok = t;
+        return 0;
+      }
     }
   }
-  return NULL;
+  return ENOENT;
 }
 
-cdd_trivia_t *cdd_cst_extract_leading_trivia(cdd_cst_node_t *node) {
-  cdd_token_t *t = get_first_token(node);
-  cdd_trivia_t *trivia = NULL;
+int cdd_cst_extract_leading_trivia(cdd_cst_node_t *node,
+                                   cdd_trivia_t **out_trivia) {
+  cdd_token_t *t = NULL;
+  if (!out_trivia)
+    return EINVAL;
+  *out_trivia = NULL;
+  get_first_token(node, &t);
   if (t) {
-    trivia = t->leading_trivia;
+    *out_trivia = t->leading_trivia;
     t->leading_trivia = NULL;
   }
-  return trivia;
+  return 0;
 }
 
-cdd_trivia_t *cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node) {
-  cdd_token_t *t = get_last_token(node);
-  cdd_trivia_t *trivia = NULL;
+int cdd_cst_extract_trailing_trivia(cdd_cst_node_t *node,
+                                    cdd_trivia_t **out_trivia) {
+  cdd_token_t *t = NULL;
+  if (!out_trivia)
+    return EINVAL;
+  *out_trivia = NULL;
+  get_last_token(node, &t);
   if (t) {
-    trivia = t->trailing_trivia;
+    *out_trivia = t->trailing_trivia;
     t->trailing_trivia = NULL;
   }
-  return trivia;
+  return 0;
 }
 
 int cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
@@ -639,11 +673,11 @@ int cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
   if (!source_node || !target_node)
     return EINVAL;
 
-  lead = cdd_cst_extract_leading_trivia(source_node);
-  trail = cdd_cst_extract_trailing_trivia(source_node);
+  cdd_cst_extract_leading_trivia(source_node, &lead);
+  cdd_cst_extract_trailing_trivia(source_node, &trail);
 
-  t_first = get_first_token(target_node);
-  t_last = get_last_token(target_node);
+  get_first_token(target_node, &t_first);
+  get_last_token(target_node, &t_last);
 
   if (lead && t_first) {
     cdd_trivia_t *tail = lead;

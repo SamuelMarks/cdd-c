@@ -14,6 +14,7 @@
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf
 #else
+/** @brief SNPRINTF macro */
 #define SNPRINTF snprintf
 #endif
 

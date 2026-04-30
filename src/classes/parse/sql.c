@@ -226,8 +226,11 @@ int sql_table_free(struct sql_table_t *table) {
   return 0;
 }
 
+/** @brief SqlParserState struct */
 struct SqlParserState {
+  /** @brief cursor field */
   const struct sql_token_list_t *list;
+  /** @brief cursor field */
   size_t cursor;
   struct sql_parse_error_t *out_error;
 };

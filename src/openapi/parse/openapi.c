@@ -716,11 +716,7 @@ static /**
     parse_additional_operations(const JSON_Object *path_obj,
                                 struct OpenAPI_Path *path,
                                 const struct OpenAPI_Spec *spec);
-static /**
-        * @brief Frees the memory associated with servers array.
-        */
-    void
-    free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
+void openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
 
 /* --- Lifecycle Implementation --- */
 
@@ -1294,7 +1290,7 @@ static /**
   if (link->request_body_set)
     free_any_value(&link->request_body);
   if (link->server_set && link->server) {
-    free_servers_array(link->server, 1);
+    openapi_free_servers_array(link->server, 1);
     link->server = NULL;
     link->server_set = 0;
   }
@@ -1353,11 +1349,7 @@ static /**
     free(set->extensions_json);
 }
 
-static /**
-        * @brief Frees the memory associated with servers array.
-        */
-    void
-    free_servers_array(struct OpenAPI_Server *servers, size_t n_servers) {
+void openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers) {
   size_t i;
   if (!servers)
     return;
@@ -1422,7 +1414,7 @@ static /**
     free(p->parameters);
   }
   if (p->servers) {
-    free_servers_array(p->servers, p->n_servers);
+    openapi_free_servers_array(p->servers, p->n_servers);
     p->servers = NULL;
     p->n_servers = 0;
   }
@@ -1518,7 +1510,7 @@ static /**
     free(op->external_docs.extensions_json);
 
   if (op->servers) {
-    free_servers_array(op->servers, op->n_servers);
+    openapi_free_servers_array(op->servers, op->n_servers);
     op->servers = NULL;
     op->n_servers = 0;
   }
@@ -1690,7 +1682,7 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
   }
 
   if (spec->servers) {
-    free_servers_array(spec->servers, spec->n_servers);
+    openapi_free_servers_array(spec->servers, spec->n_servers);
     spec->servers = NULL;
     spec->n_servers = 0;
   }

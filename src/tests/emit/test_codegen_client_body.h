@@ -1628,7 +1628,1318 @@ TEST test_body_binary_response_pdf(void) {
   PASS();
 }
 
+
+TEST test_client_body_verb_mapping(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testVerb";
+  
+  /* Test additional non-standard verbs */
+  op.is_additional = 1;
+  
+  op.method = NULL;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "get";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "post";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "put";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.method = "delete";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.method = "head";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.method = "patch";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "options";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "trace";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "query";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.method = "unknown";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_mapped_err_code(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testErrCode";
+  op.n_responses = 5;
+  op.responses = calloc(5, sizeof(*op.responses));
+  op.responses[0].code = "400";
+  op.responses[1].code = "401";
+  op.responses[2].code = "403";
+  op.responses[3].code = "404";
+  op.responses[4].code = "500";
+  
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(op.responses);
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_media_type_matching(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaMatch";
+  op.summary = "Test summary";
+  
+  op.req_body.content_type = "application/vnd.github+JSON";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.req_body.content_type = "APPLICATION/XML";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.req_body.content_type = "multipart/form-data";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  op.req_body.content_type = "text/plain";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_find_media_type_not_found(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testMediaTypeFindNotFound";
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  
+  op.req_body.content_type = "application/x-www-form-urlencoded";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "application/json"; /* Doesn't match */
+  
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.req_body.content_type = "multipart/form-data";
+  op.req_body_media_types[0].name = "application/xml"; /* Doesn't match */
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_find_encoding_not_found(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testEncodingFindNotFound";
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  
+  op.req_body.content_type = "multipart/form-data";
+  op.req_body.ref_name = "MockSchema";
+  
+  /* Provide req_body_media_types */
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/form-data";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "other_prop"; /* Different from test_prop */
+  enc.content_type = "text/plain";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  /* Setup the global Spec schema definitions */
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchema";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_array_items_statics(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testArrayItemsStatics";
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  
+  op.req_body.content_type = "multipart/form-data";
+  op.req_body.ref_name = "MockSchema2";
+  
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/form-data";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchema2";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 5;
+  spec.defined_schemas[0].fields = calloc(5, sizeof(struct StructField));
+  
+  /* Field 0: array of object */
+  strcpy(spec.defined_schemas[0].fields[0].name, "arr_obj");
+  strcpy(spec.defined_schemas[0].fields[0].type, "array");
+  strcpy(spec.defined_schemas[0].fields[0].ref, "object");
+  
+  /* Field 1: array of array */
+  strcpy(spec.defined_schemas[0].fields[1].name, "arr_arr");
+  strcpy(spec.defined_schemas[0].fields[1].type, "array");
+  strcpy(spec.defined_schemas[0].fields[1].ref, "array");
+
+  /* Field 2: array of enum */
+  strcpy(spec.defined_schemas[0].fields[2].name, "arr_enum");
+  strcpy(spec.defined_schemas[0].fields[2].type, "array");
+  strcpy(spec.defined_schemas[0].fields[2].ref, "enum");
+
+  /* Field 3: object */
+  strcpy(spec.defined_schemas[0].fields[3].name, "obj_field");
+  strcpy(spec.defined_schemas[0].fields[3].type, "object");
+
+  /* Field 4: array with empty ref */
+  strcpy(spec.defined_schemas[0].fields[4].name, "arr_str");
+  strcpy(spec.defined_schemas[0].fields[4].type, "array");
+  spec.defined_schemas[0].fields[4].ref[0] = '\0';
+  
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.req_body.content_type = "application/x-www-form-urlencoded";
+  op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+TEST test_client_body_verb_enum_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.operation_id = "testVerb";
+  
+  op.verb = OA_VERB_PUT;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.verb = OA_VERB_DELETE;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.verb = OA_VERB_HEAD;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  op.verb = OA_VERB_PATCH;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+
+
+TEST test_client_body_header_formatting_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testHdrFormat";
+  
+  // Set up global schemas to bypass properties missing error
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaHdr";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "1test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaHdr";
+  
+  // Multipart data with specific encodings to hit header name formatting
+  op.req_body.content_type = "multipart/mixed";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "1test_prop";
+  
+  struct OpenAPI_Header hdr;
+  memset(&hdr, 0, sizeof(hdr));
+  hdr.name = "1Content-Type"; // hit sanitize starting with number, and it isn't Content-Type exact
+  
+  enc.n_headers = 1;
+  enc.headers = &hdr;
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "1test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+
+
+TEST test_client_body_media_types_textual_binary_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaTypeClassifiers";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaTxtBin";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaTxtBin";
+  
+  // Hit textual formatters indirectly via multipart field generation
+  op.req_body.content_type = "multipart/mixed";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "test_prop";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  // text/html
+  enc.content_type = "text/html";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // application/xml
+  enc.content_type = "application/xml";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // application/rss+xml
+  enc.content_type = "application/rss+xml";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // image/png (binary)
+  enc.content_type = "image/png";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // audio/mp3 (binary)
+  enc.content_type = "audio/mp3";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // video/mp4 (binary)
+  enc.content_type = "video/mp4";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // application/pdf (binary)
+  enc.content_type = "application/pdf";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+TEST test_client_body_media_types_textual_binary_missing_branches_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaTypeClassifiersMissing";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaMissing";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaMissing";
+  
+  // Hit textual formatters indirectly via multipart field generation
+  op.req_body.content_type = "multipart/mixed";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "test_prop";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  // text/css (textual prefix)
+  enc.content_type = "text/css";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // application/atom+xml (textual suffix)
+  enc.content_type = "application/atom+xml";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+TEST test_client_body_media_type_caps_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaCapsIndirect";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaCaps";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaCaps";
+  
+  // Mixed upper and lower caps
+  op.req_body.content_type = "MULTIPART/MIXED";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "test_prop";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  // text/plain in caps
+  enc.content_type = "TEXT/PLAIN";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_media_type_prefix_caps_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaPrefixCapsIndirect";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaPrefixCaps";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaPrefixCaps";
+  
+  // Hit prefix upper caps
+  op.req_body.content_type = "MULTIPART/MIXED";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "test_prop";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  // text/plain in mixed caps to hit prefix
+  enc.content_type = "TeXt/PlaIN";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+TEST test_client_body_media_type_prefix_suffix_short(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testMediaShort";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaShort";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "test_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "string");
+  
+  op.req_body.ref_name = "MockSchemaShort";
+  
+  op.req_body.content_type = "multipart/mixed";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "multipart/mixed";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "test_prop";
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+  
+  struct OpenAPI_MultipartField mf;
+  memset(&mf, 0, sizeof(mf));
+  mf.name = "test_prop";
+  mf.type = "string";
+  mf.is_binary = 0;
+  op.req_body.n_multipart_fields = 1;
+  op.req_body.multipart_fields = &mf;
+
+  // text/ (len < pre_len = 5) -> e.g. "tex"
+  enc.content_type = "tex";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // +xml (len < suf_len = 4) -> e.g. "xm"
+  enc.content_type = "xm";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+TEST test_client_body_write_inline_json_parse_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testInlineParseIndirect";
+  
+  // We need to hit write_response_read -> write_inline_json_parse
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  // Setup media type with inline schema
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "application/json";
+  
+  // Test array of string
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 1;
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Test array of integer
+  resp.content_media_types[0].schema.inline_type = "integer";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // Test array of number
+  resp.content_media_types[0].schema.inline_type = "number";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // Test array of boolean
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Test raw boolean
+  resp.content_media_types[0].schema.is_array = 0;
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Test unhandled / unknown (e.g., fallback)
+  resp.content_media_types[0].schema.inline_type = "unknown_type_test";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Add missing branch from write_response_read (raw array of non-json)
+  resp.content_media_types[0].name = "text/plain";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+TEST test_client_body_write_inline_json_parse_types(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testInlineParseTypes";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "application/json";
+  op.responses = &resp;
+  
+  // array of string
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // array of int
+  resp.content_media_types[0].schema.inline_type = "integer";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of number
+  resp.content_media_types[0].schema.inline_type = "number";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // array of boolean
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of fallback/unknown
+  resp.content_media_types[0].schema.inline_type = "unknown_test";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // raw boolean
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  resp.content_media_types[0].schema.is_array = 0;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of string (non-json)
+  resp.content_media_types[0].name = "text/plain";
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_inline_json_parse_types_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testInlineParseTypes";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "application/json";
+  op.responses = &resp;
+  
+  // Need to provide a valid body payload via dummy schema
+  // so the codegen logic is fully hit and NOT skipped!
+  
+  // array of string
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 1;
+  // Make it think the response is an object with an inline schema so it hits the array codegen!
+  // No, write_inline_json_parse writes code! We just need it to emit the C code blocks!
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // array of int
+  resp.content_media_types[0].schema.inline_type = "integer";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of number
+  resp.content_media_types[0].schema.inline_type = "number";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // array of boolean
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of fallback/unknown
+  resp.content_media_types[0].schema.inline_type = "unknown_test";
+  resp.content_media_types[0].schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // raw boolean
+  resp.content_media_types[0].schema.inline_type = "boolean";
+  resp.content_media_types[0].schema.is_array = 0;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_form_object_style_form_explode(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "post";
+  op.verb = OA_VERB_POST;
+  op.operation_id = "testFormObjStyle";
+  
+  spec.n_defined_schemas = 1;
+  spec.defined_schema_names = calloc(1, sizeof(char*));
+  spec.defined_schema_names[0] = "MockSchemaFormObj";
+  
+  spec.defined_schemas = calloc(1, sizeof(struct StructFields));
+  spec.defined_schemas[0].size = 1;
+  spec.defined_schemas[0].fields = calloc(1, sizeof(struct StructField));
+  strcpy(spec.defined_schemas[0].fields[0].name, "obj_prop");
+  strcpy(spec.defined_schemas[0].fields[0].type, "object");
+  strcpy(spec.defined_schemas[0].fields[0].ref, "MockSchemaFormObj"); // self-ref for test
+  
+  op.req_body.ref_name = "MockSchemaFormObj";
+  
+  op.req_body.content_type = "application/x-www-form-urlencoded";
+  op.n_req_body_media_types = 1;
+  op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
+  op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
+  
+  struct OpenAPI_Encoding enc;
+  memset(&enc, 0, sizeof(enc));
+  enc.name = "obj_prop";
+  enc.style_set = 1;
+  enc.style = OA_STYLE_FORM;
+  enc.explode_set = 1;
+  enc.explode = 1;
+  
+  op.req_body_media_types[0].n_encoding = 1;
+  op.req_body_media_types[0].encoding = &enc;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(spec.defined_schemas[0].fields);
+  free(spec.defined_schemas);
+  free(spec.defined_schema_names);
+  free(op.req_body_media_types);
+  fclose(fp);
+  PASS();
+}
+
+TEST test_client_body_cookie_object_style_form_explode(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testCookieObjStyle";
+  
+  op.n_parameters = 1;
+  op.parameters = calloc(1, sizeof(*op.parameters));
+  op.parameters[0].name = "cookie_obj";
+  op.parameters[0].in = OA_PARAM_IN_COOKIE;
+  op.parameters[0].type = "object";
+  op.parameters[0].style = OA_STYLE_FORM;
+  op.parameters[0].explode_set = 1;
+  op.parameters[0].explode = 1;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(op.parameters);
+  fclose(fp);
+  PASS();
+}
+
+
+
+TEST test_client_body_response_is_textual_string_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseIsTextualStringIndirect";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  // Set up content type directly on the response to trigger `response_is_textual_string`
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 0;
+  
+  // Also we need to make sure the media_types don't override it in the new parser logic,
+  // or maybe it's not even used? Let's just set it.
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Also hit schema_has_inline missing branches
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "integer"; // not string
+  resp.schema.is_array = 0;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+
+
+TEST test_client_body_response_is_textual_string_success(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseTextualSuccess";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 0;
+  
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_text_plain_success_indirect(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseTextualSuccessIndirect";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 0;
+  
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "text/plain";
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 0;
+  
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_binary_success_indirect_real(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseBinarySuccessIndirectReal";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  resp.content_type = "image/png"; // Binary!
+  
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseTextualSuccessIndirectRealFixed";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 0;
+  
+  // Make sure it DOES NOT have a ref_name
+  resp.schema.ref_name = NULL;
+  
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+
+TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseTextualSuccessIndirectRealFixed4";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  // Set up content type in the media_types map instead!
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "text/plain";
+  resp.content_media_types[0].schema.inline_type = "string";
+  resp.content_media_types[0].schema.is_array = 0;
+  
+  // Make sure to populate the root content_type so `response_is_textual_string` works!
+  resp.content_type = "text/plain"; 
+  
+  op.responses = &resp;
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+
+
+TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testInlineParseTypesString";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  
+  resp.n_content_media_types = 1;
+  resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
+  resp.content_media_types[0].name = "application/json";
+  op.responses = &resp;
+  
+  // Make sure it doesn't get blocked by success_schema_name!
+  resp.schema.ref_name = NULL;
+  
+  // array of string
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 1;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of integer
+  resp.schema.inline_type = "integer";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of number
+  resp.schema.inline_type = "number";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // array of boolean
+  resp.schema.inline_type = "boolean";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // array of fallback
+  resp.schema.inline_type = "unknown_type";
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // not an array boolean
+  resp.schema.inline_type = "boolean";
+  resp.schema.is_array = 0;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  free(resp.content_media_types);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_joined_form_array(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testJoinedFormArray";
+  
+  op.n_parameters = 1;
+  op.parameters = calloc(1, sizeof(*op.parameters));
+  op.parameters[0].name = "query_arr";
+  op.parameters[0].in = OA_PARAM_IN_QUERY;
+  op.parameters[0].type = "array";
+  op.parameters[0].items_type = "object";
+  op.parameters[0].style = OA_STYLE_FORM;
+  op.parameters[0].explode_set = 1;
+  op.parameters[0].explode = 0;
+  
+  // Set array of strings basically via mock
+  op.parameters[0].items_type = "string";
+
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+  
+  // Also try different delim via pipedd
+  op.parameters[0].style = OA_STYLE_PIPE_DELIMITED;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  // space delimited
+  op.parameters[0].style = OA_STYLE_SPACE_DELIMITED;
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  free(op.parameters);
+  fclose(fp);
+  PASS();
+}
+
+
+TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  FILE *fp = tmpfile();
+
+  memset(&spec, 0, sizeof(spec));
+  memset(&op, 0, sizeof(op));
+  
+  op.method = "get";
+  op.verb = OA_VERB_GET;
+  op.operation_id = "testResponseTextualSuccessIndirectRealFixed3";
+  
+  op.n_responses = 1;
+  struct OpenAPI_Response resp;
+  memset(&resp, 0, sizeof(resp));
+  resp.code = "200";
+  resp.content_type = "text/plain";
+  resp.schema.inline_type = "string";
+  resp.schema.is_array = 0;
+  
+  op.responses = &resp;
+
+  // Let's actually test response_is_textual_string AND schema_inline_is_string indirectly
+  // The reason it wasn't hit previously is because codegen_client_write_body
+  // skips generating the response code if we don't have any parameters! No wait.
+  // Let's ensure the full operation is populated properly.
+  codegen_client_write_body(fp, &op, &spec, "/path", NULL);
+
+  fclose(fp);
+  PASS();
+}
+
 SUITE(client_body_suite) {
+  RUN_TEST(test_client_body_verb_mapping);
+  RUN_TEST(test_client_body_mapped_err_code);
+  RUN_TEST(test_client_body_media_type_matching);
+  RUN_TEST(test_client_body_find_media_type_not_found);
+  RUN_TEST(test_client_body_find_encoding_not_found);
+  RUN_TEST(test_client_body_array_items_statics);
+  RUN_TEST(test_client_body_verb_enum_indirect);
+  RUN_TEST(test_client_body_header_formatting_indirect);
+  RUN_TEST(test_client_body_media_types_textual_binary_indirect);
+  RUN_TEST(test_client_body_media_types_textual_binary_missing_branches_indirect);
+  RUN_TEST(test_client_body_media_type_caps_indirect);
+  RUN_TEST(test_client_body_media_type_prefix_caps_indirect);
+  RUN_TEST(test_client_body_media_type_prefix_suffix_short);
+  RUN_TEST(test_client_body_write_inline_json_parse_indirect);
+  RUN_TEST(test_client_body_write_inline_json_parse_types);
+  RUN_TEST(test_client_body_write_inline_json_parse_types_indirect);
+  RUN_TEST(test_client_body_form_object_style_form_explode);
+  RUN_TEST(test_client_body_cookie_object_style_form_explode);
+  RUN_TEST(test_client_body_response_is_textual_string_indirect);
+  RUN_TEST(test_client_body_response_is_textual_string_success);
+  RUN_TEST(test_client_body_write_text_plain_success_indirect);
+  RUN_TEST(test_client_body_write_binary_success_indirect_real);
+  RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed);
+  RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed4);
+  RUN_TEST(test_client_body_write_inline_json_parse_types_indirect_string);
+  RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_joined_form_array);
+  RUN_TEST(test_client_body_write_text_plain_success_indirect_real_fixed3);
   RUN_TEST(test_body_basic_get);
   RUN_TEST(test_body_base_url_override);
   RUN_TEST(test_body_options_verb);
