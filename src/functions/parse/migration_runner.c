@@ -983,7 +983,7 @@ int seed_database(const char *seed_filepath) {
   printf("Database seeded successfully from '%s'.\n", seed_filepath);
   return 0;
 }
-#else  /* USE_LIBPQ */
+#else  /* !defined(USE_LIBPQ_LINKED) && !defined(USE_LIBPQ_DYNAMIC) */
 int apply_migration(const char *filepath) {
   (void)filepath;
   return ENOSYS;
@@ -1022,4 +1022,4 @@ int seed_database(const char *seed_filepath) {
   (void)seed_filepath;
   return ENOSYS;
 }
-#endif /* USE_LIBPQ */
+#endif /* !defined(USE_LIBPQ_LINKED) && !defined(USE_LIBPQ_DYNAMIC) */
