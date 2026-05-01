@@ -543,7 +543,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
       if (is_safe && is_safe != 18 && is_safe != 19 && is_safe != 20 &&
           is_safe != 21 && is_safe != 22 && is_safe != 23 && is_safe != 24 &&
           is_safe != 25) {
-        char safe_name[128];
+        char safe_name[256];
         cdd_token_t *ct = NULL;
         if (strcmp(name, "strlen") == 0) {
           strcpy(safe_name, "strnlen_s");

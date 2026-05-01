@@ -197,17 +197,18 @@ TEST test_cdd_transform_safe_crt(void) {
 
 TEST test_cdd_transform_safe_crt_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
-  const char *code = "void edge_cases() {\n"
-                     "  char buf[256];\n"
-                     "  int dummy = 1;\n"
-                     "  if (dummy) strcpy(buf, \"abc\"); else strcpy(buf, \"def\");\n"
-                     "  switch (dummy) { case 1: strcpy(buf, \"a\"); }\n"
-                     "  for (; dummy; dummy--) strcpy(buf, \"x\");\n"
-                     "  while (dummy) strcpy(buf, \"y\");\n"
-                     "  do strcpy(buf, \"z\"); while (0);\n"
-                     "  { strcpy(buf, \"foo\"); }\n"
-                     "  printf(\"hello\");\n" /* not transformed without args */
-                     "}\n";
+  const char *code =
+      "void edge_cases() {\n"
+      "  char buf[256];\n"
+      "  int dummy = 1;\n"
+      "  if (dummy) strcpy(buf, \"abc\"); else strcpy(buf, \"def\");\n"
+      "  switch (dummy) { case 1: strcpy(buf, \"a\"); }\n"
+      "  for (; dummy; dummy--) strcpy(buf, \"x\");\n"
+      "  while (dummy) strcpy(buf, \"y\");\n"
+      "  do strcpy(buf, \"z\"); while (0);\n"
+      "  { strcpy(buf, \"foo\"); }\n"
+      "  printf(\"hello\");\n" /* not transformed without args */
+      "}\n";
   cdd_transform_config_t config = {0, 2, 0};
 
   ASSERT_EQ(EINVAL, cdd_transform_safe_crt(NULL, &config));
@@ -219,8 +220,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   PASS();
 }
 
-SUITE(transformer_safe_crt_suite) { 
-  RUN_TEST(test_cdd_transform_safe_crt); 
+SUITE(transformer_safe_crt_suite) {
+  RUN_TEST(test_cdd_transform_safe_crt);
   RUN_TEST(test_cdd_transform_safe_crt_edge_cases);
 }
 
