@@ -46,7 +46,7 @@ static int arena_alloc(size_t len, void **out_ptr) {
   *out_ptr = NULL;
   node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
   if (!node) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   node->next = global_arena;
@@ -373,7 +373,7 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   while (head) {
     cdd_trivia_t *tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
     if (!tr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     tr->kind = head->kind;
@@ -391,13 +391,13 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
 }
 
 static int clone_token(cdd_token_t *tok, cdd_token_t **out_token) {
-  cdd_token_t *ct;
+  cdd_token_t *ct = NULL;
   if (!tok || !out_token)
     return EINVAL;
   *out_token = NULL;
   ct = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   if (!ct) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   ct->kind = tok->kind;
@@ -544,7 +544,7 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           is_safe != 21 && is_safe != 22 && is_safe != 23 && is_safe != 24 &&
           is_safe != 25) {
         char safe_name[128];
-        cdd_token_t *ct;
+        cdd_token_t *ct = NULL;
         if (strcmp(name, "strlen") == 0) {
           strcpy(safe_name, "strnlen_s");
         } else {
@@ -860,8 +860,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
             {
               char left[256] = {0};
               char right[256] = {0};
-              int ll = eq - s;
-              int rl = slen - (eq - s) - 1;
+              size_t ll = (size_t)(eq - s);
+              size_t rl = slen - (size_t)(eq - s) - 1;
               if (strcmp(name, "_wputenv") == 0) {
                 left[0] = 'L';
                 left[1] = '"';
@@ -1239,8 +1239,8 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         if (skip)
           continue;
       }
-      printf("PROCESSING STATEMENT: %.*s\n", (int)first_tok->length,
-             first_tok->start);
+      /* printf("PROCESSING STATEMENT: %.*s\n", (int)first_tok->length,
+             first_tok->start); */
       parse_expr_ast(stmt, &idx, 0, &ast);
       find_and_mark_fopen(ast);
       check_unsupported_calls(ast);
@@ -1248,7 +1248,7 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
       if (check_needs_transform(ast)) {
         char indent[64];
         cdd_cst_builder_t msc_bld, else_bld, bld;
-        cdd_cst_node_t *msc_node, *else_node, *new_node;
+        cdd_cst_node_t *msc_node = NULL, *else_node = NULL, *new_node = NULL;
         int msc_changes = 0;
 
         cdd_trivia_t *saved_trivia =

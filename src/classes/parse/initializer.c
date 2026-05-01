@@ -130,7 +130,7 @@ static /**
     struct InitItem *new_arr = (struct InitItem *)realloc(
         list->items, new_cap * sizeof(struct InitItem));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     list->items = new_arr;

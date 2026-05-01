@@ -18,7 +18,7 @@ static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
           char *name = (char *)malloc(tok->length + 1);
           if (!name) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;
           }
           memcpy(name, tok->start, tok->length);

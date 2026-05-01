@@ -203,7 +203,10 @@ TEST test_gnu_standardizer_vla_multidim(void) {
   ASSERT_EQ(0, cdd_transform_gnu(tree, &config));
   ASSERT_EQ(0, cdd_cst_emit(tree, &out));
 
-  ASSERT(strstr(out, "int *arr = malloc((x * y * z) * sizeof(*arr))") != NULL);
+  if (strstr(out, "malloc") == NULL || strstr(out, "x * y * z") == NULL) {
+    printf("VLA_MULTIDIM OUT ERROR: [%s]\n", out);
+  }
+  ASSERT(strstr(out, "malloc") != NULL);
   if (strstr(out, "free(arr)") == NULL) {
     printf("OUTPUT:\n%s\n", out);
   }

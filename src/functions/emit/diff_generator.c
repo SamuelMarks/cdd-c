@@ -31,7 +31,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
 
   diff_buf = malloc(diff_cap);
   if (!diff_buf) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -73,7 +73,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
           diff_cap *= 2;
           diff_buf = realloc(diff_buf, diff_cap);
           if (!diff_buf) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;
           }
         }
@@ -90,7 +90,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
       diff_cap = diff_cap * 2 + strlen(p->text);
       diff_buf = realloc(diff_buf, diff_cap);
       if (!diff_buf) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
     }

@@ -24,7 +24,7 @@ static int append_child_token(cdd_cst_node_t *node, cdd_token_t *tok) {
     cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
         node->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     node->children = new_arr;
@@ -42,7 +42,7 @@ static int append_child_node(cdd_cst_node_t *node, cdd_cst_node_t *child) {
     cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
         node->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     node->children = new_arr;
@@ -108,7 +108,7 @@ static int parse_declaration_or_statement(parser_state_t *s,
 
 static int parse_block(parser_state_t *s, cdd_cst_node_t *parent,
                        cdd_cst_node_t **out_node) {
-  cdd_token_t *t;
+  cdd_token_t *t = NULL;
   cdd_cst_node_t *b = NULL;
   alloc_node(CDD_CST_BLOCK, parent, &b);
   if (!b) {
@@ -357,7 +357,7 @@ int cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   if (!tree) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

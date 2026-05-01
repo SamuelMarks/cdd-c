@@ -35,7 +35,7 @@ static int process_file(const char *filepath,
   str = (char *)malloc((size_t)fsize + 1);
   if (!str) {
     fclose(f);
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   fread(str, 1, (size_t)fsize, f);

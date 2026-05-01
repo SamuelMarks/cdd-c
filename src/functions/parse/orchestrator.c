@@ -29,6 +29,7 @@
 #include "functions/parse/cst.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/orchestrator.h"
+#include "c_cdd/log.h"
 #include "functions/parse/str.h" /* For c_cdd_strdup */
 #include "functions/parse/tokenizer.h"
 
@@ -316,7 +317,7 @@ static /**
     size_t new_cap = callee->alloc_callers == 0 ? 4 : callee->alloc_callers * 2;
     size_t *new_arr = realloc(callee->callers, new_cap * sizeof(size_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     callee->callers = new_arr;

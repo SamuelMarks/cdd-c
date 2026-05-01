@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "functions/parse/fs.h"
+#include "c_cdd/log.h"
 #include "functions/str_includes.h"
 
 #ifdef _WIN32
@@ -206,7 +207,7 @@ int get_basename(const char *path, char **out) {
     *out = (char *)malloc(2);
     if (!*out)
       return ENOMEM;
-    (*out)[0] = PATH_SEP_C;
+    (*out)[0] = '/';
     (*out)[1] = '\0';
     return 0;
   }
@@ -220,7 +221,7 @@ int get_basename(const char *path, char **out) {
   len = (size_t)(p - start_p) + 1;
   ret = (char *)malloc(len + 1);
   if (!ret) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -266,6 +267,13 @@ int get_dirname(const char *path, char **out) {
   if (p == path) {
     if (*p == '/' || *p == '\\') {
       len = 1; /* Root */
+      ret = (char *)malloc(2);
+      if (!ret)
+        return ENOMEM;
+      ret[0] = '/';
+      ret[1] = '\0';
+      *out = ret;
+      return 0;
     } else {
       /* No separator found, e.g. "foo" -> "." */
       *out = (c_cdd_strdup(".", &_ast_strdup_2), _ast_strdup_2);
@@ -289,7 +297,7 @@ int get_dirname(const char *path, char **out) {
 
   ret = (char *)malloc(len + 1);
   if (!ret) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -500,7 +508,7 @@ int read_from_fh(FILE *fh, char **out_data, size_t *out_size) {
     /* Empty file case, allocate distinct empty string */
     buffer = (char *)malloc(1);
     if (!buffer) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     buffer[0] = '\0';
@@ -589,7 +597,8 @@ out_error:
 static /**
         * @brief Executes the maybe mkdir operation.
         */
-    int maybe_mkdir(const char *path) {
+    int
+    maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
@@ -645,7 +654,7 @@ int makedirs(const char *path) {
 
   dup_path = (c_cdd_strdup(path, &_ast_strdup_4), _ast_strdup_4);
   if (dup_path == NULL) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

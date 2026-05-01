@@ -14,7 +14,7 @@ static int alloc_trivia(enum cdd_trivia_kind_t kind, const uint8_t *start,
     return EINVAL;
   t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!t) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   t->kind = kind;
@@ -112,7 +112,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 
   list = (cdd_token_list_t *)calloc(1, sizeof(cdd_token_list_t));
   if (!list) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

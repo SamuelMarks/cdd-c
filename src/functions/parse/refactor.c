@@ -6,6 +6,7 @@
 
 /* clang-format off */
 #include "functions/parse/refactor.h"
+#include "c_cdd/log.h"
 #include "c_str_span.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
@@ -63,7 +64,7 @@ int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
   new_alloc = (struct RefactoredFunction *)realloc(
       ctx->funcs, (ctx->func_count + 1) * sizeof(struct RefactoredFunction));
   if (!new_alloc) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

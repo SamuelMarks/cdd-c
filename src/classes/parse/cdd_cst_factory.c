@@ -15,7 +15,7 @@ int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
     return EINVAL;
   n = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
   if (!n) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   n->kind = kind;
@@ -30,7 +30,7 @@ static int track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
     cdd_token_t **new_arr = (cdd_token_t **)realloc(
         tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     tree->synthesized_tokens = new_arr;
@@ -48,7 +48,7 @@ int cdd_cst_create_token_len(cdd_cst_tree_t *tree, enum cdd_token_kind_t kind,
     return EINVAL;
   tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   if (!tok) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -79,7 +79,7 @@ int cdd_cst_append_child_node(cdd_cst_node_t *parent, cdd_cst_node_t *child) {
     cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
         parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     parent->children = new_arr;
@@ -102,7 +102,7 @@ int cdd_cst_append_child_token(cdd_cst_node_t *parent, cdd_token_t *token) {
     cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
         parent->children, new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     parent->children = new_arr;

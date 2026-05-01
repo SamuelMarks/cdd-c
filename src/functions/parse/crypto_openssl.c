@@ -42,7 +42,7 @@ int crypto_sha256(const void *data, size_t data_len,
 
   mdctx = EVP_MD_CTX_new();
   if (!mdctx) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

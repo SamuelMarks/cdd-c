@@ -258,7 +258,7 @@ int openapi_orm_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (!model_h) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

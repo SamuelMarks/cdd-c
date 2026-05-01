@@ -21,6 +21,7 @@
 #include <c89stringutils_string_extras.h>
 
 #include "functions/emit/rewriter_sig.h"
+#include "c_cdd/log.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -109,7 +110,7 @@ static /**
 
   buf = (char *)malloc(len + 1);
   if (!buf) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

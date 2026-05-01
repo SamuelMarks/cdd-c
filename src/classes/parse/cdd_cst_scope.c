@@ -15,7 +15,7 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 
   env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
   if (!env) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -75,7 +75,7 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
   new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!new_scope) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -116,7 +116,7 @@ static int cdd_strdup(const char *s, char **out_s) {
   len = strlen(s);
   d = (char *)malloc(len + 1);
   if (!d) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   memcpy(d, s, len + 1);
@@ -134,7 +134,7 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
 
   sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
   if (!sym) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

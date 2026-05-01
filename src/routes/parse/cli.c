@@ -1075,7 +1075,6 @@ static /**
     int
     merge_scopes(struct OpenAPI_OAuthFlow *dst,
                  const struct DocOAuthFlow *src) {
-  char *_ast_strdup_6 = NULL;
   char *_ast_strdup_7 = NULL;
   char *_ast_strdup_8 = NULL;
   size_t i;

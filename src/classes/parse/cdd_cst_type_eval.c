@@ -139,7 +139,7 @@ static int extract_type_name(cdd_cst_node_t *node, char **out_name,
   if (buf_len > 0) {
     char *ret = (char *)malloc(buf_len + 1);
     if (!ret) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     memcpy(ret, buf, buf_len + 1);
