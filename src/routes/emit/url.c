@@ -1459,7 +1459,7 @@ static /**
           segs = (struct UrlSegment *)realloc(segs,
                                               cap * sizeof(struct UrlSegment));
           if (!segs) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;
           }
         }
@@ -1488,7 +1488,7 @@ static /**
             segs = (struct UrlSegment *)realloc(
                 segs, cap * sizeof(struct UrlSegment));
             if (!segs) {
-              C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+              C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
               return ENOMEM;
             }
           }
@@ -1514,7 +1514,7 @@ static /**
       segs =
           (struct UrlSegment *)realloc(segs, cap * sizeof(struct UrlSegment));
       if (!segs) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
     }

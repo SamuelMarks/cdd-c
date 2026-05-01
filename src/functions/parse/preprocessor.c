@@ -26,6 +26,7 @@
 #include "functions/parse/fs.h"
 
 #include "functions/parse/preprocessor.h"
+#include "c_cdd/log.h"
 
 #include "functions/parse/str.h"
 
@@ -206,7 +207,7 @@ static /**
         ctx->macros, new_cap * sizeof(struct MacroDef));
 
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
 
@@ -406,7 +407,7 @@ int pp_add_search_path(struct PreprocessorContext *ctx, const char *path) {
   copy = (c_cdd_strdup(path, &_ast_strdup_1), _ast_strdup_1);
 
   if (!copy) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -1870,7 +1871,7 @@ static /**
             _ast_token_to_string_94);
 
     if (!name) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
 

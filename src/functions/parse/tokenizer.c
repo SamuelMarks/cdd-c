@@ -201,7 +201,7 @@ static /**
         (struct Token *)realloc(tl->tokens, new_cap * sizeof(struct Token));
 
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
 
@@ -913,7 +913,7 @@ int tokenize(const az_span source, struct TokenList **const out) {
   list = (struct TokenList *)calloc(1, sizeof(struct TokenList));
 
   if (!list) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

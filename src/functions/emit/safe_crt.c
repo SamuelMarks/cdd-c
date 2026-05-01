@@ -54,7 +54,7 @@ static /**
     struct SafeCrtPatch *new_arr =
         realloc(list->patches, new_cap * sizeof(struct SafeCrtPatch));
     if (!new_arr) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     list->patches = new_arr;
@@ -72,7 +72,7 @@ static /**
 #endif
 
   if (!p->replacement_text) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   return 0;

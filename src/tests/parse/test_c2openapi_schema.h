@@ -189,7 +189,6 @@ TEST test_register_enum_schema(void) {
 TEST test_register_type_union_copy(void) {
   struct OpenAPI_Spec spec;
   struct TypeDefList types;
-  char *header_file = "test_reg_union.h";
   int rc;
   char *types_arr[] = {"string", "integer"};
 

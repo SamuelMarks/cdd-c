@@ -76,7 +76,6 @@ TEST test_cli_gen_full(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
   int rc;
-  FILE *f = NULL;
 
   memset(&spec, 0, sizeof(spec));
   spec.openapi_version = "3.1.0";

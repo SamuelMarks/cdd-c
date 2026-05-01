@@ -225,7 +225,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
     len = strlen(output_path) + strlen(filename) + 2;
     full_path = malloc(len);
     if (!full_path) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -236,7 +236,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
   } else {
     full_path = strdup(filename);
     if (!full_path) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
   }

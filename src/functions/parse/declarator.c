@@ -464,7 +464,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                                               &_ast_join_tokens_range_15),
                             _ast_join_tokens_range_15);
     if (!out_info->identifier) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     left = (skip_ws_back(tokens, pivot, start, &_ast_skip_ws_back_16),

@@ -195,7 +195,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   ASSERT_EQ(EINVAL, get_basename("foo", NULL));
 
   ASSERT_EQ(0, get_basename("///", &out));
-  ASSERT_STR_EQ(PATH_SEP, out);
+  ASSERT_STR_EQ("/", out);
   free(out);
   out = NULL;
 
@@ -208,7 +208,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   out = NULL;
 
   ASSERT_EQ(0, get_dirname("///", &out));
-  ASSERT_STR_EQ(PATH_SEP, out);
+  ASSERT_STR_EQ("/", out);
   free(out);
   out = NULL;
 

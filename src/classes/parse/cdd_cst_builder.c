@@ -126,7 +126,7 @@ int cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
 #endif
   pooled = pool_string(builder->tree, buf);
   if (!pooled) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   return cdd_cst_bld_token(builder, CDD_TOKEN_NUMBER, pooled);
@@ -195,7 +195,7 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
       {
         const char *pooled = pool_string(builder->tree, buf);
         if (!pooled) {
-          C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return ENOMEM;
         }
         rc = cdd_cst_bld_token(builder, CDD_TOKEN_STRING, pooled);
@@ -409,10 +409,27 @@ int cdd_cst_bld_snippet(cdd_cst_builder_t *builder, const char *snippet) {
         cdd_token_t *last = NULL;
         get_last_token(builder->target_node, &last);
         if (last) {
+          cdd_trivia_t *tr;
           last->leading_trivia = t->leading_trivia;
           last->trailing_trivia = t->trailing_trivia;
           t->leading_trivia = NULL;
           t->trailing_trivia = NULL;
+          for (tr = last->leading_trivia; tr; tr = tr->next) {
+            char tr_buf[2048];
+            if (tr->length < sizeof(tr_buf)) {
+              memcpy(tr_buf, tr->start, tr->length);
+              tr_buf[tr->length] = '\0';
+              tr->start = (const uint8_t *)pool_string(builder->tree, tr_buf);
+            }
+          }
+          for (tr = last->trailing_trivia; tr; tr = tr->next) {
+            char tr_buf[2048];
+            if (tr->length < sizeof(tr_buf)) {
+              memcpy(tr_buf, tr->start, tr->length);
+              tr_buf[tr->length] = '\0';
+              tr->start = (const uint8_t *)pool_string(builder->tree, tr_buf);
+            }
+          }
         }
       }
     }
@@ -502,7 +519,7 @@ static int create_trivia(cdd_cst_tree_t *tree, const char *text,
   *out_trivia = NULL;
   t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!t) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 #if defined(_MSC_VER)
@@ -546,7 +563,7 @@ static int create_trivia(cdd_cst_tree_t *tree, const char *text,
 
 int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder, const char *text) {
   char buf[1024];
-  cdd_trivia_t *trivia;
+  cdd_trivia_t *trivia = NULL;
   cdd_token_t *target_tok = NULL;
 
   if (!builder || !text)
@@ -672,8 +689,8 @@ int cdd_cst_transfer_trivia(cdd_cst_node_t *source_node,
                             cdd_cst_node_t *target_node) {
   cdd_trivia_t *lead;
   cdd_trivia_t *trail;
-  cdd_token_t *t_first;
-  cdd_token_t *t_last;
+  cdd_token_t *t_first = NULL;
+  cdd_token_t *t_last = NULL;
 
   if (!source_node || !target_node)
     return EINVAL;

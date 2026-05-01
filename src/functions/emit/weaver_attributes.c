@@ -28,7 +28,7 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
       size_t len = node->length;
       char *attr_text = (char *)malloc(len + 1);
       if (!attr_text) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
       memcpy(attr_text, node->start, len);

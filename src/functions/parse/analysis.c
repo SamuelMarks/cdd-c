@@ -39,7 +39,7 @@ int allocation_site_list_init(struct AllocationSiteList *list) {
   list->sites = (struct AllocationSite *)malloc(list->capacity *
                                                 sizeof(struct AllocationSite));
   if (!list->sites) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   return 0;
@@ -79,7 +79,7 @@ int allocation_site_list_add(struct AllocationSiteList *list, size_t index,
     struct AllocationSite *new_sites = (struct AllocationSite *)realloc(
         list->sites, new_cap * sizeof(struct AllocationSite));
     if (!new_sites) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     list->sites = new_sites;

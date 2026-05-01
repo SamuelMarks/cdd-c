@@ -100,7 +100,7 @@ int vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
     struct VcpkgDependency *new_deps = (struct VcpkgDependency *)realloc(
         builder->deps, new_cap * sizeof(struct VcpkgDependency));
     if (!new_deps) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
     builder->deps = new_deps;
@@ -200,7 +200,7 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
 
   json = (char *)malloc(cap);
   if (!json) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

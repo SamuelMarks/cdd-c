@@ -388,7 +388,7 @@ static /**
     return 0;
   out = (char **)calloc(src_count, sizeof(char *));
   if (!out) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   for (i = 0; i < src_count; ++i) {
@@ -631,7 +631,7 @@ static /**
 
   types = (char **)calloc(count, sizeof(char *));
   if (!types) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -885,7 +885,7 @@ static /**
 
   extras_val = json_value_init_object();
   if (!extras_val) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   extras_obj = json_value_get_object(extras_val);
@@ -3387,7 +3387,7 @@ static /**
     return 0;
   vals = (char **)calloc(count, sizeof(char *));
   if (!vals) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   for (i = 0; i < count; ++i) {
@@ -3612,7 +3612,7 @@ static /**
     return 0;
   vals = (char **)calloc(count, sizeof(char *));
   if (!vals) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   for (i = 0; i < count; ++i) {
@@ -3946,7 +3946,7 @@ static /**
                                   &_ast_make_inline_schema_name_7),
           _ast_make_inline_schema_name_7);
   if (!name) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
@@ -4381,7 +4381,7 @@ static /**
           (struct_fields_get(dest, src_field->name, &_ast_struct_fields_get_10),
            _ast_struct_fields_get_10);
       if (!dest_field) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
       {
@@ -4398,7 +4398,7 @@ static /**
               (c_cdd_strdup(src_field->schema_extra_json, &_ast_strdup_20),
                _ast_strdup_20);
           if (!dest_field->schema_extra_json) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;
           }
         }
@@ -4407,7 +4407,7 @@ static /**
               (c_cdd_strdup(src_field->items_extra_json, &_ast_strdup_21),
                _ast_strdup_21);
           if (!dest_field->items_extra_json) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;
           }
         }
@@ -5219,7 +5219,7 @@ static /**
       dest->union_discriminator =
           (c_cdd_strdup(prop, &_ast_strdup_22), _ast_strdup_22);
       if (!dest->union_discriminator) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
     }
@@ -5228,7 +5228,7 @@ static /**
   dest->union_variants =
       (struct UnionVariantMeta *)calloc(count, sizeof(struct UnionVariantMeta));
   if (!dest->union_variants) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   dest->n_union_variants = count;
@@ -5280,7 +5280,7 @@ static /**
                                              &_ast_make_unique_variant_name_17),
                     _ast_make_unique_variant_name_17);
     if (!variant_name) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
 

@@ -5,7 +5,6 @@
 #include "c_cdd_export.h"
 /* clang-format on */
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

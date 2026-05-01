@@ -12,7 +12,7 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
                             cdd_cst_child_t *new_children,
                             size_t new_children_count) {
   cdd_cst_node_t *node = node_ptr ? *node_ptr : NULL;
-  cdd_cst_node_t *new_node;
+  cdd_cst_node_t *new_node = NULL;
   size_t i;
   int rc;
   if (!tree || !node)
@@ -20,7 +20,7 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
 
   cdd_cst_alloc_node(node->kind, &new_node);
   if (!new_node) {
-    C_CDD_LOG_DEBUG("ENOMEM: OOM in %s\n", __func__);
+    C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 

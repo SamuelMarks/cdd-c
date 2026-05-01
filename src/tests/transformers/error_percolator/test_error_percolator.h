@@ -78,9 +78,31 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   PASS();
 }
 
+TEST test_cdd_transform_percolate_errors_edge_cases(void) {
+  cdd_cst_tree_t *tree = NULL;
+  const char *code =
+      "int x = 5;\n"
+      "void nothing() { int y = 6; }\n"
+      "void foo(int x) { int *p = malloc(1); }\n"
+      "void calls_foo() { foo(1); foo(2); }\n"
+      "void nested() { if (1) { int *p = calloc(1, 1); } }\n"
+      "void myrealloc() { void *p = realloc(NULL, 10); }\n"
+      "void ret() { void *p = malloc(1); if(p) return; return; }\n";
+  cdd_transform_config_t config = {0, 2, 0};
+
+  ASSERT_EQ(EINVAL, cdd_transform_percolate_errors(NULL, &config));
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(transformer_error_percolator_suite) {
   RUN_TEST(test_cdd_transform_percolate_errors);
   RUN_TEST(test_cdd_transform_percolate_errors_complex);
+  RUN_TEST(test_cdd_transform_percolate_errors_edge_cases);
 }
 
 #ifdef __cplusplus

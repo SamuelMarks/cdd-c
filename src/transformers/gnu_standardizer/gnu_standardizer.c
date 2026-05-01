@@ -175,7 +175,7 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             (tok->length == 8 && memcmp(tok->start, "__func__", 8) == 0)) {
           char *buf = (char *)malloc(ctx->func_len + 3);
           if (buf) {
-            cdd_token_t *new_tok;
+            cdd_token_t *new_tok = NULL;
             buf[0] = '"';
             memcpy(buf + 1, ctx->func_name, ctx->func_len);
             buf[1 + ctx->func_len] = '"';
@@ -1326,7 +1326,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_node_t *p_node = NULL;
             cdd_cst_find_node_for_token(tree->root, tok, &c_idx, &p_node);
             if (p_node) {
-              cdd_token_t *n_tok;
+              cdd_token_t *n_tok = NULL;
               memcpy(heap_buf, "/* ", 3);
               memcpy(heap_buf + 3, attr->start, attr->length);
               memcpy(heap_buf + 3 + attr->length, " */", 3);
@@ -1917,7 +1917,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
             buf = (char *)malloc(val_len + 2);
             if (buf) {
-              cdd_token_t *new_val;
+              cdd_token_t *new_val = NULL;
               buf[0] = '&';
               memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
                      val_len);
@@ -2376,7 +2376,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_find_node_for_token(tree->root, t, &child_idx_shadow,
                                           &parent);
               if (parent) {
-                cdd_token_t *new_tok;
+                cdd_token_t *new_tok = NULL;
                 strcpy(heap_buf, buf);
                 cdd_cst_create_token_len(tree, t->kind, heap_buf,
                                          strlen(heap_buf), &new_tok);
@@ -2472,7 +2472,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                                               &tree->base_tokens->tokens[k],
                                               &child_idx_dup, &parent);
                   if (parent) {
-                    cdd_token_t *new_tok;
+                    cdd_token_t *new_tok = NULL;
                     strcpy(dup, buf);
                     cdd_cst_create_token_len(tree,
                                              tree->base_tokens->tokens[k].kind,
@@ -2714,7 +2714,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_node_t *parent = NULL;
                 cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
                 if (parent) {
-                  cdd_token_t *new_tok;
+                  cdd_token_t *new_tok = NULL;
                   strcpy(dup, local_labels[j].rename);
                   cdd_cst_create_token_len(tree, t->kind, dup, strlen(dup),
                                            &new_tok);
