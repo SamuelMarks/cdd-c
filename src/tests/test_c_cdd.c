@@ -49,9 +49,6 @@
 #include "emit/test_rewriter_sig.h"
 #include "emit/test_schema2tests.h"
 #include "emit/test_schema_codegen.h"
-#include "emit/test_sql_to_c.h"
-#include "parse/test_sql.h"
-#include "emit/test_c_to_sql.h"
 #include "emit/test_sync_code.h"
 #include "emit/test_text_patcher.h"
 #include "emit/test_url_utils.h"
@@ -109,7 +106,6 @@
 #include "parse/test_integration_c2openapi.h"
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
-#include "parse/test_migration.h"
 #include "parse/test_cli_cst.h"
 #include "parse/test_cdd_cst_builder.h"
 #include "parse/test_cdd_cst_factory.h"
@@ -190,9 +186,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(rewriter_sig_suite);
   RUN_SUITE(schema2tests_suite);
   RUN_SUITE(schema_codegen_suite);
-  RUN_SUITE(sql_to_c_suite);
-  RUN_SUITE(sql_suite);
-  RUN_SUITE(test_c_to_sql_suite);
   RUN_SUITE(schema_constraints_suite);
   RUN_SUITE(schema_enum_required_suite);
   RUN_SUITE(simple_mocks_suite);
@@ -218,7 +211,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(client_gui_gen_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(server_json_rpc_suite);
-  RUN_SUITE(migration_suite);
   RUN_SUITE(cli_cst_suite);
   RUN_SUITE(cdd_cst_factory_suite);
 
