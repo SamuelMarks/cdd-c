@@ -57,53 +57,6 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Main entry point for `migrate` commands.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the migrate cli main operation.
-                     */
-    int
-    migrate_cli_main(int argc, char **argv);
-
-/**
- * @brief Main entry point for `db reset` command.
- */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the db reset cli main operation.
-                     */
-    int
-    db_reset_cli_main(int argc, char **argv);
-
-/**
- * @brief Main entry point for `sql2c` command.
- */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the sql2c main operation.
-                     */
-    int
-    sql2c_main(int argc, char **argv);
-extern C_CDD_EXPORT /**
-                     * @brief Executes the schema dump cli main operation.
-                     */
-    int
-    schema_dump_cli_main(int argc, char **argv);
-
-/**
- * @brief Main entry point for `seed` command.
- */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the seed cli main operation.
-                     */
-    int
-    seed_cli_main(int argc, char **argv);
-
-/**
- * @brief Main entry point for `setup_test_db` command.
- */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the setup test db cli main operation.
-                     */
-    int
-    setup_test_db_cli_main(int argc, char **argv);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

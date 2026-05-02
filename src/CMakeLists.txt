@@ -15,11 +15,6 @@ set(Header_Files
         "routes/emit/operation.h"
         "classes/emit/schema.h"
         "classes/parse/mapping.h"
-        "classes/parse/sql.h"
-        "classes/parse/migration.h"
-        "classes/emit/sql_to_c.h"
-        "classes/parse/migration.h"
-        "functions/parse/migration_runner.h"
         "classes/parse/code2schema.h"
         "classes/parse/cdd_token.h"
         "classes/parse/cdd_lexer.h"
@@ -93,11 +88,6 @@ set(Source_Files
         "routes/emit/operation.c"
         "classes/emit/schema.c"
         "classes/parse/mapping.c"
-        "classes/parse/sql.c"
-        "classes/parse/migration.c"
-        "functions/parse/migration_runner.c"
-        "classes/emit/sql_to_c.c"
-        "classes/emit/c_to_sql.c"
         "classes/parse/code2schema.c"
         "classes/parse/cdd_lexer.c"
         "classes/parse/cdd_cst_parser.c"
@@ -120,10 +110,6 @@ set(Source_Files
         "routes/parse/cli_cst.c"
         "classes/parse/cdd_cst_trivia.c"
         "classes/emit/cdd_cst_emit.c"
-        "classes/parse/query_projection.c"
-        "classes/parse/hydrate_router.c"
-        "classes/parse/cdd_c_ir.c"
-        "classes/parse/abstract_struct.c"
         "functions/emit/codegen.c"
         "functions/emit/build.c"
         "functions/emit/client_body.c"
@@ -152,7 +138,6 @@ set(Source_Files
         "routes/emit/client_gen.c"
         "routes/emit/cli_gen.c"
         "routes/emit/client_gui_gen.c"
-        "routes/emit/orm_gen.c"
         "routes/emit/server_gen.c"
         "openapi/parse/openapi.c"
         "openapi/emit/openapi.c"
@@ -338,29 +323,7 @@ endif ()
 endif()
 target_link_libraries("${LIBRARY_NAME}" PRIVATE parson::parson)
 
-set(CDD_POSTGRESQL "LINKED" CACHE STRING "PostgreSQL support (LINKED, DYNAMIC, OFF)")
-set(CDD_SQLITE "OFF" CACHE STRING "SQLite support (LINKED, DYNAMIC, OFF)")
-set(CDD_MYSQL "OFF" CACHE STRING "MySQL support (LINKED, DYNAMIC, OFF)")
 
-if(CDD_POSTGRESQL STREQUAL "LINKED")
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
-        find_package(PostgreSQL QUIET)
-    else ()
-        find_package(PostgreSQL CONFIG QUIET)
-    endif ()
-    if(TARGET PostgreSQL::PostgreSQL)
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE PostgreSQL::PostgreSQL)
-        target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_LINKED)
-    elseif(PostgreSQL_FOUND)
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE pq)
-        target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_LINKED)
-    endif()
-elseif(CDD_POSTGRESQL STREQUAL "DYNAMIC")
-    target_compile_definitions("${LIBRARY_NAME}" PRIVATE USE_LIBPQ_DYNAMIC)
-    if(NOT WIN32)
-        target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
-    endif()
-endif()
 
 if(CDD_SQLITE STREQUAL "LINKED")
     find_package(unofficial-sqlite3 CONFIG QUIET)

@@ -29,7 +29,6 @@
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gui_gen.h"
 #include "routes/emit/client_gen.h"
-#include "routes/emit/orm_gen.h"
 #include "routes/emit/server_gen.h"
 #include "routes/emit/server_json_rpc.h"
 #include "routes/parse/cli.h" /* New entry */
@@ -292,7 +291,6 @@ static /**
     }
 
     /* Always generate ORM models for to_sdk and to_server */
-    openapi_orm_generate(&spec, &config);
 
     if (out_dir) {
       free((void *)config.filename_base);
@@ -418,32 +416,10 @@ int cdd_main(int argc, char **argv) {
     rc = generate_build_system_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "schema2code") == 0) {
     rc = schema2code_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "sql2c") == 0) {
-    rc = sql2c_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "server_json_rpc") == 0) {
     rc = server_json_rpc_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "jsonschema2tests") == 0) {
     rc = jsonschema2tests_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "migrate") == 0) {
-    rc = migrate_cli_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "db") == 0) {
-    if (argc > 2 && strcmp(argv[2], "reset") == 0) {
-      rc = db_reset_cli_main(argc - 3, argv + 3);
-    } else {
-      fprintf(stderr, "Unknown db command. Try 'db reset'\n");
-      rc = EXIT_FAILURE;
-    }
-  } else if (strcmp(cmd, "schema") == 0) {
-    if (argc > 2 && strcmp(argv[2], "dump") == 0) {
-      rc = schema_dump_cli_main(argc - 3, argv + 3);
-    } else {
-      fprintf(stderr, "Unknown schema command. Try 'schema dump'\n");
-      rc = EXIT_FAILURE;
-    }
-  } else if (strcmp(cmd, "seed") == 0) {
-    rc = seed_cli_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "setup_test_db") == 0) {
-    rc = setup_test_db_cli_main(argc - 2, argv + 2);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {

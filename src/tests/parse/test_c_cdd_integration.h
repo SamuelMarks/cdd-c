@@ -410,7 +410,6 @@ TEST test_integration_schema2code_with_guards(void) {
   PASS();
 }
 
-#include "cdd_c_integration.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "openapi/parse/openapi.h"
 SUITE(integration_suite) {

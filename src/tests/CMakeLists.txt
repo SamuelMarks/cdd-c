@@ -75,7 +75,6 @@ set(Header_Files
         "emit/test_aggregator.h"
         "parse/test_c2openapi_schema.h"
         "parse/test_integration_c2openapi.h"
-        "parse/test_migration.h"
 ) 
 source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
 
