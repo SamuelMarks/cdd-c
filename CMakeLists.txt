@@ -57,6 +57,10 @@ if(MSVC AND MSVC_VERSION LESS 1600)
     link_directories("C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib")
 endif()
 
+if(MSVC AND CMAKE_C_COMPILER_VERSION VERSION_LESS 19.0)
+    add_compile_definitions(snprintf=_snprintf vsnprintf=_vsnprintf strdup=_strdup)
+endif()
+
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 
 if (MSVC AND MSVC_VERSION LESS 1800)
