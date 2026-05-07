@@ -279,9 +279,15 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h" "${span_content}")
         endif()
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span")
-    elseif(VCPKG_TOOLCHAIN)
-        find_package(c_str_span CONFIG REQUIRED)
     else()
+        set(c_str_span_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(c_str_span CONFIG QUIET)
+            if(c_str_span_FOUND)
+                set(c_str_span_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT c_str_span_RESOLVED)
         FetchContent_Declare(
             c_str_span
             GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
@@ -296,15 +302,22 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             file(WRITE "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" "${span_content}")
         endif()
         include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
+        endif()
     endif()
 
     # c89stringutils
     if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/c89stringutils")
-    elseif(VCPKG_TOOLCHAIN)
-        find_package(c89stringutils CONFIG REQUIRED)
     else()
+        set(c89stringutils_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(c89stringutils CONFIG QUIET)
+            if(c89stringutils_FOUND)
+                set(c89stringutils_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT c89stringutils_RESOLVED)
         FetchContent_Declare(
             c89stringutils
             GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
@@ -312,6 +325,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         )
         FetchContent_MakeAvailable(c89stringutils)
         include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
+        endif()
     endif()
 
     # curl
