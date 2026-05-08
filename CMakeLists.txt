@@ -253,6 +253,7 @@ if (NOT DEFINED TARGET_ARCH)
     get_arch()
 endif (NOT DEFINED TARGET_ARCH)
 
+if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
 if (WIN32 OR EMSCRIPTEN OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
     option(C_CDD_USE_LIBCURL "Enable libcurl (defaults to `ON` on non-Windows)" OFF)
 else ()
@@ -261,6 +262,7 @@ endif ()
 
 if (EMSCRIPTEN OR CMAKE_SYSTEM_NAME STREQUAL "DOS")
     option(HTTP_ONLY "Only build HTTP client/server (no OpenSSL)" OFF)
+endif ()
 endif ()
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
@@ -329,6 +331,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif()
 
     # curl
+    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     if (C_CDD_USE_LIBCURL)
         FetchContent_Declare(
             curl
@@ -338,6 +341,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
                 set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(curl)
+    endif ()
     endif ()
 
     # parson
@@ -364,12 +368,14 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             add_library(parson::parson ALIAS parson)
         endif()
     endif()
+    if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     if (C_CDD_USE_LIBCURL)
         if(TARGET curl AND NOT TARGET CURL::libcurl)
             add_library(CURL::libcurl ALIAS curl)
         elseif(TARGET libcurl AND NOT TARGET CURL::libcurl)
             add_library(CURL::libcurl ALIAS libcurl)
         endif()
+    endif ()
     endif ()
     
     endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
