@@ -90,29 +90,13 @@ static /**
                    "c_str_span_compiler_flags)\n\n",
                    project_name));
 
-  CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
-  CHECK_IO(fprintf(
-      fp,
-      "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(
-      fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs\" "
-          "\"${CMAKE_BINARY_DIR}/c-fs\")\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
-                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(c-fs CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
-  CHECK_IO(fprintf(fp, "        c-fs\n"));
-  CHECK_IO(fprintf(
-      fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git\n"));
-  CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
-  CHECK_IO(fprintf(fp, "    )\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-fs)\n"));
-  CHECK_IO(fprintf(
-      fp, "    include_directories(SYSTEM ${c-fs_SOURCE_DIR}/include)\n"));
-  CHECK_IO(fprintf(fp, "endif()\n\n"));
+  /* Network and Crypto Backend Options */
+  CHECK_IO(fprintf(fp, "option(C_ABSTRACT_HTTP_USE_CURL \"Use libcurl as the "
+                       "HTTP backend\" OFF)\n"));
+  CHECK_IO(fprintf(fp, "option(C_ABSTRACT_HTTP_USE_OPENSSL \"Use OpenSSL for "
+                       "cryptography\" OFF)\n\n"));
 
+  CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
   CHECK_IO(fprintf(
       fp,
       "if(EXISTS "
@@ -138,31 +122,8 @@ static /**
                        "${c-abstract-http_SOURCE_DIR}/include)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(
-      fp,
-      "if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(
-      fp, "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm\" "
-          "\"${CMAKE_BINARY_DIR}/c-orm\")\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
-                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-orm/include\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(c-orm CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
-  CHECK_IO(fprintf(fp, "        c-orm\n"));
-  CHECK_IO(fprintf(
-      fp, "        GIT_REPOSITORY https://github.com/SamuelMarks/c-orm.git\n"));
-  CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
-  CHECK_IO(fprintf(fp, "    )\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-orm)\n"));
-  CHECK_IO(fprintf(
-      fp, "    include_directories(SYSTEM ${c-orm_SOURCE_DIR}/include)\n"));
-  CHECK_IO(fprintf(fp, "endif()\n\n"));
-
-  CHECK_IO(fprintf(
-      fp, "target_link_libraries(%s PRIVATE c-fs c-abstract-http c-orm)\n\n",
-      project_name));
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE c-abstract-http)\n\n",
+                   project_name));
 
   /* Include Directories */
   CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));

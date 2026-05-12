@@ -374,6 +374,8 @@ TEST test_gen_client_op_params_only(void) {
 
   remove(h_file);
   remove("gen_op_params.c");
+  remove("gen_op_params_models.h");
+  remove("gen_op_params_models.c");
   PASS();
 }
 
@@ -410,6 +412,8 @@ TEST test_gen_client_querystring_param(void) {
 
   remove(h_file);
   remove("gen_querystring_param.c");
+  remove("gen_querystring_param_models.h");
+  remove("gen_querystring_param_models.c");
   PASS();
 }
 
@@ -450,6 +454,8 @@ TEST test_gen_client_path_level_params(void) {
 
   remove(h_file);
   remove("gen_path_params.c");
+  remove("gen_path_params_models.h");
+  remove("gen_path_params_models.c");
   PASS();
 }
 
@@ -495,6 +501,8 @@ TEST test_gen_client_path_param_override(void) {
 
   remove(h_file);
   remove("gen_path_override.c");
+  remove("gen_path_override_models.h");
+  remove("gen_path_override_models.c");
   PASS();
 }
 
@@ -532,6 +540,8 @@ TEST test_gen_client_grouped_tags_namespace(void) {
 
   remove(h_file);
   remove("gen_group_ns_test.c");
+  remove("gen_group_ns_test_models.h");
+  remove("gen_group_ns_test_models.c");
   PASS();
 }
 
@@ -564,6 +574,8 @@ TEST test_gen_client_namespace_only(void) {
 
   remove(h_file);
   remove("gen_ns_only_test.c");
+  remove("gen_ns_only_test_models.h");
+  remove("gen_ns_only_test_models.c");
   PASS();
 }
 
@@ -621,8 +633,20 @@ TEST test_gen_client_defaults(void) {
   ASSERT(strstr(content, "#include \"gen_def.h\"") != NULL);
   free(content);
 
+  /* Check models header */
+  read_to_file("gen_def_models.h", "r", &content, &sz);
+  ASSERT(strstr(content, "GEN_DEF_H_MODELS") != NULL);
+  free(content);
+
+  /* Check models source */
+  read_to_file("gen_def_models.c", "r", &content, &sz);
+  ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
+  free(content);
+
   remove("gen_def.h");
   remove("gen_def.c");
+  remove("gen_def_models.h");
+  remove("gen_def_models.c");
   PASS();
 }
 
@@ -664,6 +688,8 @@ TEST test_gen_transport_selection(void) {
   free(content);
   remove("gen_transport.h");
   remove("gen_transport.c");
+  remove("gen_transport_models.h");
+  remove("gen_transport_models.c");
   PASS();
 }
 

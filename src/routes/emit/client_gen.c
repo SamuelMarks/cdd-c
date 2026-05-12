@@ -19,9 +19,14 @@
 
 #include "functions/emit/client_body.h"
 #include "functions/emit/client_sig.h"
+#include "functions/emit/codegen.h"
+#include "classes/emit/struct.h"
+#include "classes/emit/json.h"
+#include "classes/emit/types.h"
 #include "functions/parse/str.h"
 #include "routes/emit/client_gen.h"
 #include "c_cdd/log.h"
+
 /* clang-format on */
 
 /* Helper macro for I/O checking */
@@ -1972,9 +1977,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                             const struct OpenApiClientConfig *config) {
   char *_ast_generate_guard_10 = NULL;
   char *_ast_derive_model_header_11 = NULL;
-  FILE *hfile = NULL, *cfile = NULL;
-  char *h_name = NULL, *c_name = NULL;
-  char *guard = NULL, *model_h = NULL;
+  FILE *hfile = NULL, *cfile = NULL, *mhfile = NULL, *mcfile = NULL;
+  char *h_name = NULL, *c_name = NULL, *mh_name = NULL, *mc_name = NULL;
+  char *guard = NULL, *model_h = NULL, *model_guard = NULL;
   const char *prefix = "";
   int rc = 0;
   size_t i, j;
@@ -1983,9 +1988,11 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     return EINVAL;
 
   /* Prepare filenames */
-  h_name = malloc(strlen(config->filename_base) + 3); /* .h */
-  c_name = malloc(strlen(config->filename_base) + 3); /* .c */
-  if (!h_name || !c_name) {
+  h_name = malloc(strlen(config->filename_base) + 3);   /* .h */
+  c_name = malloc(strlen(config->filename_base) + 3);   /* .c */
+  mh_name = malloc(strlen(config->filename_base) + 10); /* _models.h */
+  mc_name = malloc(strlen(config->filename_base) + 10); /* _models.c */
+  if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = ENOMEM;
     goto cleanup;
   }
@@ -1993,15 +2000,17 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(h_name, strlen(config->filename_base) + 3, "%s.h",
             config->filename_base);
-#else
-  sprintf(h_name, "%s.h", config->filename_base);
-#endif
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
   sprintf_s(c_name, strlen(config->filename_base) + 3, "%s.c",
             config->filename_base);
+  sprintf_s(mh_name, strlen(config->filename_base) + 10, "%s_models.h",
+            config->filename_base);
+  sprintf_s(mc_name, strlen(config->filename_base) + 10, "%s_models.c",
+            config->filename_base);
 #else
+  sprintf(h_name, "%s.h", config->filename_base);
   sprintf(c_name, "%s.c", config->filename_base);
+  sprintf(mh_name, "%s_models.h", config->filename_base);
+  sprintf(mc_name, "%s_models.c", config->filename_base);
 #endif
 
 #if defined(_MSC_VER)
@@ -2009,11 +2018,17 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     hfile = NULL;
   if (fopen_s(&cfile, c_name, "w") != 0)
     cfile = NULL;
+  if (fopen_s(&mhfile, mh_name, "w") != 0)
+    mhfile = NULL;
+  if (fopen_s(&mcfile, mc_name, "w") != 0)
+    mcfile = NULL;
 #else
   hfile = fopen(h_name, "w");
   cfile = fopen(c_name, "w");
+  mhfile = fopen(mh_name, "w");
+  mcfile = fopen(mc_name, "w");
 #endif
-  if (!hfile || !cfile) {
+  if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = EIO;
     goto cleanup;
   }
@@ -2040,7 +2055,154 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     goto cleanup;
   }
 
-  /* --- Write Preamble --- */
+  model_guard = malloc(strlen(guard) + 8);
+  if (!model_guard) {
+    rc = ENOMEM;
+    goto cleanup;
+  }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  sprintf_s(model_guard, strlen(guard) + 8, "%s_MODELS", guard);
+#else
+  sprintf(model_guard, "%s_MODELS", guard);
+#endif
+
+  /* --- Write Models Preamble --- */
+  if (fprintf(mhfile, "#ifndef %s\n", model_guard) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mhfile, "#define %s\n\n", model_guard) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mhfile, "#include <c_cdd_stdbool.h>\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mhfile, "#include <stddef.h>\n\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mhfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+
+  if (fprintf(mcfile, "#include \"%s\"\n", mh_name) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mcfile, "#include <stdlib.h>\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mcfile, "#include <string.h>\n\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+
+  /* TODO: Phase 3 Model definitions loop here */
+  if (spec->defined_schemas) {
+    struct CodegenStructConfig struct_cfg = {0};
+    struct CodegenJsonConfig json_cfg = {0};
+    struct CodegenTypesConfig types_cfg = {0};
+    struct CodegenConfig base_cfg = {0};
+
+    struct_cfg.guard_macro = NULL;
+    json_cfg.guard_macro = NULL;
+    base_cfg.json_guard = NULL;
+    base_cfg.utils_guard = NULL;
+
+    for (i = 0; i < spec->n_defined_schemas; ++i) {
+      struct StructFields *sf = &spec->defined_schemas[i];
+      const char *name = spec->defined_schema_names[i];
+      if (!name || !sf)
+        continue;
+
+      rc = write_forward_decl(mhfile, name);
+      if (rc != 0)
+        goto cleanup;
+    }
+
+    if (fprintf(mhfile, "\n") < 0) {
+      rc = EIO;
+      goto cleanup;
+    }
+
+    for (i = 0; i < spec->n_defined_schemas; ++i) {
+      struct StructFields *sf = &spec->defined_schemas[i];
+      const char *name = spec->defined_schema_names[i];
+      if (!name || !sf)
+        continue;
+
+      if (sf->is_enum) {
+        rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
+        if (rc != 0)
+          goto cleanup;
+      } else if (sf->is_union) {
+        rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
+        if (rc != 0)
+          goto cleanup;
+
+        rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
+        if (rc != 0)
+          goto cleanup;
+      } else {
+        rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
+        if (rc != 0)
+          goto cleanup;
+
+        rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_from_json_func(mcfile, name, &json_cfg);
+        if (rc != 0)
+          goto cleanup;
+        rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
+        if (rc != 0)
+          goto cleanup;
+      }
+    }
+  }
+
+  if (fprintf(mhfile, "\n#ifdef __cplusplus\n}\n#endif\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(mhfile, "#endif /* %s */\n", model_guard) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+
+  /* --- Write Client Preamble --- */
   if ((rc = write_header_preamble(hfile, guard, model_h)) != 0)
     goto cleanup;
   if ((rc = write_source_preamble(cfile, h_name)) != 0)
@@ -2067,22 +2229,38 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
-  CHECK_IO(fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n"));
-  CHECK_IO(fprintf(hfile, "#endif /* %s */\n", guard));
+  if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
+  if (fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
+    rc = EIO;
+    goto cleanup;
+  }
 
 cleanup:
   if (hfile)
     fclose(hfile);
   if (cfile)
     fclose(cfile);
+  if (mhfile)
+    fclose(mhfile);
+  if (mcfile)
+    fclose(mcfile);
   if (h_name)
     free(h_name);
   if (c_name)
     free(c_name);
+  if (mh_name)
+    free(mh_name);
+  if (mc_name)
+    free(mc_name);
   if (guard)
     free(guard);
   if (model_h)
     free(model_h);
+  if (model_guard)
+    free(model_guard);
 
   return rc;
 }
