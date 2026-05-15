@@ -58,11 +58,7 @@ typedef struct stat c_stat;
  * @param[in] path The path to check.
  * @return 1 if UNC, 0 otherwise.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the path is unc operation.
-                     */
-    int
-    path_is_unc(const char *path);
+extern C_CDD_EXPORT int path_is_unc(const char *path);
 
 /**
  * @brief Convert ASCII string to Wide string (Windows only).
@@ -73,11 +69,7 @@ extern C_CDD_EXPORT /**
  * @param[out] out_len Pointer to store the number of characters written.
  * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the ascii to wide operation.
-                     */
-    int
-    ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap, size_t *out_len);
+extern C_CDD_EXPORT int ascii_to_wide(const char *s, wchar_t *ws, size_t buf_cap, size_t *out_len);
 
 /**
  * @brief Convert Wide string to ASCII string (Windows only).
@@ -88,11 +80,7 @@ extern C_CDD_EXPORT /**
  * @param[out] out_len Pointer to store the number of bytes written.
  * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the wide to ascii operation.
-                     */
-    int
-    wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len);
+extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len);
 
 #else
 /* POSIX systems */
@@ -132,17 +120,13 @@ enum FopenError {
 
 /**
  * @param[out] _out_val Pointer to store the result
- * @param[out] _out_val Pointer to store the result
  * @brief Helper to convert internal standard library errno to FopenError.
  *
  * @param[in] fopen_error The errno value representing an error.
  * @return The corresponding FopenError enum value.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the fopen error from operation.
-                     */
-    int
-    fopen_error_from(int fopen_error, enum FopenError *_out_val);
+extern C_CDD_EXPORT int fopen_error_from(int fopen_error,
+                                         enum FopenError *_out_val);
 
 /**
  * @brief Struct to hold a file handle and its associated filename.
@@ -160,11 +144,7 @@ struct FilenameAndPtr {
  * @param[in] path The path to check.
  * @return 1 if directory, 0 if not or error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the fs is directory operation.
-                     */
-    int
-    fs_is_directory(const char *path);
+extern C_CDD_EXPORT int fs_is_directory(const char *path);
 
 /**
  * @brief Extract the base name (filename component) from a path.
@@ -204,12 +184,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out_size Pointer to size_t where data length will be stored.
  * @return 0 on success, or an error code (errno) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the read to file operation.
-                     */
-    int
-    read_to_file(const char *path, const char *mode, char **out_data,
-                 size_t *out_size);
+extern C_CDD_EXPORT int read_to_file(const char *path, const char *mode,
+                                     char **out_data, size_t *out_size);
 
 /**
  * @brief Write string content to a file.
@@ -218,11 +194,7 @@ extern C_CDD_EXPORT /**
  * @param[in] content The null-terminated string to write.
  * @return 0 on success, or error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the fs write to file operation.
-                     */
-    int
-    fs_write_to_file(const char *path, const char *content);
+extern C_CDD_EXPORT int fs_write_to_file(const char *path, const char *content);
 
 /**
  * @brief Read entire content from an open file stream.
@@ -233,11 +205,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out_size Pointer to size_t where data length will be stored.
  * @return 0 on success, or an error code (errno) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the read from fh operation.
-                     */
-    int
-    read_from_fh(FILE *fh, char **out_data, size_t *out_size);
+extern C_CDD_EXPORT int read_from_fh(FILE *fh, char **out_data,
+                                     size_t *out_size);
 
 /**
  * @brief Copy a file from source to destination.
@@ -247,11 +216,7 @@ extern C_CDD_EXPORT /**
  * @param[in] src Source path.
  * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cp operation.
-                     */
-    int
-    cp(const char *dst, const char *src);
+extern C_CDD_EXPORT int cp(const char *dst, const char *src);
 
 /**
  * @brief Create a directory.
@@ -261,11 +226,7 @@ extern C_CDD_EXPORT /**
  * @param[in] path Path of directory to create.
  * @return 0 on success, non-zero error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the makedir operation.
-                     */
-    int
-    makedir(const char *path);
+extern C_CDD_EXPORT int makedir(const char *path);
 
 /**
  * @brief Create a directory recursively (like `mkdir -p`).
@@ -273,11 +234,7 @@ extern C_CDD_EXPORT /**
  * @param[in] path Path of directory tree to create.
  * @return 0 on success, non-zero error code from `mkdir` or `stat` on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the makedirs operation.
-                     */
-    int
-    makedirs(const char *path);
+extern C_CDD_EXPORT int makedirs(const char *path);
 
 /**
  * @brief Get a temporary directory path.
@@ -286,22 +243,14 @@ extern C_CDD_EXPORT /**
  * @param[out] out_path Pointer to char* where the path string will be stored.
  * @return 0 on success, ENOMEM or other error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the tempdir operation.
-                     */
-    int
-    tempdir(char **out_path);
+extern C_CDD_EXPORT int tempdir(char **out_path);
 
 /**
  * @brief Cleanup FilenameAndPtr struct (close file and free filename).
  *
  * @param[in] file Pointer to struct to clean.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the FilenameAndPtr cleanup operation.
-                     */
-    void
-    FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
+extern C_CDD_EXPORT void FilenameAndPtr_cleanup(struct FilenameAndPtr *file);
 
 /**
  * @brief Cleanup struct and delete the file from the filesystem.
@@ -325,12 +274,10 @@ extern C_CDD_EXPORT /**
  * @param[out] file Output struct containing FILE* and filename string.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the mktmpfilegetnameandfile operation.
-                     */
-    int
-    mktmpfilegetnameandfile(const char *prefix, const char *suffix,
-                            const char *mode, struct FilenameAndPtr *file);
+extern C_CDD_EXPORT int mktmpfilegetnameandfile(const char *prefix,
+                                                const char *suffix,
+                                                const char *mode,
+                                                struct FilenameAndPtr *file);
 
 /**
  * @brief Callback function type for directory walking.
@@ -350,11 +297,8 @@ typedef int (*fs_walk_cb)(const char *path, void *user_data);
  * @param[in] user_data Opaque pointer passed to callback.
  * @return 0 on success, error code (errno) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the walk directory operation.
-                     */
-    int
-    walk_directory(const char *path, fs_walk_cb cb, void *user_data);
+extern C_CDD_EXPORT int walk_directory(const char *path, fs_walk_cb cb,
+                                       void *user_data);
 
 #ifdef __cplusplus
 }

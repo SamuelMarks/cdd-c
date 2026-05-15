@@ -37,8 +37,6 @@ static /**
         */
     int
     write_cmake_content(FILE *fp, const char *project_name, int has_tests) {
-  CHECK_IO(fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n"));
-  CHECK_IO(fprintf(fp, "project(%s C)\n\n", project_name));
 
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
@@ -46,8 +44,8 @@ static /**
   CHECK_IO(fprintf(fp, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n\n"));
 
   /* Source Globbing (Simplification for generated projects) */
-  CHECK_IO(fprintf(fp, "file(GLOB_RECURSE SOURCES \"*.c\")\n"));
-  CHECK_IO(fprintf(fp, "file(GLOB_RECURSE HEADERS \"*.h\")\n\n"));
+  CHECK_IO(fprintf(fp, "file(GLOB SOURCES \"*.c\")\n"));
+  CHECK_IO(fprintf(fp, "file(GLOB HEADERS \"*.h\")\n\n"));
 
   CHECK_IO(
       fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX \"test_.*\\\\.c$\")\n"));
@@ -137,10 +135,19 @@ static /**
     CHECK_IO(fprintf(fp, "include(CTest)\n"));
     CHECK_IO(fprintf(fp, "if (BUILD_TESTING)\n"));
     CHECK_IO(fprintf(fp, "    enable_testing()\n"));
-    CHECK_IO(fprintf(
-        fp, "    file(DOWNLOAD "
-            "https://raw.githubusercontent.com/silentbicycle/greatest/v1.5.0/"
-            "greatest.h ${CMAKE_CURRENT_BINARY_DIR}/greatest.h)\n"));
+
+    CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
+    CHECK_IO(fprintf(fp, "        find_package(greatest CONFIG REQUIRED)\n"));
+    CHECK_IO(fprintf(fp, "    else()\n"));
+    CHECK_IO(fprintf(fp, "        FetchContent_Declare(\n"));
+    CHECK_IO(fprintf(fp, "            greatest\n"));
+    CHECK_IO(fprintf(fp, "            GIT_REPOSITORY "
+                         "https://github.com/SamuelMarks/greatest.git\n"));
+    CHECK_IO(fprintf(fp, "            GIT_TAG        master\n"));
+    CHECK_IO(fprintf(fp, "        )\n"));
+    CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(greatest)\n"));
+    CHECK_IO(fprintf(fp, "    endif()\n\n"));
+
     CHECK_IO(
         fprintf(fp, "    file(GLOB_RECURSE TEST_SOURCES \"src/test/*.c\")\n"));
     CHECK_IO(
@@ -148,7 +155,8 @@ static /**
     CHECK_IO(fprintf(
         fp, "    add_executable(test_%s ${TEST_SOURCES} ${TEST_HEADERS})\n",
         project_name));
-    CHECK_IO(fprintf(fp, "    target_link_libraries(test_%s PRIVATE %s)\n",
+    CHECK_IO(fprintf(fp,
+                     "    target_link_libraries(test_%s PRIVATE %s greatest)\n",
                      project_name, project_name));
     CHECK_IO(fprintf(fp,
                      "    target_include_directories(test_%s PRIVATE "
@@ -231,7 +239,40 @@ int generate_cmake_project(const char *output_path, const char *project_name,
     return rc;
   }
 
-  rc = write_cmake_content(fp, project_name, has_tests);
+  /* Write Root CMakeLists.txt */
+  fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n");
+  fprintf(fp, "project(%s C)\n\n", project_name);
+  fprintf(fp, "add_subdirectory(src)\n");
+  fclose(fp);
+
+  /* Now write src/CMakeLists.txt */
+  {
+    char *src_dir = NULL;
+    char *src_cmake = NULL;
+    if (output_path) {
+      src_dir = malloc(strlen(output_path) + 5);
+      sprintf(src_dir, "%s/src", output_path);
+      makedirs(src_dir);
+      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
+      sprintf(src_cmake, "%s/%s", src_dir, filename);
+    } else {
+      src_dir = strdup("src");
+      makedirs(src_dir);
+      src_cmake = malloc(strlen(src_dir) + strlen(filename) + 2);
+      sprintf(src_cmake, "%s/%s", src_dir, filename);
+    }
+
+    fp = fopen(src_cmake, "w");
+    if (fp) {
+      rc = write_cmake_content(fp, project_name, has_tests);
+      fclose(fp);
+    } else {
+      rc = errno ? errno : EIO;
+    }
+    free(src_dir);
+    free(src_cmake);
+  }
+  fp = NULL;
 
   fclose(fp);
   free(full_path);

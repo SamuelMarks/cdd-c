@@ -34,15 +34,33 @@ extern "C" {
  * @return 0 on success, EINVAL if inputs are invalid, ENOMEM on allocation
  * failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi write spec to json operation.
-                     */
-    int
-    openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
-                               char **json_out);
+extern C_CDD_EXPORT int
+openapi_write_spec_to_json(const struct OpenAPI_Spec *spec, char **json_out);
+
+
+extern int verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_val);
+extern int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
+extern int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
+
+
+extern int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
+extern int header_name_is_content_type_openapi(const char *name);
+extern int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
+
+
+extern int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
+extern int is_schema_primitive_openapi(const char *type);
+
+
+#include "parson.h"
+extern int merge_schema_extras_object_openapi(JSON_Object *target, const char *extras_json);
 
 #ifdef __cplusplus
 }
+
+
+
+
 #endif /* __cplusplus */
 
 #endif /* C_CDD_OPENAPI_WRITER_H */

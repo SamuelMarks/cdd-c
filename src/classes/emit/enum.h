@@ -44,7 +44,7 @@ struct EnumMembers {
 struct CodegenEnumConfig {
   /**
    * @brief Macro name to guard generated functions (e.g. "TO_ENUM").
-   * If NULL, no #ifdef/#endif block is generated.
+   * If NULL, no \#ifdef/\#endif block is generated.
    */
   const char *guard_macro;
 };
@@ -56,11 +56,7 @@ struct CodegenEnumConfig {
  * @param[out] em Pointer to the container to initialize.
  * @return 0 on success, EINVAL if em is NULL, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the enum members init operation.
-                     */
-    int
-    enum_members_init(struct EnumMembers *em);
+extern C_CDD_EXPORT int enum_members_init(struct EnumMembers *em);
 
 /**
  * @brief Free memory associated with an EnumMembers container.
@@ -69,11 +65,7 @@ extern C_CDD_EXPORT /**
  * @param[in] em Pointer to the container. Safe to call on NULL or zeroed
  * structs.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the enum members free operation.
-                     */
-    void
-    enum_members_free(struct EnumMembers *em);
+extern C_CDD_EXPORT void enum_members_free(struct EnumMembers *em);
 
 /**
  * @brief Add a member to the EnumMembers container.
@@ -83,11 +75,8 @@ extern C_CDD_EXPORT /**
  * @param[in] name Name of the enum member.
  * @return 0 on success, ENOMEM on failure to allocate or resize.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the enum members add operation.
-                     */
-    int
-    enum_members_add(struct EnumMembers *em, const char *name);
+extern C_CDD_EXPORT int enum_members_add(struct EnumMembers *em,
+                                         const char *name);
 
 /**
  * @brief Generate the `_from_str` implementation for an enum.

@@ -5,15 +5,15 @@
  *
  * Provides functionalities to:
  * - Manage include search paths.
- * - Scan source files for `#include` directives.
+ * - Scan source files for `\#include` directives.
  * - Scan and index `#define` macros, including function-like and variadic
  * macros.
  * - Reassemble fragmented path tokens (e.g. < sys / stat . h >).
  * - Resolve relative and system paths against the search context.
- * - Evaluate preprocessor conditional expressions (#if, defined, etc.).
+ * - Evaluate preprocessor conditional expressions (\#if, defined, etc.).
  * - Support C23 introspection macros: `__has_include`, `__has_embed`,
  * `__has_c_attribute`.
- * - Parse `#embed` parameters (`limit`, `prefix`, `suffix`, `if_empty`).
+ * - Parse `\#embed` parameters (`limit`, `prefix`, `suffix`, `if_empty`).
  *
  * @author Samuel Marks
  */
@@ -36,12 +36,12 @@ extern "C" {
  * @brief Enumeration of supported directives scanned by path logic.
  */
 enum PpDirectiveKind {
-  PP_DIR_INCLUDE, /**< #include ... */
-  PP_DIR_EMBED    /**< #embed ... */
+  PP_DIR_INCLUDE, /**< \#include ... */
+  PP_DIR_EMBED    /**< \#embed ... */
 };
 
 /**
- * @brief Container for C23 #embed parameters.
+ * @brief Container for C23 \#embed parameters.
  */
 struct EmbedParams {
   long limit;     /**< The value of 'limit(...)', -1 if unspecified */
@@ -58,8 +58,8 @@ struct IncludeInfo {
   const char *resolved_path; /**< The resolved absolute/relative path on disk */
   const char *raw_path; /**< The raw path string as it appeared in source */
   int is_system;        /**< 1 if angle brackets <>, 0 if quoted "" */
-  int is_next;          /**< 1 if it is #include_next, 0 otherwise */
-  struct EmbedParams params; /**< Embed parameters (zeroed for #include) */
+  int is_next;          /**< 1 if it is `#include_next`, 0 otherwise */
+  struct EmbedParams params; /**< Embed parameters (zeroed for \#include) */
 };
 
 /**
@@ -109,22 +109,14 @@ struct PreprocessorContext {
  * @param[out] ctx Pointer to the context structure.
  * @return 0 on success, EINVAL or ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp context init operation.
-                     */
-    int
-    pp_context_init(struct PreprocessorContext *ctx);
+extern C_CDD_EXPORT int pp_context_init(struct PreprocessorContext *ctx);
 
 /**
  * @brief Free resources associated with the context.
  *
  * @param[in] ctx Pointer to the context.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp context free operation.
-                     */
-    void
-    pp_context_free(struct PreprocessorContext *ctx);
+extern C_CDD_EXPORT void pp_context_free(struct PreprocessorContext *ctx);
 
 /**
  * @brief Add a search path to the context.
@@ -133,11 +125,8 @@ extern C_CDD_EXPORT /**
  * @param[in] path Directory path to add (copied internally).
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp add search path operation.
-                     */
-    int
-    pp_add_search_path(struct PreprocessorContext *ctx, const char *path);
+extern C_CDD_EXPORT int pp_add_search_path(struct PreprocessorContext *ctx,
+                                           const char *path);
 
 /**
  * @brief Add a macro definition manually to the context.
@@ -148,21 +137,17 @@ extern C_CDD_EXPORT /**
  * @param[in] value Macro value text (can be NULL for empty define).
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp add macro operation.
-                     */
-    int
-    pp_add_macro(struct PreprocessorContext *ctx, const char *name,
-                 const char *value);
+extern C_CDD_EXPORT int pp_add_macro(struct PreprocessorContext *ctx,
+                                     const char *name, const char *value);
 
 /**
- * @brief Scan a file for #include directives and resolve them.
+ * @brief Scan a file for \#include directives and resolve them.
  *
- * Reads the file at `filename`, tokenizes it, identifies `#include` lines,
+ * Reads the file at `filename`, tokenizes it, identifies `\#include` lines,
  * reconstructs the path arguments, resolves them using the context,
  * and triggers `cb` for valid files.
  *
- * Respects conditional compilation directives (#if, #ifdef, #else, #endif).
+ * Respects conditional compilation directives (\#if, \#ifdef, \#else, \#endif).
  * Only includes within active blocks are reported.
  *
  * @param[in] filename Path to the source file to scan.
@@ -171,12 +156,9 @@ extern C_CDD_EXPORT /**
  * @param[in] user_data Opaque data passed to callback.
  * @return 0 on success, error code on failure (IO, memory, or parsing).
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp scan includes operation.
-                     */
-    int
-    pp_scan_includes(const char *filename, struct PreprocessorContext *ctx,
-                     pp_visitor_cb cb, void *user_data);
+extern C_CDD_EXPORT int pp_scan_includes(const char *filename,
+                                         struct PreprocessorContext *ctx,
+                                         pp_visitor_cb cb, void *user_data);
 
 /**
  * @brief Scan a file token stream for macro definitions and populate the
@@ -189,11 +171,8 @@ extern C_CDD_EXPORT /**
  * @param[in] filename Path to the file to parse.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp scan defines operation.
-                     */
-    int
-    pp_scan_defines(struct PreprocessorContext *ctx, const char *filename);
+extern C_CDD_EXPORT int pp_scan_defines(struct PreprocessorContext *ctx,
+                                        const char *filename);
 
 /**
  * @brief Evaluate a preprocessor constant expression.
@@ -216,24 +195,17 @@ extern C_CDD_EXPORT /**
  * @param[out] result Result of the evaluation (1 or 0 usually).
  * @return 0 on success, EINVAL on syntax error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp eval expression operation.
-                     */
-    int
-    pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
-                       size_t end_idx, const struct PreprocessorContext *ctx,
-                       long *result);
+extern C_CDD_EXPORT int
+pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
+                   size_t end_idx, const struct PreprocessorContext *ctx,
+                   long *result);
 
 /**
  * @brief Release memory within EmbedParams structure.
  *
  * @param[in] params Pointer to struct to clean.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the pp embed params free operation.
-                     */
-    void
-    pp_embed_params_free(struct EmbedParams *params);
+extern C_CDD_EXPORT void pp_embed_params_free(struct EmbedParams *params);
 
 #ifdef __cplusplus
 }

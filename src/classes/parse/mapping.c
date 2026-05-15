@@ -158,7 +158,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int is_array = 0;
   int rc = 0;
 
-  if (!c_type_in || !out)
+  if (!c_type || !out)
     return EINVAL;
 
   c_mapping_init(out);

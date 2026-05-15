@@ -10,7 +10,7 @@
 #include "../../classes/parse/cdd_cst_builder.h"
 /* clang-format on */
 
-TEST test_cdd_cst_scope_basic(void) {
+TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *node;
   cdd_cst_symbol_t *sym;
@@ -166,7 +166,7 @@ TEST test_cdd_cst_semantic_errors(void) {
 }
 
 SUITE(cdd_cst_semantic_suite) {
-  RUN_TEST(test_cdd_cst_scope_basic);
+  RUN_TEST(test_cdd_cst_semantic_scope_basic);
   RUN_TEST(test_cdd_cst_semantic_basic);
   RUN_TEST(test_cdd_cst_semantic_tree);
   RUN_TEST(test_cdd_cst_semantic_errors);

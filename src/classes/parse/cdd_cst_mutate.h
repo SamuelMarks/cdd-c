@@ -1,9 +1,11 @@
 #ifndef CDD_CST_MUTATE_H
 #define CDD_CST_MUTATE_H
 
+
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
+ /* __cplusplus */
 
 /* clang-format off */
 #include "c_cdd_export.h"
@@ -71,9 +73,34 @@ C_CDD_EXPORT int cdd_cst_find_node_for_token(cdd_cst_node_t *root,
                                              cdd_token_t *tok, size_t *out_idx,
                                              cdd_cst_node_t **out_node);
 
+
+extern int find_child_index_mutate(cdd_cst_node_t *parent, cdd_cst_node_t *child, size_t *out_index);
+extern int find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token);
+
+
+extern int clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia);
+
+
+extern int clone_token_mutate(cdd_token_t *tok, cdd_token_t **out_token);
+
+
+extern int insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx, cdd_cst_node_t *new_node);
+
+
+extern int remove_child_at_mutate(cdd_cst_node_t *parent, size_t idx);
+
+
+extern int track_synthesized_token_mutate(cdd_cst_tree_t *tree, cdd_token_t *tok);
+
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+
+
+
+
+
+#endif
+ /* __cplusplus */
 
 /**
  * @brief Removes a child from a node's children array in-place.

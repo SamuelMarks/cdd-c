@@ -385,22 +385,14 @@ struct DocMetadata {
  * @param[out] meta The structure to initialize.
  * @return 0 on success, EINVAL if meta is NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the doc metadata init operation.
-                     */
-    int
-    doc_metadata_init(struct DocMetadata *meta);
+extern C_CDD_EXPORT int doc_metadata_init(struct DocMetadata *meta);
 
 /**
  * @brief Free resources within a DocMetadata structure.
  *
  * @param[in] meta The structure to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the doc metadata free operation.
-                     */
-    void
-    doc_metadata_free(struct DocMetadata *meta);
+extern C_CDD_EXPORT void doc_metadata_free(struct DocMetadata *meta);
 
 /**
  * @brief Parse a raw comment string into structured metadata.
@@ -413,11 +405,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out The destination structure (must be initialized).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad input.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the doc parse block operation.
-                     */
-    int
-    doc_parse_block(const char *comment, struct DocMetadata *out);
+extern C_CDD_EXPORT int doc_parse_block(const char *comment,
+                                        struct DocMetadata *out);
 
 #ifdef __cplusplus
 }

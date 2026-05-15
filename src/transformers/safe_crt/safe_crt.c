@@ -324,8 +324,8 @@ typedef struct {
   int needs_fcvtbuf;
   /** @brief needs_wgetenv_ptr field */
   int needs_retbuf;
-  int needs_getenv_ptr;
-  int needs_wgetenv_ptr;
+  int needs_getenv_ptr;  /**< needs_getenv_ptr */
+  int needs_wgetenv_ptr; /**< needs_wgetenv_ptr */
 } emit_ctx_t;
 
 static emit_ctx_t *g_msc_ctx = NULL;

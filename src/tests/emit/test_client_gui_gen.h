@@ -29,18 +29,18 @@ TEST test_client_gui_gen_basic(void) {
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  f = fopen("test_gui_gui.c", "r");
+  f = fopen("src/test_gui_gui.c", "r");
   ASSERT(f != NULL);
   if (f)
     fclose(f);
 
-  f = fopen("test_gui_gui.h", "r");
+  f = fopen("src/test_gui_gui.h", "r");
   ASSERT(f != NULL);
   if (f)
     fclose(f);
 
-  remove("test_gui_gui.c");
-  remove("test_gui_gui.h");
+  remove("src/test_gui_gui.c");
+  remove("src/test_gui_gui.h");
 
   PASS();
 }
@@ -62,8 +62,8 @@ TEST test_client_gui_gen_with_server(void) {
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  remove("test_gui2_gui.c");
-  remove("test_gui2_gui.h");
+  remove("src/test_gui2_gui.c");
+  remove("src/test_gui2_gui.h");
   free(spec.servers);
 
   PASS();

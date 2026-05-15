@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "functions/parse/fs.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)
@@ -28,7 +29,23 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   FILE *fp = NULL;
   size_t i, j, k;
 
-  SNPRINTF(path, sizeof(path), "%s_cli.c", config->filename_base);
+  {
+    char *dir_name = NULL, *base_name = NULL;
+    char *src_dir = malloc(512);
+    if (!src_dir)
+      return ENOMEM;
+    get_dirname(config->filename_base, &dir_name);
+    get_basename(config->filename_base, &base_name);
+    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    makedirs(src_dir);
+    SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir,
+             base_name ? base_name : "generated_client");
+    free(src_dir);
+    if (dir_name)
+      free(dir_name);
+    if (base_name)
+      free(base_name);
+  }
 #if defined(_MSC_VER)
   if (fopen_s(&fp, path, "w") != 0)
     fp = NULL;
@@ -47,7 +64,13 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include \"%s.h\"\n\n", config->filename_base);
+  {
+    char *base = NULL;
+    get_basename(config->filename_base, &base);
+    fprintf(fp, "#include \"%s.h\"\n\n", base ? base : config->filename_base);
+    if (base)
+      free(base);
+  }
 
   /* Info Object details */
   fprintf(fp, "/**\n"

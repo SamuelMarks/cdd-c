@@ -89,22 +89,14 @@ struct FuncSigList {
  * @param[out] list The list to initialize.
  * @return 0 on success, EINVAL if list is NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the type def list init operation.
-                     */
-    int
-    type_def_list_init(struct TypeDefList *list);
+extern C_CDD_EXPORT int type_def_list_init(struct TypeDefList *list);
 
 /**
  * @brief Free resources in a TypeDefList.
  * Frees all names and nested detail structures (EnumMembers/StructFields).
  * @param[in] list The list to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the type def list free operation.
-                     */
-    void
-    type_def_list_free(struct TypeDefList *list);
+extern C_CDD_EXPORT void type_def_list_free(struct TypeDefList *list);
 
 /**
  * @brief Scan a file (by path) and extract all struct/enum definitions.
@@ -130,22 +122,14 @@ extern C_CDD_EXPORT /**
  * @param[out] list The list to initialize.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the func sig list init operation.
-                     */
-    int
-    func_sig_list_init(struct FuncSigList *list);
+extern C_CDD_EXPORT int func_sig_list_init(struct FuncSigList *list);
 
 /**
  * @brief Free FuncSigList.
  * Frees name and signature strings.
  * @param[in] list The list to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the func sig list free operation.
-                     */
-    void
-    func_sig_list_free(struct FuncSigList *list);
+extern C_CDD_EXPORT void func_sig_list_free(struct FuncSigList *list);
 
 /**
  * @brief Extract all function signatures from a source string.

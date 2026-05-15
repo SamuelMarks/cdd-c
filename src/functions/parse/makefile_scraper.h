@@ -37,20 +37,12 @@ struct ExtractedBuildInfo {
 /**
  * @brief Initialize a build info structure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the build info init operation.
-                     */
-    void
-    build_info_init(struct ExtractedBuildInfo *info);
+extern C_CDD_EXPORT void build_info_init(struct ExtractedBuildInfo *info);
 
 /**
  * @brief Free resources in a build info structure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the build info free operation.
-                     */
-    void
-    build_info_free(struct ExtractedBuildInfo *info);
+extern C_CDD_EXPORT void build_info_free(struct ExtractedBuildInfo *info);
 
 /**
  * @brief Scrape a Makefile for build properties.
@@ -62,12 +54,8 @@ extern C_CDD_EXPORT /**
  * @param[in] makefile_content The raw text content of the Makefile.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the scrape makefile operation.
-                     */
-    int
-    scrape_makefile(struct ExtractedBuildInfo *info,
-                    const char *makefile_content);
+extern C_CDD_EXPORT int scrape_makefile(struct ExtractedBuildInfo *info,
+                                        const char *makefile_content);
 
 /**
  * @brief Scrape a configure.ac for build properties.
@@ -80,12 +68,8 @@ extern C_CDD_EXPORT /**
  * @param[in] configure_ac_content The raw text content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the scrape configure ac operation.
-                     */
-    int
-    scrape_configure_ac(struct ExtractedBuildInfo *info,
-                        const char *configure_ac_content);
+extern C_CDD_EXPORT int scrape_configure_ac(struct ExtractedBuildInfo *info,
+                                            const char *configure_ac_content);
 
 /**
  * @brief Generate a modern CMakeLists.txt string from the extracted info.
@@ -96,12 +80,9 @@ extern C_CDD_EXPORT /**
  * contents.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the build info to cmake operation.
-                     */
-    int
-    build_info_to_cmake(const struct ExtractedBuildInfo *info,
-                        const char *project_name, char **out_cmake);
+extern C_CDD_EXPORT int
+build_info_to_cmake(const struct ExtractedBuildInfo *info,
+                    const char *project_name, char **out_cmake);
 
 #ifdef __cplusplus
 }

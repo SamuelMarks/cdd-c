@@ -90,11 +90,8 @@ struct AllocationSiteList {
  * @param[out] list The list to initialize.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the allocation site list init operation.
-                     */
-    int
-    allocation_site_list_init(struct AllocationSiteList *list);
+extern C_CDD_EXPORT int
+allocation_site_list_init(struct AllocationSiteList *list);
 
 /**
  * @brief Free resources associated with an AllocationSiteList.
@@ -102,11 +99,8 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] list The list to clean up. Safe to call on NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the allocation site list free operation.
-                     */
-    void
-    allocation_site_list_free(struct AllocationSiteList *list);
+extern C_CDD_EXPORT void
+allocation_site_list_free(struct AllocationSiteList *list);
 
 /**
  * @brief Add a finding to the list.
@@ -116,18 +110,15 @@ extern C_CDD_EXPORT /**
  * @param[in] index Token index of the call.
  * @param[in] var_name Name of the variable assigned (copied). Can be NULL.
  * @param[in] checked 1 if check detected.
- * @param[in] used 1 if usage before check detected.
+ * @param[in] used_before 1 if usage before check detected.
  * @param[in] is_ret 1 if returned directly.
  * @param[in] spec The allocator specification.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the allocation site list add operation.
-                     */
-    int
-    allocation_site_list_add(struct AllocationSiteList *list, size_t index,
-                             const char *var_name, int checked, int used,
-                             int is_ret, const struct AllocatorSpec *spec);
+extern C_CDD_EXPORT int
+allocation_site_list_add(struct AllocationSiteList *list, size_t index,
+                         const char *var_name, int checked, int used_before,
+                         int is_ret, const struct AllocatorSpec *spec);
 
 /**
  * @brief Scan a token stream for memory safety patterns.

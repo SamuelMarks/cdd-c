@@ -19,11 +19,7 @@
 
 /* --- Helpers --- */
 
-static /**
-        * @brief Frees the memory associated with string array.
-        */
-    void
-    free_string_array(char **arr, size_t n) {
+void free_string_array_schema_utils(char **arr, size_t n) {
   size_t i;
   if (!arr)
     return;
@@ -36,12 +32,7 @@ static /**
   free(arr);
 }
 
-static /**
-        * @brief Creates a deep copy of string array.
-        */
-    int
-    copy_string_array(char ***dst, size_t *dst_count, char **src,
-                      size_t src_count) {
+int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src, size_t src_count) {
   char *_ast_strdup_0 = NULL;
   size_t i;
   char **out;
@@ -60,7 +51,7 @@ static /**
     if (src[i]) {
       out[i] = (c_cdd_strdup(src[i], &_ast_strdup_0), _ast_strdup_0);
       if (!out[i]) {
-        free_string_array(out, src_count);
+        free_string_array_schema_utils(out, src_count);
         return ENOMEM;
       }
     }
@@ -186,12 +177,12 @@ static /**
         }
       }
       if (f->type_union && f->n_type_union > 0) {
-        if (copy_string_array(&dst_field->type_union, &dst_field->n_type_union,
+        if (copy_string_array_schema_utils(&dst_field->type_union, &dst_field->n_type_union,
                               f->type_union, f->n_type_union) != 0)
           return ENOMEM;
       }
       if (f->items_type_union && f->n_items_type_union > 0) {
-        if (copy_string_array(&dst_field->items_type_union,
+        if (copy_string_array_schema_utils(&dst_field->items_type_union,
                               &dst_field->n_items_type_union,
                               f->items_type_union, f->n_items_type_union) != 0)
           return ENOMEM;

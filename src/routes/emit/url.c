@@ -40,24 +40,22 @@ struct UrlSegment {
   char *text;
 };
 
-static /**
+/**
         * @brief Checks if a given OpenAPI type string represents a primitive
         * type.
         */
-    int
-    is_primitive_type(const char *type) {
+int is_primitive_type_url(const char *type) {
   if (!type)
     return 0;
   return strcmp(type, "integer") == 0 || strcmp(type, "string") == 0 ||
          strcmp(type, "boolean") == 0 || strcmp(type, "number") == 0;
 }
 
-static /**
+/**
         * @brief Determines if an OpenAPI parameter represents an object
         * serialized as key-value pairs.
         */
-    int
-    param_is_object_kv(const struct OpenAPI_Parameter *p) {
+int param_is_object_kv_url(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->is_array)
@@ -66,15 +64,14 @@ static /**
     return 0;
   if (!p->type)
     return 0;
-  return !is_primitive_type(p->type);
+  return !is_primitive_type_url(p->type);
 }
 
-static /**
+/**
         * @brief Computes the base length of a media type string, ignoring
         * parameters like charset.
         */
-    int
-    media_type_base_len(const char *media_type, size_t *_out_val) {
+int media_type_base_len_url(const char *media_type, size_t *_out_val) {
   size_t i = 0;
   if (!media_type) {
     *_out_val = 0;
@@ -88,19 +85,18 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Performs a case-insensitive comparison of a media type against
         * an expected string.
         */
-    int
-    media_type_ieq(const char *media_type, const char *expected) {
+int media_type_ieq_url(const char *media_type, const char *expected) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
     return 0;
-  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+  len = (media_type_base_len_url(media_type, &_ast_media_type_base_len_0),
          _ast_media_type_base_len_0);
   exp_len = strlen(expected);
   if (len != exp_len)
@@ -118,18 +114,17 @@ static /**
   return 1;
 }
 
-static /**
+/**
         * @brief Checks if a given media type string represents JSON.
         */
-    int
-    media_type_is_json(const char *media_type) {
+int media_type_is_json_url(const char *media_type) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t len;
   if (!media_type)
     return 0;
-  if (media_type_ieq(media_type, "application/json"))
+  if (media_type_ieq_url(media_type, "application/json"))
     return 1;
-  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+  len = (media_type_base_len_url(media_type, &_ast_media_type_base_len_1),
          _ast_media_type_base_len_1);
   if (len < 5)
     return 0;
@@ -151,26 +146,24 @@ static /**
   return 1;
 }
 
-static /**
+/**
         * @brief Checks if a given media type string represents urlencoded form
         * data.
         */
-    int
-    media_type_is_form(const char *media_type) {
-  return media_type_ieq(media_type, "application/x-www-form-urlencoded");
+int media_type_is_form_url(const char *media_type) {
+  return media_type_ieq_url(media_type, "application/x-www-form-urlencoded");
 }
 
-static /**
+/**
         * @brief Determines if a query parameter represents a form-encoded
         * object.
         */
-    int
-    querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
+int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->in != OA_PARAM_IN_QUERYSTRING)
     return 0;
-  if (!media_type_is_form(p->content_type))
+  if (!media_type_is_form_url(p->content_type))
     return 0;
   if (p->schema.ref_name)
     return 1;
@@ -181,27 +174,25 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Checks if a query parameter schema is a JSON reference.
         */
-    int
-    querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
+int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->in != OA_PARAM_IN_QUERYSTRING)
     return 0;
-  if (!media_type_is_json(p->content_type))
+  if (!media_type_is_json_url(p->content_type))
     return 0;
   if (p->schema.is_array || (p->type && strcmp(p->type, "array") == 0))
     return 0;
   return p->schema.ref_name != NULL;
 }
 
-static /**
+/**
         * @brief Retrieves the primitive type of a JSON query parameter.
         */
-    int
-    querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
+int querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
                                           const char **_out_val) {
   const char *type = NULL;
   if (!p) {
@@ -212,7 +203,7 @@ static /**
     *_out_val = NULL;
     return 0;
   }
-  if (!media_type_is_json(p->content_type)) {
+  if (!media_type_is_json_url(p->content_type)) {
     *_out_val = NULL;
     return 0;
   }
@@ -239,12 +230,11 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Retrieves the primitive type of items within a JSON array query
         * parameter.
         */
-    int
-    querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
+int querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
                                            const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
@@ -255,7 +245,7 @@ static /**
     *_out_val = NULL;
     return 0;
   }
-  if (!media_type_is_json(p->content_type)) {
+  if (!media_type_is_json_url(p->content_type)) {
     *_out_val = NULL;
     return 0;
   }
@@ -283,12 +273,11 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Retrieves the reference target of items within a JSON array
         * query parameter.
         */
-    int
-    querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
+int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
                                           const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
@@ -299,7 +288,7 @@ static /**
     *_out_val = NULL;
     return 0;
   }
-  if (!media_type_is_json(p->content_type)) {
+  if (!media_type_is_json_url(p->content_type)) {
     *_out_val = NULL;
     return 0;
   }
@@ -331,7 +320,7 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Retrieves the raw primitive type of a query parameter.
         */
     int
@@ -350,11 +339,11 @@ static /**
     *_out_val = NULL;
     return 0;
   }
-  if (media_type_is_json(p->content_type)) {
+  if (media_type_is_json_url(p->content_type)) {
     *_out_val = NULL;
     return 0;
   }
-  if (media_type_is_form(p->content_type)) {
+  if (media_type_is_form_url(p->content_type)) {
     *_out_val = NULL;
     return 0;
   }
@@ -377,7 +366,7 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Generates C code for write query json param.
         */
     int
@@ -387,7 +376,7 @@ static /**
 
   if (!fp || !p)
     return EINVAL;
-  if (!p->content_type || !media_type_is_json(p->content_type))
+  if (!p->content_type || !media_type_is_json_url(p->content_type))
     return EINVAL;
 
   name = p->name ? p->name : "param";
@@ -403,7 +392,7 @@ static /**
           fprintf(fp, "  /* Unsupported JSON query array for %s */\n", name));
       return 0;
     }
-    if (is_primitive_type(item_type)) {
+    if (is_primitive_type_url(item_type)) {
       CHECK_IO(fprintf(fp, "  if (%s && %s_len > 0) {\n", name, name));
       CHECK_IO(fprintf(fp, "    JSON_Value *q_val = NULL;\n"));
       CHECK_IO(fprintf(fp, "    JSON_Array *q_arr = NULL;\n"));
@@ -586,7 +575,7 @@ static /**
     return 0;
   }
 
-  if (type && is_primitive_type(type)) {
+  if (type && is_primitive_type_url(type)) {
     if (strcmp(type, "string") == 0) {
       CHECK_IO(fprintf(fp, "  if (%s) {\n", name));
     } else {
@@ -626,7 +615,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Generates C code for write query object param.
         */
     int
@@ -968,7 +957,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Generates C code for write path object serialization.
         */
     int
@@ -1134,7 +1123,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Generates C code for write path array serialization.
         */
     int
@@ -1245,7 +1234,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Generates C code for write joined query array.
         */
     int
@@ -1339,7 +1328,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Generates C code for write joined query array encoded delim.
         */
     int
@@ -1415,7 +1404,7 @@ static /**
   return 0;
 }
 
-static /**
+/**
         * @brief Finds an OpenAPI parameter by name within an array of
         * parameters.
         */
@@ -1438,7 +1427,7 @@ static /**
   }
 }
 
-static /**
+/**
         * @brief Parses segments from the given input.
         */
     int
@@ -2134,14 +2123,14 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
 
       CHECK_IO(fprintf(fp, "  /* Query Parameter: %s */\n", p->name));
 
-      if (p->content_type && media_type_is_json(p->content_type)) {
+      if (p->content_type && media_type_is_json_url(p->content_type)) {
         int rc2 = write_query_json_param(fp, p);
         if (rc2 != 0)
           return rc2;
         continue;
       }
 
-      if (param_is_object_kv(p)) {
+      if (param_is_object_kv_url(p)) {
         int rc2 = write_query_object_param(fp, p);
         if (rc2 != 0)
           return rc2;

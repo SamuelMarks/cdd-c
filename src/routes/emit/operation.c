@@ -22,11 +22,10 @@
 
 /* --- Helpers --- */
 
-static /**
-        * @brief Checks if reserved header name.
-        */
-    int
-    is_reserved_header_name(const char *name) {
+/**
+ * @brief Checks if reserved header name.
+ */
+int is_reserved_header_name(const char *name) {
   bool _ast_iequal_0 = false;
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
@@ -41,11 +40,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses example any from the given input.
-        */
-    int
-    parse_example_any(const char *example, struct OpenAPI_Any *out) {
+/**
+ * @brief Parses example any from the given input.
+ */
+int parse_example_any(const char *example, struct OpenAPI_Any *out) {
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
@@ -110,11 +108,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the any from json value operation.
-        */
-    int
-    any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
+/**
+ * @brief Executes the any from json value operation.
+ */
+int any_from_json_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   char *_ast_strdup_6 = NULL;
   char *_ast_strdup_7 = NULL;
   JSON_Value_Type t;
@@ -161,11 +158,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses link params json from the given input.
-        */
-    int
-    parse_link_params_json(const char *json, struct OpenAPI_LinkParam **out,
+/**
+ * @brief Parses link params json from the given input.
+ */
+int parse_link_params_json(const char *json, struct OpenAPI_LinkParam **out,
                            size_t *out_count) {
   char *_ast_strdup_8 = NULL;
   JSON_Value *val;
@@ -241,12 +237,11 @@ cleanup:
   return ENOMEM;
 }
 
-static /**
-        * @brief Creates a deep copy of any value local.
-        */
-    int
-    copy_any_value_local(struct OpenAPI_Any *dst,
-                         const struct OpenAPI_Any *src) {
+/**
+ * @brief Creates a deep copy of any value local.
+ */
+static int copy_any_value_local(struct OpenAPI_Any *dst,
+                                const struct OpenAPI_Any *src) {
   char *_ast_strdup_9 = NULL;
   char *_ast_strdup_10 = NULL;
   if (!dst || !src)
@@ -275,11 +270,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with any value local.
-        */
-    void
-    free_any_value_local(struct OpenAPI_Any *val) {
+/**
+ * @brief Frees the memory associated with any value local.
+ */
+static void free_any_value_local(struct OpenAPI_Any *val) {
   if (!val)
     return;
   if (val->type == OA_ANY_STRING && val->string)
@@ -289,12 +283,11 @@ static /**
   memset(val, 0, sizeof(*val));
 }
 
-static /**
-        * @brief Retrieves the doc param.
-        */
-    int
-    find_doc_param(const struct DocMetadata *doc, const char *name,
-                   struct DocParam **_out_val) {
+/**
+ * @brief Retrieves the doc param.
+ */
+static int find_doc_param(const struct DocMetadata *doc, const char *name,
+                          struct DocParam **_out_val) {
   size_t i;
   if (!doc || !name) {
     *_out_val = NULL;
@@ -314,11 +307,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if path param.
-        */
-    int
-    is_path_param(const char *route, const char *name) {
+/**
+ * @brief Checks if path param.
+ */
+static int is_path_param(const char *route, const char *name) {
   char tmpl[128];
   if (!route || !name)
     return 0;
@@ -330,11 +322,10 @@ static /**
   return strstr(route, tmpl) != NULL;
 }
 
-static /**
-        * @brief Frees the memory associated with openapi server variables.
-        */
-    void
-    free_openapi_server_variables(struct OpenAPI_Server *srv) {
+/**
+ * @brief Frees the memory associated with openapi server variables.
+ */
+void free_openapi_server_variables_op(struct OpenAPI_Server *srv) {
   size_t i;
   if (!srv || !srv->variables)
     return;
@@ -359,12 +350,11 @@ static /**
   srv->n_variables = 0;
 }
 
-static /**
-        * @brief Creates a deep copy of doc server variables.
-        */
-    int
-    copy_doc_server_variables(struct OpenAPI_Server *dst,
-                              const struct DocServer *src) {
+/**
+ * @brief Creates a deep copy of doc server variables.
+ */
+int copy_doc_server_variables_op(struct OpenAPI_Server *dst,
+                                 const struct DocServer *src) {
   char *_ast_strdup_11 = NULL;
   char *_ast_strdup_12 = NULL;
   char *_ast_strdup_13 = NULL;
@@ -388,32 +378,32 @@ static /**
     struct OpenAPI_ServerVariable *dv = &dst->variables[i];
 
     if (!sv->name || !sv->default_value) {
-      free_openapi_server_variables(dst);
+      free_openapi_server_variables_op(dst);
       return EINVAL;
     }
     dv->name = (c_cdd_strdup(sv->name, &_ast_strdup_11), _ast_strdup_11);
     if (!dv->name) {
-      free_openapi_server_variables(dst);
+      free_openapi_server_variables_op(dst);
       return ENOMEM;
     }
     dv->default_value =
         (c_cdd_strdup(sv->default_value, &_ast_strdup_12), _ast_strdup_12);
     if (!dv->default_value) {
-      free_openapi_server_variables(dst);
+      free_openapi_server_variables_op(dst);
       return ENOMEM;
     }
     if (sv->description) {
       dv->description =
           (c_cdd_strdup(sv->description, &_ast_strdup_13), _ast_strdup_13);
       if (!dv->description) {
-        free_openapi_server_variables(dst);
+        free_openapi_server_variables_op(dst);
         return ENOMEM;
       }
     }
     if (sv->enum_values && sv->n_enum_values > 0) {
       dv->enum_values = (char **)calloc(sv->n_enum_values, sizeof(char *));
       if (!dv->enum_values) {
-        free_openapi_server_variables(dst);
+        free_openapi_server_variables_op(dst);
         return ENOMEM;
       }
       dv->n_enum_values = sv->n_enum_values;
@@ -421,14 +411,14 @@ static /**
         dv->enum_values[e] =
             (c_cdd_strdup(sv->enum_values[e], &_ast_strdup_14), _ast_strdup_14);
         if (!dv->enum_values[e]) {
-          free_openapi_server_variables(dst);
+          free_openapi_server_variables_op(dst);
           return ENOMEM;
         }
         if (strcmp(sv->enum_values[e], sv->default_value) == 0)
           found_default = 1;
       }
       if (!found_default) {
-        free_openapi_server_variables(dst);
+        free_openapi_server_variables_op(dst);
         return EINVAL;
       }
     }
@@ -437,11 +427,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Retrieves the response by code.
-        */
-    int
-    find_response_by_code(struct OpenAPI_Operation *op, const char *code,
+/**
+ * @brief Retrieves the response by code.
+ */
+int find_response_by_code(struct OpenAPI_Operation *op, const char *code,
                           struct OpenAPI_Response **_out_val) {
   bool _ast_iequal_15 = false;
   size_t i;
@@ -465,12 +454,11 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the media type.
-        */
-    int
-    find_media_type(struct OpenAPI_MediaType *mts, size_t n, const char *name,
-                    struct OpenAPI_MediaType **_out_val) {
+/**
+ * @brief Retrieves the media type.
+ */
+int find_media_type_op(struct OpenAPI_MediaType *mts, size_t n,
+                       const char *name, struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -488,11 +476,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Applies example to media type.
-        */
-    int
-    apply_example_to_media_type(struct OpenAPI_MediaType *mt,
+/**
+ * @brief Applies example to media type.
+ */
+int apply_example_to_media_type(struct OpenAPI_MediaType *mt,
                                 const char *example) {
   if (!mt || !example || mt->example_set)
     return 0;
@@ -502,11 +489,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies example to response.
-        */
-    int
-    apply_example_to_response(struct OpenAPI_Response *resp,
+/**
+ * @brief Applies example to response.
+ */
+int apply_example_to_response(struct OpenAPI_Response *resp,
                               const char *example, const char *content_type) {
   struct OpenAPI_MediaType *_ast_find_media_type_0;
   size_t i;
@@ -520,9 +506,9 @@ static /**
       return ENOMEM;
     if (content_type) {
       struct OpenAPI_MediaType *mt =
-          (find_media_type(resp->content_media_types,
-                           resp->n_content_media_types, content_type,
-                           &_ast_find_media_type_0),
+          (find_media_type_op(resp->content_media_types,
+                              resp->n_content_media_types, content_type,
+                              &_ast_find_media_type_0),
            _ast_find_media_type_0);
       if (mt && !mt->example_set) {
         if (copy_any_value_local(&mt->example, &parsed) != 0) {
@@ -556,11 +542,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the ensure response for code operation.
-        */
-    int
-    ensure_response_for_code(struct OpenAPI_Operation *op, const char *code,
+/**
+ * @brief Executes the ensure response for code operation.
+ */
+int ensure_response_for_code(struct OpenAPI_Operation *op, const char *code,
                              struct OpenAPI_Response **_out_val) {
   struct OpenAPI_Response *_ast_find_response_by_code_1;
   char *_ast_strdup_16 = NULL;
@@ -611,11 +596,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Adds or sets header to response.
-        */
-    int
-    add_header_to_response(struct OpenAPI_Response *resp,
+/**
+ * @brief Adds or sets header to response.
+ */
+int add_header_to_response(struct OpenAPI_Response *resp,
                            const struct DocResponseHeader *dh) {
   bool _ast_iequal_19 = false;
   char *_ast_strdup_20 = NULL;
@@ -753,11 +737,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets link to response.
-        */
-    int
-    add_link_to_response(struct OpenAPI_Response *resp,
+/**
+ * @brief Adds or sets link to response.
+ */
+int add_link_to_response(struct OpenAPI_Response *resp,
                          const struct DocLink *dl) {
   char *_ast_strdup_31 = NULL;
   char *_ast_strdup_32 = NULL;
@@ -887,11 +870,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets param to op.
-        */
-    int
-    add_param_to_op(struct OpenAPI_Operation *op, struct OpenAPI_Parameter *p) {
+/**
+ * @brief Adds or sets param to op.
+ */
+int add_param_to_op(struct OpenAPI_Operation *op, struct OpenAPI_Parameter *p) {
   struct OpenAPI_Parameter *new_arr;
   size_t new_count = op->n_parameters + 1;
 
@@ -908,22 +890,20 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the schema ref has data basic operation.
-        */
-    int
-    schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
+/**
+ * @brief Executes the schema ref has data basic operation.
+ */
+int schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return 0;
   return (ref->ref_name && *ref->ref_name) || (ref->ref && *ref->ref) ||
          (ref->inline_type && *ref->inline_type) || ref->is_array;
 }
 
-static /**
-        * @brief Creates a deep copy of schema ref basic.
-        */
-    int
-    copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
+/**
+ * @brief Creates a deep copy of schema ref basic.
+ */
+int copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
                           const struct OpenAPI_SchemaRef *src) {
   char *_ast_strdup_39 = NULL;
   char *_ast_strdup_40 = NULL;
@@ -986,11 +966,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the response has media type operation.
-        */
-    int
-    response_has_media_type(const struct OpenAPI_Response *resp,
+/**
+ * @brief Executes the response has media type operation.
+ */
+int response_has_media_type(const struct OpenAPI_Response *resp,
                             const char *name) {
   size_t i;
   if (!resp || !name)
@@ -1007,14 +986,13 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the init media type from response operation.
-        */
-    int
-    init_media_type_from_response(struct OpenAPI_MediaType *mt,
-                                  const char *name,
-                                  const struct OpenAPI_Response *resp,
-                                  int is_item_schema) {
+/**
+ * @brief Executes the init media type from response operation.
+ */
+static int init_media_type_from_response(struct OpenAPI_MediaType *mt,
+                                         const char *name,
+                                         const struct OpenAPI_Response *resp,
+                                         int is_item_schema) {
   char *_ast_strdup_45 = NULL;
   if (!mt || !name || !resp)
     return EINVAL;
@@ -1038,12 +1016,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets response media type.
-        */
-    int
-    add_response_media_type(struct OpenAPI_Response *resp, const char *name,
-                            int is_item_schema) {
+/**
+ * @brief Adds or sets response media type.
+ */
+static int add_response_media_type(struct OpenAPI_Response *resp,
+                                   const char *name, int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
 
@@ -1087,12 +1064,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the request body has media type operation.
-        */
-    int
-    request_body_has_media_type(const struct OpenAPI_Operation *op,
-                                const char *name) {
+/**
+ * @brief Executes the request body has media type operation.
+ */
+static int request_body_has_media_type(const struct OpenAPI_Operation *op,
+                                       const char *name) {
   size_t i;
   if (!op || !name)
     return 0;
@@ -1108,14 +1084,13 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the init media type from request body operation.
-        */
-    int
-    init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
-                                      const char *name,
-                                      const struct OpenAPI_Operation *op,
-                                      int is_item_schema) {
+/**
+ * @brief Executes the init media type from request body operation.
+ */
+static int init_media_type_from_request_body(struct OpenAPI_MediaType *mt,
+                                             const char *name,
+                                             const struct OpenAPI_Operation *op,
+                                             int is_item_schema) {
   char *_ast_strdup_46 = NULL;
   if (!mt || !name || !op)
     return EINVAL;
@@ -1139,12 +1114,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets request body media type.
-        */
-    int
-    add_request_body_media_type(struct OpenAPI_Operation *op, const char *name,
-                                int is_item_schema) {
+/**
+ * @brief Adds or sets request body media type.
+ */
+static int add_request_body_media_type(struct OpenAPI_Operation *op,
+                                       const char *name, int is_item_schema) {
   struct OpenAPI_MediaType *new_mts;
   size_t new_count;
 
@@ -1188,13 +1162,12 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets querystring schema from type map.
-        */
-    int
-    set_querystring_schema_from_type_map(
-        struct OpenAPI_Parameter *param,
-        const struct OpenApiTypeMapping *type_map) {
+/**
+ * @brief Adds or sets querystring schema from type map.
+ */
+static int set_querystring_schema_from_type_map(
+    struct OpenAPI_Parameter *param,
+    const struct OpenApiTypeMapping *type_map) {
   char *_ast_strdup_47 = NULL;
   char *_ast_strdup_48 = NULL;
   char *_ast_strdup_49 = NULL;
@@ -1237,11 +1210,10 @@ static /**
   return param->type ? 0 : ENOMEM;
 }
 
-static /**
-        * @brief Executes the oa type is primitive operation.
-        */
-    int
-    oa_type_is_primitive(const char *type) {
+/**
+ * @brief Executes the oa type is primitive operation.
+ */
+static int oa_type_is_primitive(const char *type) {
   if (!type)
     return 0;
   return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
@@ -1251,13 +1223,12 @@ static /**
 /* Apply format from type mapping (or override) to a SchemaRef.
  * Returns: 1 if applied, 0 if not applicable, or ENOMEM on allocation failure.
  */
-static /**
-        * @brief Applies format to schema ref.
-        */
-    int
-    apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
-                               const struct OpenApiTypeMapping *map,
-                               const char *override_format) {
+/**
+ * @brief Applies format to schema ref.
+ */
+static int apply_format_to_schema_ref(struct OpenAPI_SchemaRef *schema,
+                                      const struct OpenApiTypeMapping *map,
+                                      const char *override_format) {
   char *_ast_strdup_52 = NULL;
   char *_ast_strdup_53 = NULL;
   char *_ast_strdup_54 = NULL;
@@ -1315,11 +1286,10 @@ static /**
  * @brief Determine if a type is a struct pointer eligible for Body.
  * Heuristic: Contains "struct", ends with "*" or "**".
  */
-static /**
-        * @brief Checks if struct pointer.
-        */
-    int
-    is_struct_pointer(const char *type, int *is_double_ptr) {
+/**
+ * @brief Checks if struct pointer.
+ */
+int is_struct_pointer(const char *type, int *is_double_ptr) {
   const char *p;
   if (!type)
     return 0;
@@ -1338,11 +1308,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the doc style to openapi operation.
-        */
-    int
-    doc_style_to_openapi(enum DocParamStyle style,
+/**
+ * @brief Executes the doc style to openapi operation.
+ */
+int doc_style_to_openapi(enum DocParamStyle style,
                          enum OpenAPI_Style *_out_val) {
   switch (style) {
   case DOC_PARAM_STYLE_FORM: {
@@ -1652,7 +1621,7 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
           return ENOMEM;
       }
       if (src->n_variables > 0) {
-        int vrc = copy_doc_server_variables(&out_op->servers[s], src);
+        int vrc = copy_doc_server_variables_op(&out_op->servers[s], src);
         if (vrc != 0)
           return vrc;
       }
@@ -1973,9 +1942,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
           return ENOMEM;
         if (rb->example) {
           struct OpenAPI_MediaType *mt =
-              (find_media_type(out_op->req_body_media_types,
-                               out_op->n_req_body_media_types, rb_content_type,
-                               &_ast_find_media_type_4),
+              (find_media_type_op(out_op->req_body_media_types,
+                                  out_op->n_req_body_media_types,
+                                  rb_content_type, &_ast_find_media_type_4),
                _ast_find_media_type_4);
           if (mt && apply_example_to_media_type(mt, rb->example) != 0)
             return ENOMEM;
@@ -1983,9 +1952,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
         {
           struct OpenAPI_MediaType *mt =
-              (find_media_type(out_op->req_body_media_types,
-                               out_op->n_req_body_media_types, rb_content_type,
-                               &_ast_find_media_type_5),
+              (find_media_type_op(out_op->req_body_media_types,
+                                  out_op->n_req_body_media_types,
+                                  rb_content_type, &_ast_find_media_type_5),
                _ast_find_media_type_5);
           if (mt && doc->n_encodings > 0) {
             size_t enc_i;

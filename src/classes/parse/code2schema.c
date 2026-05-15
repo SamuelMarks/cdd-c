@@ -35,19 +35,18 @@
 #define MAX_LINE_LENGTH 1024
 
 /* Helper to read a line from file and strip newline characters */
-static /**
-        * @brief Reads a line from a file pointer and strips trailing newlines.
-        *
-        * Reads up to `bufsz - 1` characters from the file into the buffer
-        * `buf`. Any trailing '\r' or '\n' characters are removed.
-        *
-        * @param[in] fp The file pointer to read from.
-        * @param[out] buf The buffer to store the read string.
-        * @param[in] bufsz The size of the buffer.
-        * @return 1 on success, 0 on failure or end of file.
-        */
-    int
-    read_line(FILE *fp, char *buf, size_t bufsz) {
+/**
+ * @brief Reads a line from a file pointer and strips trailing newlines.
+ *
+ * Reads up to `bufsz - 1` characters from the file into the buffer
+ * `buf`. Any trailing '\r' or '\n' characters are removed.
+ *
+ * @param[in] fp The file pointer to read from.
+ * @param[out] buf The buffer to store the read string.
+ * @param[in] bufsz The size of the buffer.
+ * @return 1 on success, 0 on failure or end of file.
+ */
+static int read_line(FILE *fp, char *buf, size_t bufsz) {
   if (!fgets(buf, (int)bufsz, fp))
     return 0;
   {
@@ -58,14 +57,6 @@ static /**
   return 1;
 }
 
-/**
- * @brief Removes trailing whitespace and semicolons from a string in place.
- *
- * First delegates to the cdd_str implementation to trim basic whitespace,
- * then manually strips any trailing semicolons or additional spaces.
- *
- * @param[in,out] str The string to modify.
- */
 void trim_trailing(char *str) {
   size_t len;
   if (!str)
@@ -78,17 +69,6 @@ void trim_trailing(char *str) {
   }
 }
 
-/**
- * @brief Checks if a string begins with a specified prefix.
- *
- * Exposes a generic `c_cdd_str_starts_with` mapping. Modifies an out parameter
- * to indicate success to match AST generation patterns.
- *
- * @param[in] str The source string to test.
- * @param[in] prefix The expected prefix string.
- * @param[out] _out_val Boolean output parameter containing the result.
- * @return Returns 0 on successful execution of the check logic.
- */
 int str_starts_with(const char *str, const char *prefix, bool *_out_val) {
   bool _ast_starts_with_0 = false;
   {
@@ -98,19 +78,18 @@ int str_starts_with(const char *str, const char *prefix, bool *_out_val) {
   }
 }
 
-static /**
-        * @brief Checks if a given key exists in an array of strings.
-        *
-        * Iterates linearly over a null-safe list to find a string-matched key.
-        * Returns early if either the key or the list are NULL.
-        *
-        * @param[in] key The string to look for.
-        * @param[in] list A pointer to an array of string pointers.
-        * @param[in] count The size of the list array.
-        * @return 1 if found, 0 otherwise.
-        */
-    int
-    key_in_list(const char *key, const char **list, size_t count) {
+/**
+ * @brief Checks if a given key exists in an array of strings.
+ *
+ * Iterates linearly over a null-safe list to find a string-matched key.
+ * Returns early if either the key or the list are NULL.
+ *
+ * @param[in] key The string to look for.
+ * @param[in] list A pointer to an array of string pointers.
+ * @param[in] count The size of the list array.
+ * @return 1 if found, 0 otherwise.
+ */
+static int key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
   if (!key || !list)
     return 0;
@@ -304,18 +283,17 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Clones a parson JSON_Value safely via serialization roundtrip.
-        *
-        * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
-        * if the input value is NULL or serialization fails.
-        *
-        * @param[in] val The original parson JSON value to copy.
-        * @param[out] _out_val Output parameter holding the cloned JSON value.
-        * @return 0 on success, ENOMEM if a memory issue occurs during copying.
-        */
-    int
-    clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
+/**
+ * @brief Clones a parson JSON_Value safely via serialization roundtrip.
+ *
+ * Provides deep cloning of JSON values. Will fail (set _out_val to NULL)
+ * if the input value is NULL or serialization fails.
+ *
+ * @param[in] val The original parson JSON value to copy.
+ * @param[out] _out_val Output parameter holding the cloned JSON value.
+ * @return 0 on success, ENOMEM if a memory issue occurs during copying.
+ */
+static int clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
 
@@ -336,17 +314,16 @@ static /**
   }
 }
 
-static /**
-        * @brief Safely frees an array of dynamically allocated string pointers.
-        *
-        * Loops over the first `n` elements of `arr` and frees them before
-        * freeing the parent array pointer itself. Handles NULLs defensively.
-        *
-        * @param[in] arr The string array to free.
-        * @param[in] n The number of initialized elements in the array.
-        */
-    void
-    free_string_array(char **arr, size_t n) {
+/**
+ * @brief Safely frees an array of dynamically allocated string pointers.
+ *
+ * Loops over the first `n` elements of `arr` and frees them before
+ * freeing the parent array pointer itself. Handles NULLs defensively.
+ *
+ * @param[in] arr The string array to free.
+ * @param[in] n The number of initialized elements in the array.
+ */
+void free_string_array_code2schema(char **arr, size_t n) {
   size_t i;
   if (!arr)
     return;
@@ -359,24 +336,23 @@ static /**
   free(arr);
 }
 
-static /**
-        * @brief Deep copies an array of string pointers into a new dynamically
-        * allocated array.
-        *
-        * Allocates memory for both the array pointers and the underlying
-        * strings. Handles cleanup via `free_string_array` if memory exhaustion
-        * occurs.
-        *
-        * @param[out] dst Pointer to receive the allocated destination array.
-        * @param[out] dst_count Pointer to receive the element count matching
-        * src.
-        * @param[in] src The array to copy elements from.
-        * @param[in] src_count The number of elements in the src array.
-        * @return 0 on success, ENOMEM on allocation failure.
-        */
-    int
-    copy_string_array(char ***dst, size_t *dst_count, char **src,
-                      size_t src_count) {
+/**
+ * @brief Deep copies an array of string pointers into a new dynamically
+ * allocated array.
+ *
+ * Allocates memory for both the array pointers and the underlying
+ * strings. Handles cleanup via `free_string_array` if memory exhaustion
+ * occurs.
+ *
+ * @param[out] dst Pointer to receive the allocated destination array.
+ * @param[out] dst_count Pointer to receive the element count matching
+ * src.
+ * @param[in] src The array to copy elements from.
+ * @param[in] src_count The number of elements in the src array.
+ * @return 0 on success, ENOMEM on allocation failure.
+ */
+int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
+                             size_t src_count) {
   char *_ast_strdup_1 = NULL;
   size_t i;
   char **out;
@@ -395,7 +371,7 @@ static /**
     if (src[i]) {
       out[i] = (c_cdd_strdup(src[i], &_ast_strdup_1), _ast_strdup_1);
       if (!out[i]) {
-        free_string_array(out, src_count);
+        free_string_array_code2schema(out, src_count);
         return ENOMEM;
       }
     }
@@ -588,25 +564,24 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Extracts valid C types from an array of JSON types.
-        *
-        * In OpenAPI/JSON schema, `type` can be an array like `["string",
-        * "null"]`. Extracts each distinct type, determining the primary C type,
-        * while flagging nullability if `"null"` is encountered in the list.
-        *
-        * @param[in] arr The JSON_Array representing multiple types.
-        * @param[out] out_union Target array to store individual type strings.
-        * @param[out] out_count Number of extracted elements in `out_union`.
-        * @param[out] out_primary Tracks the primary structural type (e.g.
-        * "object").
-        * @param[out] out_nullable Set to 1 if the JSON array includes `"null"`.
-        * @return 0 on success, ENOMEM if a memory allocation fails.
-        */
-    int
-    parse_type_union_array(const JSON_Array *arr, char ***out_union,
-                           size_t *out_count, const char **out_primary,
-                           int *out_nullable) {
+/**
+ * @brief Extracts valid C types from an array of JSON types.
+ *
+ * In OpenAPI/JSON schema, `type` can be an array like `["string",
+ * "null"]`. Extracts each distinct type, determining the primary C type,
+ * while flagging nullability if `"null"` is encountered in the list.
+ *
+ * @param[in] arr The JSON_Array representing multiple types.
+ * @param[out] out_union Target array to store individual type strings.
+ * @param[out] out_count Number of extracted elements in `out_union`.
+ * @param[out] out_primary Tracks the primary structural type (e.g.
+ * "object").
+ * @param[out] out_nullable Set to 1 if the JSON array includes `"null"`.
+ * @return 0 on success, ENOMEM if a memory allocation fails.
+ */
+int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
+                                  size_t *out_count, const char **out_primary,
+                                  int *out_nullable) {
   char *_ast_strdup_2 = NULL;
   size_t i, count, n = 0;
   char **types;
@@ -641,7 +616,7 @@ static /**
       continue;
     types[n] = (c_cdd_strdup(t, &_ast_strdup_2), _ast_strdup_2);
     if (!types[n]) {
-      free_string_array(types, count);
+      free_string_array_code2schema(types, count);
       return ENOMEM;
     }
     if (strcmp(t, "null") == 0) {
@@ -854,23 +829,22 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects unstructured extra properties from a JSON Object.
-        *
-        * Loops over the properties of `obj` and copies any that do not match
-        * keys found within the provided `skip_keys` list into a newly allocated
-        * JSON string representing those leftover (extra) attributes.
-        *
-        * @param[in] obj The source JSON Object to collect properties from.
-        * @param[in] skip_keys Array of string keys to ignore during the copy.
-        * @param[in] skip_count Size of the skip_keys array.
-        * @param[out] out_json Contains serialized JSON string of extra
-        * properties.
-        * @return 0 on success, ENOMEM on allocation failure.
-        */
-    int
-    collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
-                          size_t skip_count, char **out_json) {
+/**
+ * @brief Collects unstructured extra properties from a JSON Object.
+ *
+ * Loops over the properties of `obj` and copies any that do not match
+ * keys found within the provided `skip_keys` list into a newly allocated
+ * JSON string representing those leftover (extra) attributes.
+ *
+ * @param[in] obj The source JSON Object to collect properties from.
+ * @param[in] skip_keys Array of string keys to ignore during the copy.
+ * @param[in] skip_count Size of the skip_keys array.
+ * @param[out] out_json Contains serialized JSON string of extra
+ * properties.
+ * @return 0 on success, ENOMEM on allocation failure.
+ */
+static int collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
+                                 size_t skip_count, char **out_json) {
   JSON_Value *_ast_clone_json_value_0;
   char *_ast_strdup_3 = NULL;
   JSON_Value *extras_val;
@@ -928,20 +902,20 @@ static /**
   return *out_json ? 0 : ENOMEM;
 }
 
-static /**
-        * @brief Merges extra attributes described by a JSON string into a
-        * target parson JSON Object.
-        *
-        * Parses the JSON string `extras_json`, clones each value, and sets them
-        * directly on `target`. Returns early if there are no extras. Does not
-        * override existing keys on `target`.
-        *
-        * @param[in,out] target The JSON_Object to merge properties into.
-        * @param[in] extras_json A serialized JSON string of extra properties.
-        * @return 0 on success, ENOMEM on internal failure.
-        */
-    int
-    merge_schema_extras_object(JSON_Object *target, const char *extras_json) {
+/**
+ * @brief Merges extra attributes described by a JSON string into a
+ * target parson JSON Object.
+ *
+ * Parses the JSON string `extras_json`, clones each value, and sets them
+ * directly on `target`. Returns early if there are no extras. Does not
+ * override existing keys on `target`.
+ *
+ * @param[in,out] target The JSON_Object to merge properties into.
+ * @param[in] extras_json A serialized JSON string of extra properties.
+ * @return 0 on success, ENOMEM on internal failure.
+ */
+static int merge_schema_extras_object(JSON_Object *target,
+                                      const char *extras_json) {
   JSON_Value *_ast_clone_json_value_1;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
@@ -1168,22 +1142,21 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Merges two serialized JSON objects containing extra schemas
-        * together.
-        *
-        * Parses `dest_json` and `src_json`. Clones the properties from the
-        * `src` object into `dest`, serializing the result back out into
-        * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
-        * duplicated into it.
-        *
-        * @param[in,out] dest_json Pointer to an allocated JSON string.
-        * Reallocated.
-        * @param[in] src_json The JSON string of extra schemas to append.
-        * @return 0 on success, ENOMEM if a memory/allocation failure occurs.
-        */
-    int
-    merge_schema_extras_strings(char **dest_json, const char *src_json) {
+/**
+ * @brief Merges two serialized JSON objects containing extra schemas
+ * together.
+ *
+ * Parses `dest_json` and `src_json`. Clones the properties from the
+ * `src` object into `dest`, serializing the result back out into
+ * `dest_json`. If `dest_json` was NULL, `src_json` is effectively
+ * duplicated into it.
+ *
+ * @param[in,out] dest_json Pointer to an allocated JSON string.
+ * Reallocated.
+ * @param[in] src_json The JSON string of extra schemas to append.
+ * @return 0 on success, ENOMEM if a memory/allocation failure occurs.
+ */
+static int merge_schema_extras_strings(char **dest_json, const char *src_json) {
   JSON_Value *_ast_clone_json_value_2;
   char *_ast_strdup_4 = NULL;
   char *_ast_strdup_5 = NULL;
@@ -1473,70 +1446,61 @@ static const char *k_property_skip_keys[] = {"type",
 
 static const char *k_items_skip_keys[] = {"type", "$ref"};
 
-static /**
-        * @brief Checks if an OpenAPI type is a primitive type.
-        */
-    int
-    openapi_type_is_primitive(const char *type) {
+/**
+ * @brief Checks if an OpenAPI type is a primitive type.
+ */
+static int openapi_type_is_primitive(const char *type) {
   if (!type)
     return 0;
   return strcmp(type, "integer") == 0 || strcmp(type, "number") == 0 ||
          strcmp(type, "string") == 0 || strcmp(type, "boolean") == 0;
 }
 
-static /**
-        * @brief Determines if a JSON Schema object represents a string enum.
-        */
-    int
-    schema_object_is_string_enum(const JSON_Object *schema_obj,
+/**
+ * @brief Determines if a JSON Schema object represents a string enum.
+ */
+int schema_object_is_string_enum(const JSON_Object *schema_obj,
                                  const JSON_Array **enum_arr_out);
-static /**
-        * @brief Checks if a JSON Schema $ref points to a string enum.
-        */
-    int
-    ref_points_to_string_enum(const JSON_Object *root, const char *ref);
-static /**
-        * @brief Checks if a given property name is present in a required
-        * properties list.
-        */
-    int
-    required_name_in_list(const JSON_Array *required, const char *name);
-static /**
-        * @brief Resolves a JSON Schema $ref to its corresponding object.
-        */
-    int
-    resolve_schema_ref_object(const JSON_Object *root, const char *ref,
+/**
+ * @brief Checks if a JSON Schema $ref points to a string enum.
+ */
+int ref_points_to_string_enum(const JSON_Object *root, const char *ref);
+/**
+ * @brief Checks if a given property name is present in a required
+ * properties list.
+ */
+int required_name_in_list(const JSON_Array *required, const char *name);
+/**
+ * @brief Resolves a JSON Schema $ref to its corresponding object.
+ */
+int resolve_schema_ref_object(const JSON_Object *root, const char *ref,
                               JSON_Object **_out_val);
-static /**
-        * @brief Merges source struct fields into destination struct fields.
-        */
-    int
-    merge_struct_fields(struct StructFields *dest,
+/**
+ * @brief Merges source struct fields into destination struct fields.
+ */
+int merge_struct_fields(struct StructFields *dest,
                         const struct StructFields *src);
-static /**
-        * @brief Merges a source struct field into a destination struct field.
-        */
-    void
-    merge_struct_field(struct StructField *dest, const struct StructField *src);
-static /**
-        * @brief Applies an allOf JSON Schema array to a StructFields object.
-        */
-    int
-    apply_allof_to_struct_fields(const JSON_Array *all_of,
+/**
+ * @brief Merges a source struct field into a destination struct field.
+ */
+void merge_struct_field(struct StructField *dest,
+                        const struct StructField *src);
+/**
+ * @brief Applies an allOf JSON Schema array to a StructFields object.
+ */
+int apply_allof_to_struct_fields(const JSON_Array *all_of,
                                  struct StructFields *dest,
                                  const JSON_Object *root);
-static /**
-        * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
-        */
-    int
-    apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+/**
+ * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
+ */
+int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
                                           struct StructFields *dest,
                                           const JSON_Object *root);
-static /**
-        * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
-        */
-    int
-    apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
+/**
+ * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
+ */
+int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
                                     struct StructFields *dest,
                                     JSON_Object *root, const char *schema_name,
                                     int is_anyof, const JSON_Object *schema_obj,
@@ -1840,16 +1804,17 @@ int parse_struct_member_line(const char *line, struct StructFields *sf) {
 /**
  * @brief Converts a JSON array of strings to an EnumMembers structure.
  */
-int json_array_to_enum_members(const JSON_Array *a, struct EnumMembers *e) {
+int json_array_to_enum_members(const JSON_Array *enum_arr,
+                               struct EnumMembers *em) {
   size_t i, count;
-  if (!a || !e)
+  if (!enum_arr || !em)
     return EINVAL;
-  count = json_array_get_count(a);
+  count = json_array_get_count(enum_arr);
   for (i = 0; i < count; i++) {
-    const char *s = json_array_get_string(a, i);
+    const char *s = json_array_get_string(enum_arr, i);
     if (!s)
       continue;
-    if (enum_members_add(e, s) != 0)
+    if (enum_members_add(em, s) != 0)
       return ENOMEM;
   }
 
@@ -2038,16 +2003,15 @@ int json_array_to_enum_members(const JSON_Array *a, struct EnumMembers *e) {
   return 0;
 }
 
-static /**
-        * @brief Internal helper to convert a JSON Schema object to
-        * StructFields.
-        */
-    int
-    json_object_to_struct_fields_internal(const JSON_Object *o,
-                                          struct StructFields *f,
-                                          JSON_Object *root,
-                                          const char *schema_name,
-                                          int allow_inline_union) {
+/**
+ * @brief Internal helper to convert a JSON Schema object to
+ * StructFields.
+ */
+static int json_object_to_struct_fields_internal(const JSON_Object *o,
+                                                 struct StructFields *f,
+                                                 JSON_Object *root,
+                                                 const char *schema_name,
+                                                 int allow_inline_union) {
   JSON_Object *props;
   size_t i, count;
   const JSON_Array *required;
@@ -2169,10 +2133,10 @@ static /**
       type_arr = json_object_get_array(prop, "type");
       if (type_arr) {
         const char *primary = NULL;
-        rc = parse_type_union_array(type_arr, &type_union, &n_type_union,
+        rc = parse_type_union_array_code2schema(type_arr, &type_union, &n_type_union,
                                     &primary, NULL);
         if (rc != 0) {
-          free_string_array(type_union, n_type_union);
+          free_string_array_code2schema(type_union, n_type_union);
           return rc;
         }
         type = primary;
@@ -2196,11 +2160,11 @@ static /**
           item_type_arr = json_object_get_array(items, "type");
           if (item_type_arr) {
             const char *primary = NULL;
-            rc = parse_type_union_array(item_type_arr, &items_type_union,
+            rc = parse_type_union_array_code2schema(item_type_arr, &items_type_union,
                                         &n_items_type_union, &primary, NULL);
             if (rc != 0) {
-              free_string_array(type_union, n_type_union);
-              free_string_array(items_type_union, n_items_type_union);
+              free_string_array_code2schema(type_union, n_type_union);
+              free_string_array_code2schema(items_type_union, n_items_type_union);
               return rc;
             }
             item_type = primary;
@@ -2208,8 +2172,8 @@ static /**
         }
         if (struct_fields_add(f, name, "array", item_ref ? item_ref : item_type,
                               NULL, bw) != 0) {
-          free_string_array(type_union, n_type_union);
-          free_string_array(items_type_union, n_items_type_union);
+          free_string_array_code2schema(type_union, n_type_union);
+          free_string_array_code2schema(items_type_union, n_items_type_union);
           return ENOMEM;
         }
         field = &f->fields[f->size - 1];
@@ -2233,10 +2197,10 @@ static /**
                                     &field->items_extra_json) != 0)
             return ENOMEM;
         }
-        free_string_array(items_type_union, n_items_type_union);
+        free_string_array_code2schema(items_type_union, n_items_type_union);
       } else {
         if (struct_fields_add(f, name, type, ref, d_val, bw) != 0) {
-          free_string_array(type_union, n_type_union);
+          free_string_array_code2schema(type_union, n_type_union);
           return ENOMEM;
         }
         field = &f->fields[f->size - 1];
@@ -2252,7 +2216,7 @@ static /**
       const char *field_type =
           ref_points_to_string_enum(root, ref) ? "enum" : "object";
       if (struct_fields_add(f, name, field_type, ref, NULL, bw) != 0) {
-        free_string_array(type_union, n_type_union);
+        free_string_array_code2schema(type_union, n_type_union);
         return ENOMEM;
       }
       field = &f->fields[f->size - 1];
@@ -2260,7 +2224,7 @@ static /**
     }
 
     if (!field_added) {
-      free_string_array(type_union, n_type_union);
+      free_string_array_code2schema(type_union, n_type_union);
       continue;
     }
 
@@ -2593,12 +2557,11 @@ int json_object_to_struct_fields(const JSON_Object *schema_obj,
                                          NULL);
 }
 
-static /**
-        * @brief Strips enclosing quotes from a string.
-        */
-    int
-    strip_quotes(const char *in, char *buf, size_t bufsz,
-                 const char **_out_val) {
+/**
+ * @brief Strips enclosing quotes from a string.
+ */
+static int strip_quotes(const char *in, char *buf, size_t bufsz,
+                        const char **_out_val) {
   size_t len;
   if (!in || !buf || bufsz == 0) {
     *_out_val = in;
@@ -2622,11 +2585,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses a boolean default value from a string.
-        */
-    int
-    parse_bool_default(const char *in, int *out) {
+/**
+ * @brief Parses a boolean default value from a string.
+ */
+static int parse_bool_default(const char *in, int *out) {
   if (!in || !out)
     return 0;
   if (strcmp(in, "true") == 0 || strcmp(in, "1") == 0) {
@@ -2823,11 +2785,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses a numeric default value from a string.
-        */
-    int
-    parse_number_default(const char *in, double *out) {
+/**
+ * @brief Parses a numeric default value from a string.
+ */
+static int parse_number_default(const char *in, double *out) {
   struct NumericValue nv;
   if (!in || !out)
     return 0;
@@ -3027,11 +2988,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Determines if a JSON Schema object represents a string enum.
-        */
-    int
-    schema_object_is_string_enum(const JSON_Object *schema_obj,
+/**
+ * @brief Determines if a JSON Schema object represents a string enum.
+ */
+int schema_object_is_string_enum(const JSON_Object *schema_obj,
                                  const JSON_Array **enum_arr_out) {
   const JSON_Array *enum_arr;
   size_t i, count;
@@ -3064,11 +3024,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Checks if a JSON Schema $ref points to a string enum.
-        */
-    int
-    ref_points_to_string_enum(const JSON_Object *root, const char *ref) {
+/**
+ * @brief Checks if a JSON Schema $ref points to a string enum.
+ */
+int ref_points_to_string_enum(const JSON_Object *root, const char *ref) {
   const char *_ast_after_last_6 = NULL;
   const char *name;
   const JSON_Object *schema_obj;
@@ -3084,12 +3043,11 @@ static /**
   return schema_object_is_string_enum(schema_obj, NULL);
 }
 
-static /**
-        * @brief Checks if a given property name is present in a required
-        * properties list.
-        */
-    int
-    required_name_in_list(const JSON_Array *required, const char *name) {
+/**
+ * @brief Checks if a given property name is present in a required
+ * properties list.
+ */
+int required_name_in_list(const JSON_Array *required, const char *name) {
   size_t i, count;
   if (!required || !name)
     return 0;
@@ -3285,11 +3243,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Resolves a JSON Schema $ref to its corresponding object.
-        */
-    int
-    resolve_schema_ref_object(const JSON_Object *root, const char *ref,
+/**
+ * @brief Resolves a JSON Schema $ref to its corresponding object.
+ */
+int resolve_schema_ref_object(const JSON_Object *root, const char *ref,
                               JSON_Object **_out_val) {
   const char *_ast_after_last_7 = NULL;
   const char *name;
@@ -3309,12 +3266,11 @@ static /**
   }
 }
 
-static /**
-        * @brief Detects the underlying JSON type of a union schema object.
-        */
-    int
-    detect_union_json_type(const JSON_Object *schema_obj,
-                           enum UnionVariantJsonType *_out_val) {
+/**
+ * @brief Detects the underlying JSON type of a union schema object.
+ */
+static int detect_union_json_type(const JSON_Object *schema_obj,
+                                  enum UnionVariantJsonType *_out_val) {
   const char *type;
   const JSON_Object *props;
   if (!schema_obj) {
@@ -3367,12 +3323,11 @@ static /**
   }
 }
 
-static /**
-        * @brief Collects an array of strings from a JSON array.
-        */
-    int
-    collect_string_array(const JSON_Array *arr, char ***out,
-                         size_t *out_count) {
+/**
+ * @brief Collects an array of strings from a JSON array.
+ */
+static int collect_string_array(const JSON_Array *arr, char ***out,
+                                size_t *out_count) {
   char *_ast_strdup_8 = NULL;
   size_t i, count;
   char **vals;
@@ -3395,7 +3350,7 @@ static /**
     if (s) {
       vals[i] = (c_cdd_strdup(s, &_ast_strdup_8), _ast_strdup_8);
       if (!vals[i]) {
-        free_string_array(vals, count);
+        free_string_array_code2schema(vals, count);
         return ENOMEM;
       }
     }
@@ -3588,12 +3543,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects property names from a JSON Schema object.
-        */
-    int
-    collect_property_names(const JSON_Object *schema_obj, char ***out,
-                           size_t *out_count) {
+/**
+ * @brief Collects property names from a JSON Schema object.
+ */
+static int collect_property_names(const JSON_Object *schema_obj, char ***out,
+                                  size_t *out_count) {
   char *_ast_strdup_9 = NULL;
   size_t i, count;
   char **vals;
@@ -3620,7 +3574,7 @@ static /**
     if (name) {
       vals[i] = (c_cdd_strdup(name, &_ast_strdup_9), _ast_strdup_9);
       if (!vals[i]) {
-        free_string_array(vals, count);
+        free_string_array_code2schema(vals, count);
         return ENOMEM;
       }
     }
@@ -3813,11 +3767,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Sanitizes a string to be used as a valid C identifier.
-        */
-    int
-    sanitize_identifier(const char *in, char **_out_val) {
+/**
+ * @brief Sanitizes a string to be used as a valid C identifier.
+ */
+int sanitize_identifier(const char *in, char **_out_val) {
   char *_ast_strdup_10 = NULL;
   char *_ast_strdup_11 = NULL;
   size_t i, len;
@@ -3854,11 +3807,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Generates a unique variant name for a union type.
-        */
-    int
-    make_unique_variant_name(const struct StructFields *dest, const char *base,
+/**
+ * @brief Generates a unique variant name for a union type.
+ */
+int make_unique_variant_name(const struct StructFields *dest, const char *base,
                              size_t index, char **_out_val) {
   char *_ast_sanitize_identifier_3 = NULL;
   struct StructField *_ast_struct_fields_get_4;
@@ -3905,11 +3857,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Generates a schema name for an inline anonymous struct/union.
-        */
-    int
-    make_inline_schema_name(const char *schema_name, const char *variant_name,
+/**
+ * @brief Generates a schema name for an inline anonymous struct/union.
+ */
+int make_inline_schema_name(const char *schema_name, const char *variant_name,
                             const char *suffix, char **_out_val) {
   char *_ast_sanitize_identifier_6 = NULL;
   char buf[256];
@@ -3928,13 +3879,12 @@ static /**
   }
 }
 
-static /**
-        * @brief Registers an inline schema within the root OpenAPI components.
-        */
-    int
-    register_inline_schema(JSON_Object *root, const char *schema_name,
-                           const char *variant_name, const char *suffix,
-                           const JSON_Value *schema_val, char **out_name) {
+/**
+ * @brief Registers an inline schema within the root OpenAPI components.
+ */
+int register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
+                               const char *variant_name, const char *suffix,
+                               const JSON_Value *schema_val, char **out_name) {
   char *_ast_make_inline_schema_name_7 = NULL;
   JSON_Value *_ast_clone_json_value_8;
   char *name;
@@ -4151,12 +4101,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Retrieves the discriminator mapping value for a given schema
-        * variant.
-        */
-    int
-    discriminator_value_for_variant(const JSON_Object *disc_obj,
+/**
+ * @brief Retrieves the discriminator mapping value for a given schema
+ * variant.
+ */
+int discriminator_value_for_variant(const JSON_Object *disc_obj,
                                     const char *schema_name, const char *ref,
                                     char **_out_val) {
   const char *_ast_after_last_14 = NULL;
@@ -4220,12 +4169,11 @@ fallback:
   }
 }
 
-static /**
-        * @brief Merges a source struct field into a destination struct field.
-        */
-    void
-    merge_struct_field(struct StructField *dest,
-                       const struct StructField *src) {
+/**
+ * @brief Merges a source struct field into a destination struct field.
+ */
+void merge_struct_field(struct StructField *dest,
+                        const struct StructField *src) {
   if (!dest || !src)
     return;
 
@@ -4326,14 +4274,14 @@ static /**
   }
 
   if (!dest->type_union && src->type_union && src->n_type_union > 0) {
-    if (copy_string_array(&dest->type_union, &dest->n_type_union,
+    if (copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
                           src->type_union, src->n_type_union) != 0) {
       /* Best-effort: ignore copy failures */
     }
   }
   if (!dest->items_type_union && src->items_type_union &&
       src->n_items_type_union > 0) {
-    if (copy_string_array(&dest->items_type_union, &dest->n_items_type_union,
+    if (copy_string_array_code2schema(&dest->items_type_union, &dest->n_items_type_union,
                           src->items_type_union,
                           src->n_items_type_union) != 0) {
       /* Best-effort: ignore copy failures */
@@ -4341,11 +4289,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Merges source struct fields into destination struct fields.
-        */
-    int
-    merge_struct_fields(struct StructFields *dest,
+/**
+ * @brief Merges source struct fields into destination struct fields.
+ */
+int merge_struct_fields(struct StructFields *dest,
                         const struct StructFields *src) {
   struct StructField *_ast_struct_fields_get_9;
   struct StructField *_ast_struct_fields_get_10;
@@ -4412,13 +4359,13 @@ static /**
           }
         }
         if (src_field->type_union && src_field->n_type_union > 0) {
-          if (copy_string_array(
+          if (copy_string_array_code2schema(
                   &dest_field->type_union, &dest_field->n_type_union,
                   src_field->type_union, src_field->n_type_union) != 0)
             return ENOMEM;
         }
         if (src_field->items_type_union && src_field->n_items_type_union > 0) {
-          if (copy_string_array(&dest_field->items_type_union,
+          if (copy_string_array_code2schema(&dest_field->items_type_union,
                                 &dest_field->n_items_type_union,
                                 src_field->items_type_union,
                                 src_field->n_items_type_union) != 0)
@@ -4616,11 +4563,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies an allOf JSON Schema array to a StructFields object.
-        */
-    int
-    apply_allof_to_struct_fields(const JSON_Array *all_of,
+/**
+ * @brief Applies an allOf JSON Schema array to a StructFields object.
+ */
+int apply_allof_to_struct_fields(const JSON_Array *all_of,
                                  struct StructFields *dest,
                                  const JSON_Object *root) {
   JSON_Object *_ast_resolve_schema_ref_object_11;
@@ -4849,11 +4795,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
-        */
-    int
-    apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
+/**
+ * @brief Fallback method to apply a union (oneOf/anyOf) to StructFields.
+ */
+int apply_union_to_struct_fields_fallback(const JSON_Array *union_arr,
                                           struct StructFields *dest,
                                           const JSON_Object *root) {
   JSON_Object *_ast_resolve_schema_ref_object_12;
@@ -5088,12 +5033,12 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Checks if array items within a union are supported.
-        */
-    int
-    union_array_items_supported(const JSON_Object *schema_obj,
-                                const JSON_Object *root, int allow_inline) {
+/**
+ * @brief Checks if array items within a union are supported.
+ */
+static int union_array_items_supported(const JSON_Object *schema_obj,
+                                       const JSON_Object *root,
+                                       int allow_inline) {
   const JSON_Object *items;
   const JSON_Array *item_type_arr = NULL;
   const char *item_ref;
@@ -5117,7 +5062,7 @@ static /**
   if (!item_ref && !item_type) {
     item_type_arr = json_object_get_array(items, "type");
     if (item_type_arr) {
-      if (parse_type_union_array(item_type_arr, &items_type_union,
+      if (parse_type_union_array_code2schema(item_type_arr, &items_type_union,
                                  &n_items_type_union, &primary, NULL) == 0)
         item_type = primary;
     } else if (json_object_get_object(items, "properties")) {
@@ -5126,31 +5071,30 @@ static /**
   }
 
   if (item_ref) {
-    free_string_array(items_type_union, n_items_type_union);
+    free_string_array_code2schema(items_type_union, n_items_type_union);
     return 1;
   }
   if (!item_type) {
-    free_string_array(items_type_union, n_items_type_union);
+    free_string_array_code2schema(items_type_union, n_items_type_union);
     return 0;
   }
   if (strcmp(item_type, "array") == 0) {
-    free_string_array(items_type_union, n_items_type_union);
+    free_string_array_code2schema(items_type_union, n_items_type_union);
     return 0;
   }
   if (strcmp(item_type, "object") == 0 && (!allow_inline || !root)) {
-    free_string_array(items_type_union, n_items_type_union);
+    free_string_array_code2schema(items_type_union, n_items_type_union);
     return 0;
   }
 
-  free_string_array(items_type_union, n_items_type_union);
+  free_string_array_code2schema(items_type_union, n_items_type_union);
   return 1;
 }
 
-static /**
-        * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
-        */
-    int
-    apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
+/**
+ * @brief Extended method to apply a union (oneOf/anyOf) to StructFields.
+ */
+int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
                                     struct StructFields *dest,
                                     JSON_Object *root, const char *schema_name,
                                     int is_anyof, const JSON_Object *schema_obj,
@@ -5286,8 +5230,8 @@ static /**
 
     if (jtype == UNION_JSON_OBJECT && !ref) {
       if (allow_inline && root && sub_val) {
-        rc = register_inline_schema(root, schema_name, variant_name, NULL,
-                                    sub_val, &inline_ref_name);
+        rc = register_inline_schema_c2s(root, schema_name, variant_name, NULL,
+                                        sub_val, &inline_ref_name);
         if (rc != 0) {
           free(variant_name);
           return rc;
@@ -5311,7 +5255,7 @@ static /**
         if (!item_ref && !item_type) {
           item_type_arr = json_object_get_array(items, "type");
           if (item_type_arr) {
-            rc = parse_type_union_array(item_type_arr, &items_type_union,
+            rc = parse_type_union_array_code2schema(item_type_arr, &items_type_union,
                                         &n_items_type_union, &item_type, NULL);
             if (rc != 0) {
               free(variant_name);
@@ -5324,12 +5268,13 @@ static /**
         }
         if (!item_ref && item_type && strcmp(item_type, "object") == 0) {
           if (allow_inline && root && items_val) {
-            rc = register_inline_schema(root, schema_name, variant_name, "Item",
-                                        items_val, &inline_item_ref);
+            rc =
+                register_inline_schema_c2s(root, schema_name, variant_name,
+                                           "Item", items_val, &inline_item_ref);
             if (rc != 0) {
               free(variant_name);
               free(inline_ref_name);
-              free_string_array(items_type_union, n_items_type_union);
+              free_string_array_code2schema(items_type_union, n_items_type_union);
               return rc;
             }
             item_ref = inline_item_ref;
@@ -5374,7 +5319,7 @@ static /**
       free(variant_name);
       free(inline_ref_name);
       free(inline_item_ref);
-      free_string_array(items_type_union, n_items_type_union);
+      free_string_array_code2schema(items_type_union, n_items_type_union);
       return ENOMEM;
     }
     field = &dest->fields[dest->size - 1];
@@ -5410,7 +5355,7 @@ static /**
 
     free(inline_ref_name);
     free(inline_item_ref);
-    free_string_array(items_type_union, n_items_type_union);
+    free_string_array_code2schema(items_type_union, n_items_type_union);
   }
 
   /* OpenAPI 3.2.0 coverage expansion:
@@ -5598,12 +5543,12 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Writes the default value of a StructField to a JSON schema
-        * object.
-        */
-    void
-    write_default_value(JSON_Object *pobj, const struct StructField *field) {
+/**
+ * @brief Writes the default value of a StructField to a JSON schema
+ * object.
+ */
+static void write_default_value(JSON_Object *pobj,
+                                const struct StructField *field) {
   const char *_ast_strip_quotes_19 = NULL;
   const char *def;
   const char *typ;
@@ -5646,13 +5591,12 @@ static /**
   }
 }
 
-static /**
-        * @brief Writes numeric constraints of a StructField to a JSON schema
-        * object.
-        */
-    void
-    write_numeric_constraints(JSON_Object *pobj,
-                              const struct StructField *field) {
+/**
+ * @brief Writes numeric constraints of a StructField to a JSON schema
+ * object.
+ */
+static void write_numeric_constraints(JSON_Object *pobj,
+                                      const struct StructField *field) {
   if (!pobj || !field)
     return;
   if (!field->type[0] || !(strcmp(field->type, "integer") == 0 ||
@@ -5672,13 +5616,12 @@ static /**
   }
 }
 
-static /**
-        * @brief Writes string constraints of a StructField to a JSON schema
-        * object.
-        */
-    void
-    write_string_constraints(JSON_Object *pobj,
-                             const struct StructField *field) {
+/**
+ * @brief Writes string constraints of a StructField to a JSON schema
+ * object.
+ */
+static void write_string_constraints(JSON_Object *pobj,
+                                     const struct StructField *field) {
   if (!pobj || !field)
     return;
   if (!field->type[0] || strcmp(field->type, "string") != 0)
@@ -5691,13 +5634,12 @@ static /**
     json_object_set_string(pobj, "pattern", field->pattern);
 }
 
-static /**
-        * @brief Writes array constraints of a StructField to a JSON schema
-        * object.
-        */
-    void
-    write_array_constraints(JSON_Object *pobj,
-                            const struct StructField *field) {
+/**
+ * @brief Writes array constraints of a StructField to a JSON schema
+ * object.
+ */
+static void write_array_constraints(JSON_Object *pobj,
+                                    const struct StructField *field) {
   if (!pobj || !field)
     return;
   if (!field->type[0] || strcmp(field->type, "array") != 0)
@@ -5710,12 +5652,11 @@ static /**
     json_object_set_boolean(pobj, "uniqueItems", 1);
 }
 
-static /**
-        * @brief Writes a type union array to a JSON schema object.
-        */
-    void
-    write_type_union(JSON_Object *obj, const char *type, char **type_union,
-                     size_t n_type_union) {
+/**
+ * @brief Writes a type union array to a JSON schema object.
+ */
+static void write_type_union(JSON_Object *obj, const char *type,
+                             char **type_union, size_t n_type_union) {
   size_t i;
   JSON_Value *arr_val;
   JSON_Array *arr;
@@ -6074,13 +6015,12 @@ int write_struct_to_json_schema(JSON_Object *schemas_obj,
   return 0;
 }
 
-static /**
-        * @brief Parses a union definition and writes it to a JSON Schema
-        * object.
-        */
-    int
-    parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
-                          const char *union_name) {
+/**
+ * @brief Parses a union definition and writes it to a JSON Schema
+ * object.
+ */
+static int parse_union_and_write(FILE *fp, JSON_Object *schemas_obj,
+                                 const char *union_name) {
   /* (Implementation preserved from previous code2schema.c) */
   char line[512];
   JSON_Value *union_val = json_value_init_object();
@@ -6326,16 +6266,6 @@ static /**
   return 0;
 }
 
-/**
- * @brief Main entry point for the `code2schema` CLI command.
- *
- * Reads a C header file line by line, parses structures, and emits the
- * equivalent JSON Schema output to the given file.
- *
- * @param[in] argc Argument count (expects 2).
- * @param[in] argv Arguments array (input header file, output JSON file).
- * @return EXIT_SUCCESS if successful, EXIT_FAILURE otherwise.
- */
 int code2schema_main(int argc, char **argv) {
   FILE *fp;
   char line[MAX_LINE_LENGTH];

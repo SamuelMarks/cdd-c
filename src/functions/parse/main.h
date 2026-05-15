@@ -7,11 +7,7 @@ extern "C" {
 #include "c_cdd_export.h"
 /* clang-format on */
 /** @brief Main entry point function */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cdd main operation.
-                     */
-    int
-    cdd_main(int argc, char **argv);
+extern C_CDD_EXPORT int cdd_main(int argc, char **argv);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

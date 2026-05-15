@@ -28,6 +28,7 @@ extern "C" {
 
 TEST test_gen_cmake_basic(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
+  const char *src_file = "test_build_dir/src/CMakeLists.txt";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -42,11 +43,13 @@ TEST test_gen_cmake_basic(void) {
 
   free(content);
   remove(out_file);
+  remove(src_file);
   PASS();
 }
 
 TEST test_gen_cmake_with_tests(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
+  const char *src_file = "test_build_dir/src/CMakeLists.txt";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -54,13 +57,14 @@ TEST test_gen_cmake_with_tests(void) {
   rc = generate_cmake_project("test_build_dir", "TestProj", 1);
   ASSERT_EQ(0, rc);
 
-  rc = read_to_file(out_file, "r", &content, &sz);
+  rc = read_to_file(src_file, "r", &content, &sz);
   ASSERT_EQ(0, rc);
 
   ASSERT(strstr(content, "enable_testing()"));
 
   free(content);
   remove(out_file);
+  remove(src_file);
   PASS();
 }
 
@@ -82,16 +86,17 @@ TEST test_gen_build_system_cli_args(void) {
   {
     FILE *f;
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    if (fopen_s(&f, "test_build_dir/CMakeLists.txt", "r") != 0)
+    if (fopen_s(&f, "test_build_dir/src/CMakeLists.txt", "r") != 0)
       f = NULL;
 #elif defined(_MSC_VER)
-    fopen_s(&f, "test_build_dir/CMakeLists.txt", "r");
+    fopen_s(&f, "test_build_dir/src/CMakeLists.txt", "r");
 #else
-    f = fopen("test_build_dir/CMakeLists.txt", "r");
+    f = fopen("test_build_dir/src/CMakeLists.txt", "r");
 #endif
     ASSERT(f != NULL);
     fclose(f);
   }
+  remove("test_build_dir/src/CMakeLists.txt");
   remove("test_build_dir/CMakeLists.txt");
   PASS();
 }

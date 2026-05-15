@@ -4357,7 +4357,7 @@ TEST test_writer_inline_schema_items_const_default_and_extras(void) {
 }
 
 TEST test_writer_input_validation(void) {
-  struct OpenAPI_Spec spec;
+  struct OpenAPI_Spec spec = {0};
   char *json;
 
   ASSERT_EQ(EINVAL, openapi_write_spec_to_json(NULL, &json));
@@ -4773,7 +4773,73 @@ TEST test_writer_xml_types(void) {
   free(resp.content_media_types);
   PASS();
 }
+
+TEST test_openapi_utils(void) {
+  char *out = NULL;
+  
+  // Hit the default missing branches
+  ASSERT_EQ(0, verb_to_str_openapi((enum OpenAPI_Verb)-1, &out));
+  ASSERT(out == NULL);
+
+  ASSERT_EQ(0, param_in_to_str_openapi((enum OpenAPI_ParamIn)-1, &out));
+  ASSERT(out == NULL);
+
+  ASSERT_EQ(0, style_to_str_openapi((enum OpenAPI_Style)-1, &out));
+  ASSERT(out == NULL);
+
+  ASSERT_EQ(0, xml_node_type_to_str_openapi(OA_XML_NODE_ELEMENT, &out));
+  ASSERT_EQ(0, xml_node_type_to_str_openapi(OA_XML_NODE_ATTRIBUTE, &out));
+  ASSERT_EQ(0, xml_node_type_to_str_openapi(OA_XML_NODE_TEXT, &out));
+  ASSERT_EQ(0, xml_node_type_to_str_openapi(OA_XML_NODE_CDATA, &out));
+  ASSERT_EQ(0, xml_node_type_to_str_openapi(OA_XML_NODE_NONE, &out));
+  ASSERT_EQ(0, xml_node_type_to_str_openapi((enum OpenAPI_XmlNodeType)-1, &out));
+  
+  ASSERT_EQ(0, header_name_is_content_type_openapi(NULL));
+  ASSERT_EQ(1, header_name_is_content_type_openapi("Content-Type"));
+  
+  struct OpenAPI_Parameter p;
+  memset(&p, 0, sizeof(p));
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = "Accept";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = "Accept";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Content-Type";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Content-Type";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = "Accept";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Content-Type";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
+  p.in = OA_PARAM_IN_HEADER;
+  p.name = "Accept";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Content-Type";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+  p.name = "Authorization";
+  ASSERT_EQ(1, param_is_reserved_header_openapi(&p));
+
+  PASS();
+}
+
 SUITE(openapi_writer_suite) {
+  RUN_TEST(test_openapi_utils);
   RUN_TEST(test_writer_empty_spec);
   RUN_TEST(test_writer_basic_operation);
   RUN_TEST(test_writer_schema_document);

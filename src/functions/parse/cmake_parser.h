@@ -41,12 +41,9 @@ struct CMakeModifier {
  * add_compile_options/link_libraries.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cmake modifier init operation.
-                     */
-    int
-    cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
-                        const char *target_name);
+extern C_CDD_EXPORT int cmake_modifier_init(struct CMakeModifier *mod,
+                                            const char *filepath,
+                                            const char *target_name);
 
 /**
  * @brief Add a compile option to be injected.
@@ -71,11 +68,7 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Free resources associated with a CMake modifier.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cmake modifier free operation.
-                     */
-    void
-    cmake_modifier_free(struct CMakeModifier *mod);
+extern C_CDD_EXPORT void cmake_modifier_free(struct CMakeModifier *mod);
 
 /**
  * @brief Apply the modifications to the target CMakeLists.txt file.
@@ -90,11 +83,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out_diff A newly allocated string containing the unified diff.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cmake modifier apply diff operation.
-                     */
-    int
-    cmake_modifier_apply_diff(const struct CMakeModifier *mod, char **out_diff);
+extern C_CDD_EXPORT int
+cmake_modifier_apply_diff(const struct CMakeModifier *mod, char **out_diff);
 
 #ifdef __cplusplus
 }

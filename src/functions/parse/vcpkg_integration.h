@@ -2,7 +2,7 @@
  * @file vcpkg_integration.h
  * @brief Vcpkg Integration Generator based on include analysis.
  *
- * Scans `#include` directives to identify required dependencies (e.g.,
+ * Scans `\#include` directives to identify required dependencies (e.g.,
  * `pthreads`, `zlib`) and generates a `vcpkg.json` manifest file.
  *
  * @author Samuel Marks
@@ -53,22 +53,16 @@ struct VcpkgManifestBuilder {
 /**
  * @brief Initialize a vcpkg manifest builder.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vcpkg builder init operation.
-                     */
-    int
-    vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
-                       const char *project_name, const char *version_string,
-                       const char *description);
+extern C_CDD_EXPORT int vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
+                                           const char *project_name,
+                                           const char *version_string,
+                                           const char *description);
 
 /**
  * @brief Free resources associated with a vcpkg manifest builder.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vcpkg builder free operation.
-                     */
-    void
-    vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
+extern C_CDD_EXPORT void
+vcpkg_builder_free(struct VcpkgManifestBuilder *builder);
 
 /**
  * @brief Add a dependency to the manifest.
@@ -79,15 +73,12 @@ extern C_CDD_EXPORT /**
  * @param[in] dep_name The name of the vcpkg port (e.g., "pthreads").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vcpkg builder add dep operation.
-                     */
-    int
-    vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
-                          const char *dep_name);
+extern C_CDD_EXPORT int
+vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
+                      const char *dep_name);
 
 /**
- * @brief Analyze a source file's token stream for #include directives and map
+ * @brief Analyze a source file's token stream for \#include directives and map
  * them to vcpkg dependencies.
  *
  * Currently implements a simple mapping logic:
@@ -99,12 +90,9 @@ extern C_CDD_EXPORT /**
  * @param[in] file_content Null-terminated C source file content.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vcpkg builder scan source operation.
-                     */
-    int
-    vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
-                              const char *file_content);
+extern C_CDD_EXPORT int
+vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
+                          const char *file_content);
 
 /**
  * @brief Generate the final vcpkg.json string.
@@ -113,12 +101,9 @@ extern C_CDD_EXPORT /**
  * @param[out] out_json A newly allocated string containing the JSON structure.
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vcpkg builder generate operation.
-                     */
-    int
-    vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
-                           char **out_json);
+extern C_CDD_EXPORT int
+vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
+                       char **out_json);
 
 #ifdef __cplusplus
 }

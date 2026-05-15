@@ -11,6 +11,11 @@
 #include <string.h>
 /* clang-format on */
 
+/**
+ * @brief Init IR.
+ * @param ir Pointer to IR
+ * @return Error code
+ */
 int cdd_c_ir_init(cdd_c_ir_t *ir) {
   if (!ir)
     return -1;
@@ -24,6 +29,12 @@ int cdd_c_ir_init(cdd_c_ir_t *ir) {
   return 0;
 }
 
+/**
+ * @brief Add table to IR.
+ * @param ir Pointer to IR
+ * @param table Table to add
+ * @return Error code
+ */
 int cdd_c_ir_add_table(cdd_c_ir_t *ir, const struct sql_table_t *table) {
   struct sql_table_t *new_tables;
   size_t new_cap;
@@ -82,6 +93,12 @@ static int duplicate_projection(cdd_c_query_projection_t *dest,
   return 0;
 }
 
+/**
+ * @brief Add projection to IR.
+ * @param ir Pointer to IR
+ * @param proj Projection to add
+ * @return Error code
+ */
 int cdd_c_ir_add_projection(cdd_c_ir_t *ir,
                             const cdd_c_query_projection_t *proj) {
   cdd_c_query_projection_t *new_projs;
@@ -106,6 +123,10 @@ int cdd_c_ir_add_projection(cdd_c_ir_t *ir,
   return 0;
 }
 
+/**
+ * @brief Free IR.
+ * @param ir Pointer to IR
+ */
 int cdd_c_ir_free(cdd_c_ir_t *ir) {
   size_t i;
   if (!ir)
@@ -133,6 +154,12 @@ int cdd_c_ir_free(cdd_c_ir_t *ir) {
   return 0;
 }
 
+/**
+ * @brief Parse SQL into IR.
+ * @param sql_data SQL string
+ * @param out_ir Output IR
+ * @return Error code
+ */
 int parse_sql_into_ir(const char *sql_data, cdd_c_ir_t *out_ir) {
   struct sql_token_list_t *list = NULL;
   struct sql_table_t *table = NULL;

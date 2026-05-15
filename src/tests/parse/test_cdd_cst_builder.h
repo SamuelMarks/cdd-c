@@ -422,8 +422,56 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   PASS();
 }
 
+TEST test_cdd_cst_builder_errors_extra(void) {
+  cdd_cst_builder_t b;
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *root = NULL;
+
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  tree->root = root;
+
+  cdd_cst_builder_init(&b, tree, root);
+
+  /* NULL checks */
+  ASSERT_EQ(EINVAL, cdd_cst_bld_token(NULL, CDD_TOKEN_IDENTIFIER, "a"));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_int(NULL, 1));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_punct(NULL, ";"));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_block_open(NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_block_close(NULL));
+
+  /* Force error state */
+  b.error_state = ENOMEM;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_int(&b, 1));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_punct(&b, ";"));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_open(&b));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_close(&b));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "test"));
+
+  b.error_state = 0;
+  ASSERT_EQ(0, cdd_cst_bld_line_comment(&b, "test2"));
+
+  cdd_cst_bld_newline(&b);
+  cdd_cst_bld_space(&b);
+
+  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a");
+  cdd_cst_bld_newline(&b);
+  cdd_cst_bld_newline(&b); /* test trailing trivia append */
+  cdd_cst_bld_newline(&b); /* test trailing trivia loop */
+
+  /* Trigger error in snippet lexing or pool by mocking error_state */
+  ASSERT_EQ(0, cdd_cst_bld_snippet(&b, "int z = 1;"));
+
+  cdd_cst_tree_free(tree);
+
+  /* leak root intentionally */
+  PASS();
+}
+
 SUITE(cdd_cst_builder_suite) {
   RUN_TEST(test_cdd_cst_builder_basic);
+  RUN_TEST(test_cdd_cst_builder_errors_extra);
   RUN_TEST(test_cdd_cst_builder_macros);
   RUN_TEST(test_cdd_cst_builder_quote);
   RUN_TEST(test_cdd_cst_builder_quote_errors);

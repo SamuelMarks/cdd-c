@@ -79,6 +79,18 @@ extern C_CDD_EXPORT /**
     codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
                                    int qp_tracking);
 
+extern C_CDD_EXPORT int is_primitive_type_url(const char *type);
+extern C_CDD_EXPORT int param_is_object_kv_url(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT int media_type_base_len_url(const char *media_type, size_t *_out_val);
+extern C_CDD_EXPORT int media_type_ieq_url(const char *media_type, const char *expected);
+extern C_CDD_EXPORT int media_type_is_json_url(const char *media_type);
+extern C_CDD_EXPORT int media_type_is_form_url(const char *media_type);
+extern C_CDD_EXPORT int querystring_param_is_form_object(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT int querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT int querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p, const char **_out_val);
+extern C_CDD_EXPORT int write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

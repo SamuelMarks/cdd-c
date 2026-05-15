@@ -30,8 +30,9 @@ struct Block {
   size_t patch_start_idx;
   /** @brief patch_end_idx field */
   size_t patch_end_idx;
-  /** @brief type field */
+  /** @brief old start line */
   size_t old_start_line;
+  /** @brief old end line */
   size_t old_end_line;
   /** @brief Op struct */
 };
@@ -39,7 +40,9 @@ struct Block {
 
 /** @brief Op struct */
 struct Op {
+  /** @brief operation type */
   int type; /* 0: keep, 1: del, 2: ins */
+  /** @brief line data */
   struct DiffLine line;
 };
 

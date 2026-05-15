@@ -239,7 +239,7 @@ static /**
 /**
  * @brief Executes the identify keyword or id operation.
  */
-int identify_keyword_or_id(const uint8_t *start, size_t length,
+int identify_keyword_or_id(const uint8_t *start, size_t len,
                            enum TokenKind *_out_val) {
   bool _ast_attr = false;
   bool _ast_declspec = false;
@@ -301,7 +301,7 @@ int identify_keyword_or_id(const uint8_t *start, size_t length,
   bool _ast_span_equals_str_55 = false;
   bool _ast_span_equals_str_56 = false;
 
-  az_span s = az_span_create((uint8_t *)start, (int32_t)length);
+  az_span s = az_span_create((uint8_t *)start, (int32_t)len);
 
   /* C89/C90/C99/C11/C23 Keywords */
 

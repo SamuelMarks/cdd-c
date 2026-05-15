@@ -70,7 +70,6 @@ struct OpenAPI_KV {
 
 /**
  * @param[out] _out_val Pointer to store the result
- * @param[out] _out_val Pointer to store the result
  * @brief Join object-style key/value pairs into a form-encoded value string.
  *
  * Produces a single string suitable for use as the value of a form-style
@@ -87,16 +86,12 @@ struct OpenAPI_KV {
  * @return Newly allocated string containing the joined value, or NULL on
  * allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi kv join form operation.
-                     */
-    int
-    openapi_kv_join_form(const struct OpenAPI_KV *kvs, size_t n,
-                         const char *delim, int allow_reserved,
-                         char **_out_val);
+extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
+                                             size_t n, const char *delim,
+                                             int allow_reserved,
+                                             char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for use in a URL.
  *
@@ -108,14 +103,9 @@ extern C_CDD_EXPORT /**
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url encode operation.
-                     */
-    int
-    url_encode(const char *str, char **_out_val);
+extern C_CDD_EXPORT int url_encode(const char *str, char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string while allowing reserved characters.
  *
@@ -127,14 +117,10 @@ extern C_CDD_EXPORT /**
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url encode allow reserved operation.
-                     */
-    int
-    url_encode_allow_reserved(const char *str, char **_out_val);
+extern C_CDD_EXPORT int url_encode_allow_reserved(const char *str,
+                                                  char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded.
  *
@@ -145,14 +131,9 @@ extern C_CDD_EXPORT /**
  * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url encode form operation.
-                     */
-    int
-    url_encode_form(const char *str, char **_out_val);
+extern C_CDD_EXPORT int url_encode_form(const char *str, char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded while
  * allowing reserved characters (except delimiters).
@@ -178,11 +159,7 @@ extern C_CDD_EXPORT /**
  * @param[out] qp The structure to initialize.
  * @return 0 on success, EINVAL if qp is NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query init operation.
-                     */
-    int
-    url_query_init(struct UrlQueryParams *qp);
+extern C_CDD_EXPORT int url_query_init(struct UrlQueryParams *qp);
 
 /**
  * @brief Free resources associated with a query parameters container.
@@ -190,11 +167,7 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] qp The structure to free. Safe to pass NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query free operation.
-                     */
-    void
-    url_query_free(struct UrlQueryParams *qp);
+extern C_CDD_EXPORT void url_query_free(struct UrlQueryParams *qp);
 
 /**
  * @brief Add a key-value pair to the query container.
@@ -204,12 +177,8 @@ extern C_CDD_EXPORT /**
  * @param[in] value The parameter value (will be copied).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query add operation.
-                     */
-    int
-    url_query_add(struct UrlQueryParams *qp, const char *key,
-                  const char *value);
+extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
+                                      const char *key, const char *value);
 
 /**
  * @brief Add a key-value pair where the value is already percent-encoded.
@@ -223,12 +192,9 @@ extern C_CDD_EXPORT /**
  * @param[in] value The parameter value (already encoded, will be copied).
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query add encoded operation.
-                     */
-    int
-    url_query_add_encoded(struct UrlQueryParams *qp, const char *key,
-                          const char *value);
+extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
+                                              const char *key,
+                                              const char *value);
 
 /**
  * @brief Build the final query string starting with '?'.
@@ -242,11 +208,8 @@ extern C_CDD_EXPORT /**
  *                     If count is 0, allocates an empty string "".
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query build operation.
-                     */
-    int
-    url_query_build(const struct UrlQueryParams *qp, char **out_str);
+extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
+                                        char **out_str);
 
 /**
  * @brief Build a application/x-www-form-urlencoded body string.
@@ -258,11 +221,8 @@ extern C_CDD_EXPORT /**
  *                     If count is 0, allocates an empty string "".
  * @return 0 on success, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the url query build form operation.
-                     */
-    int
-    url_query_build_form(const struct UrlQueryParams *qp, char **out_str);
+extern C_CDD_EXPORT int url_query_build_form(const struct UrlQueryParams *qp,
+                                             char **out_str);
 
 #ifdef __cplusplus
 }

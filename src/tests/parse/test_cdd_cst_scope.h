@@ -109,9 +109,3 @@ SUITE(cdd_cst_scope_suite) {
 }
 #endif
 #endif
-TEST test_cdd_cst_scope_alloc_failure(void) {
-  /* It is difficult to trigger ENOMEM directly via malloc failing without a
-   * mocking framework setup for this specific test case, but the buffer
-   * allocation check logic is standard C code. */
-  PASS();
-}

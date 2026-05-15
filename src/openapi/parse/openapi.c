@@ -716,6 +716,11 @@ static /**
     parse_additional_operations(const JSON_Object *path_obj,
                                 struct OpenAPI_Path *path,
                                 const struct OpenAPI_Spec *spec);
+/**
+ * @brief Free servers array.
+ * @param servers Array of servers
+ * @param n_servers Number of servers
+ */
 void openapi_free_servers_array(struct OpenAPI_Server *servers,
                                 size_t n_servers);
 
@@ -1350,6 +1355,11 @@ static /**
     free(set->extensions_json);
 }
 
+/**
+ * @brief Free servers array.
+ * @param servers Array of servers
+ * @param n_servers Number of servers
+ */
 void openapi_free_servers_array(struct OpenAPI_Server *servers,
                                 size_t n_servers) {
   size_t i;
