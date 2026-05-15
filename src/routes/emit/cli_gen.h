@@ -22,12 +22,9 @@ extern "C" {
  * @param config Client configuration.
  * @return 0 on success, non-zero on error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi cli generate operation.
-                     */
-    int
-    openapi_cli_generate(const struct OpenAPI_Spec *spec,
-                         const struct OpenApiClientConfig *config);
+extern C_CDD_EXPORT int
+openapi_cli_generate(const struct OpenAPI_Spec *spec,
+                     const struct OpenApiClientConfig *config);
 
 #ifdef __cplusplus
 }

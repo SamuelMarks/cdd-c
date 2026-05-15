@@ -38,18 +38,18 @@ TEST test_cli_gen_basic(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  if (fopen_s(&f, "test_cli_cli.c", "r") != 0)
+  if (fopen_s(&f, "src/test_cli_cli.c", "r") != 0)
     f = NULL;
 #elif defined(_MSC_VER)
-  fopen_s(&f, "test_cli_cli.c", "r");
+  fopen_s(&f, "src/test_cli_cli.c", "r");
 #else
-  f = fopen("test_cli_cli.c", "r");
+  f = fopen("src/test_cli_cli.c", "r");
 #endif
   ASSERT(f != NULL);
   if (f)
     fclose(f);
 
-  remove("test_cli_cli.c");
+  remove("src/test_cli_cli.c");
   free(spec.paths[0].operations[0].parameters);
   free(spec.paths[0].operations);
   free(spec.paths);
@@ -130,7 +130,7 @@ TEST test_cli_gen_full(void) {
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
 
-  remove("test_cli_full_cli.c");
+  remove("src/test_cli_full_cli.c");
   free(spec.servers);
   free(spec.paths[0].operations[0].parameters);
   free(spec.paths[0].operations);

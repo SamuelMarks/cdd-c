@@ -75,7 +75,7 @@ typedef struct parser_state_t {
   cdd_token_list_t *list;
   /** @brief pos field */
   size_t pos;
-  int err;
+  int err; /**< err */
 } parser_state_t;
 
 static int peek(parser_state_t *s, cdd_token_t **out_tok) {

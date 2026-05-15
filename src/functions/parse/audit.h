@@ -54,22 +54,14 @@ struct AuditStats {
  * @brief Initialize audit statistics to zero.
  * @param[out] stats Pointer to structure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the audit stats init operation.
-                     */
-    void
-    audit_stats_init(struct AuditStats *stats);
+extern C_CDD_EXPORT void audit_stats_init(struct AuditStats *stats);
 
 /**
  * @brief Cleanup audit statistics structure.
  * Frees detailed violation list.
  * @param[in] stats Pointer to structure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the audit stats free operation.
-                     */
-    void
-    audit_stats_free(struct AuditStats *stats);
+extern C_CDD_EXPORT void audit_stats_free(struct AuditStats *stats);
 
 /**
  * @brief Recursively audit a C project directory for allocation safety.
@@ -80,11 +72,8 @@ extern C_CDD_EXPORT /**
  * @param[out] stats The statistics structure to update.
  * @return 0 on success, error code on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the audit project operation.
-                     */
-    int
-    audit_project(const char *root_path, struct AuditStats *stats);
+extern C_CDD_EXPORT int audit_project(const char *root_path,
+                                      struct AuditStats *stats);
 
 /**
  * @brief Generate a JSON report string from audit stats.
@@ -94,11 +83,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out_json Pointer to store the result
  * @return Allocated string containing JSON, or NULL on error.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the audit print json operation.
-                     */
-    int
-    audit_print_json(const struct AuditStats *stats, char **out_json);
+extern C_CDD_EXPORT int audit_print_json(const struct AuditStats *stats,
+                                         char **out_json);
 
 #ifdef __cplusplus
 }

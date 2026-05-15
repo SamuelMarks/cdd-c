@@ -93,10 +93,19 @@
 #include "parse/test_tokenizer_trigraphs.h"
 
 /* New Suites */
+#include "parse/test_cdd_cst_escape.h"
+#include "parse/test_cdd_cst_scope.h"
+#include "parse/test_cdd_cst_semantic.h"
+#include "parse/test_cdd_cst_cfg.h"
+#include "parse/test_cdd_cst_type_eval.h"
+#include "parse/test_cdd_cst_cfg.h"
+#include "parse/test_cdd_cst_type_eval.h"
+
 #include "emit/test_aggregator.h"
 #include "emit/test_cli_gen.h"
 #include "emit/test_client_gui_gen.h"
 #include "emit/test_openapi_writer.h"
+#include "emit/test_operation.h"
 #include "emit/test_server_gen.h"
 #include "emit/test_server_json_rpc.h"
 #include "parse/test_c2openapi_op.h"
@@ -197,7 +206,17 @@ int main(int argc, char **argv) {
   RUN_SUITE(url_utils_suite);
 
   /* New Runners */
+  RUN_SUITE(cdd_cst_escape_suite);
+  RUN_SUITE(cdd_cst_scope_suite);
+  RUN_SUITE(cdd_cst_semantic_suite);
+  RUN_SUITE(cdd_cst_cfg_suite);
+  RUN_SUITE(cdd_cst_type_eval_suite);
+  RUN_SUITE(cdd_cst_cfg_suite);
+  RUN_SUITE(cdd_cst_type_eval_suite);
+
   RUN_SUITE(openapi_writer_suite);
+  SUITE(operation_suite);
+  RUN_SUITE(operation_suite);
   RUN_SUITE(doc_parser_suite);
   RUN_SUITE(c_mapping_suite);
   RUN_SUITE(c2openapi_op_suite);

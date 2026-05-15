@@ -5,7 +5,7 @@
  *
  * Includes support for C23 processor introspection operators:
  * `__has_include`, `__has_embed`, and `__has_c_attribute`.
- * Parses `#embed` parameters (limit, prefix, suffix, if_empty).
+ * Parses `\#embed` parameters (limit, prefix, suffix, if_empty).
  *
  * @author Samuel Marks
  */

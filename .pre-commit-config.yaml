@@ -20,3 +20,12 @@ repos:
         language: script
         pass_filenames: false
         always_run: true
+
+  - repo: local
+    hooks:
+      - id: update-badges
+        name: Update Badges
+        entry: python3 scripts/update_badges.py
+        language: system
+        files: ^README\.md$
+        pass_filenames: false

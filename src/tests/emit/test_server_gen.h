@@ -72,18 +72,18 @@ TEST test_server_gen_basic(void) {
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  if (fopen_s(&f, "test_server_server.c", "r") != 0)
+  if (fopen_s(&f, "src/test_server_server.c", "r") != 0)
     f = NULL;
 #elif defined(_MSC_VER)
-  fopen_s(&f, "test_server_server.c", "r");
+  fopen_s(&f, "src/test_server_server.c", "r");
 #else
-  f = fopen("test_server_server.c", "r");
+  f = fopen("src/test_server_server.c", "r");
 #endif
   ASSERT(f != NULL);
   if (f)
     fclose(f);
 
-  remove("test_server_server.c");
+  remove("src/test_server_server.c");
   free(spec.paths[0].operations[1].req_body_media_types);
   free(spec.paths[0].operations);
   free(spec.paths);

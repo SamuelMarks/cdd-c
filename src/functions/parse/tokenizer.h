@@ -346,7 +346,6 @@ extern C_CDD_EXPORT /**
 
 /**
  * @param[out] _out_val Pointer to store the result
- * @param[out] _out_val Pointer to store the result
  * @brief Check if a token's content matches a C string exactly.
  *
  * Performs a binary-safe comparison. Handles spliced tokens:
@@ -367,7 +366,6 @@ extern C_CDD_EXPORT /**
                          const char *match, bool *_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Helper to locate a specific token kind in a range.
  *
@@ -394,11 +392,10 @@ extern C_CDD_EXPORT /**
 
 /**
  * @param[out] _out_val Pointer to store the result
- * @param[out] _out_val Pointer to store the result
  * @brief Identify if a token text corresponds to a known keyword or identifier.
  *
  * @param start Start of the token.
- * @param length Length of the token.
+ * @param len Length of the token.
  * @return The detected TokenKind (keyword kind or TOKEN_IDENTIFIER).
  */
 

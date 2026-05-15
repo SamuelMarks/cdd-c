@@ -1,0 +1,185 @@
+#include "url_utils.h"
+#include <parson.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef USE_WININET
+#include "http_wininet.h"
+#elif defined(USE_WINHTTP)
+#include "http_winhttp.h"
+#elif defined(__APPLE__)
+#include "http_apple.h"
+#else
+#include "http_curl.h"
+#endif
+
+#include "gen_def.h"
+
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#define strdup _strdup
+#endif
+
+/**
+ * @brief Auto-generated code from OpenAPI specification
+ */
+void ApiError_cleanup(struct ApiError *err) {
+  if (!err)
+    return;
+  if (err->type)
+    free(err->type);
+  if (err->title)
+    free(err->title);
+  if (err->detail)
+    free(err->detail);
+  if (err->instance)
+    free(err->instance);
+  if (err->raw_body)
+    free(err->raw_body);
+  free(err);
+}
+
+static /**
+        * @brief Auto-generated code from OpenAPI specification
+        */
+    int
+    ApiError_from_json(const char *json, struct ApiError **out) {
+  JSON_Value *root;
+  JSON_Object *obj;
+  if (!json || !out)
+    return 22; /* EINVAL */
+  *out = calloc(1, sizeof(struct ApiError));
+  if (!*out)
+    return 12; /* ENOMEM */
+  (*out)->raw_body = strdup(json);
+  root = json_parse_string(json);
+  if (!root)
+    return 0; /* Not JSON, return strict success but object only has raw_body */
+  obj = json_value_get_object(root);
+  if (obj) {
+    if (json_object_has_value(obj, "type"))
+      (*out)->type = strdup(json_object_get_string(obj, "type"));
+    if (json_object_has_value(obj, "title"))
+      (*out)->title = strdup(json_object_get_string(obj, "title"));
+    if (json_object_has_value(obj, "detail"))
+      (*out)->detail = strdup(json_object_get_string(obj, "detail"));
+    if (json_object_has_value(obj, "instance"))
+      (*out)->instance = strdup(json_object_get_string(obj, "instance"));
+    if (json_object_has_value(obj, "status"))
+      (*out)->status = (int)json_object_get_number(obj, "status");
+  }
+  json_value_free(root);
+  return 0;
+}
+
+int init(struct HttpClient *client, const char *base_url) {
+  int rc;
+  if (!client)
+    return 22; /* EINVAL */
+  rc = http_client_init(client);
+  if (rc != 0)
+    return rc;
+  const char *default_url = "/";
+  if (!base_url || base_url[0] == '\0') {
+    base_url = default_url;
+  }
+  if (base_url) {
+    client->base_url = malloc(strlen(base_url) + 1);
+    if (!client->base_url)
+      return 12; /* ENOMEM */
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    strcpy_s(client->base_url, strlen(base_url) + 1, base_url);
+#else
+    strcpy(client->base_url, base_url);
+#endif
+  }
+#ifdef USE_WININET
+  rc = http_wininet_context_init(&client->transport);
+  client->send = http_wininet_send;
+#elif defined(USE_WINHTTP)
+  rc = http_winhttp_context_init(&client->transport);
+  client->send = http_winhttp_send;
+#elif defined(__APPLE__)
+  rc = http_apple_context_init(&client->transport);
+  client->send = http_apple_send;
+#else /* Default to Libcurl */
+  rc = http_curl_context_init(&client->transport);
+  client->send = http_curl_send;
+#endif
+  return rc;
+}
+
+void cleanup(struct HttpClient *client) {
+  if (!client)
+    return;
+#ifdef USE_WININET
+  http_wininet_context_free(client->transport);
+#elif defined(USE_WINHTTP)
+  http_winhttp_context_free(client->transport);
+#elif defined(__APPLE__)
+  http_apple_context_free(client->transport);
+#else
+  http_curl_context_free(client->transport);
+#endif
+  http_client_free(client);
+}
+
+int test_op(struct HttpClient *ctx, struct ApiError **api_error) {
+  struct HttpRequest req;
+  struct HttpResponse *res = NULL;
+  int rc = 0;
+  int attempt = 0;
+  char *url = NULL;
+  if (api_error)
+    *api_error = NULL;
+
+  if (!ctx || !ctx->send)
+    return EINVAL;
+  rc = http_request_init(&req);
+  if (rc != 0)
+    return rc;
+
+  if (asprintf(&url, "%s/test", ctx->base_url) == -1) {
+    return ENOMEM;
+  }
+  req.url = url;
+  req.method = HTTP_GET;
+
+  do {
+    if (attempt > 0) {
+      /* Implement backoff delay here if needed */
+    }
+    rc = ctx->send(ctx->transport, &req, &res);
+    attempt++;
+  } while (rc != 0 && attempt <= ctx->config.retry_count);
+
+  if (rc != 0)
+    goto cleanup;
+  if (!res) {
+    rc = EIO;
+    goto cleanup;
+  }
+
+  int handled = 0;
+  switch (res->status_code) {
+  case 200:
+    handled = 1;
+    break;
+  default:
+    break;
+  }
+  if (!handled) {
+    rc = EIO;
+    if (res->body && api_error) {
+      ApiError_from_json((const char *)res->body, api_error);
+    }
+  }
+
+cleanup:
+  http_request_free(&req);
+  if (res) {
+    http_response_free(res);
+    free(res);
+  }
+  return rc;
+}

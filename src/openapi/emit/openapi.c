@@ -24,36 +24,12 @@
 
 /* --- Helper Prototypes --- */
 
-static /**
-        * @brief Executes the verb to str operation.
-        */
-    int
-    verb_to_str(enum OpenAPI_Verb v, char **_out_val);
-static /**
-        * @brief Executes the param in to str operation.
-        */
-    int
-    param_in_to_str(enum OpenAPI_ParamIn in, char **_out_val);
-static /**
-        * @brief Executes the style to str operation.
-        */
-    int
-    style_to_str(enum OpenAPI_Style s, char **_out_val);
-static /**
-        * @brief Executes the oauth flow type to str operation.
-        */
-    int
-    oauth_flow_type_to_str(enum OpenAPI_OAuthFlowType t, char **_out_val);
-static /**
-        * @brief Executes the xml node type to str operation.
-        */
-    int
-    xml_node_type_to_str(enum OpenAPI_XmlNodeType t, char **_out_val);
-static /**
-        * @brief Checks if schema primitive.
-        */
-    int
-    is_schema_primitive(const char *type);
+int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val);
+int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
+int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
+int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
+int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
+int is_schema_primitive_openapi(const char *type);
 static /**
         * @brief Executes the license fields invalid operation.
         */
@@ -69,11 +45,7 @@ static /**
         */
     int
     clone_json_value(const JSON_Value *val, JSON_Value **_out_val);
-static /**
-        * @brief Merges schema extras object.
-        */
-    int
-    merge_schema_extras_object(JSON_Object *target, const char *extras_json);
+int merge_schema_extras_object_openapi(JSON_Object *target, const char *extras_json);
 static /**
         * @brief Executes the any to json value operation.
         */
@@ -391,11 +363,7 @@ static /**
 
 /* --- Implementations --- */
 
-static /**
-        * @brief Executes the verb to str operation.
-        */
-    int
-    verb_to_str(enum OpenAPI_Verb v, char **_out_val) {
+int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "get";
@@ -440,11 +408,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the param in to str operation.
-        */
-    int
-    param_in_to_str(enum OpenAPI_ParamIn in, char **_out_val) {
+int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val) {
   switch (in) {
   case OA_PARAM_IN_PATH: {
     *_out_val = "path";
@@ -473,11 +437,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the style to str operation.
-        */
-    int
-    style_to_str(enum OpenAPI_Style s, char **_out_val) {
+int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
   switch (s) {
   case OA_STYLE_FORM: {
     *_out_val = "form";
@@ -518,11 +478,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the xml node type to str operation.
-        */
-    int
-    xml_node_type_to_str(enum OpenAPI_XmlNodeType t, char **_out_val) {
+int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
   switch (t) {
   case OA_XML_NODE_ELEMENT: {
     *_out_val = "element";
@@ -551,11 +507,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the header name is content type operation.
-        */
-    int
-    header_name_is_content_type(const char *name) {
+int header_name_is_content_type_openapi(const char *name) {
   bool _ast_iequal_0 = false;
   if (!name)
     return 0;
@@ -563,11 +515,7 @@ static /**
           _ast_iequal_0) != 0;
 }
 
-static /**
-        * @brief Executes the param is reserved header operation.
-        */
-    int
-    param_is_reserved_header(const struct OpenAPI_Parameter *p) {
+int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
   bool _ast_iequal_3 = false;
@@ -581,11 +529,7 @@ static /**
           _ast_iequal_3);
 }
 
-static /**
-        * @brief Executes the oauth flow type to str operation.
-        */
-    int
-    oauth_flow_type_to_str(enum OpenAPI_OAuthFlowType t, char **_out_val) {
+int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val) {
   switch (t) {
   case OA_OAUTH_FLOW_IMPLICIT: {
     *_out_val = "implicit";
@@ -614,11 +558,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if schema primitive.
-        */
-    int
-    is_schema_primitive(const char *type) {
+int is_schema_primitive_openapi(const char *type) {
   if (!type)
     return 0;
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
@@ -679,11 +619,7 @@ static /**
   }
 }
 
-static /**
-        * @brief Merges schema extras object.
-        */
-    int
-    merge_schema_extras_object(JSON_Object *target, const char *extras_json) {
+int merge_schema_extras_object_openapi(JSON_Object *target, const char *extras_json) {
   JSON_Value *_ast_clone_json_value_0;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
@@ -981,7 +917,7 @@ static /**
   if (ex->external_value)
     json_object_set_string(ex_obj, "externalValue", ex->external_value);
   if (ex->extensions_json)
-    merge_schema_extras_object(ex_obj, ex->extensions_json);
+    merge_schema_extras_object_openapi(ex_obj, ex->extensions_json);
 }
 
 static /**
@@ -1061,7 +997,7 @@ static /**
   if (docs->description)
     json_object_set_string(ext_obj, "description", docs->description);
   if (docs->extensions_json)
-    merge_schema_extras_object(ext_obj, docs->extensions_json);
+    merge_schema_extras_object_openapi(ext_obj, docs->extensions_json);
 
   json_object_set_value(parent, key, ext_val);
 }
@@ -1106,7 +1042,7 @@ static /**
   }
 
   if (disc->extensions_json)
-    merge_schema_extras_object(disc_obj, disc->extensions_json);
+    merge_schema_extras_object_openapi(disc_obj, disc->extensions_json);
 
   json_object_set_value(parent, "discriminator", disc_val);
 }
@@ -1131,7 +1067,7 @@ static /**
   xml_obj = json_value_get_object(xml_val);
 
   node_type =
-      (xml_node_type_to_str(xml->node_type, &_ast_xml_node_type_to_str_5),
+      (xml_node_type_to_str_openapi(xml->node_type, &_ast_xml_node_type_to_str_5),
        _ast_xml_node_type_to_str_5);
   if (xml->node_type_set && node_type)
     json_object_set_string(xml_obj, "nodeType", node_type);
@@ -1146,7 +1082,7 @@ static /**
   if (xml->wrapped_set)
     json_object_set_boolean(xml_obj, "wrapped", xml->wrapped ? 1 : 0);
   if (xml->extensions_json)
-    merge_schema_extras_object(xml_obj, xml->extensions_json);
+    merge_schema_extras_object_openapi(xml_obj, xml->extensions_json);
 
   json_object_set_value(parent, "xml", xml_val);
 }
@@ -1176,7 +1112,7 @@ static /**
     json_object_set_string(info_obj, "termsOfService",
                            spec->info.terms_of_service);
   if (spec->info.extensions_json)
-    merge_schema_extras_object(info_obj, spec->info.extensions_json);
+    merge_schema_extras_object_openapi(info_obj, spec->info.extensions_json);
 
   if (spec->info.contact.name || spec->info.contact.url ||
       spec->info.contact.email) {
@@ -1189,7 +1125,7 @@ static /**
     if (spec->info.contact.email)
       json_object_set_string(contact_obj, "email", spec->info.contact.email);
     if (spec->info.contact.extensions_json)
-      merge_schema_extras_object(contact_obj,
+      merge_schema_extras_object_openapi(contact_obj,
                                  spec->info.contact.extensions_json);
     json_object_set_value(info_obj, "contact", contact_val);
   }
@@ -1206,7 +1142,7 @@ static /**
     if (spec->info.license.url)
       json_object_set_string(license_obj, "url", spec->info.license.url);
     if (spec->info.license.extensions_json)
-      merge_schema_extras_object(license_obj,
+      merge_schema_extras_object_openapi(license_obj,
                                  spec->info.license.extensions_json);
     json_object_set_value(info_obj, "license", license_val);
   }
@@ -1251,7 +1187,7 @@ static /**
         json_object_set_value(var_obj, "enum", enum_val);
       }
       if (var->extensions_json)
-        merge_schema_extras_object(var_obj, var->extensions_json);
+        merge_schema_extras_object_openapi(var_obj, var->extensions_json);
       if (var->name)
         json_object_set_value(vars_obj, var->name, var_val);
       else
@@ -1260,7 +1196,7 @@ static /**
     json_object_set_value(srv_obj, "variables", vars_val);
   }
   if (srv->extensions_json)
-    merge_schema_extras_object(srv_obj, srv->extensions_json);
+    merge_schema_extras_object_openapi(srv_obj, srv->extensions_json);
 }
 
 /**
@@ -1432,7 +1368,7 @@ static /**
       json_object_set_value(item_obj, "default", def_val);
   }
   if (ref->items_extra_json)
-    merge_schema_extras_object(item_obj, ref->items_extra_json);
+    merge_schema_extras_object_openapi(item_obj, ref->items_extra_json);
 }
 
 static /**
@@ -1511,7 +1447,7 @@ static /**
       json_object_set_value(sch_obj, "items", item_val);
     } else if (ref->ref_name) {
       /* Simple detection: if standard type, use type, else ref */
-      if (is_schema_primitive(ref->ref_name)) {
+      if (is_schema_primitive_openapi(ref->ref_name)) {
         JSON_Value *item_val = json_value_init_object();
         JSON_Object *item_obj = json_value_get_object(item_val);
         write_schema_type_union(item_obj, ref->ref_name, ref->items_nullable,
@@ -1544,7 +1480,7 @@ static /**
          _ast_schema_ref_keyword_10),
         ref->ref);
   } else if (ref->ref_name) {
-    if (is_schema_primitive(ref->ref_name)) {
+    if (is_schema_primitive_openapi(ref->ref_name)) {
       write_schema_type_union(sch_obj, ref->ref_name, ref->nullable,
                               ref->type_union, ref->n_type_union);
     } else {
@@ -1696,7 +1632,7 @@ static /**
       json_object_set_value(sch_obj, "default", def_val);
   }
   if (ref->schema_extra_json)
-    merge_schema_extras_object(sch_obj, ref->schema_extra_json);
+    merge_schema_extras_object_openapi(sch_obj, ref->schema_extra_json);
 
   json_object_set_value(parent, key, sch_val);
 }
@@ -1717,7 +1653,7 @@ static /**
     if (items_type) {
       JSON_Value *item_val = json_value_init_object();
       JSON_Object *item_obj = json_value_get_object(item_val);
-      if (is_schema_primitive(items_type)) {
+      if (is_schema_primitive_openapi(items_type)) {
         json_object_set_string(item_obj, "type", items_type);
       } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1734,7 +1670,7 @@ static /**
     return;
   }
 
-  if (type && (is_schema_primitive(type) || strcmp(type, "array") == 0)) {
+  if (type && (is_schema_primitive_openapi(type) || strcmp(type, "array") == 0)) {
     json_object_set_string(sch_obj, "type", type);
   } else if (type) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1773,10 +1709,10 @@ static /**
     return;
   }
 
-  in_str = (param_in_to_str(p->in, &_ast_param_in_to_str_14),
+  in_str = (param_in_to_str_openapi(p->in, &_ast_param_in_to_str_14),
             _ast_param_in_to_str_14);
   style_str =
-      (style_to_str(p->style, &_ast_style_to_str_15), _ast_style_to_str_15);
+      (style_to_str_openapi(p->style, &_ast_style_to_str_15), _ast_style_to_str_15);
 
   if (p->name)
     json_object_set_string(p_obj, "name", p->name);
@@ -1860,7 +1796,7 @@ static /**
   }
 
   if (p->extensions_json)
-    merge_schema_extras_object(p_obj, p->extensions_json);
+    merge_schema_extras_object_openapi(p_obj, p->extensions_json);
 }
 
 static /**
@@ -1889,7 +1825,7 @@ static /**
     json_object_set_boolean(h_obj, "deprecated", h->deprecated ? 1 : 0);
   if (h->style_set) {
     style_str =
-        (style_to_str(h->style, &_ast_style_to_str_16), _ast_style_to_str_16);
+        (style_to_str_openapi(h->style, &_ast_style_to_str_16), _ast_style_to_str_16);
     if (style_str)
       json_object_set_string(h_obj, "style", style_str);
   }
@@ -1942,7 +1878,7 @@ static /**
   }
 
   if (h->extensions_json)
-    merge_schema_extras_object(h_obj, h->extensions_json);
+    merge_schema_extras_object_openapi(h_obj, h->extensions_json);
 }
 
 static /**
@@ -1959,7 +1895,7 @@ static /**
     json_object_set_string(enc_obj, "contentType", enc->content_type);
   if (enc->style_set) {
     const char *style_str =
-        (style_to_str(enc->style, &_ast_style_to_str_17), _ast_style_to_str_17);
+        (style_to_str_openapi(enc->style, &_ast_style_to_str_17), _ast_style_to_str_17);
     if (style_str)
       json_object_set_string(enc_obj, "style", style_str);
   }
@@ -1996,7 +1932,7 @@ static /**
   }
 
   if (enc->extensions_json)
-    merge_schema_extras_object(enc_obj, enc->extensions_json);
+    merge_schema_extras_object_openapi(enc_obj, enc->extensions_json);
 
   return 0;
 }
@@ -2125,7 +2061,7 @@ static /**
     json_object_set_value(media_obj, "itemEncoding", item_val);
   }
   if (mt->extensions_json)
-    merge_schema_extras_object(media_obj, mt->extensions_json);
+    merge_schema_extras_object_openapi(media_obj, mt->extensions_json);
   return 0;
 }
 
@@ -2227,7 +2163,7 @@ static /**
   }
 
   if (link->extensions_json)
-    merge_schema_extras_object(l_obj, link->extensions_json);
+    merge_schema_extras_object_openapi(l_obj, link->extensions_json);
 }
 
 static /**
@@ -2258,7 +2194,7 @@ static /**
     JSON_Value *h_val;
     JSON_Object *h_obj;
 
-    if (ignore_content_type && header_name_is_content_type(name))
+    if (ignore_content_type && header_name_is_content_type_openapi(name))
       continue;
     h_val = json_value_init_object();
     h_obj = json_value_get_object(h_val);
@@ -2382,7 +2318,7 @@ static /**
   }
 
   if (resp->extensions_json)
-    merge_schema_extras_object(r_obj, resp->extensions_json);
+    merge_schema_extras_object_openapi(r_obj, resp->extensions_json);
 }
 
 static /**
@@ -2410,7 +2346,7 @@ static /**
     const struct OpenAPI_Parameter *p = &params[i];
     JSON_Value *p_val = json_value_init_object();
     JSON_Object *p_obj = json_value_get_object(p_val);
-    if (param_is_reserved_header(p)) {
+    if (param_is_reserved_header_openapi(p)) {
       json_value_free(p_val);
       continue;
     }
@@ -2501,7 +2437,7 @@ static /**
   }
 
   if (rb->extensions_json)
-    merge_schema_extras_object(rb_obj, rb->extensions_json);
+    merge_schema_extras_object_openapi(rb_obj, rb->extensions_json);
 
   return 0;
 }
@@ -2529,7 +2465,7 @@ static /**
     if (op->req_body_description)
       json_object_set_string(rb_obj, "description", op->req_body_description);
     if (op->req_body_extensions_json)
-      merge_schema_extras_object(rb_obj, op->req_body_extensions_json);
+      merge_schema_extras_object_openapi(rb_obj, op->req_body_extensions_json);
     json_object_set_value(op_obj, "requestBody", rb_val);
     return 0;
   }
@@ -2605,7 +2541,7 @@ static /**
   }
 
   if (cb->extensions_json)
-    merge_schema_extras_object(cb_obj, cb->extensions_json);
+    merge_schema_extras_object_openapi(cb_obj, cb->extensions_json);
 }
 
 static /**
@@ -2660,7 +2596,7 @@ static /**
     json_object_set_value(resps_obj, r->code ? r->code : "default", r_val);
   }
   if (op->responses_extensions_json)
-    merge_schema_extras_object(resps_obj, op->responses_extensions_json);
+    merge_schema_extras_object_openapi(resps_obj, op->responses_extensions_json);
 
   json_object_set_value(op_obj, "responses", resps_val);
   return 0;
@@ -2736,7 +2672,7 @@ static /**
   }
 
   if (op->extensions_json)
-    merge_schema_extras_object(op_obj, op->extensions_json);
+    merge_schema_extras_object_openapi(op_obj, op->extensions_json);
 
   return 0;
 }
@@ -2753,7 +2689,7 @@ static /**
   for (i = 0; i < path->n_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->operations[i];
     const char *verb =
-        (verb_to_str(op->verb, &_ast_verb_to_str_20), _ast_verb_to_str_20);
+        (verb_to_str_openapi(op->verb, &_ast_verb_to_str_20), _ast_verb_to_str_20);
     JSON_Value *op_val;
     JSON_Object *op_obj;
 
@@ -2801,7 +2737,7 @@ static /**
     const struct OpenAPI_Operation *op = &path->additional_operations[i];
     const char *method = op->method
                              ? op->method
-                             : (verb_to_str(op->verb, &_ast_verb_to_str_21),
+                             : (verb_to_str_openapi(op->verb, &_ast_verb_to_str_21),
                                 _ast_verb_to_str_21);
     JSON_Value *op_val;
     JSON_Object *op_obj;
@@ -2864,7 +2800,7 @@ static /**
     return rc;
 
   if (path->extensions_json)
-    merge_schema_extras_object(item_obj, path->extensions_json);
+    merge_schema_extras_object_openapi(item_obj, path->extensions_json);
 
   return 0;
 }
@@ -2880,7 +2816,7 @@ static /**
   int rc = 0;
 
   if (spec && spec->paths_extensions_json) {
-    merge_schema_extras_object(paths_obj, spec->paths_extensions_json);
+    merge_schema_extras_object_openapi(paths_obj, spec->paths_extensions_json);
   }
 
   for (i = 0; i < spec->n_paths; ++i) {
@@ -2997,7 +2933,7 @@ static /**
     if (tag->external_docs.url)
       write_external_docs(tag_obj, "externalDocs", &tag->external_docs);
     if (tag->extensions_json)
-      merge_schema_extras_object(tag_obj, tag->extensions_json);
+      merge_schema_extras_object_openapi(tag_obj, tag->extensions_json);
 
     json_array_append_value(arr, tag_val);
   }
@@ -3030,7 +2966,7 @@ static /**
   hooks_obj = json_value_get_object(hooks_val);
 
   if (spec->webhooks_extensions_json) {
-    merge_schema_extras_object(hooks_obj, spec->webhooks_extensions_json);
+    merge_schema_extras_object_openapi(hooks_obj, spec->webhooks_extensions_json);
   }
 
   for (i = 0; i < spec->n_webhooks; ++i) {
@@ -3113,7 +3049,7 @@ static /**
     }
 
     if (set->extensions_json)
-      merge_schema_extras_object(set_obj, set->extensions_json);
+      merge_schema_extras_object_openapi(set_obj, set->extensions_json);
 
     json_array_append_value(arr, set_val);
   }
@@ -3200,7 +3136,7 @@ static /**
         for (f = 0; f < s->n_flows; ++f) {
           const struct OpenAPI_OAuthFlow *flow = &s->flows[f];
           const char *flow_key =
-              (oauth_flow_type_to_str(flow->type,
+              (oauth_flow_type_to_str_openapi(flow->type,
                                       &_ast_oauth_flow_type_to_str_22),
                _ast_oauth_flow_type_to_str_22);
           JSON_Value *flow_val;
@@ -3235,7 +3171,7 @@ static /**
           }
           json_object_set_value(flow_obj, "scopes", scopes_val);
           if (flow->extensions_json)
-            merge_schema_extras_object(flow_obj, flow->extensions_json);
+            merge_schema_extras_object_openapi(flow_obj, flow->extensions_json);
           json_object_set_value(flows_obj, flow_key, flow_val);
         }
         json_object_set_value(s_obj, "flows", flows_val);
@@ -3255,7 +3191,7 @@ static /**
     }
 
     if (s->extensions_json)
-      merge_schema_extras_object(s_obj, s->extensions_json);
+      merge_schema_extras_object_openapi(s_obj, s->extensions_json);
 
     json_object_set_value(sec_obj, s->name ? s->name : "unknown", s_val);
   }
@@ -3643,7 +3579,7 @@ static /**
   comps_obj = json_value_get_object(comps_val);
 
   if (spec->components_extensions_json)
-    merge_schema_extras_object(comps_obj, spec->components_extensions_json);
+    merge_schema_extras_object_openapi(comps_obj, spec->components_extensions_json);
 
   /* Schemas */
   if (spec->n_defined_schemas > 0 || spec->n_raw_schemas > 0) {
@@ -3795,7 +3731,7 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
     json_object_set_string(root_obj, "jsonSchemaDialect",
                            spec->json_schema_dialect);
   if (spec->extensions_json)
-    merge_schema_extras_object(root_obj, spec->extensions_json);
+    merge_schema_extras_object_openapi(root_obj, spec->extensions_json);
   write_info(root_obj, spec);
   if (spec->external_docs.url)
     write_external_docs(root_obj, "externalDocs", &spec->external_docs);

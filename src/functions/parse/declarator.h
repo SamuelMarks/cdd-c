@@ -81,28 +81,20 @@ struct DeclInfo {
  * @brief Initialize a DeclInfo structure.
  * @param[out] info The structure to zero.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the decl info init operation.
-                     */
-    void
-    decl_info_init(struct DeclInfo *info);
+extern C_CDD_EXPORT void decl_info_init(struct DeclInfo *info);
 
 /**
  * @brief Free resources in a DeclInfo structure.
  * @param[in] info The structure to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the decl info free operation.
-                     */
-    void
-    decl_info_free(struct DeclInfo *info);
+extern C_CDD_EXPORT void decl_info_free(struct DeclInfo *info);
 
 /**
  * @brief Parse a declaration token range.
  *
  * @param[in] tokens The full token stream.
- * @param[in] start_idx Start index of the declaration statement.
- * @param[in] end_idx End index (exclusive), typically at semicolon or comma.
+ * @param[in] start Start index of the declaration statement.
+ * @param[in] end End index (exclusive), typically at semicolon or comma.
  * @param[out] out_info Pointer to destination structure.
  * @return 0 on success, EINVAL on syntax error, ENOMEM on alloc failure.
  */
@@ -110,8 +102,8 @@ extern C_CDD_EXPORT /**
                      * @brief Parses declaration from the given input.
                      */
     int
-    parse_declaration(const struct TokenList *tokens, size_t start_idx,
-                      size_t end_idx, struct DeclInfo *out_info);
+    parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
+                      struct DeclInfo *out_info);
 
 #ifdef __cplusplus
 }

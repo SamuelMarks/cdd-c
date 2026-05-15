@@ -52,20 +52,12 @@ struct HoistSiteList {
 /**
  * @brief Initialize a hoist site list.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the hoist site list init operation.
-                     */
-    void
-    hoist_site_list_init(struct HoistSiteList *list);
+extern C_CDD_EXPORT void hoist_site_list_init(struct HoistSiteList *list);
 
 /**
  * @brief Free resources associated with a hoist site list.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the hoist site list free operation.
-                     */
-    void
-    hoist_site_list_free(struct HoistSiteList *list);
+extern C_CDD_EXPORT void hoist_site_list_free(struct HoistSiteList *list);
 
 /**
  * @brief Scan a token stream to detect declarations mixed with code.

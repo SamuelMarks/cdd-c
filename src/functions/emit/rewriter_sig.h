@@ -47,11 +47,8 @@ extern "C" {
  * be stored.
  * @return 0 on success, ENOMEM/EINVAL on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the rewrite signature operation.
-                     */
-    int
-    rewrite_signature(const struct TokenList *tokens, char **out_code);
+extern C_CDD_EXPORT int rewrite_signature(const struct TokenList *tokens,
+                                          char **out_code);
 
 #ifdef __cplusplus
 }

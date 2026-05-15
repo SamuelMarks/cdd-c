@@ -46,21 +46,13 @@ struct OpenApiTypeMapping {
  * @brief Initialize a mapping result structure.
  * @param[out] out The structure to zero.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c mapping init operation.
-                     */
-    void
-    c_mapping_init(struct OpenApiTypeMapping *out);
+extern C_CDD_EXPORT void c_mapping_init(struct OpenApiTypeMapping *out);
 
 /**
  * @brief Free resources in a mapping result.
  * @param[in] out The structure to clean.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c mapping free operation.
-                     */
-    void
-    c_mapping_free(struct OpenApiTypeMapping *out);
+extern C_CDD_EXPORT void c_mapping_free(struct OpenApiTypeMapping *out);
 
 /**
  * @brief Map a C type string to an OpenAPI Schema definition.
@@ -85,12 +77,9 @@ extern C_CDD_EXPORT /**
  * @param[out] out The result structure.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c mapping map type operation.
-                     */
-    int
-    c_mapping_map_type(const char *c_type, const char *decl_name,
-                       struct OpenApiTypeMapping *out);
+extern C_CDD_EXPORT int c_mapping_map_type(const char *c_type_in,
+                                           const char *decl_name,
+                                           struct OpenApiTypeMapping *out);
 
 #ifdef __cplusplus
 }

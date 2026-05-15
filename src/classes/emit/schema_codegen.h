@@ -24,11 +24,7 @@ extern "C" {
  * basename.
  * @return 0 on success, non-zero error code (errno or EXIT_FAILURE) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the schema2code main operation.
-                     */
-    int
-    schema2code_main(int argc, char **argv);
+extern C_CDD_EXPORT int schema2code_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

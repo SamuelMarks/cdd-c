@@ -897,21 +897,13 @@ struct OpenAPI_Spec {
  * @brief Initialize a Spec structure to zero.
  * @param[out] spec Pointer to spec structure to initialize.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi spec init operation.
-                     */
-    void
-    openapi_spec_init(struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT void openapi_spec_init(struct OpenAPI_Spec *spec);
 
 /**
  * @brief Free a Spec structure and all nested allocations.
  * @param[in] spec Pointer to spec structure to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi spec free operation.
-                     */
-    void
-    openapi_spec_free(struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT void openapi_spec_free(struct OpenAPI_Spec *spec);
 
 extern C_CDD_EXPORT void
 openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
@@ -922,11 +914,8 @@ openapi_free_servers_array(struct OpenAPI_Server *servers, size_t n_servers);
  * @brief Initialize a document registry.
  * @param[out] registry Pointer to registry to initialize.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi doc registry init operation.
-                     */
-    void
-    openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);
+extern C_CDD_EXPORT void
+openapi_doc_registry_init(struct OpenAPI_DocRegistry *registry);
 
 /**
  * @brief Free a document registry and its URI entries.
@@ -935,11 +924,8 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] registry Pointer to registry to free.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi doc registry free operation.
-                     */
-    void
-    openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry);
+extern C_CDD_EXPORT void
+openapi_doc_registry_free(struct OpenAPI_DocRegistry *registry);
 
 /**
  * @brief Register a parsed document with the registry.
@@ -950,12 +936,9 @@ extern C_CDD_EXPORT /**
  * @param[in] spec Parsed OpenAPI specification.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi doc registry add operation.
-                     */
-    int
-    openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
-                             struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT int
+openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
+                         struct OpenAPI_Spec *spec);
 
 /**
  * @brief Parse an OpenAPI or Schema document from a JSON Value.
@@ -973,11 +956,8 @@ extern C_CDD_EXPORT /**
  * @param[out] out Destination structure to populate.
  * @return 0 on success, error code (EINVAL/ENOMEM) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi load from json operation.
-                     */
-    int
-    openapi_load_from_json(const JSON_Value *root, struct OpenAPI_Spec *out);
+extern C_CDD_EXPORT int openapi_load_from_json(const JSON_Value *root,
+                                               struct OpenAPI_Spec *out);
 
 /**
  * @brief Parse a JSON Value with document context for multi-doc resolution.
@@ -1015,12 +995,9 @@ extern C_CDD_EXPORT /**
  * @param[in] name The schema name (e.g. "LoginRequest").
  * @return Pointer to StructFields if found, NULL otherwise.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the openapi spec find schema operation.
-                     */
-    int
-    openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
-                             struct StructFields **_out_val);
+extern C_CDD_EXPORT int
+openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
+                         struct StructFields **_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result

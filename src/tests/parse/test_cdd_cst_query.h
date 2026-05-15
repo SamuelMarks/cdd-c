@@ -13,6 +13,12 @@ extern "C" {
 #include "classes/parse/cdd_cst_query.h"
 /* clang-format on */
 
+static int dummy_visitor(cdd_cst_node_t *node, void *user_data) {
+  int *count = (int *)user_data;
+  (*count)++;
+  return 0;
+}
+
 TEST test_cdd_cst_query_types(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n  return 0;\n}";
@@ -33,6 +39,11 @@ TEST test_cdd_cst_query_types(void) {
   free(res.nodes);
 
   cdd_cst_tree_free(tree);
+
+  /* Trigger ENOMEM in append_result or similar by forcing an allocation failure
+     if possible? Without mocks it is hard to hit ENOMEM in realloc inside
+     append_result, and thus ctx.err != 0 Let's accept 82% coverage for query.c
+  */
 
   {
     cdd_cst_query_result_t res2;
@@ -131,6 +142,11 @@ TEST test_cdd_cst_query_calls(void) {
 
   cdd_cst_tree_free(tree);
 
+  /* Trigger ENOMEM in append_result or similar by forcing an allocation failure
+     if possible? Without mocks it is hard to hit ENOMEM in realloc inside
+     append_result, and thus ctx.err != 0 Let's accept 82% coverage for query.c
+  */
+
   {
     cdd_cst_query_result_t res2;
     cdd_cst_node_t dummy_root2;
@@ -219,6 +235,14 @@ TEST test_cdd_cst_query_extra(void) {
             cdd_cst_find_function_calls_named((cdd_cst_node_t *)1, NULL, &res));
   ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(NULL, NULL, NULL));
   ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(NULL, NULL, NULL));
+
+  int post_count = 0;
+  cdd_cst_tree_t *tree_tmp = NULL;
+  cdd_cst_parse(az_span_create_from_str("int x;"), &tree_tmp);
+  ASSERT_EQ(0, cdd_cst_traverse_postorder(tree_tmp->root, dummy_visitor,
+                                          &post_count));
+  ASSERT(post_count > 0);
+  cdd_cst_tree_free(tree_tmp);
 
   res.nodes = NULL;
   res.size = 0;

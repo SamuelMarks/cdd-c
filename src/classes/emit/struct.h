@@ -136,7 +136,7 @@ struct StructFields {
 struct CodegenStructConfig {
   /**
    * @brief Macro name to guard generated functions (e.g. "DATA_UTILS").
-   * If NULL, no #ifdef/#endif block is generated.
+   * If NULL, no \#ifdef/\#endif block is generated.
    */
   const char *guard_macro;
 };
@@ -147,22 +147,14 @@ struct CodegenStructConfig {
  * @param[out] sf Pointer to container.
  * @return 0 on success, EINVAL if NULL, ENOMEM if alloc fails.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the struct fields init operation.
-                     */
-    int
-    struct_fields_init(struct StructFields *sf);
+extern C_CDD_EXPORT int struct_fields_init(struct StructFields *sf);
 
 /**
  * @brief Free memory within a StructFields container.
  *
  * @param[in] sf Pointer to container.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the struct fields free operation.
-                     */
-    void
-    struct_fields_free(struct StructFields *sf);
+extern C_CDD_EXPORT void struct_fields_free(struct StructFields *sf);
 
 /**
  * @brief Add a field to the container.
@@ -175,16 +167,13 @@ extern C_CDD_EXPORT /**
  * @param[in] bit_width Bit-field width literal (nullable, e.g. "3").
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the struct fields add operation.
-                     */
-    int
-    struct_fields_add(struct StructFields *sf, const char *name,
-                      const char *type, const char *ref,
-                      const char *default_val, const char *bit_width);
+extern C_CDD_EXPORT int struct_fields_add(struct StructFields *sf,
+                                          const char *name, const char *type,
+                                          const char *ref,
+                                          const char *default_val,
+                                          const char *bit_width);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Search for a field by name.
  *
@@ -192,12 +181,9 @@ extern C_CDD_EXPORT /**
  * @param[in] name Field name to find.
  * @return Pointer to the field if found, NULL otherwise.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the struct fields get operation.
-                     */
-    int
-    struct_fields_get(const struct StructFields *sf, const char *name,
-                      struct StructField **_out_val);
+extern C_CDD_EXPORT int struct_fields_get(const struct StructFields *sf,
+                                          const char *name,
+                                          struct StructField **_out_val);
 
 /* --- Generator Functions --- */
 
@@ -312,7 +298,6 @@ extern C_CDD_EXPORT /**
                               const struct CodegenStructConfig *config);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @param[out] _out_val Pointer to store the result
  * @brief Helper to extract type name from a reference path.
  *

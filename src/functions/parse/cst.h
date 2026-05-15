@@ -104,13 +104,10 @@ extern C_CDD_EXPORT /**
  * @param[in] end_tok Token end index (exclusive).
  * @return 0 on success, ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cst list add operation.
-                     */
-    int
-    cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
-                 const uint8_t *start, size_t length, size_t start_tok,
-                 size_t end_tok);
+extern C_CDD_EXPORT int cst_list_add(struct CstNodeList *list,
+                                     enum CstNodeKind kind,
+                                     const uint8_t *start, size_t length,
+                                     size_t start_tok, size_t end_tok);
 
 /**
  * @brief Free internal memory of CST list.
@@ -126,19 +123,15 @@ extern C_CDD_EXPORT /**
 
 /**
  * @param[out] _out_val Pointer to store the result
- * @param[out] _out_val Pointer to store the result
  * @brief Find the first node of a specific kind in the list.
  *
  * @param[in] list The list to search.
  * @param[in] kind The kind to search for.
  * @return Pointer to the found node, or NULL if not found.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the cst find first operation.
-                     */
-    int
-    cst_find_first(struct CstNodeList *list, enum CstNodeKind kind,
-                   struct CstNode **_out_val);
+extern C_CDD_EXPORT int cst_find_first(struct CstNodeList *list,
+                                       enum CstNodeKind kind,
+                                       struct CstNode **_out_val);
 
 #ifdef __cplusplus
 }

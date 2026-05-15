@@ -28,7 +28,7 @@ extern "C" {
 
 /**
  * @brief Configuration for JSON generation.
- * Allows optional build guards (e.g. #ifdef ENABLE_JSON).
+ * Allows optional build guards (e.g. \#ifdef ENABLE_JSON).
  */
 struct CodegenJsonConfig {
   /**

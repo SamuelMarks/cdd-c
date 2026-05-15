@@ -1,4 +1,4 @@
-/** @def CHECK_IO_CLEANUP
+/**
  * @file client_gen.c
  * @brief Implementation of the OpenAPI Client Generator.
  *
@@ -24,13 +24,30 @@
 #include "classes/emit/json.h"
 #include "classes/emit/types.h"
 #include "functions/parse/str.h"
+#include "functions/parse/fs.h"
+#include "functions/emit/build_system.h"
 #include "routes/emit/client_gen.h"
 #include "c_cdd/log.h"
 
 /* clang-format on */
+/**
+ * @def CHECK_IO_CLEANUP
+ * @brief CHECK_IO_CLEANUP macro
+ * @param x expression to check
+ */
+#define CHECK_IO_CLEANUP(x)                                                    \
+  do {                                                                         \
+    if ((x) < 0) {                                                             \
+      rc = EIO;                                                                \
+      {                                                                        \
+        fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);        \
+        goto cleanup;                                                          \
+      }                                                                        \
+    }                                                                          \
+  } while (0)
 
 /* Helper macro for I/O checking */
-/** @def CHECK_IO_CLEANUP @brief CHECK_IO macro */
+/** @brief CHECK_IO macro */
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
@@ -42,11 +59,10 @@
 #define strdup _strdup
 #endif
 
-static /**
-        * @brief Retrieves the server variable.
-        */
-    int
-    find_server_variable(const struct OpenAPI_Server *srv, const char *name,
+/**
+ * @brief Retrieves the server variable.
+ */
+int find_server_variable(const struct OpenAPI_Server *srv, const char *name,
                          const struct OpenAPI_ServerVariable **_out_val) {
   size_t i;
   if (!srv || !name || !srv->variables) {
@@ -66,11 +82,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the render server url default operation.
-        */
-    int
-    render_server_url_default(const struct OpenAPI_Server *srv,
+/**
+ * @brief Executes the render server url default operation.
+ */
+int render_server_url_default(const struct OpenAPI_Server *srv,
                               char **_out_val) {
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_0;
   const struct OpenAPI_ServerVariable *_ast_find_server_variable_1;
@@ -188,11 +203,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the escape c string literal operation.
-        */
-    int
-    escape_c_string_literal(const char *s, char **_out_val) {
+/**
+ * @brief Executes the escape c string literal operation.
+ */
+int escape_c_string_literal(const char *s, char **_out_val) {
   size_t i;
   size_t out_len = 0;
   char *out;
@@ -257,13 +271,12 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the select operation server operation.
-        */
-    int
-    select_operation_server(const struct OpenAPI_Path *path,
-                            const struct OpenAPI_Operation *op,
-                            struct OpenAPI_Server **_out_val) {
+/**
+ * @brief Executes the select operation server operation.
+ */
+int select_operation_server(const struct OpenAPI_Path *path,
+                                   const struct OpenAPI_Operation *op,
+                                   struct OpenAPI_Server **_out_val) {
   if (op && op->servers && op->n_servers > 0) {
     *_out_val = &op->servers[0];
     return 0;
@@ -278,11 +291,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the build base url literal operation.
-        */
-    int
-    build_base_url_literal(const char *url, char **_out_val) {
+/**
+ * @brief Executes the build base url literal operation.
+ */
+int build_base_url_literal(const char *url, char **_out_val) {
   char *_ast_escape_c_string_literal_2 = NULL;
   char *escaped = NULL;
   char *literal = NULL;
@@ -320,14 +332,13 @@ static /**
   }
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Generate a sanitized uppercase Include Guard macro.
  */
-static /**
-        * @brief Generates guard.
-        */
-    int
-    generate_guard(const char *base, char **_out_val) {
+/**
+ * @brief Generates guard.
+ */
+int generate_guard(const char *base, char **_out_val) {
   char *g;
   size_t len = strlen(base);
   size_t i;
@@ -354,14 +365,13 @@ static /**
   }
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Derive the model header name if not provided.
  */
-static /**
-        * @brief Executes the derive model header operation.
-        */
-    int
-    derive_model_header(const char *base, char **_out_val) {
+/**
+ * @brief Executes the derive model header operation.
+ */
+int derive_model_header(const char *base, char **_out_val) {
   char *m;
   size_t len = strlen(base) + 10; /* _models.h */
   m = malloc(len + 1);
@@ -381,7 +391,7 @@ static /**
   }
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Sanitize a tag string to be a valid C identifier part.
  * Converts non-alphanumeric characters to underscores.
  * Capitalizes the first letter for style matching (e.g. "pet" -> "Pet").
@@ -389,11 +399,10 @@ static /**
  * @param tag The tag string from the spec.
  * @return Allocated string with sanitized name, or NULL on error.
  */
-static /**
-        * @brief Executes the sanitize tag operation.
-        */
-    int
-    sanitize_tag(const char *tag, char **_out_val) {
+/**
+ * @brief Executes the sanitize tag operation.
+ */
+int sanitize_tag(const char *tag, char **_out_val) {
   char *s;
   size_t i;
   if (!tag) {
@@ -421,25 +430,23 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the param keys match operation.
-        */
-    int
-    param_keys_match(const struct OpenAPI_Parameter *a,
-                     const struct OpenAPI_Parameter *b) {
+/**
+ * @brief Executes the param keys match operation.
+ */
+int param_keys_match(const struct OpenAPI_Parameter *a,
+                            const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
     return 0;
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
 }
 
-static /**
-        * @brief Executes the build effective parameters operation.
-        */
-    int
-    build_effective_parameters(const struct OpenAPI_Path *path,
-                               const struct OpenAPI_Operation *op,
-                               struct OpenAPI_Parameter **out_params,
-                               size_t *out_count) {
+/**
+ * @brief Executes the build effective parameters operation.
+ */
+int build_effective_parameters(const struct OpenAPI_Path *path,
+                                      const struct OpenAPI_Operation *op,
+                                      struct OpenAPI_Parameter **out_params,
+                                      size_t *out_count) {
   size_t cap = 0;
   size_t count = 0;
   struct OpenAPI_Parameter *params = NULL;
@@ -677,15 +684,15 @@ static /**
   return 0;
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Write standard includes to the header file.
  * Defines `struct ApiError` for standardized error handling.
  */
-static /**
-        * @brief Generates C code for write header preamble.
-        */
-    int
-    write_header_preamble(FILE *fp, const char *guard, const char *model_decl) {
+/**
+ * @brief Generates C code for write header preamble.
+ */
+int write_header_preamble(FILE *fp, const char *guard,
+                                 const char *model_decl) {
   CHECK_IO(fprintf(fp, "#ifndef %s\n", guard));
   CHECK_IO(fprintf(fp, "#define %s\n\n", guard));
 
@@ -699,23 +706,22 @@ static /**
   CHECK_IO(fprintf(fp, "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Define ApiError struct (RFC 7807 inspired) */
-  CHECK_IO(fprintf(
-      fp,
-      "/** @def CHECK_IO_CLEANUP\n * @brief Standardized API Error structure "
-      "(Problem Details).\n */\n"
-      "struct ApiError {\n"
-      "  char *type;\n"
-      "  char *title;\n"
-      "  int status;\n"
-      "  char *detail;\n"
-      "  char *instance;\n"
-      "  char *raw_body;\n"
-      "};\n\n"
-      "/**\n"
-      " * @brief Auto-generated code from OpenAPI specification\n"
-      " */\n"
-      "void ApiError_cleanup(struct ApiError *err);\n"
-      "\n"));
+  CHECK_IO(fprintf(fp,
+                   "/**\n * @brief Standardized API Error structure "
+                   "(Problem Details).\n */\n"
+                   "struct ApiError {\n"
+                   "  char *type;\n"
+                   "  char *title;\n"
+                   "  int status;\n"
+                   "  char *detail;\n"
+                   "  char *instance;\n"
+                   "  char *raw_body;\n"
+                   "};\n\n"
+                   "/**\n"
+                   " * @brief Auto-generated code from OpenAPI specification\n"
+                   " */\n"
+                   "void ApiError_cleanup(struct ApiError *err);\n"
+                   "\n"));
 
   /* OpenAPI 3.2.0 coverage expansion:
    *
@@ -902,14 +908,13 @@ static /**
   return 0;
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Write standard includes to the implementation file.
  */
-static /**
-        * @brief Generates C code for write source preamble.
-        */
-    int
-    write_source_preamble(FILE *fp, const char *header_name) {
+/**
+ * @brief Generates C code for write source preamble.
+ */
+int write_source_preamble(FILE *fp, const char *header_name) {
   CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"));
   CHECK_IO(fprintf(fp, "#include <string.h>\n"));
   CHECK_IO(fprintf(fp, "#include <stdio.h>\n"));
@@ -1120,16 +1125,15 @@ static /**
   return 0;
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Write the _init and _cleanup factory functions with macro selection.
  * Also writes ApiError implementation.
  */
-static /**
-        * @brief Generates C code for write lifecycle funcs.
-        */
-    int
-    write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
-                          const struct OpenAPI_Spec *spec) {
+/**
+ * @brief Generates C code for write lifecycle funcs.
+ */
+int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
+                                 const struct OpenAPI_Spec *spec) {
   char *_ast_render_server_url_default_3 = NULL;
   char *_ast_escape_c_string_literal_4 = NULL;
   char *default_url = NULL;
@@ -1150,20 +1154,17 @@ static /**
     default_url_literal = "/";
   }
   /* Header */
-  CHECK_IO(fprintf(
-      h, "/** @def CHECK_IO_CLEANUP\n * @brief Initialize the API Client.\n"
-         " * @param[out] client The client struct to initialize.\n"
-         " * @param[in] base_url The API base URL (or NULL to use"
-         " the default server URL).\n"
-         " * @return 0 on success.\n */\n"));
+  CHECK_IO(fprintf(h, "/**\n * @brief Initialize the API Client.\n"
+                      " * @param[out] client The client struct to initialize.\n"
+                      " * @param[in] base_url The API base URL (or NULL to use"
+                      " the default server URL).\n"
+                      " * @return 0 on success.\n */\n"));
   CHECK_IO(fprintf(h,
                    "int %sinit(struct HttpClient *client, const char "
                    "*base_url);\n\n",
                    prefix));
 
-  CHECK_IO(fprintf(
-      h,
-      "/** @def CHECK_IO_CLEANUP\n * @brief Cleanup the API Client.\n */\n"));
+  CHECK_IO(fprintf(h, "/**\n * @brief Cleanup the API Client.\n */\n"));
   CHECK_IO(
       fprintf(h, "void %scleanup(struct HttpClient *client);\n\n", prefix));
 
@@ -1472,14 +1473,13 @@ static /**
   return 0;
 }
 
-/** @def CHECK_IO_CLEANUP
+/**
  * @brief Generate DocBlock for an operation.
  */
-static /**
-        * @brief Executes the verb to string operation.
-        */
-    int
-    verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
+/**
+ * @brief Executes the verb to string operation.
+ */
+int verb_to_string(enum OpenAPI_Verb verb, char **_out_val) {
   switch (verb) {
   case OA_VERB_GET: {
     *_out_val = (char *)"GET";
@@ -1524,15 +1524,14 @@ static /**
   }
 }
 
-static /**
-        * @brief Generates C code for write docblock.
-        */
-    int
-    write_docblock(FILE *fp, const struct OpenAPI_Path *path,
-                   const struct OpenAPI_Operation *op) {
+/**
+ * @brief Generates C code for write docblock.
+ */
+int write_docblock(FILE *fp, const struct OpenAPI_Path *path,
+                          const struct OpenAPI_Operation *op) {
   const char *_ast_verb_to_string_5 = NULL;
   size_t i;
-  CHECK_IO(fprintf(fp, "/** @def CHECK_IO_CLEANUP\n"));
+  CHECK_IO(fprintf(fp, "/**\n"));
   if (op->summary) {
     CHECK_IO(fprintf(fp, " * @brief %s\n", op->summary));
   } else if (op->operation_id) {
@@ -1814,15 +1813,16 @@ static /**
 
   return 0;
 }
-static /**
-        * @brief Executes the emit operation operation.
-        */
-    int
-    emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path,
-                   const struct OpenAPI_Operation *op,
-                   const struct OpenAPI_Spec *spec,
-                   const struct OpenApiClientConfig *config,
-                   const char *prefix) {
+/**
+ * @brief Executes the emit operation operation.
+ */
+
+int emit_operation(FILE *hfile, FILE *cfile,
+                          const struct OpenAPI_Path *path,
+                          const struct OpenAPI_Operation *op,
+                          const struct OpenAPI_Spec *spec,
+                          const struct OpenApiClientConfig *config,
+                          const char *prefix) {
   char *_ast_sanitize_tag_6 = NULL;
   struct OpenAPI_Server *_ast_select_operation_server_7;
   char *_ast_render_server_url_default_8 = NULL;
@@ -1838,18 +1838,6 @@ static /**
   const struct OpenAPI_Server *server_override = NULL;
   int merge_rc;
   int rc = 0;
-
-/** @def CHECK_IO_CLEANUP
- * @brief CHECK_IO_CLEANUP macro
- * @param x expression to check
- */
-#define CHECK_IO_CLEANUP(x)                                                    \
-  do {                                                                         \
-    if ((x) < 0) {                                                             \
-      rc = EIO;                                                                \
-      goto cleanup;                                                            \
-    }                                                                          \
-  } while (0)
 
   if (!hfile || !cfile || !path || !op || !config || !prefix)
     return EINVAL;
@@ -1872,7 +1860,11 @@ static /**
                        _ast_sanitize_tag_6);
     if (!sanitized_group) {
       rc = ENOMEM;
-      goto cleanup;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
     }
   }
 
@@ -1882,7 +1874,11 @@ static /**
         malloc(strlen(config->namespace_prefix) + strlen(sanitized_group) + 2);
     if (!full_group) {
       rc = ENOMEM;
-      goto cleanup;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -1897,14 +1893,22 @@ static /**
     full_group = strdup(config->namespace_prefix);
     if (!full_group) {
       rc = ENOMEM;
-      goto cleanup;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
     }
   } else if (sanitized_group) {
     /* Name: Tag */
     full_group = strdup(sanitized_group);
     if (!full_group) {
       rc = ENOMEM;
-      goto cleanup;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
     }
   }
 
@@ -1925,31 +1929,47 @@ static /**
            _ast_build_base_url_literal_9);
       if (!base_url_expr) {
         rc = ENOMEM;
-        goto cleanup;
+        {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
+          goto cleanup;
+        }
       }
     }
   }
 
   /* 1. Header: DocBlock + Prototype */
-  if ((rc = write_docblock(hfile, path, &effective_op)) != 0)
+  if ((rc = write_docblock(hfile, path, &effective_op)) != 0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
+  }
 
   sig_cfg.include_semicolon = 1;
   if ((rc = codegen_client_write_signature(hfile, &effective_op, &sig_cfg)) !=
-      0)
+      0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
+  }
   CHECK_IO_CLEANUP(fprintf(hfile, "\n"));
 
   /* 2. Source: Implementation */
   sig_cfg.include_semicolon = 0;
   if ((rc = codegen_client_write_signature(cfile, &effective_op, &sig_cfg)) !=
-      0)
+      0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
+  }
 
   /* Body generation (Passing spec for security lookup) */
   if ((rc = codegen_client_write_body(cfile, &effective_op, spec, path->route,
-                                      base_url_expr)) != 0)
+                                      base_url_expr)) != 0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
+  }
 
   CHECK_IO_CLEANUP(fprintf(cfile, "\n"));
 
@@ -1984,33 +2004,60 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   int rc = 0;
   size_t i, j;
 
+  char *dir_name = NULL;
+  char *base_name = NULL;
+  char *actual_base = NULL;
+
   if (!spec || !config || !config->filename_base)
     return EINVAL;
 
+  get_dirname(config->filename_base, &dir_name);
+  get_basename(config->filename_base, &base_name);
+
+  {
+    char *src_dir = malloc(512);
+    if (!src_dir)
+      return ENOMEM;
+    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    makedirs(src_dir);
+    actual_base =
+        malloc(strlen(src_dir) +
+               strlen(base_name ? base_name : "generated_client") + 2);
+    if (actual_base) {
+      sprintf(actual_base, "%s/%s", src_dir,
+              base_name ? base_name : "generated_client");
+    }
+    free(src_dir);
+  }
+
+  if (!actual_base) {
+    actual_base = strdup(config->filename_base);
+  }
+
   /* Prepare filenames */
-  h_name = malloc(strlen(config->filename_base) + 3);   /* .h */
-  c_name = malloc(strlen(config->filename_base) + 3);   /* .c */
-  mh_name = malloc(strlen(config->filename_base) + 10); /* _models.h */
-  mc_name = malloc(strlen(config->filename_base) + 10); /* _models.c */
+  h_name = malloc(strlen(actual_base) + 3);   /* .h */
+  c_name = malloc(strlen(actual_base) + 3);   /* .c */
+  mh_name = malloc(strlen(actual_base) + 10); /* _models.h */
+  mc_name = malloc(strlen(actual_base) + 10); /* _models.c */
   if (!h_name || !c_name || !mh_name || !mc_name) {
     rc = ENOMEM;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  sprintf_s(h_name, strlen(config->filename_base) + 3, "%s.h",
-            config->filename_base);
-  sprintf_s(c_name, strlen(config->filename_base) + 3, "%s.c",
-            config->filename_base);
-  sprintf_s(mh_name, strlen(config->filename_base) + 10, "%s_models.h",
-            config->filename_base);
-  sprintf_s(mc_name, strlen(config->filename_base) + 10, "%s_models.c",
-            config->filename_base);
+  sprintf_s(h_name, strlen(actual_base) + 3, "%s.h", actual_base);
+  sprintf_s(c_name, strlen(actual_base) + 3, "%s.c", actual_base);
+  sprintf_s(mh_name, strlen(actual_base) + 10, "%s_models.h", actual_base);
+  sprintf_s(mc_name, strlen(actual_base) + 10, "%s_models.c", actual_base);
 #else
-  sprintf(h_name, "%s.h", config->filename_base);
-  sprintf(c_name, "%s.c", config->filename_base);
-  sprintf(mh_name, "%s_models.h", config->filename_base);
-  sprintf(mc_name, "%s_models.c", config->filename_base);
+  sprintf(h_name, "%s.h", actual_base);
+  sprintf(c_name, "%s.c", actual_base);
+  sprintf(mh_name, "%s_models.h", actual_base);
+  sprintf(mc_name, "%s_models.c", actual_base);
 #endif
 
 #if defined(_MSC_VER)
@@ -2030,7 +2077,11 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 #endif
   if (!hfile || !cfile || !mhfile || !mcfile) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
   /* Prepare configurations */
@@ -2052,13 +2103,21 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   if (!guard || !model_h) {
     rc = ENOMEM;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
   model_guard = malloc(strlen(guard) + 8);
   if (!model_guard) {
     rc = ENOMEM;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
     defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
@@ -2070,36 +2129,77 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   /* --- Write Models Preamble --- */
   if (fprintf(mhfile, "#ifndef %s\n", model_guard) < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mhfile, "#define %s\n\n", model_guard) < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mhfile, "#include <c_cdd_stdbool.h>\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mhfile, "#include <stddef.h>\n\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mhfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
-  if (fprintf(mcfile, "#include \"%s\"\n", mh_name) < 0) {
-    rc = EIO;
-    goto cleanup;
+  {
+    char *mh_base = NULL;
+    int print_rc;
+    get_basename(mh_name, &mh_base);
+    print_rc =
+        fprintf(mcfile, "#include \"%s\"\n", mh_base ? mh_base : mh_name);
+    if (mh_base)
+      free(mh_base);
+    if (print_rc < 0) {
+      rc = EIO;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
+    }
   }
   if (fprintf(mcfile, "#include <stdlib.h>\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mcfile, "#include <string.h>\n\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
   /* TODO: Phase 3 Model definitions loop here */
@@ -2121,13 +2221,20 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
         continue;
 
       rc = write_forward_decl(mhfile, name);
-      if (rc != 0)
+      if (rc != 0) {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
         goto cleanup;
+      }
     }
 
     if (fprintf(mhfile, "\n") < 0) {
       rc = EIO;
-      goto cleanup;
+      {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
+        goto cleanup;
+      }
     }
 
     for (i = 0; i < spec->n_defined_schemas; ++i) {
@@ -2138,79 +2245,152 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
       if (sf->is_enum) {
         rc = write_enum_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
       } else if (sf->is_union) {
         rc = write_union_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
 
         rc = write_union_cleanup_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_union_from_jsonObject_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_union_from_json_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_union_to_json_func(mcfile, name, sf, &types_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
       } else {
         rc = write_struct_declaration_h(mhfile, name, sf, &base_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
 
         rc = write_struct_cleanup_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_deepcopy_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_eq_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_default_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_debug_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_display_func(mcfile, name, sf, &struct_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_from_jsonObject_func(mcfile, name, sf, &json_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_from_json_func(mcfile, name, &json_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
         rc = write_struct_to_json_func(mcfile, name, sf, &json_cfg);
-        if (rc != 0)
+        if (rc != 0) {
+          fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                  __LINE__);
           goto cleanup;
+        }
       }
     }
   }
 
   if (fprintf(mhfile, "\n#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(mhfile, "#endif /* %s */\n", model_guard) < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
   /* --- Write Client Preamble --- */
-  if ((rc = write_header_preamble(hfile, guard, model_h)) != 0)
+  if ((rc = write_header_preamble(hfile, guard, model_h)) != 0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
-  if ((rc = write_source_preamble(cfile, h_name)) != 0)
-    goto cleanup;
+  }
+
+  {
+    char *base = NULL;
+    get_basename(h_name, &base);
+    rc = write_source_preamble(cfile, base ? base : h_name);
+    if (base)
+      free(base);
+    if (rc != 0) {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
+  }
 
   /* --- Write Lifecycle --- */
-  if ((rc = write_lifecycle_funcs(hfile, cfile, prefix, spec)) != 0)
+  if ((rc = write_lifecycle_funcs(hfile, cfile, prefix, spec)) != 0) {
+    fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+            __LINE__);
     goto cleanup;
+  }
 
   /* --- Iterate Operations --- */
   for (i = 0; i < spec->n_paths; ++i) {
@@ -2218,24 +2398,49 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     for (j = 0; j < path->n_operations; ++j) {
       struct OpenAPI_Operation *op = &path->operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
-      if (rc != 0)
+      if (rc != 0) {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
         goto cleanup;
+      }
     }
     for (j = 0; j < path->n_additional_operations; ++j) {
       struct OpenAPI_Operation *op = &path->additional_operations[j];
       rc = emit_operation(hfile, cfile, path, op, spec, config, prefix);
-      if (rc != 0)
+      if (rc != 0) {
+        fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+                __LINE__);
         goto cleanup;
+      }
     }
   }
 
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
   if (fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
     rc = EIO;
-    goto cleanup;
+    {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
+  }
+
+  if (config && !config->no_installable_package) {
+    rc = generate_cmake_project(dir_name ? dir_name : ".",
+                                base_name ? base_name : "generated_client",
+                                config->create_tests_and_mocks);
+    if (rc != 0) {
+      fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
+              __LINE__);
+      goto cleanup;
+    }
   }
 
 cleanup:
@@ -2261,6 +2466,12 @@ cleanup:
     free(model_h);
   if (model_guard)
     free(model_guard);
+  if (dir_name)
+    free(dir_name);
+  if (base_name)
+    free(base_name);
+  if (actual_base)
+    free(actual_base);
 
   return rc;
 }

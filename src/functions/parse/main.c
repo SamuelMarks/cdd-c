@@ -237,6 +237,11 @@ static /**
       puts("  --input-dir <specs_dir>   Input directory containing OpenAPI "
            "specs");
       puts("  -o <dir>                  Output directory");
+      puts("  --no-github-actions       Do not generate GitHub Actions CI "
+           "workflow");
+      puts("  --no-installable-package  Do not generate build system files "
+           "(e.g. CMakeLists.txt)");
+      puts("  --tests  Generate composable tests and mocks");
       return EXIT_SUCCESS;
     } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
       input_file = argv[++i];
@@ -244,6 +249,12 @@ static /**
       input_dir = argv[++i];
     } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
       out_dir = argv[++i];
+    } else if (strcmp(argv[i], "--no-github-actions") == 0) {
+      config.no_github_actions = 1;
+    } else if (strcmp(argv[i], "--no-installable-package") == 0) {
+      config.no_installable_package = 1;
+    } else if (strcmp(argv[i], "--tests") == 0) {
+      config.create_tests_and_mocks = 1;
     }
   }
 

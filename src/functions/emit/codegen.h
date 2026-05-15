@@ -47,7 +47,6 @@ extern C_CDD_EXPORT /**
     int
     write_forward_decl(FILE *fp, const char *struct_name);
 
-
 /**
  * @brief Generates C code for write enum declaration.
  *

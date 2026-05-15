@@ -14,9 +14,14 @@
 #ifndef C_CDD_C2OPENAPI_SCHEMA_H
 #define C_CDD_C2OPENAPI_SCHEMA_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+extern void free_string_array_schema_utils(char **arr, size_t n);
+extern int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src, size_t src_count);
+
 
 /* clang-format off */
 #include "c_cdd_export.h"
@@ -38,12 +43,9 @@ extern "C" {
  * @param[in] types The list of types found in a file by `c_inspector`.
  * @return 0 on success, ENOMEM/EINVAL on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c2openapi register types operation.
-                     */
-    int
-    c2openapi_register_types(struct OpenAPI_Spec *spec,
-                             const struct TypeDefList *types);
+extern C_CDD_EXPORT int
+c2openapi_register_types(struct OpenAPI_Spec *spec,
+                         const struct TypeDefList *types);
 
 #ifdef __cplusplus
 }

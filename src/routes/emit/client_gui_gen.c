@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "functions/parse/fs.h"
 /* clang-format on */
 
 #if defined(_MSC_VER)
@@ -28,8 +29,25 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   if (!spec || !config || !config->filename_base)
     return EINVAL;
 
-  SNPRINTF(path_h, sizeof(path_h), "%s_gui.h", config->filename_base);
-  SNPRINTF(path_c, sizeof(path_c), "%s_gui.c", config->filename_base);
+  {
+    char *dir_name = NULL, *base_name = NULL;
+    char *src_dir = malloc(512);
+    if (!src_dir)
+      return ENOMEM;
+    get_dirname(config->filename_base, &dir_name);
+    get_basename(config->filename_base, &base_name);
+    sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
+    makedirs(src_dir);
+    SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
+             base_name ? base_name : "generated_client");
+    SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
+             base_name ? base_name : "generated_client");
+    free(src_dir);
+    if (dir_name)
+      free(dir_name);
+    if (base_name)
+      free(base_name);
+  }
 
 #if defined(_MSC_VER)
   if (fopen_s(&fp_h, path_h, "w") != 0)
@@ -79,7 +97,14 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   /* Source Generation */
   fprintf(fp_c, "/* Generated GUI & Token Flow Implementation */\n");
-  fprintf(fp_c, "#include \"%s_gui.h\"\n", config->filename_base);
+  {
+    char *base = NULL;
+    get_basename(config->filename_base, &base);
+    fprintf(fp_c, "#include \"%s_gui.h\"\n",
+            base ? base : config->filename_base);
+    if (base)
+      free(base);
+  }
   fprintf(fp_c, "#include <stdio.h>\n");
   fprintf(fp_c, "#include <stdlib.h>\n");
   fprintf(fp_c, "#include <string.h>\n");

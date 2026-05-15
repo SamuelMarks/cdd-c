@@ -355,6 +355,42 @@ TEST test_query_null_safety(void) {
   PASS();
 }
 
+
+TEST test_url_utils_write_query_json_param(void) {
+  struct OpenAPI_Parameter p;
+  memset(&p, 0, sizeof(p));
+
+  FILE *fp = fopen("test_url_json.txt", "w");
+  ASSERT(fp != NULL);
+
+  ASSERT_EQ(EINVAL, write_query_json_param(NULL, NULL));
+  ASSERT_EQ(EINVAL, write_query_json_param(fp, NULL));
+
+
+  p.name = "test";
+  p.type = "array";
+  p.is_array = 1;
+  p.items_type = NULL;
+  p.schema.inline_type = NULL;
+
+
+  
+
+  p.name = "test";
+
+  /* unsupported array */
+
+
+
+
+
+
+  fclose(fp);
+  remove("test_url_json.txt");
+
+  PASS();
+}
+
 SUITE(url_utils_suite) {
   RUN_TEST(test_url_encode_simple);
   RUN_TEST(test_url_encode_spaces);
@@ -379,6 +415,7 @@ SUITE(url_utils_suite) {
   RUN_TEST(test_query_build_preserves_encoded_value);
   RUN_TEST(test_query_build_encoding_keys);
   RUN_TEST(test_query_null_safety);
+  RUN_TEST(test_url_utils_write_query_json_param);
 }
 
 #ifdef __cplusplus

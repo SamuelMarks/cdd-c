@@ -37,11 +37,8 @@ extern "C" {
  * be stored.
  * @return 0 on success, error code (ENOMEM/EINVAL) on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the orchestrate fix operation.
-                     */
-    int
-    orchestrate_fix(const char *source_code, char **out_code);
+extern C_CDD_EXPORT int orchestrate_fix(const char *source_code,
+                                        char **out_code);
 
 /**
  * @brief Command-line entry point for the fix functionality.
@@ -51,11 +48,7 @@ extern C_CDD_EXPORT /**
  * @param[in] argv Argument vector.
  * @return EXIT_SUCCESS or EXIT_FAILURE.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the fix code main operation.
-                     */
-    int
-    fix_code_main(int argc, char **argv);
+extern C_CDD_EXPORT int fix_code_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

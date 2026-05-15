@@ -128,7 +128,7 @@ C_CDD_EXPORT int cdd_cst_bld_punct(cdd_cst_builder_t *builder,
                                    const char *text);
 
 /**
- * @brief Appends an #include directive.
+ * @brief Appends an \#include directive.
  */
 C_CDD_EXPORT int cdd_cst_bld_include(cdd_cst_builder_t *builder,
                                      const char *path, int is_system);
@@ -140,18 +140,18 @@ C_CDD_EXPORT int cdd_cst_bld_ifndef(cdd_cst_builder_t *builder,
                                     const char *macro_name);
 
 /**
- * @brief Appends an #ifdef macro_name directive.
+ * @brief Appends an \#ifdef macro_name directive.
  */
 C_CDD_EXPORT int cdd_cst_bld_ifdef(cdd_cst_builder_t *builder,
                                    const char *macro_name);
 
 /**
- * @brief Appends an #else directive.
+ * @brief Appends an \#else directive.
  */
 C_CDD_EXPORT int cdd_cst_bld_else(cdd_cst_builder_t *builder);
 
 /**
- * @brief Appends an #endif directive.
+ * @brief Appends an \#endif directive.
  */
 C_CDD_EXPORT int cdd_cst_bld_endif(cdd_cst_builder_t *builder);
 

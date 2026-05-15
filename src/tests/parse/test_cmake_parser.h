@@ -29,18 +29,16 @@ TEST test_cmake_modifier_basic(void) {
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
 
-  ASSERT(strstr(diff_str, "--- CMakeLists.txt
-") != NULL);
-  ASSERT(strstr(diff_str, "+++ CMakeLists.txt
-") != NULL);
-  ASSERT(strstr(diff_str, "+if(MSVC)
-") != NULL);
-  ASSERT(strstr(diff_str, "+    target_compile_options(my_target PRIVATE /W4 /WX)
-") != NULL);
-  ASSERT(strstr(diff_str, "+    target_link_libraries(my_target PRIVATE ws2_32.lib)
-") != NULL);
-  ASSERT(strstr(diff_str, "+endif()
-") != NULL);
+  ASSERT(strstr(diff_str, "--- CMakeLists.txt\n") != NULL);
+  ASSERT(strstr(diff_str, "+++ CMakeLists.txt\n") != NULL);
+  ASSERT(strstr(diff_str, "+if(MSVC)\n") != NULL);
+  ASSERT(strstr(diff_str,
+                "+    target_compile_options(my_target PRIVATE /W4 /WX)\n") !=
+         NULL);
+  ASSERT(strstr(diff_str,
+                "+    target_link_libraries(my_target PRIVATE ws2_32.lib)\n") !=
+         NULL);
+  ASSERT(strstr(diff_str, "+endif()\n") != NULL);
 
   free(diff_str);
   cmake_modifier_free(&mod);
@@ -57,8 +55,7 @@ TEST test_cmake_modifier_global(void) {
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
 
-  ASSERT(strstr(diff_str, "+    add_compile_options( /W4)
-") != NULL);
+  ASSERT(strstr(diff_str, "+    add_compile_options( /W4)\n") != NULL);
 
   free(diff_str);
   cmake_modifier_free(&mod);

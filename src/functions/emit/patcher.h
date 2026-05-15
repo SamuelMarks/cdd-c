@@ -51,11 +51,7 @@ struct PatchList {
  * @param[out] list Pointer to the list structure to initialize.
  * @return 0 on success, EINVAL if list is NULL, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the patch list init operation.
-                     */
-    int
-    patch_list_init(struct PatchList *list);
+extern C_CDD_EXPORT int patch_list_init(struct PatchList *list);
 
 /**
  * @brief Free resources associated with a patch list.
@@ -65,11 +61,7 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] list The list to free. Safe to pass NULL.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the patch list free operation.
-                     */
-    void
-    patch_list_free(struct PatchList *list);
+extern C_CDD_EXPORT void patch_list_free(struct PatchList *list);
 
 /**
  * @brief Add a replacement patch to the list.
@@ -83,12 +75,8 @@ extern C_CDD_EXPORT /**
  * @param[in] text Malloc'd string to insert.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the patch list add operation.
-                     */
-    int
-    patch_list_add(struct PatchList *list, size_t start_idx, size_t end_idx,
-                   char *text);
+extern C_CDD_EXPORT int patch_list_add(struct PatchList *list, size_t start_idx,
+                                       size_t end_idx, char *text);
 
 /**
  * @brief Apply patches to the token stream and generate new source code.
@@ -107,12 +95,9 @@ extern C_CDD_EXPORT /**
  * @param[out] out_code Pointer to a char* where the new code will be allocated.
  * @return 0 on success, ENOMEM on allocation failure, EINVAL on bad args.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the patch list apply operation.
-                     */
-    int
-    patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
-                     char **out_code);
+extern C_CDD_EXPORT int patch_list_apply(struct PatchList *list,
+                                         const struct TokenList *tokens,
+                                         char **out_code);
 
 /**
  * @brief Helper to sort patches by position.
@@ -121,11 +106,7 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] list The list to sort.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the patch list sort operation.
-                     */
-    void
-    patch_list_sort(struct PatchList *list);
+extern C_CDD_EXPORT void patch_list_sort(struct PatchList *list);
 
 #ifdef __cplusplus
 }

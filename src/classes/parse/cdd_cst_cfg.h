@@ -31,8 +31,8 @@ struct cdd_cst_cfg_edge_t {
   /** @brief condition_value field */
   int is_conditional;
   /** @brief condition_value field */
-  int condition_value; /* 1 for true branch, 0 for false branch */
-  cdd_cst_cfg_edge_t *next;
+  int condition_value;      /* 1 for true branch, 0 for false branch */
+  cdd_cst_cfg_edge_t *next; /**< next */
 };
 
 /** @brief Struct definition */
@@ -46,8 +46,8 @@ struct cdd_cst_cfg_block_t {
   /** @brief predecessors field */
   size_t num_statements;
   /** @brief capacity field */
-  size_t capacity;
-  cdd_cst_cfg_edge_t *successors;
+  size_t capacity;                /**< capacity */
+  cdd_cst_cfg_edge_t *successors; /**< successors */
   /** @brief entry_block field */
   cdd_cst_cfg_edge_t *predecessors;
   /** @brief blocks field */
@@ -61,10 +61,10 @@ typedef struct cdd_cst_cfg_t cdd_cst_cfg_t;
 struct cdd_cst_cfg_t {
   /** @brief num_blocks field */
   cdd_cst_cfg_block_t *entry_block;
-  cdd_cst_cfg_block_t *exit_block;
-  cdd_cst_cfg_block_t **blocks;
-  size_t num_blocks;
-  size_t capacity;
+  cdd_cst_cfg_block_t *exit_block; /**< exit_block */
+  cdd_cst_cfg_block_t **blocks;    /**< blocks */
+  size_t num_blocks;               /**< num_blocks */
+  size_t capacity;                 /**< capacity */
 };
 
 /**

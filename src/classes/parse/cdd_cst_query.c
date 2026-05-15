@@ -70,7 +70,7 @@ typedef struct type_query_ctx_t {
   enum cdd_cst_node_kind_t target_kind;
   /** @brief res field */
   cdd_cst_query_result_t *res;
-  int err;
+  int err; /**< err */
 } type_query_ctx_t;
 
 static int type_visitor(cdd_cst_node_t *node, void *user_data) {
@@ -121,7 +121,7 @@ typedef struct call_query_ctx_t {
   size_t func_name_len;
   /** @brief err field */
   cdd_cst_query_result_t *res;
-  int err;
+  int err; /**< err */
 } call_query_ctx_t;
 
 static int call_visitor(cdd_cst_node_t *node, void *user_data) {

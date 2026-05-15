@@ -3,7 +3,7 @@
  * @brief Builder for constructing OpenAPI Operations from C functions.
  *
  * Merges extracted C signature details (arguments, return type) with
- * documentation metadata (@route, @param) to produce a semantic OpenAPI
+ * documentation metadata (\@route, @param) to produce a semantic OpenAPI
  * Operation definition.
  *
  * Implements heuristics to distinguish:
@@ -79,13 +79,56 @@ struct OpBuilderContext {
  * @param[out] out_op The operation structure to populate.
  * @return 0 on success, ENOMEM/EINVAL on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the c2openapi build operation operation.
-                     */
-    int
-    c2openapi_build_operation(const struct OpBuilderContext *ctx,
-                              struct OpenAPI_Operation *out_op);
+extern C_CDD_EXPORT int
+c2openapi_build_operation(const struct OpBuilderContext *ctx,
+                          struct OpenAPI_Operation *out_op);
 
+extern C_CDD_EXPORT int parse_example_any(const char *example,
+                                          struct OpenAPI_Any *out);
+extern C_CDD_EXPORT int is_reserved_header_name(const char *name);
+extern C_CDD_EXPORT int any_from_json_value(const JSON_Value *val,
+                                            struct OpenAPI_Any *out);
+extern C_CDD_EXPORT int parse_link_params_json(const char *json,
+                                               struct OpenAPI_LinkParam **out,
+                                               size_t *out_count);
+extern C_CDD_EXPORT void
+free_openapi_server_variables_op(struct OpenAPI_Server *srv);
+extern C_CDD_EXPORT int
+copy_doc_server_variables_op(struct OpenAPI_Server *dst,
+                             const struct DocServer *src);
+extern C_CDD_EXPORT int
+find_response_by_code(struct OpenAPI_Operation *op, const char *code,
+                      struct OpenAPI_Response **_out_val);
+extern C_CDD_EXPORT int find_media_type_op(struct OpenAPI_MediaType *mts,
+                                           size_t n, const char *name,
+                                           struct OpenAPI_MediaType **_out_val);
+extern C_CDD_EXPORT int
+apply_example_to_media_type(struct OpenAPI_MediaType *mt, const char *example);
+extern C_CDD_EXPORT int apply_example_to_response(struct OpenAPI_Response *resp,
+                                                  const char *example,
+                                                  const char *content_type);
+
+extern C_CDD_EXPORT int
+ensure_response_for_code(struct OpenAPI_Operation *op, const char *code,
+                         struct OpenAPI_Response **_out_val);
+extern C_CDD_EXPORT int
+add_header_to_response(struct OpenAPI_Response *resp,
+                       const struct DocResponseHeader *dh);
+extern C_CDD_EXPORT int add_link_to_response(struct OpenAPI_Response *resp,
+                                             const struct DocLink *dl);
+extern C_CDD_EXPORT int add_param_to_op(struct OpenAPI_Operation *op,
+                                        struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT int
+schema_ref_has_data_basic(const struct OpenAPI_SchemaRef *ref);
+
+extern C_CDD_EXPORT int
+copy_schema_ref_basic(struct OpenAPI_SchemaRef *dst,
+                      const struct OpenAPI_SchemaRef *src);
+extern C_CDD_EXPORT int
+response_has_media_type(const struct OpenAPI_Response *resp, const char *name);
+extern C_CDD_EXPORT int is_struct_pointer(const char *type, int *is_double_ptr);
+extern C_CDD_EXPORT int doc_style_to_openapi(enum DocParamStyle style,
+                                             enum OpenAPI_Style *_out_val);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -59,20 +59,12 @@ struct VLASiteList {
 /**
  * @brief Initialize a VLA site list.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vla site list init operation.
-                     */
-    void
-    vla_site_list_init(struct VLASiteList *list);
+extern C_CDD_EXPORT void vla_site_list_init(struct VLASiteList *list);
 
 /**
  * @brief Free resources associated with a VLA site list.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the vla site list free operation.
-                     */
-    void
-    vla_site_list_free(struct VLASiteList *list);
+extern C_CDD_EXPORT void vla_site_list_free(struct VLASiteList *list);
 
 /**
  * @brief Scan a token stream to detect VLAs.
@@ -84,11 +76,8 @@ extern C_CDD_EXPORT /**
  * @param[out] list The initialized list to populate.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the scan for vlas operation.
-                     */
-    int
-    scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list);
+extern C_CDD_EXPORT int scan_for_vlas(const struct TokenList *tokens,
+                                      struct VLASiteList *list);
 
 #ifdef __cplusplus
 }

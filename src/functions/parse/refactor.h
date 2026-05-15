@@ -29,21 +29,13 @@ struct RefactorContext {
  * @param[out] ctx The context to initialize.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the refactor context init operation.
-                     */
-    int
-    refactor_context_init(struct RefactorContext *ctx);
+extern C_CDD_EXPORT int refactor_context_init(struct RefactorContext *ctx);
 
 /**
  * @brief Free resources in refactor context.
  * @param[in] ctx The context.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the refactor context free operation.
-                     */
-    void
-    refactor_context_free(struct RefactorContext *ctx);
+extern C_CDD_EXPORT void refactor_context_free(struct RefactorContext *ctx);
 
 /**
  * @brief Add a function to the refactoring list.

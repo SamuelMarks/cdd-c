@@ -60,13 +60,10 @@ extern C_CDD_EXPORT /**
  * @param[in,out] patches Patch list.
  * @return 0 on success (or if pattern doesn't match), ENOMEM on failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Executes the strategy rewrite realloc operation.
-                     */
-    int
-    strategy_rewrite_realloc(const struct TokenList *tokens,
-                             const struct AllocationSite *site, size_t semi_idx,
-                             struct PatchList *patches);
+extern C_CDD_EXPORT int
+strategy_rewrite_realloc(const struct TokenList *tokens,
+                         const struct AllocationSite *site, size_t semi_idx,
+                         struct PatchList *patches);
 
 #ifdef __cplusplus
 }
