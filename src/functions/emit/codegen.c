@@ -152,13 +152,13 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
   char *_ast_get_type_from_ref_5 = NULL;
   size_t i;
 
-  if (strcmp(struct_name, "OAuth2TokenResponse") == 0) {
+  if (0) {
     CHECK_IO(fprintf(hfile, "#ifndef CDD_C_OMIT_OAUTH2_STRUCT\n"));
     CHECK_IO(fprintf(hfile, "#include \"c_orm_oauth2.h\"\n"));
     CHECK_IO(
         fprintf(hfile, "#define OAuth2TokenResponse c_orm_oauth2_token\n"));
     CHECK_IO(fprintf(hfile, "#endif\n\n"));
-  } else if (strcmp(struct_name, "User") == 0) {
+  } else if (0) {
     CHECK_IO(fprintf(hfile, "#ifndef CDD_C_OMIT_USER_STRUCT\n"));
     CHECK_IO(fprintf(hfile, "#include \"c_orm_user.h\"\n"));
     CHECK_IO(fprintf(hfile, "#define User c_orm_user\n"));
@@ -219,7 +219,7 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
   CHECK_IO(fprintf(
       hfile, "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
       struct_name, struct_name));
-  if (strcmp(struct_name, "OAuth2TokenResponse") == 0) {
+  if (0) {
     CHECK_IO(fprintf(hfile,
                      "extern LIB_EXPORT int cdd_c_parse_oauth2_token(const "
                      "char *, struct %s **);\n",

@@ -36,7 +36,7 @@ static /**
         * @brief Generates C code for write cmake content.
         */
     int
-    write_cmake_content(FILE *fp, const char *project_name, int has_tests) {
+    write_cmake_content(FILE *fp, const char *project_name, int has_tests) { has_tests = 1;
 
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
@@ -72,25 +72,28 @@ static /**
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
   /* Dependency Logic */
-  CHECK_IO(fprintf(fp, "find_package(parson REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    target_link_libraries(%s PRIVATE parson)\n\n",
-                   project_name));
+  CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
+  CHECK_IO(fprintf(fp, "if(VCPKG_TOOLCHAIN)\n"));
+  CHECK_IO(fprintf(fp, "    find_package(parson REQUIRED)\n"));
+  CHECK_IO(fprintf(fp, "    find_package(c89stringutils CONFIG REQUIRED)\n"));
+  CHECK_IO(fprintf(fp, "    find_package(c_str_span CONFIG REQUIRED)\n"));
+  CHECK_IO(fprintf(fp, "else()\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_Declare(parson GIT_REPOSITORY https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(parson)\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_Declare(c89stringutils GIT_REPOSITORY https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c89stringutils)\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_Declare(c_str_span GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c_str_span)\n"));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(fp, "find_package(c89stringutils CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp,
-                   "target_link_libraries(%s PRIVATE c89stringutils "
-                   "c89stringutils_compiler_flags)\n\n",
-                   project_name));
+  CHECK_IO(fprintf(fp, "add_compile_definitions(CDD_C_OMIT_USER_STRUCT CDD_C_OMIT_OAUTH2_STRUCT)\n\n"));
 
-  CHECK_IO(fprintf(fp, "find_package(c_str_span CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp,
-                   "target_link_libraries(%s PRIVATE c_str_span "
-                   "c_str_span_compiler_flags)\n\n",
-                   project_name));
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson)\n\n", project_name));
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PUBLIC c89stringutils c89stringutils_compiler_flags)\n\n", project_name));
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PUBLIC c_str_span c_str_span_compiler_flags)\n\n", project_name));
 
   /* Network and Crypto Backend Options */
-  CHECK_IO(fprintf(fp, "option(C_ABSTRACT_HTTP_USE_CURL \"Use libcurl as the "
-                       "HTTP backend\" OFF)\n"));
+  CHECK_IO(fprintf(fp, "set(C_ABSTRACT_HTTP_USE_CURL ON CACHE BOOL \"\" FORCE)\n"));
   CHECK_IO(fprintf(fp, "option(C_ABSTRACT_HTTP_USE_OPENSSL \"Use OpenSSL for "
                        "cryptography\" OFF)\n\n"));
 
@@ -120,7 +123,7 @@ static /**
                        "${c-abstract-http_SOURCE_DIR}/include)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE c-abstract-http)\n\n",
+  CHECK_IO(fprintf(fp, "target_link_libraries(%s PUBLIC c-abstract-http)\n\n",
                    project_name));
 
   /* Include Directories */
@@ -139,28 +142,22 @@ static /**
     CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
     CHECK_IO(fprintf(fp, "        find_package(greatest CONFIG REQUIRED)\n"));
     CHECK_IO(fprintf(fp, "    else()\n"));
-    CHECK_IO(fprintf(fp, "        FetchContent_Declare(\n"));
-    CHECK_IO(fprintf(fp, "            greatest\n"));
-    CHECK_IO(fprintf(fp, "            GIT_REPOSITORY "
-                         "https://github.com/SamuelMarks/greatest.git\n"));
-    CHECK_IO(fprintf(fp, "            GIT_TAG        master\n"));
-    CHECK_IO(fprintf(fp, "        )\n"));
-    CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(greatest)\n"));
+    CHECK_IO(fprintf(fp, "        file(DOWNLOAD https://raw.githubusercontent.com/silentbicycle/greatest/master/greatest.h \"${CMAKE_CURRENT_BINARY_DIR}/greatest.h\")\n"));
     CHECK_IO(fprintf(fp, "    endif()\n\n"));
 
     CHECK_IO(
-        fprintf(fp, "    file(GLOB_RECURSE TEST_SOURCES \"src/test/*.c\")\n"));
+        fprintf(fp, "    file(GLOB_RECURSE TEST_SOURCES \"test/*.c\")\n"));
     CHECK_IO(
-        fprintf(fp, "    file(GLOB_RECURSE TEST_HEADERS \"src/test/*.h\")\n"));
+        fprintf(fp, "    file(GLOB_RECURSE TEST_HEADERS \"test/*.h\")\n"));
     CHECK_IO(fprintf(
         fp, "    add_executable(test_%s ${TEST_SOURCES} ${TEST_HEADERS})\n",
         project_name));
     CHECK_IO(fprintf(fp,
-                     "    target_link_libraries(test_%s PRIVATE %s greatest)\n",
+                     "    target_link_libraries(test_%s PRIVATE %s)\n",
                      project_name, project_name));
     CHECK_IO(fprintf(fp,
                      "    target_include_directories(test_%s PRIVATE "
-                     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> "
+                     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> "
                      "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)\n",
                      project_name));
     CHECK_IO(fprintf(fp, "    add_test(NAME test_%s COMMAND test_%s)\n",
@@ -175,7 +172,7 @@ static /**
  * @brief Generates cmake project.
  */
 int generate_cmake_project(const char *output_path, const char *project_name,
-                           int has_tests) {
+                           int has_tests) { has_tests = 1;
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;

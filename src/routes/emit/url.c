@@ -441,7 +441,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
       CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
-      CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+      CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
       CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
       CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -490,7 +490,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
     CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
     CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -508,7 +508,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &q_json);\n",
                      p->schema.ref_name, name));
     CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
-    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
     CHECK_IO(fprintf(fp, "    free(q_json);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -564,7 +564,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
     CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
     CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -599,7 +599,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "    q_json = json_serialize_to_string(q_val);\n"));
     CHECK_IO(fprintf(fp, "    json_value_free(q_val);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_json) { rc = ENOMEM; goto cleanup; }\n"));
-    CHECK_IO(fprintf(fp, "    q_enc = url_encode(q_json);\n"));
+    CHECK_IO(fprintf(fp, "    url_encode(q_json, &q_enc);\n"));
     CHECK_IO(fprintf(fp, "    json_free_serialized_string(q_json);\n"));
     CHECK_IO(fprintf(fp, "    if (!q_enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(
@@ -673,7 +673,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     if (allow_reserved) {
       CHECK_IO(fprintf(fp, "      if (kv->type == OA_KV_STRING) {\n"));
       CHECK_IO(fprintf(
-          fp, "        char *enc = url_encode_allow_reserved(kv_raw);\n"));
+          fp, "        char *enc = NULL; url_encode_allow_reserved(kv_raw, &enc);\n"));
       CHECK_IO(fprintf(fp, "        if (!enc) { free(deep_key); rc = ENOMEM; "
                            "goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -726,12 +726,12 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
     if (allow_reserved) {
       CHECK_IO(
-          fprintf(fp, "      key_enc = url_encode_allow_reserved(kv_key);\n"));
+          fprintf(fp, "      url_encode_allow_reserved(kv_key, &key_enc);\n"));
       CHECK_IO(
-          fprintf(fp, "      val_enc = url_encode_allow_reserved(kv_raw);\n"));
+          fprintf(fp, "      url_encode_allow_reserved(kv_raw, &val_enc);\n"));
     } else {
-      CHECK_IO(fprintf(fp, "      key_enc = url_encode(kv_key);\n"));
-      CHECK_IO(fprintf(fp, "      val_enc = url_encode(kv_raw);\n"));
+      CHECK_IO(fprintf(fp, "      url_encode(kv_key, &key_enc);\n"));
+      CHECK_IO(fprintf(fp, "      url_encode(kv_raw, &val_enc);\n"));
     }
     CHECK_IO(fprintf(fp, "      if (!key_enc || !val_enc) { free(key_enc); "
                          "free(val_enc); rc = ENOMEM; goto cleanup; }\n"));
@@ -795,7 +795,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     if (allow_reserved) {
       CHECK_IO(fprintf(fp, "      if (kv->type == OA_KV_STRING) {\n"));
       CHECK_IO(fprintf(
-          fp, "        char *enc = url_encode_allow_reserved(kv_raw);\n"));
+          fp, "        char *enc = NULL; url_encode_allow_reserved(kv_raw, &enc);\n"));
       CHECK_IO(
           fprintf(fp, "        if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -849,9 +849,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
       CHECK_IO(fprintf(fp, "      }\n"));
       CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
       CHECK_IO(
-          fprintf(fp, "      key_enc = url_encode_allow_reserved(kv_key);\n"));
+          fprintf(fp, "      url_encode_allow_reserved(kv_key, &key_enc);\n"));
       CHECK_IO(
-          fprintf(fp, "      val_enc = url_encode_allow_reserved(kv_raw);\n"));
+          fprintf(fp, "      url_encode_allow_reserved(kv_raw, &val_enc);\n"));
       CHECK_IO(fprintf(fp, "      if (!key_enc || !val_enc) { free(key_enc); "
                            "free(val_enc); rc = ENOMEM; goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -1044,8 +1044,8 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   CHECK_IO(fprintf(fp, "      }\n"));
   CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
 
-  CHECK_IO(fprintf(fp, "      key_enc = %s(kv_key);\n", encode_fn));
-  CHECK_IO(fprintf(fp, "      val_enc = %s(kv_raw);\n", encode_fn));
+  CHECK_IO(fprintf(fp, "        %s(kv_key, &key_enc);\n", encode_fn));
+  CHECK_IO(fprintf(fp, "        %s(kv_raw, &val_enc);\n", encode_fn));
   CHECK_IO(fprintf(fp, "      if (!key_enc || !val_enc) {\n"
                        "        free(key_enc);\n"
                        "        free(val_enc);\n"
@@ -1173,7 +1173,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   }
 
   if (encode_fn) {
-    CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
+    CHECK_IO(fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
     CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
     CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
@@ -1276,7 +1276,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   }
 
   if (do_encode) {
-    CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
+    CHECK_IO(fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
     CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
     CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
@@ -1371,7 +1371,7 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "      raw = %s[i];\n", name));
   }
 
-  CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
+  CHECK_IO(fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
   CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
   CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
   CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
@@ -1615,7 +1615,7 @@ int codegen_url_write_builder(FILE *fp, const char *path_template,
           CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));
           if (strcmp(p->type, "string") == 0) {
             CHECK_IO(
-                fprintf(fp, "  {\n    char *enc = %s(%s);\n", encode_fn, name));
+                fprintf(fp, "  {\n    char *enc = NULL; %s(%s, &enc);\n", encode_fn, name));
             CHECK_IO(fprintf(fp, "    if (!enc) return ENOMEM;\n"));
             CHECK_IO(fprintf(fp,
                              "    if (asprintf(&path_%s, \"%s%%s\", enc) == "
@@ -1846,7 +1846,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
-      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    url_encode(qs_json, &qs_enc);\n"));
       CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -1913,7 +1913,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
-      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    url_encode(qs_json, &qs_enc);\n"));
       CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -1962,7 +1962,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    json_value_free(qs_val);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_json) { rc = ENOMEM; goto cleanup; }\n"));
-      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    url_encode(qs_json, &qs_enc);\n"));
       CHECK_IO(fprintf(fp, "    json_free_serialized_string(qs_json);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -1990,7 +1990,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
       CHECK_IO(fprintf(fp, "    rc = %s_to_json(%s, &qs_json);\n",
                        querystring_param->schema.ref_name, qs_name));
       CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
-      CHECK_IO(fprintf(fp, "    qs_enc = url_encode(qs_json);\n"));
+      CHECK_IO(fprintf(fp, "    url_encode(qs_json, &qs_enc);\n"));
       CHECK_IO(fprintf(fp, "    free(qs_json);\n"));
       CHECK_IO(
           fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -2016,7 +2016,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
         if (strcmp(qs_raw, "string") == 0) {
           CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
           CHECK_IO(
-              fprintf(fp, "    char *qs_enc = url_encode(%s);\n", qs_name));
+              fprintf(fp, "    char *qs_enc = NULL; url_encode(%s, &qs_enc);\n", qs_name));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2034,7 +2034,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
           CHECK_IO(
               fprintf(fp, "    sprintf(num_buf, \"%%d\", %s);\n", qs_name));
-          CHECK_IO(fprintf(fp, "    qs_enc = url_encode(num_buf);\n"));
+          CHECK_IO(fprintf(fp, "    url_encode(num_buf, &qs_enc);\n"));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2048,7 +2048,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "    char *qs_enc = NULL;\n"));
           CHECK_IO(
               fprintf(fp, "    sprintf(num_buf, \"%%g\", %s);\n", qs_name));
-          CHECK_IO(fprintf(fp, "    qs_enc = url_encode(num_buf);\n"));
+          CHECK_IO(fprintf(fp, "    url_encode(num_buf, &qs_enc);\n"));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2062,7 +2062,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(
               fp, "    const char *raw_val = %s ? \"true\" : \"false\";\n",
               qs_name));
-          CHECK_IO(fprintf(fp, "    char *qs_enc = url_encode(raw_val);\n"));
+          CHECK_IO(fprintf(fp, "    char *qs_enc = NULL; url_encode(raw_val, &qs_enc);\n"));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2147,7 +2147,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
             if (p->items_type && strcmp(p->items_type, "string") == 0) {
               if (p->allow_reserved_set && p->allow_reserved) {
                 CHECK_IO(fprintf(
-                    fp, "      char *enc = url_encode_allow_reserved(%s[i]);\n",
+                    fp, "      char *enc = NULL; url_encode_allow_reserved(%s[i], &enc);\n",
                     p->name));
                 CHECK_IO(fprintf(
                     fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -2225,7 +2225,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           if (p->items_type && strcmp(p->items_type, "string") == 0) {
             if (p->allow_reserved_set && p->allow_reserved) {
               CHECK_IO(fprintf(
-                  fp, "      char *enc = url_encode_allow_reserved(%s[i]);\n",
+                  fp, "      char *enc = NULL; url_encode_allow_reserved(%s[i], &enc);\n",
                   p->name));
               CHECK_IO(fprintf(
                   fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
@@ -2270,7 +2270,7 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
           if (p->allow_reserved_set && p->allow_reserved) {
             CHECK_IO(fprintf(fp,
-                             "    char *enc = url_encode_allow_reserved(%s);\n",
+                             "    char *enc = NULL; url_encode_allow_reserved(%s, &enc);\n",
                              p->name));
             CHECK_IO(
                 fprintf(fp, "    if (!enc) { rc = ENOMEM; goto cleanup; }\n"));

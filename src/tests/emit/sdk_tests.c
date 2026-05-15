@@ -80,8 +80,17 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, "  ASSERT_EQ(0, rc);\n"));
 
     /* Call */
-    CHECK_IO(fprintf(fp, "  rc = %s%s(&client", config->func_prefix,
-                     op->operation_id));
+        {
+      char group_buf[512];
+      if (op->n_tags > 0 && op->tags[0] && op->tags[0][0]) {
+        snprintf(group_buf, sizeof(group_buf), "%s", op->tags[0]);
+        group_buf[0] = toupper((unsigned char)group_buf[0]);
+      } else {
+        snprintf(group_buf, sizeof(group_buf), "Default");
+      }
+      CHECK_IO(fprintf(fp, "  rc = %s_%s%s(&client", group_buf, config->func_prefix,
+                       op->operation_id));
+    }
 
     /* Args */
     for (i = 0; i < op->n_parameters; ++i) {
@@ -100,21 +109,7 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
     if (has_output) {
       CHECK_IO(fprintf(fp, ", &res_out"));
     }
-    /* Error out assumed not used in simple signature unless configured,
-     * currently codegen_client_sig handles it if present */
-    /* Checking if error responses exist */
-    {
-      int has_err = 0;
-      for (j = 0; j < op->n_responses; ++j) {
-        if (op->responses[j].code[0] == '4' &&
-            op->responses[j].schema.ref_name) {
-          has_err = 1;
-        }
-      }
-      if (has_err) {
-        CHECK_IO(fprintf(fp, ", NULL")); /* error_out */
-      }
-    }
+    CHECK_IO(fprintf(fp, ", NULL")); /* api_error */
 
     CHECK_IO(fprintf(fp, ");\n"));
     CHECK_IO(fprintf(

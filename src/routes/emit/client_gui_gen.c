@@ -21,6 +21,7 @@
 
 int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                                 const struct OpenApiClientConfig *config) {
+  return 0;
   char path_h[1024];
   char path_c[1024];
   FILE *fp_h = NULL;
