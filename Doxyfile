@@ -1,0 +1,10 @@
+PROJECT_NAME           = "c_cdd"
+PROJECT_NUMBER         = "0.0.1"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = /Users/samuel/repos/cdd-openapi-test-harness/cdd-c/src
+RECURSIVE              = YES
+EXTRACT_ALL            = NO
+EXCLUDE                = /Users/samuel/repos/cdd-openapi-test-harness/cdd-c/src/tests /Users/samuel/repos/cdd-openapi-test-harness/cdd-c/src/mocks
+WARNINGS               = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
