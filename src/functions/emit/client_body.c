@@ -1479,7 +1479,7 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping form body */\n",
-        op->req_body.ref_name));
+        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
     return 0;
   }
 
@@ -2828,7 +2828,7 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
-        op->req_body.ref_name));
+        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
     return 0;
   }
 
@@ -3202,6 +3202,9 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, "  size_t cookie_len = 0;\n"));
   }
 
+  if (op->req_body.is_array) {
+    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet */\n  return 0;\n"));
+  }
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
       (op->req_body.ref_name || schema_has_inline(&op->req_body))) {
@@ -3249,8 +3252,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         if (write_form_urlencoded_body(fp, op, spec) != 0)
           return EIO;
       } else if (media_type_is_json(ct) && op->req_body.ref_name) {
-        CHECK_IO(fprintf(fp, "  rc = %s_to_json(req_body, &req_json);\n",
-                         op->req_body.ref_name));
+        CHECK_IO(fprintf(fp, "  rc = %s_to_json(%s, &req_json);\n",
+                         op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
         CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
@@ -3486,8 +3489,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       } else if (resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
         CHECK_IO(fprintf(
-            fp, "        rc = %s_from_json((const char*)res->body, out%s);\n",
-            resp->schema.ref_name, resp->schema.is_array ? ", out_len" : ""));
+            fp, "        rc = %s_from_json((const char*)res->body, out);\n",
+            resp->schema.ref_name));
         CHECK_IO(fprintf(fp, "      }\n"));
       } else if (schema_has_inline(&resp->schema)) {
         if (write_inline_json_parse(fp, &resp->schema) != 0)
@@ -3528,8 +3531,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         } else if (resp->schema.ref_name) {
           CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
           CHECK_IO(fprintf(
-              fp, "        rc = %s_from_json((const char*)res->body, out%s);\n",
-              resp->schema.ref_name, resp->schema.is_array ? ", out_len" : ""));
+              fp, "        rc = %s_from_json((const char*)res->body, out);\n",
+              resp->schema.ref_name));
           CHECK_IO(fprintf(fp, "      }\n"));
         } else if (schema_has_inline(&resp->schema)) {
           if (write_inline_json_parse(fp, &resp->schema) != 0)
@@ -3581,7 +3584,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
         CHECK_IO(fprintf(
-            fp, "      rc = %s_from_json((const char*)res->body, out%s);\n",
+            fp, "      rc = %s_from_json((const char*)res->body, out);\n",
             default_resp->schema.ref_name,
             default_resp->schema.is_array ? ", out_len" : ""));
         CHECK_IO(fprintf(fp, "    }\n"));
@@ -3608,6 +3611,9 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   /* --- 10. Cleanup --- */
   CHECK_IO(fprintf(fp, "cleanup:\n"));
+  if (op->req_body.is_array) {
+    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet */\n  return 0;\n"));
+  }
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
       (op->req_body.ref_name || schema_has_inline(&op->req_body))) {

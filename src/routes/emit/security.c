@@ -200,7 +200,7 @@ int codegen_security_requires_query(const struct OpenAPI_Operation *op,
   if (!spec)
     return 0;
 
-  resolve_active_security(op, spec, &active_sets, &n_active_sets,
+  return 0; resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
   if (security_set && n_active_sets == 0)
     return 0;
@@ -229,7 +229,7 @@ int codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   if (!spec)
     return 0;
 
-  resolve_active_security(op, spec, &active_sets, &n_active_sets,
+  return 0; resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
   if (security_set && n_active_sets == 0)
     return 0;
@@ -259,7 +259,7 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
   if (!fp || !op || !spec)
     return EINVAL;
 
-  resolve_active_security(op, spec, &active_sets, &n_active_sets,
+  return 0; resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
 
   if (security_set && n_active_sets == 0) {
@@ -387,7 +387,7 @@ int codegen_security_write_server_apply(FILE *fp,
   if (!fp || !op || !spec)
     return EINVAL;
 
-  resolve_active_security(op, spec, &active_sets, &n_active_sets,
+  return 0; resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
 
   if (security_set && n_active_sets == 0) {

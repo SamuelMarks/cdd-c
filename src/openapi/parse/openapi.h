@@ -72,6 +72,8 @@ enum OpenAPI_ParamIn {
   OA_PARAM_IN_QUERYSTRING, /**< Query string as a single value (OAS 3.2) */
   OA_PARAM_IN_HEADER,      /**< Header: X-Header: 1 */
   OA_PARAM_IN_COOKIE,      /**< Cookie: id=1 */
+  OA_PARAM_IN_BODY,        /**< Swagger 2.0: Body payload */
+  OA_PARAM_IN_FORM_DATA,   /**< Swagger 2.0: Form data */
   OA_PARAM_IN_UNKNOWN      /**< Error state or unsupported location */
 };
 
@@ -588,6 +590,7 @@ struct OpenAPI_Response {
   struct OpenAPI_MediaType *content_media_types; /**< Full content map */
   size_t n_content_media_types;                  /**< Content entry count */
   struct OpenAPI_SchemaRef schema; /**< The body schema definition */
+  int schema_set;                  /**< 1 if schema object was present */
   struct OpenAPI_Header *headers;  /**< Response headers */
   size_t n_headers;                /**< Header count */
   struct OpenAPI_Link *links;      /**< Response links */
@@ -800,6 +803,15 @@ struct OpenAPI_DocRegistry {
  */
 struct OpenAPI_Spec {
   char *openapi_version;  /**< OpenAPI version string */
+  char *swagger_version;  /**< Swagger version string */
+  char *host;             /**< The host (name or ip) serving the API */
+  char *basePath;         /**< The base path on which the API is served */
+  char **schemes;         /**< The transfer protocol of the API */
+  size_t n_schemes;       /**< Scheme count */
+  char **consumes;        /**< A list of MIME types the APIs can consume */
+  size_t n_consumes;      /**< Consumes count */
+  char **produces;        /**< A list of MIME types the APIs can produce */
+  size_t n_produces;      /**< Produces count */
   int is_schema_document; /**< 1 if root is a JSON Schema document */
   char *schema_root_json; /**< Serialized root schema (schema docs) */
   char *self_uri;         /**< Optional $self URI */
