@@ -52,6 +52,7 @@ else()
         GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
         GIT_TAG        master
     )
+    set(cdd_c_FOUND ON)
     FetchContent_MakeAvailable(c-abstract-http)
     include_directories(SYSTEM ${c-abstract-http_SOURCE_DIR}/include)
 endif()
