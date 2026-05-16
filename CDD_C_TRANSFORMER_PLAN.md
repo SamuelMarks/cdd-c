@@ -1,6 +1,6 @@
 # cdd-c Transformer & Fixers Plan
 
-This document outlines the architectural roadmap and implementation steps for evolving `cdd-c` into a robust, lossless Abstract/Concrete Syntax Tree (CST) transformation engine. 
+This document outlines the architectural roadmap and implementation steps for evolving `cdd-c` into a robust, lossless Abstract/Concrete Syntax Tree (CST) transformation engine.
 
 The core constraint: **Transformations MUST be macro, comment, and whitespace sensitive.** Standard compiler ASTs are insufficient. `cdd-c` will implement a Lossless Syntax Tree (CST) where `Unparse(Parse(source)) == source` is guaranteed byte-for-byte.
 

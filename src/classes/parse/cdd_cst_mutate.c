@@ -284,8 +284,10 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
         }
 
         *new_tok = *orig_tok;
-        clone_trivia_list_mutate(orig_tok->leading_trivia, &new_tok->leading_trivia);
-        clone_trivia_list_mutate(orig_tok->trailing_trivia, &new_tok->trailing_trivia);
+        clone_trivia_list_mutate(orig_tok->leading_trivia,
+                                 &new_tok->leading_trivia);
+        clone_trivia_list_mutate(orig_tok->trailing_trivia,
+                                 &new_tok->trailing_trivia);
 
         rc = track_synthesized_token_mutate(tree, new_tok);
         if (rc != 0) {

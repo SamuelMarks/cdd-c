@@ -3,4 +3,3 @@ Language: C
 BasedOnStyle: LLVM
 SortIncludes: Never
 UseCRLF: false
-

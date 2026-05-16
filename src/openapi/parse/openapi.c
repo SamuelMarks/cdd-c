@@ -8720,7 +8720,9 @@ static /**
   if (!components || !out)
     return 0;
 
-  schemes = json_object_get_object(components, out->swagger_version ? "securityDefinitions" : "securitySchemes");
+  schemes = json_object_get_object(components, out->swagger_version
+                                                   ? "securityDefinitions"
+                                                   : "securitySchemes");
   if (!schemes)
     return 0;
 
@@ -8755,14 +8757,15 @@ static /**
     {
       const char *type = json_object_get_string(sec_obj, "type");
       if (type && strcmp(type, "basic") == 0) {
-          out->security_schemes[i].type = OA_SEC_HTTP;
-          out->security_schemes[i].scheme = (c_cdd_strdup("basic", &_ast_strdup_210), _ast_strdup_210);
+        out->security_schemes[i].type = OA_SEC_HTTP;
+        out->security_schemes[i].scheme =
+            (c_cdd_strdup("basic", &_ast_strdup_210), _ast_strdup_210);
       } else {
-          out->security_schemes[i].type =
-              (parse_security_type(type, &_ast_parse_security_type_51),
-               _ast_parse_security_type_51);
-          if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
-            return EINVAL;
+        out->security_schemes[i].type =
+            (parse_security_type(type, &_ast_parse_security_type_51),
+             _ast_parse_security_type_51);
+        if (out->security_schemes[i].type == OA_SEC_UNKNOWN)
+          return EINVAL;
       }
     }
 
@@ -8987,9 +8990,10 @@ static /**
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
-  if (!effective_schema && spec && spec->swagger_version && json_object_has_value(hdr_obj, "type")) {
-      effective_schema = hdr_obj;
-      effective_schema_val = json_object_get_wrapping_value(hdr_obj);
+  if (!effective_schema && spec && spec->swagger_version &&
+      json_object_has_value(hdr_obj, "type")) {
+    effective_schema = hdr_obj;
+    effective_schema_val = json_object_get_wrapping_value(hdr_obj);
   }
   media_obj = NULL;
   media_schema_val = NULL;
@@ -9746,9 +9750,11 @@ static /**
   }
   effective_schema = schema;
   effective_schema_val = schema_val;
-  if (!effective_schema && spec && spec->swagger_version && out_param->in != OA_PARAM_IN_BODY && json_object_has_value(p_obj, "type")) {
-      effective_schema = p_obj;
-      effective_schema_val = json_object_get_wrapping_value(p_obj);
+  if (!effective_schema && spec && spec->swagger_version &&
+      out_param->in != OA_PARAM_IN_BODY &&
+      json_object_has_value(p_obj, "type")) {
+    effective_schema = p_obj;
+    effective_schema_val = json_object_get_wrapping_value(p_obj);
   }
   media_obj = NULL;
   media_schema_val = NULL;
@@ -10886,13 +10892,15 @@ static /**
     return 0;
 
   if (spec && spec->swagger_version) {
-      const JSON_Value *schema_val = json_object_get_value(resp_obj, "schema");
-      const JSON_Object *schema_obj = schema_val ? json_value_get_object(schema_val) : NULL;
-      if (schema_obj) {
-          int rc = parse_schema_ref(schema_obj, &out_resp->schema, spec);
-          if (rc != 0) return rc;
-          out_resp->schema_set = 1;
-      }
+    const JSON_Value *schema_val = json_object_get_value(resp_obj, "schema");
+    const JSON_Object *schema_obj =
+        schema_val ? json_value_get_object(schema_val) : NULL;
+    if (schema_obj) {
+      int rc = parse_schema_ref(schema_obj, &out_resp->schema, spec);
+      if (rc != 0)
+        return rc;
+      out_resp->schema_set = 1;
+    }
   }
 
   headers = json_object_get_object(resp_obj, "headers");
@@ -11333,8 +11341,7 @@ static /**
 
   op_id = json_object_get_string(op_obj, "operationId");
   out_op->operation_id =
-      (c_cdd_strdup(op_id ? op_id : "unnamed", &_ast_strdup_263),
-       _ast_strdup_263);
+      (c_cdd_strdup(op_id ? op_id : NULL, &_ast_strdup_263), _ast_strdup_263);
   summary = json_object_get_string(op_obj, "summary");
   if (summary) {
     out_op->summary =
@@ -12029,7 +12036,8 @@ static /**
       return rc;
   }
 
-  schemas = json_object_get_object(components, out->swagger_version ? "definitions" : "schemas");
+  schemas = json_object_get_object(
+      components, out->swagger_version ? "definitions" : "schemas");
   if (!schemas)
     return 0;
 
@@ -13336,38 +13344,40 @@ static /**
   }
 
   if (out->swagger_version) {
-      const char *host = json_object_get_string(root_obj, "host");
-      if (host) out->host = strdup(host);
-      const char *basePath = json_object_get_string(root_obj, "basePath");
-      if (basePath) out->basePath = strdup(basePath);
+    const char *host = json_object_get_string(root_obj, "host");
+    if (host)
+      out->host = strdup(host);
+    const char *basePath = json_object_get_string(root_obj, "basePath");
+    if (basePath)
+      out->basePath = strdup(basePath);
 
-      JSON_Array *schemes_arr = json_object_get_array(root_obj, "schemes");
-      if (schemes_arr) {
-          out->n_schemes = json_array_get_count(schemes_arr);
-          out->schemes = calloc(out->n_schemes, sizeof(char *));
-          size_t i;
-          for (i = 0; i < out->n_schemes; i++) {
-              out->schemes[i] = strdup(json_array_get_string(schemes_arr, i));
-          }
+    JSON_Array *schemes_arr = json_object_get_array(root_obj, "schemes");
+    if (schemes_arr) {
+      out->n_schemes = json_array_get_count(schemes_arr);
+      out->schemes = calloc(out->n_schemes, sizeof(char *));
+      size_t i;
+      for (i = 0; i < out->n_schemes; i++) {
+        out->schemes[i] = strdup(json_array_get_string(schemes_arr, i));
       }
-      JSON_Array *consumes_arr = json_object_get_array(root_obj, "consumes");
-      if (consumes_arr) {
-          out->n_consumes = json_array_get_count(consumes_arr);
-          out->consumes = calloc(out->n_consumes, sizeof(char *));
-          size_t i;
-          for (i = 0; i < out->n_consumes; i++) {
-              out->consumes[i] = strdup(json_array_get_string(consumes_arr, i));
-          }
+    }
+    JSON_Array *consumes_arr = json_object_get_array(root_obj, "consumes");
+    if (consumes_arr) {
+      out->n_consumes = json_array_get_count(consumes_arr);
+      out->consumes = calloc(out->n_consumes, sizeof(char *));
+      size_t i;
+      for (i = 0; i < out->n_consumes; i++) {
+        out->consumes[i] = strdup(json_array_get_string(consumes_arr, i));
       }
-      JSON_Array *produces_arr = json_object_get_array(root_obj, "produces");
-      if (produces_arr) {
-          out->n_produces = json_array_get_count(produces_arr);
-          out->produces = calloc(out->n_produces, sizeof(char *));
-          size_t i;
-          for (i = 0; i < out->n_produces; i++) {
-              out->produces[i] = strdup(json_array_get_string(produces_arr, i));
-          }
+    }
+    JSON_Array *produces_arr = json_object_get_array(root_obj, "produces");
+    if (produces_arr) {
+      out->n_produces = json_array_get_count(produces_arr);
+      out->produces = calloc(out->n_produces, sizeof(char *));
+      size_t i;
+      for (i = 0; i < out->n_produces; i++) {
+        out->produces[i] = strdup(json_array_get_string(produces_arr, i));
       }
+    }
   }
 
   {
@@ -13444,7 +13454,9 @@ static /**
 
   paths_obj = json_object_get_object(root_obj, "paths");
   webhooks_obj = json_object_get_object(root_obj, "webhooks");
-  comps_obj = out->swagger_version ? root_obj : json_object_get_object(root_obj, "components");
+  comps_obj = out->swagger_version
+                  ? root_obj
+                  : json_object_get_object(root_obj, "components");
   if (paths_obj) {
     {
       int _rc = collect_extensions(paths_obj, &out->paths_extensions_json);

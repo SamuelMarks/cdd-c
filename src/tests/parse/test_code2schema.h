@@ -714,9 +714,9 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
   PASS();
 }
 
-
 TEST test_code2schema_utils(void) {
-  ASSERT_EQ(0, parse_type_union_array_code2schema(NULL, NULL, NULL, NULL, NULL));
+  ASSERT_EQ(0,
+            parse_type_union_array_code2schema(NULL, NULL, NULL, NULL, NULL));
 
   free_string_array_code2schema(NULL, 0);
   char **s_arr = (char **)malloc(sizeof(char *) * 2);
@@ -729,7 +729,7 @@ TEST test_code2schema_utils(void) {
   s_src[1] = strdup("bar");
   char **s_copied = NULL;
   size_t s_count = 0;
-  
+
   ASSERT_EQ(EINVAL, copy_string_array_code2schema(NULL, NULL, NULL, 0));
   ASSERT_EQ(0, copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
   ASSERT(s_copied != NULL);
@@ -737,26 +737,29 @@ TEST test_code2schema_utils(void) {
   free_string_array_code2schema(s_copied, 2);
   free_string_array_code2schema(s_src, 2);
 
-  
   JSON_Value *val = json_value_init_array();
   JSON_Array *arr = json_value_get_array(val);
-  
+
   char **union_types = NULL;
   size_t count = 0;
   const char *primary = NULL;
   int nullable = 0;
-  
-  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count, &primary, &nullable));
-  
+
+  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
+                                                  &primary, &nullable));
+
   json_array_append_null(arr);
-  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count, &primary, &nullable));
-  
+  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
+                                                  &primary, &nullable));
+
   json_array_append_string(arr, "null");
-  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count, &primary, &nullable));
+  ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
+                                                  &primary, &nullable));
   ASSERT_STR_EQ("null", primary);
-  
+
   json_value_free(val);
-  if (union_types) free_string_array_schema_utils(union_types, count);
+  if (union_types)
+    free_string_array_schema_utils(union_types, count);
   PASS();
 }
 

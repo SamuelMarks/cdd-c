@@ -102,20 +102,38 @@ find_server_variable(const struct OpenAPI_Server *srv, const char *name,
 extern C_CDD_EXPORT int
 render_server_url_default(const struct OpenAPI_Server *srv, char **_out_val);
 extern C_CDD_EXPORT int escape_c_string_literal(const char *s, char **_out_val);
-extern C_CDD_EXPORT int select_operation_server(const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op, struct OpenAPI_Server **_out_val);
-extern C_CDD_EXPORT int build_base_url_literal(const char *url, char **_out_val);
+extern C_CDD_EXPORT int
+select_operation_server(const struct OpenAPI_Path *path,
+                        const struct OpenAPI_Operation *op,
+                        struct OpenAPI_Server **_out_val);
+extern C_CDD_EXPORT int build_base_url_literal(const char *url,
+                                               char **_out_val);
 extern C_CDD_EXPORT int generate_guard(const char *base, char **_out_val);
 extern C_CDD_EXPORT int derive_model_header(const char *base, char **_out_val);
 extern C_CDD_EXPORT int sanitize_tag(const char *tag, char **_out_val);
-extern C_CDD_EXPORT int param_keys_match(const struct OpenAPI_Parameter *a, const struct OpenAPI_Parameter *b);
-extern C_CDD_EXPORT int build_effective_parameters(const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op, struct OpenAPI_Parameter **out_params, size_t *out_count);
+extern C_CDD_EXPORT int param_keys_match(const struct OpenAPI_Parameter *a,
+                                         const struct OpenAPI_Parameter *b);
+extern C_CDD_EXPORT int build_effective_parameters(
+    const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op,
+    struct OpenAPI_Parameter **out_params, size_t *out_count);
 extern C_CDD_EXPORT int verb_to_string(enum OpenAPI_Verb verb, char **_out_val);
-extern C_CDD_EXPORT int write_docblock(FILE *fp, const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op);
-extern C_CDD_EXPORT int write_header_preamble(FILE *fp, const char *guard, const char *model_decl);
-extern C_CDD_EXPORT int write_source_preamble(FILE *fp, const char *header_name);
-extern C_CDD_EXPORT int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix, const struct OpenAPI_Spec *spec);
+extern C_CDD_EXPORT int write_docblock(FILE *fp,
+                                       const struct OpenAPI_Path *path,
+                                       const struct OpenAPI_Operation *op);
+extern C_CDD_EXPORT int write_header_preamble(FILE *fp, const char *guard,
+                                              const char *model_decl);
+extern C_CDD_EXPORT int write_source_preamble(FILE *fp,
+                                              const char *header_name);
+extern C_CDD_EXPORT int write_lifecycle_funcs(FILE *h, FILE *c,
+                                              const char *prefix,
+                                              const struct OpenAPI_Spec *spec);
 
-extern C_CDD_EXPORT int emit_operation(FILE *hfile, FILE *cfile, const struct OpenAPI_Path *path, const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec, const struct OpenApiClientConfig *config, const char *prefix);
+extern C_CDD_EXPORT int emit_operation(FILE *hfile, FILE *cfile,
+                                       const struct OpenAPI_Path *path,
+                                       const struct OpenAPI_Operation *op,
+                                       const struct OpenAPI_Spec *spec,
+                                       const struct OpenApiClientConfig *config,
+                                       const char *prefix);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -32,7 +32,8 @@ void free_string_array_schema_utils(char **arr, size_t n) {
   free(arr);
 }
 
-int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src, size_t src_count) {
+int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src,
+                                   size_t src_count) {
   char *_ast_strdup_0 = NULL;
   size_t i;
   char **out;
@@ -177,14 +178,15 @@ static /**
         }
       }
       if (f->type_union && f->n_type_union > 0) {
-        if (copy_string_array_schema_utils(&dst_field->type_union, &dst_field->n_type_union,
-                              f->type_union, f->n_type_union) != 0)
+        if (copy_string_array_schema_utils(&dst_field->type_union,
+                                           &dst_field->n_type_union,
+                                           f->type_union, f->n_type_union) != 0)
           return ENOMEM;
       }
       if (f->items_type_union && f->n_items_type_union > 0) {
-        if (copy_string_array_schema_utils(&dst_field->items_type_union,
-                              &dst_field->n_items_type_union,
-                              f->items_type_union, f->n_items_type_union) != 0)
+        if (copy_string_array_schema_utils(
+                &dst_field->items_type_union, &dst_field->n_items_type_union,
+                f->items_type_union, f->n_items_type_union) != 0)
           return ENOMEM;
       }
     }

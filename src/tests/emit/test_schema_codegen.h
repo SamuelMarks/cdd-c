@@ -473,7 +473,6 @@ TEST test_codegen_config_utils_guards(void) {
   PASS();
 }
 
-
 TEST test_schema_utils(void) {
   free_string_array_schema_utils(NULL, 0);
   char **arr = (char **)malloc(sizeof(char *) * 2);
@@ -484,7 +483,7 @@ TEST test_schema_utils(void) {
   char **src = (char **)malloc(sizeof(char *) * 2);
   src[0] = strdup("test1");
   src[1] = strdup("test2");
-  
+
   char **copied = NULL;
   size_t out_count = 0;
   ASSERT_EQ(0, copy_string_array_schema_utils(&copied, &out_count, src, 2));
@@ -492,10 +491,10 @@ TEST test_schema_utils(void) {
   ASSERT_EQ(2, out_count);
   ASSERT_STR_EQ("test1", copied[0]);
   ASSERT_STR_EQ("test2", copied[1]);
-  
+
   free_string_array_schema_utils(src, 2);
   free_string_array_schema_utils(copied, 2);
-  
+
   PASS();
 }
 

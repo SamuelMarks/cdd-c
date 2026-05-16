@@ -6,7 +6,7 @@ This directory houses the `gnu_standardizer` transformer, a robust AST-aware tra
 
 The `gnu_standardizer` represents a significant architectural achievement within `cdd-c`. Originally, codebase refactoring tools relied heavily on token-level string replacements, which often resulted in fragile code, subtle regressions, and the destruction of formatting and comments ("trivia").
 
-To overcome these limitations and achieve zero edge cases, we implemented a full **Abstract Syntax Tree (AST)** manipulation engine equipped with a semantic type-checker and Control Flow Graph (CFG) analyzer. 
+To overcome these limitations and achieve zero edge cases, we implemented a full **Abstract Syntax Tree (AST)** manipulation engine equipped with a semantic type-checker and Control Flow Graph (CFG) analyzer.
 
 ### The Zero-Destruction Rule
 At the core of this transformer lies the **Zero-Destruction Rule**. We guarantee that all comments (inline and block) and whitespace (indentation, newlines) are rigorously preserved. The generated ISO C code is meant for human developers; thus, transformations are surgically applied directly to the AST without disrupting the surrounding trivia.

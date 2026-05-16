@@ -33,4 +33,3 @@ find_package_handle_standard_args(parson
 )
 
 mark_as_advanced(parson_SOURCE_DIR parson_BINARY_DIR)
-

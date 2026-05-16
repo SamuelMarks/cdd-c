@@ -6,5 +6,4 @@
 #include <c_rest_request.h>
 #include <c_rest_response.h>
 
-SUITE(server_endpoints_suite) {
-}
+SUITE(server_endpoints_suite) {}

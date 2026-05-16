@@ -3203,7 +3203,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   if (op->req_body.is_array) {
-    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet */\n  return 0;\n"));
+    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
+                         "*/\n  return 0;\n"));
   }
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
@@ -3253,7 +3254,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           return EIO;
       } else if (media_type_is_json(ct) && op->req_body.ref_name) {
         CHECK_IO(fprintf(fp, "  rc = %s_to_json(%s, &req_json);\n",
-                         op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
+                         op->req_body.ref_name,
+                         op->req_body.is_array ? "body" : "req_body"));
         CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
@@ -3612,7 +3614,8 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   /* --- 10. Cleanup --- */
   CHECK_IO(fprintf(fp, "cleanup:\n"));
   if (op->req_body.is_array) {
-    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet */\n  return 0;\n"));
+    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
+                         "*/\n  return 0;\n"));
   }
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&

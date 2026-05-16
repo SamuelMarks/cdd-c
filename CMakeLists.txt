@@ -66,7 +66,7 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 if (MSVC AND MSVC_VERSION LESS 1800)
     add_compile_definitions(HAS_STDBOOL _STDBOOL_H "bool=unsigned char" "true=1" "false=0")
 endif()
- 
+
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(C_CDD_USE_UNICODE "Build with UNICODE support" ON)
@@ -377,7 +377,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
         endif()
     endif ()
     endif ()
-    
+
     endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
@@ -473,12 +473,3 @@ if (DOXYGEN_FOUND)
     )
 endif()
 message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
-
-
-
-
-
-
-
-
-

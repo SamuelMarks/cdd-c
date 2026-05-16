@@ -164,18 +164,15 @@ TEST test_cdd_cst_mutate_errors(void) {
   PASS();
 }
 
-
 TEST test_mutate_utils(void) {
   size_t idx;
   ASSERT_EQ(EINVAL, find_child_index_mutate(NULL, NULL, &idx));
-  
+
   cdd_token_t *t;
   ASSERT_EQ(EINVAL, find_first_token_mutate(NULL, &t));
-  
+
   PASS();
 }
-
-
 
 SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_mutate_utils);

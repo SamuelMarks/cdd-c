@@ -716,14 +716,16 @@ TEST test_client_gen_find_server_variable(void) {
   ASSERT_EQ(0, find_server_variable(&srv, "missing", &out));
   ASSERT(out == NULL);
 
+  /* Test out of memory logic in render_server_url_default */
+  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
+   * mock allocations or leave it. */
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
+   * mock allocations or leave it. */
 
-  /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via mock allocations or leave it. */
-
-  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for now */
+  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
+   * now */
   free(srv.variables);
   PASS();
 }
@@ -782,37 +784,39 @@ TEST test_client_gen_render_server_url_default(void) {
   ASSERT_EQ(0, render_server_url_default(&srv, &out));
   ASSERT(out == NULL);
 
+  /* Test out of memory logic in render_server_url_default */
+  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
+   * mock allocations or leave it. */
 
   /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via mock allocations or leave it. */
+  /* This is hard to do without custom mocks, we will need to inject ENOMEM via
+   * mock allocations or leave it. */
 
-  /* Test out of memory logic in render_server_url_default */
-  /* This is hard to do without custom mocks, we will need to inject ENOMEM via mock allocations or leave it. */
-
-  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for now */
+  /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
+   * now */
   free(srv.variables);
   PASS();
 }
 
-
 TEST test_client_gen_escape_c_string_literal(void) {
   char *out = NULL;
-  
+
   /* NULL */
   ASSERT_EQ(0, escape_c_string_literal(NULL, &out));
   ASSERT(out == NULL);
 
   ASSERT_EQ(0, escape_c_string_literal("hello", &out));
   ASSERT_STR_EQ("hello", out);
-  free(out); out = NULL;
+  free(out);
+  out = NULL;
 
   ASSERT_EQ(0, escape_c_string_literal("hello \"world\"\n\r\t", &out));
   ASSERT_STR_EQ("hello \\\"world\\\"\\n\\r\\t", out);
-  free(out); out = NULL;
+  free(out);
+  out = NULL;
 
   PASS();
 }
-
 
 TEST test_client_gen_select_operation_server(void) {
   struct OpenAPI_Path path;
@@ -855,7 +859,6 @@ TEST test_client_gen_build_base_url_literal(void) {
   PASS();
 }
 
-
 TEST test_client_gen_generate_guard(void) {
   char *out = NULL;
 
@@ -865,7 +868,6 @@ TEST test_client_gen_generate_guard(void) {
 
   PASS();
 }
-
 
 TEST test_client_gen_derive_model_header(void) {
   char *out = NULL;
@@ -889,9 +891,6 @@ TEST test_client_gen_sanitize_tag(void) {
 
   PASS();
 }
-
-
-
 
 TEST test_client_gen_param_keys_match(void) {
   struct OpenAPI_Parameter a, b;
@@ -935,14 +934,16 @@ TEST test_client_gen_build_effective_parameters(void) {
 
   /* Path params */
   path.n_parameters = 1;
-  path.parameters = (struct OpenAPI_Parameter *)calloc(1, sizeof(*path.parameters));
+  path.parameters =
+      (struct OpenAPI_Parameter *)calloc(1, sizeof(*path.parameters));
   path.parameters[0].name = "p1";
   path.parameters[0].in = OA_PARAM_IN_PATH;
 
   ASSERT_EQ(0, build_effective_parameters(&path, NULL, &out, &count));
   ASSERT_EQ(1, count);
   ASSERT_STR_EQ("p1", out[0].name);
-  free(out); out = NULL;
+  free(out);
+  out = NULL;
 
   /* Op params overrides */
   op.n_parameters = 2;
@@ -957,13 +958,13 @@ TEST test_client_gen_build_effective_parameters(void) {
   ASSERT_EQ(2, count);
   ASSERT_STR_EQ("p1", out[0].name);
   ASSERT_STR_EQ("p2", out[1].name);
-  free(out); out = NULL;
+  free(out);
+  out = NULL;
 
   free(path.parameters);
   free(op.parameters);
   PASS();
 }
-
 
 TEST test_client_gen_verb_to_string(void) {
   char *out = NULL;
@@ -1001,7 +1002,6 @@ TEST test_client_gen_verb_to_string(void) {
   PASS();
 }
 
-
 TEST test_client_gen_write_docblock(void) {
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
@@ -1011,7 +1011,6 @@ TEST test_client_gen_write_docblock(void) {
 
   FILE *fp = fopen("test_docblock.txt", "w");
   ASSERT(fp != NULL);
-
 
   /* Fallback */
   ASSERT_EQ(0, write_docblock(fp, NULL, &op));
@@ -1023,15 +1022,19 @@ TEST test_client_gen_write_docblock(void) {
   path.route = "/test";
   op.verb = OA_VERB_POST;
   op.external_docs.url = "http://doc";
-  op.callbacks = (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
+  op.callbacks =
+      (struct OpenAPI_Callback *)calloc(1, sizeof(struct OpenAPI_Callback));
   op.n_responses = 1;
   op.responses = (struct OpenAPI_Response *)calloc(1, sizeof(*op.responses));
-  op.responses[0].links = (struct OpenAPI_Link *)calloc(1, sizeof(struct OpenAPI_Link));
-  op.security = (struct OpenAPI_SecurityRequirementSet *)calloc(1, sizeof(struct OpenAPI_SecurityRequirementSet));
+  op.responses[0].links =
+      (struct OpenAPI_Link *)calloc(1, sizeof(struct OpenAPI_Link));
+  op.security = (struct OpenAPI_SecurityRequirementSet *)calloc(
+      1, sizeof(struct OpenAPI_SecurityRequirementSet));
   op.n_servers = 1;
   op.servers = (struct OpenAPI_Server *)calloc(1, sizeof(*op.servers));
-  op.servers[0].variables = (struct OpenAPI_ServerVariable *)calloc(1, sizeof(struct OpenAPI_ServerVariable));
-  
+  op.servers[0].variables = (struct OpenAPI_ServerVariable *)calloc(
+      1, sizeof(struct OpenAPI_ServerVariable));
+
   op.n_parameters = 1;
   op.parameters = (struct OpenAPI_Parameter *)calloc(1, sizeof(*op.parameters));
   op.parameters[0].name = "p";
@@ -1039,16 +1042,17 @@ TEST test_client_gen_write_docblock(void) {
   op.parameters[0].allow_empty_value = 1;
   op.parameters[0].allow_reserved = 1;
   op.deprecated = 1;
-  
+
   op.n_parameters = 3;
-  op.parameters = (struct OpenAPI_Parameter *)realloc(op.parameters, 3 * sizeof(*op.parameters));
+  op.parameters = (struct OpenAPI_Parameter *)realloc(
+      op.parameters, 3 * sizeof(*op.parameters));
   memset(&op.parameters[1], 0, sizeof(*op.parameters));
   op.parameters[1].name = "cookiep";
   op.parameters[1].in = OA_PARAM_IN_COOKIE;
   memset(&op.parameters[2], 0, sizeof(*op.parameters));
   op.parameters[2].name = "unkp";
   op.parameters[2].in = OA_PARAM_IN_UNKNOWN;
-  
+
   /* we will just execute all branches */
   ASSERT_EQ(0, write_docblock(fp, &path, &op));
 
@@ -1064,7 +1068,6 @@ TEST test_client_gen_write_docblock(void) {
 
   PASS();
 }
-
 
 TEST test_client_gen_write_preambles(void) {
   FILE *fp1 = fopen("test9.h", "w");
@@ -1082,7 +1085,9 @@ TEST test_client_gen_write_preambles(void) {
   ASSERT_EQ(0, write_source_preamble(fp2, "test9.h"));
 
   /* Write lifecycle funcs */
-  struct OpenAPI_Spec spec; memset(&spec, 0, sizeof(spec)); ASSERT_EQ(0, write_lifecycle_funcs(fp1, fp2, "prefix", &spec));
+  struct OpenAPI_Spec spec;
+  memset(&spec, 0, sizeof(spec));
+  ASSERT_EQ(0, write_lifecycle_funcs(fp1, fp2, "prefix", &spec));
 
   fclose(fp1);
   fclose(fp2);
@@ -1091,7 +1096,6 @@ TEST test_client_gen_write_preambles(void) {
 
   PASS();
 }
-
 
 TEST test_client_gen_emit_operation(void) {
   /* Missing params */
@@ -1102,7 +1106,7 @@ TEST test_client_gen_emit_operation(void) {
   struct OpenAPI_Operation bad_op;
   memset(&bad_path, 0, sizeof(bad_path));
   memset(&bad_op, 0, sizeof(bad_op));
-  
+
   /* Force build_effective_parameters to fail */
   /* Wait, missing args handled at top covers this */
   PASS();
@@ -1133,7 +1137,7 @@ SUITE(openapi_client_gen_suite) {
   RUN_TEST(test_client_gen_param_keys_match);
   RUN_TEST(test_client_gen_build_effective_parameters);
   RUN_TEST(test_client_gen_verb_to_string);
-  
+
   RUN_TEST(test_gen_client_path_param_override);
   RUN_TEST(test_gen_client_grouped_tags_namespace);
   RUN_TEST(test_gen_client_namespace_only);
