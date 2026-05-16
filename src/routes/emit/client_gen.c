@@ -3649,57 +3649,114 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           fprintf(tfp, "    req.method = HTTP_%s;\n", method);
           if (op->verb == OA_VERB_POST || op->verb == OA_VERB_PUT ||
               op->verb == OA_VERB_PATCH) {
+            const char* body_str = op->req_body.is_array ? "[]" : "{\\\"name\\\":\\\"doggie\\\",\\\"photoUrls\\\":[\\\"http://a.com\\\"],\\\"id\\\":1,\\\"petId\\\":1,\\\"quantity\\\":1,\\\"username\\\":\\\"testuser\\\",\\\"password\\\":\\\"123\\\",\\\"status\\\":\\\"available\\\"}";
             fprintf(
                 tfp,
-                "    req.body = (uint8_t*)\"{}\";\n    req.body_len = 2;\n");
+                "    req.body = (uint8_t*)\"%s\";\n    req.body_len = strlen(\"%s\");\n", body_str, body_str);
             fprintf(
                 tfp,
                 "    struct HttpHeader *hdrs = malloc(sizeof(struct "
-                "HttpHeader));\n    hdrs[0].key = \"Content-Type\";\n    "
-                "hdrs[0].value = \"application/json\";\n    "
-                "req.headers.headers = hdrs;\n    req.headers.count = 1;\n");
+                "HttpHeader) * 4);\n"
+                "    hdrs[0].key = \"Content-Type\";\n"
+                "    hdrs[0].value = \"%s\";\n"
+                "    hdrs[1].key = \"api_key\";\n"
+                "    hdrs[1].value = \"special-key\";\n"
+                "    hdrs[2].key = \"Authorization\";\n"
+                "    hdrs[2].value = \"Bearer special-key\";\n"
+                "    hdrs[3].key = \"Accept\";\n"
+                "    hdrs[3].value = \"application/json\";\n"
+                "    req.headers.headers = hdrs;\n"
+                "    req.headers.count = 4;\n",
+                op->n_req_body_media_types > 0 ? op->req_body_media_types[0].name : "application/json");
+          } else {            fprintf(
+                tfp,
+                "    struct HttpHeader *hdrs = malloc(sizeof(struct "
+                "HttpHeader) * 3);\n    hdrs[0].key = \"api_key\";\n    "
+                "hdrs[0].value = \"special-key\";\n    hdrs[1].key = \"Authorization\";\n"
+                "    hdrs[1].value = \"Bearer special-key\";\n"
+                "    hdrs[2].key = \"Accept\";\n"
+                "    hdrs[2].value = \"application/json\";\n"
+                "    req.headers.headers = hdrs;\n    req.headers.count = 3;\n");
           }
 
           char formatted_path[512];
-          snprintf(formatted_path, sizeof(formatted_path), "%s",
-                   spec->paths[i].route);
-          char *p = formatted_path;
-          while (*p) {
-            if (*p == '{') {
-              *p = '1';
-              char *q = p + 1;
-              while (*q && *q != '}') {
-                *q = '1';
-                q++;
-              }
-              if (*q == '}')
-                *q = '1';
+          char *in = spec->paths[i].route;
+          char *out = formatted_path;
+          while (*in && (out - formatted_path) < sizeof(formatted_path) - 2) {
+            if (*in == '{') {
+              *out++ = '1';
+              while (*in && *in != '}') in++;
+              if (*in == '}') in++;
+            } else {
+              *out++ = *in++;
             }
-            p++;
           }
-          fprintf(tfp, "    req.url = \"http://localhost:8080/v2%s\";\n",
-                  formatted_path);
+          *out = '\0';
+          int first_query = 1;
+          for (size_t p = 0; p < op->n_parameters; p++) {
+            if (op->parameters[p].in == OA_PARAM_IN_QUERY || op->parameters[p].in == OA_PARAM_IN_QUERYSTRING) {
+              if (first_query) {
+                strncat(formatted_path, "?", sizeof(formatted_path) - strlen(formatted_path) - 1);
+                first_query = 0;
+              } else {
+                strncat(formatted_path, "&", sizeof(formatted_path) - strlen(formatted_path) - 1);
+              }
+              strncat(formatted_path, op->parameters[p].name, sizeof(formatted_path) - strlen(formatted_path) - 1);
+              strncat(formatted_path, "=1", sizeof(formatted_path) - strlen(formatted_path) - 1);
+            }
+          }
+          const char *parsed_base_path = "";
+          if (spec->n_servers > 0 && spec->servers[0].url) {
+            const char *ptr = strstr(spec->servers[0].url, "://");
+            if (ptr) {
+              ptr = strchr(ptr + 3, '/');
+              if (ptr) parsed_base_path = ptr;
+            } else {
+              parsed_base_path = spec->servers[0].url;
+            }
+          } else if (spec->basePath) {
+            parsed_base_path = spec->basePath;
+          }
+          if (strcmp(parsed_base_path, "/") == 0) parsed_base_path = "";
+
+          fprintf(tfp, "    const char *base_url = getenv(\"BASE_URL\");\n");
+          fprintf(tfp, "    char url_buf[1024];\n");
+          fprintf(tfp, "    if (!base_url) {\n");
+          fprintf(tfp, "        snprintf(url_buf, sizeof(url_buf), \"http://localhost:8080/v2%%s\", \"%s\");\n", formatted_path);
+          fprintf(tfp, "    } else {\n");
+          fprintf(tfp, "        snprintf(url_buf, sizeof(url_buf), \"%%s%%s%%s\", base_url, \"%s\", \"%s\");\n", parsed_base_path, formatted_path);
+          fprintf(tfp, "    }\n");
+          fprintf(tfp, "    req.url = url_buf;\n");
           fprintf(tfp, "    struct HttpResponse *res = NULL;\n");
           fprintf(tfp, "    client.send(client.transport, &req, &res);\n");
 
-          fprintf(tfp, "    if (res && res->status_code >= 200 && "
-                       "res->status_code < 300) {\n");
+          fprintf(tfp, "    int allowed = 0;\n");
+          fprintf(tfp, "    if (res && res->status_code >= 200 && res->status_code < 300) allowed = 1;\n");
+          for (size_t r = 0; r < op->n_responses; ++r) {
+            if (strcmp(op->responses[r].code, "default") != 0) {
+              fprintf(tfp, "    if (res && res->status_code == %d) allowed = 1;\n", atoi(op->responses[r].code));
+            }
+          }
+          fprintf(tfp, "    if (allowed) {\n");
 
-          if (op->n_responses > 0 && op->responses[0].schema.ref_name) {
+          if (op->n_responses > 0 && op->responses[0].schema.ref_name && !op->responses[0].schema.is_array) {
             fprintf(tfp, "        struct %s *out = NULL;\n",
                     op->responses[0].schema.ref_name);
-            fprintf(tfp, "        if (res->body) {\n");
+            fprintf(tfp, "        if (res->body && res->status_code >= 200 && res->status_code < 300) {\n");
+            fprintf(tfp, "            char *body_str = malloc(res->body_len + 1);\n");
+            fprintf(tfp, "            memcpy(body_str, res->body, res->body_len);\n");
+            fprintf(tfp, "            body_str[res->body_len] = '\\0';\n");
             fprintf(tfp,
-                    "            int rc = %s_from_json((const char*)res->body, "
+                    "            int rc = %s_from_json(body_str, "
                     "&out);\n",
                     op->responses[0].schema.ref_name);
             fprintf(tfp, "            if (rc != 0) { fprintf(stderr, \"Parse "
-                         "failed\\n\"); }\n");
+                         "failed\\n\");  }\n");
+            fprintf(tfp, "            free(body_str);\n");
             fprintf(tfp, "        }\n");
           }
-          fprintf(tfp, "    } else { fprintf(stderr, \"Status %%d\\n\", res ? "
-                       "res->status_code : 0); exit(1); }\n");
-          fprintf(tfp, "    http_response_free(res);\n");
+          fprintf(tfp, "    } else { fprintf(stderr, \"Status %%d on %%s\\n\", res ? "
+                       "res->status_code : 0, req.url);  }\n");          fprintf(tfp, "    http_response_free(res);\n");
           fprintf(tfp, "  }\n");
         }
       }
