@@ -2,8 +2,8 @@ cdd-c
 =====
 [![License](https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/SamuelMarks/cdd-c/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelMarks/cdd-c/actions)
-[![Test Coverage](https://img.shields.io/badge/test_coverage-100%25-brightgreen.svg)](#)
-[![Doc Coverage](https://img.shields.io/badge/doc_coverage-100%25-brightgreen.svg)](#)
+[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](#)
+[![Doc Coverage](https://img.shields.io/badge/docs-100%25-brightgreen.svg)](#)
 
 ----
 
@@ -234,7 +234,7 @@ Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a c
 
 ### 2. Multi-Directional Code Generation
 `cdd-c` acts as the master sync tool between your abstractions:
-- **API to Native C (SDK & Server):** Generate production-ready, memory-safe C clients, routing servers, and CLI argument parsers straight from OpenAPI JSON/YAML. 
+- **API to Native C (SDK & Server):** Generate production-ready, memory-safe C clients, routing servers, and CLI argument parsers straight from OpenAPI JSON/YAML.
 - **Native C to OpenAPI:** Write your C functions, document them with standard block comments, and let `cdd-c` statically analyze the types and routes to reverse-engineer a perfectly compliant OpenAPI 3.x spec.
 - **SQL / JSON Schema Sync:** Seamlessly sync SQL DDL statements to C ORM layers, or JSON schemas directly into C structs and validation logic.
 

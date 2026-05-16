@@ -27,7 +27,8 @@
 int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val);
 int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
 int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
-int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val);
+int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
+                                   char **_out_val);
 int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val);
 int is_schema_primitive_openapi(const char *type);
 static /**
@@ -45,7 +46,8 @@ static /**
         */
     int
     clone_json_value(const JSON_Value *val, JSON_Value **_out_val);
-int merge_schema_extras_object_openapi(JSON_Object *target, const char *extras_json);
+int merge_schema_extras_object_openapi(JSON_Object *target,
+                                       const char *extras_json);
 static /**
         * @brief Executes the any to json value operation.
         */
@@ -529,7 +531,8 @@ int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
           _ast_iequal_3);
 }
 
-int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t, char **_out_val) {
+int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
+                                   char **_out_val) {
   switch (t) {
   case OA_OAUTH_FLOW_IMPLICIT: {
     *_out_val = "implicit";
@@ -619,7 +622,8 @@ static /**
   }
 }
 
-int merge_schema_extras_object_openapi(JSON_Object *target, const char *extras_json) {
+int merge_schema_extras_object_openapi(JSON_Object *target,
+                                       const char *extras_json) {
   JSON_Value *_ast_clone_json_value_0;
   JSON_Value *extras_val;
   JSON_Object *extras_obj;
@@ -1066,9 +1070,9 @@ static /**
     return;
   xml_obj = json_value_get_object(xml_val);
 
-  node_type =
-      (xml_node_type_to_str_openapi(xml->node_type, &_ast_xml_node_type_to_str_5),
-       _ast_xml_node_type_to_str_5);
+  node_type = (xml_node_type_to_str_openapi(xml->node_type,
+                                            &_ast_xml_node_type_to_str_5),
+               _ast_xml_node_type_to_str_5);
   if (xml->node_type_set && node_type)
     json_object_set_string(xml_obj, "nodeType", node_type);
   if (xml->name)
@@ -1126,7 +1130,7 @@ static /**
       json_object_set_string(contact_obj, "email", spec->info.contact.email);
     if (spec->info.contact.extensions_json)
       merge_schema_extras_object_openapi(contact_obj,
-                                 spec->info.contact.extensions_json);
+                                         spec->info.contact.extensions_json);
     json_object_set_value(info_obj, "contact", contact_val);
   }
 
@@ -1143,7 +1147,7 @@ static /**
       json_object_set_string(license_obj, "url", spec->info.license.url);
     if (spec->info.license.extensions_json)
       merge_schema_extras_object_openapi(license_obj,
-                                 spec->info.license.extensions_json);
+                                         spec->info.license.extensions_json);
     json_object_set_value(info_obj, "license", license_val);
   }
 
@@ -1670,7 +1674,8 @@ static /**
     return;
   }
 
-  if (type && (is_schema_primitive_openapi(type) || strcmp(type, "array") == 0)) {
+  if (type &&
+      (is_schema_primitive_openapi(type) || strcmp(type, "array") == 0)) {
     json_object_set_string(sch_obj, "type", type);
   } else if (type) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1711,8 +1716,8 @@ static /**
 
   in_str = (param_in_to_str_openapi(p->in, &_ast_param_in_to_str_14),
             _ast_param_in_to_str_14);
-  style_str =
-      (style_to_str_openapi(p->style, &_ast_style_to_str_15), _ast_style_to_str_15);
+  style_str = (style_to_str_openapi(p->style, &_ast_style_to_str_15),
+               _ast_style_to_str_15);
 
   if (p->name)
     json_object_set_string(p_obj, "name", p->name);
@@ -1824,8 +1829,8 @@ static /**
   if (h->deprecated_set)
     json_object_set_boolean(h_obj, "deprecated", h->deprecated ? 1 : 0);
   if (h->style_set) {
-    style_str =
-        (style_to_str_openapi(h->style, &_ast_style_to_str_16), _ast_style_to_str_16);
+    style_str = (style_to_str_openapi(h->style, &_ast_style_to_str_16),
+                 _ast_style_to_str_16);
     if (style_str)
       json_object_set_string(h_obj, "style", style_str);
   }
@@ -1895,7 +1900,8 @@ static /**
     json_object_set_string(enc_obj, "contentType", enc->content_type);
   if (enc->style_set) {
     const char *style_str =
-        (style_to_str_openapi(enc->style, &_ast_style_to_str_17), _ast_style_to_str_17);
+        (style_to_str_openapi(enc->style, &_ast_style_to_str_17),
+         _ast_style_to_str_17);
     if (style_str)
       json_object_set_string(enc_obj, "style", style_str);
   }
@@ -2596,7 +2602,8 @@ static /**
     json_object_set_value(resps_obj, r->code ? r->code : "default", r_val);
   }
   if (op->responses_extensions_json)
-    merge_schema_extras_object_openapi(resps_obj, op->responses_extensions_json);
+    merge_schema_extras_object_openapi(resps_obj,
+                                       op->responses_extensions_json);
 
   json_object_set_value(op_obj, "responses", resps_val);
   return 0;
@@ -2688,8 +2695,8 @@ static /**
 
   for (i = 0; i < path->n_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->operations[i];
-    const char *verb =
-        (verb_to_str_openapi(op->verb, &_ast_verb_to_str_20), _ast_verb_to_str_20);
+    const char *verb = (verb_to_str_openapi(op->verb, &_ast_verb_to_str_20),
+                        _ast_verb_to_str_20);
     JSON_Value *op_val;
     JSON_Object *op_obj;
 
@@ -2735,10 +2742,10 @@ static /**
 
   for (i = 0; i < path->n_additional_operations; ++i) {
     const struct OpenAPI_Operation *op = &path->additional_operations[i];
-    const char *method = op->method
-                             ? op->method
-                             : (verb_to_str_openapi(op->verb, &_ast_verb_to_str_21),
-                                _ast_verb_to_str_21);
+    const char *method =
+        op->method ? op->method
+                   : (verb_to_str_openapi(op->verb, &_ast_verb_to_str_21),
+                      _ast_verb_to_str_21);
     JSON_Value *op_val;
     JSON_Object *op_obj;
 
@@ -2966,7 +2973,8 @@ static /**
   hooks_obj = json_value_get_object(hooks_val);
 
   if (spec->webhooks_extensions_json) {
-    merge_schema_extras_object_openapi(hooks_obj, spec->webhooks_extensions_json);
+    merge_schema_extras_object_openapi(hooks_obj,
+                                       spec->webhooks_extensions_json);
   }
 
   for (i = 0; i < spec->n_webhooks; ++i) {
@@ -3137,7 +3145,7 @@ static /**
           const struct OpenAPI_OAuthFlow *flow = &s->flows[f];
           const char *flow_key =
               (oauth_flow_type_to_str_openapi(flow->type,
-                                      &_ast_oauth_flow_type_to_str_22),
+                                              &_ast_oauth_flow_type_to_str_22),
                _ast_oauth_flow_type_to_str_22);
           JSON_Value *flow_val;
           JSON_Object *flow_obj;
@@ -3579,7 +3587,8 @@ static /**
   comps_obj = json_value_get_object(comps_val);
 
   if (spec->components_extensions_json)
-    merge_schema_extras_object_openapi(comps_obj, spec->components_extensions_json);
+    merge_schema_extras_object_openapi(comps_obj,
+                                       spec->components_extensions_json);
 
   /* Schemas */
   if (spec->n_defined_schemas > 0 || spec->n_raw_schemas > 0) {

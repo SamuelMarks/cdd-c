@@ -271,6 +271,19 @@ static /**
     }
 
     rc = openapi_load_from_json(root, &spec);
+
+    if (out_dir) {
+      char snapshot_path[1024];
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+      sprintf_s(snapshot_path, sizeof(snapshot_path),
+                "%s/openapi.snapshot.json", out_dir);
+#else
+      sprintf(snapshot_path, "%s/openapi.snapshot.json", out_dir);
+#endif
+      json_serialize_to_file(root, snapshot_path);
+    }
+
     json_value_free(root);
 
     if (rc != 0) {
@@ -359,6 +372,29 @@ static /**
     fprintf(stderr, "Error: -i <directory> required\n");
     return EXIT_FAILURE;
   }
+  {
+    char snapshot_path[1024];
+    FILE *f;
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+    sprintf_s(snapshot_path, sizeof(snapshot_path), "%s/openapi.snapshot.json",
+              input_dir);
+#else
+    sprintf(snapshot_path, "%s/openapi.snapshot.json", input_dir);
+#endif
+    f = fopen(snapshot_path, "r");
+    if (f) {
+      char *c2_argv_base[5];
+      fclose(f);
+      c2_argv_base[0] = (char *)"c2openapi";
+      c2_argv_base[1] = (char *)"--base";
+      c2_argv_base[2] = snapshot_path;
+      c2_argv_base[3] = (char *)input_dir;
+      c2_argv_base[4] = (char *)out_file;
+      return c2openapi_cli_main(5, c2_argv_base);
+    }
+  }
+
   c2_argv[0] = (char *)"c2openapi";
   c2_argv[1] = (char *)input_dir;
   c2_argv[2] = (char *)out_file;

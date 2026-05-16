@@ -355,7 +355,6 @@ TEST test_query_null_safety(void) {
   PASS();
 }
 
-
 TEST test_url_utils_write_query_json_param(void) {
   struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
@@ -366,24 +365,15 @@ TEST test_url_utils_write_query_json_param(void) {
   ASSERT_EQ(EINVAL, write_query_json_param(NULL, NULL));
   ASSERT_EQ(EINVAL, write_query_json_param(fp, NULL));
 
-
   p.name = "test";
   p.type = "array";
   p.is_array = 1;
   p.items_type = NULL;
   p.schema.inline_type = NULL;
 
-
-  
-
   p.name = "test";
 
   /* unsupported array */
-
-
-
-
-
 
   fclose(fp);
   remove("test_url_json.txt");

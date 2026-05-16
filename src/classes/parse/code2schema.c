@@ -352,7 +352,7 @@ void free_string_array_code2schema(char **arr, size_t n) {
  * @return 0 on success, ENOMEM on allocation failure.
  */
 int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
-                             size_t src_count) {
+                                  size_t src_count) {
   char *_ast_strdup_1 = NULL;
   size_t i;
   char **out;
@@ -580,8 +580,9 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
  * @return 0 on success, ENOMEM if a memory allocation fails.
  */
 int parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
-                                  size_t *out_count, const char **out_primary,
-                                  int *out_nullable) {
+                                       size_t *out_count,
+                                       const char **out_primary,
+                                       int *out_nullable) {
   char *_ast_strdup_2 = NULL;
   size_t i, count, n = 0;
   char **types;
@@ -2133,8 +2134,8 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
       type_arr = json_object_get_array(prop, "type");
       if (type_arr) {
         const char *primary = NULL;
-        rc = parse_type_union_array_code2schema(type_arr, &type_union, &n_type_union,
-                                    &primary, NULL);
+        rc = parse_type_union_array_code2schema(type_arr, &type_union,
+                                                &n_type_union, &primary, NULL);
         if (rc != 0) {
           free_string_array_code2schema(type_union, n_type_union);
           return rc;
@@ -2160,11 +2161,13 @@ static int json_object_to_struct_fields_internal(const JSON_Object *o,
           item_type_arr = json_object_get_array(items, "type");
           if (item_type_arr) {
             const char *primary = NULL;
-            rc = parse_type_union_array_code2schema(item_type_arr, &items_type_union,
-                                        &n_items_type_union, &primary, NULL);
+            rc = parse_type_union_array_code2schema(
+                item_type_arr, &items_type_union, &n_items_type_union, &primary,
+                NULL);
             if (rc != 0) {
               free_string_array_code2schema(type_union, n_type_union);
-              free_string_array_code2schema(items_type_union, n_items_type_union);
+              free_string_array_code2schema(items_type_union,
+                                            n_items_type_union);
               return rc;
             }
             item_type = primary;
@@ -4275,15 +4278,16 @@ void merge_struct_field(struct StructField *dest,
 
   if (!dest->type_union && src->type_union && src->n_type_union > 0) {
     if (copy_string_array_code2schema(&dest->type_union, &dest->n_type_union,
-                          src->type_union, src->n_type_union) != 0) {
+                                      src->type_union,
+                                      src->n_type_union) != 0) {
       /* Best-effort: ignore copy failures */
     }
   }
   if (!dest->items_type_union && src->items_type_union &&
       src->n_items_type_union > 0) {
-    if (copy_string_array_code2schema(&dest->items_type_union, &dest->n_items_type_union,
-                          src->items_type_union,
-                          src->n_items_type_union) != 0) {
+    if (copy_string_array_code2schema(
+            &dest->items_type_union, &dest->n_items_type_union,
+            src->items_type_union, src->n_items_type_union) != 0) {
       /* Best-effort: ignore copy failures */
     }
   }
@@ -4366,9 +4370,9 @@ int merge_struct_fields(struct StructFields *dest,
         }
         if (src_field->items_type_union && src_field->n_items_type_union > 0) {
           if (copy_string_array_code2schema(&dest_field->items_type_union,
-                                &dest_field->n_items_type_union,
-                                src_field->items_type_union,
-                                src_field->n_items_type_union) != 0)
+                                            &dest_field->n_items_type_union,
+                                            src_field->items_type_union,
+                                            src_field->n_items_type_union) != 0)
             return ENOMEM;
         }
       }
@@ -5063,7 +5067,8 @@ static int union_array_items_supported(const JSON_Object *schema_obj,
     item_type_arr = json_object_get_array(items, "type");
     if (item_type_arr) {
       if (parse_type_union_array_code2schema(item_type_arr, &items_type_union,
-                                 &n_items_type_union, &primary, NULL) == 0)
+                                             &n_items_type_union, &primary,
+                                             NULL) == 0)
         item_type = primary;
     } else if (json_object_get_object(items, "properties")) {
       item_type = "object";
@@ -5255,8 +5260,9 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
         if (!item_ref && !item_type) {
           item_type_arr = json_object_get_array(items, "type");
           if (item_type_arr) {
-            rc = parse_type_union_array_code2schema(item_type_arr, &items_type_union,
-                                        &n_items_type_union, &item_type, NULL);
+            rc = parse_type_union_array_code2schema(
+                item_type_arr, &items_type_union, &n_items_type_union,
+                &item_type, NULL);
             if (rc != 0) {
               free(variant_name);
               free(inline_ref_name);
@@ -5274,7 +5280,8 @@ int apply_union_to_struct_fields_ex(const JSON_Array *union_arr,
             if (rc != 0) {
               free(variant_name);
               free(inline_ref_name);
-              free_string_array_code2schema(items_type_union, n_items_type_union);
+              free_string_array_code2schema(items_type_union,
+                                            n_items_type_union);
               return rc;
             }
             item_ref = inline_item_ref;

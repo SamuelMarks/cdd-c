@@ -80,7 +80,7 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, "  ASSERT_EQ(0, rc);\n"));
 
     /* Call */
-        {
+    {
       char group_buf[512];
       if (op->n_tags > 0 && op->tags[0] && op->tags[0][0]) {
         snprintf(group_buf, sizeof(group_buf), "%s", op->tags[0]);
@@ -88,8 +88,8 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
       } else {
         snprintf(group_buf, sizeof(group_buf), "Default");
       }
-      CHECK_IO(fprintf(fp, "  rc = %s_%s%s(&client", group_buf, config->func_prefix,
-                       op->operation_id));
+      CHECK_IO(fprintf(fp, "  rc = %s_%s%s(&client", group_buf,
+                       config->func_prefix, op->operation_id));
     }
 
     /* Args */

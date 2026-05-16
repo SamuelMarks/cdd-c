@@ -105,7 +105,7 @@ The current logic relies on naive string replacements that produce dangerously i
 - [x] **Heap vs Stack Buffer Resolution:** If the buffer is dynamically allocated (e.g., `char *buf = malloc(N)`), `sizeof(buf)` fails. The AST must trace the pointer definition and infer capacity from allocation sites, or fallback to an interactive prompt / explicit wrapper logic.
 - [x] **Variable Length Arrays (VLAs):** C99 VLAs (`char buf[len];`) evaluate `sizeof(buf)` dynamically at runtime, but relying on MSVC compatibility flags introduces cross-platform fragility. Ensure safe translation.
 - [x] **Capacity vs Copy Length Separation (`memcpy_s`):** `memcpy_s(dest, size, src, size)` is fundamentally insecure. `destsz` MUST be the full capacity of `dest`, not the number of bytes being copied. Blindly passing the exact same `size` parameter defeats the purpose of the security check.
-- [x] **The `strncpy` Null-Termination Trap:** Standard `strncpy` *does not* guarantee null termination. `strncpy_s` *does*. Blindly refactoring `strncpy` to `strncpy_s` will alter the behavioral semantics of the program if downstream code expects a padded, non-null-terminated buffer. 
+- [x] **The `strncpy` Null-Termination Trap:** Standard `strncpy` *does not* guarantee null termination. `strncpy_s` *does*. Blindly refactoring `strncpy` to `strncpy_s` will alter the behavioral semantics of the program if downstream code expects a padded, non-null-terminated buffer.
 - [x] **Overflow from `size + 1`:** The tool generates `strncpy_s(dest, size + 1, src, size)`. If the original `size` represented the strict maximum bound of the array, `size + 1` causes memory corruption. The transformer must intelligently utilize `_TRUNCATE`.
 
 ## 3. Contextual Syntax & Preprocessor Clashes

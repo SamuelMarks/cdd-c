@@ -489,12 +489,3 @@ if (APPLE)
     find_library(CFNETWORK_LIBRARY CFNetwork)
     target_link_libraries("${LIBRARY_NAME}" PRIVATE ${COREFOUNDATION_LIBRARY} ${CFNETWORK_LIBRARY})
 endif()
-
-
-
-
-
-
-
-
-

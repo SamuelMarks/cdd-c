@@ -14,18 +14,9 @@ repos:
         args: ["--style=file", "-i"]
   - repo: local
     hooks:
-      - id: update-shields
-        name: Update Shields and Run Tests
+      - id: build-test-update-shields
+        name: Build, Test, Lint, and Update Shields
         entry: ./scripts/pre_commit.sh
         language: script
         pass_filenames: false
         always_run: true
-
-  - repo: local
-    hooks:
-      - id: update-badges
-        name: Update Badges
-        entry: python3 scripts/update_badges.py
-        language: system
-        files: ^README\.md$
-        pass_filenames: false

@@ -41,9 +41,9 @@ struct UrlSegment {
 };
 
 /**
-        * @brief Checks if a given OpenAPI type string represents a primitive
-        * type.
-        */
+ * @brief Checks if a given OpenAPI type string represents a primitive
+ * type.
+ */
 int is_primitive_type_url(const char *type) {
   if (!type)
     return 0;
@@ -52,9 +52,9 @@ int is_primitive_type_url(const char *type) {
 }
 
 /**
-        * @brief Determines if an OpenAPI parameter represents an object
-        * serialized as key-value pairs.
-        */
+ * @brief Determines if an OpenAPI parameter represents an object
+ * serialized as key-value pairs.
+ */
 int param_is_object_kv_url(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
@@ -68,9 +68,9 @@ int param_is_object_kv_url(const struct OpenAPI_Parameter *p) {
 }
 
 /**
-        * @brief Computes the base length of a media type string, ignoring
-        * parameters like charset.
-        */
+ * @brief Computes the base length of a media type string, ignoring
+ * parameters like charset.
+ */
 int media_type_base_len_url(const char *media_type, size_t *_out_val) {
   size_t i = 0;
   if (!media_type) {
@@ -86,9 +86,9 @@ int media_type_base_len_url(const char *media_type, size_t *_out_val) {
 }
 
 /**
-        * @brief Performs a case-insensitive comparison of a media type against
-        * an expected string.
-        */
+ * @brief Performs a case-insensitive comparison of a media type against
+ * an expected string.
+ */
 int media_type_ieq_url(const char *media_type, const char *expected) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
@@ -115,8 +115,8 @@ int media_type_ieq_url(const char *media_type, const char *expected) {
 }
 
 /**
-        * @brief Checks if a given media type string represents JSON.
-        */
+ * @brief Checks if a given media type string represents JSON.
+ */
 int media_type_is_json_url(const char *media_type) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t len;
@@ -147,17 +147,17 @@ int media_type_is_json_url(const char *media_type) {
 }
 
 /**
-        * @brief Checks if a given media type string represents urlencoded form
-        * data.
-        */
+ * @brief Checks if a given media type string represents urlencoded form
+ * data.
+ */
 int media_type_is_form_url(const char *media_type) {
   return media_type_ieq_url(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
-        * @brief Determines if a query parameter represents a form-encoded
-        * object.
-        */
+ * @brief Determines if a query parameter represents a form-encoded
+ * object.
+ */
 int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
@@ -175,8 +175,8 @@ int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
 }
 
 /**
-        * @brief Checks if a query parameter schema is a JSON reference.
-        */
+ * @brief Checks if a query parameter schema is a JSON reference.
+ */
 int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
@@ -190,8 +190,8 @@ int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
 }
 
 /**
-        * @brief Retrieves the primitive type of a JSON query parameter.
-        */
+ * @brief Retrieves the primitive type of a JSON query parameter.
+ */
 int querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
                                           const char **_out_val) {
   const char *type = NULL;
@@ -231,9 +231,9 @@ int querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Retrieves the primitive type of items within a JSON array query
-        * parameter.
-        */
+ * @brief Retrieves the primitive type of items within a JSON array query
+ * parameter.
+ */
 int querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
                                            const char **_out_val) {
   const char *item_type = NULL;
@@ -274,9 +274,9 @@ int querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Retrieves the reference target of items within a JSON array
-        * query parameter.
-        */
+ * @brief Retrieves the reference target of items within a JSON array
+ * query parameter.
+ */
 int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
                                           const char **_out_val) {
   const char *item_type = NULL;
@@ -321,10 +321,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Retrieves the raw primitive type of a query parameter.
-        */
-    int
-    querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
+ * @brief Retrieves the raw primitive type of a query parameter.
+ */
+int querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
                                          const char **_out_val) {
   const char *type = NULL;
   if (!p) {
@@ -367,10 +366,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write query json param.
-        */
-    int
-    write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p) {
+ * @brief Generates C code for write query json param.
+ */
+int write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p) {
   const char *name;
   const char *type;
 
@@ -616,10 +614,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write query object param.
-        */
-    int
-    write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
+ * @brief Generates C code for write query object param.
+ */
+int write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
   int explode;
@@ -672,8 +669,8 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
                      name));
     if (allow_reserved) {
       CHECK_IO(fprintf(fp, "      if (kv->type == OA_KV_STRING) {\n"));
-      CHECK_IO(fprintf(
-          fp, "        char *enc = NULL; url_encode_allow_reserved(kv_raw, &enc);\n"));
+      CHECK_IO(fprintf(fp, "        char *enc = NULL; "
+                           "url_encode_allow_reserved(kv_raw, &enc);\n"));
       CHECK_IO(fprintf(fp, "        if (!enc) { free(deep_key); rc = ENOMEM; "
                            "goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -794,8 +791,8 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
     CHECK_IO(fprintf(fp, "      if (!kv_key || !kv_raw) continue;\n"));
     if (allow_reserved) {
       CHECK_IO(fprintf(fp, "      if (kv->type == OA_KV_STRING) {\n"));
-      CHECK_IO(fprintf(
-          fp, "        char *enc = NULL; url_encode_allow_reserved(kv_raw, &enc);\n"));
+      CHECK_IO(fprintf(fp, "        char *enc = NULL; "
+                           "url_encode_allow_reserved(kv_raw, &enc);\n"));
       CHECK_IO(
           fprintf(fp, "        if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
       CHECK_IO(fprintf(
@@ -958,10 +955,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write path object serialization.
-        */
-    int
-    write_path_object_serialization(FILE *fp,
+ * @brief Generates C code for write path object serialization.
+ */
+int write_path_object_serialization(FILE *fp,
                                     const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
@@ -1124,10 +1120,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write path array serialization.
-        */
-    int
-    write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
+ * @brief Generates C code for write path array serialization.
+ */
+int write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
                                    const char *prefix, const char *delim) {
   size_t prefix_len;
   size_t delim_len;
@@ -1173,7 +1168,8 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   }
 
   if (encode_fn) {
-    CHECK_IO(fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
+    CHECK_IO(
+        fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
     CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
     CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
@@ -1235,10 +1231,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write joined query array.
-        */
-    int
-    write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
+ * @brief Generates C code for write joined query array.
+ */
+int write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
                              const char delim, const char *encode_fn,
                              const int add_encoded) {
   const char *name;
@@ -1276,7 +1271,8 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
   }
 
   if (do_encode) {
-    CHECK_IO(fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
+    CHECK_IO(
+        fprintf(fp, "      char *enc = NULL; %s(raw, &enc);\n", encode_fn));
     CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
     CHECK_IO(fprintf(fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
     CHECK_IO(fprintf(fp, "      val_len = strlen(enc);\n"));
@@ -1329,10 +1325,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Generates C code for write joined query array encoded delim.
-        */
-    int
-    write_joined_query_array_encoded_delim(FILE *fp,
+ * @brief Generates C code for write joined query array encoded delim.
+ */
+int write_joined_query_array_encoded_delim(FILE *fp,
                                            const struct OpenAPI_Parameter *p,
                                            const char *delim_enc,
                                            const char *encode_fn) {
@@ -1405,11 +1400,10 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Finds an OpenAPI parameter by name within an array of
-        * parameters.
-        */
-    int
-    find_param(const char *name, const struct OpenAPI_Parameter *params,
+ * @brief Finds an OpenAPI parameter by name within an array of
+ * parameters.
+ */
+int find_param(const char *name, const struct OpenAPI_Parameter *params,
                size_t n_params, const struct OpenAPI_Parameter **_out_val) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
@@ -1428,10 +1422,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 }
 
 /**
-        * @brief Parses segments from the given input.
-        */
-    int
-    parse_segments(const char *tmpl, struct UrlSegment **out_segments,
+ * @brief Parses segments from the given input.
+ */
+int parse_segments(const char *tmpl, struct UrlSegment **out_segments,
                    size_t *out_count) {
   const char *p = tmpl;
   const char *start = p;
@@ -1614,8 +1607,8 @@ int codegen_url_write_builder(FILE *fp, const char *path_template,
           }
           CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));
           if (strcmp(p->type, "string") == 0) {
-            CHECK_IO(
-                fprintf(fp, "  {\n    char *enc = NULL; %s(%s, &enc);\n", encode_fn, name));
+            CHECK_IO(fprintf(fp, "  {\n    char *enc = NULL; %s(%s, &enc);\n",
+                             encode_fn, name));
             CHECK_IO(fprintf(fp, "    if (!enc) return ENOMEM;\n"));
             CHECK_IO(fprintf(fp,
                              "    if (asprintf(&path_%s, \"%s%%s\", enc) == "
@@ -2016,7 +2009,8 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
         if (strcmp(qs_raw, "string") == 0) {
           CHECK_IO(fprintf(fp, "  if (%s) {\n", qs_name));
           CHECK_IO(
-              fprintf(fp, "    char *qs_enc = NULL; url_encode(%s, &qs_enc);\n", qs_name));
+              fprintf(fp, "    char *qs_enc = NULL; url_encode(%s, &qs_enc);\n",
+                      qs_name));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2062,7 +2056,8 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(
               fp, "    const char *raw_val = %s ? \"true\" : \"false\";\n",
               qs_name));
-          CHECK_IO(fprintf(fp, "    char *qs_enc = NULL; url_encode(raw_val, &qs_enc);\n"));
+          CHECK_IO(fprintf(
+              fp, "    char *qs_enc = NULL; url_encode(raw_val, &qs_enc);\n"));
           CHECK_IO(
               fprintf(fp, "    if (!qs_enc) { rc = ENOMEM; goto cleanup; }\n"));
           CHECK_IO(fprintf(fp,
@@ -2146,9 +2141,10 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
 
             if (p->items_type && strcmp(p->items_type, "string") == 0) {
               if (p->allow_reserved_set && p->allow_reserved) {
-                CHECK_IO(fprintf(
-                    fp, "      char *enc = NULL; url_encode_allow_reserved(%s[i], &enc);\n",
-                    p->name));
+                CHECK_IO(fprintf(fp,
+                                 "      char *enc = NULL; "
+                                 "url_encode_allow_reserved(%s[i], &enc);\n",
+                                 p->name));
                 CHECK_IO(fprintf(
                     fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
                 CHECK_IO(fprintf(
@@ -2224,9 +2220,10 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
           CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", p->name));
           if (p->items_type && strcmp(p->items_type, "string") == 0) {
             if (p->allow_reserved_set && p->allow_reserved) {
-              CHECK_IO(fprintf(
-                  fp, "      char *enc = NULL; url_encode_allow_reserved(%s[i], &enc);\n",
-                  p->name));
+              CHECK_IO(fprintf(fp,
+                               "      char *enc = NULL; "
+                               "url_encode_allow_reserved(%s[i], &enc);\n",
+                               p->name));
               CHECK_IO(fprintf(
                   fp, "      if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
               CHECK_IO(fprintf(
@@ -2269,9 +2266,10 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
         if (strcmp(p->type, "string") == 0) {
           CHECK_IO(fprintf(fp, "  if (%s) {\n", p->name));
           if (p->allow_reserved_set && p->allow_reserved) {
-            CHECK_IO(fprintf(fp,
-                             "    char *enc = NULL; url_encode_allow_reserved(%s, &enc);\n",
-                             p->name));
+            CHECK_IO(fprintf(
+                fp,
+                "    char *enc = NULL; url_encode_allow_reserved(%s, &enc);\n",
+                p->name));
             CHECK_IO(
                 fprintf(fp, "    if (!enc) { rc = ENOMEM; goto cleanup; }\n"));
             CHECK_IO(fprintf(

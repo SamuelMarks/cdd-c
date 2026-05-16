@@ -23,7 +23,7 @@ def main():
         out = res.stdout + res.stderr
         m = re.search(r'Coverage:\s+([0-9.]+)%', out)
         if not m:
-        m = re.search(r'\s+([0-9.]+)%\s+covered', out)
+            m = re.search(r'\s+([0-9.]+)%\s+covered', out)
         test_cov = int(float(m.group(1))) if m else 0
     except Exception as e:
         print(f'Coverage calculation failed: {e}')
@@ -32,22 +32,22 @@ def main():
 
     test_color = get_color(test_cov)
     doc_color = get_color(doc_cov)
-    
+
     with open(readme_path, 'r') as f:
         content = f.read()
-        
+
     content = re.sub(
         r'\[\!\[Test Coverage\]\(https://img\.shields\.io/badge/test_coverage-[0-9.]+%25-[a-z]+\.svg\)\]\(#\)',
         f'[![Test Coverage](https://img.shields.io/badge/test_coverage-{test_cov}%25-{test_color}.svg)](#)',
         content
     )
-    
+
     content = re.sub(
         r'\[\!\[Doc Coverage\]\(https://img\.shields\.io/badge/doc_coverage-[0-9.]+%25-[a-z]+\.svg\)\]\(#\)',
         f'[![Doc Coverage](https://img.shields.io/badge/doc_coverage-{doc_cov}%25-{doc_color}.svg)](#)',
         content
     )
-    
+
     with open(readme_path, 'w') as f:
         f.write(content)
 
