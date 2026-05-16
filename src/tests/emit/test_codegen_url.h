@@ -331,7 +331,7 @@ TEST test_query_gen_querystring_json_ref(void) {
 
   ASSERT(strstr(code, "Querystring Parameter (json)") != NULL);
   ASSERT(strstr(code, "Pet_to_json(qs") != NULL);
-  ASSERT(strstr(code, "url_encode(qs_json)") != NULL);
+  ASSERT(strstr(code, "url_encode(qs_json, &qs_enc)") != NULL);
 
   free(code);
   PASS();
@@ -360,7 +360,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
 
   ASSERT(strstr(code, "Querystring Parameter (json primitive)") != NULL);
   ASSERT(strstr(code, "json_value_init_number") != NULL);
-  ASSERT(strstr(code, "url_encode(qs_json)") != NULL);
+  ASSERT(strstr(code, "url_encode(qs_json, &qs_enc)") != NULL);
 
   free(code);
   PASS();
@@ -449,7 +449,7 @@ TEST test_query_gen_querystring_raw_string(void) {
   ASSERT(code);
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
-  ASSERT(strstr(code, "url_encode(qs)") != NULL);
+  ASSERT(strstr(code, "url_encode(qs, &qs_enc)") != NULL);
   ASSERT(strstr(code, "asprintf(&query_str, \"?%s\", qs_enc)") != NULL);
 
   free(code);
@@ -479,7 +479,7 @@ TEST test_query_gen_querystring_raw_integer(void) {
 
   ASSERT(strstr(code, "Querystring Parameter (raw)") != NULL);
   ASSERT(strstr(code, "sprintf(num_buf") != NULL);
-  ASSERT(strstr(code, "url_encode(num_buf)") != NULL);
+  ASSERT(strstr(code, "url_encode(num_buf, &qs_enc)") != NULL);
 
   free(code);
   PASS();
@@ -627,7 +627,7 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_18), _ast_gen_query_code_18);
   ASSERT(code);
 
-  ASSERT(strstr(code, "url_encode_allow_reserved(tags[i])") != NULL);
+  ASSERT(strstr(code, "url_encode_allow_reserved(tags[i], &enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", enc)") != NULL);
 
   free(code);
@@ -685,8 +685,8 @@ TEST test_query_gen_object_form_explode_false(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_20), _ast_gen_query_code_20);
   ASSERT(code);
 
-  ASSERT(strstr(code, "key_enc = url_encode(kv_key)") != NULL);
-  ASSERT(strstr(code, "val_enc = url_encode(kv_raw)") != NULL);
+  ASSERT(strstr(code, "url_encode(kv_key, &key_enc)") != NULL);
+  ASSERT(strstr(code, "url_encode(kv_raw, &val_enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
          NULL);
 
@@ -797,7 +797,7 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_24), _ast_gen_query_code_24);
   ASSERT(code);
 
-  ASSERT(strstr(code, "url_encode_allow_reserved(kv_key)") != NULL);
+  ASSERT(strstr(code, "url_encode_allow_reserved(kv_key, &key_enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", joined)") !=
          NULL);
   ASSERT(strstr(code, "\"%20\"") != NULL);
@@ -830,7 +830,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   code = (gen_query_code(&op, &_ast_gen_query_code_25), _ast_gen_query_code_25);
   ASSERT(code);
 
-  ASSERT(strstr(code, "url_encode_allow_reserved(raw)") != NULL);
+  ASSERT(strstr(code, "url_encode_allow_reserved(raw, &enc)") != NULL);
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", joined)") != NULL);
   ASSERT(strstr(code, "\"%20\"") != NULL);
 

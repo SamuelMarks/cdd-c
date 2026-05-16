@@ -396,3 +396,8 @@ mock_*.h
 .gemini/
 *mock.h
 alloc_mock.h
+run_test
+run_test.c
+methods.txt
+prompt.md
+out_cov/
