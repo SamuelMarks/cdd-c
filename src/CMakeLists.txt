@@ -122,6 +122,8 @@ set(Source_Files
         "functions/emit/build_system.c"
         "functions/emit/cst_printer.c"
             "functions/emit/diff_generator.c"
+        "functions/emit/weaver.c"
+        "functions/emit/weaver_attributes.c"
         "functions/emit/client_body.c"
         "functions/emit/client_sig.c"
         "classes/emit/enum.c"

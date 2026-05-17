@@ -63,7 +63,7 @@ extern C_CDD_EXPORT int weaver_wrap_ifdef(struct PatchList *patches,
 extern C_CDD_EXPORT int
 weaver_inject_msvc_headers(struct PatchList *patches,
                            const struct TokenList *tokens,
-                           bool include_windows_h, bool include_winsock2_h);
+                           int include_windows_h, int include_winsock2_h);
 
 /**
  * @brief Transform a Variable Length Array (VLA) declaration into _alloca().
@@ -86,7 +86,7 @@ extern C_CDD_EXPORT int
 weaver_vla_to_alloca(struct PatchList *patches, const struct TokenList *tokens,
                      size_t start_idx, size_t end_idx, const char *type_str,
                      const char *var_name, const char *size_expr,
-                     bool interactive);
+                     int interactive);
 
 #ifdef __cplusplus
 }

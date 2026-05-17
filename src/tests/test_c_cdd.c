@@ -50,6 +50,7 @@
 #include "emit/test_schema2tests.h"
 #include "emit/test_schema_codegen.h"
 #include "emit/test_sync_code.h"
+#include "emit/test_weaver.h"
 #include "emit/test_text_patcher.h"
 #include "emit/test_url_utils.h"
 #include "parse/test_analysis.h"
@@ -221,6 +222,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(simple_mocks_suite);
   RUN_SUITE(str_utils_suite);
   RUN_SUITE(sync_code_suite);
+  RUN_SUITE(weaver_suite);
   RUN_SUITE(text_patcher_suite);
   RUN_SUITE(cst_printer_suite);
   RUN_SUITE(diff_generator_suite);
