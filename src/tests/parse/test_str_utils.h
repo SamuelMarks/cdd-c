@@ -379,9 +379,34 @@ TEST test_c_cdd_destringize(void) {
   PASS();
 }
 
+TEST test_c_cdd_stricmp(void) {
+  int diff;
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "hello", &diff));
+  ASSERT_EQ(0, diff);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "HELLO", &diff));
+  ASSERT_EQ(0, diff);
+  ASSERT_EQ(0, c_cdd_stricmp("HeLlo", "hElLO", &diff));
+  ASSERT_EQ(0, diff);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "world", &diff));
+  ASSERT(diff < 0);
+  ASSERT_EQ(0, c_cdd_stricmp("world", "hello", &diff));
+  ASSERT(diff > 0);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", "hellp", &diff));
+  ASSERT(diff < 0);
+  ASSERT_EQ(0, c_cdd_stricmp(NULL, NULL, &diff));
+  ASSERT_EQ(0, diff);
+  ASSERT_EQ(0, c_cdd_stricmp("hello", NULL, &diff));
+  ASSERT(diff > 0);
+  ASSERT_EQ(0, c_cdd_stricmp(NULL, "hello", &diff));
+  ASSERT(diff < 0);
+  ASSERT_EQ(22, c_cdd_stricmp("hello", "hello", NULL));
+  PASS();
+}
+
 /* --- Suite definition --- */
 
 SUITE(str_utils_suite) {
+  RUN_TEST(test_c_cdd_stricmp);
   RUN_TEST(test_c_cdd_strdup_basic);
   RUN_TEST(test_c_cdd_strdup_null);
   RUN_TEST(test_c_cdd_strdup_empty);

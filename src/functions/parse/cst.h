@@ -85,13 +85,10 @@ struct CstNodeList {
  * @param[in] tokens The token stream.
  * @param[out] out Destination structure (managed by caller, internal array
  * alloc'd).
- * @return 0 on success, ENOMEM on allocation failure.
+ * @return 0 on success, EINVAL on invalid inputs, ENOMEM on allocation failure.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Parses tokens from the given input.
-                     */
-    int
-    parse_tokens(const struct TokenList *tokens, struct CstNodeList *out);
+extern C_CDD_EXPORT int parse_tokens(const struct TokenList *tokens,
+                                     struct CstNodeList *out);
 
 /**
  * @brief Add a node manually (exposed for testing/manual construction).
@@ -115,23 +112,19 @@ extern C_CDD_EXPORT int cst_list_add(struct CstNodeList *list,
  *
  * @param[in] list The list to clean.
  */
-extern C_CDD_EXPORT /**
-                     * @brief Frees the memory associated with cst node list.
-                     */
-    void
-    free_cst_node_list(struct CstNodeList *list);
+extern C_CDD_EXPORT void free_cst_node_list(struct CstNodeList *list);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Find the first node of a specific kind in the list.
  *
  * @param[in] list The list to search.
  * @param[in] kind The kind to search for.
- * @return Pointer to the found node, or NULL if not found.
+ * @param[out] out_node Pointer to store the found node, or NULL if not found.
+ * @return 0 on success (whether found or not), EINVAL on bad params.
  */
 extern C_CDD_EXPORT int cst_find_first(struct CstNodeList *list,
                                        enum CstNodeKind kind,
-                                       struct CstNode **_out_val);
+                                       struct CstNode **out_node);
 
 #ifdef __cplusplus
 }

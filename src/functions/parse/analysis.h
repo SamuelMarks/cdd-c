@@ -150,7 +150,9 @@ extern C_CDD_EXPORT /**
  * @param[in] var_name The variable receiving the result (or NULL).
  * @param[in] spec The allocator traits.
  * @param[out] used_before_check Output flag set if unsafe usage detected.
- * @return 1 if checked/safe, 0 if unchecked.
+ * @param[out] out_is_checked Output flag set to 1 if checked/safe, 0 if
+ * unchecked.
+ * @return 0 on success, EINVAL on error.
  */
 extern C_CDD_EXPORT /**
                      * @brief Checks if checked.
@@ -158,7 +160,7 @@ extern C_CDD_EXPORT /**
     int
     is_checked(const struct TokenList *tokens, size_t alloc_idx,
                const char *var_name, const struct AllocatorSpec *spec,
-               int *used_before_check);
+               int *used_before_check, int *out_is_checked);
 
 #ifdef __cplusplus
 }

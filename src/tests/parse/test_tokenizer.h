@@ -132,6 +132,39 @@ TEST tokenize_c23_digit_separators(void) {
   PASS();
 }
 
+TEST test_tokenizer_error_handling(void) {
+  int is_match = 0;
+  size_t next_idx = 0;
+  enum TokenKind kind;
+
+  ASSERT_EQ(EINVAL, token_matches_string(NULL, "match", NULL));
+  ASSERT_EQ(0, token_matches_string(NULL, "match", &is_match));
+  ASSERT_EQ(0, is_match);
+
+  /* Create dummy token for testing */
+  struct Token dummy_tok;
+  dummy_tok.start = (const uint8_t *)"match";
+  dummy_tok.length = 5;
+  dummy_tok.kind = TOKEN_IDENTIFIER;
+  ASSERT_EQ(0, token_matches_string(&dummy_tok, "match", &is_match));
+  ASSERT_EQ(1, is_match);
+
+  /* identify_keyword_or_id segfaults when we pass start=NULL but out_val is not
+     null? Let's check.
+  */
+  ASSERT_EQ(EINVAL, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
+
+  ASSERT_EQ(EINVAL, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, NULL));
+  ASSERT_EQ(0, token_find_next(NULL, 0, 10, TOKEN_IDENTIFIER, &next_idx));
+  ASSERT_EQ(SIZE_MAX, next_idx);
+
+  ASSERT_EQ(EINVAL, identify_keyword_or_id(NULL, 5, NULL));
+  ASSERT_EQ(0, identify_keyword_or_id(NULL, 5, &kind));
+  ASSERT_EQ(TOKEN_IDENTIFIER, kind);
+
+  PASS();
+}
+
 TEST tokenize_digit_separator_edge_case(void) {
   char *_ast_token_to_cstr_3 = NULL;
   /* Separator at end should NOT be included in number if not followed by digit
@@ -178,6 +211,7 @@ SUITE(tokenizer_suite) {
   /* ... existing runs ... */
   RUN_TEST(tokenize_c23_digit_separators);
   RUN_TEST(tokenize_digit_separator_edge_case);
+  RUN_TEST(test_tokenizer_error_handling);
 }
 
 #ifdef __cplusplus

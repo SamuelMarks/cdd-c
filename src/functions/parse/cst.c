@@ -112,9 +112,17 @@ static /**
         * @brief Checks if type start.
         */
     int
-    is_type_start(const struct Token *tok) {
-  if (tok->kind == TOKEN_IDENTIFIER)
-    return 1;
+    is_type_start(const struct Token *tok, int *out_is_type) {
+  if (!out_is_type)
+    return EINVAL;
+  *out_is_type = 0;
+  if (!tok)
+    return EINVAL;
+
+  if (tok->kind == TOKEN_IDENTIFIER) {
+    *out_is_type = 1;
+    return 0;
+  }
   /* Keywords that can be types or specifiers */
   switch (tok->kind) {
   case TOKEN_KEYWORD_VOID:
@@ -137,7 +145,8 @@ static /**
   case TOKEN_KEYWORD_AUTO:
   case TOKEN_KEYWORD_REGISTER:
   case TOKEN_KEYWORD_BOOL:
-    return 1;
+    *out_is_type = 1;
+    return 0;
   default:
     return 0;
   }
@@ -151,13 +160,17 @@ static /**
         */
     int
     match_function_definition(const struct TokenList *tokens, size_t start_idx,
-                              size_t limit, size_t *end_idx_out) {
+                              size_t limit, size_t *end_idx_out,
+                              int *out_is_match) {
   size_t _ast_skip_ws_0 = 0;
   size_t k = start_idx;
   int paren_depth;
   int brace_depth;
   int seen_lparen = 0;
   int seen_ident = 0;
+  if (!out_is_match)
+    return EINVAL;
+  *out_is_match = 0;
 
   while (k < limit) {
     const enum TokenKind kind = tokens->tokens[k].kind;
@@ -178,7 +191,9 @@ static /**
       return 0;
     }
 
-    if (is_type_start(&tokens->tokens[k])) {
+    int is_type = 0;
+    is_type_start(&tokens->tokens[k], &is_type);
+    if (is_type) {
       seen_ident = 1;
     }
 
@@ -206,7 +221,8 @@ static /**
   if (k >= limit)
     return 0;
 
-  k = (skip_ws(tokens, k, limit, &_ast_skip_ws_0), _ast_skip_ws_0);
+  skip_ws(tokens, k, limit, &_ast_skip_ws_0);
+  k = _ast_skip_ws_0;
   if (k >= limit || tokens->tokens[k].kind != TOKEN_LBRACE)
     return 0;
 
@@ -222,7 +238,8 @@ static /**
 
   if (brace_depth == 0) {
     *end_idx_out = k;
-    return 1;
+    *out_is_match = 1;
+    return 0;
   }
   return 0;
 }
@@ -309,7 +326,8 @@ static /**
   size_t i = start + 1;
   int paren_depth = 0;
 
-  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_1), _ast_skip_ws_1);
+  skip_ws(tokens, i, limit, &_ast_skip_ws_1);
+  i = _ast_skip_ws_1;
   if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
     paren_depth = 1;
     i++;
@@ -333,7 +351,8 @@ static /**
     return 0;
   }
 
-  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_2), _ast_skip_ws_2);
+  skip_ws(tokens, i, limit, &_ast_skip_ws_2);
+  i = _ast_skip_ws_2;
   if (i < limit && tokens->tokens[i].kind == TOKEN_SEMICOLON) {
     {
       *_out_val = i + 1;
@@ -362,12 +381,13 @@ static /**
   /* We just need to consume the balanced parens after _Generic. */
   size_t i = start + 1;
 
-  i = (skip_ws(tokens, i, limit, &_ast_skip_ws_3), _ast_skip_ws_3);
+  skip_ws(tokens, i, limit, &_ast_skip_ws_3);
+  i = _ast_skip_ws_3;
   if (i < limit && tokens->tokens[i].kind == TOKEN_LPAREN) {
     {
-      *_out_val = (consume_balanced_parens(tokens, i, limit,
-                                           &_ast_consume_balanced_parens_4),
-                   _ast_consume_balanced_parens_4);
+      consume_balanced_parens(tokens, i, limit,
+                              &_ast_consume_balanced_parens_4);
+      *_out_val = _ast_consume_balanced_parens_4;
       return 0;
     }
   }
@@ -385,23 +405,28 @@ static /**
         * @brief Checks if expression brace.
         */
     int
-    is_expression_brace(const struct TokenList *tokens, size_t brace_idx) {
+    is_expression_brace(const struct TokenList *tokens, size_t brace_idx,
+                        int *out_is_expr) {
   size_t _ast_skip_ws_back_5 = 0;
   size_t _ast_skip_ws_back_6 = 0;
   size_t prev;
   enum TokenKind pk;
 
+  if (!out_is_expr)
+    return EINVAL;
+  *out_is_expr = 0;
   if (brace_idx == 0)
     return 0;
 
-  prev = (skip_ws_back(tokens, brace_idx, &_ast_skip_ws_back_5),
-          _ast_skip_ws_back_5);
+  skip_ws_back(tokens, brace_idx, &_ast_skip_ws_back_5);
+  prev = _ast_skip_ws_back_5;
 
   pk = tokens->tokens[prev].kind;
 
   if (pk == TOKEN_ASSIGN || pk == TOKEN_COMMA || pk == TOKEN_KEYWORD_RETURN ||
       pk == TOKEN_LBRACKET || pk == TOKEN_COLON) {
-    return 1;
+    *out_is_expr = 1;
+    return 0;
   }
 
   if (pk == TOKEN_RPAREN) {
@@ -417,16 +442,19 @@ static /**
     }
 
     if (depth == 0) {
-      size_t before_paren =
-          (skip_ws_back(tokens, k, &_ast_skip_ws_back_6), _ast_skip_ws_back_6);
-      enum TokenKind bpk = tokens->tokens[before_paren].kind;
+      size_t before_paren;
+      enum TokenKind bpk;
+      skip_ws_back(tokens, k, &_ast_skip_ws_back_6);
+      before_paren = _ast_skip_ws_back_6;
+      bpk = tokens->tokens[before_paren].kind;
 
       if (bpk == TOKEN_KEYWORD_IF || bpk == TOKEN_KEYWORD_WHILE ||
           bpk == TOKEN_KEYWORD_FOR || bpk == TOKEN_KEYWORD_SWITCH) {
         return 0;
       }
 
-      return 1;
+      *out_is_expr = 1;
+      return 0;
     }
   }
 
@@ -481,15 +509,15 @@ static /**
                     struct CstNodeList *out) {
   size_t _ast_consume_attributes_7 = 0;
   size_t _ast_consume_static_assert_8 = 0;
-  bool _ast_token_matches_string_9 = false;
-  bool _ast_token_matches_string_10 = false;
+  int _ast_token_matches_string_9 = 0;
+  int _ast_token_matches_string_10 = 0;
   size_t _ast_consume_generic_selection_11 = 0;
   size_t _ast_skip_ws_back_12 = 0;
   size_t _ast_consume_balanced_braces_13 = 0;
   size_t _ast_skip_ws_14 = 0;
   size_t _ast_consume_balanced_braces_15 = 0;
   size_t _ast_skip_ws_back_16 = 0;
-  bool _ast_token_matches_string_17 = false;
+  int _ast_token_matches_string_17 = 0;
   size_t i = start;
   int rc;
 
@@ -560,9 +588,9 @@ static /**
     /* C23 Attributes */
     if (tok->kind == TOKEN_LBRACKET && i + 1 < end &&
         tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
-      size_t attr_end =
-          (consume_attributes(tokens, i, end, &_ast_consume_attributes_7),
-           _ast_consume_attributes_7);
+      size_t attr_end;
+      consume_attributes(tokens, i, end, &_ast_consume_attributes_7);
+      attr_end = _ast_consume_attributes_7;
       if (attr_end > i) {
         const struct Token *last = &tokens->tokens[attr_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -577,9 +605,9 @@ static /**
 
     /* Static Assert */
     if (tok->kind == TOKEN_KEYWORD_STATIC_ASSERT) {
-      size_t sa_end =
-          (consume_static_assert(tokens, i, end, &_ast_consume_static_assert_8),
-           _ast_consume_static_assert_8);
+      size_t sa_end;
+      consume_static_assert(tokens, i, end, &_ast_consume_static_assert_8);
+      sa_end = _ast_consume_static_assert_8;
       if (sa_end > i) {
         const struct Token *last = &tokens->tokens[sa_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -601,20 +629,17 @@ static /**
        we check text. But proper support requires recognition.
        Assumed: If `tokenize` doesn't emit `TOKEN_KEYWORD_GENERIC`, it emits
        `TOKEN_IDENTIFIER`. We check text. */
-    if ((tok->kind == TOKEN_IDENTIFIER &&
-         (token_matches_string(tok, "_Generic", &_ast_token_matches_string_9),
-          _ast_token_matches_string_9)) ||
-        (tok->kind == TOKEN_IDENTIFIER &&
-         (token_matches_string(
-              tok,
-              "generic_selection" /* Fallback? No spec only says _Generic */,
-              &_ast_token_matches_string_10),
-          _ast_token_matches_string_10))) {
+    token_matches_string(tok, "_Generic", &_ast_token_matches_string_9);
+    token_matches_string(tok, "generic_selection",
+                         &_ast_token_matches_string_10);
+    if ((tok->kind == TOKEN_IDENTIFIER && _ast_token_matches_string_9) ||
+        (tok->kind == TOKEN_IDENTIFIER && _ast_token_matches_string_10)) {
       /* Actually tokenizer update might be needed for strict correctness,
          but here we can sniff identifier text. */
-      size_t gen_end = (consume_generic_selection(
-                            tokens, i, end, &_ast_consume_generic_selection_11),
-                        _ast_consume_generic_selection_11);
+      size_t gen_end;
+      consume_generic_selection(tokens, i, end,
+                                &_ast_consume_generic_selection_11);
+      gen_end = _ast_consume_generic_selection_11;
       if (gen_end > i) {
         const struct Token *last = &tokens->tokens[gen_end - 1];
         size_t byte_len = (size_t)((last->start + last->length) - tok->start);
@@ -628,17 +653,23 @@ static /**
     }
 
     /* Function Definitions */
-    if (is_type_start(tok) || tok->kind == TOKEN_STAR) {
-      size_t func_end = 0;
-      if (match_function_definition(tokens, i, end, &func_end)) {
-        const struct Token *last = &tokens->tokens[func_end - 1];
-        size_t byte_len = (size_t)((last->start + last->length) - tok->start);
-        rc = cst_list_add(out, CST_NODE_FUNCTION, tok->start, byte_len, i,
-                          func_end);
-        if (rc != 0)
-          return rc;
-        i = func_end;
-        continue;
+    {
+      int is_type = 0;
+      is_type_start(tok, &is_type);
+      if (is_type || tok->kind == TOKEN_STAR) {
+        size_t func_end = 0;
+        int is_match = 0;
+        match_function_definition(tokens, i, end, &func_end, &is_match);
+        if (is_match) {
+          const struct Token *last = &tokens->tokens[func_end - 1];
+          size_t byte_len = (size_t)((last->start + last->length) - tok->start);
+          rc = cst_list_add(out, CST_NODE_FUNCTION, tok->start, byte_len, i,
+                            func_end);
+          if (rc != 0)
+            return rc;
+          i = func_end;
+          continue;
+        }
       }
     }
 
@@ -651,8 +682,9 @@ static /**
       /* E.g. (struct S){...} */
       int is_literal = 0;
       {
-        size_t prev = (skip_ws_back(tokens, i, &_ast_skip_ws_back_12),
-                       _ast_skip_ws_back_12);
+        size_t prev;
+        skip_ws_back(tokens, i, &_ast_skip_ws_back_12);
+        prev = _ast_skip_ws_back_12;
         if (prev < i && tokens->tokens[prev].kind == TOKEN_LPAREN) {
           is_literal = 1; /* Fall through to CST_NODE_OTHER handling */
         }
@@ -669,9 +701,9 @@ static /**
             break;
           if (tokens->tokens[k].kind == TOKEN_LBRACE) {
             body_start_idx = k + 1;
-            block_end = (consume_balanced_braces(
-                             tokens, k, end, &_ast_consume_balanced_braces_13),
-                         _ast_consume_balanced_braces_13);
+            consume_balanced_braces(tokens, k, end,
+                                    &_ast_consume_balanced_braces_13);
+            block_end = _ast_consume_balanced_braces_13;
             found_block = (block_end > k);
             break;
           }
@@ -682,9 +714,9 @@ static /**
           enum CstNodeKind nk;
           size_t byte_len;
           const struct Token *last;
-          size_t next_probe =
-              (skip_ws(tokens, block_end, end, &_ast_skip_ws_14),
-               _ast_skip_ws_14);
+          size_t next_probe;
+          skip_ws(tokens, block_end, end, &_ast_skip_ws_14);
+          next_probe = _ast_skip_ws_14;
 
           if (next_probe < end &&
               tokens->tokens[next_probe].kind == TOKEN_SEMICOLON) {
@@ -789,10 +821,12 @@ static /**
         }
 
         if (kind == TOKEN_LBRACE) {
-          if (is_expression_brace(tokens, j)) {
-            j = (consume_balanced_braces(tokens, j, end,
-                                         &_ast_consume_balanced_braces_15),
-                 _ast_consume_balanced_braces_15);
+          int is_expr = 0;
+          is_expression_brace(tokens, j, &is_expr);
+          if (is_expr) {
+            consume_balanced_braces(tokens, j, end,
+                                    &_ast_consume_balanced_braces_15);
+            j = _ast_consume_balanced_braces_15;
             continue;
           } else {
             break;
@@ -803,8 +837,9 @@ static /**
             kind == TOKEN_KEYWORD_UNION) {
           /* Detect if this keyword is part of a Cast or Compound Literal
              (check if preceded by LPAREN) to avoid breaking statement */
-          size_t prev = (skip_ws_back(tokens, j, &_ast_skip_ws_back_16),
-                         _ast_skip_ws_back_16);
+          size_t prev;
+          skip_ws_back(tokens, j, &_ast_skip_ws_back_16);
+          prev = _ast_skip_ws_back_16;
 
           if (prev < j && prev >= i &&
               tokens->tokens[prev].kind == TOKEN_LPAREN) {
@@ -819,10 +854,9 @@ static /**
           break;
         }
         /* Check match for _Generic identifier explicitly to break loop */
-        if (kind == TOKEN_IDENTIFIER &&
-            (token_matches_string(&tokens->tokens[j], "_Generic",
-                                  &_ast_token_matches_string_17),
-             _ast_token_matches_string_17)) {
+        token_matches_string(&tokens->tokens[j], "_Generic",
+                             &_ast_token_matches_string_17);
+        if (kind == TOKEN_IDENTIFIER && _ast_token_matches_string_17) {
           break;
         }
 
@@ -879,23 +913,20 @@ void free_cst_node_list(struct CstNodeList *list) {
  * @brief Executes the cst find first operation.
  */
 int cst_find_first(struct CstNodeList *list, const enum CstNodeKind kind,
-                   struct CstNode **_out_val) {
+                   struct CstNode **out_node) {
   size_t i;
+  if (!out_node)
+    return EINVAL;
+  *out_node = NULL;
   if (!list) {
-    *_out_val = NULL;
     return 0;
   }
 
   for (i = 0; i < list->size; i++) {
     if (list->nodes[i].kind == kind) {
-      {
-        *_out_val = &list->nodes[i];
-        return 0;
-      }
+      *out_node = &list->nodes[i];
+      return 0;
     }
   }
-  {
-    *_out_val = NULL;
-    return 0;
-  }
+  return 0;
 }

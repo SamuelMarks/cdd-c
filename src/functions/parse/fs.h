@@ -56,9 +56,10 @@ typedef struct stat c_stat;
  * @brief Check if a path is a UNC path (Windows only).
  *
  * @param[in] path The path to check.
- * @return 1 if UNC, 0 otherwise.
+ * @param[out] out_is_unc Pointer to store 1 if UNC, 0 otherwise.
+ * @return 0 on success, EINVAL on missing parameters.
  */
-extern C_CDD_EXPORT int path_is_unc(const char *path);
+extern C_CDD_EXPORT int path_is_unc(const char *path, int *out_is_unc);
 
 /**
  * @brief Convert ASCII string to Wide string (Windows only).
@@ -142,9 +143,10 @@ struct FilenameAndPtr {
  * @brief Check if the given path is a directory.
  *
  * @param[in] path The path to check.
- * @return 1 if directory, 0 if not or error.
+ * @param[out] out_is_dir Pointer to store 1 if directory, 0 otherwise.
+ * @return 0 on success, EINVAL on missing parameters.
  */
-extern C_CDD_EXPORT int fs_is_directory(const char *path);
+extern C_CDD_EXPORT int fs_is_directory(const char *path, int *out_is_dir);
 
 /**
  * @brief Extract the base name (filename component) from a path.

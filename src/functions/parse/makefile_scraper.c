@@ -20,13 +20,21 @@ static /**
         * @brief Executes the my strdup operation.
         */
     int
-    my_strdup(const char *s, char **_out_val) {
-  size_t len = strlen(s) + 1;
-  char *d = (char *)malloc(len);
+    my_strdup(const char *s, char **out_val) {
+  size_t len;
+  char *d;
+  if (!out_val)
+    return EINVAL;
+  *out_val = NULL;
+  if (!s)
+    return EINVAL;
+  len = strlen(s) + 1;
+  d = (char *)malloc(len);
   if (!d)
-    return NULL;
+    return ENOMEM;
   memcpy(d, s, len);
-  return d;
+  *out_val = d;
+  return 0;
 }
 
 /**
@@ -85,7 +93,7 @@ static /**
       return;
   }
   *arr = (char **)realloc(*arr, (*n + 1) * sizeof(char *));
-  (*arr)[*n] = my_strdup(str);
+  my_strdup(str, &(*arr)[*n]);
   (*n)++;
 }
 
@@ -128,18 +136,24 @@ int scrape_makefile(struct ExtractedBuildInfo *info,
   if (!info || !makefile_content)
     return EINVAL;
 
-  copy = my_strdup(makefile_content);
+  my_strdup(makefile_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
-  tok = strtok_s(copy, " \t
-\r\\", &saveptr);
+#if defined(_WIN32)
+  tok = strtok_s(copy, " \t\n\r\\", &saveptr);
+#else
+  tok = strtok_r(copy, " \t\n\r\\", &saveptr);
+#endif
   while (tok) {
     process_token(info, tok);
-    tok = strtok_s(NULL, " \t
-\r\\", &saveptr);
+#if defined(_WIN32)
+    tok = strtok_s(NULL, " \t\n\r\\", &saveptr);
+#else
+    tok = strtok_r(NULL, " \t\n\r\\", &saveptr);
+#endif
   }
 
   free(copy);
@@ -161,18 +175,24 @@ int scrape_configure_ac(
   if (!info || !configure_ac_content)
     return EINVAL;
 
-  copy = my_strdup(configure_ac_content);
+  my_strdup(configure_ac_content, &copy);
   if (!copy) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
-  tok = strtok_s(copy, " \t
-\r\\", &saveptr);
+#if defined(_WIN32)
+  tok = strtok_s(copy, " \t\n\r\\", &saveptr);
+#else
+  tok = strtok_r(copy, " \t\n\r\\", &saveptr);
+#endif
   while (tok) {
     process_token(info, tok);
-    tok = strtok_s(NULL, " \t
-\r\\", &saveptr);
+#if defined(_WIN32)
+    tok = strtok_s(NULL, " \t\n\r\\", &saveptr);
+#else
+    tok = strtok_r(NULL, " \t\n\r\\", &saveptr);
+#endif
   }
 
   free(copy);
@@ -200,83 +220,74 @@ int build_info_to_cmake(const struct ExtractedBuildInfo *info,
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(buf + len, cap - len, _TRUNCATE,
-                     "cmake_minimum_required(VERSION 3.10)
-                     "
-                     "project(%s C)
-\\n ",
+                     "cmake_minimum_required(VERSION 3.10)\n"
+                     "project(%s C)\n\n ",
                      project_name);
 #else
   len += snprintf(buf + len, cap - len,
-                  "cmake_minimum_required(VERSION 3.10)
-                  "
-                  "project(%s C)
-\\n ",
+                  "cmake_minimum_required(VERSION 3.10)\n"
+                  "project(%s C)\n\n ",
                   project_name);
 #endif
 
   if (info->compile_defs_n > 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(buf + len, cap - len, _TRUNCATE,
-                       "add_compile_definitions(\\n");
+                       "add_compile_definitions(\n");
 #else
-    len += snprintf(buf + len, cap - len, "add_compile_definitions(\\n");
+    len += snprintf(buf + len, cap - len, "add_compile_definitions(\n");
 #endif
     for (i = 0; i < info->compile_defs_n; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\\n",
+      len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                          info->compile_defs[i]);
 #else
-      len += snprintf(buf + len, cap - len, "  %s\\n", info->compile_defs[i]);
+      len += snprintf(buf + len, cap - len, "  %s\n", info->compile_defs[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")
-\\n");
+    len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")\n\n");
 #else
-    len += snprintf(buf + len, cap - len, ")
-\\n");
+    len += snprintf(buf + len, cap - len, ")\n\n");
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "add_executable(%s\\n",
+  len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "add_executable(%s\n",
                      project_name);
 #else
-  len += snprintf(buf + len, cap - len, "add_executable(%s\\n", project_name);
+  len += snprintf(buf + len, cap - len, "add_executable(%s\n", project_name);
 #endif
 
   for (i = 0; i < info->source_files_n; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\\n",
+    len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                        info->source_files[i]);
 #else
-    len += snprintf(buf + len, cap - len, "  %s\\n", info->source_files[i]);
+    len += snprintf(buf + len, cap - len, "  %s\n", info->source_files[i]);
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")
-\\n");
+  len += _snprintf_s(buf + len, cap - len, _TRUNCATE, ")\n\n");
 #else
-  len += snprintf(buf + len, cap - len, ")
-\\n");
+  len += snprintf(buf + len, cap - len, ")\n\n");
 #endif
 
   if (info->include_dirs_n > 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    len +=
-        _snprintf_s(buf + len, cap - len, _TRUNCATE,
-                    "target_include_directories(%s PRIVATE\\n", project_name);
+    len += _snprintf_s(buf + len, cap - len, _TRUNCATE,
+                       "target_include_directories(%s PRIVATE\n", project_name);
 #else
     len += snprintf(buf + len, cap - len,
-                    "target_include_directories(%s PRIVATE\\n", project_name);
+                    "target_include_directories(%s PRIVATE\n", project_name);
 #endif
     for (i = 0; i < info->include_dirs_n; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-      len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\\n",
+      len += _snprintf_s(buf + len, cap - len, _TRUNCATE, "  %s\n",
                          info->include_dirs[i]);
 #else
-      len += snprintf(buf + len, cap - len, "  %s\\n", info->include_dirs[i]);
+      len += snprintf(buf + len, cap - len, "  %s\n", info->include_dirs[i]);
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

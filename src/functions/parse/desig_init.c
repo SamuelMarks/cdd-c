@@ -67,10 +67,6 @@ void desig_init_list_free(struct DesigInitList *list) {
  */
 int scan_for_designated_initializers(const struct TokenList *tokens,
                                      struct DesigInitList *list) {
-  char *_ast_strndup_0 = NULL;
-  char *_ast_strndup_1 = NULL;
-  char *;
-  char *;
   size_t i = 0;
   size_t *brace_stack = NULL;
   size_t brace_depth = 0;
@@ -169,11 +165,8 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
                 0; /* Will be resolved later if needed, hard to know exact end
                       in forward pass without full parse */
 
-            s->field_name =
-                ((c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
-                                tokens->tokens[ident_idx].length, &,
-                                &_ast_strndup_0),
-                  _ast_strndup_0), );
+            c_cdd_strndup((const char *)tokens->tokens[ident_idx].start,
+                          tokens->tokens[ident_idx].length, &s->field_name);
 
             {
               const char *e_start =
@@ -181,10 +174,7 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
               const char *e_end =
                   (const char *)tokens->tokens[expr_end - 1].start +
                   tokens->tokens[expr_end - 1].length;
-              s->value_expr =
-                  ((c_cdd_strndup(e_start, (size_t)(e_end - e_start), &,
-                                  &_ast_strndup_1),
-                    _ast_strndup_1), );
+              c_cdd_strndup(e_start, (size_t)(e_end - e_start), &s->value_expr);
             }
 
             list->count++;

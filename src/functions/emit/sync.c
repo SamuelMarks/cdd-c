@@ -122,7 +122,7 @@ int sync_code_main(int argc, char **argv) {
  */
 int patch_header_from_source(const char *header_path,
                              const char *refactored_source) {
-  bool _ast_token_matches_string_0 = false;
+  int _ast_token_matches_string_0 = 0;
   char *_ast_strdup_0 = NULL;
   struct FuncSigList sigs;
   struct PatchList patches;

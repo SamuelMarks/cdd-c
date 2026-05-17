@@ -103,7 +103,8 @@ extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
  * @param[in] b Second string.
  * @return 0 if equal, non-zero otherwise.
  */
-extern C_CDD_EXPORT int c_cdd_stricmp(const char *a, const char *b);
+extern C_CDD_EXPORT int c_cdd_stricmp(const char *a, const char *b,
+                                      int *out_diff);
 
 /**
  * @brief Find the substring after the last occurrence of a character.

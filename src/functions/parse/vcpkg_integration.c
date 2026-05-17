@@ -20,13 +20,21 @@ static /**
         * @brief Executes the my strdup operation.
         */
     int
-    my_strdup(const char *s, char **_out_val) {
-  size_t len = strlen(s) + 1;
-  char *d = (char *)malloc(len);
+    my_strdup(const char *s, char **out_val) {
+  size_t len;
+  char *d;
+  if (!out_val)
+    return EINVAL;
+  *out_val = NULL;
+  if (!s)
+    return EINVAL;
+  len = strlen(s) + 1;
+  d = (char *)malloc(len);
   if (!d)
-    return NULL;
+    return ENOMEM;
   memcpy(d, s, len);
-  return d;
+  *out_val = d;
+  return 0;
 }
 
 /**
@@ -38,10 +46,15 @@ int vcpkg_builder_init(struct VcpkgManifestBuilder *builder,
   if (!builder || !project_name)
     return EINVAL;
 
-  builder->project_name = my_strdup(project_name);
-  builder->version_string =
-      version_string ? my_strdup(version_string) : my_strdup("0.0.1");
-  builder->description = description ? my_strdup(description) : my_strdup("");
+  my_strdup(project_name, &builder->project_name);
+  if (version_string)
+    my_strdup(version_string, &builder->version_string);
+  else
+    my_strdup("0.0.1", &builder->version_string);
+  if (description)
+    my_strdup(description, &builder->description);
+  else
+    my_strdup("", &builder->description);
   builder->deps = NULL;
   builder->deps_count = 0;
   builder->deps_capacity = 0;
@@ -107,7 +120,7 @@ int vcpkg_builder_add_dep(struct VcpkgManifestBuilder *builder,
     builder->deps_capacity = new_cap;
   }
 
-  builder->deps[builder->deps_count].name = my_strdup(dep_name);
+  my_strdup(dep_name, &builder->deps[builder->deps_count].name);
   if (!builder->deps[builder->deps_count].name)
     return ENOMEM;
   builder->deps_count++;
@@ -137,7 +150,7 @@ int vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
       while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
         j++;
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        bool is_inc = false;
+        int is_inc = 0;
         token_matches_string(&tokens->tokens[j], "include", &is_inc);
         if (is_inc) {
           size_t k = j + 1;
@@ -148,41 +161,40 @@ int vcpkg_builder_scan_source(struct VcpkgManifestBuilder *builder,
            * are tokens */
           if (k < tokens->size) {
             size_t end_inc = k;
-            while (end_inc < tokens->size && tokens->tokens[end_inc].kind != TOKEN_WHITESPACE &&
-                   tokens->tokens[end_inc].start[0] != '
-') {
+            while (end_inc < tokens->size &&
+                   tokens->tokens[end_inc].kind != TOKEN_WHITESPACE &&
+                   tokens->tokens[end_inc].start[0] != '\n') {
               end_inc++;
-          }
+            }
 
-          if (end_inc > k) {
-            const char *inc_start = (const char *)tokens->tokens[k].start;
-            const char *inc_end =
-                (const char *)tokens->tokens[end_inc - 1].start +
-                tokens->tokens[end_inc - 1].length;
-            size_t inc_len = (size_t)(inc_end - inc_start);
-            char *inc_str = (char *)malloc(inc_len + 1);
-            if (inc_str) {
-              memcpy(inc_str, inc_start, inc_len);
-              inc_str[inc_len] = '\0';
+            if (end_inc > k) {
+              const char *inc_start = (const char *)tokens->tokens[k].start;
+              const char *inc_end =
+                  (const char *)tokens->tokens[end_inc - 1].start +
+                  tokens->tokens[end_inc - 1].length;
+              size_t inc_len = (size_t)(inc_end - inc_start);
+              char *inc_str = (char *)malloc(inc_len + 1);
+              if (inc_str) {
+                memcpy(inc_str, inc_start, inc_len);
+                inc_str[inc_len] = '\0';
 
-              if (strstr(inc_str, "pthread.h"))
-                vcpkg_builder_add_dep(builder, "pthreads");
-              if (strstr(inc_str, "dirent.h"))
-                vcpkg_builder_add_dep(builder, "dirent");
-              if (strstr(inc_str, "zlib.h"))
-                vcpkg_builder_add_dep(builder, "zlib");
+                if (strstr(inc_str, "pthread.h"))
+                  vcpkg_builder_add_dep(builder, "pthreads");
+                if (strstr(inc_str, "dirent.h"))
+                  vcpkg_builder_add_dep(builder, "dirent");
+                if (strstr(inc_str, "zlib.h"))
+                  vcpkg_builder_add_dep(builder, "zlib");
 
-              free(inc_str);
+                free(inc_str);
+              }
             }
           }
         }
       }
     }
   }
-}
-
-free_token_list(tokens);
-return 0;
+  free_token_list(tokens);
+  return 0;
 }
 
 /**
@@ -207,29 +219,24 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   /* Basic manual string builder without heavy dependencies */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(json + len, cap - len, _TRUNCATE,
-                     "{
-  \"name\": \"%s\",
-  \"version-string\": \"%s\",
-  \"description\": \"%s\"", builder->project_name, builder->version_string,
+                     "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
+                     "\"description\": \"%s\"",
+                     builder->project_name, builder->version_string,
                      builder->description);
 #else
   len += snprintf(json + len, cap - len,
-                  "{
-  \"name\": \"%s\",
-  \"version-string\": \"%s\",
-  \"description\": \"%s\"", builder->project_name, builder->version_string,
+                  "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
+                  "\"description\": \"%s\"",
+                  builder->project_name, builder->version_string,
                   builder->description);
 #endif
 
   if (builder->deps_count > 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE,
-                       ",
-  \"dependencies\": [\\n");
+                       ",\n  \"dependencies\": [\n");
 #else
-    len += snprintf(json + len, cap - len,
-                    ",
-  \"dependencies\": [\\n");
+    len += snprintf(json + len, cap - len, ",\n  \"dependencies\": [\n");
 #endif
     for (i = 0; i < builder->deps_count; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

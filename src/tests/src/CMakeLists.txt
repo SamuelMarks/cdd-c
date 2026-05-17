@@ -44,8 +44,6 @@ include(FetchContent)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/CMakeLists.txt")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http" "${CMAKE_BINARY_DIR}/c-abstract-http")
     include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/include")
-elseif(VCPKG_TOOLCHAIN)
-    find_package(c-abstract-http CONFIG REQUIRED)
 else()
     FetchContent_Declare(
         c-abstract-http

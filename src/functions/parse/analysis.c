@@ -145,9 +145,13 @@ static /**
         * @brief Checks if inside condition.
         */
     int
-    is_inside_condition(const struct TokenList *tokens, size_t idx) {
+    is_inside_condition(const struct TokenList *tokens, size_t idx,
+                        int *out_is_inside) {
   size_t i = idx;
   int paren_depth = 0;
+  if (!out_is_inside)
+    return EINVAL;
+  *out_is_inside = 0;
 
   while (i > 0) {
     i--;
@@ -166,7 +170,8 @@ static /**
           /* Check for KEYWORDS if/while */
           if (tokens->tokens[prev].kind == TOKEN_KEYWORD_IF ||
               tokens->tokens[prev].kind == TOKEN_KEYWORD_WHILE) {
-            return 1;
+            *out_is_inside = 1;
+            return 0;
           }
           break;
         }
@@ -184,13 +189,18 @@ static /**
         * @brief Checks if dereference use.
         */
     int
-    is_dereference_use(const struct TokenList *tokens, size_t i) {
+    is_dereference_use(const struct TokenList *tokens, size_t i,
+                       int *out_is_deref) {
+  if (!out_is_deref)
+    return EINVAL;
+  *out_is_deref = 0;
   if (i > 0) {
     size_t prev = i - 1;
     while (prev > 0 && tokens->tokens[prev].kind == TOKEN_WHITESPACE)
       prev--;
     if (tokens->tokens[prev].kind == TOKEN_STAR) {
-      return 1;
+      *out_is_deref = 1;
+      return 0;
     }
   }
   {
@@ -200,7 +210,8 @@ static /**
     if (next < tokens->size) {
       const struct Token *t = &tokens->tokens[next];
       if (t->kind == TOKEN_ARROW || t->kind == TOKEN_LBRACKET) {
-        return 1;
+        *out_is_deref = 1;
+        return 0;
       }
     }
   }
@@ -212,16 +223,26 @@ static /**
  */
 int is_checked(const struct TokenList *tokens, size_t alloc_idx,
                const char *var_name, const struct AllocatorSpec *spec,
-               int *used_before_check) {
-  bool _ast_token_matches_string_0 = false;
+               int *used_before_check, int *out_is_checked) {
+  int _ast_token_matches_string_0 = 0;
   size_t i = alloc_idx;
-  *used_before_check = 0;
+  if (!out_is_checked)
+    return EINVAL;
+  *out_is_checked = 0;
+  if (used_before_check)
+    *used_before_check = 0;
 
   if (!tokens || !var_name)
     return 0;
 
-  if (is_inside_condition(tokens, alloc_idx))
-    return 1;
+  {
+    int is_inside = 0;
+    is_inside_condition(tokens, alloc_idx, &is_inside);
+    if (is_inside) {
+      *out_is_checked = 1;
+      return 0;
+    }
+  }
 
   while (i < tokens->size && tokens->tokens[i].kind != TOKEN_SEMICOLON)
     i++;
@@ -237,12 +258,20 @@ int is_checked(const struct TokenList *tokens, size_t alloc_idx,
     if (tok->kind == TOKEN_IDENTIFIER) {
       if ((token_matches_string(tok, var_name, &_ast_token_matches_string_0),
            _ast_token_matches_string_0)) {
-        if (is_inside_condition(tokens, i))
-          return 1;
-        if (spec->check_style == CHECK_PTR_NULL &&
-            is_dereference_use(tokens, i)) {
-          *used_before_check = 1;
+        int is_inside = 0;
+        is_inside_condition(tokens, i, &is_inside);
+        if (is_inside) {
+          *out_is_checked = 1;
           return 0;
+        }
+        if (spec->check_style == CHECK_PTR_NULL) {
+          int is_deref = 0;
+          is_dereference_use(tokens, i, &is_deref);
+          if (is_deref) {
+            if (used_before_check)
+              *used_before_check = 1;
+            return 0;
+          }
         }
       }
     }
@@ -256,7 +285,7 @@ int is_checked(const struct TokenList *tokens, size_t alloc_idx,
  */
 int find_allocations(const struct TokenList *tokens,
                      struct AllocationSiteList *out) {
-  bool _ast_token_matches_string_1 = false;
+  int _ast_token_matches_string_1 = 0;
   char *_ast_get_assigned_var_2 = NULL;
   size_t i;
   int rc;
@@ -325,14 +354,16 @@ int find_allocations(const struct TokenList *tokens,
 
           if (var_name) {
             int used_before = 0;
-            int checked = is_checked(tokens, i, var_name, spec, &used_before);
+            int checked = 0;
+            is_checked(tokens, i, var_name, spec, &used_before, &checked);
             rc = allocation_site_list_add(out, i, var_name, checked,
                                           used_before, 0, spec);
             free(var_name);
             if (rc != 0)
               return rc;
           } else {
-            int checked = is_inside_condition(tokens, i);
+            int checked = 0;
+            is_inside_condition(tokens, i, &checked);
             rc = allocation_site_list_add(out, i, NULL, checked, 0, 0, spec);
             if (rc != 0)
               return rc;
