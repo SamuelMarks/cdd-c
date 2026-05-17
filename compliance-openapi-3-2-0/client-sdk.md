@@ -1,6 +1,6 @@
-# OpenAPI 3.2.0 Conformance Table: Client SDK (HTTP Client + Mocks + Tests)
+# Swagger 2.0 and OpenAPI 3.2.0 Conformance Table: Client SDK (HTTP Client + Mocks + Tests)
 
-This table tracks the completeness of language integration with OpenAPI 3.2.0 for Client SDK generation and extraction.
+This table tracks the completeness of language integration with Swagger 2.0 and OpenAPI 3.2.0 for Client SDK generation and extraction.
 
 ### Legend & Tracking Guide
 
@@ -11,7 +11,7 @@ This table tracks the completeness of language integration with OpenAPI 3.2.0 fo
 - **Skipped `[To, From]`**: Intentionally ignored because it is irrelevant or unsupported by the Client architecture.
 - **Checkboxes**: Mark `[x]` as conformance is achieved.
 
-| OpenAPI 3.2.0 Object / Feature                    | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy                                   |
+| Swagger 2.0 and OpenAPI 3.2.0 Object / Feature                    | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy                                   |
 | :------------------------------------------------ | :-------------------: | :------------------: | :------------------: | :---------------------------------------------------------------- |
 | **OpenAPI Object (Root)**                         |     `[x]` , `[x]`     |    `[ ]` , `[ ]`     |    `[ ]` , `[ ]`     | Root generation / parsing                                         |
 | **OpenAPI Object (`openapi`)**                    |     `[x]` , `[x]`     |    `[ ]` , `[ ]`     |    `[ ]` , `[ ]`     | TODO                                                              |
