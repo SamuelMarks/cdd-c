@@ -103,17 +103,18 @@ static /**
         * @brief Executes the file exists operation.
         */
     int
-    file_exists(const char *path) {
-
+    file_exists(const char *path, int *out_exists) {
   FILE *f;
+  if (!out_exists)
+    return EINVAL;
+  *out_exists = 0;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 
   if (fopen_s(&f, path, "r") == 0 && f) {
-
     fclose(f);
-
-    return 1;
+    *out_exists = 1;
+    return 0;
   }
 
 #else
@@ -127,14 +128,11 @@ static /**
 #endif
 #endif
   if (f) {
-
     fclose(f);
-
-    return 1;
+    *out_exists = 1;
+    return 0;
   }
-
 #endif
-
   return 0;
 }
 
@@ -248,7 +246,9 @@ static /**
 
     if (candidate) {
 
-      if (file_exists(candidate)) {
+      int exists = 0;
+      file_exists(candidate, &exists);
+      if (exists) {
 
         {
           *_out_val = candidate;
@@ -270,7 +270,9 @@ static /**
 
       if (candidate) {
 
-        if (file_exists(candidate)) {
+        int exists = 0;
+        file_exists(candidate, &exists);
+        if (exists) {
 
           {
             *_out_val = candidate;
@@ -485,7 +487,7 @@ int pp_add_macro(struct PreprocessorContext *ctx, const char *name,
  * @brief Executes the pp scan defines operation.
  */
 int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
-  bool _ast_token_matches_string_2 = false;
+  int _ast_token_matches_string_2 = 0;
   char *_ast_token_to_string_3 = NULL;
   char *_ast_token_to_string_4 = NULL;
 
@@ -533,7 +535,7 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
       if (next < tokens->size &&
 
           (token_matches_string(&tokens->tokens[next], "define",
-                                &_ast_token_matches_string_2),
+                                &_ast_token_matches_string_2) == 0 &&
            _ast_token_matches_string_2)) {
 
         size_t name_idx = next + 1;
@@ -799,8 +801,11 @@ static /**
         * @brief Executes the match operation.
         */
     int
-    match(struct ExprState *s, enum TokenKind kind, bool *_out_val) {
+    match(struct ExprState *s, enum TokenKind kind, int *_out_val) {
   size_t _ast_skip_ws_5 = 0;
+  if (!_out_val)
+    return EINVAL;
+  *_out_val = 0;
 
   (skip_ws(s, &_ast_skip_ws_5), _ast_skip_ws_5);
 
@@ -809,13 +814,13 @@ static /**
     s->pos++;
 
     {
-      *_out_val = true;
+      *_out_val = 1;
       return 0;
     }
   }
 
   {
-    *_out_val = false;
+    *_out_val = 0;
     return 0;
   }
 }
@@ -853,32 +858,32 @@ static /**
     int
     is_defined_macro(const struct PreprocessorContext *ctx,
 
-                     const struct Token *tok, bool *_out_val) {
-  bool _ast_token_matches_string_6 = false;
+                     const struct Token *tok, int *_out_val) {
+  int _ast_token_matches_string_6 = 0;
 
   size_t i;
 
   if (!ctx)
 
   {
-    *_out_val = false;
+    *_out_val = 0;
     return 0;
   }
 
   for (i = 0; i < ctx->macro_count; ++i) {
 
     if ((token_matches_string(tok, ctx->macros[i].name,
-                              &_ast_token_matches_string_6),
+                              &_ast_token_matches_string_6) == 0 &&
          _ast_token_matches_string_6))
 
     {
-      *_out_val = true;
+      *_out_val = 1;
       return 0;
     }
   }
 
   {
-    *_out_val = false;
+    *_out_val = 0;
     return 0;
   }
 }
@@ -897,11 +902,11 @@ static /**
     int
     handle_has_include_embed(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_7 = 0;
-  bool _ast_match_8 = false;
+  int _ast_match_8 = 0;
   size_t _ast_skip_ws_9 = 0;
   char *_ast_reconstruct_path_10 = NULL;
   size_t _ast_skip_ws_11 = 0;
-  bool _ast_match_12 = false;
+  int _ast_match_12 = 0;
   char *_ast_resolve_path_13 = NULL;
 
   int is_header = false;
@@ -916,7 +921,7 @@ static /**
 
   (skip_ws(s, &_ast_skip_ws_7), _ast_skip_ws_7);
 
-  if (!(match(s, TOKEN_LPAREN, &_ast_match_8), _ast_match_8)) {
+  if (!(match(s, TOKEN_LPAREN, &_ast_match_8) == 0 && _ast_match_8)) {
 
     s->error = 1;
 
@@ -1013,8 +1018,8 @@ static /**
 
   (skip_ws(s, &_ast_skip_ws_11), _ast_skip_ws_11);
 
-  if (!(match(s, TOKEN_RPAREN, &_ast_match_12), _ast_match_12)) {
-
+  if (!(match(s, TOKEN_RPAREN, &_ast_match_12) == 0 && _ast_match_12)) {
+    fprintf(stderr, "Missing RPAREN, setting error!\n");
     s->error = 1;
 
     if (path)
@@ -1057,7 +1062,7 @@ static /**
     int
     handle_has_c_attribute(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_14 = 0;
-  bool _ast_match_15 = false;
+  int _ast_match_15 = 0;
   size_t _ast_skip_ws_16 = 0;
   char *_ast_token_to_string_17 = NULL;
   enum TokenKind _ast_identify_keyword_or_id_18;
@@ -1066,7 +1071,7 @@ static /**
   size_t _ast_skip_ws_21 = 0;
   char *_ast_token_to_string_22 = NULL;
   size_t _ast_skip_ws_23 = 0;
-  bool _ast_match_24 = false;
+  int _ast_match_24 = 0;
 
   long result = 0;
 
@@ -1074,7 +1079,7 @@ static /**
 
   (skip_ws(s, &_ast_skip_ws_14), _ast_skip_ws_14);
 
-  if (!(match(s, TOKEN_LPAREN, &_ast_match_15), _ast_match_15)) {
+  if (!(match(s, TOKEN_LPAREN, &_ast_match_15) == 0 && _ast_match_15)) {
 
     s->error = 1;
 
@@ -1192,7 +1197,7 @@ static /**
 
   (skip_ws(s, &_ast_skip_ws_23), _ast_skip_ws_23);
 
-  if (!(match(s, TOKEN_RPAREN, &_ast_match_24), _ast_match_24)) {
+  if (!(match(s, TOKEN_RPAREN, &_ast_match_24) == 0 && _ast_match_24)) {
 
     s->error = 1;
   }
@@ -1209,17 +1214,17 @@ static /**
     int
     parse_primary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_25 = 0;
-  bool _ast_match_26 = false;
+  int _ast_match_26 = 0;
   long _ast_parse_expr_27;
-  bool _ast_match_28 = false;
+  int _ast_match_28 = 0;
   char *_ast_token_to_string_29 = NULL;
-  bool _ast_token_matches_string_30 = false;
+  int _ast_token_matches_string_30 = 0;
   long _ast_handle_has_include_embed_31;
-  bool _ast_token_matches_string_32 = false;
+  int _ast_token_matches_string_32 = 0;
   long _ast_handle_has_include_embed_33;
-  bool _ast_token_matches_string_34 = false;
+  int _ast_token_matches_string_34 = 0;
   long _ast_handle_has_c_attribute_35;
-  bool _ast_token_matches_string_36 = false;
+  int _ast_token_matches_string_36 = 0;
 
   (skip_ws(s, &_ast_skip_ws_25), _ast_skip_ws_25);
 
@@ -1233,11 +1238,11 @@ static /**
     }
   }
 
-  if ((match(s, TOKEN_LPAREN, &_ast_match_26), _ast_match_26)) {
+  if ((match(s, TOKEN_LPAREN, &_ast_match_26) == 0 && _ast_match_26)) {
 
     long val = (parse_expr(s, &_ast_parse_expr_27), _ast_parse_expr_27);
 
-    if (!(match(s, TOKEN_RPAREN, &_ast_match_28), _ast_match_28))
+    if (!(match(s, TOKEN_RPAREN, &_ast_match_28) == 0 && _ast_match_28))
 
       s->error = 1;
 
@@ -1286,9 +1291,8 @@ static /**
       s->tokens->tokens[s->pos].kind >= TOKEN_KEYWORD_AUTO) {
 
     const struct Token *tok = &s->tokens->tokens[s->pos];
-
     if ((token_matches_string(tok, "__has_include",
-                              &_ast_token_matches_string_30),
+                              &_ast_token_matches_string_30) == 0 &&
          _ast_token_matches_string_30)) {
 
       s->pos++;
@@ -1302,7 +1306,7 @@ static /**
     }
 
     if ((token_matches_string(tok, "__has_embed",
-                              &_ast_token_matches_string_32),
+                              &_ast_token_matches_string_32) == 0 &&
          _ast_token_matches_string_32)) {
 
       s->pos++;
@@ -1316,7 +1320,7 @@ static /**
     }
 
     if ((token_matches_string(tok, "__has_c_attribute",
-                              &_ast_token_matches_string_34),
+                              &_ast_token_matches_string_34) == 0 &&
          _ast_token_matches_string_34)) {
 
       s->pos++;
@@ -1343,7 +1347,7 @@ static /**
           if (!s->ctx->macros[i].is_function_like && s->ctx->macros[i].value &&
 
               (token_matches_string(tok, s->ctx->macros[i].name,
-                                    &_ast_token_matches_string_36),
+                                    &_ast_token_matches_string_36) == 0 &&
                _ast_token_matches_string_36)) {
 
             char *endptr;
@@ -1378,25 +1382,25 @@ static /**
     int
     parse_unary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_37 = 0;
-  bool _ast_match_38 = false;
+  int _ast_match_38 = 0;
   long _ast_parse_unary_39;
-  bool _ast_match_40 = false;
+  int _ast_match_40 = 0;
   long _ast_parse_unary_41;
-  bool _ast_match_42 = false;
+  int _ast_match_42 = 0;
   long _ast_parse_unary_43;
-  bool _ast_match_44 = false;
+  int _ast_match_44 = 0;
   long _ast_parse_unary_45;
-  bool _ast_token_matches_string_46 = false;
+  int _ast_token_matches_string_46 = 0;
   size_t _ast_skip_ws_47 = 0;
-  bool _ast_match_48 = false;
+  int _ast_match_48 = 0;
   size_t _ast_skip_ws_49 = 0;
-  bool _ast_is_defined_macro_50 = false;
-  bool _ast_match_51 = false;
+  int _ast_is_defined_macro_50 = 0;
+  int _ast_match_51 = 0;
   long _ast_parse_primary_52;
 
   (skip_ws(s, &_ast_skip_ws_37), _ast_skip_ws_37);
 
-  if ((match(s, TOKEN_BANG, &_ast_match_38), _ast_match_38)) {
+  if ((match(s, TOKEN_BANG, &_ast_match_38) == 0 && _ast_match_38)) {
 
     {
       *_out_val = !(parse_unary(s, &_ast_parse_unary_39), _ast_parse_unary_39);
@@ -1404,7 +1408,7 @@ static /**
     }
   }
 
-  if ((match(s, TOKEN_TILDE, &_ast_match_40), _ast_match_40)) {
+  if ((match(s, TOKEN_TILDE, &_ast_match_40) == 0 && _ast_match_40)) {
 
     {
       *_out_val = ~(parse_unary(s, &_ast_parse_unary_41), _ast_parse_unary_41);
@@ -1412,7 +1416,7 @@ static /**
     }
   }
 
-  if ((match(s, TOKEN_MINUS, &_ast_match_42), _ast_match_42)) {
+  if ((match(s, TOKEN_MINUS, &_ast_match_42) == 0 && _ast_match_42)) {
 
     {
       *_out_val = -(parse_unary(s, &_ast_parse_unary_43), _ast_parse_unary_43);
@@ -1420,7 +1424,7 @@ static /**
     }
   }
 
-  if ((match(s, TOKEN_PLUS, &_ast_match_44), _ast_match_44)) {
+  if ((match(s, TOKEN_PLUS, &_ast_match_44) == 0 && _ast_match_44)) {
 
     {
       *_out_val = +(parse_unary(s, &_ast_parse_unary_45), _ast_parse_unary_45);
@@ -1431,10 +1435,10 @@ static /**
   if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER &&
 
       (token_matches_string(&s->tokens->tokens[s->pos], "defined",
-                            &_ast_token_matches_string_46),
+                            &_ast_token_matches_string_46) == 0 &&
        _ast_token_matches_string_46)) {
 
-    bool has_paren = false;
+    int has_paren = false;
 
     long result = 0;
 
@@ -1442,7 +1446,7 @@ static /**
 
     (skip_ws(s, &_ast_skip_ws_47), _ast_skip_ws_47);
 
-    if ((match(s, TOKEN_LPAREN, &_ast_match_48), _ast_match_48))
+    if ((match(s, TOKEN_LPAREN, &_ast_match_48) == 0 && _ast_match_48))
 
       has_paren = true;
 
@@ -1451,7 +1455,7 @@ static /**
     if (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_IDENTIFIER) {
 
       if ((is_defined_macro(s->ctx, &s->tokens->tokens[s->pos],
-                            &_ast_is_defined_macro_50),
+                            &_ast_is_defined_macro_50) == 0 &&
            _ast_is_defined_macro_50)) {
 
         result = 1;
@@ -1466,7 +1470,7 @@ static /**
 
     if (has_paren) {
 
-      if (!(match(s, TOKEN_RPAREN, &_ast_match_51), _ast_match_51))
+      if (!(match(s, TOKEN_RPAREN, &_ast_match_51) == 0 && _ast_match_51))
 
         s->error = 1;
     }
@@ -1490,22 +1494,22 @@ static /**
     int
     parse_multiplicative(struct ExprState *s, long *_out_val) {
   long _ast_parse_unary_53;
-  bool _ast_match_54 = false;
+  int _ast_match_54 = 0;
   long _ast_parse_unary_55;
-  bool _ast_match_56 = false;
+  int _ast_match_56 = 0;
   long _ast_parse_unary_57;
-  bool _ast_match_58 = false;
+  int _ast_match_58 = 0;
   long _ast_parse_unary_59;
 
   long val = (parse_unary(s, &_ast_parse_unary_53), _ast_parse_unary_53);
 
   while (s->pos < s->end && !s->error) {
 
-    if ((match(s, TOKEN_STAR, &_ast_match_54), _ast_match_54)) {
+    if ((match(s, TOKEN_STAR, &_ast_match_54) == 0 && _ast_match_54)) {
 
       val *= (parse_unary(s, &_ast_parse_unary_55), _ast_parse_unary_55);
 
-    } else if ((match(s, TOKEN_SLASH, &_ast_match_56), _ast_match_56)) {
+    } else if ((match(s, TOKEN_SLASH, &_ast_match_56) == 0 && _ast_match_56)) {
 
       long divisor =
           (parse_unary(s, &_ast_parse_unary_57), _ast_parse_unary_57);
@@ -1518,7 +1522,8 @@ static /**
 
         val /= divisor;
 
-    } else if ((match(s, TOKEN_PERCENT, &_ast_match_58), _ast_match_58)) {
+    } else if ((match(s, TOKEN_PERCENT, &_ast_match_58) == 0 &&
+                _ast_match_58)) {
 
       long divisor =
           (parse_unary(s, &_ast_parse_unary_59), _ast_parse_unary_59);
@@ -1549,9 +1554,9 @@ static /**
     int
     parse_additive(struct ExprState *s, long *_out_val) {
   long _ast_parse_multiplicative_60;
-  bool _ast_match_61 = false;
+  int _ast_match_61 = 0;
   long _ast_parse_multiplicative_62;
-  bool _ast_match_63 = false;
+  int _ast_match_63 = 0;
   long _ast_parse_multiplicative_64;
 
   long val = (parse_multiplicative(s, &_ast_parse_multiplicative_60),
@@ -1559,12 +1564,12 @@ static /**
 
   while (s->pos < s->end && !s->error) {
 
-    if ((match(s, TOKEN_PLUS, &_ast_match_61), _ast_match_61)) {
+    if ((match(s, TOKEN_PLUS, &_ast_match_61) == 0 && _ast_match_61)) {
 
       val += (parse_multiplicative(s, &_ast_parse_multiplicative_62),
               _ast_parse_multiplicative_62);
 
-    } else if ((match(s, TOKEN_MINUS, &_ast_match_63), _ast_match_63)) {
+    } else if ((match(s, TOKEN_MINUS, &_ast_match_63) == 0 && _ast_match_63)) {
 
       val -= (parse_multiplicative(s, &_ast_parse_multiplicative_64),
               _ast_parse_multiplicative_64);
@@ -1587,9 +1592,9 @@ static /**
     int
     parse_shift(struct ExprState *s, long *_out_val) {
   long _ast_parse_additive_65;
-  bool _ast_match_66 = false;
+  int _ast_match_66 = 0;
   long _ast_parse_additive_67;
-  bool _ast_match_68 = false;
+  int _ast_match_68 = 0;
   long _ast_parse_additive_69;
 
   long val =
@@ -1597,12 +1602,12 @@ static /**
 
   while (s->pos < s->end && !s->error) {
 
-    if ((match(s, TOKEN_LSHIFT, &_ast_match_66), _ast_match_66)) {
+    if ((match(s, TOKEN_LSHIFT, &_ast_match_66) == 0 && _ast_match_66)) {
 
       val <<=
           (parse_additive(s, &_ast_parse_additive_67), _ast_parse_additive_67);
 
-    } else if ((match(s, TOKEN_RSHIFT, &_ast_match_68), _ast_match_68)) {
+    } else if ((match(s, TOKEN_RSHIFT, &_ast_match_68) == 0 && _ast_match_68)) {
 
       val >>=
           (parse_additive(s, &_ast_parse_additive_69), _ast_parse_additive_69);
@@ -1626,13 +1631,13 @@ static /**
     parse_relational(struct ExprState *s, long *_out_val) {
   long _ast_parse_shift_70;
   enum TokenKind _ast_peek_71;
-  bool _ast_match_72 = false;
+  int _ast_match_72 = 0;
   long _ast_parse_shift_73;
-  bool _ast_match_74 = false;
+  int _ast_match_74 = 0;
   long _ast_parse_shift_75;
-  bool _ast_match_76 = false;
+  int _ast_match_76 = 0;
   long _ast_parse_shift_77;
-  bool _ast_match_78 = false;
+  int _ast_match_78 = 0;
   long _ast_parse_shift_79;
 
   long val = (parse_shift(s, &_ast_parse_shift_70), _ast_parse_shift_70);
@@ -1643,27 +1648,27 @@ static /**
 
     if (k == TOKEN_LEQ) {
 
-      (match(s, k, &_ast_match_72), _ast_match_72);
+      (match(s, k, &_ast_match_72) == 0 && _ast_match_72);
 
       val =
           (val <= (parse_shift(s, &_ast_parse_shift_73), _ast_parse_shift_73));
 
     } else if (k == TOKEN_GEQ) {
 
-      (match(s, k, &_ast_match_74), _ast_match_74);
+      (match(s, k, &_ast_match_74) == 0 && _ast_match_74);
 
       val =
           (val >= (parse_shift(s, &_ast_parse_shift_75), _ast_parse_shift_75));
 
     } else if (k == TOKEN_LESS) {
 
-      (match(s, k, &_ast_match_76), _ast_match_76);
+      (match(s, k, &_ast_match_76) == 0 && _ast_match_76);
 
       val = (val < (parse_shift(s, &_ast_parse_shift_77), _ast_parse_shift_77));
 
     } else if (k == TOKEN_GREATER) {
 
-      (match(s, k, &_ast_match_78), _ast_match_78);
+      (match(s, k, &_ast_match_78) == 0 && _ast_match_78);
 
       val = (val > (parse_shift(s, &_ast_parse_shift_79), _ast_parse_shift_79));
 
@@ -1685,9 +1690,9 @@ static /**
     int
     parse_equality(struct ExprState *s, long *_out_val) {
   long _ast_parse_relational_80;
-  bool _ast_match_81 = false;
+  int _ast_match_81 = 0;
   long _ast_parse_relational_82;
-  bool _ast_match_83 = false;
+  int _ast_match_83 = 0;
   long _ast_parse_relational_84;
 
   long val = (parse_relational(s, &_ast_parse_relational_80),
@@ -1695,12 +1700,12 @@ static /**
 
   while (s->pos < s->end && !s->error) {
 
-    if ((match(s, TOKEN_EQ, &_ast_match_81), _ast_match_81)) {
+    if ((match(s, TOKEN_EQ, &_ast_match_81) == 0 && _ast_match_81)) {
 
       val = (val == (parse_relational(s, &_ast_parse_relational_82),
                      _ast_parse_relational_82));
 
-    } else if ((match(s, TOKEN_NEQ, &_ast_match_83), _ast_match_83)) {
+    } else if ((match(s, TOKEN_NEQ, &_ast_match_83) == 0 && _ast_match_83)) {
 
       val = (val != (parse_relational(s, &_ast_parse_relational_84),
                      _ast_parse_relational_84));
@@ -1723,13 +1728,13 @@ static /**
     int
     parse_logic_and(struct ExprState *s, long *_out_val) {
   long _ast_parse_equality_85;
-  bool _ast_match_86 = false;
+  int _ast_match_86 = 0;
   long _ast_parse_equality_87;
 
   long val =
       (parse_equality(s, &_ast_parse_equality_85), _ast_parse_equality_85);
 
-  while ((match(s, TOKEN_LOGICAL_AND, &_ast_match_86), _ast_match_86)) {
+  while ((match(s, TOKEN_LOGICAL_AND, &_ast_match_86) == 0 && _ast_match_86)) {
 
     long rhs =
         (parse_equality(s, &_ast_parse_equality_87), _ast_parse_equality_87);
@@ -1749,13 +1754,13 @@ static /**
     int
     parse_logic_or(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_and_88;
-  bool _ast_match_89 = false;
+  int _ast_match_89 = 0;
   long _ast_parse_logic_and_90;
 
   long val =
       (parse_logic_and(s, &_ast_parse_logic_and_88), _ast_parse_logic_and_88);
 
-  while ((match(s, TOKEN_LOGICAL_OR, &_ast_match_89), _ast_match_89)) {
+  while ((match(s, TOKEN_LOGICAL_OR, &_ast_match_89) == 0 && _ast_match_89)) {
 
     long rhs =
         (parse_logic_and(s, &_ast_parse_logic_and_90), _ast_parse_logic_and_90);
@@ -2098,7 +2103,7 @@ static /**
         * @brief Checks if enabled.
         */
     int
-    is_enabled(const struct ConditionalStack *st, bool *_out_val) {
+    is_enabled(const struct ConditionalStack *st, int *_out_val) {
 
   int i;
 
@@ -2107,13 +2112,13 @@ static /**
     if (st->states[i] == COND_SKIPPING || st->states[i] == COND_SATISFIED)
 
     {
-      *_out_val = false;
+      *_out_val = 0;
       return 0;
     }
   }
 
   {
-    *_out_val = true;
+    *_out_val = 1;
     return 0;
   }
 }
@@ -2126,23 +2131,23 @@ int pp_scan_includes(const char *filename,
                      struct PreprocessorContext *ctx, pp_visitor_cb cb,
 
                      void *user_data) {
-  bool _ast_token_matches_string_100 = false;
-  bool _ast_token_matches_string_101 = false;
-  bool _ast_token_matches_string_102 = false;
-  bool _ast_is_enabled_103 = false;
-  bool _ast_is_defined_macro_104 = false;
-  bool _ast_token_matches_string_105 = false;
-  bool _ast_is_enabled_106 = false;
-  bool _ast_token_matches_string_107 = false;
+  int _ast_token_matches_string_100 = 0;
+  int _ast_token_matches_string_101 = 0;
+  int _ast_token_matches_string_102 = 0;
+  int _ast_is_enabled_103 = 0;
+  int _ast_is_defined_macro_104 = 0;
+  int _ast_token_matches_string_105 = 0;
+  int _ast_is_enabled_106 = 0;
+  int _ast_token_matches_string_107 = 0;
   enum CondState _ast_stack_peek_108;
-  bool _ast_is_enabled_109 = false;
-  bool _ast_token_matches_string_110 = false;
+  int _ast_is_enabled_109 = 0;
+  int _ast_token_matches_string_110 = 0;
   enum CondState _ast_stack_peek_111;
-  bool _ast_is_enabled_112 = false;
-  bool _ast_token_matches_string_113 = false;
-  bool _ast_is_enabled_114 = false;
-  bool _ast_token_matches_string_115 = false;
-  bool _ast_token_matches_string_116 = false;
+  int _ast_is_enabled_112 = 0;
+  int _ast_token_matches_string_113 = 0;
+  int _ast_is_enabled_114 = 0;
+  int _ast_token_matches_string_115 = 0;
+  int _ast_token_matches_string_116 = 0;
   char *_ast_reconstruct_path_117 = NULL;
   char *_ast_resolve_path_118 = NULL;
 
@@ -2255,21 +2260,23 @@ int pp_scan_includes(const char *filename,
 
         /* --- Conditionals --- */
 
-        if ((token_matches_string(cmd, "ifdef", &_ast_token_matches_string_100),
+        if ((token_matches_string(cmd, "ifdef",
+                                  &_ast_token_matches_string_100) == 0 &&
              _ast_token_matches_string_100) ||
 
             (token_matches_string(cmd, "ifndef",
-                                  &_ast_token_matches_string_101),
+                                  &_ast_token_matches_string_101) == 0 &&
              _ast_token_matches_string_101)) {
 
-          bool inverse = (token_matches_string(cmd, "ifndef",
-                                               &_ast_token_matches_string_102),
-                          _ast_token_matches_string_102);
+          int inverse =
+              (token_matches_string(cmd, "ifndef",
+                                    &_ast_token_matches_string_102) == 0 &&
+               _ast_token_matches_string_102);
 
-          bool enabled =
-              (is_enabled(&stack, &_ast_is_enabled_103), _ast_is_enabled_103);
+          int enabled = (is_enabled(&stack, &_ast_is_enabled_103) == 0 &&
+                         _ast_is_enabled_103);
 
-          bool condition_met = false;
+          int condition_met = false;
 
           directive_handled = 1;
 
@@ -2287,9 +2294,10 @@ int pp_scan_includes(const char *filename,
 
                 tokens->tokens[id_idx].kind == TOKEN_IDENTIFIER) {
 
-              bool defined = (is_defined_macro(ctx, &tokens->tokens[id_idx],
-                                               &_ast_is_defined_macro_104),
-                              _ast_is_defined_macro_104);
+              int defined =
+                  (is_defined_macro(ctx, &tokens->tokens[id_idx],
+                                    &_ast_is_defined_macro_104) == 0 &&
+                   _ast_is_defined_macro_104);
 
               condition_met = inverse ? !defined : defined;
             }
@@ -2309,13 +2317,13 @@ int pp_scan_includes(const char *filename,
           }
 
         } else if ((token_matches_string(cmd, "if",
-                                         &_ast_token_matches_string_105),
+                                         &_ast_token_matches_string_105) == 0 &&
                     _ast_token_matches_string_105)) {
 
-          bool enabled =
-              (is_enabled(&stack, &_ast_is_enabled_106), _ast_is_enabled_106);
+          int enabled = (is_enabled(&stack, &_ast_is_enabled_106) == 0 &&
+                         _ast_is_enabled_106);
 
-          bool condition_met = false;
+          int condition_met = false;
 
           long val = 0;
 
@@ -2344,18 +2352,18 @@ int pp_scan_includes(const char *filename,
           }
 
         } else if ((token_matches_string(cmd, "elif",
-                                         &_ast_token_matches_string_107),
+                                         &_ast_token_matches_string_107) == 0 &&
                     _ast_token_matches_string_107)) {
 
           enum CondState current =
               (stack_peek(&stack, &_ast_stack_peek_108), _ast_stack_peek_108);
 
-          bool parent_enabled;
+          int parent_enabled;
 
           stack_pop(&stack);
 
-          parent_enabled =
-              (is_enabled(&stack, &_ast_is_enabled_109), _ast_is_enabled_109);
+          parent_enabled = (is_enabled(&stack, &_ast_is_enabled_109) == 0 &&
+                            _ast_is_enabled_109);
 
           stack_push(&stack, current);
 
@@ -2388,18 +2396,18 @@ int pp_scan_includes(const char *filename,
           }
 
         } else if ((token_matches_string(cmd, "else",
-                                         &_ast_token_matches_string_110),
+                                         &_ast_token_matches_string_110) == 0 &&
                     _ast_token_matches_string_110)) {
 
           enum CondState current =
               (stack_peek(&stack, &_ast_stack_peek_111), _ast_stack_peek_111);
 
-          bool parent_enabled;
+          int parent_enabled;
 
           stack_pop(&stack);
 
-          parent_enabled =
-              (is_enabled(&stack, &_ast_is_enabled_112), _ast_is_enabled_112);
+          parent_enabled = (is_enabled(&stack, &_ast_is_enabled_112) == 0 &&
+                            _ast_is_enabled_112);
 
           stack_push(&stack, current);
 
@@ -2419,7 +2427,7 @@ int pp_scan_includes(const char *filename,
           }
 
         } else if ((token_matches_string(cmd, "endif",
-                                         &_ast_token_matches_string_113),
+                                         &_ast_token_matches_string_113) == 0 &&
                     _ast_token_matches_string_113)) {
 
           directive_handled = 1;
@@ -2430,23 +2438,24 @@ int pp_scan_includes(const char *filename,
         /* --- Includes & Embeds --- */
 
         if (!directive_handled &&
-            (is_enabled(&stack, &_ast_is_enabled_114), _ast_is_enabled_114)) {
+            (is_enabled(&stack, &_ast_is_enabled_114) == 0 &&
+             _ast_is_enabled_114)) {
 
           int input_is_embed =
               (token_matches_string(cmd, "embed",
-                                    &_ast_token_matches_string_115),
+                                    &_ast_token_matches_string_115) == 0 &&
                _ast_token_matches_string_115) ||
 
               tokens->tokens[next].kind == TOKEN_KEYWORD_EMBED;
 
           int input_is_include =
               (token_matches_string(cmd, "include",
-                                    &_ast_token_matches_string_116),
+                                    &_ast_token_matches_string_116) == 0 &&
                _ast_token_matches_string_116) != 0;
 
           int input_is_include_next =
               (token_matches_string(cmd, "include_next",
-                                    &_ast_token_matches_string_116),
+                                    &_ast_token_matches_string_116) == 0 &&
                _ast_token_matches_string_116) != 0;
 
           if (input_is_embed || input_is_include || input_is_include_next) {

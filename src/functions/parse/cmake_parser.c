@@ -19,13 +19,21 @@ static /**
         * @brief Executes the my strdup operation.
         */
     int
-    my_strdup(const char *s, char **_out_val) {
-  size_t len = strlen(s) + 1;
-  char *d = (char *)malloc(len);
+    my_strdup(const char *s, char **out_val) {
+  size_t len;
+  char *d;
+  if (!out_val)
+    return EINVAL;
+  *out_val = NULL;
+  if (!s)
+    return EINVAL;
+  len = strlen(s) + 1;
+  d = (char *)malloc(len);
   if (!d)
-    return NULL;
+    return ENOMEM;
   memcpy(d, s, len);
-  return d;
+  *out_val = d;
+  return 0;
 }
 
 /**
@@ -36,8 +44,11 @@ int cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
   if (!mod || !filepath)
     return EINVAL;
 
-  mod->filepath = my_strdup(filepath);
-  mod->target_name = target_name ? my_strdup(target_name) : NULL;
+  my_strdup(filepath, &mod->filepath);
+  if (target_name)
+    my_strdup(target_name, &mod->target_name);
+  else
+    mod->target_name = NULL;
   mod->compile_opts = NULL;
   mod->compile_opts_n = 0;
   mod->link_libs = NULL;
@@ -65,7 +76,7 @@ int cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt) {
     return ENOMEM;
   }
 
-  mod->compile_opts[mod->compile_opts_n] = my_strdup(opt);
+  my_strdup(opt, &mod->compile_opts[mod->compile_opts_n]);
   if (!mod->compile_opts[mod->compile_opts_n])
     return ENOMEM;
 
@@ -87,7 +98,7 @@ int cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib) {
     return ENOMEM;
   }
 
-  mod->link_libs[mod->link_libs_n] = my_strdup(lib);
+  my_strdup(lib, &mod->link_libs[mod->link_libs_n]);
   if (!mod->link_libs[mod->link_libs_n])
     return ENOMEM;
 
@@ -126,15 +137,14 @@ static /**
         * @brief Executes the read file to string operation.
         */
     int
-    read_file_to_string(const char *filename, size_t *out_len,
-                        char **_out_val) {
+    read_file_to_string(const char *filename, size_t *out_len, char **out_val) {
   FILE *f;
   char *buf = NULL;
   long size;
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   if (fopen_s(&f, filename, "rb") != 0)
-    return NULL;
+    return EINVAL;
 #else
 #if defined(_MSC_VER)
   fopen_s(&f, filename, "rb");
@@ -146,7 +156,7 @@ static /**
 #endif
 #endif
   if (!f) {
-    *_out_val = NULL;
+    *out_val = NULL;
     return 0;
   }
 #endif
@@ -158,7 +168,7 @@ static /**
   if (size < 0) {
     fclose(f);
     {
-      *_out_val = NULL;
+      *out_val = NULL;
       return 0;
     }
   }
@@ -167,7 +177,7 @@ static /**
   if (!buf) {
     fclose(f);
     {
-      *_out_val = NULL;
+      *out_val = NULL;
       return 0;
     }
   }
@@ -176,7 +186,7 @@ static /**
     free(buf);
     fclose(f);
     {
-      *_out_val = NULL;
+      *out_val = NULL;
       return 0;
     }
   }
@@ -185,7 +195,7 @@ static /**
     *out_len = (size_t)size;
   fclose(f);
   {
-    *_out_val = buf;
+    *out_val = buf;
     return 0;
   }
 }
@@ -196,11 +206,9 @@ static /**
  */
 int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                               char **out_diff) {
-  char *_ast_read_file_to_string_0 = NULL;
   size_t len = 0;
-  char *src =
-      (read_file_to_string(mod->filepath, &len, &_ast_read_file_to_string_0),
-       _ast_read_file_to_string_0);
+  char *src = NULL;
+  read_file_to_string(mod->filepath, &len, &src);
   char *diff;
   size_t diff_cap = 2048;
   size_t diff_len = 0;
@@ -211,17 +219,18 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
 
   if (!src) {
     /* If file doesn't exist, we just simulate appending to empty */
-    src = my_strdup("");
+    my_strdup("", &src);
     len = 0;
   }
 
   for (i = 0; i < len; i++) {
-    if (src[i] == '
-') lines_count++;
+    if (src[i] == '\n')
+      lines_count++;
   }
-  if (len > 0 && src[len - 1] != '
-') lines_count++;
-  if (lines_count == 0) lines_count = 1; /* For empty files */
+  if (len > 0 && src[len - 1] != '\n')
+    lines_count++;
+  if (lines_count == 0)
+    lines_count = 1; /* For empty files */
 
   diff = (char *)malloc(diff_cap);
   if (!diff) {
@@ -233,8 +242,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE, "--- %s
 +++ %s\\n", mod->filepath, mod->filepath);
 #else
-  diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "--- %s
-+++ %s\\n", mod->filepath, mod->filepath);
+  diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "--- %s\n+++ %s\n",
+                       mod->filepath, mod->filepath);
 #endif
 
   str_buf = (char *)malloc(1024);
@@ -249,8 +258,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "
 if(MSVC)\\n");
 #else
-  str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "
-if(MSVC)\\n");
+  str_buf_len +=
+      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "\nif(MSVC)\n");
 #endif
 
   if (mod->compile_opts_n > 0) {
@@ -330,15 +339,16 @@ if(MSVC)\\n");
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "endif()\\n");
 #else
-  str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\\n");
+  str_buf_len +=
+      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\\n");
 #endif
 
   {
     /* Hunk appended at EOF */
     int new_lines = 0;
     for (i = 0; i < str_buf_len; i++) {
-      if (str_buf[i] == '
-') new_lines++;
+      if (str_buf[i] == '\n')
+        new_lines++;
     }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -355,8 +365,7 @@ if(MSVC)\\n");
     {
       char *line_start = str_buf;
       while (*line_start) {
-        char *nl = strchr(line_start, '
-');
+        char *nl = strchr(line_start, '\n');
         if (nl) {
           int l_len = (int)(nl - line_start);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

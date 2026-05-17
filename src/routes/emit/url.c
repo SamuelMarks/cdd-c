@@ -323,8 +323,9 @@ int querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
 /**
  * @brief Retrieves the raw primitive type of a query parameter.
  */
-int querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
-                                         const char **_out_val) {
+static int
+querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
+                                     const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -616,7 +617,8 @@ int write_query_json_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 /**
  * @brief Generates C code for write query object param.
  */
-int write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
+static int write_query_object_param(FILE *fp,
+                                    const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
   int explode;
@@ -957,8 +959,8 @@ int write_query_object_param(FILE *fp, const struct OpenAPI_Parameter *p) {
 /**
  * @brief Generates C code for write path object serialization.
  */
-int write_path_object_serialization(FILE *fp,
-                                    const struct OpenAPI_Parameter *p) {
+static int write_path_object_serialization(FILE *fp,
+                                           const struct OpenAPI_Parameter *p) {
   const char *name;
   enum OpenAPI_Style style;
   int explode;
@@ -1122,8 +1124,10 @@ int write_path_object_serialization(FILE *fp,
 /**
  * @brief Generates C code for write path array serialization.
  */
-int write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
-                                   const char *prefix, const char *delim) {
+static int write_path_array_serialization(FILE *fp,
+                                          const struct OpenAPI_Parameter *p,
+                                          const char *prefix,
+                                          const char *delim) {
   size_t prefix_len;
   size_t delim_len;
   const char *name;
@@ -1233,9 +1237,9 @@ int write_path_array_serialization(FILE *fp, const struct OpenAPI_Parameter *p,
 /**
  * @brief Generates C code for write joined query array.
  */
-int write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
-                             const char delim, const char *encode_fn,
-                             const int add_encoded) {
+static int write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
+                                    const char delim, const char *encode_fn,
+                                    const int add_encoded) {
   const char *name;
   const char *item_type;
   const int do_encode = (encode_fn && encode_fn[0] != '\0');
@@ -1327,10 +1331,9 @@ int write_joined_query_array(FILE *fp, const struct OpenAPI_Parameter *p,
 /**
  * @brief Generates C code for write joined query array encoded delim.
  */
-int write_joined_query_array_encoded_delim(FILE *fp,
-                                           const struct OpenAPI_Parameter *p,
-                                           const char *delim_enc,
-                                           const char *encode_fn) {
+static int write_joined_query_array_encoded_delim(
+    FILE *fp, const struct OpenAPI_Parameter *p, const char *delim_enc,
+    const char *encode_fn) {
   const char *name;
   const char *item_type;
   size_t delim_len;
@@ -1403,8 +1406,9 @@ int write_joined_query_array_encoded_delim(FILE *fp,
  * @brief Finds an OpenAPI parameter by name within an array of
  * parameters.
  */
-int find_param(const char *name, const struct OpenAPI_Parameter *params,
-               size_t n_params, const struct OpenAPI_Parameter **_out_val) {
+static int find_param(const char *name, const struct OpenAPI_Parameter *params,
+                      size_t n_params,
+                      const struct OpenAPI_Parameter **_out_val) {
   size_t i;
   for (i = 0; i < n_params; ++i) {
     if (params[i].name && strcmp(params[i].name, name) == 0 &&
@@ -1424,8 +1428,8 @@ int find_param(const char *name, const struct OpenAPI_Parameter *params,
 /**
  * @brief Parses segments from the given input.
  */
-int parse_segments(const char *tmpl, struct UrlSegment **out_segments,
-                   size_t *out_count) {
+static int parse_segments(const char *tmpl, struct UrlSegment **out_segments,
+                          size_t *out_count) {
   const char *p = tmpl;
   const char *start = p;
   struct UrlSegment *segs = NULL;

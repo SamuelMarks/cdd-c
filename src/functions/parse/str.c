@@ -207,17 +207,27 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
 /**
  * @brief Executes the c cdd stricmp operation.
  */
-int c_cdd_stricmp(const char *a, const char *b) {
-  if (a == b)
+int c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
+  int diff;
+  if (!out_diff)
+    return 22; /* EINVAL */
+  if (a == b) {
+    *out_diff = 0;
     return 0;
-  if (!a || !b)
-    return a ? 1 : -1;
+  }
+  if (!a || !b) {
+    *out_diff = a ? 1 : -1;
+    return 0;
+  }
   while (*a && *b) {
-    int diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-    if (diff != 0)
-      return diff;
+    diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+    if (diff != 0) {
+      *out_diff = diff;
+      return 0;
+    }
     ++a;
     ++b;
   }
-  return tolower((unsigned char)*a) - tolower((unsigned char)*b);
+  *out_diff = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+  return 0;
 }

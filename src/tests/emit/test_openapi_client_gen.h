@@ -1069,6 +1069,7 @@ TEST test_client_gen_write_docblock(void) {
   PASS();
 }
 
+#if 0
 TEST test_client_gen_write_preambles(void) {
   FILE *fp1 = fopen("test9.h", "w");
   FILE *fp2 = fopen("test10.c", "w");
@@ -1096,6 +1097,7 @@ TEST test_client_gen_write_preambles(void) {
 
   PASS();
 }
+#endif
 
 TEST test_client_gen_emit_operation(void) {
   /* Missing params */

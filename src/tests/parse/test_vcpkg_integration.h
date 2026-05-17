@@ -19,13 +19,12 @@ extern "C" {
 TEST test_vcpkg_builder_basic(void) {
   struct VcpkgManifestBuilder builder;
   char *json = NULL;
-  const char *src = "#include <stdio.h>
-#ifndef _MSC_VER
-#include <pthread.h>
-#endif
-#include \"local.h\"
-#include <zlib.h>
-                    ";
+  const char *src = "#include <stdio.h>\n"
+                    "#ifndef _MSC_VER\n"
+                    "#include <pthread.h>\n"
+                    "#endif\n"
+                    "#include \"local.h\"\n"
+                    "#include <zlib.h>\n";
 
       ASSERT_EQ(
           0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
@@ -48,14 +47,12 @@ TEST test_vcpkg_builder_basic(void) {
 
 TEST test_vcpkg_builder_duplicate(void) {
   struct VcpkgManifestBuilder builder;
-  const char *src = "#ifndef _MSC_VER
-#include <pthread.h>
-#endif
-#ifndef _MSC_VER
-#include <pthread.h>
-#endif
-                /* clang-format on */
-                ";
+  const char *src = "#ifndef _MSC_VER\n"
+                    "#include <pthread.h>\n"
+                    "#endif\n"
+                    "#ifndef _MSC_VER\n"
+                    "#include <pthread.h>\n"
+                    "#endif\n";
 
       ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
@@ -67,9 +64,29 @@ TEST test_vcpkg_builder_duplicate(void) {
   PASS();
 }
 
+
+TEST test_vcpkg_builder_errors(void) {
+  struct VcpkgManifestBuilder builder;
+  char *json = NULL;
+  ASSERT_EQ(EINVAL, vcpkg_builder_init(NULL, "proj", NULL, NULL));
+  ASSERT_EQ(EINVAL, vcpkg_builder_init(&builder, NULL, NULL, NULL));
+  
+  vcpkg_builder_init(&builder, "proj", NULL, NULL);
+  ASSERT_EQ(EINVAL, vcpkg_builder_add_dep(NULL, "dep"));
+  ASSERT_EQ(EINVAL, vcpkg_builder_add_dep(&builder, NULL));
+  ASSERT_EQ(EINVAL, vcpkg_builder_scan_source(NULL, "#include <pthread.h>"));
+  ASSERT_EQ(EINVAL, vcpkg_builder_scan_source(&builder, NULL));
+  ASSERT_EQ(EINVAL, vcpkg_builder_generate(NULL, &json));
+  ASSERT_EQ(EINVAL, vcpkg_builder_generate(&builder, NULL));
+  
+  vcpkg_builder_free(&builder);
+  PASS();
+}
+
 SUITE(vcpkg_integration_suite) {
   RUN_TEST(test_vcpkg_builder_basic);
   RUN_TEST(test_vcpkg_builder_duplicate);
+  RUN_TEST(test_vcpkg_builder_errors);
 }
 
 #ifdef __cplusplus

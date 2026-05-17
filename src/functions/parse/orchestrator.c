@@ -757,9 +757,18 @@ static /**
         * @brief Checks if c source.
         */
     int
-    is_c_source(const char *path) {
-  const char *dot = strrchr(path, '.');
-  return (dot && c_cdd_stricmp(dot, ".c") == 0);
+    is_c_source(const char *path, int *out_is_src) {
+  const char *dot;
+  int diff;
+  if (!out_is_src)
+    return EINVAL;
+  *out_is_src = 0;
+  dot = strrchr(path, '.');
+  if (!dot)
+    return 0;
+  c_cdd_stricmp(dot, ".c", &diff);
+  *out_is_src = (diff == 0);
+  return 0;
 }
 
 static /**
@@ -775,8 +784,12 @@ static /**
   const char *out_path =
       ctx->single_output_file ? ctx->single_output_file : path;
 
-  if (!is_c_source(path))
-    return 0;
+  {
+    int is_src = 0;
+    is_c_source(path, &is_src);
+    if (!is_src)
+      return 0;
+  }
 
   if (read_to_file(path, "r", &content, &sz) != 0) {
     fprintf(stderr, "Failed to read %s\n", path);
@@ -840,7 +853,9 @@ int fix_code_main(int argc, char **argv) {
       ctx.single_output_file = argv[1];
   } else {
     /* Implicit single file or error? Assume directory implicit checking */
-    if (fs_is_directory(target)) {
+    int is_dir = 0;
+    fs_is_directory(target, &is_dir);
+    if (is_dir) {
       fprintf(stderr, "Directory requires --in-place\n");
       return EXIT_FAILURE;
     }

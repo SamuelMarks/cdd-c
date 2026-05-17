@@ -14,6 +14,10 @@ extern "C" {
 /* clang-format on */
 
 static int dummy_visitor(cdd_cst_node_t *node, void *user_data) {
+  (void)node;
+  (void)user_data;
+  (void)node;
+  (void)user_data;
   int *count = (int *)user_data;
   (*count)++;
   return 0;

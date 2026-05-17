@@ -288,6 +288,17 @@ TEST test_abstract_array(void) {
   PASS();
 }
 
+TEST test_parse_decl_errors(void) {
+  struct DeclInfo info;
+  struct TokenList *tl = setup_tokens("int x");
+
+  ASSERT_EQ(EINVAL, parse_declaration(NULL, 0, 0, &info));
+  ASSERT_EQ(EINVAL, parse_declaration(tl, 0, tl->size, NULL));
+
+  free_token_list(tl);
+  PASS();
+}
+
 SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
@@ -301,6 +312,7 @@ SUITE(declarator_parser_suite) {
   RUN_TEST(test_parse_func_array);
   RUN_TEST(test_abstract_func_ptr);
   RUN_TEST(test_abstract_array);
+  RUN_TEST(test_parse_decl_errors);
 }
 
 #ifdef __cplusplus

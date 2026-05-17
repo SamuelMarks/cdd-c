@@ -43,7 +43,7 @@ static /**
   char *buf, *p;
 
   if (start >= end) {
-    *_out_val = (c_cdd_strdup("", &_ast_strdup_0), _ast_strdup_0);
+    c_cdd_strdup("", _out_val);
     return 0;
   }
 
@@ -237,19 +237,23 @@ static /**
         */
     int
     is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
-                      size_t limit) {
-  size_t _ast_skip_ws_0 = 0;
-  size_t i =
-      (skip_ws(tokens, paren_idx + 1, limit, &_ast_skip_ws_0), _ast_skip_ws_0);
+                      size_t limit, int *out_is_grouping) {
+  size_t i;
+  if (!out_is_grouping)
+    return EINVAL;
+  *out_is_grouping = 0;
+  skip_ws(tokens, paren_idx + 1, limit, &i);
   if (i >= limit)
     return 0;
   if (tokens->tokens[i].kind == TOKEN_STAR ||
       tokens->tokens[i].kind == TOKEN_CARET ||
       tokens->tokens[i].kind == TOKEN_LBRACKET) {
-    return 1;
+    *out_is_grouping = 1;
+    return 0;
   }
   if (tokens->tokens[i].kind == TOKEN_LPAREN) {
-    return 1;
+    *out_is_grouping = 1;
+    return 0;
   }
   return 0;
 }
@@ -260,13 +264,6 @@ static /**
     int
     find_abstract_pivot(const struct TokenList *tokens, size_t start,
                         size_t end, size_t *_out_val) {
-  size_t _ast_skip_ws_1 = 0;
-  size_t _ast_skip_ws_2 = 0;
-  size_t _ast_skip_group_3 = 0;
-  size_t _ast_skip_ws_4 = 0;
-  size_t _ast_skip_group_5 = 0;
-  size_t _ast_skip_group_6 = 0;
-  size_t _ast_skip_group_7 = 0;
   size_t i = start;
   size_t best_pivot = end;
   int current_depth = 0;
@@ -278,41 +275,39 @@ static /**
     /* Skip aggregrate definitions */
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
         k == TOKEN_KEYWORD_ENUM) {
-      size_t j = (skip_ws(tokens, i + 1, end, &_ast_skip_ws_1), _ast_skip_ws_1);
+      size_t j;
+      skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        j = (skip_ws(tokens, j + 1, end, &_ast_skip_ws_2), _ast_skip_ws_2);
+        skip_ws(tokens, j + 1, end, &j);
       }
       if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
-        i = (skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE,
-                        &_ast_skip_group_3),
-             _ast_skip_group_3);
+        skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
       }
     }
     /* Skip parameterized specifiers like typeof() or _Atomic() */
     else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
-      size_t j = (skip_ws(tokens, i + 1, end, &_ast_skip_ws_4), _ast_skip_ws_4);
+      size_t j;
+      skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
         /* _Atomic(int) ... */
-        i = (skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN,
-                        &_ast_skip_group_5),
-             _ast_skip_group_5);
+        skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
       }
     }
 
     /* Abstract Pivot Logic */
     if (k == TOKEN_LPAREN) {
-      if (is_grouping_paren(tokens, i, end)) {
+      int is_grouping = 0;
+      is_grouping_paren(tokens, i, end, &is_grouping);
+      if (is_grouping) {
         current_depth++;
       } else {
         if (current_depth > best_depth) {
           best_depth = current_depth;
           best_pivot = i;
         }
-        i = (skip_group(tokens, i, end, TOKEN_LPAREN, TOKEN_RPAREN,
-                        &_ast_skip_group_6),
-             _ast_skip_group_6);
+        skip_group(tokens, i, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
       }
     } else if (k == TOKEN_RPAREN) {
@@ -326,9 +321,7 @@ static /**
         best_depth = current_depth;
         best_pivot = i;
       }
-      i = (skip_group(tokens, i, end, TOKEN_LBRACKET, TOKEN_RBRACKET,
-                      &_ast_skip_group_7),
-           _ast_skip_group_7);
+      skip_group(tokens, i, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &i);
       continue;
     }
     i++;
@@ -355,12 +348,6 @@ static /**
     int
     find_pivot(const struct TokenList *tokens, size_t start, size_t end,
                int *is_abstract, size_t *_out_val) {
-  size_t _ast_skip_ws_8 = 0;
-  size_t _ast_skip_ws_9 = 0;
-  size_t _ast_skip_group_10 = 0;
-  size_t _ast_skip_ws_11 = 0;
-  size_t _ast_skip_group_12 = 0;
-  size_t _ast_find_abstract_pivot_13 = 0;
   size_t i = start;
   size_t best_ident = end;
 
@@ -370,23 +357,20 @@ static /**
 
     if (k == TOKEN_KEYWORD_STRUCT || k == TOKEN_KEYWORD_UNION ||
         k == TOKEN_KEYWORD_ENUM) {
-      size_t j = (skip_ws(tokens, i + 1, end, &_ast_skip_ws_8), _ast_skip_ws_8);
+      size_t j;
+      skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        j = (skip_ws(tokens, j + 1, end, &_ast_skip_ws_9), _ast_skip_ws_9);
+        skip_ws(tokens, j + 1, end, &j);
       }
       if (j < end && tokens->tokens[j].kind == TOKEN_LBRACE) {
-        i = (skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE,
-                        &_ast_skip_group_10),
-             _ast_skip_group_10);
+        skip_group(tokens, j, end, TOKEN_LBRACE, TOKEN_RBRACE, &i);
         continue;
       }
     } else if (k == TOKEN_KEYWORD_TYPEOF || k == TOKEN_KEYWORD_ATOMIC) {
-      size_t j =
-          (skip_ws(tokens, i + 1, end, &_ast_skip_ws_11), _ast_skip_ws_11);
+      size_t j;
+      skip_ws(tokens, i + 1, end, &j);
       if (j < end && tokens->tokens[j].kind == TOKEN_LPAREN) {
-        i = (skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN,
-                        &_ast_skip_group_12),
-             _ast_skip_group_12);
+        skip_group(tokens, j, end, TOKEN_LPAREN, TOKEN_RPAREN, &i);
         continue;
       }
     } else if (k == TOKEN_IDENTIFIER) {
@@ -406,9 +390,7 @@ static /**
   /* 2. Abstract Declarator search */
   *is_abstract = 1;
   {
-    *_out_val =
-        (find_abstract_pivot(tokens, start, end, &_ast_find_abstract_pivot_13),
-         _ast_find_abstract_pivot_13);
+    find_abstract_pivot(tokens, start, end, _out_val);
     return 0;
   }
 }
@@ -418,27 +400,10 @@ static /**
  */
 int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info) {
-  size_t _ast_find_pivot_14 = 0;
   char *_ast_join_tokens_range_15 = NULL;
-  size_t _ast_skip_ws_back_16 = 0;
-  size_t _ast_skip_ws_17 = 0;
-  size_t _ast_skip_ws_back_18 = 0;
-  size_t _ast_skip_ws_19 = 0;
-  struct DeclType *_ast_create_node_20;
-  size_t _ast_skip_group_21 = 0;
   char *_ast_join_tokens_range_22 = NULL;
-  size_t _ast_skip_ws_23 = 0;
-  struct DeclType *_ast_create_node_24;
-  size_t _ast_skip_group_25 = 0;
   char *_ast_join_tokens_range_26 = NULL;
-  size_t _ast_skip_ws_27 = 0;
-  struct DeclType *_ast_create_node_28;
   char *_ast_join_tokens_range_29 = NULL;
-  size_t _ast_skip_ws_back_30 = 0;
-  size_t _ast_skip_ws_back_31 = 0;
-  size_t _ast_skip_ws_back_32 = 0;
-  size_t _ast_skip_ws_33 = 0;
-  struct DeclType *_ast_create_node_34;
   char *_ast_join_tokens_range_35 = NULL;
   char *_ast_strdup_1 = NULL;
   size_t pivot;
@@ -454,32 +419,26 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
   decl_info_init(out_info);
 
   /* 1. Find Pivot */
-  pivot = (find_pivot(tokens, start, end, &is_abstract, &_ast_find_pivot_14),
-           _ast_find_pivot_14);
+  find_pivot(tokens, start, end, &is_abstract, &pivot);
 
   if (!is_abstract) {
     if (pivot >= end)
       return EINVAL;
-    out_info->identifier = (join_tokens_range(tokens, pivot, pivot + 1,
-                                              &_ast_join_tokens_range_15),
-                            _ast_join_tokens_range_15);
+    join_tokens_range(tokens, pivot, pivot + 1, &out_info->identifier);
     if (!out_info->identifier) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
     }
-    left = (skip_ws_back(tokens, pivot, start, &_ast_skip_ws_back_16),
-            _ast_skip_ws_back_16);
-    right =
-        (skip_ws(tokens, pivot + 1, end, &_ast_skip_ws_17), _ast_skip_ws_17);
+    skip_ws_back(tokens, pivot, start, &left);
+    skip_ws(tokens, pivot + 1, end, &right);
   } else {
     out_info->identifier = NULL; /* Abstract */
     if (pivot > start) {
-      left = (skip_ws_back(tokens, pivot, start, &_ast_skip_ws_back_18),
-              _ast_skip_ws_back_18);
+      skip_ws_back(tokens, pivot, start, &left);
     } else {
       left = SIZE_MAX;
     }
-    right = (skip_ws(tokens, pivot, end, &_ast_skip_ws_19), _ast_skip_ws_19);
+    skip_ws(tokens, pivot, end, &right);
   }
 
   /* 2. Spiral Walk */
@@ -489,21 +448,18 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
       enum TokenKind k = tokens->tokens[right].kind;
 
       if (k == TOKEN_LBRACKET) { /* Array [] */
-        struct DeclType *node = (create_node(DECL_ARRAY, &_ast_create_node_20),
-                                 _ast_create_node_20);
-        size_t close = (skip_group(tokens, right, end, TOKEN_LBRACKET,
-                                   TOKEN_RBRACKET, &_ast_skip_group_21),
-                        _ast_skip_group_21);
+        struct DeclType *node = NULL;
+        size_t close = 0;
+        create_node(DECL_ARRAY, &node);
+        skip_group(tokens, right, end, TOKEN_LBRACKET, TOKEN_RBRACKET, &close);
         if (!node) {
           rc = ENOMEM;
           goto error;
         }
 
         if (close > right + 1) {
-          node->data.array.size_expr =
-              (join_tokens_range(tokens, right + 1, close - 1,
-                                 &_ast_join_tokens_range_22),
-               _ast_join_tokens_range_22);
+          join_tokens_range(tokens, right + 1, close - 1,
+                            &node->data.array.size_expr);
         } else {
           node->data.array.size_expr = NULL; /* [] */
         }
@@ -513,25 +469,21 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
           rc = ENOMEM;
           goto error;
         }
-        right =
-            (skip_ws(tokens, close, end, &_ast_skip_ws_23), _ast_skip_ws_23);
+        skip_ws(tokens, close, end, &right);
 
       } else if (k == TOKEN_LPAREN) { /* Function () */
-        struct DeclType *node =
-            (create_node(DECL_FUNC, &_ast_create_node_24), _ast_create_node_24);
-        size_t close = (skip_group(tokens, right, end, TOKEN_LPAREN,
-                                   TOKEN_RPAREN, &_ast_skip_group_25),
-                        _ast_skip_group_25);
+        struct DeclType *node = NULL;
+        size_t close = 0;
+        create_node(DECL_FUNC, &node);
+        skip_group(tokens, right, end, TOKEN_LPAREN, TOKEN_RPAREN, &close);
         if (!node) {
           rc = ENOMEM;
           goto error;
         }
 
         if (close > right + 1) {
-          node->data.func.args_str =
-              (join_tokens_range(tokens, right + 1, close - 1,
-                                 &_ast_join_tokens_range_26),
-               _ast_join_tokens_range_26);
+          join_tokens_range(tokens, right + 1, close - 1,
+                            &node->data.func.args_str);
         }
 
         if (add_type_node(out_info, &tail, node) != 0) {
@@ -539,8 +491,7 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
           rc = ENOMEM;
           goto error;
         }
-        right =
-            (skip_ws(tokens, close, end, &_ast_skip_ws_27), _ast_skip_ws_27);
+        skip_ws(tokens, close, end, &right);
       } else {
         break; /* Not a suffix */
       }
@@ -555,18 +506,16 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
         enum TokenKind k = tokens->tokens[left].kind;
 
         if (k == TOKEN_STAR) {
-          struct DeclType *node = (create_node(DECL_PTR, &_ast_create_node_28),
-                                   _ast_create_node_28);
+          struct DeclType *node = NULL;
+          create_node(DECL_PTR, &node);
           if (!node) {
             rc = ENOMEM;
             goto error;
           }
 
           if (qual_start < qual_end) {
-            node->data.ptr.qualifiers =
-                (join_tokens_range(tokens, qual_start, qual_end,
-                                   &_ast_join_tokens_range_29),
-                 _ast_join_tokens_range_29);
+            join_tokens_range(tokens, qual_start, qual_end,
+                              &node->data.ptr.qualifiers);
           }
 
           if (add_type_node(out_info, &tail, node) != 0) {
@@ -575,16 +524,14 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
             goto error;
           }
 
-          left = (skip_ws_back(tokens, left, left_limit, &_ast_skip_ws_back_30),
-                  _ast_skip_ws_back_30);
+          skip_ws_back(tokens, left, left_limit, &left);
           qual_end = (left != SIZE_MAX) ? left + 1 : 0;
           qual_start = qual_end;
 
         } else if (k == TOKEN_KEYWORD_CONST || k == TOKEN_KEYWORD_VOLATILE ||
                    k == TOKEN_KEYWORD_RESTRICT || k == TOKEN_KEYWORD_ATOMIC) {
           qual_start = left;
-          left = (skip_ws_back(tokens, left, left_limit, &_ast_skip_ws_back_31),
-                  _ast_skip_ws_back_31);
+          skip_ws_back(tokens, left, left_limit, &left);
         } else {
           break; /* Not a pointer or qualifier */
         }
@@ -595,10 +542,8 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
     if (left != SIZE_MAX && left >= left_limit && left < end && right < end &&
         tokens->tokens[left].kind == TOKEN_LPAREN &&
         tokens->tokens[right].kind == TOKEN_RPAREN) {
-      left = (skip_ws_back(tokens, left, left_limit, &_ast_skip_ws_back_32),
-              _ast_skip_ws_back_32);
-      right =
-          (skip_ws(tokens, right + 1, end, &_ast_skip_ws_33), _ast_skip_ws_33);
+      skip_ws_back(tokens, left, left_limit, &left);
+      skip_ws(tokens, right + 1, end, &right);
     } else {
       break; /* Done or stuck */
     }
@@ -606,20 +551,17 @@ int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
 
   /* 3. Base Type */
   {
-    struct DeclType *node =
-        (create_node(DECL_BASE, &_ast_create_node_34), _ast_create_node_34);
+    struct DeclType *node = NULL;
+    create_node(DECL_BASE, &node);
     if (!node) {
       rc = ENOMEM;
       goto error;
     }
 
     if (left != SIZE_MAX && left < end && left >= left_limit) {
-      node->data.base.name = (join_tokens_range(tokens, left_limit, left + 1,
-                                                &_ast_join_tokens_range_35),
-                              _ast_join_tokens_range_35);
+      join_tokens_range(tokens, left_limit, left + 1, &node->data.base.name);
     } else {
-      node->data.base.name = (c_cdd_strdup("int", &_ast_strdup_1),
-                              _ast_strdup_1); /* Implicit or error */
+      c_cdd_strdup("int", &node->data.base.name); /* Implicit or error */
     }
 
     if (add_type_node(out_info, &tail, node) != 0) {

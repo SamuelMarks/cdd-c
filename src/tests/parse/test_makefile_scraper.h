@@ -20,10 +20,11 @@ extern "C" {
 TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
-  const char *makefile = "CC=gcc
-      CFLAGS = -I./ include - DDEBUG = 1 SRCS = main.c util.c ";
+  const char *makefile = "CC=gcc\n"
+                         "CFLAGS=-I./include -DDEBUG=1\n"
+                         "SRCS=main.c util.c";
 
-                                                build_info_init(&info);
+  build_info_init(&info);
   ASSERT_EQ(0, scrape_makefile(&info, makefile));
 
   ASSERT_EQ(2, info.source_files_n);
@@ -40,23 +41,43 @@ TEST test_scrape_makefile_basic(void) {
   ASSERT(cmake_str != NULL);
 
   ASSERT(strstr(cmake_str, "project(my_proj C)") != NULL);
-  ASSERT(strstr(cmake_str, "add_compile_definitions(
-  DEBUG=1
-)") != NULL);
-  ASSERT(strstr(cmake_str, "add_executable(my_proj
-  main.c
-  util.c
-)") != NULL);
-  ASSERT(strstr(cmake_str, "target_include_directories(my_proj PRIVATE
-  ./include
-)") != NULL);
+  fprintf(stderr, "CMAKE_STR:\n%s\n", cmake_str);
+  ASSERT(strstr(cmake_str, "add_compile_definitions(\n  DEBUG=1\n)") != NULL);
+  ASSERT(strstr(cmake_str, "add_executable(my_proj\n  main.c\n  util.c\n)") !=
+         NULL);
+  ASSERT(strstr(cmake_str,
+                "target_include_directories(my_proj PRIVATE\n  ./include\n)") !=
+         NULL);
 
   free(cmake_str);
   build_info_free(&info);
   PASS();
 }
 
-SUITE(makefile_scraper_suite) { RUN_TEST(test_scrape_makefile_basic); }
+TEST test_scrape_errors(void) {
+  struct ExtractedBuildInfo info;
+  char *cmake_str = NULL;
+
+  build_info_init(&info);
+
+  ASSERT_EQ(EINVAL, scrape_makefile(NULL, "Makefile"));
+  ASSERT_EQ(EINVAL, scrape_makefile(&info, NULL));
+
+  ASSERT_EQ(EINVAL, scrape_configure_ac(NULL, "configure.ac"));
+  ASSERT_EQ(EINVAL, scrape_configure_ac(&info, NULL));
+
+  ASSERT_EQ(EINVAL, build_info_to_cmake(NULL, "proj", &cmake_str));
+  ASSERT_EQ(EINVAL, build_info_to_cmake(&info, NULL, &cmake_str));
+  ASSERT_EQ(EINVAL, build_info_to_cmake(&info, "proj", NULL));
+
+  build_info_free(&info);
+  PASS();
+}
+
+SUITE(makefile_scraper_suite) {
+  RUN_TEST(test_scrape_makefile_basic);
+  RUN_TEST(test_scrape_errors);
+}
 
 #ifdef __cplusplus
 }

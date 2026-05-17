@@ -13344,36 +13344,40 @@ static /**
   }
 
   if (out->swagger_version) {
-    const char *host = json_object_get_string(root_obj, "host");
+    const char *host;
+    const char *basePath;
+    JSON_Array *schemes_arr;
+    JSON_Array *consumes_arr;
+    JSON_Array *produces_arr;
+    size_t i;
+
+    host = json_object_get_string(root_obj, "host");
     if (host)
       out->host = strdup(host);
-    const char *basePath = json_object_get_string(root_obj, "basePath");
+    basePath = json_object_get_string(root_obj, "basePath");
     if (basePath)
       out->basePath = strdup(basePath);
 
-    JSON_Array *schemes_arr = json_object_get_array(root_obj, "schemes");
+    schemes_arr = json_object_get_array(root_obj, "schemes");
     if (schemes_arr) {
       out->n_schemes = json_array_get_count(schemes_arr);
       out->schemes = calloc(out->n_schemes, sizeof(char *));
-      size_t i;
       for (i = 0; i < out->n_schemes; i++) {
         out->schemes[i] = strdup(json_array_get_string(schemes_arr, i));
       }
     }
-    JSON_Array *consumes_arr = json_object_get_array(root_obj, "consumes");
+    consumes_arr = json_object_get_array(root_obj, "consumes");
     if (consumes_arr) {
       out->n_consumes = json_array_get_count(consumes_arr);
       out->consumes = calloc(out->n_consumes, sizeof(char *));
-      size_t i;
       for (i = 0; i < out->n_consumes; i++) {
         out->consumes[i] = strdup(json_array_get_string(consumes_arr, i));
       }
     }
-    JSON_Array *produces_arr = json_object_get_array(root_obj, "produces");
+    produces_arr = json_object_get_array(root_obj, "produces");
     if (produces_arr) {
       out->n_produces = json_array_get_count(produces_arr);
       out->produces = calloc(out->n_produces, sizeof(char *));
-      size_t i;
       for (i = 0; i < out->n_produces; i++) {
         out->produces[i] = strdup(json_array_get_string(produces_arr, i));
       }

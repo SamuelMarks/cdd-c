@@ -170,13 +170,17 @@ int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap, size_t *out_len) {
 /**
  * @brief Executes the fs is directory operation.
  */
-int fs_is_directory(const char *path) {
+int fs_is_directory(const char *path, int *out_is_dir) {
   c_stat st;
+  if (!out_is_dir)
+    return EINVAL;
+  *out_is_dir = 0;
   if (!path)
-    return 0;
+    return EINVAL;
   if (c_stat_func(path, &st) != 0)
-    return 0;
-  return IS_DIR(st.st_mode);
+    return 0; /* Not an error to not exist, just not a dir */
+  *out_is_dir = IS_DIR(st.st_mode);
+  return 0;
 }
 
 /**
@@ -894,8 +898,15 @@ int mktmpfilegetnameandfile(const char *prefix, const char *suffix,
 /**
  * @brief Executes the path is unc operation.
  */
-int path_is_unc(const char *path) {
-  return strlen(path) > 2 && path[0] == '\\' && path[1] == '\\';
+int path_is_unc(const char *path, int *out_is_unc) {
+  if (!out_is_unc)
+    return EINVAL;
+  if (!path) {
+    *out_is_unc = 0;
+    return 0;
+  }
+  *out_is_unc = (strlen(path) > 2 && path[0] == '\\' && path[1] == '\\');
+  return 0;
 }
 #endif /* _MSC_VER */
 

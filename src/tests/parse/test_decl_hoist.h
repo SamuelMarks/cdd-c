@@ -45,7 +45,23 @@ TEST test_scan_for_mixed_declarations_basic(void) {
   PASS();
 }
 
-SUITE(decl_hoist_suite) { RUN_TEST(test_scan_for_mixed_declarations_basic); }
+TEST test_scan_for_mixed_declarations_errors(void) {
+  struct TokenList *tl = setup_tokens("int a = 1;");
+  struct HoistSiteList list;
+  hoist_site_list_init(&list);
+
+  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(NULL, &list));
+  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(tl, NULL));
+
+  hoist_site_list_free(&list);
+  free_token_list(tl);
+  PASS();
+}
+
+SUITE(decl_hoist_suite) {
+  RUN_TEST(test_scan_for_mixed_declarations_basic);
+  RUN_TEST(test_scan_for_mixed_declarations_errors);
+}
 
 #ifdef __cplusplus
 }

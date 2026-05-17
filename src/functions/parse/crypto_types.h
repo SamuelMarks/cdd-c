@@ -34,7 +34,7 @@ extern "C" {
  * @param[in] data_len Length of the input data in bytes.
  * @param[out] out_digest Output buffer. Must be at least `CRYPTO_SHA256_SIZE`
  * bytes.
- * @return 0 on success, error code on failure (EINVAL, ENOMEM, EIO).
+ * @return 0 on success, error code on failure (EINVAL, ENOMEM, EIO, ENOSYS).
  */
 extern C_CDD_EXPORT int crypto_sha256(const void *data, size_t data_len,
                                       unsigned char *out_digest);
@@ -51,7 +51,7 @@ extern C_CDD_EXPORT int crypto_sha256(const void *data, size_t data_len,
  * @param[in] data_len Length of the input data in bytes.
  * @param[out] out_mac Output buffer. Must be at least `CRYPTO_SHA256_SIZE`
  * bytes.
- * @return 0 on success, error code on failure.
+ * @return 0 on success, error code on failure (EINVAL, ENOMEM, EIO, ENOSYS).
  */
 extern C_CDD_EXPORT int crypto_hmac_sha256(const void *key, size_t key_len,
                                            const void *data, size_t data_len,

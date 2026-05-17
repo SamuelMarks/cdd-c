@@ -171,6 +171,19 @@ TEST test_init_free_safety(void) {
   PASS();
 }
 
+TEST test_is_checked_direct(void) {
+  struct TokenList *tl = NULL;
+  int used_before = 0, is_chk = 0;
+  struct AllocatorSpec spec = {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL,
+                               0};
+
+  ASSERT_EQ(EINVAL, is_checked(tl, 0, "p", &spec, &used_before, NULL));
+  ASSERT_EQ(0, is_checked(NULL, 0, "p", &spec, &used_before, &is_chk));
+  ASSERT_EQ(0, is_chk);
+
+  PASS();
+}
+
 SUITE(analysis_suite) {
   RUN_TEST(test_find_simple_unchecked_malloc);
   RUN_TEST(test_find_simple_checked_malloc);
@@ -178,6 +191,7 @@ SUITE(analysis_suite) {
   RUN_TEST(test_find_return_alloc);
   RUN_TEST(test_asprintf_unchecked);
   RUN_TEST(test_init_free_safety);
+  RUN_TEST(test_is_checked_direct);
 }
 
 #ifdef __cplusplus
