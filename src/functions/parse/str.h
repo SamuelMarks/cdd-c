@@ -71,7 +71,7 @@ extern C_CDD_EXPORT int c_cdd_strdup(const char *s, char **out_s);
  * @return true if `str` begins with `prefix`, false otherwise.
  */
 extern C_CDD_EXPORT int c_cdd_str_starts_with(const char *str,
-                                              const char *prefix, bool *out_b);
+                                              const char *prefix, int *out_b);
 
 /**
  * @brief Check if two strings are equal (content-wise).
@@ -82,7 +82,7 @@ extern C_CDD_EXPORT int c_cdd_str_starts_with(const char *str,
  * @return true if strings match or both are NULL, false otherwise.
  */
 extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
-                                        bool *out_b);
+                                        int *out_b);
 
 /**
  * @brief Check if two strings are equal ignoring ASCII case.
@@ -94,7 +94,7 @@ extern C_CDD_EXPORT int c_cdd_str_equal(const char *a, const char *b,
  * otherwise.
  */
 extern C_CDD_EXPORT int c_cdd_str_iequal(const char *a, const char *b,
-                                         bool *out_b);
+                                         int *out_b);
 
 /**
  * @brief Compare strings case-insensitively like stricmp/strcasecmp.
@@ -126,7 +126,7 @@ extern C_CDD_EXPORT int c_cdd_str_after_last(const char *str, int delimiter,
  * @return true if the extracted name matches `type`.
  */
 extern C_CDD_EXPORT int c_cdd_ref_is_type(const char *ref, const char *type,
-                                          bool *out_b);
+                                          int *out_b);
 
 /* --- Modification Helpers --- */
 
