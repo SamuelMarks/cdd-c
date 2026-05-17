@@ -117,8 +117,6 @@ static /**
     int
     generate_strcpy_patch(const struct TokenList *tokens, size_t call_start,
                           size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_0 = NULL;
-  char *_ast_extract_token_text_1 = NULL;
   /* Pattern: strcpy(dest, src) */
   size_t lparen = 0;
   size_t comma = 0;
@@ -139,12 +137,8 @@ static /**
   }
 
   if (lparen != 0 && comma != 0 && rparen != 0) {
-    dest = (extract_token_text(tokens, lparen + 1, comma,
-                               &_ast_extract_token_text_0),
-            _ast_extract_token_text_0);
-    src = (extract_token_text(tokens, comma + 1, rparen,
-                              &_ast_extract_token_text_1),
-           _ast_extract_token_text_1);
+    extract_token_text(tokens, lparen + 1, comma, &dest);
+    extract_token_text(tokens, comma + 1, rparen, &src);
 
     if (dest && src) {
       /* Naive data-flow: assume `sizeof(dest)` works. In a real engine, we'd
@@ -183,9 +177,6 @@ static /**
     int
     generate_fopen_patch(const struct TokenList *tokens, size_t call_start,
                          size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_2 = NULL;
-  char *_ast_extract_token_text_3 = NULL;
-  char *_ast_extract_token_text_4 = NULL;
   /* Pattern: FILE *#if defined(_MSC_VER)
 fopen_s(&f, path, mode);
 #else
@@ -237,12 +228,8 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
 
   if (assign_idx != 0 && lparen != 0 && comma1 != 0 && rparen != 0) {
     size_t id_idx = assign_idx;
-    path = (extract_token_text(tokens, lparen + 1, comma1,
-                               &_ast_extract_token_text_2),
-            _ast_extract_token_text_2);
-    mode = (extract_token_text(tokens, comma1 + 1, rparen,
-                               &_ast_extract_token_text_3),
-            _ast_extract_token_text_3);
+    extract_token_text(tokens, lparen + 1, comma1, &path);
+    extract_token_text(tokens, comma1 + 1, rparen, &mode);
 
     /* Go left of '=' to find the identifier */
     while (id_idx > 0) {
@@ -252,9 +239,7 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
       }
     }
 
-    dest = (extract_token_text(tokens, id_idx, id_idx + 1,
-                               &_ast_extract_token_text_4),
-            _ast_extract_token_text_4);
+    extract_token_text(tokens, id_idx, id_idx + 1, &dest);
 
     if (path && mode && dest) {
       sprintf(replacement, "#if defined(_MSC_VER)\n"
@@ -290,9 +275,6 @@ static /**
     int
     generate_strncpy_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_5 = NULL;
-  char *_ast_extract_token_text_6 = NULL;
-  char *_ast_extract_token_text_7 = NULL;
   /* Pattern: strncpy(dest, src, count) */
   size_t lparen = 0, comma1 = 0, comma2 = 0, rparen = 0, i;
   char *dest = NULL, *src = NULL, *count = NULL;
@@ -311,15 +293,9 @@ static /**
   }
 
   if (lparen != 0 && comma1 != 0 && comma2 != 0 && rparen != 0) {
-    dest = (extract_token_text(tokens, lparen + 1, comma1,
-                               &_ast_extract_token_text_5),
-            _ast_extract_token_text_5);
-    src = (extract_token_text(tokens, comma1 + 1, comma2,
-                              &_ast_extract_token_text_6),
-           _ast_extract_token_text_6);
-    count = (extract_token_text(tokens, comma2 + 1, rparen,
-                                &_ast_extract_token_text_7),
-             _ast_extract_token_text_7);
+    extract_token_text(tokens, lparen + 1, comma1, &dest);
+    extract_token_text(tokens, comma1 + 1, comma2, &src);
+    extract_token_text(tokens, comma2 + 1, rparen, &count);
 
     if (dest && src && count) {
       sprintf(replacement, "#if defined(_MSC_VER)\n"
@@ -358,8 +334,6 @@ static /**
     int
     generate_sprintf_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
-  char *_ast_extract_token_text_8 = NULL;
-  char *_ast_extract_token_text_9 = NULL;
   /* Pattern: sprintf(dest, format, ...) */
   size_t lparen = 0, comma1 = 0, rparen = 0, i;
   char *dest = NULL;
@@ -376,12 +350,8 @@ static /**
   }
 
   if (lparen != 0 && comma1 != 0 && rparen != 0) {
-    dest = (extract_token_text(tokens, lparen + 1, comma1,
-                               &_ast_extract_token_text_8),
-            _ast_extract_token_text_8);
-    args = (extract_token_text(tokens, comma1 + 1, rparen,
-                               &_ast_extract_token_text_9),
-            _ast_extract_token_text_9);
+    extract_token_text(tokens, lparen + 1, comma1, &dest);
+    extract_token_text(tokens, comma1 + 1, rparen, &args);
 
     if (dest && args) {
       sprintf(replacement,
@@ -408,9 +378,6 @@ static /**
 int cst_generate_safe_crt_patches(const struct CstNodeList *cst,
                                   const struct TokenList *tokens,
                                   struct SafeCrtPatchList *out_patches) {
-  char *_ast_extract_token_text_10 = NULL;
-  char *_ast_extract_token_text_11 = NULL;
-  char *_ast_extract_token_text_12 = NULL;
   size_t i, j;
   if (!cst || !tokens || !out_patches)
     return EINVAL;
@@ -491,15 +458,9 @@ int cst_generate_safe_crt_patches(const struct CstNodeList *cst,
 
           if (is_vla && end_bracket < n->end_token) {
             /* found a VLA */
-            char *type_name = (extract_token_text(tokens, j, j + 1,
-                                                  &_ast_extract_token_text_10),
-                               _ast_extract_token_text_10);
-            char *var_name = (extract_token_text(tokens, j + 1, j + 2,
-                                                 &_ast_extract_token_text_11),
-                              _ast_extract_token_text_11);
-            char *expr = (extract_token_text(tokens, j + 3, end_bracket,
-                                             &_ast_extract_token_text_12),
-                          _ast_extract_token_text_12);
+            char *extract_token_text(tokens, j, j + 1, &type_name);
+            char *extract_token_text(tokens, j + 1, j + 2, &var_name);
+            char *extract_token_text(tokens, j + 3, end_bracket, &expr);
             char replacement[1024] = {0};
 
             if (type_name && var_name && expr) {

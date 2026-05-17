@@ -68,9 +68,21 @@
 #include "transformers/gnu_standardizer/test_gnu_standardizer.h"
 #include "transformers/error_percolator/test_error_percolator.h"
 #include "transformers/safe_crt/test_safe_crt.h"
+#include "emit/test_cst_printer.h"
+#include "emit/test_diff_generator.h"
+
 
 #include "parse/test_dataclasses.h"
 #include "parse/test_declarator_parser.h"
+#include "parse/test_decl_hoist.h"
+#include "parse/test_db_loader.h"
+#include "parse/test_desig_init.h"
+#include "parse/test_vla_analyzer.h"
+#include "parse/test_vcpkg_integration.h"
+#include "parse/test_cmake_parser.h"
+#include "parse/test_strategy.h"
+#include "parse/test_makefile_scraper.h"
+
 #include "parse/test_flexible_array.h"
 #include "parse/test_fs.h"
 #include "parse/test_initializer_parser.h"
@@ -172,6 +184,15 @@ int main(int argc, char **argv) {
   RUN_SUITE(crypto_suite);
   RUN_SUITE(dataclasses_suite);
   RUN_SUITE(declarator_parser_suite);
+  RUN_SUITE(decl_hoist_suite);
+  RUN_SUITE(db_loader_suite);
+  RUN_SUITE(desig_init_suite);
+  RUN_SUITE(vla_analyzer_suite);
+  RUN_SUITE(vcpkg_integration_suite);
+  RUN_SUITE(cmake_parser_suite);
+  RUN_SUITE(strategy_suite);
+  RUN_SUITE(makefile_scraper_suite);
+
   RUN_SUITE(flexible_array_suite);
   RUN_SUITE(fs_suite);
   RUN_SUITE(generate_build_system_suite);
@@ -201,6 +222,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(str_utils_suite);
   RUN_SUITE(sync_code_suite);
   RUN_SUITE(text_patcher_suite);
+  RUN_SUITE(cst_printer_suite);
+  RUN_SUITE(diff_generator_suite);
   RUN_SUITE(tokenizer_suite);
   RUN_SUITE(tokenizer_trigraphs_suite);
   RUN_SUITE(url_utils_suite);
