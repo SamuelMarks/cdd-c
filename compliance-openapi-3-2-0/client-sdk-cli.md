@@ -1,6 +1,6 @@
-# OpenAPI 3.2.0 Conformance Table: Client SDK CLI (CLI Tooling & Tests)
+# Swagger 2.0 and OpenAPI 3.2.0 Conformance Table: Client SDK CLI (CLI Tooling & Tests)
 
-This table tracks the completeness of language integration with OpenAPI 3.2.0 for generating Command-Line Interfaces (CLIs) wrapper tools, and vice-versa.
+This table tracks the completeness of language integration with Swagger 2.0 and OpenAPI 3.2.0 for generating Command-Line Interfaces (CLIs) wrapper tools, and vice-versa.
 
 ### Legend & Tracking Guide
 
@@ -11,7 +11,7 @@ This table tracks the completeness of language integration with OpenAPI 3.2.0 fo
 - **Skipped `[To, From]`**: Intentionally ignored because it is irrelevant or unsupported by the CLI environment.
 - **Checkboxes**: Mark `[x]` as conformance is achieved.
 
-| OpenAPI 3.2.0 Object / Feature                    | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy                                        |
+| Swagger 2.0 and OpenAPI 3.2.0 Object / Feature                    | Presence `[To, From]` | Absence `[To, From]` | Skipped `[To, From]` | Notes / Implementation Strategy                                        |
 | :------------------------------------------------ | :-------------------: | :------------------: | :------------------: | :--------------------------------------------------------------------- |
 | **OpenAPI Object (Root)**                         |     `[x]` , `[x]`     |    `[ ]` , `[ ]`     |    `[ ]` , `[ ]`     | Root CLI definition                                                    |
 | **OpenAPI Object (`openapi`)**                    |     `[x]` , `[x]`     |    `[ ]` , `[ ]`     |    `[ ]` , `[ ]`     | TODO                                                                   |
