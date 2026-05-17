@@ -189,11 +189,11 @@ static /**
  */
 int generate_cmake_project(const char *output_path, const char *project_name,
                            int has_tests) {
-  has_tests = 1;
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
   int rc = 0;
+  has_tests = 1;
 
   if (!project_name)
     return EINVAL;
