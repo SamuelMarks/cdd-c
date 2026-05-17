@@ -122,7 +122,6 @@ int sync_code_main(int argc, char **argv) {
  */
 int patch_header_from_source(const char *header_path,
                              const char *refactored_source) {
-  int _ast_token_matches_string_0 = 0;
   char *_ast_strdup_0 = NULL;
   struct FuncSigList sigs;
   struct PatchList patches;
@@ -164,10 +163,9 @@ int patch_header_from_source(const char *header_path,
     size_t k;
 
     for (k = 0; k < hdr_tokens->size; ++k) {
-      if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER &&
-          (token_matches_string(&hdr_tokens->tokens[k], func_name,
-                                &_ast_token_matches_string_0),
-           _ast_token_matches_string_0)) {
+      int matches = 0;
+      token_matches_string(&hdr_tokens->tokens[k], func_name, &matches);
+      if (hdr_tokens->tokens[k].kind == TOKEN_IDENTIFIER && matches) {
 
         /* Look ahead for LPAREN */
         size_t next = k + 1;
@@ -203,8 +201,7 @@ int patch_header_from_source(const char *header_path,
             asprintf(&replacement, "%s", sigs.items[i].sig);
 #else
             /* Simple fallback wrapper */
-            replacement = (c_cdd_strdup(sigs.items[i].sig, &_ast_strdup_0),
-                           _ast_strdup_0);
+            c_cdd_strdup(sigs.items[i].sig, &replacement);
 #endif
             /* Note: signatures from extractor don't have semicolon, but we kept
              * semicolon token in Header */
