@@ -397,9 +397,9 @@ extern C_CDD_EXPORT void doc_metadata_free(struct DocMetadata *meta);
 /**
  * @brief Parse a raw comment string into structured metadata.
  *
- * Handles block comments (`\/__ ... __\/`) and line comments (`/// ...`).
- * Strips decorative asterisks and whitespace.
- * Parses annotations line by line.
+ * Handles block comments (slash-star-star ... star-slash) and line comments
+ * (slash-slash-slash ...). Strips decorative asterisks and whitespace. Parses
+ * annotations line by line.
  *
  * @param[in] comment The raw comment string to parse.
  * @param[out] out The destination structure (must be initialized).

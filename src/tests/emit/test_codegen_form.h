@@ -82,7 +82,7 @@ TEST test_form_urlencoded_exhaustive(void) {
 
   ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "FullForm", &sf));
 
-  // Test error conditions
+  /* Test error conditions */
   ASSERT_EQ(EINVAL,
             write_struct_to_form_urlencoded_func(NULL, "FullForm", &sf));
   ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, NULL, &sf));

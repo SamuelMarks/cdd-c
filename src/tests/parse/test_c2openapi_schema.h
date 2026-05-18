@@ -195,7 +195,7 @@ TEST test_register_type_union_copy(void) {
   openapi_spec_init(&spec);
   type_def_list_init(&types);
 
-  // Instead of scanning a file, we manually construct a TypeDefList
+  /* Instead of scanning a file, we manually construct a TypeDefList */
   types.items = calloc(1, sizeof(struct TypeDefinition));
   types.size = 1;
   types.capacity = 1;
@@ -224,8 +224,8 @@ TEST test_register_type_union_copy(void) {
 
   sf->fields[0].type_union = NULL;
   sf->fields[0].items_type_union = NULL;
-  // struct_fields_free(sf) is handled by type_def_list_free!
-  types.items[0].name = NULL; // prevent free
+  /* struct_fields_free(sf) is handled by type_def_list_free! */
+  types.items[0].name = NULL; /* prevent free */
   type_def_list_free(&types);
 
   PASS();

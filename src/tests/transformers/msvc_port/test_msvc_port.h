@@ -36,11 +36,11 @@ TEST test_cdd_transform_msvc(void) {
   ASSERT_EQ(0, rc);
 
   printf("MSVC OUT:\n%s\n", out);
-  // ASSERT(strstr(out, "_stricmp /* comment */") != NULL);
-  // ASSERT(strstr(out, "_strnicmp") != NULL);
-  // ASSERT(strstr(out, "_strdup") != NULL);
-  // ASSERT(strstr(out, "SSIZE_T") != NULL);
-  // ASSERT(strstr(out, "cdd_builtin_expect") != NULL);
+  /* ASSERT(strstr(out, "_stricmp comment ") != NULL); */
+  /* ASSERT(strstr(out, "_strnicmp") != NULL); */
+  /* ASSERT(strstr(out, "_strdup") != NULL); */
+  /* ASSERT(strstr(out, "SSIZE_T") != NULL); */
+  /* ASSERT(strstr(out, "cdd_builtin_expect") != NULL); */
 
   free(out);
   cdd_cst_tree_free(tree);

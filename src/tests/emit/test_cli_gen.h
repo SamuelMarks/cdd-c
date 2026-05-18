@@ -94,9 +94,9 @@ TEST test_cli_gen_full(void) {
   spec.servers = calloc(1, sizeof(*spec.servers));
   spec.servers[0].url = "https://api.example.com";
   spec.servers[0].description = "Prod server";
-  spec.servers[0].variables = (void *)1; // dummy pointer
+  spec.servers[0].variables = (void *)1; /* dummy pointer */
 
-  spec.n_webhooks = 1; // dummy trigger
+  spec.n_webhooks = 1; /* dummy trigger */
   spec.external_docs.url = "https://docs.example.com";
 
   spec.n_paths = 1;
@@ -122,7 +122,7 @@ TEST test_cli_gen_full(void) {
   spec.paths[0].operations[0].parameters[0].allow_reserved = 1;
   spec.paths[0].operations[0].parameters[0].style = 1;
   spec.paths[0].operations[0].parameters[0].example.type =
-      1; // OA_ANY_INT or something
+      1; /* OA_ANY_INT or something */
 
   memset(&config, 0, sizeof(config));
   config.filename_base = "test_cli_full";

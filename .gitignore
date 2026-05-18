@@ -405,3 +405,7 @@ petstore.json
 petstore_oas3.json
 c-cmake-ci.yml
 lldb_cmds.txt
+gcc_err.txt
+missing_file_docs.txt
+fix_empty.py
+fix_comments.py

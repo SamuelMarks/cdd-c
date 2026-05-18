@@ -145,7 +145,7 @@ TEST test_gen_sdk_test_exhaustive(void) {
 
   ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
-  // Also test array request body
+  /* Also test array request body */
   op.req_body.is_array = 1;
   ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
