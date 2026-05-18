@@ -112,12 +112,14 @@ static /**
         */
     int
     media_type_has_prefix(const char *media_type, const char *prefix) {
+  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t pre_len;
   if (!media_type || !prefix)
     return 0;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+         _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
     return 0;
@@ -139,13 +141,15 @@ static /**
         */
     int
     media_type_has_suffix(const char *media_type, const char *suffix) {
+  size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
   size_t suf_len;
   size_t start;
   if (!media_type || !suffix)
     return 0;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+         _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
   if (len < suf_len)
     return 0;
@@ -168,12 +172,14 @@ static /**
         */
     int
     media_type_ieq(const char *media_type, const char *expected) {
+  size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
   if (!media_type || !expected)
     return 0;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
+         _ast_media_type_base_len_2);
   exp_len = strlen(expected);
   if (len != exp_len)
     return 0;
@@ -593,13 +599,11 @@ static /**
         */
     int
     header_name_is_content_type(const char *name) {
+  bool _ast_iequal_0 = false;
   if (!name)
     return 0;
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(name, "Content-Type", &is_eq);
-    return is_eq != 0;
-  }
+  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
+          _ast_iequal_0) != 0;
 }
 
 static /**
@@ -748,7 +752,8 @@ static /**
     }
     if (strlen(c) == 3 && c[1] == 'X' && c[2] == 'X' && c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema)) {
+          schema_has_inline(&op->responses[i].schema) ||
+          op->responses[i].schema.is_array) {
         *_out_val = &op->responses[i].schema;
         return 0;
       }
@@ -756,14 +761,16 @@ static /**
     }
     if (c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema)) {
+          schema_has_inline(&op->responses[i].schema) ||
+          op->responses[i].schema.is_array) {
         *_out_val = &op->responses[i].schema;
         return 0;
       }
     }
   }
   if (default_resp && (default_resp->schema.ref_name ||
-                       schema_has_inline(&default_resp->schema))) {
+                       schema_has_inline(&default_resp->schema) ||
+                       default_resp->schema.is_array)) {
     *_out_val = &default_resp->schema;
     return 0;
   }
@@ -1010,7 +1017,8 @@ int codegen_client_write_signature(FILE *fp, const struct OpenAPI_Operation *op,
 
   /* 3. Success Output */
   success_is_binary = response_is_binary_success(op);
-  get_success_schema(op, &success_schema);
+  success_schema = (get_success_schema(op, &_ast_get_success_schema_20),
+                    _ast_get_success_schema_20);
   if (success_is_binary)
     success_schema = NULL;
   if (success_schema &&

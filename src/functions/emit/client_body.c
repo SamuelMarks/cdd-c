@@ -95,89 +95,59 @@ static /**
         */
     int
     method_str_to_enum_str(const char *method, const char **_out_val) {
+  bool _ast_iequal_0 = false;
+  bool _ast_iequal_1 = false;
+  bool _ast_iequal_2 = false;
+  bool _ast_iequal_3 = false;
+  bool _ast_iequal_4 = false;
+  bool _ast_iequal_5 = false;
+  bool _ast_iequal_6 = false;
+  bool _ast_iequal_7 = false;
+  bool _ast_iequal_8 = false;
+  bool _ast_iequal_9 = false;
   if (!method) {
     *_out_val = NULL;
     return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "get", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_GET";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0)) {
+    *_out_val = "HTTP_GET";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "post", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_POST";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "post", &_ast_iequal_1), _ast_iequal_1)) {
+    *_out_val = "HTTP_POST";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "put", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_PUT";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "put", &_ast_iequal_2), _ast_iequal_2)) {
+    *_out_val = "HTTP_PUT";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "delete", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_DELETE";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "delete", &_ast_iequal_3), _ast_iequal_3)) {
+    *_out_val = "HTTP_DELETE";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "patch", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_PATCH";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "patch", &_ast_iequal_4), _ast_iequal_4)) {
+    *_out_val = "HTTP_PATCH";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "head", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_HEAD";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "head", &_ast_iequal_5), _ast_iequal_5)) {
+    *_out_val = "HTTP_HEAD";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "options", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_OPTIONS";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "options", &_ast_iequal_6), _ast_iequal_6)) {
+    *_out_val = "HTTP_OPTIONS";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "trace", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_TRACE";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "trace", &_ast_iequal_7), _ast_iequal_7)) {
+    *_out_val = "HTTP_TRACE";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "query", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_QUERY";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8)) {
+    *_out_val = "HTTP_QUERY";
+    return 0;
   }
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(method, "connect", &is_eq);
-    if (is_eq) {
-      *_out_val = "HTTP_CONNECT";
-      return 0;
-    }
+  if ((c_cdd_str_iequal(method, "connect", &_ast_iequal_9), _ast_iequal_9)) {
+    *_out_val = "HTTP_CONNECT";
+    return 0;
   }
   {
     *_out_val = NULL;
@@ -320,10 +290,12 @@ static /**
         */
     int
     media_type_has_prefix(const char *media_type, const char *prefix) {
+  size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
   size_t pre_len;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_0),
+         _ast_media_type_base_len_0);
   pre_len = strlen(prefix);
   if (len < pre_len)
     return 0;
@@ -343,11 +315,13 @@ static /**
         */
     int
     media_type_has_suffix(const char *media_type, const char *suffix) {
+  size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
   size_t suf_len;
   size_t start;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_1),
+         _ast_media_type_base_len_1);
   suf_len = strlen(suffix);
   start = len - suf_len;
   for (i = 0; i < suf_len; ++i) {
@@ -366,10 +340,12 @@ static /**
         */
     int
     media_type_ieq(const char *media_type, const char *expected) {
+  size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
   size_t exp_len;
-  media_type_base_len(media_type, &len);
+  len = (media_type_base_len(media_type, &_ast_media_type_base_len_2),
+         _ast_media_type_base_len_2);
   exp_len = strlen(expected);
   if (len != exp_len)
     return 0;
@@ -488,11 +464,9 @@ static /**
         */
     int
     header_name_is_content_type(const char *name) {
-  {
-    int is_eq = 0;
-    c_cdd_str_iequal(name, "Content-Type", &is_eq);
-    return is_eq != 0;
-  }
+  bool _ast_iequal_10 = false;
+  return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
+          _ast_iequal_10) != 0;
 }
 
 static /**
@@ -930,8 +904,8 @@ static /**
     }
   } else if (items_type && strcmp(items_type, "boolean") == 0) {
     CHECK_IO(fprintf(fp, "      const char *raw;\n"));
-    CHECK_IO(
-        fprintf(fp, "      raw = req_body->%s[i] ? \"1\" : \"0\";\n", field));
+    CHECK_IO(fprintf(
+        fp, "      raw = req_body->%s[i] ? \"true\" : \"false\";\n", field));
     if (do_encode) {
       CHECK_IO(fprintf(fp, "      char *enc = %s(raw);\n", encode_fn));
       CHECK_IO(fprintf(fp, "      size_t val_len;\n"));
@@ -1327,8 +1301,8 @@ static /**
           CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
         } else if (strcmp(item_type, "boolean") == 0) {
           CHECK_IO(fprintf(fp, "      const char *raw;\n"));
-          CHECK_IO(
-              fprintf(fp, "      raw = %s[i] ? \"1\" : \"0\";\n", p->name));
+          CHECK_IO(fprintf(fp, "      raw = %s[i] ? \"true\" : \"false\";\n",
+                           p->name));
         } else {
           CHECK_IO(fprintf(fp, "      const char *raw;\n"));
           CHECK_IO(fprintf(fp, "      raw = %s[i];\n", p->name));
@@ -1383,9 +1357,10 @@ static /**
                              "        sprintf(num_buf, \"%%g\", kv->value.n);\n"
                              "        kv_raw = num_buf;\n"
                              "        break;\n"));
-        CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
-                             "        kv_raw = kv->value.b ? \"1\" : \"0\";\n"
-                             "        break;\n"));
+        CHECK_IO(
+            fprintf(fp, "      case OA_KV_BOOLEAN:\n"
+                        "        kv_raw = kv->value.b ? \"true\" : \"false\";\n"
+                        "        break;\n"));
         CHECK_IO(fprintf(fp, "      default:\n"
                              "        kv_raw = NULL;\n"
                              "        break;\n"));
@@ -1466,7 +1441,7 @@ static /**
       } else if (strcmp(p->type, "boolean") == 0) {
         CHECK_IO(fprintf(fp,
                          "  rc = http_headers_add(&req.headers, \"%s\", %s ? "
-                         "\"1\" : \"0\");\n",
+                         "\"true\" : \"false\");\n",
                          p->name, p->name));
         CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
       }
@@ -1492,16 +1467,19 @@ static /**
   if (!fp || !op || !spec)
     return EINVAL;
 
-  find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                  "application/x-www-form-urlencoded", &mt);
+  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                        "application/x-www-form-urlencoded",
+                        &_ast_find_media_type_3),
+        _ast_find_media_type_3);
 
-  openapi_spec_find_schema_for_ref(spec, &op->req_body,
-                                   (struct StructFields **)&sf);
+  sf = (openapi_spec_find_schema_for_ref(
+            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_4),
+        _ast_openapi_spec_find_schema_for_ref_4);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping form body */\n",
-        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
+        op->req_body.ref_name));
     return 0;
   }
 
@@ -1511,8 +1489,9 @@ static /**
 
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    const struct OpenAPI_Encoding *enc = NULL;
-    find_encoding(mt, f->name, (struct OpenAPI_Encoding **)&enc);
+    const struct OpenAPI_Encoding *enc =
+        (find_encoding(mt, f->name, &_ast_find_encoding_5),
+         _ast_find_encoding_5);
     enum OpenAPI_Style style =
         (enc && enc->style_set) ? enc->style : OA_STYLE_FORM;
     int explode = (enc && enc->explode_set) ? enc->explode
@@ -1603,7 +1582,7 @@ static /**
         } else if (strcmp(items_type, "boolean") == 0) {
           CHECK_IO(fprintf(fp,
                            "      rc = url_query_add(&form_qp, \"%s\", "
-                           "req_body->%s[i] ? \"1\" : \"0\");\n",
+                           "req_body->%s[i] ? \"true\" : \"false\");\n",
                            f->name, f->name));
         } else {
           CHECK_IO(fprintf(
@@ -1667,7 +1646,7 @@ static /**
     } else if (strcmp(f->type, "boolean") == 0) {
       CHECK_IO(fprintf(fp,
                        "  rc = url_query_add(&form_qp, \"%s\", req_body->%s ? "
-                       "\"1\" : \"0\");\n",
+                       "\"true\" : \"false\");\n",
                        f->name, f->name));
       CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
     } else if (strcmp(f->type, "object") == 0) {
@@ -1744,7 +1723,7 @@ static /**
               } else if (strcmp(pf->type, "boolean") == 0) {
                 CHECK_IO(fprintf(fp,
                                  "    rc = url_query_add(&form_qp, \"%s\", "
-                                 "req_body->%s->%s ? \"1\" : \"0\");\n",
+                                 "req_body->%s->%s ? \"true\" : \"false\");\n",
                                  pf->name, f->name, pf->name));
                 CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
               }
@@ -1867,7 +1846,7 @@ static /**
               } else if (strcmp(pf->type, "boolean") == 0) {
                 CHECK_IO(fprintf(fp,
                                  "    rc = url_query_add(&form_qp, \"%s[%s]\", "
-                                 "req_body->%s->%s ? \"1\" : \"0\");\n",
+                                 "req_body->%s->%s ? \"true\" : \"false\");\n",
                                  f->name, pf->name, f->name, pf->name));
                 CHECK_IO(fprintf(fp, "    if (rc != 0) goto cleanup;\n"));
               }
@@ -2054,8 +2033,8 @@ static /**
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
           CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
-                               "        kv_raw = kv->value.b ? \"1\" : "
-                               "\"0\";\n"
+                               "        kv_raw = kv->value.b ? \"true\" : "
+                               "\"false\";\n"
                                "        break;\n"));
           CHECK_IO(fprintf(fp,
                            "      default:\n        kv_raw = NULL;\n        "
@@ -2169,8 +2148,8 @@ static /**
                            "        kv_raw = num_buf;\n"
                            "        break;\n"));
           CHECK_IO(fprintf(fp, "      case OA_KV_BOOLEAN:\n"
-                               "        kv_raw = kv->value.b ? \"1\" : "
-                               "\"0\";\n"
+                               "        kv_raw = kv->value.b ? \"true\" : "
+                               "\"false\";\n"
                                "        break;\n"));
           CHECK_IO(fprintf(fp,
                            "      default:\n        kv_raw = NULL;\n        "
@@ -2305,8 +2284,9 @@ static /**
             CHECK_IO(fprintf(fp, "      cookie_val = num_buf;\n"));
           } else if (strcmp(item_type, "boolean") == 0) {
             CHECK_IO(fprintf(fp, "      const char *cookie_val;\n"));
-            CHECK_IO(fprintf(fp, "      cookie_val = %s[i] ? \"1\" : \"0\";\n",
-                             p->name));
+            CHECK_IO(fprintf(
+                fp, "      cookie_val = %s[i] ? \"true\" : \"false\";\n",
+                p->name));
           } else {
             CHECK_IO(fprintf(fp, "      const char *cookie_val;\n"));
             if (encode_fn) {
@@ -2375,8 +2355,8 @@ static /**
             CHECK_IO(fprintf(fp, "      raw = num_buf;\n"));
           } else if (strcmp(item_type, "boolean") == 0) {
             CHECK_IO(fprintf(fp, "      const char *raw;\n"));
-            CHECK_IO(
-                fprintf(fp, "      raw = %s[i] ? \"1\" : \"0\";\n", p->name));
+            CHECK_IO(fprintf(fp, "      raw = %s[i] ? \"true\" : \"false\";\n",
+                             p->name));
           } else {
             CHECK_IO(fprintf(fp, "      const char *raw;\n"));
             if (encode_fn) {
@@ -2549,7 +2529,8 @@ static /**
         CHECK_IO(fprintf(fp, "  }\n"));
       } else if (strcmp(p->type, "boolean") == 0) {
         CHECK_IO(fprintf(
-            fp, "  {\n    const char *cookie_val = %s ? \"1\" : \"0\";\n",
+            fp,
+            "  {\n    const char *cookie_val = %s ? \"true\" : \"false\";\n",
             p->name));
         CHECK_IO(
             fprintf(fp, "    size_t name_len = strlen(\"%s\");\n", p->name));
@@ -2640,7 +2621,7 @@ static /**
                          param_name, idx_name));
         CHECK_IO(fprintf(fp, "          raw = num_buf;\n"));
       } else if (strcmp(item_type, "boolean") == 0) {
-        CHECK_IO(fprintf(fp, "          raw = %s[%s] ? \"1\" : \"0\";\n",
+        CHECK_IO(fprintf(fp, "          raw = %s[%s] ? \"true\" : \"false\";\n",
                          param_name, idx_name));
       } else {
         CHECK_IO(
@@ -2704,9 +2685,10 @@ static /**
                        "            sprintf(num_buf, \"%%g\", kv->value.n);\n"
                        "            kv_raw = num_buf;\n"
                        "            break;\n"));
-      CHECK_IO(fprintf(fp, "          case OA_KV_BOOLEAN:\n"
-                           "            kv_raw = kv->value.b ? \"1\" : \"0\";\n"
-                           "            break;\n"));
+      CHECK_IO(fprintf(
+          fp, "          case OA_KV_BOOLEAN:\n"
+              "            kv_raw = kv->value.b ? \"true\" : \"false\";\n"
+              "            break;\n"));
       CHECK_IO(fprintf(fp, "          default:\n"
                            "            kv_raw = NULL;\n"
                            "            break;\n"));
@@ -2804,7 +2786,7 @@ static /**
     } else if (strcmp(hdr_type, "boolean") == 0) {
       CHECK_IO(fprintf(fp,
                        "      rc = http_request_add_part_header_last(&req, "
-                       "\"%s\", %s ? \"1\" : \"0\");\n",
+                       "\"%s\", %s ? \"true\" : \"false\");\n",
                        hdr->name, param_name));
       CHECK_IO(fprintf(fp, "      if (rc != 0) goto cleanup;\n"));
     } else {
@@ -2839,24 +2821,27 @@ static /**
   const struct OpenAPI_MediaType *mt;
   size_t i;
 
-  openapi_spec_find_schema_for_ref(spec, &op->req_body,
-                                   (struct StructFields **)&sf);
+  sf = (openapi_spec_find_schema_for_ref(
+            spec, &op->req_body, &_ast_openapi_spec_find_schema_for_ref_7),
+        _ast_openapi_spec_find_schema_for_ref_7);
   if (!sf) {
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
-        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
+        op->req_body.ref_name));
     return 0;
   }
 
   CHECK_IO(fprintf(fp, "  /* Multipart Body Construction */\n"));
-  find_media_type(op->req_body_media_types, op->n_req_body_media_types,
-                  "multipart/form-data", &mt);
+  mt = (find_media_type(op->req_body_media_types, op->n_req_body_media_types,
+                        "multipart/form-data", &_ast_find_media_type_8),
+        _ast_find_media_type_8);
   for (i = 0; i < sf->size; ++i) {
     const struct StructField *f = &sf->fields[i];
-    const struct OpenAPI_Encoding *enc = NULL;
-    if (mt != NULL)
-      find_encoding(mt, f->name, (struct OpenAPI_Encoding **)&enc);
+    const struct OpenAPI_Encoding *enc =
+        (mt != NULL) ? (find_encoding(mt, f->name, &_ast_find_encoding_9),
+                        _ast_find_encoding_9)
+                     : NULL;
     if (strcmp(f->type, "array") == 0) {
       const char *items_type = f->ref[0] != '\0' ? f->ref : "string";
       int items_is_object = is_object_ref_type(items_type);
@@ -2871,8 +2856,10 @@ static /**
       if (!final_ct && items_is_object)
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
-        first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
-                                 &final_ct);
+        final_ct =
+            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_10),
+             _ast_first_content_type_entry_10);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -2954,7 +2941,7 @@ static /**
                          len_field));
         CHECK_IO(fprintf(fp,
                          "      const char *val = req_body->%s[i] ? "
-                         "\"1\" : \"0\";\n",
+                         "\"true\" : \"false\";\n",
                          f->name));
         CHECK_IO(fprintf(fp,
                          "      rc = http_request_add_part(&req, \"%s\", "
@@ -2977,8 +2964,10 @@ static /**
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-                                 &content_type);
+        content_type =
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_11),
+             _ast_first_content_type_entry_11);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -2998,8 +2987,10 @@ static /**
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-                                 &content_type);
+        content_type =
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_12),
+             _ast_first_content_type_entry_12);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -3021,8 +3012,10 @@ static /**
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-                                 &content_type);
+        content_type =
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_13),
+             _ast_first_content_type_entry_13);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
@@ -3044,14 +3037,16 @@ static /**
       char ct_clean[256];
       const char *ct_arg = "NULL";
       if (content_type && content_type[0] != '\0') {
-        first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
-                                 &content_type);
+        content_type =
+            (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_14),
+             _ast_first_content_type_entry_14);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp,
                        "    {\n      const char *val = req_body->%s ? "
-                       "\"1\" : \"0\";\n",
+                       "\"true\" : \"false\";\n",
                        f->name));
       CHECK_IO(fprintf(fp,
                        "      rc = http_request_add_part(&req, \"%s\", NULL, "
@@ -3071,8 +3066,10 @@ static /**
       if (!final_ct)
         final_ct = "application/json";
       if (final_ct && final_ct[0] != '\0') {
-        first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
-                                 &final_ct);
+        final_ct =
+            (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
+                                      &_ast_first_content_type_entry_15),
+             _ast_first_content_type_entry_15);
         snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
@@ -3192,7 +3189,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(fprintf(fp, "  int rc = 0;\n"));
   CHECK_IO(fprintf(fp, "  int attempt = 0;\n"));
 
-  if (query_exists) {
+  if (query_exists || security_query) {
     CHECK_IO(fprintf(fp, "  struct UrlQueryParams qp = {0};\n"));
     CHECK_IO(fprintf(fp, "  char *query_str = NULL;\n"));
     CHECK_IO(fprintf(fp, "  char *path_str = NULL;\n"));
@@ -3200,7 +3197,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   } else {
     CHECK_IO(fprintf(fp, "  char *url = NULL;\n"));
   }
-  if (cookie_exists) {
+  if (cookie_exists || security_cookie) {
     CHECK_IO(fprintf(fp, "  char *cookie_str = NULL;\n"));
     CHECK_IO(fprintf(fp, "  size_t cookie_len = 0;\n"));
   }
@@ -3256,9 +3253,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         if (write_form_urlencoded_body(fp, op, spec) != 0)
           return EIO;
       } else if (media_type_is_json(ct) && op->req_body.ref_name) {
-        CHECK_IO(fprintf(fp, "  rc = %s_to_json(%s, &req_json);\n",
-                         op->req_body.ref_name,
-                         op->req_body.is_array ? "body" : "req_body"));
+        CHECK_IO(fprintf(
+            fp, "  rc = %s_to_json((const struct %s *)%s, &req_json);\n",
+            op->req_body.ref_name, op->req_body.ref_name,
+            op->req_body.is_array ? "body" : "req_body"));
         CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
@@ -3588,10 +3586,16 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           return EIO;
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
-        CHECK_IO(fprintf(
-            fp, "      rc = %s_from_json((const char*)res->body, out);\n",
-            default_resp->schema.ref_name,
-            default_resp->schema.is_array ? ", out_len" : ""));
+        if (default_resp->schema.is_array) {
+          CHECK_IO(fprintf(fp,
+                           "      rc = %s_array_from_json((const "
+                           "char*)res->body, *out, out_len);\n",
+                           default_resp->schema.ref_name));
+        } else {
+          CHECK_IO(fprintf(
+              fp, "      rc = %s_from_json((const char*)res->body, out);\n",
+              default_resp->schema.ref_name));
+        }
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (schema_has_inline(&default_resp->schema)) {
         if (write_inline_json_parse(fp, &default_resp->schema) != 0)
@@ -3630,12 +3634,12 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, "  if (form_body) free(form_body);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&form_qp);\n"));
   }
-  if (query_exists) {
+  if (query_exists || security_query) {
     CHECK_IO(fprintf(fp, "  if (path_str) free(path_str);\n"));
     CHECK_IO(fprintf(fp, "  if (query_str) free(query_str);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&qp);\n"));
   }
-  if (cookie_exists) {
+  if (cookie_exists || security_cookie) {
     CHECK_IO(fprintf(fp, "  if (cookie_str) free(cookie_str);\n"));
   }
   CHECK_IO(fprintf(fp, "  http_request_free(&req);\n"));

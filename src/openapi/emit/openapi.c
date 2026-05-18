@@ -365,6 +365,13 @@ static /**
 
 /* --- Implementations --- */
 
+/**
+ * @brief Converts verb to string.
+ *
+ * @param v The verb.
+ * @param _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
 int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
@@ -410,6 +417,13 @@ int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   }
 }
 
+/**
+ * @brief Converts parameter in to string.
+ *
+ * @param in The parameter in.
+ * @param _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
 int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val) {
   switch (in) {
   case OA_PARAM_IN_PATH: {
@@ -439,6 +453,13 @@ int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val) {
   }
 }
 
+/**
+ * @brief Converts style to string.
+ *
+ * @param s The style.
+ * @param _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
 int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
   switch (s) {
   case OA_STYLE_FORM: {
@@ -480,6 +501,13 @@ int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val) {
   }
 }
 
+/**
+ * @brief Converts xml node type to string.
+ *
+ * @param t The xml node type.
+ * @param _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
 int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
   switch (t) {
   case OA_XML_NODE_ELEMENT: {
@@ -509,6 +537,12 @@ int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
   }
 }
 
+/**
+ * @brief Checks if header name is content type.
+ *
+ * @param name The name.
+ * @return 1 if true, 0 otherwise.
+ */
 int header_name_is_content_type_openapi(const char *name) {
   bool _ast_iequal_0 = false;
   if (!name)
@@ -517,6 +551,12 @@ int header_name_is_content_type_openapi(const char *name) {
           _ast_iequal_0) != 0;
 }
 
+/**
+ * @brief Checks if parameter is a reserved header.
+ *
+ * @param p The parameter.
+ * @return 1 if true, 0 otherwise.
+ */
 int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
@@ -531,6 +571,13 @@ int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
           _ast_iequal_3);
 }
 
+/**
+ * @brief Converts oauth flow type to string.
+ *
+ * @param t The oauth flow type.
+ * @param _out_val Pointer to the output string.
+ * @return 0 on success.
+ */
 int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
                                    char **_out_val) {
   switch (t) {
@@ -561,6 +608,12 @@ int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
   }
 }
 
+/**
+ * @brief Checks if a schema type is primitive.
+ *
+ * @param type The schema type string.
+ * @return 1 if true, 0 otherwise.
+ */
 int is_schema_primitive_openapi(const char *type) {
   if (!type)
     return 0;
@@ -622,6 +675,13 @@ static /**
   }
 }
 
+/**
+ * @brief Merges extra schema object properties.
+ *
+ * @param target The target json object.
+ * @param extras_json The extra json string.
+ * @return 0 on success.
+ */
 int merge_schema_extras_object_openapi(JSON_Object *target,
                                        const char *extras_json) {
   JSON_Value *_ast_clone_json_value_0;

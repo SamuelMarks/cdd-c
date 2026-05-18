@@ -12,6 +12,9 @@ TEST test_strategy_errors(void) {
   struct PatchList patches;
   struct AllocationSiteList allocs;
 
+  memset(&patches, 0, sizeof(patches));
+  memset(&allocs, 0, sizeof(allocs));
+
   ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, &allocs, &patches));
   ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, NULL, &patches));
 

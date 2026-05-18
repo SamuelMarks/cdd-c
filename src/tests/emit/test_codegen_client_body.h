@@ -792,8 +792,23 @@ TEST test_body_security_query_api_key(void) {
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
+  /* Add global security requirement to activate the scheme */
+  struct OpenAPI_SecurityRequirement req;
+  memset(&req, 0, sizeof(req));
+  req.scheme = "QueryKey";
+
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &req;
+  sec_set.n_requirements = 1;
+
+  spec.security = &sec_set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_23), _ast_gen_body_23);
   ASSERT(code);
+  printf("\n--- SEC QUERY KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "struct UrlQueryParams qp") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"api_key\"") != NULL);
 
@@ -826,8 +841,22 @@ TEST test_body_security_cookie_api_key(void) {
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
+  struct OpenAPI_SecurityRequirement req;
+  memset(&req, 0, sizeof(req));
+  req.scheme = "CookieKey";
+
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &req;
+  sec_set.n_requirements = 1;
+
+  spec.security = &sec_set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_24), _ast_gen_body_24);
   ASSERT(code);
+  printf("\n--- SEC COOKIE KEY ---\n%s\n--------------------\n", code);
   ASSERT(strstr(code, "cookie_str") != NULL);
   ASSERT(strstr(code, "session_id") != NULL);
 

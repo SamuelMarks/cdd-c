@@ -24,7 +24,6 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
-#include "c_cdd_stdbool.h"
 #include "classes/emit/enum.h"   /* For EnumMembers */
 #include "classes/emit/struct.h" /* For StructFields */
 #include "functions/parse/tokenizer.h"

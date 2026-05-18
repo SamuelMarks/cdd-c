@@ -87,7 +87,7 @@ int apply_refactoring_to_string(const struct RefactorContext *ctx,
   struct AllocationSiteList allocs = {0};
   int rc;
 
-  if (source_code == NULL || out_code == NULL)
+  if (ctx == NULL || source_code == NULL || out_code == NULL)
     return EINVAL;
 
   /* 1. Tokenize */

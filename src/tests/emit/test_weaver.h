@@ -159,7 +159,7 @@ res = patch_list_apply(&patches, tokens, &out_code);
 ASSERT_EQ(0, res);
 
   ASSERT_STR_EQ(""
-"int main() {\n  int n = 10;\n  int *arr = (int *)_alloca((n) * sizeof(int));\n  return 0;\n  }\n  ", out_code);
+"int main() {\n      int n = 10;\n  int *arr = (int *)_alloca((n) * sizeof(int));\n  return 0;\n}\n", out_code);
 
       free(out_code);
   patch_list_free(&patches);

@@ -47,16 +47,14 @@ static /**
     int
     set_primitive(struct OpenApiTypeMapping *out, const char *type,
                   const char *fmt) {
-  char *_ast_strdup_0 = NULL;
-  char *_ast_strdup_1 = NULL;
   out->kind = OA_TYPE_PRIMITIVE;
-  out->oa_type = (c_cdd_strdup(type, &_ast_strdup_0), _ast_strdup_0);
+  c_cdd_strdup(type, &out->oa_type);
   if (!out->oa_type) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   if (fmt) {
-    out->oa_format = (c_cdd_strdup(fmt, &_ast_strdup_1), _ast_strdup_1);
+    c_cdd_strdup(fmt, &out->oa_format);
     if (!out->oa_format) {
       free(out->oa_type);
       out->oa_type = NULL;
@@ -71,12 +69,11 @@ static /**
         */
     int
     set_ref(struct OpenApiTypeMapping *out, const char *ref) {
-  char *_ast_strdup_2 = NULL;
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
      The ref_name holds the target. */
-  out->ref_name = (c_cdd_strdup(ref, &_ast_strdup_2), _ast_strdup_2);
+  c_cdd_strdup(ref, &out->ref_name);
   if (!out->ref_name) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -120,15 +117,19 @@ static /**
         */
     int
     clean_type_str(const char *in, char **_out_val) {
-  char *_ast_strdup_3 = NULL;
-  char *buf = (c_cdd_strdup(in, &_ast_strdup_3), _ast_strdup_3);
   char *p;
-  if (!buf) {
+  char *buf = NULL;
+  int rc;
+  if (!in) {
     *_out_val = NULL;
     return 0;
   }
 
   /* Remove pointer asterisk */
+  rc = c_cdd_strdup(in, &buf);
+  if (rc != 0)
+    return rc;
+
   p = strchr(buf, '*');
   if (p)
     *p = '\0';
@@ -145,18 +146,12 @@ static /**
  */
 int c_mapping_map_type(const char *c_type_in, const char *decl_name,
                        struct OpenApiTypeMapping *out) {
-  const char *_ast_skip_qualifiers_0 = NULL;
-  char *_ast_clean_type_str_1 = NULL;
-  bool _ast_starts_with_4 = false;
-  bool _ast_starts_with_5 = false;
-  char *_ast_strdup_6 = NULL;
-  char *_ast_strdup_7 = NULL;
   char *clean = NULL;
-  const char *c_type = (skip_qualifiers(c_type_in, &_ast_skip_qualifiers_0),
-                        _ast_skip_qualifiers_0);
+  const char *c_type = NULL;
   int is_ptr = 0;
   int is_array = 0;
   int rc = 0;
+  skip_qualifiers(c_type_in, &c_type);
 
   if (!c_type || !out)
     return EINVAL;
@@ -207,54 +202,60 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
       out->kind = OA_TYPE_UNKNOWN;
   }
   /* Structs / Enums */
-  else if ((c_cdd_str_starts_with(c_type, "struct ", &_ast_starts_with_4),
-            _ast_starts_with_4) ||
-           (c_cdd_str_starts_with(c_type, "enum ", &_ast_starts_with_5),
-            _ast_starts_with_5)) {
-    clean =
-        (clean_type_str(c_type, &_ast_clean_type_str_1), _ast_clean_type_str_1);
-    if (!clean) {
-      C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-      return ENOMEM;
+  else {
+    bool starts1 = false, starts2 = false;
+    c_cdd_str_starts_with(c_type, "struct ", &starts1);
+    c_cdd_str_starts_with(c_type, "enum ", &starts2);
+    if (starts1 || starts2) {
+      clean = NULL;
+      rc = clean_type_str(c_type, &clean);
+      if (rc != 0 || !clean) {
+        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+        return ENOMEM;
+      }
+
+      /* Skip "struct " (7 chars) or "enum " (5 chars) */
+      {
+        const char *start = clean;
+        if (strncmp(start, "struct ", 7) == 0)
+          start += 7;
+        else if (strncmp(start, "enum ", 5) == 0)
+          start += 5;
+
+        while (*start && isspace((unsigned char)*start))
+          start++; /* Trim logic */
+
+        rc = set_ref(out, start);
+      }
+      free(clean);
+    } else {
+      /* Fallback: Unknown type (defaults to string usually in schemas?) */
+      /* Let's set primitive string for safety in generation unless unknown */
+      rc = set_primitive(out, "string", NULL);
     }
 
-    /* Skip "struct " (7 chars) or "enum " (5 chars) */
-    {
-      const char *start = clean;
-      if (strncmp(start, "struct ", 7) == 0)
-        start += 7;
-      else if (strncmp(start, "enum ", 5) == 0)
-        start += 5;
-
-      while (*start && isspace((unsigned char)*start))
-        start++; /* Trim logic */
-
-      rc = set_ref(out, start);
-    }
-    free(clean);
-  } else {
-    /* Fallback: Unknown type (defaults to string usually in schemas?) */
-    /* Let's set primitive string for safety in generation unless unknown */
-    rc = set_primitive(out, "string", NULL);
+    if (rc != 0)
+      return rc;
   }
-
-  if (rc != 0)
-    return rc;
 
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
   if (is_array) {
+    char *inner_ref = NULL;
+    char *inner_type = NULL;
     /* It's an array of the resolved type */
-    char *inner_ref =
-        out->ref_name
-            ? (c_cdd_strdup(out->ref_name, &_ast_strdup_6), _ast_strdup_6)
-            : NULL;
-    char *inner_type =
-        out->oa_type
-            ? (c_cdd_strdup(out->oa_type, &_ast_strdup_7), _ast_strdup_7)
-            : NULL;
+    if (out->ref_name) {
+      rc = c_cdd_strdup(out->ref_name, &inner_ref);
+      if (rc != 0)
+        return rc;
+    }
+    if (out->oa_type) {
+      rc = c_cdd_strdup(out->oa_type, &inner_type);
+      if (rc != 0)
+        return rc;
+    }
     /* Move current mapping to "items" logic? */
-    /* The OpenApiTypeMapping struct is flat. We need to indicate it's an Array
-       OF X. */
+    /* The OpenApiTypeMapping struct is flat. We need to indicate it's an
+       Array OF X. */
     /* We change kind to ARRAY. We reuse ref_name/oa_type to mean the ITEMS
      * type.
      */

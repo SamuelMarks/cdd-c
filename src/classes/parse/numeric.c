@@ -126,7 +126,6 @@ static /**
  * @brief Parses numeric literal from the given input.
  */
 int parse_numeric_literal(const char *str, struct NumericValue *out) {
-  uint64_t _ast_parse_binary_str_0;
   int is_hex = 0;
   int is_bin = 0;
   int is_oct = 0;
@@ -239,8 +238,7 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
     errno = 0;
 
     if (is_bin) {
-      val = (parse_binary_str(start_digits, &end_ptr, &_ast_parse_binary_str_0),
-             _ast_parse_binary_str_0);
+      parse_binary_str(start_digits, &end_ptr, &val);
       out->data.integer.base = 2;
     } else {
       /* Handle hex/oct/dec via strtoull */

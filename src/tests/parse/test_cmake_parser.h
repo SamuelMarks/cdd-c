@@ -28,6 +28,7 @@ TEST test_cmake_modifier_basic(void) {
 
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
+  printf("\n--- CMAKE DIFF ---\n%s\n------------------\n", diff_str);
 
   ASSERT(strstr(diff_str, "--- CMakeLists.txt\n") != NULL);
   ASSERT(strstr(diff_str, "+++ CMakeLists.txt\n") != NULL);
