@@ -1479,7 +1479,7 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping form body */\n",
-        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
+        op->req_body.ref_name));
     return 0;
   }
 
@@ -2828,7 +2828,7 @@ static /**
     CHECK_IO(fprintf(
         fp,
         "  /* Warning: Schema %s definition not found, skipping multipart */\n",
-        op->req_body.ref_name, op->req_body.is_array ? "body" : "req_body"));
+        op->req_body.ref_name));
     return 0;
   }
 
@@ -3253,9 +3253,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
         if (write_form_urlencoded_body(fp, op, spec) != 0)
           return EIO;
       } else if (media_type_is_json(ct) && op->req_body.ref_name) {
-        CHECK_IO(fprintf(fp, "  rc = %s_to_json(%s, &req_json);\n",
-                         op->req_body.ref_name,
-                         op->req_body.is_array ? "body" : "req_body"));
+        CHECK_IO(fprintf(
+            fp, "  rc = %s_to_json((const struct %s *)%s, &req_json);\n",
+            op->req_body.ref_name, op->req_body.ref_name,
+            op->req_body.is_array ? "body" : "req_body"));
         CHECK_IO(fprintf(fp, "  if (rc != 0) goto cleanup;\n"));
         CHECK_IO(fprintf(fp, "  req.body = req_json;\n"));
         CHECK_IO(fprintf(fp, "  req.body_len = strlen(req_json);\n"));
@@ -3585,10 +3586,16 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           return EIO;
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
-        CHECK_IO(fprintf(
-            fp, "      rc = %s_from_json((const char*)res->body, out);\n",
-            default_resp->schema.ref_name,
-            default_resp->schema.is_array ? ", out_len" : ""));
+        if (default_resp->schema.is_array) {
+          CHECK_IO(fprintf(fp,
+                           "      rc = %s_array_from_json((const "
+                           "char*)res->body, *out, out_len);\n",
+                           default_resp->schema.ref_name));
+        } else {
+          CHECK_IO(fprintf(
+              fp, "      rc = %s_from_json((const char*)res->body, out);\n",
+              default_resp->schema.ref_name));
+        }
         CHECK_IO(fprintf(fp, "    }\n"));
       } else if (schema_has_inline(&default_resp->schema)) {
         if (write_inline_json_parse(fp, &default_resp->schema) != 0)

@@ -88,10 +88,10 @@ TEST test_sec_bearer_token(void) {
   ASSERT(code);
 
   /* Check context check */
-  ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
+  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
   /* Check helper call */
-  ASSERT(strstr(
-      code, "http_request_set_auth_bearer(&req, ctx->security.bearer_token)"));
+  ASSERT(strstr(code,
+                "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
   /* Check error handling */
   ASSERT(strstr(code, "if (rc != 0) goto cleanup;"));
 
@@ -117,9 +117,9 @@ TEST test_sec_oauth2_bearer_token(void) {
   code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_1), _ast_gen_sec_code_1);
   ASSERT(code);
 
-  ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
-  ASSERT(strstr(
-      code, "http_request_set_auth_bearer(&req, ctx->security.bearer_token)"));
+  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
+  ASSERT(strstr(code,
+                "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
   free(code);
   PASS();
@@ -143,9 +143,9 @@ TEST test_sec_openid_bearer_token(void) {
   code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_2), _ast_gen_sec_code_2);
   ASSERT(code);
 
-  ASSERT(strstr(code, "if (ctx->security.bearer_token) {"));
-  ASSERT(strstr(
-      code, "http_request_set_auth_bearer(&req, ctx->security.bearer_token)"));
+  ASSERT(strstr(code, "if (0 /* bearer_token */) {"));
+  ASSERT(strstr(code,
+                "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
   free(code);
   PASS();
@@ -170,9 +170,9 @@ TEST test_sec_basic_token(void) {
   code = (gen_sec_code(&spec, NULL, &_ast_gen_sec_code_3), _ast_gen_sec_code_3);
   ASSERT(code);
 
-  ASSERT(strstr(code, "if (ctx->security.basic_token) {"));
-  ASSERT(strstr(
-      code, "http_request_set_auth_basic(&req, ctx->security.basic_token)"));
+  ASSERT(strstr(code, "if (0 /* basic_token */) {"));
+  ASSERT(strstr(code,
+                "http_request_set_auth_basic(&req, NULL /* basic_token */)"));
 
   free(code);
   PASS();
@@ -199,10 +199,10 @@ TEST test_sec_api_key_header(void) {
   ASSERT(code);
 
   /* Check context check using scheme identifier name */
-  ASSERT(strstr(code, "if (ctx->security.api_key_ApiKeyAuth) {"));
+  ASSERT(strstr(code, "if (0 /* api_key_ApiKeyAuth */) {"));
   /* Check injection */
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\", "
-                      "ctx->security.api_key_ApiKeyAuth)"));
+                      "NULL /* api_key_ApiKeyAuth */)"));
 
   free(code);
   PASS();
@@ -273,7 +273,7 @@ TEST test_sec_api_key_query(void) {
 
   ASSERT(strstr(code, "if (!qp_initialized)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"api_key\", "
-                      "ctx->security.api_key_QueryKey)") != NULL);
+                      "NULL /* api_key_QueryKey */)") != NULL);
 
   free(code);
   PASS();

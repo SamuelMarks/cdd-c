@@ -165,6 +165,9 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
     CHECK_IO(fprintf(hfile, "#endif\n\n"));
   } else {
     CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
+    if (sf->size == 0) {
+      CHECK_IO(fprintf(hfile, "  char _dummy;\n"));
+    }
     for (i = 0; i < sf->size; i++) {
       const struct StructField *field = &sf->fields[i];
       const char *n = field->name;
@@ -242,6 +245,21 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
       hfile,
       "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s *);\n",
       struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile, "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n",
+      struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile, "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
+      struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "struct json_object_t;\n"));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_jsonObject(const struct "
+                   "json_object_t *, struct %s **);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_to_jsonObject(const struct %s *, "
+                   "struct json_object_t **);\n",
+                   struct_name, struct_name));
   if (config && config->utils_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 

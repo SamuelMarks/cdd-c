@@ -806,6 +806,20 @@ TEST test_body_security_query_api_key(void) {
   spec.n_security = 1;
   spec.security_set = 1;
 
+  /* Add global security requirement to activate the scheme */
+  struct OpenAPI_SecurityRequirement req;
+  memset(&req, 0, sizeof(req));
+  req.scheme = "QueryKey";
+
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  memset(&sec_set, 0, sizeof(sec_set));
+  sec_set.requirements = &req;
+  sec_set.n_requirements = 1;
+
+  spec.security = &sec_set;
+  spec.n_security = 1;
+  spec.security_set = 1;
+
   code = (gen_body(&op, &spec, "/", NULL, &_ast_gen_body_23), _ast_gen_body_23);
   ASSERT(code);
   printf("\n--- SEC QUERY KEY ---\n%s\n--------------------\n", code);

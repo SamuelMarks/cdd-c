@@ -158,8 +158,7 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
           char *brace = strchr(p, '{');
 
           if (brace) {
-            int is_enum =
-                starts1;
+            int is_enum = starts1;
             /* Extract "Name" from "enum Name {" or "struct Name {" */
             const char *name_start = p + (is_enum ? 5 : 7);
             const char *name_end_ptr = brace;
@@ -271,8 +270,8 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
           if (*p) {
             /* Support multiple fields on same line separated by semicolon */
             char *copy = NULL;
-          c_cdd_strdup(p, &copy);
-          if (copy) {
+            c_cdd_strdup(p, &copy);
+            if (copy) {
               char *ctx = NULL;
 #ifdef _WIN32
               char *tok = strtok_s(copy, ";", &ctx);
@@ -481,10 +480,12 @@ int c_inspector_extract_signatures(const char *source_code,
           out->capacity = c;
         }
 
-        out->items[out->size].name =
-            NULL; extract_span_text(tl, name_idx, name_idx + 1, &out->items[out->size].name);
-        out->items[out->size].sig =
-            NULL; extract_span_text(tl, start_idx, sig_end_idx, &out->items[out->size].sig);
+        out->items[out->size].name = NULL;
+        extract_span_text(tl, name_idx, name_idx + 1,
+                          &out->items[out->size].name);
+        out->items[out->size].sig = NULL;
+        extract_span_text(tl, start_idx, sig_end_idx,
+                          &out->items[out->size].sig);
 
         if (!out->items[out->size].name || !out->items[out->size].sig) {
           rc = ENOMEM;

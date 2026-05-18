@@ -197,7 +197,8 @@ static /**
   end_desig = i;     /* Exclusive of = */
   *out_next = i + 1; /* Skip = */
 
-  *out_str = NULL; join_tokens_skipping_ws(tokens, start, end_desig, out_str);
+  *out_str = NULL;
+  join_tokens_skipping_ws(tokens, start, end_desig, out_str);
   if (!*out_str)
     return ENOMEM;
 
@@ -249,7 +250,8 @@ static /**
     return EINVAL;
   }
 
-  *out_str = NULL; join_tokens_skipping_ws(tokens, start, i, out_str);
+  *out_str = NULL;
+  join_tokens_skipping_ws(tokens, start, i, out_str);
   if (!*out_str)
     return ENOMEM;
 

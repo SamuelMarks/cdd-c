@@ -752,7 +752,8 @@ static /**
     }
     if (strlen(c) == 3 && c[1] == 'X' && c[2] == 'X' && c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema)) {
+          schema_has_inline(&op->responses[i].schema) ||
+          op->responses[i].schema.is_array) {
         *_out_val = &op->responses[i].schema;
         return 0;
       }
@@ -760,14 +761,16 @@ static /**
     }
     if (c[0] == '2') {
       if (op->responses[i].schema.ref_name ||
-          schema_has_inline(&op->responses[i].schema)) {
+          schema_has_inline(&op->responses[i].schema) ||
+          op->responses[i].schema.is_array) {
         *_out_val = &op->responses[i].schema;
         return 0;
       }
     }
   }
   if (default_resp && (default_resp->schema.ref_name ||
-                       schema_has_inline(&default_resp->schema))) {
+                       schema_has_inline(&default_resp->schema) ||
+                       default_resp->schema.is_array)) {
     *_out_val = &default_resp->schema;
     return 0;
   }

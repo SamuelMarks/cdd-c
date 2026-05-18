@@ -1,4 +1,5 @@
-b openapi_load_from_json
-r
+b openapi_load_from_json_internal
+run
 finish
-p rc
+finish
+finish

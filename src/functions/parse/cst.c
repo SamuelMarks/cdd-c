@@ -173,6 +173,7 @@ static /**
   *out_is_match = 0;
 
   while (k < limit) {
+    int is_type = 0;
     const enum TokenKind kind = tokens->tokens[k].kind;
 
     /* If we encounter end-of-statement tokens or blocks before the parameter
@@ -191,7 +192,6 @@ static /**
       return 0;
     }
 
-    int is_type = 0;
     is_type_start(&tokens->tokens[k], &is_type);
     if (is_type) {
       seen_ident = 1;
