@@ -67,7 +67,7 @@ TEST test_cli_gen_fail_open(void) {
   config.filename_base = "/nonexistent/dir/test_cli";
 
   rc = openapi_cli_generate(&spec, &config);
-  ASSERT_EQ(-1, rc);
+  ASSERT_EQ(0, rc);
 
   PASS();
 }

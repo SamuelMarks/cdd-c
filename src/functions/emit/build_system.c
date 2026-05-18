@@ -291,7 +291,6 @@ int generate_cmake_project(const char *output_path, const char *project_name,
   }
   fp = NULL;
 
-  fclose(fp);
   free(full_path);
   return rc;
 }

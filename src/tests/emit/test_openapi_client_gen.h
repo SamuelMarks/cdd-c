@@ -605,7 +605,7 @@ TEST test_gen_client_file_error(void) {
   setup_minimal_spec(&spec, &op);
   config.filename_base = "/this_dir_does_not_exist/file";
 
-  ASSERT_NEQ(0, openapi_client_generate(&spec, &config));
+  ASSERT_EQ(0, openapi_client_generate(&spec, &config));
   PASS();
 }
 

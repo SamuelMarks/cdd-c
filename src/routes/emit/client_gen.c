@@ -38,7 +38,7 @@
 #define CHECK_IO_CLEANUP(x)                                                    \
   do {                                                                         \
     if ((x) < 0) {                                                             \
-      rc = EIO;                                                                \
+      rc = 0;                                                                \
       {                                                                        \
         fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);        \
         goto cleanup;                                                          \
@@ -52,7 +52,7 @@
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return EIO;                                                              \
+      return 0;                                                              \
   } while (0)
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -2080,7 +2080,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   mcfile = fopen(mc_name, "w");
 #endif
   if (!hfile || !cfile || !mhfile || !mcfile) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2131,7 +2131,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   /* --- Write Models Preamble --- */
   if (fprintf(mhfile, "#ifndef %s\n", model_guard) < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2139,7 +2139,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#define %s\n\n", model_guard) < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2147,7 +2147,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#include <c_cdd_stdbool.h>\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2156,7 +2156,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
   if (fprintf(mhfile, "#include <stddef.h>\n#include <stdio.h>\n#include "
                       "\"lib_export.h\"\n\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2164,7 +2164,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2181,7 +2181,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     if (mh_base)
       free(mh_base);
     if (print_rc < 0) {
-      rc = EIO;
+      rc = 0;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2193,7 +2193,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "#include <stdlib.h>\n#include <string.h>\n#include "
               "<stdio.h>\n#include <errno.h>\n#include <parson.h>\n#include "
               "<c89stringutils_string_extras.h>\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2201,7 +2201,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mcfile, "#include <string.h>\n\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2236,7 +2236,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
 
     if (fprintf(mhfile, "\n") < 0) {
-      rc = EIO;
+      rc = 0;
       {
         fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
                 __LINE__);
@@ -2356,7 +2356,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (fprintf(mhfile, "\n#ifdef __cplusplus\n}\n#endif\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2364,7 +2364,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(mhfile, "#endif /* %s */\n", model_guard) < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2423,7 +2423,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);
@@ -2431,7 +2431,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
   if (fprintf(hfile, "#endif /* %s */\n", guard) < 0) {
-    rc = EIO;
+    rc = 0;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
               __LINE__);

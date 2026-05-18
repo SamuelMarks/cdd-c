@@ -1,3 +1,4 @@
+#include "c_cdd_export.h"
 /**
  * @file schema.h
  * @brief Schema Registry Integration.
@@ -24,7 +25,7 @@ extern "C" {
  * @param arr The string array to free.
  * @param n The number of elements in the array.
  */
-extern void free_string_array_schema_utils(char **arr, size_t n);
+extern C_CDD_EXPORT void free_string_array_schema_utils(char **arr, size_t n);
 
 /**
  * @brief Copies a string array.
@@ -35,11 +36,10 @@ extern void free_string_array_schema_utils(char **arr, size_t n);
  * @param src_count The number of elements in the source array.
  * @return 0 on success, or an error code.
  */
-extern int copy_string_array_schema_utils(char ***dst, size_t *dst_count,
+extern C_CDD_EXPORT int copy_string_array_schema_utils(char ***dst, size_t *dst_count,
                                           char **src, size_t src_count);
 
 /* clang-format off */
-#include "c_cdd_export.h"
 #include "classes/parse/inspector.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */

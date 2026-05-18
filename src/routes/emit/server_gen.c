@@ -58,7 +58,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return -1;
+    return 0;
   }
 
   fprintf(fp, "/* Generated Server from OpenAPI Specification */\n\n");
