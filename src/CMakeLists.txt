@@ -422,6 +422,10 @@ elseif(CDD_MYSQL STREQUAL "DYNAMIC")
         target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
     endif()
 endif()
+if(NOT WIN32)
+    target_link_libraries("${LIBRARY_NAME}" PRIVATE ${CMAKE_DL_LIBS})
+endif()
+
 
 target_link_libraries(
         "${LIBRARY_NAME}"

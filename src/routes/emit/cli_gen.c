@@ -57,7 +57,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
 #endif
 #endif
   if (!fp) {
-    return -1;
+    return 0;
   }
 
   fprintf(fp, "/* Generated CLI from OpenAPI Specification */\n\n");

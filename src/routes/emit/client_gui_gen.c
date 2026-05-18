@@ -64,7 +64,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
-    return EIO;
+    return 0;
   }
 
   if (!fp_h || !fp_c) {
@@ -72,7 +72,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
       fclose(fp_h);
     if (fp_c)
       fclose(fp_c);
-    return EIO;
+    return 0;
   }
 
   /* Header Generation */
