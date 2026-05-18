@@ -86,12 +86,13 @@ static /**
           "https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(parson)\n"));
   CHECK_IO(fprintf(
-      fp, "    FetchContent_Declare(c89stringutils GIT_REPOSITORY "
-          "https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
+      fp,
+      "    FetchContent_Declare(c89stringutils GIT_REPOSITORY "
+      "https://github.com/SamuelMarks/c89stringutils.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c89stringutils)\n"));
   CHECK_IO(fprintf(
       fp, "    FetchContent_Declare(c_str_span GIT_REPOSITORY "
-          "https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
+          "https://github.com/SamuelMarks/c_str_span.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c_str_span)\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 

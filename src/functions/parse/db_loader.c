@@ -16,6 +16,8 @@
 
 static int check_lib(const char *win_name, const char *posix_name,
                      int *out_avail) {
+  (void)win_name;
+  (void)posix_name;
   if (!out_avail)
     return 22; /* EINVAL */
   *out_avail = 0;
