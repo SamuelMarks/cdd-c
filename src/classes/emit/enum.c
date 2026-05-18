@@ -74,7 +74,6 @@ void enum_members_free(struct EnumMembers *em) {
  * @brief Executes the enum members add operation.
  */
 int enum_members_add(struct EnumMembers *em, const char *name) {
-  char *_ast_strdup_0 = NULL;
   if (!em || !name)
     return EINVAL;
   if (em->size >= em->capacity) {
@@ -88,7 +87,7 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
     em->members = new_members;
     em->capacity = new_cap;
   }
-  em->members[em->size] = (c_cdd_strdup(name, &_ast_strdup_0), _ast_strdup_0);
+  c_cdd_strdup(name, &em->members[em->size]);
   if (!em->members[em->size])
     return ENOMEM;
   em->size++;

@@ -31,9 +31,7 @@ int crypto_sha256(const void *data, size_t data_len,
   unsigned int len = 0;
   int rc = 0;
 
-  if (!data && data_len > 0)
-    return EINVAL;
-  if (!out_digest)
+  if ((!data && data_len > 0) || !out_digest)
     return EINVAL;
 
   md = EVP_sha256();
@@ -79,6 +77,12 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
 
   if ((!key && key_len > 0) || (!data && data_len > 0) || !out_mac) {
     return EINVAL;
+  }
+
+  if (key_len == 0) {
+    static const unsigned char zero_pad[16] = {0};
+    key = zero_pad;
+    key_len = 16;
   }
 
   /*

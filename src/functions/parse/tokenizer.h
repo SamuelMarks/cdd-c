@@ -363,7 +363,7 @@ extern C_CDD_EXPORT /**
     int
     token_matches_string(const struct Token *tok,
 
-                         const char *match, bool *_out_val);
+                         const char *match, int *_out_val);
 
 /**
  * @param[out] _out_val Pointer to store the result

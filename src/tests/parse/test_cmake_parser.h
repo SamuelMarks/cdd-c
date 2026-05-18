@@ -28,6 +28,7 @@ TEST test_cmake_modifier_basic(void) {
 
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
+  printf("\n--- CMAKE DIFF ---\n%s\n------------------\n", diff_str);
 
   ASSERT(strstr(diff_str, "--- CMakeLists.txt\n") != NULL);
   ASSERT(strstr(diff_str, "+++ CMakeLists.txt\n") != NULL);
@@ -62,9 +63,25 @@ TEST test_cmake_modifier_global(void) {
   PASS();
 }
 
+TEST test_cmake_modifier_errors(void) {
+  struct CMakeModifier mod;
+  ASSERT_EQ(EINVAL, cmake_modifier_init(NULL, "CMakeLists.txt", "my_target"));
+  ASSERT_EQ(EINVAL, cmake_modifier_init(&mod, NULL, "my_target"));
+
+  cmake_modifier_init(&mod, "CMakeLists.txt", "my_target");
+  ASSERT_EQ(EINVAL, cmake_modifier_add_compile_opt(NULL, "/W4"));
+  ASSERT_EQ(EINVAL, cmake_modifier_add_compile_opt(&mod, NULL));
+  ASSERT_EQ(EINVAL, cmake_modifier_add_link_lib(NULL, "ws2_32.lib"));
+  ASSERT_EQ(EINVAL, cmake_modifier_add_link_lib(&mod, NULL));
+
+  cmake_modifier_free(&mod);
+  PASS();
+}
+
 SUITE(cmake_parser_suite) {
   RUN_TEST(test_cmake_modifier_basic);
   RUN_TEST(test_cmake_modifier_global);
+  RUN_TEST(test_cmake_modifier_errors);
 }
 
 #ifdef __cplusplus

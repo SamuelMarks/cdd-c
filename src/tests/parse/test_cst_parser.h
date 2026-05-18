@@ -329,6 +329,28 @@ TEST parse_c11_generic(void) {
 }
 
 /* Standard suite runner */
+
+TEST test_cst_find_first(void) {
+  struct CstNodeList list = {0};
+  struct CstNode *found = NULL;
+
+  cst_list_add(&list, CST_NODE_STRUCT, (const uint8_t *)"a", 1, 0, 0);
+  cst_list_add(&list, CST_NODE_ENUM, (const uint8_t *)"b", 1, 0, 0);
+
+  ASSERT_EQ(0, cst_find_first(&list, CST_NODE_ENUM, &found));
+  ASSERT(found != NULL);
+  ASSERT_EQ(CST_NODE_ENUM, found->kind);
+
+  found = NULL;
+  ASSERT_EQ(0, cst_find_first(&list, CST_NODE_MACRO, &found));
+  ASSERT(found == NULL);
+
+  ASSERT_EQ(EINVAL, cst_find_first(&list, CST_NODE_STRUCT, NULL));
+
+  free_cst_node_list(&list);
+  PASS();
+}
+
 SUITE(cst_parser_suite) {
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
@@ -345,6 +367,7 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_return_compound);
 
   RUN_TEST(parse_c11_generic); /* Added */
+  RUN_TEST(test_cst_find_first);
 }
 
 #ifdef __cplusplus

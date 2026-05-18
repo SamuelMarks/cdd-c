@@ -137,11 +137,18 @@ static /**
         * @brief Checks if c source.
         */
     int
-    is_c_source(const char *path) {
-  const char *dot = strrchr(path, '.');
+    is_c_source(const char *path, int *out_is_source) {
+  const char *dot;
+  int diff;
+  if (!out_is_source)
+    return EINVAL;
+  *out_is_source = 0;
+  dot = strrchr(path, '.');
   if (!dot)
     return 0;
-  return (c_cdd_stricmp(dot, ".c") == 0);
+  c_cdd_stricmp(dot, ".c", &diff);
+  *out_is_source = (diff == 0);
+  return 0;
 }
 
 /**
@@ -151,9 +158,12 @@ static /**
         * @brief Executes the count returning allocs operation.
         */
     int
-    count_returning_allocs(const struct TokenList *tokens) {
+    count_returning_allocs(const struct TokenList *tokens, int *out_count) {
   size_t i;
   int count = 0;
+  if (!out_count)
+    return EINVAL;
+  *out_count = 0;
 
   for (i = 0; i < tokens->size - 1; ++i) {
     if (tokens->tokens[i].kind == TOKEN_KEYWORD_RETURN) {
@@ -178,7 +188,8 @@ static /**
       }
     }
   }
-  return count;
+  *out_count = count;
+  return 0;
 }
 
 /**
@@ -199,8 +210,12 @@ static /**
   size_t i;
 
   /* Filter only .c files */
-  if (!is_c_source(path))
-    return 0;
+  {
+    int is_src = 0;
+    is_c_source(path, &is_src);
+    if (!is_src)
+      return 0;
+  }
 
   /* Read */
   rc = read_to_file(path, "r", &content, &sz);
@@ -241,7 +256,11 @@ static /**
   allocation_site_list_free(&sites);
 
   /* Custom analysis for return-alloc patterns */
-  stats->functions_returning_alloc += count_returning_allocs(tokens);
+  {
+    int count = 0;
+    count_returning_allocs(tokens, &count);
+    stats->functions_returning_alloc += count;
+  }
 
   free_token_list(tokens);
   free(content);

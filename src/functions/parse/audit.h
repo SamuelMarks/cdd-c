@@ -81,7 +81,7 @@ extern C_CDD_EXPORT int audit_project(const char *root_path,
  *
  * @param[in] stats The statistics.
  * @param[out] out_json Pointer to store the result
- * @return Allocated string containing JSON, or NULL on error.
+ * @return 0 on success, error code on failure.
  */
 extern C_CDD_EXPORT int audit_print_json(const struct AuditStats *stats,
                                          char **out_json);

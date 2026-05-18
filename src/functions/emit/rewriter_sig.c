@@ -266,8 +266,6 @@ static /**
  * @brief Executes the rewrite signature operation.
  */
 int rewrite_signature(const struct TokenList *tokens, char **out_code) {
-  size_t _ast_find_balanced_end_0 = 0;
-  size_t _ast_find_balanced_end_1 = 0;
   struct ParsedSig sig;
   size_t i = 0;
   size_t lparen_idx = 0;
@@ -291,10 +289,8 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
   if (i < tokens->size && tokens->tokens[i].kind == TOKEN_LBRACKET) {
     if (i + 1 < tokens->size && tokens->tokens[i + 1].kind == TOKEN_LBRACKET) {
       /* Found [[ */
-      size_t end_attr =
-          (find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET,
-                             &_ast_find_balanced_end_0),
-           _ast_find_balanced_end_0);
+      size_t end_attr = 0;
+      find_balanced_end(tokens, i, TOKEN_LBRACKET, TOKEN_RBRACKET, &end_attr);
 
       if (end_attr < tokens->size && end_attr > i) {
         attr_end_idx = end_attr + 1; /* Past the closing ] */
@@ -403,9 +399,8 @@ int rewrite_signature(const struct TokenList *tokens, char **out_code) {
 
   /* 5. Extract Arguments */
   {
-    size_t rparen = (find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN,
-                                       TOKEN_RPAREN, &_ast_find_balanced_end_1),
-                     _ast_find_balanced_end_1);
+    size_t rparen = 0;
+    find_balanced_end(tokens, lparen_idx, TOKEN_LPAREN, TOKEN_RPAREN, &rparen);
     if (rparen >= tokens->size) {
       rc = EINVAL;
       goto cleanup;

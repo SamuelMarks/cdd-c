@@ -28,7 +28,6 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
-#include "c_cdd_stdbool.h"
 #include <stddef.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600

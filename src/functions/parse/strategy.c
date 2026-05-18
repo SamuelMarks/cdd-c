@@ -49,19 +49,22 @@ static /**
         */
     int
     range_to_string(const struct TokenList *tokens, size_t start, size_t end,
-                    char **_out_val) {
+                    char **out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
+  if (!out_val)
+    return EINVAL;
+  *out_val = NULL;
 
   if (start >= end) {
     char *empty = (char *)malloc(1);
-    if (empty)
+    if (empty) {
       *empty = '\0';
-    {
-      *_out_val = empty;
+      *out_val = empty;
       return 0;
     }
+    return ENOMEM;
   }
 
   for (i = start; i < end; ++i)
@@ -69,8 +72,7 @@ static /**
 
   buf = (char *)malloc(len + 1);
   if (!buf) {
-    *_out_val = NULL;
-    return 0;
+    return ENOMEM;
   }
 
   p = buf;
@@ -79,10 +81,8 @@ static /**
     p += tokens->tokens[i].length;
   }
   *p = '\0';
-  {
-    *_out_val = buf;
-    return 0;
-  }
+  *out_val = buf;
+  return 0;
 }
 
 /* --- Realloc Strategy --- */
@@ -93,9 +93,7 @@ static /**
 int strategy_rewrite_realloc(const struct TokenList *tokens,
                              const struct AllocationSite *site,
                              const size_t semi_idx, struct PatchList *patches) {
-  size_t _ast_find_next_token_idx_0 = 0;
-  bool _ast_token_matches_string_1 = false;
-  char *_ast_range_to_string_2 = NULL;
+
   size_t call_idx = site->token_index;
   size_t lparen_idx;
   size_t assign_op_idx = 0;
@@ -143,9 +141,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     stmt_start++;
 
   /* 3. Check arguments: realloc(ptr, size) */
-  lparen_idx = (find_next_token_idx(tokens, call_idx, TOKEN_LPAREN,
-                                    &_ast_find_next_token_idx_0),
-                _ast_find_next_token_idx_0);
+  find_next_token_idx(tokens, call_idx, TOKEN_LPAREN, &lparen_idx);
   if (lparen_idx >= tokens->size)
     return 0;
 
@@ -159,9 +155,10 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     if (start_arg < tokens->size &&
         tokens->tokens[start_arg].kind == TOKEN_IDENTIFIER) {
       /* Compare against var_name */
-      if ((token_matches_string(&tokens->tokens[start_arg], site->var_name,
-                                &_ast_token_matches_string_1),
-           _ast_token_matches_string_1)) {
+      int is_match = 0;
+      token_matches_string(&tokens->tokens[start_arg], site->var_name,
+                           &is_match);
+      if (is_match) {
         is_self_assign = 1;
       }
     }
@@ -172,9 +169,7 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
     char *replacement = NULL;
 
     /* Extract "realloc(p, n)" text */
-    call_expr =
-        (range_to_string(tokens, call_idx, semi_idx, &_ast_range_to_string_2),
-         _ast_range_to_string_2);
+    range_to_string(tokens, call_idx, semi_idx, &call_expr);
     if (!call_expr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -243,7 +238,6 @@ int strategy_rewrite_realloc(const struct TokenList *tokens,
 int strategy_inject_safety_checks(const struct TokenList *tokens,
                                   const struct AllocationSiteList *allocs,
                                   struct PatchList *patches) {
-  size_t _ast_find_next_token_idx_3 = 0;
   size_t i;
   if (!tokens || !allocs || !patches)
     return EINVAL;
@@ -256,9 +250,7 @@ int strategy_inject_safety_checks(const struct TokenList *tokens,
     if (site->is_checked)
       continue;
 
-    semi_idx = (find_next_token_idx(tokens, site->token_index, TOKEN_SEMICOLON,
-                                    &_ast_find_next_token_idx_3),
-                _ast_find_next_token_idx_3);
+    find_next_token_idx(tokens, site->token_index, TOKEN_SEMICOLON, &semi_idx);
     if (semi_idx >= tokens->size)
       continue;
 

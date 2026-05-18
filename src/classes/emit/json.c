@@ -42,12 +42,9 @@
 int write_struct_to_json_func(FILE *fp, const char *struct_name,
                               const struct StructFields *sf,
                               const struct CodegenJsonConfig *config) {
-  char *_ast_get_type_from_ref_0 = NULL;
-  char *_ast_get_type_from_ref_1 = NULL;
-  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
-  bool iter_needed = false;
-  bool rc_needed = false;
+  int iter_needed = 0;
+  int rc_needed = 0;
 
   if (!fp || !struct_name || !sf)
     return EINVAL;
@@ -55,11 +52,11 @@ int write_struct_to_json_func(FILE *fp, const char *struct_name,
   /* Pre-scan to determine variable needs */
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "array") == 0)
-      iter_needed = true;
+      iter_needed = 1;
     if (strcmp(sf->fields[i].type, "object") == 0 ||
         strcmp(sf->fields[i].type, "enum") == 0 ||
         strcmp(sf->fields[i].type, "array") == 0) {
-      rc_needed = true;
+      rc_needed = 1;
     }
   }
 
@@ -115,10 +112,11 @@ int write_struct_to_json_func(FILE *fp, const char *struct_name,
       /* Recursive call */
       CHECK_IO(fprintf(fp, "  if (obj->%s) {\n", n));
       CHECK_IO(fprintf(fp, "    char *s = NULL;\n"));
-      CHECK_IO(fprintf(fp, "    rc = %s_to_json(obj->%s, &s);\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_0),
-                        _ast_get_type_from_ref_0),
-                       n));
+      {
+        char *tn = NULL;
+        get_type_from_ref(r, &tn);
+        CHECK_IO(fprintf(fp, "    rc = %s_to_json(obj->%s, &s);\n", tn, n));
+      }
       CHECK_IO(fprintf(fp, "    if (rc) return rc;\n"));
       CHECK_IO(
           fprintf(fp, "    jasprintf(json, \"\\\"%s\\\": %%s\", s);\n", n));
@@ -126,12 +124,14 @@ int write_struct_to_json_func(FILE *fp, const char *struct_name,
       CHECK_IO(
           fprintf(fp, "  } else jasprintf(json, \"\\\"%s\\\": null\");\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(
-          fp,
-          "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if (rc) return rc;\n",
-          (get_type_from_ref(r, &_ast_get_type_from_ref_1),
-           _ast_get_type_from_ref_1),
-          n));
+      {
+        char *tn = NULL;
+        get_type_from_ref(r, &tn);
+        CHECK_IO(fprintf(
+            fp,
+            "  { char *s=NULL; rc=%s_to_str(obj->%s, &s); if (rc) return rc;\n",
+            tn, n));
+      }
       CHECK_IO(fprintf(
           fp,
           "    jasprintf(json, \"\\\"%s\\\": \\\"%%s\\\"\", s); free(s); }\n",
@@ -147,12 +147,14 @@ int write_struct_to_json_func(FILE *fp, const char *struct_name,
         CHECK_IO(fprintf(
             fp, "    jasprintf(json, \"\\\"%%s\\\"\", obj->%s[i]);\n", n));
       } else { /* Object array */
-        CHECK_IO(fprintf(fp,
-                         "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
-                         "if (rc) return rc;\n",
-                         (get_type_from_ref(r, &_ast_get_type_from_ref_2),
-                          _ast_get_type_from_ref_2),
-                         n));
+        {
+          char *tn = NULL;
+          get_type_from_ref(r, &tn);
+          CHECK_IO(fprintf(fp,
+                           "    { char *s=NULL; rc=%s_to_json(obj->%s[i], &s); "
+                           "if (rc) return rc;\n",
+                           tn, n));
+        }
         CHECK_IO(
             fprintf(fp, "      jasprintf(json, \"%%s\", s); free(s); }\n"));
       }
@@ -212,34 +214,30 @@ int write_struct_from_json_func(FILE *fp, const char *struct_name,
 int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                       const struct StructFields *sf,
                                       const struct CodegenJsonConfig *config) {
-  char *_ast_get_type_from_ref_3 = NULL;
-  char *_ast_get_type_from_ref_4 = NULL;
-  char *_ast_get_type_from_ref_5 = NULL;
-  char *_ast_get_type_from_ref_6 = NULL;
   size_t i;
-  bool iter_needed = false;
-  bool rc_needed = false;
-  bool tmp_needed = false;
-  bool len_needed = false;
+  int iter_needed = 0;
+  int rc_needed = 0;
+  int tmp_needed = 0;
+  int len_needed = 0;
 
   if (!fp || !struct_name || !sf)
     return EINVAL;
 
   for (i = 0; i < sf->size; ++i) {
     if (strcmp(sf->fields[i].type, "array") == 0)
-      iter_needed = true;
+      iter_needed = 1;
     if (strcmp(sf->fields[i].type, "object") == 0 ||
         strcmp(sf->fields[i].type, "enum") == 0 ||
         strcmp(sf->fields[i].type, "array") == 0) {
-      rc_needed = true;
+      rc_needed = 1;
     }
     if (sf->fields[i].has_min || sf->fields[i].has_max ||
         sf->fields[i].exclusive_min || sf->fields[i].exclusive_max) {
-      tmp_needed = true;
+      tmp_needed = 1;
     }
     if (sf->fields[i].has_min_len || sf->fields[i].has_max_len ||
         sf->fields[i].pattern[0] != '\0') {
-      len_needed = true;
+      len_needed = 1;
     }
   }
 
@@ -460,10 +458,12 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                        "json_object_get_object(jsonObject, \"%s\");\n",
                        n));
       CHECK_IO(fprintf(fp, "    if (sub) {\n"));
-      CHECK_IO(fprintf(fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_3),
-                        _ast_get_type_from_ref_3),
-                       n));
+      {
+        char *tn = NULL;
+        get_type_from_ref(r, &tn);
+        CHECK_IO(fprintf(fp, "      rc = %s_from_jsonObject(sub, &ret->%s);\n",
+                         tn, n));
+      }
       CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
                        struct_name));
       CHECK_IO(fprintf(fp, "    }\n  }\n"));
@@ -473,10 +473,11 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
           "  { const char *s = json_object_get_string(jsonObject, \"%s\");\n",
           n));
       CHECK_IO(fprintf(fp, "    if (s) {\n"));
-      CHECK_IO(fprintf(fp, "      rc = %s_from_str(s, &ret->%s);\n",
-                       (get_type_from_ref(r, &_ast_get_type_from_ref_4),
-                        _ast_get_type_from_ref_4),
-                       n));
+      {
+        char *tn = NULL;
+        get_type_from_ref(r, &tn);
+        CHECK_IO(fprintf(fp, "      rc = %s_from_str(s, &ret->%s);\n", tn, n));
+      }
       CHECK_IO(fprintf(fp, "      if (rc) { %s_cleanup(ret); return rc; }\n",
                        struct_name));
       CHECK_IO(fprintf(fp, "    }\n  }\n"));
@@ -502,19 +503,23 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                          n, n));
       } else {
         /* Object array */
-        CHECK_IO(fprintf(
-            fp, "      ret->%s = calloc(ret->n_%s, sizeof(struct %s*));\n", n,
-            n,
-            (get_type_from_ref(r, &_ast_get_type_from_ref_5),
-             _ast_get_type_from_ref_5)));
+        {
+          char *tn = NULL;
+          get_type_from_ref(r, &tn);
+          CHECK_IO(fprintf(
+              fp, "      ret->%s = calloc(ret->n_%s, sizeof(struct %s*));\n", n,
+              n, tn));
+        }
         CHECK_IO(fprintf(fp, "      for(i=0; i<ret->n_%s; ++i) {\n", n));
-        CHECK_IO(fprintf(
-            fp,
-            "        rc = %s_from_jsonObject(json_array_get_object(arr, i), "
-            "&ret->%s[i]);\n",
-            (get_type_from_ref(r, &_ast_get_type_from_ref_6),
-             _ast_get_type_from_ref_6),
-            n));
+        {
+          char *tn = NULL;
+          get_type_from_ref(r, &tn);
+          CHECK_IO(fprintf(
+              fp,
+              "        rc = %s_from_jsonObject(json_array_get_object(arr, i), "
+              "&ret->%s[i]);\n",
+              tn, n));
+        }
         CHECK_IO(fprintf(fp, "        if(rc) { %s_cleanup(ret); return rc; }\n",
                          struct_name));
         CHECK_IO(fprintf(fp, "      }\n"));

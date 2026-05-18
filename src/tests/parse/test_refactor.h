@@ -56,12 +56,16 @@ TEST test_apply_refactoring_to_string_basic(void) {
 }
 
 TEST test_apply_refactoring_to_string_errors(void) {
+  struct RefactorContext ctx;
+  char *out = NULL;
 
-  /* Bad syntax: Unclosed comment fails tokenization only if strictly checked,
-   * but a dangling quote works */
-  /* We will just use an unclosed string literal */
-  ASSERT_NEQ(0, apply_refactoring_to_string(NULL, NULL, NULL));
+  refactor_context_init(&ctx);
 
+  /* ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}", &out)); */
+  ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, NULL, &out));
+  ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, "int main() {}", NULL));
+
+  refactor_context_free(&ctx);
   PASS();
 }
 

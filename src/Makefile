@@ -1107,6 +1107,54 @@ functions/emit/codegen.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/codegen.c.s
 .PHONY : functions/emit/codegen.c.s
 
+functions/emit/cst_printer.o: functions/emit/cst_printer.c.o
+.PHONY : functions/emit/cst_printer.o
+
+# target to build an object file
+functions/emit/cst_printer.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/cst_printer.c.o
+.PHONY : functions/emit/cst_printer.c.o
+
+functions/emit/cst_printer.i: functions/emit/cst_printer.c.i
+.PHONY : functions/emit/cst_printer.i
+
+# target to preprocess a source file
+functions/emit/cst_printer.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/cst_printer.c.i
+.PHONY : functions/emit/cst_printer.c.i
+
+functions/emit/cst_printer.s: functions/emit/cst_printer.c.s
+.PHONY : functions/emit/cst_printer.s
+
+# target to generate assembly for a file
+functions/emit/cst_printer.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/cst_printer.c.s
+.PHONY : functions/emit/cst_printer.c.s
+
+functions/emit/diff_generator.o: functions/emit/diff_generator.c.o
+.PHONY : functions/emit/diff_generator.o
+
+# target to build an object file
+functions/emit/diff_generator.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/diff_generator.c.o
+.PHONY : functions/emit/diff_generator.c.o
+
+functions/emit/diff_generator.i: functions/emit/diff_generator.c.i
+.PHONY : functions/emit/diff_generator.i
+
+# target to preprocess a source file
+functions/emit/diff_generator.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/diff_generator.c.i
+.PHONY : functions/emit/diff_generator.c.i
+
+functions/emit/diff_generator.s: functions/emit/diff_generator.c.s
+.PHONY : functions/emit/diff_generator.s
+
+# target to generate assembly for a file
+functions/emit/diff_generator.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/diff_generator.c.s
+.PHONY : functions/emit/diff_generator.c.s
+
 functions/emit/make.o: functions/emit/make.c.o
 .PHONY : functions/emit/make.o
 
@@ -1227,6 +1275,54 @@ functions/emit/sync.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/sync.c.s
 .PHONY : functions/emit/sync.c.s
 
+functions/emit/weaver.o: functions/emit/weaver.c.o
+.PHONY : functions/emit/weaver.o
+
+# target to build an object file
+functions/emit/weaver.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver.c.o
+.PHONY : functions/emit/weaver.c.o
+
+functions/emit/weaver.i: functions/emit/weaver.c.i
+.PHONY : functions/emit/weaver.i
+
+# target to preprocess a source file
+functions/emit/weaver.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver.c.i
+.PHONY : functions/emit/weaver.c.i
+
+functions/emit/weaver.s: functions/emit/weaver.c.s
+.PHONY : functions/emit/weaver.s
+
+# target to generate assembly for a file
+functions/emit/weaver.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver.c.s
+.PHONY : functions/emit/weaver.c.s
+
+functions/emit/weaver_attributes.o: functions/emit/weaver_attributes.c.o
+.PHONY : functions/emit/weaver_attributes.o
+
+# target to build an object file
+functions/emit/weaver_attributes.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver_attributes.c.o
+.PHONY : functions/emit/weaver_attributes.c.o
+
+functions/emit/weaver_attributes.i: functions/emit/weaver_attributes.c.i
+.PHONY : functions/emit/weaver_attributes.i
+
+# target to preprocess a source file
+functions/emit/weaver_attributes.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver_attributes.c.i
+.PHONY : functions/emit/weaver_attributes.c.i
+
+functions/emit/weaver_attributes.s: functions/emit/weaver_attributes.c.s
+.PHONY : functions/emit/weaver_attributes.s
+
+# target to generate assembly for a file
+functions/emit/weaver_attributes.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/emit/weaver_attributes.c.s
+.PHONY : functions/emit/weaver_attributes.c.s
+
 functions/parse/analysis.o: functions/parse/analysis.c.o
 .PHONY : functions/parse/analysis.o
 
@@ -1274,6 +1370,30 @@ functions/parse/audit.s: functions/parse/audit.c.s
 functions/parse/audit.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/audit.c.s
 .PHONY : functions/parse/audit.c.s
+
+functions/parse/cmake_parser.o: functions/parse/cmake_parser.c.o
+.PHONY : functions/parse/cmake_parser.o
+
+# target to build an object file
+functions/parse/cmake_parser.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/cmake_parser.c.o
+.PHONY : functions/parse/cmake_parser.c.o
+
+functions/parse/cmake_parser.i: functions/parse/cmake_parser.c.i
+.PHONY : functions/parse/cmake_parser.i
+
+# target to preprocess a source file
+functions/parse/cmake_parser.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/cmake_parser.c.i
+.PHONY : functions/parse/cmake_parser.c.i
+
+functions/parse/cmake_parser.s: functions/parse/cmake_parser.c.s
+.PHONY : functions/parse/cmake_parser.s
+
+# target to generate assembly for a file
+functions/parse/cmake_parser.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/cmake_parser.c.s
+.PHONY : functions/parse/cmake_parser.c.s
 
 functions/parse/crypto_apple.o: functions/parse/crypto_apple.c.o
 .PHONY : functions/parse/crypto_apple.o
@@ -1323,6 +1443,54 @@ functions/parse/cst.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/cst.c.s
 .PHONY : functions/parse/cst.c.s
 
+functions/parse/db_loader.o: functions/parse/db_loader.c.o
+.PHONY : functions/parse/db_loader.o
+
+# target to build an object file
+functions/parse/db_loader.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/db_loader.c.o
+.PHONY : functions/parse/db_loader.c.o
+
+functions/parse/db_loader.i: functions/parse/db_loader.c.i
+.PHONY : functions/parse/db_loader.i
+
+# target to preprocess a source file
+functions/parse/db_loader.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/db_loader.c.i
+.PHONY : functions/parse/db_loader.c.i
+
+functions/parse/db_loader.s: functions/parse/db_loader.c.s
+.PHONY : functions/parse/db_loader.s
+
+# target to generate assembly for a file
+functions/parse/db_loader.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/db_loader.c.s
+.PHONY : functions/parse/db_loader.c.s
+
+functions/parse/decl_hoist.o: functions/parse/decl_hoist.c.o
+.PHONY : functions/parse/decl_hoist.o
+
+# target to build an object file
+functions/parse/decl_hoist.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/decl_hoist.c.o
+.PHONY : functions/parse/decl_hoist.c.o
+
+functions/parse/decl_hoist.i: functions/parse/decl_hoist.c.i
+.PHONY : functions/parse/decl_hoist.i
+
+# target to preprocess a source file
+functions/parse/decl_hoist.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/decl_hoist.c.i
+.PHONY : functions/parse/decl_hoist.c.i
+
+functions/parse/decl_hoist.s: functions/parse/decl_hoist.c.s
+.PHONY : functions/parse/decl_hoist.s
+
+# target to generate assembly for a file
+functions/parse/decl_hoist.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/decl_hoist.c.s
+.PHONY : functions/parse/decl_hoist.c.s
+
 functions/parse/declarator.o: functions/parse/declarator.c.o
 .PHONY : functions/parse/declarator.o
 
@@ -1346,6 +1514,30 @@ functions/parse/declarator.s: functions/parse/declarator.c.s
 functions/parse/declarator.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/declarator.c.s
 .PHONY : functions/parse/declarator.c.s
+
+functions/parse/desig_init.o: functions/parse/desig_init.c.o
+.PHONY : functions/parse/desig_init.o
+
+# target to build an object file
+functions/parse/desig_init.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/desig_init.c.o
+.PHONY : functions/parse/desig_init.c.o
+
+functions/parse/desig_init.i: functions/parse/desig_init.c.i
+.PHONY : functions/parse/desig_init.i
+
+# target to preprocess a source file
+functions/parse/desig_init.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/desig_init.c.i
+.PHONY : functions/parse/desig_init.c.i
+
+functions/parse/desig_init.s: functions/parse/desig_init.c.s
+.PHONY : functions/parse/desig_init.s
+
+# target to generate assembly for a file
+functions/parse/desig_init.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/desig_init.c.s
+.PHONY : functions/parse/desig_init.c.s
 
 functions/parse/fs.o: functions/parse/fs.c.o
 .PHONY : functions/parse/fs.o
@@ -1371,6 +1563,30 @@ functions/parse/fs.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/fs.c.s
 .PHONY : functions/parse/fs.c.s
 
+functions/parse/macro_overlay.o: functions/parse/macro_overlay.c.o
+.PHONY : functions/parse/macro_overlay.o
+
+# target to build an object file
+functions/parse/macro_overlay.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/macro_overlay.c.o
+.PHONY : functions/parse/macro_overlay.c.o
+
+functions/parse/macro_overlay.i: functions/parse/macro_overlay.c.i
+.PHONY : functions/parse/macro_overlay.i
+
+# target to preprocess a source file
+functions/parse/macro_overlay.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/macro_overlay.c.i
+.PHONY : functions/parse/macro_overlay.c.i
+
+functions/parse/macro_overlay.s: functions/parse/macro_overlay.c.s
+.PHONY : functions/parse/macro_overlay.s
+
+# target to generate assembly for a file
+functions/parse/macro_overlay.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/macro_overlay.c.s
+.PHONY : functions/parse/macro_overlay.c.s
+
 functions/parse/main.o: functions/parse/main.c.o
 .PHONY : functions/parse/main.o
 
@@ -1394,6 +1610,30 @@ functions/parse/main.s: functions/parse/main.c.s
 functions/parse/main.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/main.c.s
 .PHONY : functions/parse/main.c.s
+
+functions/parse/makefile_scraper.o: functions/parse/makefile_scraper.c.o
+.PHONY : functions/parse/makefile_scraper.o
+
+# target to build an object file
+functions/parse/makefile_scraper.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/makefile_scraper.c.o
+.PHONY : functions/parse/makefile_scraper.c.o
+
+functions/parse/makefile_scraper.i: functions/parse/makefile_scraper.c.i
+.PHONY : functions/parse/makefile_scraper.i
+
+# target to preprocess a source file
+functions/parse/makefile_scraper.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/makefile_scraper.c.i
+.PHONY : functions/parse/makefile_scraper.c.i
+
+functions/parse/makefile_scraper.s: functions/parse/makefile_scraper.c.s
+.PHONY : functions/parse/makefile_scraper.s
+
+# target to generate assembly for a file
+functions/parse/makefile_scraper.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/makefile_scraper.c.s
+.PHONY : functions/parse/makefile_scraper.c.s
 
 functions/parse/orchestrator.o: functions/parse/orchestrator.c.o
 .PHONY : functions/parse/orchestrator.o
@@ -1538,6 +1778,54 @@ functions/parse/tokenizer.s: functions/parse/tokenizer.c.s
 functions/parse/tokenizer.c.s:
 	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/tokenizer.c.s
 .PHONY : functions/parse/tokenizer.c.s
+
+functions/parse/vcpkg_integration.o: functions/parse/vcpkg_integration.c.o
+.PHONY : functions/parse/vcpkg_integration.o
+
+# target to build an object file
+functions/parse/vcpkg_integration.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vcpkg_integration.c.o
+.PHONY : functions/parse/vcpkg_integration.c.o
+
+functions/parse/vcpkg_integration.i: functions/parse/vcpkg_integration.c.i
+.PHONY : functions/parse/vcpkg_integration.i
+
+# target to preprocess a source file
+functions/parse/vcpkg_integration.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vcpkg_integration.c.i
+.PHONY : functions/parse/vcpkg_integration.c.i
+
+functions/parse/vcpkg_integration.s: functions/parse/vcpkg_integration.c.s
+.PHONY : functions/parse/vcpkg_integration.s
+
+# target to generate assembly for a file
+functions/parse/vcpkg_integration.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vcpkg_integration.c.s
+.PHONY : functions/parse/vcpkg_integration.c.s
+
+functions/parse/vla_analyzer.o: functions/parse/vla_analyzer.c.o
+.PHONY : functions/parse/vla_analyzer.o
+
+# target to build an object file
+functions/parse/vla_analyzer.c.o:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vla_analyzer.c.o
+.PHONY : functions/parse/vla_analyzer.c.o
+
+functions/parse/vla_analyzer.i: functions/parse/vla_analyzer.c.i
+.PHONY : functions/parse/vla_analyzer.i
+
+# target to preprocess a source file
+functions/parse/vla_analyzer.c.i:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vla_analyzer.c.i
+.PHONY : functions/parse/vla_analyzer.c.i
+
+functions/parse/vla_analyzer.s: functions/parse/vla_analyzer.c.s
+.PHONY : functions/parse/vla_analyzer.s
+
+# target to generate assembly for a file
+functions/parse/vla_analyzer.c.s:
+	cd /Users/samuel/repos/cdd-openapi-test-harness/cdd-c && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/c_cdd.dir/build.make src/CMakeFiles/c_cdd.dir/functions/parse/vla_analyzer.c.s
+.PHONY : functions/parse/vla_analyzer.c.s
 
 openapi/emit/openapi.o: openapi/emit/openapi.c.o
 .PHONY : openapi/emit/openapi.o
@@ -2195,6 +2483,12 @@ help:
 	@echo "... functions/emit/codegen.o"
 	@echo "... functions/emit/codegen.i"
 	@echo "... functions/emit/codegen.s"
+	@echo "... functions/emit/cst_printer.o"
+	@echo "... functions/emit/cst_printer.i"
+	@echo "... functions/emit/cst_printer.s"
+	@echo "... functions/emit/diff_generator.o"
+	@echo "... functions/emit/diff_generator.i"
+	@echo "... functions/emit/diff_generator.s"
 	@echo "... functions/emit/make.o"
 	@echo "... functions/emit/make.i"
 	@echo "... functions/emit/make.s"
@@ -2210,27 +2504,51 @@ help:
 	@echo "... functions/emit/sync.o"
 	@echo "... functions/emit/sync.i"
 	@echo "... functions/emit/sync.s"
+	@echo "... functions/emit/weaver.o"
+	@echo "... functions/emit/weaver.i"
+	@echo "... functions/emit/weaver.s"
+	@echo "... functions/emit/weaver_attributes.o"
+	@echo "... functions/emit/weaver_attributes.i"
+	@echo "... functions/emit/weaver_attributes.s"
 	@echo "... functions/parse/analysis.o"
 	@echo "... functions/parse/analysis.i"
 	@echo "... functions/parse/analysis.s"
 	@echo "... functions/parse/audit.o"
 	@echo "... functions/parse/audit.i"
 	@echo "... functions/parse/audit.s"
+	@echo "... functions/parse/cmake_parser.o"
+	@echo "... functions/parse/cmake_parser.i"
+	@echo "... functions/parse/cmake_parser.s"
 	@echo "... functions/parse/crypto_apple.o"
 	@echo "... functions/parse/crypto_apple.i"
 	@echo "... functions/parse/crypto_apple.s"
 	@echo "... functions/parse/cst.o"
 	@echo "... functions/parse/cst.i"
 	@echo "... functions/parse/cst.s"
+	@echo "... functions/parse/db_loader.o"
+	@echo "... functions/parse/db_loader.i"
+	@echo "... functions/parse/db_loader.s"
+	@echo "... functions/parse/decl_hoist.o"
+	@echo "... functions/parse/decl_hoist.i"
+	@echo "... functions/parse/decl_hoist.s"
 	@echo "... functions/parse/declarator.o"
 	@echo "... functions/parse/declarator.i"
 	@echo "... functions/parse/declarator.s"
+	@echo "... functions/parse/desig_init.o"
+	@echo "... functions/parse/desig_init.i"
+	@echo "... functions/parse/desig_init.s"
 	@echo "... functions/parse/fs.o"
 	@echo "... functions/parse/fs.i"
 	@echo "... functions/parse/fs.s"
+	@echo "... functions/parse/macro_overlay.o"
+	@echo "... functions/parse/macro_overlay.i"
+	@echo "... functions/parse/macro_overlay.s"
 	@echo "... functions/parse/main.o"
 	@echo "... functions/parse/main.i"
 	@echo "... functions/parse/main.s"
+	@echo "... functions/parse/makefile_scraper.o"
+	@echo "... functions/parse/makefile_scraper.i"
+	@echo "... functions/parse/makefile_scraper.s"
 	@echo "... functions/parse/orchestrator.o"
 	@echo "... functions/parse/orchestrator.i"
 	@echo "... functions/parse/orchestrator.s"
@@ -2249,6 +2567,12 @@ help:
 	@echo "... functions/parse/tokenizer.o"
 	@echo "... functions/parse/tokenizer.i"
 	@echo "... functions/parse/tokenizer.s"
+	@echo "... functions/parse/vcpkg_integration.o"
+	@echo "... functions/parse/vcpkg_integration.i"
+	@echo "... functions/parse/vcpkg_integration.s"
+	@echo "... functions/parse/vla_analyzer.o"
+	@echo "... functions/parse/vla_analyzer.i"
+	@echo "... functions/parse/vla_analyzer.s"
 	@echo "... openapi/emit/openapi.o"
 	@echo "... openapi/emit/openapi.i"
 	@echo "... openapi/emit/openapi.s"

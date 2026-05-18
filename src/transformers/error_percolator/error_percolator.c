@@ -121,7 +121,8 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
 
                   if (!cdd_cst_builder_has_error(&bld)) {
                     cdd_trivia_t *lt = tok->leading_trivia;
-                    cdd_cst_node_t *parent_ptr = node;
+                    cdd_cst_node_t *parent_ptr;
+                    parent_ptr = node;
                     tok->leading_trivia = NULL;
                     if (temp->num_children > 0 &&
                         temp->children[0].kind == CDD_CST_CHILD_TOKEN) {
@@ -209,7 +210,8 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                     {
                       size_t consume_count =
                           semi_idx > 0 ? (semi_idx - rparen_idx + 1) : 1;
-                      cdd_cst_node_t *parent_ptr = node;
+                      cdd_cst_node_t *parent_ptr;
+                      parent_ptr = node;
                       cdd_cst_splice_children(tree, &parent_ptr, rparen_idx,
                                               consume_count, temp->children,
                                               temp->num_children);

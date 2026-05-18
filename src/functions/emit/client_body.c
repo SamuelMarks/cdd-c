@@ -3189,7 +3189,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(fprintf(fp, "  int rc = 0;\n"));
   CHECK_IO(fprintf(fp, "  int attempt = 0;\n"));
 
-  if (query_exists) {
+  if (query_exists || security_query) {
     CHECK_IO(fprintf(fp, "  struct UrlQueryParams qp = {0};\n"));
     CHECK_IO(fprintf(fp, "  char *query_str = NULL;\n"));
     CHECK_IO(fprintf(fp, "  char *path_str = NULL;\n"));
@@ -3197,7 +3197,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   } else {
     CHECK_IO(fprintf(fp, "  char *url = NULL;\n"));
   }
-  if (cookie_exists) {
+  if (cookie_exists || security_cookie) {
     CHECK_IO(fprintf(fp, "  char *cookie_str = NULL;\n"));
     CHECK_IO(fprintf(fp, "  size_t cookie_len = 0;\n"));
   }
@@ -3627,12 +3627,12 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     CHECK_IO(fprintf(fp, "  if (form_body) free(form_body);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&form_qp);\n"));
   }
-  if (query_exists) {
+  if (query_exists || security_query) {
     CHECK_IO(fprintf(fp, "  if (path_str) free(path_str);\n"));
     CHECK_IO(fprintf(fp, "  if (query_str) free(query_str);\n"));
     CHECK_IO(fprintf(fp, "  url_query_free(&qp);\n"));
   }
-  if (cookie_exists) {
+  if (cookie_exists || security_cookie) {
     CHECK_IO(fprintf(fp, "  if (cookie_str) free(cookie_str);\n"));
   }
   CHECK_IO(fprintf(fp, "  http_request_free(&req);\n"));

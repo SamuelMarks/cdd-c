@@ -267,13 +267,13 @@ TEST test_code2schema_parse_struct_and_enum(void) {
 
   bool out_val;
   ASSERT_EQ(0, str_starts_with("hello", "hel", &out_val));
-  ASSERT(out_val == true);
+  ASSERT(out_val != 0);
   ASSERT_EQ(0, str_starts_with("hello", "helo", &out_val));
-  ASSERT(out_val == false);
+  ASSERT(out_val == 0);
   ASSERT_EQ(0, str_starts_with(NULL, "hel", &out_val));
-  ASSERT(out_val == false);
+  ASSERT(out_val == 0);
   ASSERT_EQ(0, str_starts_with("hello", NULL, &out_val));
-  ASSERT(out_val == false);
+  ASSERT(out_val == 0);
 
   char trim_buf[32] = "hello   ";
   trim_trailing(trim_buf);
