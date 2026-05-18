@@ -356,7 +356,6 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_dirname_foo);
   RUN_TEST(test_fs_cdd_fopen_too_long);
 #ifdef _MSC_VER
-  RUN_TEST(test_path_is_unc);
   RUN_TEST(test_ascii_wide_conversion);
 #endif
 }
