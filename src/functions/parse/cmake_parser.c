@@ -239,7 +239,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE, "--- %s\n+++ %s\n", mod->filepath, mod->filepath);
+  diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE,
+                          "--- %s\n+++ %s\n", mod->filepath, mod->filepath);
 #else
   diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "--- %s\n+++ %s\n",
                        mod->filepath, mod->filepath);
@@ -254,7 +255,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   str_buf[0] = '\0';
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "if(MSVC)\n");
+  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
+                             _TRUNCATE, "if(MSVC)\n");
 #else
   str_buf_len +=
       snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "if(MSVC)\n");
@@ -335,7 +337,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "endif()\n");
+  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
+                             _TRUNCATE, "endif()\n");
 #else
   str_buf_len +=
       snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\n");

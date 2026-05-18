@@ -8843,9 +8843,10 @@ static /**
         if (!out->security_schemes[i].oauth2_metadata_url)
           return ENOMEM;
       }
-      if (!flows_obj)
-        return EINVAL;
-      {
+      if (!flows_obj) {
+        if (!out->swagger_version)
+          return EINVAL;
+      } else {
         int flow_rc = parse_oauth_flows(flows_obj, &out->security_schemes[i]);
         if (flow_rc != 0)
           return flow_rc;

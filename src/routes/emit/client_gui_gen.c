@@ -50,16 +50,20 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   }
 
 #if defined(_MSC_VER)
-  if (fopen_s(&fp_h, path_h, "w") != 0) fp_h = NULL;
-  if (fopen_s(&fp_c, path_c, "w") != 0) fp_c = NULL;
+  if (fopen_s(&fp_h, path_h, "w") != 0)
+    fp_h = NULL;
+  if (fopen_s(&fp_c, path_c, "w") != 0)
+    fp_c = NULL;
 #else
   fp_h = fopen(path_h, "w");
   fp_c = fopen(path_c, "w");
 #endif
 
   if (!fp_h || !fp_c) {
-    if (fp_h) fclose(fp_h);
-    if (fp_c) fclose(fp_c);
+    if (fp_h)
+      fclose(fp_h);
+    if (fp_c)
+      fclose(fp_c);
     return EIO;
   }
 
@@ -107,7 +111,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp_c,
       "/* Expected imports from c-abstract-http and c-orm definitions */\n");
-  fprintf(fp_c, "#include \"c_abstract_http_client.h\"\n");
+  fprintf(fp_c, "#include <c_abstract_http/http_types.h>\n");
   fprintf(fp_c, "extern int cdd_c_parse_oauth2_token(const char *json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 
@@ -164,13 +168,13 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     fprintf(fp_c, "    req.url = \"http://localhost:8080/oauth/token\";\n");
   }
   fprintf(fp_c, "  } else {\n");
-  fprintf(fp_c, "    req.url = token_endpoint;\n");
+  fprintf(fp_c, "    req.url = (char *)token_endpoint;\n");
   fprintf(fp_c, "  }\n");
   fprintf(fp_c, "  req.body = payload;\n");
   fprintf(fp_c, "  req.body_len = strlen(payload);\n");
-  fprintf(fp_c,
-          "  req.content_type = \"application/x-www-form-urlencoded\";\n");
-  fprintf(fp_c, "  rc = http_client_send(&req, &res);\n");
+  fprintf(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
+                "\"application/x-www-form-urlencoded\");\n");
+  fprintf(fp_c, "  /* rc = http_client_send(&req, &res); stubbed */\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
   fprintf(fp_c, "    free(res.body);\n");

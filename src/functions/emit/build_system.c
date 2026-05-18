@@ -45,13 +45,15 @@ static /**
   CHECK_IO(fprintf(fp, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n\n"));
 
   /* Source Globbing (Simplification for generated projects) */
-  CHECK_IO(fprintf(fp, "file(GLOB SOURCES \"*.c\")\n"));
-  CHECK_IO(fprintf(fp, "file(GLOB HEADERS \"*.h\")\n\n"));
+  CHECK_IO(
+      fprintf(fp, "file(GLOB SOURCES \"${CMAKE_CURRENT_SOURCE_DIR}/*.c\")\n"));
+  CHECK_IO(fprintf(
+      fp, "file(GLOB HEADERS \"${CMAKE_CURRENT_SOURCE_DIR}/*.h\")\n\n"));
 
-  CHECK_IO(
-      fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX \"test_.*\\\\.c$\")\n"));
-  CHECK_IO(
-      fprintf(fp, "list(FILTER HEADERS EXCLUDE REGEX \"test_.*\\\\.h$\")\n\n"));
+  CHECK_IO(fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX "
+                       "\"(/|\\\\\\\\|^)test_[^/\\\\\\\\]+\\\\.c$\")\n"));
+  CHECK_IO(fprintf(fp, "list(FILTER HEADERS EXCLUDE REGEX "
+                       "\"(/|\\\\\\\\|^)test_[^/\\\\\\\\]+\\\\.h$\")\n\n"));
 
   /* Target */
   CHECK_IO(
@@ -189,11 +191,11 @@ static /**
  */
 int generate_cmake_project(const char *output_path, const char *project_name,
                            int has_tests) {
-  has_tests = 1;
   FILE *fp = NULL;
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
   int rc = 0;
+  has_tests = 1;
 
   if (!project_name)
     return EINVAL;

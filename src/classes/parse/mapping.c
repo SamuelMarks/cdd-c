@@ -127,7 +127,8 @@ static /**
 
   /* Remove pointer asterisk */
   rc = c_cdd_strdup(in, &buf);
-  if (rc != 0) return rc;
+  if (rc != 0)
+    return rc;
 
   p = strchr(buf, '*');
   if (p)
@@ -206,7 +207,8 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
     c_cdd_str_starts_with(c_type, "struct ", &starts1);
     c_cdd_str_starts_with(c_type, "enum ", &starts2);
     if (starts1 || starts2) {
-      clean = NULL; rc = clean_type_str(c_type, &clean);
+      clean = NULL;
+      rc = clean_type_str(c_type, &clean);
       if (rc != 0 || !clean) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
@@ -238,26 +240,34 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
 
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
   if (is_array) {
-      char *inner_ref = NULL;
-      char *inner_type = NULL;
-      /* It's an array of the resolved type */
-      if (out->ref_name) { rc = c_cdd_strdup(out->ref_name, &inner_ref); if(rc!=0) return rc; }
-      if (out->oa_type) { rc = c_cdd_strdup(out->oa_type, &inner_type); if(rc!=0) return rc; }
-      /* Move current mapping to "items" logic? */
-      /* The OpenApiTypeMapping struct is flat. We need to indicate it's an
-         Array OF X. */
-      /* We change kind to ARRAY. We reuse ref_name/oa_type to mean the ITEMS
-       * type.
-       */
-      out->kind = OA_TYPE_ARRAY;
-      /* Ensure we kept the item type info. It's already in oa_type/ref_name. */
-      (void)inner_ref;
-      (void)inner_type;
-      if (inner_ref)
-        free(inner_ref);
-      if (inner_type)
-        free(inner_type);
+    char *inner_ref = NULL;
+    char *inner_type = NULL;
+    /* It's an array of the resolved type */
+    if (out->ref_name) {
+      rc = c_cdd_strdup(out->ref_name, &inner_ref);
+      if (rc != 0)
+        return rc;
     }
-
-    return 0;
+    if (out->oa_type) {
+      rc = c_cdd_strdup(out->oa_type, &inner_type);
+      if (rc != 0)
+        return rc;
+    }
+    /* Move current mapping to "items" logic? */
+    /* The OpenApiTypeMapping struct is flat. We need to indicate it's an
+       Array OF X. */
+    /* We change kind to ARRAY. We reuse ref_name/oa_type to mean the ITEMS
+     * type.
+     */
+    out->kind = OA_TYPE_ARRAY;
+    /* Ensure we kept the item type info. It's already in oa_type/ref_name. */
+    (void)inner_ref;
+    (void)inner_type;
+    if (inner_ref)
+      free(inner_ref);
+    if (inner_type)
+      free(inner_type);
   }
+
+  return 0;
+}

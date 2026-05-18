@@ -401,6 +401,10 @@ int derive_model_header(const char *base, char **_out_val) {
  */
 /**
  * @brief Executes the sanitize tag operation.
+ *
+ * @param tag The tag string.
+ * @param[out] _out_val The output value.
+ * @return 0 on success, or an error code.
  */
 int sanitize_tag(const char *tag, char **_out_val) {
   char *s;
@@ -2150,8 +2154,8 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
       goto cleanup;
     }
   }
-  if (fprintf(mhfile, "#include <stddef.h>\n#include \"lib_export.h\"\n\n") <
-      0) {
+  if (fprintf(mhfile, "#include <stddef.h>\n#include <stdio.h>\n#include "
+                      "\"lib_export.h\"\n\n") < 0) {
     rc = EIO;
     {
       fprintf(stderr, "goto cleanup at src/routes/emit/client_gen.c:%d\n",
@@ -3613,10 +3617,10 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
   if (config && config->create_tests_and_mocks) {
     char tdir[512], tfile[512];
+    FILE *tfp;
     snprintf(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
     makedirs(tdir);
     snprintf(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
-    FILE *tfp;
     tfp = fopen(tfile, "w");
     if (tfp) {
       fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "

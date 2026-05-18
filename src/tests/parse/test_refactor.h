@@ -61,7 +61,8 @@ TEST test_apply_refactoring_to_string_errors(void) {
 
   refactor_context_init(&ctx);
 
-  /* ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}", &out)); */
+  /* ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}",
+   * &out)); */
   ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, NULL, &out));
   ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, "int main() {}", NULL));
 
