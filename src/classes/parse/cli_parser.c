@@ -94,8 +94,6 @@ static /**
 int cst_extract_cli_command(const struct CstNodeList *nodes,
                             const struct TokenList *tokens,
                             struct CliCommand *cmd) {
-  struct CliOption *_ast_add_option_0;
-  char *_ast_cdd_strndup2_1 = NULL;
   size_t i, j;
   int in_getopt = 0;
   if (!nodes || !tokens || !cmd)

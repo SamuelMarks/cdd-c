@@ -208,7 +208,6 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                               char **out_diff) {
   size_t len = 0;
   char *src = NULL;
-  read_file_to_string(mod->filepath, &len, &src);
   char *diff;
   size_t diff_cap = 2048;
   size_t diff_len = 0;
@@ -216,6 +215,7 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   int lines_count = 0;
   char *str_buf;
   size_t str_buf_len = 0;
+  read_file_to_string(mod->filepath, &len, &src);
 
   if (!src) {
     /* If file doesn't exist, we just simulate appending to empty */
@@ -239,8 +239,8 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE, "--- %s
-+++ %s\\n", mod->filepath, mod->filepath);
+  diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE,
+                          "--- %s\n+++ %s\n", mod->filepath, mod->filepath);
 #else
   diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "--- %s\n+++ %s\n",
                        mod->filepath, mod->filepath);
@@ -255,11 +255,11 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   str_buf[0] = '\0';
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "
-if(MSVC)\\n");
+  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
+                             _TRUNCATE, "if(MSVC)\n");
 #else
   str_buf_len +=
-      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "\nif(MSVC)\n");
+      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "if(MSVC)\n");
 #endif
 
   if (mod->compile_opts_n > 0) {
@@ -293,9 +293,9 @@ if(MSVC)\\n");
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
-                               _TRUNCATE, ")\\n");
+                               _TRUNCATE, ")\n");
 #else
-    str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, ")\\n");
+    str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
 #endif
   }
 
@@ -330,17 +330,18 @@ if(MSVC)\\n");
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
-                               _TRUNCATE, ")\\n");
+                               _TRUNCATE, ")\n");
 #else
-    str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, ")\\n");
+    str_buf_len += snprintf(str_buf + str_buf_len, 1024 - str_buf_len, ")\n");
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len, _TRUNCATE, "endif()\\n");
+  str_buf_len += _snprintf_s(str_buf + str_buf_len, 1024 - str_buf_len,
+                             _TRUNCATE, "endif()\n");
 #else
   str_buf_len +=
-      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\\n");
+      snprintf(str_buf + str_buf_len, 1024 - str_buf_len, "endif()\n");
 #endif
 
   {
@@ -353,11 +354,11 @@ if(MSVC)\\n");
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len, _TRUNCATE,
-                            "@@ -%d,0 +%d,%d @@\\n", lines_count, lines_count,
+                            "@@ -%d,0 +%d,%d @@\n", lines_count, lines_count,
                             new_lines);
 #else
     diff_len +=
-        snprintf(diff + diff_len, diff_cap - diff_len, "@@ -%d,0 +%d,%d @@\\n",
+        snprintf(diff + diff_len, diff_cap - diff_len, "@@ -%d,0 +%d,%d @@\n",
                  lines_count, lines_count, new_lines);
 #endif
 
@@ -370,18 +371,18 @@ if(MSVC)\\n");
           int l_len = (int)(nl - line_start);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
-                                  _TRUNCATE, "+%.*s\\n", l_len, line_start);
+                                  _TRUNCATE, "+%.*s\n", l_len, line_start);
 #else
-          diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "+%.*s\\n",
+          diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "+%.*s\n",
                                l_len, line_start);
 #endif
           line_start = nl + 1;
         } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
-                                  _TRUNCATE, "+%s\\n", line_start);
+                                  _TRUNCATE, "+%s\n", line_start);
 #else
-          diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "+%s\\n",
+          diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "+%s\n",
                                line_start);
 #endif
           break;

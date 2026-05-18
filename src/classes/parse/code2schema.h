@@ -20,25 +20,24 @@ extern "C" {
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #ifndef __cplusplus
 #ifndef bool
-#define bool unsigned char
+#define int unsigned char
 #endif
-#ifndef true
-#define true 1
+#ifndef 1
+#define 1 1
 #endif
-#ifndef false
-#define false 0
+#ifndef 0
+#define 0 0
 #endif
 #endif
 #else
 #if defined(_MSC_VER) && _MSC_VER < 1800
 #ifndef __cplusplus
 typedef unsigned char bool;
-#define true 1
-#define false 0
+#define 1 1
+#define 0 0
 #endif
 #else
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
-#include <stdbool.h>
 #endif
 #endif
 #endif
@@ -103,11 +102,11 @@ extern C_CDD_EXPORT /**
  *
  * @param[in] str The string to check.
  * @param[in] prefix The prefix.
- * @return true if matches, false otherwise.
+ * @return 1 if matches, 0 otherwise.
  */
 
 extern C_CDD_EXPORT int str_starts_with(const char *str, const char *prefix,
-                                        bool *_out_val);
+                                        int *_out_val);
 
 /**
  * @brief Trim trailing whitespace and semicolons from a string in place.

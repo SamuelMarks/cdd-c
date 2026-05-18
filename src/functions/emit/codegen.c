@@ -60,6 +60,9 @@ int write_enum_declaration_h(FILE *hfile, const char *enum_name,
 int write_union_declaration_h(FILE *hfile, const char *union_name,
                               const struct StructFields *sf,
                               const struct CodegenConfig *config) {
+  char *_ast_get_type_from_ref_0 = NULL;
+  char *_ast_get_type_from_ref_1 = NULL;
+  char *_ast_get_type_from_ref_2 = NULL;
   size_t i;
   if (!hfile || !union_name || !sf)
     return EINVAL;
@@ -89,21 +92,15 @@ int write_union_declaration_h(FILE *hfile, const char *union_name,
     } else if (strcmp(t, "boolean") == 0) {
       CHECK_IO(fprintf(hfile, "    int %s;\n", n));
     } else if (strcmp(t, "enum") == 0) {
-      {
-        char *tn = NULL;
-        get_type_from_ref(r, &tn);
-        CHECK_IO(fprintf(hfile, "    enum %s %s;\n", tn, n));
-        if (tn)
-          free(tn);
-      }
+      CHECK_IO(fprintf(hfile, "    enum %s %s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_0),
+                        _ast_get_type_from_ref_0),
+                       n));
     } else if (strcmp(t, "object") == 0) {
-      {
-        char *tn = NULL;
-        get_type_from_ref(r, &tn);
-        CHECK_IO(fprintf(hfile, "    struct %s *%s;\n", tn, n));
-        if (tn)
-          free(tn);
-      }
+      CHECK_IO(fprintf(hfile, "    struct %s *%s;\n",
+                       (get_type_from_ref(r, &_ast_get_type_from_ref_1),
+                        _ast_get_type_from_ref_1),
+                       n));
     } else if (strcmp(t, "array") == 0) {
       CHECK_IO(fprintf(hfile, "    struct {\n"));
       CHECK_IO(fprintf(hfile, "      size_t n_%s;\n", n));
@@ -114,13 +111,10 @@ int write_union_declaration_h(FILE *hfile, const char *union_name,
       } else if (strcmp(r, "number") == 0) {
         CHECK_IO(fprintf(hfile, "      double *%s;\n", n));
       } else {
-        {
-          char *tn = NULL;
-          get_type_from_ref(r, &tn);
-          CHECK_IO(fprintf(hfile, "      struct %s **%s;\n", tn, n));
-          if (tn)
-            free(tn);
-        }
+        CHECK_IO(fprintf(hfile, "      struct %s **%s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_2),
+                          _ast_get_type_from_ref_2),
+                         n));
       }
       CHECK_IO(fprintf(hfile, "    } %s;\n", n));
     } else {
@@ -153,6 +147,9 @@ int write_union_declaration_h(FILE *hfile, const char *union_name,
 int write_struct_declaration_h(FILE *hfile, const char *struct_name,
                                const struct StructFields *sf,
                                const struct CodegenConfig *config) {
+  char *_ast_get_type_from_ref_3 = NULL;
+  char *_ast_get_type_from_ref_4 = NULL;
+  char *_ast_get_type_from_ref_5 = NULL;
   size_t i;
 
   if (0) {
@@ -168,6 +165,9 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
     CHECK_IO(fprintf(hfile, "#endif\n\n"));
   } else {
     CHECK_IO(fprintf(hfile, "struct %s {\n", struct_name));
+    if (sf->size == 0) {
+      CHECK_IO(fprintf(hfile, "  char _dummy;\n"));
+    }
     for (i = 0; i < sf->size; i++) {
       const struct StructField *field = &sf->fields[i];
       const char *n = field->name;
@@ -183,21 +183,15 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
       } else if (strcmp(t, "boolean") == 0) {
         CHECK_IO(fprintf(hfile, "  int %s;\n", n));
       } else if (strcmp(t, "enum") == 0) {
-        {
-          char *tn = NULL;
-          get_type_from_ref(r, &tn);
-          CHECK_IO(fprintf(hfile, "  enum %s %s;\n", tn, n));
-          if (tn)
-            free(tn);
-        }
+        CHECK_IO(fprintf(hfile, "  enum %s %s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_3),
+                          _ast_get_type_from_ref_3),
+                         n));
       } else if (strcmp(t, "object") == 0) {
-        {
-          char *tn = NULL;
-          get_type_from_ref(r, &tn);
-          CHECK_IO(fprintf(hfile, "  struct %s *%s;\n", tn, n));
-          if (tn)
-            free(tn);
-        }
+        CHECK_IO(fprintf(hfile, "  struct %s *%s;\n",
+                         (get_type_from_ref(r, &_ast_get_type_from_ref_4),
+                          _ast_get_type_from_ref_4),
+                         n));
       } else if (strcmp(t, "array") == 0) {
         CHECK_IO(fprintf(hfile, "  size_t n_%s;\n", n));
         if (strcmp(r, "string") == 0) {
@@ -207,13 +201,10 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
         } else if (strcmp(r, "number") == 0) {
           CHECK_IO(fprintf(hfile, "  double *%s;\n", n));
         } else {
-          {
-            char *tn = NULL;
-            get_type_from_ref(r, &tn);
-            CHECK_IO(fprintf(hfile, "  struct %s **%s;\n", tn, n));
-            if (tn)
-              free(tn);
-          }
+          CHECK_IO(fprintf(hfile, "  struct %s **%s;\n",
+                           (get_type_from_ref(r, &_ast_get_type_from_ref_5),
+                            _ast_get_type_from_ref_5),
+                           n));
         }
       } else {
         CHECK_IO(fprintf(hfile, "  void *%s;\n", n));
@@ -254,6 +245,21 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
       hfile,
       "extern LIB_EXPORT int %s_eq(const struct %s *, const struct %s *);\n",
       struct_name, struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile, "extern LIB_EXPORT int %s_debug(const struct %s *, FILE *);\n",
+      struct_name, struct_name));
+  CHECK_IO(fprintf(
+      hfile, "extern LIB_EXPORT int %s_display(const struct %s *, FILE *);\n",
+      struct_name, struct_name));
+  CHECK_IO(fprintf(hfile, "struct json_object_t;\n"));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_from_jsonObject(const struct "
+                   "json_object_t *, struct %s **);\n",
+                   struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_to_jsonObject(const struct %s *, "
+                   "struct json_object_t **);\n",
+                   struct_name, struct_name));
   if (config && config->utils_guard)
     CHECK_IO(fprintf(hfile, "#endif\n"));
 

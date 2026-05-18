@@ -666,13 +666,13 @@ TEST test_gen_transport_selection(void) {
 
   /* Verify macros are present in preamble */
   ASSERT(strstr(content, "#ifdef USE_WININET") != NULL);
-  ASSERT(strstr(content, "#include \"http_wininet.h\"") != NULL);
+  ASSERT(strstr(content, "#include <c_abstract_http/http_wininet.h>") != NULL);
   ASSERT(strstr(content, "#elif defined(USE_WINHTTP)") != NULL);
-  ASSERT(strstr(content, "#include \"http_winhttp.h\"") != NULL);
+  ASSERT(strstr(content, "#include <c_abstract_http/http_winhttp.h>") != NULL);
   ASSERT(strstr(content, "#elif defined(__APPLE__)") != NULL);
-  ASSERT(strstr(content, "#include \"http_apple.h\"") != NULL);
+  ASSERT(strstr(content, "#include <c_abstract_http/http_apple.h>") != NULL);
   ASSERT(strstr(content, "#else") != NULL);
-  ASSERT(strstr(content, "#include \"http_curl.h\"") != NULL);
+  ASSERT(strstr(content, "#include <c_abstract_http/http_curl.h>") != NULL);
 
   /* Verify macros are present in _init function */
   ASSERT(strstr(content, "rc = http_wininet_context_init") != NULL);

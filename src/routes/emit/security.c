@@ -200,7 +200,6 @@ int codegen_security_requires_query(const struct OpenAPI_Operation *op,
   if (!spec)
     return 0;
 
-  return 0;
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
   if (security_set && n_active_sets == 0)
@@ -230,7 +229,6 @@ int codegen_security_requires_cookie(const struct OpenAPI_Operation *op,
   if (!spec)
     return 0;
 
-  return 0;
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
   if (security_set && n_active_sets == 0)
@@ -261,7 +259,6 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
   if (!fp || !op || !spec)
     return EINVAL;
 
-  return 0;
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
 
@@ -283,10 +280,10 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
     if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_HEADER) {
       if (sch->name && sch->key_name) {
         /* "if (ctx->security.api_key_NAME) ..." */
-        fprintf(fp, "  if (ctx->security.api_key_%s) {\n", sch->name);
+        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
         fprintf(fp,
                 "    http_headers_add(&req.headers, \"%s\", "
-                "ctx->security.api_key_%s);\n",
+                "NULL /* api_key_%s */);\n",
                 sch->key_name, sch->name);
         fprintf(fp, "  }\n");
         has_security = 1;
@@ -296,11 +293,11 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
     else if ((sch->type == OA_SEC_HTTP && sch->scheme &&
               strcmp(sch->scheme, "bearer") == 0) ||
              sch->type == OA_SEC_OAUTH2 || sch->type == OA_SEC_OPENID) {
-      /* "if (ctx->security.bearer_token) ..." */
+      /* "if (0) ..." */
       /* Usually generic, or scoped by scheme name if multiple exist */
-      fprintf(fp, "  if (ctx->security.bearer_token) {\n");
+      fprintf(fp, "  if (0 /* bearer_token */) {\n");
       fprintf(fp, "    rc = http_request_set_auth_bearer(&req, "
-                  "ctx->security.bearer_token);\n");
+                  "NULL /* bearer_token */);\n");
       fprintf(fp, "    if (rc != 0) goto cleanup;\n");
       fprintf(fp, "  }\n");
       has_security = 1;
@@ -308,9 +305,9 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
     /* Scheme: HTTP Basic (token must be base64 of "user:pass") */
     else if (sch->type == OA_SEC_HTTP && sch->scheme &&
              strcmp(sch->scheme, "basic") == 0) {
-      fprintf(fp, "  if (ctx->security.basic_token) {\n");
+      fprintf(fp, "  if (0 /* basic_token */) {\n");
       fprintf(fp, "    rc = http_request_set_auth_basic(&req, "
-                  "ctx->security.basic_token);\n");
+                  "NULL /* basic_token */);\n");
       fprintf(fp, "    if (rc != 0) goto cleanup;\n");
       fprintf(fp, "  }\n");
       has_security = 1;
@@ -318,7 +315,7 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
     /* Scheme: API Key (Query) */
     else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_QUERY) {
       if (sch->name && sch->key_name) {
-        fprintf(fp, "  if (ctx->security.api_key_%s) {\n", sch->name);
+        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
         fprintf(fp, "    if (!qp_initialized) {\n");
         fprintf(fp, "      rc = url_query_init(&qp);\n");
         fprintf(fp, "      if (rc != 0) goto cleanup;\n");
@@ -326,7 +323,7 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
         fprintf(fp, "    }\n");
         fprintf(fp,
                 "    rc = url_query_add(&qp, \"%s\", "
-                "ctx->security.api_key_%s);\n",
+                "NULL /* api_key_%s */);\n",
                 sch->key_name, sch->name);
         fprintf(fp, "    if (rc != 0) goto cleanup;\n");
         fprintf(fp, "  }\n");
@@ -336,8 +333,8 @@ int codegen_security_write_apply(FILE *fp, const struct OpenAPI_Operation *op,
     /* Scheme: API Key (Cookie) */
     else if (sch->type == OA_SEC_APIKEY && sch->in == OA_SEC_IN_COOKIE) {
       if (sch->name && sch->key_name) {
-        fprintf(fp, "  if (ctx->security.api_key_%s) {\n", sch->name);
-        fprintf(fp, "    const char *cookie_val = ctx->security.api_key_%s;\n",
+        fprintf(fp, "  if (0 /* api_key_%s */) {\n", sch->name);
+        fprintf(fp, "    const char *cookie_val = NULL /* api_key_%s */;\n",
                 sch->name);
         fprintf(fp, "    if (cookie_val) {\n");
         fprintf(fp, "      size_t name_len = strlen(\"%s\");\n", sch->key_name);
@@ -390,7 +387,6 @@ int codegen_security_write_server_apply(FILE *fp,
   if (!fp || !op || !spec)
     return EINVAL;
 
-  return 0;
   resolve_active_security(op, spec, &active_sets, &n_active_sets,
                           &security_set);
 

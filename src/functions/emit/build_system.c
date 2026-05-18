@@ -45,13 +45,15 @@ static /**
   CHECK_IO(fprintf(fp, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n\n"));
 
   /* Source Globbing (Simplification for generated projects) */
-  CHECK_IO(fprintf(fp, "file(GLOB SOURCES \"*.c\")\n"));
-  CHECK_IO(fprintf(fp, "file(GLOB HEADERS \"*.h\")\n\n"));
+  CHECK_IO(
+      fprintf(fp, "file(GLOB SOURCES \"${CMAKE_CURRENT_SOURCE_DIR}/*.c\")\n"));
+  CHECK_IO(fprintf(
+      fp, "file(GLOB HEADERS \"${CMAKE_CURRENT_SOURCE_DIR}/*.h\")\n\n"));
 
-  CHECK_IO(
-      fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX \"test_.*\\\\.c$\")\n"));
-  CHECK_IO(
-      fprintf(fp, "list(FILTER HEADERS EXCLUDE REGEX \"test_.*\\\\.h$\")\n\n"));
+  CHECK_IO(fprintf(fp, "list(FILTER SOURCES EXCLUDE REGEX "
+                       "\"(/|\\\\\\\\|^)test_[^/\\\\\\\\]+\\\\.c$\")\n"));
+  CHECK_IO(fprintf(fp, "list(FILTER HEADERS EXCLUDE REGEX "
+                       "\"(/|\\\\\\\\|^)test_[^/\\\\\\\\]+\\\\.h$\")\n\n"));
 
   /* Target */
   CHECK_IO(

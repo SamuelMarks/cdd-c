@@ -896,12 +896,14 @@ int write_root_array_to_json_func(FILE *fp, const char *name,
         fp, "int %s_to_json(char **const in, size_t len, char **json_out) {\n",
         name));
   } else if (strcmp(item_type, "object") == 0) {
-    CHECK_IO(fprintf(fp,
-                     "int %s_to_json(struct %s **const in, size_t len, char "
-                     "**json_out) {\n",
-                     name,
-                     (get_type_from_ref(item_ref, &_ast_get_type_from_ref_9),
-                      _ast_get_type_from_ref_9)));
+    {
+      char *tn = NULL;
+      get_type_from_ref(item_ref, &tn);
+      CHECK_IO(fprintf(fp,
+                       "int %s_to_json(struct %s **const in, size_t len, char "
+                       "**json_out) {\n",
+                       name, tn));
+    }
   } else {
     CHECK_IO(fprintf(
         fp, "int %s_to_json(const void *in, size_t len, char **json_out) {\n",

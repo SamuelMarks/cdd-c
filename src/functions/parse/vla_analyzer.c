@@ -101,6 +101,7 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
   while (i < tokens->size) {
     size_t start_idx = i;
     int is_type = 0;
+    int is_basic = 0;
 
     /* Skip leading whitespace */
     while (i < tokens->size && tokens->tokens[i].kind == TOKEN_WHITESPACE) {
@@ -112,7 +113,6 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
     start_idx = i;
 
     /* 1. Identify type start (e.g. `int`, `struct S`, `char`) */
-    int is_basic = 0;
     is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
     if (is_basic) {
       is_type = 1;
@@ -143,7 +143,7 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
 
       /* Consume type modifiers */
       while (i < tokens->size) {
-        int is_basic = 0;
+        is_basic = 0;
         is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
         if (!(is_basic || tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
               tokens->tokens[i].kind == TOKEN_WHITESPACE ||

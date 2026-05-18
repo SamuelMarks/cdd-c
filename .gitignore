@@ -401,3 +401,7 @@ run_test.c
 methods.txt
 prompt.md
 out_cov/
+petstore.json
+petstore_oas3.json
+c-cmake-ci.yml
+lldb_cmds.txt

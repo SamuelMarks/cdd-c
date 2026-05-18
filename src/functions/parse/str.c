@@ -41,32 +41,32 @@ int c_cdd_strdup(const char *s, char **out_s) {
 /**
  * @brief Executes the c cdd str starts with operation.
  */
-int c_cdd_str_starts_with(const char *str, const char *prefix, int *out_b) {
+int c_cdd_str_starts_with(const char *str, const char *prefix, bool *out_b) {
   size_t i;
   if (str == NULL || prefix == NULL) {
-    *out_b = 0;
+    *out_b = false;
     return 0;
   }
   for (i = 0; prefix[i] != '\0'; i++) {
     if (str[i] != prefix[i]) {
-      *out_b = 0;
+      *out_b = false;
       return 0;
     }
   }
-  *out_b = 1;
+  *out_b = true;
   return 0;
 }
 
 /**
  * @brief Executes the c cdd str equal operation.
  */
-int c_cdd_str_equal(const char *a, const char *b, int *out_b) {
+int c_cdd_str_equal(const char *a, const char *b, bool *out_b) {
   if (a == b) {
-    *out_b = 1;
+    *out_b = true;
     return 0;
   }
   if (a == NULL || b == NULL) {
-    *out_b = 0;
+    *out_b = false;
     return 0;
   }
   *out_b = (strcmp(a, b) == 0);
@@ -76,18 +76,18 @@ int c_cdd_str_equal(const char *a, const char *b, int *out_b) {
 /**
  * @brief Executes the c cdd str iequal operation.
  */
-int c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
+int c_cdd_str_iequal(const char *a, const char *b, bool *out_b) {
   if (a == b) {
-    *out_b = 1;
+    *out_b = true;
     return 0;
   }
   if (a == NULL || b == NULL) {
-    *out_b = 0;
+    *out_b = false;
     return 0;
   }
   while (*a && *b) {
     if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
-      *out_b = 0;
+      *out_b = false;
       return 0;
     }
     ++a;
@@ -115,10 +115,10 @@ int c_cdd_str_after_last(const char *str, const int delimiter,
 /**
  * @brief Executes the c cdd ref is type operation.
  */
-int c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
+int c_cdd_ref_is_type(const char *ref, const char *type, bool *out_b) {
   const char *extracted = NULL;
   if (ref == NULL || type == NULL) {
-    *out_b = 0;
+    *out_b = false;
     return 0;
   }
   c_cdd_str_after_last(ref, '/', &extracted);
@@ -206,6 +206,11 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
 
 /**
  * @brief Executes the c cdd stricmp operation.
+ *
+ * @param a First string.
+ * @param b Second string.
+ * @param[out] out_diff The difference between the strings.
+ * @return 0 on success, or an error code.
  */
 int c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;

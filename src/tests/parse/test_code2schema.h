@@ -79,8 +79,8 @@ TEST test_struct_fields_manage(void) {
 }
 
 TEST test_str_starts_with(void) {
-  bool _ast_str_starts_with_0 = false;
-  bool _ast_str_starts_with_1 = false;
+  int _ast_str_starts_with_0 = 0;
+  int _ast_str_starts_with_1 = 0;
   ASSERT((str_starts_with("enum Color", "enum", &_ast_str_starts_with_0),
           _ast_str_starts_with_0));
   ASSERT(!(str_starts_with("structFoo", "enum", &_ast_str_starts_with_1),
@@ -265,15 +265,17 @@ TEST test_code2schema_parse_struct_and_enum(void) {
                          "struct Point { double x; double y; int used; };\n");
   ASSERT_EQ(0, rc);
 
-  bool out_val;
-  ASSERT_EQ(0, str_starts_with("hello", "hel", &out_val));
-  ASSERT(out_val == true);
-  ASSERT_EQ(0, str_starts_with("hello", "helo", &out_val));
-  ASSERT(out_val == false);
-  ASSERT_EQ(0, str_starts_with(NULL, "hel", &out_val));
-  ASSERT(out_val == false);
-  ASSERT_EQ(0, str_starts_with("hello", NULL, &out_val));
-  ASSERT(out_val == false);
+  {
+    int out_val;
+    ASSERT_EQ(0, str_starts_with("hello", "hel", &out_val));
+    ASSERT(out_val != 0);
+    ASSERT_EQ(0, str_starts_with("hello", "helo", &out_val));
+    ASSERT(out_val == 0);
+    ASSERT_EQ(0, str_starts_with(NULL, "hel", &out_val));
+    ASSERT(out_val == 0);
+    ASSERT_EQ(0, str_starts_with("hello", NULL, &out_val));
+    ASSERT(out_val == 0);
+  }
 
   char trim_buf[32] = "hello   ";
   trim_trailing(trim_buf);
