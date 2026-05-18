@@ -773,12 +773,16 @@ TEST test_body_security_query_api_key(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenAPI_Spec spec;
   struct OpenAPI_SecurityScheme scheme;
+  struct OpenAPI_SecurityRequirement req;
+  struct OpenAPI_SecurityRequirementSet sec_set;
   char *code;
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
   memset(&spec, 0, sizeof(spec));
   memset(&scheme, 0, sizeof(scheme));
+  memset(&req, 0, sizeof(req));
+  memset(&sec_set, 0, sizeof(sec_set));
 
   op.verb = OA_VERB_GET;
   resp.code = "200";
@@ -791,28 +795,10 @@ TEST test_body_security_query_api_key(void) {
   scheme.key_name = "api_key";
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
-  
-  /* Add global security requirement to activate the scheme */
-  struct OpenAPI_SecurityRequirement req;
-  memset(&req, 0, sizeof(req));
-  req.scheme = "QueryKey";
-  
-  struct OpenAPI_SecurityRequirementSet sec_set;
-  memset(&sec_set, 0, sizeof(sec_set));
-  sec_set.requirements = &req;
-  sec_set.n_requirements = 1;
-  
-  spec.security = &sec_set;
-  spec.n_security = 1;
-  spec.security_set = 1;
 
   /* Add global security requirement to activate the scheme */
-  struct OpenAPI_SecurityRequirement req;
-  memset(&req, 0, sizeof(req));
   req.scheme = "QueryKey";
 
-  struct OpenAPI_SecurityRequirementSet sec_set;
-  memset(&sec_set, 0, sizeof(sec_set));
   sec_set.requirements = &req;
   sec_set.n_requirements = 1;
 

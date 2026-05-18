@@ -3706,7 +3706,8 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
 
           in = spec->paths[i].route;
           out = formatted_path;
-          while (*in && (out - formatted_path) < sizeof(formatted_path) - 2) {
+          while (*in &&
+                 (size_t)(out - formatted_path) < sizeof(formatted_path) - 2) {
             if (*in == '{') {
               *out++ = '1';
               while (*in && *in != '}')
