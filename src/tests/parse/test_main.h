@@ -73,12 +73,12 @@ TEST test_main_from_openapi_cli_options(void) {
   char *argv_help[] = {"cdd-c", "from_openapi", "--help"};
   char *argv_err[] = {"cdd-c", "from_openapi", "to_sdk", "-o", "out_dir"};
 
-  // Note: we can't test actual execution easily without creating a dummy
-  // spec.json, but we can at least hit the help and error paths.
+  /* Note: we can't test actual execution easily without creating a dummy */
+  /* spec.json, but we can at least hit the help and error paths. */
   ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help));
-  ASSERT_EQ(EXIT_FAILURE, cdd_main(5, argv_err)); // missing input
+  ASSERT_EQ(EXIT_FAILURE, cdd_main(5, argv_err)); /* missing input */
 
-  // Create a dummy spec to test the execution
+  /* Create a dummy spec to test the execution */
   FILE *f = fopen("spec.json", "w");
   fprintf(f, "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"Test\", "
              "\"version\": \"1.0\"}, \"paths\": {}}");

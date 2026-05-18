@@ -208,8 +208,8 @@ C_CDD_EXPORT int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder,
                                            const char *text);
 
 /**
- * @brief Appends a line comment (// ...) as a trivia attached to the target
- * node.
+ * @brief Appends a line comment (slash-slash ...) as a trivia attached to the
+ * target node.
  *
  * Note: If the last appended child is a token, the trivia will be attached as
  * trailing trivia. Otherwise, it will be attached to the target_node as leading

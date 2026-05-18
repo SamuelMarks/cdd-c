@@ -43,9 +43,9 @@
 /**
  * @brief Internal structure for importing plaintext keys into CAPI.
  * See:
- * https://docs.microsoft.com/en-us/windows/win32/seccrypto/example-c-program-importing-a-plaintext-key
+ * https:/*docs.microsoft.com/en-us/windows/win32/seccrypto/example-c-program-importing-a-plaintext-key
  */
-struct PlainTextKeyBlob {
+*/ struct PlainTextKeyBlob {
   /** @brief The blob header */
   BLOBHEADER hdr;
   /** @brief The size of the key data */

@@ -878,20 +878,21 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
 TEST test_c2o_cli_oauth_validation_errors(void) {
   const char *snippets[] = {
       "/**\n * @securityScheme oauth_bad1 [type:oauth2] [flow:implicit]\n "
-      "*/\nint foo21(void);\n", // Missing authorizationUrl
+      "*/\nint foo21(void);\n", /* Missing authorizationUrl */
       "/**\n * @securityScheme oauth_bad2 [type:oauth2] [flow:password]\n "
-      "*/\nint foo22(void);\n", // Missing tokenUrl
+      "*/\nint foo22(void);\n", /* Missing tokenUrl */
       "/**\n * @securityScheme oauth_bad3 [type:oauth2] "
-      "[flow:clientCredentials]\n */\nint foo23(void);\n", // Missing tokenUrl
+      "[flow:clientCredentials]\n */\nint foo23(void);\n", /* Missing tokenUrl
+                                                            */
       "/**\n * @securityScheme oauth_bad4 [type:oauth2] "
       "[flow:authorizationCode] [authorizationUrl:https://auth.com/auth]\n "
-      "*/\nint foo24(void);\n", // Missing tokenUrl
+      "*/\nint foo24(void);\n", /* Missing tokenUrl */
       "/**\n * @securityScheme oauth_bad5 [type:oauth2] "
       "[flow:authorizationCode] [tokenUrl:https://auth.com/token]\n */\nint "
-      "foo25(void);\n", // Missing authUrl
+      "foo25(void);\n", /* Missing authUrl */
       "/**\n * @securityScheme oauth_bad6 [type:oauth2] "
       "[flow:deviceAuthorization] [tokenUrl:https://auth.com/token]\n */\nint "
-      "foo26(void);\n" // Missing deviceAuthorizationUrl
+      "foo26(void);\n" /* Missing deviceAuthorizationUrl */
   };
 
   char *tmp_dir = NULL;

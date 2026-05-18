@@ -55,7 +55,7 @@ enum TokenKind {
 
   TOKEN_WHITESPACE, /**< Spaces, tabs, newlines */
 
-  TOKEN_COMMENT, /**< Single line (//) or block comments */
+  TOKEN_COMMENT, /**< Single line comments or block comments */
 
   TOKEN_MACRO, /**< Preprocessor directives (#...) */
 

@@ -4777,7 +4777,7 @@ TEST test_writer_xml_types(void) {
 TEST test_openapi_utils(void) {
   char *out = NULL;
 
-  // Hit the default missing branches
+  /* Hit the default missing branches */
   ASSERT_EQ(0, verb_to_str_openapi((enum OpenAPI_Verb) - 1, &out));
   ASSERT(out == NULL);
 

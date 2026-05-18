@@ -183,7 +183,7 @@ TEST test_fs_cp(void) {
   remove("test_cp_src.txt");
   remove("test_cp_dst.txt");
 
-  // Test error
+  /* Test error */
   rc = cp("invalid/dst/path", "invalid_src.txt");
 
   ASSERT(rc != 0);
@@ -194,7 +194,7 @@ TEST test_fs_cp(void) {
 TEST test_fs_basename_dirname_edge_cases(void) {
   char *out = NULL;
 
-  // get_basename edges
+  /* get_basename edges */
   ASSERT_EQ(EINVAL, get_basename("foo", NULL));
 
   ASSERT_EQ(0, get_basename("///", &out));
@@ -202,7 +202,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   free(out);
   out = NULL;
 
-  // get_dirname edges
+  /* get_dirname edges */
   ASSERT_EQ(EINVAL, get_dirname("foo", NULL));
 
   ASSERT_EQ(0, get_dirname("foo///", &out));
@@ -298,7 +298,7 @@ TEST test_read_from_fh_errors(void) {
   char *data = NULL;
   size_t sz = 0;
 
-  // Test invalid args
+  /* Test invalid args */
   ASSERT_EQ(EINVAL, read_from_fh(NULL, &data, &sz));
   ASSERT_EQ(EINVAL, read_from_fh(f, NULL, &sz));
   ASSERT_EQ(EINVAL, read_from_fh(f, &data, NULL));

@@ -1941,7 +1941,7 @@ TEST test_client_body_header_formatting_indirect(void) {
   op.verb = OA_VERB_POST;
   op.operation_id = "testHdrFormat";
 
-  // Set up global schemas to bypass properties missing error
+  /* Set up global schemas to bypass properties missing error */
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
   spec.defined_schema_names[0] = "MockSchemaHdr";
@@ -1954,7 +1954,7 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   op.req_body.ref_name = "MockSchemaHdr";
 
-  // Multipart data with specific encodings to hit header name formatting
+  /* Multipart data with specific encodings to hit header name formatting */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -1966,8 +1966,9 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   struct OpenAPI_Header hdr;
   memset(&hdr, 0, sizeof(hdr));
-  hdr.name = "1Content-Type"; // hit sanitize starting with number, and it isn't
-                              // Content-Type exact
+  hdr.name =
+      "1Content-Type"; /* hit sanitize starting with number, and it isn't */
+                       /* Content-Type exact */
 
   enc.n_headers = 1;
   enc.headers = &hdr;
@@ -2017,7 +2018,7 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   op.req_body.ref_name = "MockSchemaTxtBin";
 
-  // Hit textual formatters indirectly via multipart field generation
+  /* Hit textual formatters indirectly via multipart field generation */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -2038,31 +2039,31 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  // text/html
+  /* text/html */
   enc.content_type = "text/html";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // application/xml
+  /* application/xml */
   enc.content_type = "application/xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // application/rss+xml
+  /* application/rss+xml */
   enc.content_type = "application/rss+xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // image/png (binary)
+  /* image/png (binary) */
   enc.content_type = "image/png";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // audio/mp3 (binary)
+  /* audio/mp3 (binary) */
   enc.content_type = "audio/mp3";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // video/mp4 (binary)
+  /* video/mp4 (binary) */
   enc.content_type = "video/mp4";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // application/pdf (binary)
+  /* application/pdf (binary) */
   enc.content_type = "application/pdf";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2099,7 +2100,7 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   op.req_body.ref_name = "MockSchemaMissing";
 
-  // Hit textual formatters indirectly via multipart field generation
+  /* Hit textual formatters indirectly via multipart field generation */
   op.req_body.content_type = "multipart/mixed";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -2120,11 +2121,11 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  // text/css (textual prefix)
+  /* text/css (textual prefix) */
   enc.content_type = "text/css";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // application/atom+xml (textual suffix)
+  /* application/atom+xml (textual suffix) */
   enc.content_type = "application/atom+xml";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2160,7 +2161,7 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   op.req_body.ref_name = "MockSchemaCaps";
 
-  // Mixed upper and lower caps
+  /* Mixed upper and lower caps */
   op.req_body.content_type = "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -2181,7 +2182,7 @@ TEST test_client_body_media_type_caps_indirect(void) {
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  // text/plain in caps
+  /* text/plain in caps */
   enc.content_type = "TEXT/PLAIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2217,7 +2218,7 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   op.req_body.ref_name = "MockSchemaPrefixCaps";
 
-  // Hit prefix upper caps
+  /* Hit prefix upper caps */
   op.req_body.content_type = "MULTIPART/MIXED";
   op.n_req_body_media_types = 1;
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
@@ -2238,7 +2239,7 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  // text/plain in mixed caps to hit prefix
+  /* text/plain in mixed caps to hit prefix */
   enc.content_type = "TeXt/PlaIN";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2294,11 +2295,11 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   op.req_body.n_multipart_fields = 1;
   op.req_body.multipart_fields = &mf;
 
-  // text/ (len < pre_len = 5) -> e.g. "tex"
+  /* text/ (len < pre_len = 5) -> e.g. "tex" */
   enc.content_type = "tex";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // +xml (len < suf_len = 4) -> e.g. "xm"
+  /* +xml (len < suf_len = 4) -> e.g. "xm" */
   enc.content_type = "xm";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2322,46 +2323,46 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
   op.verb = OA_VERB_GET;
   op.operation_id = "testInlineParseIndirect";
 
-  // We need to hit write_response_read -> write_inline_json_parse
+  /* We need to hit write_response_read -> write_inline_json_parse */
   op.n_responses = 1;
   struct OpenAPI_Response resp;
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
-  // Setup media type with inline schema
+  /* Setup media type with inline schema */
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "application/json";
 
-  // Test array of string
+  /* Test array of string */
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 1;
   op.responses = &resp;
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Test array of integer
+  /* Test array of integer */
   resp.content_media_types[0].schema.inline_type = "integer";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Test array of number
+  /* Test array of number */
   resp.content_media_types[0].schema.inline_type = "number";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Test array of boolean
+  /* Test array of boolean */
   resp.content_media_types[0].schema.inline_type = "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Test raw boolean
+  /* Test raw boolean */
   resp.content_media_types[0].schema.is_array = 0;
   resp.content_media_types[0].schema.inline_type = "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Test unhandled / unknown (e.g., fallback)
+  /* Test unhandled / unknown (e.g., fallback) */
   resp.content_media_types[0].schema.inline_type = "unknown_type_test";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Add missing branch from write_response_read (raw array of non-json)
+  /* Add missing branch from write_response_read (raw array of non-json) */
   resp.content_media_types[0].name = "text/plain";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2393,37 +2394,37 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
-  // array of string
+  /* array of string */
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of int
+  /* array of int */
   resp.content_media_types[0].schema.inline_type = "integer";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of number
+  /* array of number */
   resp.content_media_types[0].schema.inline_type = "number";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of boolean
+  /* array of boolean */
   resp.content_media_types[0].schema.inline_type = "boolean";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of fallback/unknown
+  /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type = "unknown_test";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // raw boolean
+  /* raw boolean */
   resp.content_media_types[0].schema.inline_type = "boolean";
   resp.content_media_types[0].schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of string (non-json)
+  /* array of string (non-json) */
   resp.content_media_types[0].name = "text/plain";
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 1;
@@ -2456,38 +2457,39 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
-  // Need to provide a valid body payload via dummy schema
-  // so the codegen logic is fully hit and NOT skipped!
+  /* Need to provide a valid body payload via dummy schema */
+  /* so the codegen logic is fully hit and NOT skipped! */
 
-  // array of string
+  /* array of string */
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 1;
-  // Make it think the response is an object with an inline schema so it hits
-  // the array codegen! No, write_inline_json_parse writes code! We just need it
-  // to emit the C code blocks!
+  /* Make it think the response is an object with an inline schema so it hits */
+  /* the array codegen! No, write_inline_json_parse writes code! We just need it
+   */
+  /* to emit the C code blocks! */
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of int
+  /* array of int */
   resp.content_media_types[0].schema.inline_type = "integer";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of number
+  /* array of number */
   resp.content_media_types[0].schema.inline_type = "number";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of boolean
+  /* array of boolean */
   resp.content_media_types[0].schema.inline_type = "boolean";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of fallback/unknown
+  /* array of fallback/unknown */
   resp.content_media_types[0].schema.inline_type = "unknown_test";
   resp.content_media_types[0].schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // raw boolean
+  /* raw boolean */
   resp.content_media_types[0].schema.inline_type = "boolean";
   resp.content_media_types[0].schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2519,7 +2521,7 @@ TEST test_client_body_form_object_style_form_explode(void) {
   strcpy(spec.defined_schemas[0].fields[0].name, "obj_prop");
   strcpy(spec.defined_schemas[0].fields[0].type, "object");
   strcpy(spec.defined_schemas[0].fields[0].ref,
-         "MockSchemaFormObj"); // self-ref for test
+         "MockSchemaFormObj"); /* self-ref for test */
 
   op.req_body.ref_name = "MockSchemaFormObj";
 
@@ -2594,21 +2596,21 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
-  // Set up content type directly on the response to trigger
-  // `response_is_textual_string`
+  /* Set up content type directly on the response to trigger */
+  /* `response_is_textual_string` */
   resp.content_type = "text/plain";
   resp.schema.inline_type = "string";
   resp.schema.is_array = 0;
 
-  // Also we need to make sure the media_types don't override it in the new
-  // parser logic, or maybe it's not even used? Let's just set it.
+  /* Also we need to make sure the media_types don't override it in the new */
+  /* parser logic, or maybe it's not even used? Let's just set it. */
   op.responses = &resp;
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Also hit schema_has_inline missing branches
+  /* Also hit schema_has_inline missing branches */
   resp.content_type = "text/plain";
-  resp.schema.inline_type = "integer"; // not string
+  resp.schema.inline_type = "integer"; /* not string */
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2695,7 +2697,7 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   struct OpenAPI_Response resp;
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
-  resp.content_type = "image/png"; // Binary!
+  resp.content_type = "image/png"; /* Binary! */
 
   op.responses = &resp;
 
@@ -2725,7 +2727,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   resp.schema.inline_type = "string";
   resp.schema.is_array = 0;
 
-  // Make sure it DOES NOT have a ref_name
+  /* Make sure it DOES NOT have a ref_name */
   resp.schema.ref_name = NULL;
 
   op.responses = &resp;
@@ -2753,15 +2755,16 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
-  // Set up content type in the media_types map instead!
+  /* Set up content type in the media_types map instead! */
   resp.n_content_media_types = 1;
   resp.content_media_types = calloc(1, sizeof(*resp.content_media_types));
   resp.content_media_types[0].name = "text/plain";
   resp.content_media_types[0].schema.inline_type = "string";
   resp.content_media_types[0].schema.is_array = 0;
 
-  // Make sure to populate the root content_type so `response_is_textual_string`
-  // works!
+  /* Make sure to populate the root content_type so `response_is_textual_string`
+   */
+  /* works! */
   resp.content_type = "text/plain";
 
   op.responses = &resp;
@@ -2795,31 +2798,31 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   resp.content_media_types[0].name = "application/json";
   op.responses = &resp;
 
-  // Make sure it doesn't get blocked by success_schema_name!
+  /* Make sure it doesn't get blocked by success_schema_name! */
   resp.schema.ref_name = NULL;
 
-  // array of string
+  /* array of string */
   resp.schema.inline_type = "string";
   resp.schema.is_array = 1;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of integer
+  /* array of integer */
   resp.schema.inline_type = "integer";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of number
+  /* array of number */
   resp.schema.inline_type = "number";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of boolean
+  /* array of boolean */
   resp.schema.inline_type = "boolean";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // array of fallback
+  /* array of fallback */
   resp.schema.inline_type = "unknown_type";
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // not an array boolean
+  /* not an array boolean */
   resp.schema.inline_type = "boolean";
   resp.schema.is_array = 0;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
@@ -2851,16 +2854,16 @@ TEST test_client_body_write_joined_form_array(void) {
   op.parameters[0].explode_set = 1;
   op.parameters[0].explode = 0;
 
-  // Set array of strings basically via mock
+  /* Set array of strings basically via mock */
   op.parameters[0].items_type = "string";
 
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // Also try different delim via pipedd
+  /* Also try different delim via pipedd */
   op.parameters[0].style = OA_STYLE_PIPE_DELIMITED;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
-  // space delimited
+  /* space delimited */
   op.parameters[0].style = OA_STYLE_SPACE_DELIMITED;
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
@@ -2891,11 +2894,13 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
 
   op.responses = &resp;
 
-  // Let's actually test response_is_textual_string AND schema_inline_is_string
-  // indirectly The reason it wasn't hit previously is because
-  // codegen_client_write_body skips generating the response code if we don't
-  // have any parameters! No wait. Let's ensure the full operation is populated
-  // properly.
+  /* Let's actually test response_is_textual_string AND schema_inline_is_string
+   */
+  /* indirectly The reason it wasn't hit previously is because */
+  /* codegen_client_write_body skips generating the response code if we don't */
+  /* have any parameters! No wait. Let's ensure the full operation is populated
+   */
+  /* properly. */
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
