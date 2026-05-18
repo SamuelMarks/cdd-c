@@ -68,7 +68,10 @@ static /**
         * @brief Checks if basic type keyword.
         */
     int
-    is_basic_type_keyword(enum TokenKind k) {
+    is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
+  if (!out_is_basic)
+    return EINVAL;
+  *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
   case TOKEN_KEYWORD_CHAR:
@@ -79,7 +82,8 @@ static /**
   case TOKEN_KEYWORD_SIGNED:
   case TOKEN_KEYWORD_UNSIGNED:
   case TOKEN_KEYWORD_VOID:
-    return 1;
+    *out_is_basic = 1;
+    return 0;
   default:
     return 0;
   }
@@ -89,12 +93,6 @@ static /**
  * @brief Executes the scan for vlas operation.
  */
 int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
-  char *_ast_strndup_0 = NULL;
-  char *_ast_strndup_1 = NULL;
-  char *_ast_strndup_2 = NULL;
-  char *;
-  char *;
-  char *;
   size_t i = 0;
 
   if (!tokens || !list)
@@ -114,7 +112,9 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
     start_idx = i;
 
     /* 1. Identify type start (e.g. `int`, `struct S`, `char`) */
-    if (is_basic_type_keyword(tokens->tokens[i].kind)) {
+    int is_basic = 0;
+    is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+    if (is_basic) {
       is_type = 1;
     } else if (tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
                tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
@@ -142,15 +142,17 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
       size_t saved_i = i;
 
       /* Consume type modifiers */
-      while (i < tokens->size &&
-             (is_basic_type_keyword(tokens->tokens[i].kind) ||
-              tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
+      while (i < tokens->size) {
+        int is_basic = 0;
+        is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+        if (!(is_basic || tokens->tokens[i].kind == TOKEN_IDENTIFIER ||
               tokens->tokens[i].kind == TOKEN_WHITESPACE ||
               tokens->tokens[i].kind == TOKEN_STAR ||
               tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
               tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
               tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM ||
-              tokens->tokens[i].kind == TOKEN_KEYWORD_CONST)) {
+              tokens->tokens[i].kind == TOKEN_KEYWORD_CONST))
+          break;
 
         /* If we are on an identifier, look ahead to see if it's the variable
          * name */
@@ -246,19 +248,14 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
                     const char *t_end =
                         (const char *)tokens->tokens[type_end_idx - 1].start +
                         tokens->tokens[type_end_idx - 1].length;
-                    s->type_str =
-                        ((c_cdd_strndup(t_start, (size_t)(t_end - t_start), &,
-                                        &_ast_strndup_0),
-                          _ast_strndup_0), );
+                    c_cdd_strndup(t_start, (size_t)(t_end - t_start),
+                                  &s->type_str);
                   }
 
                   /* Extract var name */
-                  s->var_name =
-                      ((c_cdd_strndup(
-                            (const char *)tokens->tokens[var_name_idx].start,
-                            tokens->tokens[var_name_idx].length, &,
-                            &_ast_strndup_1),
-                        _ast_strndup_1), );
+                  c_cdd_strndup(
+                      (const char *)tokens->tokens[var_name_idx].start,
+                      tokens->tokens[var_name_idx].length, &s->var_name);
 
                   /* Extract size expression */
                   {
@@ -267,11 +264,8 @@ int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
                     const char *sz_end =
                         (const char *)tokens->tokens[size_expr_end - 1].start +
                         tokens->tokens[size_expr_end - 1].length;
-                    s->size_expr =
-                        ((c_cdd_strndup(sz_start,
-                                        (size_t)(sz_end - sz_start), &,
-                                        &_ast_strndup_2),
-                          _ast_strndup_2), );
+                    c_cdd_strndup(sz_start, (size_t)(sz_end - sz_start),
+                                  &s->size_expr);
                   }
 
                   list->count++;

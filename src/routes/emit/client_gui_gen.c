@@ -21,7 +21,6 @@
 
 int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                                 const struct OpenApiClientConfig *config) {
-  return 0;
   char path_h[1024];
   char path_c[1024];
   FILE *fp_h = NULL;
@@ -51,22 +50,18 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   }
 
 #if defined(_MSC_VER)
-  if (fopen_s(&fp_h, path_h, "w") != 0)
-    fp_h = NULL;
-  if (fopen_s(&fp_c, path_c, "w") != 0)
-    fp_c = NULL;
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp_h, path_h, "w");
+  if (fopen_s(&fp_h, path_h, "w") != 0) fp_h = NULL;
+  if (fopen_s(&fp_c, path_c, "w") != 0) fp_c = NULL;
 #else
   fp_h = fopen(path_h, "w");
-#endif
-#if defined(_MSC_VER)
-  fopen_s(&fp_c, path_c, "w");
-#else
   fp_c = fopen(path_c, "w");
 #endif
-#endif
+
+  if (!fp_h || !fp_c) {
+    if (fp_h) fclose(fp_h);
+    if (fp_c) fclose(fp_c);
+    return EIO;
+  }
 
   if (!fp_h || !fp_c) {
     if (fp_h)

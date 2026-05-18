@@ -84,8 +84,11 @@ static int eval(const char *expr, struct PreprocessorContext *ctx, long *out) {
   struct TokenList *tl = NULL;
   long res = 0;
   int rc;
-  if (tokenize(az_span_create_from_str((char *)expr), &tl) != 0)
+  rc = tokenize(az_span_create_from_str((char *)expr), &tl);
+  if (rc != 0) {
+    fprintf(stderr, "tokenize failed with %d\n", rc);
     return -999;
+  }
   rc = pp_eval_expression(tl, 0, tl->size, ctx, &res);
   free_token_list(tl);
   if (rc != 0)

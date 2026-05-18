@@ -327,9 +327,6 @@ static /**
  * @brief Executes the schema2code main operation.
  */
 int schema2code_main(int argc, char **argv) {
-  bool _ast_str_starts_with_6 = false;
-  bool _ast_str_starts_with_7 = false;
-  bool _ast_str_starts_with_8 = false;
   const char *schema_file, *prefix;
   char *basename = NULL;
   struct CodegenConfig config = {0};
@@ -345,16 +342,12 @@ int schema2code_main(int argc, char **argv) {
     return EXIT_FAILURE;
 
   for (i = 2; i < argc; ++i) {
-    if ((str_starts_with(argv[i], "--guard-enum=", &_ast_str_starts_with_6),
-         _ast_str_starts_with_6))
+    int starts = 0;
+    if ((str_starts_with(argv[i], "--guard-enum=", &starts), starts))
       config.enum_guard = argv[i] + 13;
-    else if ((str_starts_with(argv[i],
-                              "--guard-json=", &_ast_str_starts_with_7),
-              _ast_str_starts_with_7))
+    else if ((str_starts_with(argv[i], "--guard-json=", &starts), starts))
       config.json_guard = argv[i] + 13;
-    else if ((str_starts_with(argv[i],
-                              "--guard-utils=", &_ast_str_starts_with_8),
-              _ast_str_starts_with_8))
+    else if ((str_starts_with(argv[i], "--guard-utils=", &starts), starts))
       config.utils_guard = argv[i] + 14;
   }
 

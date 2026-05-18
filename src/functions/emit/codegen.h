@@ -54,7 +54,7 @@ extern C_CDD_EXPORT /**
  * @param[in] enum_name The enum name.
  * @param[in] sf The struct fields representing the enum.
  * @param[in] config The codegen configuration.
- * @return 0 on success.
+ * @return 0 on success, error code on failure.
  */
 extern C_CDD_EXPORT int
 write_enum_declaration_h(FILE *hfile, const char *enum_name,
@@ -68,7 +68,7 @@ write_enum_declaration_h(FILE *hfile, const char *enum_name,
  * @param[in] union_name The union name.
  * @param[in] sf The struct fields representing the union.
  * @param[in] config The codegen configuration.
- * @return 0 on success.
+ * @return 0 on success, error code on failure.
  */
 extern C_CDD_EXPORT int
 write_union_declaration_h(FILE *hfile, const char *union_name,
@@ -82,7 +82,7 @@ write_union_declaration_h(FILE *hfile, const char *union_name,
  * @param[in] struct_name The struct name.
  * @param[in] sf The struct fields.
  * @param[in] config The codegen configuration.
- * @return 0 on success.
+ * @return 0 on success, error code on failure.
  */
 extern C_CDD_EXPORT int
 write_struct_declaration_h(FILE *hfile, const char *struct_name,

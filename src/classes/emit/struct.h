@@ -30,7 +30,6 @@ extern "C" {
 #include <stdio.h>
 
 #include "c_cdd_export.h"
-#include "c_cdd_stdbool.h"
 #include "classes/emit/enum.h"
 /* clang-format on */
 

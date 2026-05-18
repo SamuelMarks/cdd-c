@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "functions/parse/tokenizer.h"
+#include <stdio.h>
 #include "c_cdd/log.h"
 /* clang-format on */
 
@@ -225,7 +226,10 @@ static /**
         * @brief Executes the span equals str operation.
         */
     int
-    span_equals_str(const az_span span, const char *str, bool *_out_val) {
+    span_equals_str(const az_span span, const char *str, int *_out_val) {
+  if (!_out_val)
+    return EINVAL;
+  *_out_val = 0;
 
   {
     *_out_val =
@@ -241,67 +245,72 @@ static /**
  */
 int identify_keyword_or_id(const uint8_t *start, size_t len,
                            enum TokenKind *_out_val) {
-  bool _ast_attr = false;
-  bool _ast_declspec = false;
-  bool _ast_span_equals_str_0 = false;
-  bool _ast_span_equals_str_1 = false;
-  bool _ast_span_equals_str_2 = false;
-  bool _ast_span_equals_str_3 = false;
-  bool _ast_span_equals_str_4 = false;
-  bool _ast_span_equals_str_5 = false;
-  bool _ast_span_equals_str_6 = false;
-  bool _ast_span_equals_str_7 = false;
-  bool _ast_span_equals_str_8 = false;
-  bool _ast_span_equals_str_9 = false;
-  bool _ast_span_equals_str_10 = false;
-  bool _ast_span_equals_str_11 = false;
-  bool _ast_span_equals_str_12 = false;
-  bool _ast_span_equals_str_13 = false;
-  bool _ast_span_equals_str_14 = false;
-  bool _ast_span_equals_str_15 = false;
-  bool _ast_span_equals_str_16 = false;
-  bool _ast_span_equals_str_17 = false;
-  bool _ast_span_equals_str_18 = false;
-  bool _ast_span_equals_str_19 = false;
-  bool _ast_span_equals_str_20 = false;
-  bool _ast_span_equals_str_21 = false;
-  bool _ast_span_equals_str_22 = false;
-  bool _ast_span_equals_str_23 = false;
-  bool _ast_span_equals_str_24 = false;
-  bool _ast_span_equals_str_25 = false;
-  bool _ast_span_equals_str_26 = false;
-  bool _ast_span_equals_str_27 = false;
-  bool _ast_span_equals_str_28 = false;
-  bool _ast_span_equals_str_29 = false;
-  bool _ast_span_equals_str_30 = false;
-  bool _ast_span_equals_str_31 = false;
-  bool _ast_span_equals_str_32 = false;
-  bool _ast_span_equals_str_33 = false;
-  bool _ast_span_equals_str_34 = false;
-  bool _ast_span_equals_str_35 = false;
-  bool _ast_span_equals_str_36 = false;
-  bool _ast_span_equals_str_37 = false;
-  bool _ast_span_equals_str_38 = false;
-  bool _ast_span_equals_str_39 = false;
-  bool _ast_span_equals_str_40 = false;
-  bool _ast_span_equals_str_41 = false;
-  bool _ast_span_equals_str_42 = false;
-  bool _ast_span_equals_str_43 = false;
-  bool _ast_span_equals_str_44 = false;
-  bool _ast_span_equals_str_45 = false;
-  bool _ast_span_equals_str_46 = false;
-  bool _ast_span_equals_str_47 = false;
-  bool _ast_span_equals_str_48 = false;
-  bool _ast_span_equals_str_49 = false;
-  bool _ast_span_equals_str_50 = false;
-  bool _ast_span_equals_str_51 = false;
-  bool _ast_span_equals_str_52 = false;
-  bool _ast_span_equals_str_53 = false;
-  bool _ast_span_equals_str_54 = false;
-  bool _ast_span_equals_str_55 = false;
-  bool _ast_span_equals_str_56 = false;
-
-  az_span s = az_span_create((uint8_t *)start, (int32_t)len);
+  int _ast_attr = 0;
+  int _ast_declspec = 0;
+  int _ast_span_equals_str_0 = 0;
+  int _ast_span_equals_str_1 = 0;
+  int _ast_span_equals_str_2 = 0;
+  int _ast_span_equals_str_3 = 0;
+  int _ast_span_equals_str_4 = 0;
+  int _ast_span_equals_str_5 = 0;
+  int _ast_span_equals_str_6 = 0;
+  int _ast_span_equals_str_7 = 0;
+  int _ast_span_equals_str_8 = 0;
+  int _ast_span_equals_str_9 = 0;
+  int _ast_span_equals_str_10 = 0;
+  int _ast_span_equals_str_11 = 0;
+  int _ast_span_equals_str_12 = 0;
+  int _ast_span_equals_str_13 = 0;
+  int _ast_span_equals_str_14 = 0;
+  int _ast_span_equals_str_15 = 0;
+  int _ast_span_equals_str_16 = 0;
+  int _ast_span_equals_str_17 = 0;
+  int _ast_span_equals_str_18 = 0;
+  int _ast_span_equals_str_19 = 0;
+  int _ast_span_equals_str_20 = 0;
+  int _ast_span_equals_str_21 = 0;
+  int _ast_span_equals_str_22 = 0;
+  int _ast_span_equals_str_23 = 0;
+  int _ast_span_equals_str_24 = 0;
+  int _ast_span_equals_str_25 = 0;
+  int _ast_span_equals_str_26 = 0;
+  int _ast_span_equals_str_27 = 0;
+  int _ast_span_equals_str_28 = 0;
+  int _ast_span_equals_str_29 = 0;
+  int _ast_span_equals_str_30 = 0;
+  int _ast_span_equals_str_31 = 0;
+  int _ast_span_equals_str_32 = 0;
+  int _ast_span_equals_str_33 = 0;
+  int _ast_span_equals_str_34 = 0;
+  int _ast_span_equals_str_35 = 0;
+  int _ast_span_equals_str_36 = 0;
+  int _ast_span_equals_str_37 = 0;
+  int _ast_span_equals_str_38 = 0;
+  int _ast_span_equals_str_39 = 0;
+  int _ast_span_equals_str_40 = 0;
+  int _ast_span_equals_str_41 = 0;
+  int _ast_span_equals_str_42 = 0;
+  int _ast_span_equals_str_43 = 0;
+  int _ast_span_equals_str_44 = 0;
+  int _ast_span_equals_str_45 = 0;
+  int _ast_span_equals_str_46 = 0;
+  int _ast_span_equals_str_47 = 0;
+  int _ast_span_equals_str_48 = 0;
+  int _ast_span_equals_str_49 = 0;
+  int _ast_span_equals_str_50 = 0;
+  int _ast_span_equals_str_51 = 0;
+  int _ast_span_equals_str_52 = 0;
+  int _ast_span_equals_str_53 = 0;
+  int _ast_span_equals_str_54 = 0;
+  int _ast_span_equals_str_55 = 0;
+  int _ast_span_equals_str_56 = 0;
+  az_span s;
+  if (!_out_val)
+    return EINVAL;
+  *_out_val = TOKEN_IDENTIFIER;
+  if (!start)
+    return 0;
+  s = az_span_create((uint8_t *)start, (int32_t)len);
 
   /* C89/C90/C99/C11/C23 Keywords */
 
@@ -787,13 +796,16 @@ int identify_keyword_or_id(const uint8_t *start, size_t len,
  * @brief Executes the token find next operation.
  */
 int token_find_next(const struct TokenList *list, size_t start_idx,
-
                     size_t end_idx, const enum TokenKind kind,
                     size_t *_out_val) {
-
-  size_t i;
-
-  size_t limit = (end_idx < list->size) ? end_idx : list->size;
+  size_t i, limit;
+  if (!_out_val)
+    return EINVAL;
+  *_out_val = SIZE_MAX;
+  if (!list || start_idx >= list->size) {
+    return 0;
+  }
+  limit = (end_idx < list->size) ? end_idx : list->size;
 
   for (i = start_idx; i < limit; ++i) {
 
@@ -833,20 +845,15 @@ void free_token_list(struct TokenList *tl) {
 /**
  * @brief Executes the token matches string operation.
  */
-int token_matches_string(const struct Token *tok,
-
-                         const char *match, bool *_out_val) {
-
+int token_matches_string(const struct Token *tok, const char *match,
+                         int *_out_val) {
   size_t m_len;
-
   size_t i_tok = 0, i_match = 0;
-
   const uint8_t *t;
-
-  if (!tok || !match)
-
-  {
-    *_out_val = false;
+  if (!_out_val)
+    return EINVAL;
+  *_out_val = 0;
+  if (!tok || !match) {
     return 0;
   }
 
@@ -869,7 +876,10 @@ int token_matches_string(const struct Token *tok,
     if (c != match[i_match])
 
     {
-      *_out_val = false;
+      if (m_len == 13)
+        fprintf(stderr, "Mismatched at idx %zu: c='%c' match='%c'\n", i_match,
+                c, match[i_match]);
+      *_out_val = 0;
       return 0;
     }
 
@@ -880,6 +890,11 @@ int token_matches_string(const struct Token *tok,
 
   {
     *_out_val = (i_tok >= tok->length && i_match == m_len);
+    if (m_len == 13 && match[0] == '_')
+      fprintf(stderr,
+              "token_matches_string END! match='%s' tok_len=%zu i_tok=%zu "
+              "i_match=%zu out=%d\n",
+              match, tok->length, i_tok, i_match, *_out_val);
     return 0;
   }
 }
@@ -889,10 +904,10 @@ int token_matches_string(const struct Token *tok,
  */
 int tokenize(const az_span source, struct TokenList **const out) {
   enum TokenKind _ast_identify_keyword_or_id_57;
-  bool _ast_token_matches_string_58 = false;
-  bool _ast_token_matches_string_59 = false;
-  bool _ast_token_matches_string_60 = false;
-  bool _ast_token_matches_string_61 = false;
+  int _ast_token_matches_string_58 = 0;
+  int _ast_token_matches_string_59 = 0;
+  int _ast_token_matches_string_60 = 0;
+  int _ast_token_matches_string_61 = 0;
 
   struct TokenList *list = NULL;
 

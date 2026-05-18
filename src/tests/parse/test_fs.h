@@ -30,8 +30,11 @@ TEST test_get_basename(void) {
   ASSERT_STR_EQ("baz.txt", res);
   free(res);
 
-  ASSERT_EQ(0, fs_is_directory(NULL));
-  ASSERT_EQ(0, fs_is_directory("/path/that/does/not/exist/ever/ever/ever"));
+  int is_dir = 0;
+  ASSERT_EQ(EINVAL, fs_is_directory(NULL, &is_dir));
+  ASSERT_EQ(
+      0, fs_is_directory("/path/that/does/not/exist/ever/ever/ever", &is_dir));
+  ASSERT_EQ(0, is_dir);
 
   rc = get_basename("file.txt", &res);
   ASSERT_EQ(0, rc);
@@ -182,7 +185,7 @@ TEST test_fs_cp(void) {
 
   // Test error
   rc = cp("invalid/dst/path", "invalid_src.txt");
-  printf("\nCP ERROR RC = %d\n", rc);
+
   ASSERT(rc != 0);
 
   PASS();
@@ -304,6 +307,40 @@ TEST test_read_from_fh_errors(void) {
   PASS();
 }
 
+#ifdef _MSC_VER
+TEST test_ascii_wide_conversion(void) {
+  wchar_t wbuf[32];
+  char abuf[32];
+  size_t wlen = 0;
+  size_t alen = 0;
+  int rc;
+
+  /* ascii_to_wide */
+  rc = ascii_to_wide("hello", wbuf, 32, &wlen);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(5, wlen);
+
+  /* wide_to_ascii */
+  rc = wide_to_ascii(wbuf, abuf, 32, &alen);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(5, alen);
+  ASSERT_STR_EQ("hello", abuf);
+
+  /* errors */
+  ASSERT_EQ(EINVAL, ascii_to_wide(NULL, wbuf, 32, &wlen));
+  ASSERT_EQ(EINVAL, ascii_to_wide("test", NULL, 32, &wlen));
+  ASSERT_EQ(EINVAL, ascii_to_wide("test", wbuf, 0, &wlen));
+  ASSERT_EQ(EINVAL, ascii_to_wide("test", wbuf, 32, NULL));
+
+  ASSERT_EQ(EINVAL, wide_to_ascii(NULL, abuf, 32, &alen));
+  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, NULL, 32, &alen));
+  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 0, &alen));
+  ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 32, NULL));
+
+  PASS();
+}
+#endif /* _MSC_VER */
+
 SUITE(fs_suite) {
   RUN_TEST(test_fs_fopen_error_from);
   RUN_TEST(test_fs_cp);
@@ -318,6 +355,10 @@ SUITE(fs_suite) {
   RUN_TEST(test_fs_write_to_file_errors);
   RUN_TEST(test_fs_dirname_foo);
   RUN_TEST(test_fs_cdd_fopen_too_long);
+#ifdef _MSC_VER
+  RUN_TEST(test_path_is_unc);
+  RUN_TEST(test_ascii_wide_conversion);
+#endif
 }
 
 #ifdef __cplusplus

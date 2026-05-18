@@ -56,26 +56,19 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 ` or just `#endif
 ` */
   if (false_code) {
-    endif_len = strlen("#else
-") + strlen(false_code) + strlen("
-#endif
-") + 1;
+    endif_len =
+        strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 1;
     endif_str = (char *)malloc(endif_len);
     if (!endif_str) {
       return ENOMEM;
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(endif_str, endif_len, "#else
-%s
-#endif \\n ", false_code);
+    sprintf_s(endif_str, endif_len, "#else\n%s\n#endif \\n ", false_code);
 #else
-    sprintf(endif_str, "#else
-%s
-#endif \\n ", false_code);
+    sprintf(endif_str, "#else\n%s\n#endif \\n ", false_code);
 #endif
   } else {
-    endif_len = strlen("#endif
-") + 1;
+    endif_len = strlen("#endif\\n") + 1;
     endif_str = (char *)malloc(endif_len);
     if (!endif_str) {
       return ENOMEM;
@@ -133,11 +126,10 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
  */
 int weaver_inject_msvc_headers(struct PatchList *patches,
                                const struct TokenList *tokens,
-                               bool include_windows_h,
-                               bool include_winsock2_h) {
+                               int include_windows_h, int include_winsock2_h) {
   size_t i;
   size_t last_include_idx = 0;
-  bool found_include = false;
+  int found_include = 0;
   size_t insert_idx = 0;
   size_t len;
   char *str;
@@ -158,11 +150,11 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
         j++;
       }
       if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-        bool is_include = false;
+        int is_include = 0;
         token_matches_string(&tokens->tokens[j], "include", &is_include);
         if (is_include) {
           last_include_idx = j;
-          found_include = true;
+          found_include = 1;
         }
       }
     }
@@ -174,103 +166,93 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
       if (tokens->tokens[j].kind == TOKEN_WHITESPACE) {
         const uint8_t *s = tokens->tokens[j].start;
         size_t l = tokens->tokens[j].length;
-        bool has_nl = false;
+        int has_nl = 0;
         size_t k;
         for (k = 0; k < l; ++k) {
-          if (s[k] == '
-') {
-            has_nl = true;
+          if (s[k] == '\n') {
+            has_nl = 1;
             break;
+          }
+        }
+        if (has_nl) {
+          insert_idx = j + 1;
+          break;
         }
       }
-      if (has_nl) {
-        insert_idx = j + 1;
-        break;
-      }
+      j++;
     }
-    j++;
+    if (j == tokens->size) {
+      insert_idx = tokens->size;
+    }
   }
-  if (j == tokens->size) {
-    insert_idx = tokens->size;
-  }
-}
 
-len = 256;
-str = (char *)malloc(len);
-if (!str) {
-  return ENOMEM;
-}
-str[0] = '\0';
+  len = 256;
+  str = (char *)malloc(len);
+  if (!str) {
+    return ENOMEM;
+  }
+  str[0] = '\0';
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-strcat_s(str, len, "#ifdef _MSC_VER\\n");
-if (include_winsock2_h) {
-    strcat_s(str, len, "#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif \\n ");
+  strcat_s(str, len, "#ifdef _MSC_VER\\n");
+  if (include_winsock2_h) {
+    strcat_s(str, len,
+             "#ifndef WIN32_LEAN_AND_MEAN\n#define WIN32_LEAN_AND_MEAN\n#endif "
+             "\\n ");
     strcat_s(str, len, "#include <winsock2.h>\\n");
-}
-if (include_windows_h) {
-  if (!include_winsock2_h) {
-      strcat_s(str, len, "#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif \\n ");
   }
-    strcat_s(str, len, "#ifndef NOMINMAX
-#define NOMINMAX
-#endif \\n ");
+  if (include_windows_h) {
+    if (!include_winsock2_h) {
+      strcat_s(str, len,
+               "#ifndef WIN32_LEAN_AND_MEAN\n#define "
+               "WIN32_LEAN_AND_MEAN\n#endif \\n ");
+    }
+    strcat_s(str, len, "#ifndef NOMINMAX\n#define NOMINMAX\n#endif \\n ");
     strcat_s(str, len, "\\n");
-}
-  strcat_s(str, len, "#endif
-\\n");
+  }
+  strcat_s(str, len, "#endif\n\\n");
 #else
   strcat(str, "#ifdef _MSC_VER\\n");
   if (include_winsock2_h) {
-    strcat(str, "#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif \\n ");
+    strcat(str, "#ifndef WIN32_LEAN_AND_MEAN\n#define "
+                "WIN32_LEAN_AND_MEAN\n#endif \\n ");
     strcat(str, "#include <winsock2.h>\\n");
   }
   if (include_windows_h) {
-  if (!include_winsock2_h) {
-      strcat(str, "#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif \\n ");
-  }
-    strcat(str, "#ifndef NOMINMAX
-#define NOMINMAX
-#endif \\n ");
+    if (!include_winsock2_h) {
+      strcat(str, "#ifndef WIN32_LEAN_AND_MEAN\n#define "
+                  "WIN32_LEAN_AND_MEAN\n#endif \\n ");
+    }
+    strcat(str, "#ifndef NOMINMAX\n#define NOMINMAX\n#endif \\n ");
     strcat(str, "\\n");
   }
-  strcat(str, "#endif
-\\n");
+  strcat(str, "#endif\n\\n");
 #endif
 
   res = patch_list_add(patches, insert_idx, insert_idx, str);
   return res;
+}
+
+/**
+ * @brief Executes the weaver vla to alloca operation.
+ */
+int weaver_vla_to_alloca(struct PatchList *patches,
+                         const struct TokenList *tokens, size_t start_idx,
+                         size_t end_idx, const char *type_str,
+                         const char *var_name, const char *size_expr,
+                         int interactive) {
+  char *str;
+  size_t len;
+  int res;
+
+  if (!patches || !tokens || !type_str || !var_name || !size_expr ||
+      start_idx >= end_idx || end_idx > tokens->size) {
+    return EINVAL;
   }
 
-  /**
-   * @brief Executes the weaver vla to alloca operation.
-   */
-  int weaver_vla_to_alloca(struct PatchList *patches,
-                           const struct TokenList *tokens, size_t start_idx,
-                           size_t end_idx, const char *type_str,
-                           const char *var_name, const char *size_expr,
-                           bool interactive) {
-    char *str;
-    size_t len;
-    int res;
-
-    if (!patches || !tokens || !type_str || !var_name || !size_expr ||
-        start_idx >= end_idx || end_idx > tokens->size) {
-      return EINVAL;
-    }
-
-    if (interactive) {
-      char user_input[16];
-    printf("
-Interactive Review:\\n");
+  if (interactive) {
+    char user_input[16];
+    printf("\nInteractive Review:\\n");
     printf("Detected VLA: `%s %s[%s];`\\n", type_str, var_name, size_expr);
     printf("Transform to: `%s *%s = (%s *)_alloca((%s) * sizeof(%s));`\\n",
            type_str, var_name, type_str, size_expr, type_str);
@@ -283,27 +265,27 @@ Interactive Review:\\n");
         return 0;
       }
     }
-    }
+  }
 
-    /* Calculate length:
-     * type_str + " *" + var_name + " = (" + type_str + " *)_alloca((" +
-     * size_expr + ") * sizeof(" + type_str + "));" + null terminator
-     */
-    len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
-          strlen(size_expr) + 11 + strlen(type_str) + 4;
-    str = (char *)malloc(len);
-    if (!str) {
-      return ENOMEM;
-    }
+  /* Calculate length:
+   * type_str + " *" + var_name + " = (" + type_str + " *)_alloca((" +
+   * size_expr + ") * sizeof(" + type_str + "));" + null terminator
+   */
+  len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
+        strlen(size_expr) + 11 + strlen(type_str) + 4;
+  str = (char *)malloc(len);
+  if (!str) {
+    return ENOMEM;
+  }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-    sprintf_s(str, len, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,
-              var_name, type_str, size_expr, type_str);
-#else
-    sprintf(str, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,
+  sprintf_s(str, len, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str,
             var_name, type_str, size_expr, type_str);
+#else
+  sprintf(str, "%s *%s = (%s *)_alloca((%s) * sizeof(%s));", type_str, var_name,
+          type_str, size_expr, type_str);
 #endif
 
-    res = patch_list_add(patches, start_idx, end_idx, str);
-    return res;
-  }
+  res = patch_list_add(patches, start_idx, end_idx, str);
+  return res;
+}

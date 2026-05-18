@@ -40,7 +40,10 @@ static /**
         * @brief Checks if basic type keyword.
         */
     int
-    is_basic_type_keyword(enum TokenKind k) {
+    is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
+  if (!out_is_basic)
+    return EINVAL;
+  *out_is_basic = 0;
   switch (k) {
   case TOKEN_KEYWORD_INT:
   case TOKEN_KEYWORD_CHAR:
@@ -51,7 +54,8 @@ static /**
   case TOKEN_KEYWORD_SIGNED:
   case TOKEN_KEYWORD_UNSIGNED:
   case TOKEN_KEYWORD_VOID:
-    return 1;
+    *out_is_basic = 1;
+    return 0;
   default:
     return 0;
   }
@@ -98,8 +102,9 @@ int scan_for_mixed_declarations(const struct TokenList *tokens,
     /* Are we inside a block? */
     if (depth > 0) {
       /* Identify if this statement is a declaration */
-      if (is_basic_type_keyword(tokens->tokens[i].kind) ||
-          tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
+      int is_basic = 0;
+      is_basic_type_keyword(tokens->tokens[i].kind, &is_basic);
+      if (is_basic || tokens->tokens[i].kind == TOKEN_KEYWORD_STRUCT ||
           tokens->tokens[i].kind == TOKEN_KEYWORD_UNION ||
           tokens->tokens[i].kind == TOKEN_KEYWORD_ENUM) {
         is_decl = 1;

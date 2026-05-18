@@ -58,12 +58,10 @@ static /**
   size_t start = 0;
 
   for (i = 0; i < len; i++) {
-    if (str[i] == '
-')
+    if (str[i] == '\n')
       count++;
   }
-  if (len > 0 && str[len - 1] != '
-')
+  if (len > 0 && str[len - 1] != '\n')
     count++;
 
   if (count == 0) {
@@ -81,18 +79,17 @@ static /**
   *out_count = count;
 
   for (i = 0; i < len; i++) {
-    if (str[i] == '
-') {
+    if (str[i] == '\n') {
       (*out_lines)[line_idx].text = str + start;
       (*out_lines)[line_idx].len = (i - start) + 1;
       line_idx++;
       start = i + 1;
     }
-}
-if (start < len) {
-  (*out_lines)[line_idx].text = str + start;
-  (*out_lines)[line_idx].len = len - start;
-}
+  }
+  if (start < len) {
+    (*out_lines)[line_idx].text = str + start;
+    (*out_lines)[line_idx].len = len - start;
+  }
 }
 
 static /**
@@ -327,49 +324,45 @@ int patch_list_to_diff(struct PatchList *list, const struct TokenList *tokens,
     for (i = b->old_start_line; i < min_mod_line && i <= b->old_end_line; i++) {
       append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
                      (int)old_lines[i - 1].len, old_lines[i - 1].text);
-      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
-') {
-        append_to_diff(&diff_str, &diff_len, &diff_cap, "
-\\ No newline at end of file\\n");
-    }
-    }
-
-    for (i = min_mod_line; i <= max_mod_line && i <= b->old_end_line; i++) {
-    append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
-                   (int)old_lines[i - 1].len, old_lines[i - 1].text);
-      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
-') {
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
         append_to_diff(&diff_str, &diff_len, &diff_cap, "
 \\ No newline at end of file\\n");
       }
-}
+    }
 
-for (i = keep_start_count; i < new_line_count - keep_end_count; i++) {
-  append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s",
-                 (int)new_lines[i].len, new_lines[i].text);
-      if (new_lines[i].text[new_lines[i].len - 1] != '
-') {
+    for (i = min_mod_line; i <= max_mod_line && i <= b->old_end_line; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, "-%.*s",
+                     (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
         append_to_diff(&diff_str, &diff_len, &diff_cap, "
 \\ No newline at end of file\\n");
-}
-}
+      }
+    }
 
-for (i = b->old_end_line - keep_end_count + 1; i <= b->old_end_line; i++) {
-  append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
-                 (int)old_lines[i - 1].len, old_lines[i - 1].text);
-      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '
-') {
+    for (i = keep_start_count; i < new_line_count - keep_end_count; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, "+%.*s",
+                     (int)new_lines[i].len, new_lines[i].text);
+      if (new_lines[i].text[new_lines[i].len - 1] != '\n') {
         append_to_diff(&diff_str, &diff_len, &diff_cap, "
 \\ No newline at end of file\\n");
-}
-}
+      }
+    }
 
-current_line_delta +=
-    new_line_count - (b->old_end_line - b->old_start_line + 1);
+    for (i = b->old_end_line - keep_end_count + 1; i <= b->old_end_line; i++) {
+      append_to_diff(&diff_str, &diff_len, &diff_cap, " %.*s",
+                     (int)old_lines[i - 1].len, old_lines[i - 1].text);
+      if (old_lines[i - 1].text[old_lines[i - 1].len - 1] != '\n') {
+        append_to_diff(&diff_str, &diff_len, &diff_cap, "
+\\ No newline at end of file\\n");
+      }
+    }
 
-free(new_text);
-if (new_lines)
-  free(new_lines);
+    current_line_delta +=
+        new_line_count - (b->old_end_line - b->old_start_line + 1);
+
+    free(new_text);
+    if (new_lines)
+      free(new_lines);
 }
 
 if (blocks)
@@ -377,6 +370,6 @@ if (blocks)
 if (old_lines)
   free(old_lines);
 
-*out_diff = diff_str;
-return 0;
+  *out_diff = diff_str;
+  return 0;
 }

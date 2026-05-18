@@ -251,15 +251,18 @@ static /**
         */
     int
     parse_bool_text(const char *s, int *out) {
+  int diff1, diff2, diff3, diff4;
   if (!s || !out)
     return 0;
-  if (c_cdd_stricmp(s, "true") == 0 || strcmp(s, "1") == 0 ||
-      c_cdd_stricmp(s, "yes") == 0) {
+  c_cdd_stricmp(s, "true", &diff1);
+  c_cdd_stricmp(s, "yes", &diff2);
+  if (diff1 == 0 || strcmp(s, "1") == 0 || diff2 == 0) {
     *out = 1;
     return 1;
   }
-  if (c_cdd_stricmp(s, "false") == 0 || strcmp(s, "0") == 0 ||
-      c_cdd_stricmp(s, "no") == 0) {
+  c_cdd_stricmp(s, "false", &diff3);
+  c_cdd_stricmp(s, "no", &diff4);
+  if (diff3 == 0 || strcmp(s, "0") == 0 || diff4 == 0) {
     *out = 0;
     return 1;
   }
@@ -367,37 +370,46 @@ static /**
         */
     int
     parse_style_text(const char *s, enum DocParamStyle *out) {
+  int diff;
   if (!s || !out)
     return 0;
-  if (c_cdd_stricmp(s, "form") == 0) {
+  c_cdd_stricmp(s, "form", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_FORM;
     return 1;
   }
-  if (c_cdd_stricmp(s, "simple") == 0) {
+  c_cdd_stricmp(s, "simple", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_SIMPLE;
     return 1;
   }
-  if (c_cdd_stricmp(s, "matrix") == 0) {
+  c_cdd_stricmp(s, "matrix", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_MATRIX;
     return 1;
   }
-  if (c_cdd_stricmp(s, "label") == 0) {
+  c_cdd_stricmp(s, "label", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_LABEL;
     return 1;
   }
-  if (c_cdd_stricmp(s, "spaceDelimited") == 0) {
+  c_cdd_stricmp(s, "spaceDelimited", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_SPACE_DELIMITED;
     return 1;
   }
-  if (c_cdd_stricmp(s, "pipeDelimited") == 0) {
+  c_cdd_stricmp(s, "pipeDelimited", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_PIPE_DELIMITED;
     return 1;
   }
-  if (c_cdd_stricmp(s, "deepObject") == 0) {
+  c_cdd_stricmp(s, "deepObject", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_DEEP_OBJECT;
     return 1;
   }
-  if (c_cdd_stricmp(s, "cookie") == 0) {
+  c_cdd_stricmp(s, "cookie", &diff);
+  if (diff == 0) {
     *out = DOC_PARAM_STYLE_COOKIE;
     return 1;
   }

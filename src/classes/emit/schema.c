@@ -34,7 +34,6 @@ void free_string_array_schema_utils(char **arr, size_t n) {
 
 int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src,
                                    size_t src_count) {
-  char *_ast_strdup_0 = NULL;
   size_t i;
   char **out;
   if (!dst || !dst_count)
@@ -50,7 +49,7 @@ int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src,
   }
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
-      out[i] = (c_cdd_strdup(src[i], &_ast_strdup_0), _ast_strdup_0);
+      c_cdd_strdup(src[i], &out[i]);
       if (!out[i]) {
         free_string_array_schema_utils(out, src_count);
         return ENOMEM;
@@ -124,15 +123,11 @@ static /**
     int
     copy_struct_fields(const struct StructFields *src,
                        struct StructFields *dst) {
-  char *_ast_strdup_1 = NULL;
-  char *_ast_strdup_2 = NULL;
-  char *_ast_strdup_3 = NULL;
   size_t i;
   if (struct_fields_init(dst) != 0)
     return ENOMEM;
   if (src->schema_extra_json) {
-    dst->schema_extra_json =
-        (c_cdd_strdup(src->schema_extra_json, &_ast_strdup_1), _ast_strdup_1);
+    c_cdd_strdup(src->schema_extra_json, &dst->schema_extra_json);
     if (!dst->schema_extra_json) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -162,16 +157,14 @@ static /**
       dst_field->items_type_union = NULL;
       dst_field->n_items_type_union = 0;
       if (f->schema_extra_json) {
-        dst_field->schema_extra_json =
-            (c_cdd_strdup(f->schema_extra_json, &_ast_strdup_2), _ast_strdup_2);
+        c_cdd_strdup(f->schema_extra_json, &dst_field->schema_extra_json);
         if (!dst_field->schema_extra_json) {
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return ENOMEM;
         }
       }
       if (f->items_extra_json) {
-        dst_field->items_extra_json =
-            (c_cdd_strdup(f->items_extra_json, &_ast_strdup_3), _ast_strdup_3);
+        c_cdd_strdup(f->items_extra_json, &dst_field->items_extra_json);
         if (!dst_field->items_extra_json) {
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
           return ENOMEM;
@@ -201,8 +194,6 @@ static /**
  */
 int c2openapi_register_types(struct OpenAPI_Spec *spec,
                              const struct TypeDefList *types) {
-  char *_ast_strdup_4 = NULL;
-  char *_ast_strdup_5 = NULL;
   size_t i;
   int rc = 0;
 
@@ -239,8 +230,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         spec->defined_schemas = new_schemas;
 
         /* Store */
-        spec->defined_schema_names[new_idx] =
-            (c_cdd_strdup(def->name, &_ast_strdup_4), _ast_strdup_4);
+        c_cdd_strdup(def->name, &spec->defined_schema_names[new_idx]);
         if (!spec->defined_schema_names[new_idx])
           return ENOMEM;
 
@@ -274,8 +264,7 @@ int c2openapi_register_types(struct OpenAPI_Spec *spec,
         }
         spec->defined_schemas = new_schemas;
 
-        spec->defined_schema_names[new_idx] =
-            (c_cdd_strdup(def->name, &_ast_strdup_5), _ast_strdup_5);
+        c_cdd_strdup(def->name, &spec->defined_schema_names[new_idx]);
         if (!spec->defined_schema_names[new_idx])
           return ENOMEM;
 
