@@ -25,9 +25,8 @@ static const char *DEFAULT_ERROR_CODE = "ENOMEM";
 /**
  * @brief Find explicit token indices for range extractions.
  */
-static int
-    find_next_token_idx(const struct TokenList *tokens, size_t start,
-                        enum TokenKind kind, size_t *_out_val) {
+static int find_next_token_idx(const struct TokenList *tokens, size_t start,
+                               enum TokenKind kind, size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == kind) {
@@ -44,9 +43,8 @@ static int
 /**
  * @brief Executes the range to string operation.
  */
-static int
-    range_to_string(const struct TokenList *tokens, size_t start, size_t end,
-                    char **out_val) {
+static int range_to_string(const struct TokenList *tokens, size_t start,
+                           size_t end, char **out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;

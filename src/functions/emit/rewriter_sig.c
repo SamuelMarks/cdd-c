@@ -49,8 +49,7 @@ struct ParsedSig {
 /**
  * @brief Initialize ParsedSig to NULLs.
  */
-static void
-    parsed_sig_init(struct ParsedSig *sig) {
+static void parsed_sig_init(struct ParsedSig *sig) {
   sig->attributes = NULL;
   sig->storage = NULL;
   sig->ret_type = NULL;
@@ -63,8 +62,7 @@ static void
 /**
  * @brief Free ParsedSig resources.
  */
-static void
-    parsed_sig_free(struct ParsedSig *sig) {
+static void parsed_sig_free(struct ParsedSig *sig) {
   if (sig->attributes)
     free(sig->attributes);
   if (sig->storage)
@@ -82,9 +80,8 @@ static void
 /**
  * @brief Join tokens into a string.
  */
-static int
-    join_tokens(const struct TokenList *tokens, size_t start, size_t end,
-                char **out) {
+static int join_tokens(const struct TokenList *tokens, size_t start, size_t end,
+                       char **out) {
   size_t len = 0;
   size_t i;
   char *buf;
@@ -118,8 +115,7 @@ static int
 /**
  * @brief Check if token is a storage class specifier.
  */
-static int
-    is_storage_specifier(const struct Token *tok) {
+static int is_storage_specifier(const struct Token *tok) {
   switch (tok->kind) {
   case TOKEN_KEYWORD_STATIC:
   case TOKEN_KEYWORD_EXTERN:
@@ -146,10 +142,9 @@ static int
  * @param close Kind of closing token.
  * @return Index of the matching closing token, or tokens->size if not found.
  */
-static int
-    find_balanced_end(const struct TokenList *tokens, size_t start,
-                      enum TokenKind open, enum TokenKind close,
-                      size_t *_out_val) {
+static int find_balanced_end(const struct TokenList *tokens, size_t start,
+                             enum TokenKind open, enum TokenKind close,
+                             size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -175,8 +170,8 @@ static int
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
  */
-static int
-    check_is_void(const struct TokenList *tokens, size_t start, size_t end) {
+static int check_is_void(const struct TokenList *tokens, size_t start,
+                         size_t end) {
   size_t i;
   int saw_void = 0;
 
@@ -203,8 +198,7 @@ static int
 /**
  * @brief Convert 'void' args string to empty string, or detect if empty.
  */
-static int
-    args_represent_void(const char *args) {
+static int args_represent_void(const char *args) {
   const char *p = args;
   while (*p && isspace((unsigned char)*p))
     p++;
@@ -225,9 +219,8 @@ static int
  * @brief Check if a range contains meaningful tokens (not just
  * whitespace/comments).
  */
-static int
-    has_meaningful_tokens(const struct TokenList *tokens, size_t start,
-                          size_t end) {
+static int has_meaningful_tokens(const struct TokenList *tokens, size_t start,
+                                 size_t end) {
   size_t i;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind != TOKEN_WHITESPACE &&

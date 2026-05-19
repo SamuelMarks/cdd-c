@@ -42,9 +42,8 @@ void safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
 /**
  * @brief Adds or sets patch.
  */
-static int
-    add_patch(struct SafeCrtPatchList *list, size_t start, size_t end,
-              const char *text) {
+static int add_patch(struct SafeCrtPatchList *list, size_t start, size_t end,
+                     const char *text) {
   struct SafeCrtPatch *p;
   if (!list || !text)
     return EINVAL;
@@ -81,9 +80,8 @@ static int
 /**
  * @brief Extracts token text.
  */
-static int
-    extract_token_text(const struct TokenList *tokens, size_t start, size_t end,
-                       char **_out_val) {
+static int extract_token_text(const struct TokenList *tokens, size_t start,
+                              size_t end, char **_out_val) {
   size_t len = 0;
   size_t i;
   char *str;
@@ -114,9 +112,9 @@ static int
 /**
  * @brief Generates strcpy patch.
  */
-static int
-    generate_strcpy_patch(const struct TokenList *tokens, size_t call_start,
-                          size_t call_end, struct SafeCrtPatchList *out) {
+static int generate_strcpy_patch(const struct TokenList *tokens,
+                                 size_t call_start, size_t call_end,
+                                 struct SafeCrtPatchList *out) {
   /* Pattern: strcpy(dest, src) */
   size_t lparen = 0;
   size_t comma = 0;
@@ -174,9 +172,9 @@ static int
 /**
  * @brief Generates fopen patch.
  */
-static int
-    generate_fopen_patch(const struct TokenList *tokens, size_t call_start,
-                         size_t call_end, struct SafeCrtPatchList *out) {
+static int generate_fopen_patch(const struct TokenList *tokens,
+                                size_t call_start, size_t call_end,
+                                struct SafeCrtPatchList *out) {
   /* Pattern: FILE *#if defined(_MSC_VER)
 fopen_s(&f, path, mode);
 #else
@@ -272,9 +270,9 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
 /**
  * @brief Generates strncpy patch.
  */
-static int
-    generate_strncpy_patch(const struct TokenList *tokens, size_t call_start,
-                           size_t call_end, struct SafeCrtPatchList *out) {
+static int generate_strncpy_patch(const struct TokenList *tokens,
+                                  size_t call_start, size_t call_end,
+                                  struct SafeCrtPatchList *out) {
   /* Pattern: strncpy(dest, src, count) */
   size_t lparen = 0, comma1 = 0, comma2 = 0, rparen = 0, i;
   char *dest = NULL, *src = NULL, *count = NULL;
@@ -331,9 +329,9 @@ static int
 /**
  * @brief Generates sprintf patch.
  */
-static int
-    generate_sprintf_patch(const struct TokenList *tokens, size_t call_start,
-                           size_t call_end, struct SafeCrtPatchList *out) {
+static int generate_sprintf_patch(const struct TokenList *tokens,
+                                  size_t call_start, size_t call_end,
+                                  struct SafeCrtPatchList *out) {
   /* Pattern: sprintf(dest, format, ...) */
   size_t lparen = 0, comma1 = 0, rparen = 0, i;
   char *dest = NULL;

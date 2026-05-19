@@ -41,8 +41,7 @@
  * @return The replacement char or 0 if not a trigraph.
  */
 
-static int
-    get_trigraph_map(int c3) {
+static int get_trigraph_map(int c3) {
 
   switch (c3) {
 
@@ -101,10 +100,9 @@ static int
  * @return The logical character (int), or EOF (-1) if end of buffer.
  */
 
-static int
-    peek_logical(const uint8_t *base, size_t len, size_t pos,
+static int peek_logical(const uint8_t *base, size_t len, size_t pos,
 
-                 size_t *out_consumed) {
+                        size_t *out_consumed) {
 
   size_t current = pos;
 
@@ -178,10 +176,9 @@ static int
 /**
  * @brief Executes the token list add operation.
  */
-static int
-    token_list_add(struct TokenList *tl, const enum TokenKind kind,
+static int token_list_add(struct TokenList *tl, const enum TokenKind kind,
 
-                   const uint8_t *start, const size_t length) {
+                          const uint8_t *start, const size_t length) {
 
   if (!tl)
 
@@ -219,8 +216,7 @@ static int
 /**
  * @brief Executes the span equals str operation.
  */
-static int
-    span_equals_str(const az_span span, const char *str, int *_out_val) {
+static int span_equals_str(const az_span span, const char *str, int *_out_val) {
   if (!_out_val)
     return EINVAL;
   *_out_val = 0;

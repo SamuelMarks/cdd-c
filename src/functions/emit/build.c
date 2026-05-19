@@ -41,8 +41,7 @@
  * @param[in] config Build configuration.
  * @return 0 on success, EIO/EINVAL on failure.
  */
-static int
-    generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
+static int generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
   size_t i;
 
   if (!fp || !config || !config->project_name || !config->target_name) {

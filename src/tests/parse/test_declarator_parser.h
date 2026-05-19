@@ -20,8 +20,7 @@ extern "C" {
 /**
  * @brief Executes the setup tokens operation.
  */
-static struct TokenList *
-    setup_tokens(const char *code) {
+static struct TokenList *setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)code), &tl);
   return tl;
@@ -30,8 +29,7 @@ static struct TokenList *
 /**
  * @brief Helper to verify a Type Chain against expected Kinds.
  */
-static enum greatest_test_res
-    verify_chain(struct DeclType *head, int n, ...) {
+static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
   va_list args;
   int i;
   struct DeclType *curr = head;

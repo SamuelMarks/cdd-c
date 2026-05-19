@@ -66,9 +66,9 @@ void audit_stats_free(struct AuditStats *stats) {
 /**
  * @brief Adds or sets violation.
  */
-static int
-    add_violation(struct AuditStats *stats, const char *file_path, size_t line,
-                  size_t col, const char *var_name, const char *allocator) {
+static int add_violation(struct AuditStats *stats, const char *file_path,
+                         size_t line, size_t col, const char *var_name,
+                         const char *allocator) {
   struct AuditViolationList *list = &stats->violations;
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
@@ -109,9 +109,8 @@ static int
  * @param[out] line 1-based line number.
  * @param[out] col 1-based column number.
  */
-static void
-    get_line_col(const char *content, const uint8_t *token_ptr, size_t *line,
-                 size_t *col) {
+static void get_line_col(const char *content, const uint8_t *token_ptr,
+                         size_t *line, size_t *col) {
   const char *p = content;
   *line = 1;
   *col = 1;
@@ -130,8 +129,7 @@ static void
 /**
  * @brief Check if filename ends with .c extension.
  */
-static int
-    is_c_source(const char *path, int *out_is_source) {
+static int is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
   if (!out_is_source)
@@ -148,8 +146,8 @@ static int
 /**
  * @brief Helper to detect functions returning allocations directly.
  */
-static int
-    count_returning_allocs(const struct TokenList *tokens, int *out_count) {
+static int count_returning_allocs(const struct TokenList *tokens,
+                                  int *out_count) {
   size_t i;
   int count = 0;
   if (!out_count)
@@ -187,8 +185,7 @@ static int
  * @brief Callback for directory walker.
  * Parses file and updates stats.
  */
-static int
-    audit_file_callback(const char *path, void *user_data) {
+static int audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
   struct TokenList *tokens = NULL;
   struct AllocationSiteList sites = {0};

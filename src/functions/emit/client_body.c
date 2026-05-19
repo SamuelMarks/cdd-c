@@ -44,8 +44,7 @@
 /**
  * @brief Executes the verb to enum str operation.
  */
-static int
-    verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
+static int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
   switch (v) {
   case OA_VERB_GET: {
     *_out_val = "HTTP_GET";
@@ -93,8 +92,7 @@ static int
 /**
  * @brief Executes the method str to enum str operation.
  */
-static int
-    method_str_to_enum_str(const char *method, const char **_out_val) {
+static int method_str_to_enum_str(const char *method, const char **_out_val) {
   bool _ast_iequal_0 = false;
   bool _ast_iequal_1 = false;
   bool _ast_iequal_2 = false;
@@ -158,8 +156,7 @@ static int
 /**
  * @brief Executes the mapped err code operation.
  */
-static int
-    mapped_err_code(int status) {
+static int mapped_err_code(int status) {
   if (status == 400)
     return 22; /* EINVAL */
   if (status == 401 || status == 403)
@@ -172,10 +169,9 @@ static int
 /**
  * @brief Retrieves the media type.
  */
-static int
-    find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                    const char *name,
-                    const struct OpenAPI_MediaType **_out_val) {
+static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -196,9 +192,8 @@ static int
 /**
  * @brief Retrieves the encoding.
  */
-static int
-    find_encoding(const struct OpenAPI_MediaType *mt, const char *name,
-                  struct OpenAPI_Encoding **_out_val) {
+static int find_encoding(const struct OpenAPI_MediaType *mt, const char *name,
+                         struct OpenAPI_Encoding **_out_val) {
   size_t i;
   if (!mt || !name || !mt->encoding) {
     *_out_val = NULL;
@@ -221,8 +216,7 @@ static int
 /**
  * @brief Checks if primitive type.
  */
-static int
-    is_primitive_type(const char *type) {
+static int is_primitive_type(const char *type) {
   return strcmp(type, "string") == 0 || strcmp(type, "integer") == 0 ||
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
@@ -230,8 +224,7 @@ static int
 /**
  * @brief Checks if object ref type.
  */
-static int
-    is_object_ref_type(const char *type) {
+static int is_object_ref_type(const char *type) {
   if (is_primitive_type(type))
     return 0;
   if (strcmp(type, "object") == 0)
@@ -246,8 +239,7 @@ static int
 /**
  * @brief Executes the struct fields all primitive operation.
  */
-static int
-    struct_fields_all_primitive(const struct StructFields *sf) {
+static int struct_fields_all_primitive(const struct StructFields *sf) {
   size_t i;
   for (i = 0; i < sf->size; ++i) {
     const char *t = sf->fields[i].type;
@@ -260,8 +252,7 @@ static int
 /**
  * @brief Executes the schema has inline operation.
  */
-static int
-    schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
+static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
     return 0;
   return schema->inline_type != NULL;
@@ -270,8 +261,7 @@ static int
 /**
  * @brief Executes the media type base len operation.
  */
-static int
-    media_type_base_len(const char *media_type, size_t *_out_val) {
+static int media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;
   if (!media_type) {
     *_out_val = 0;
@@ -288,8 +278,7 @@ static int
 /**
  * @brief Executes the media type has prefix operation.
  */
-static int
-    media_type_has_prefix(const char *media_type, const char *prefix) {
+static int media_type_has_prefix(const char *media_type, const char *prefix) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
@@ -313,8 +302,7 @@ static int
 /**
  * @brief Executes the media type has suffix operation.
  */
-static int
-    media_type_has_suffix(const char *media_type, const char *suffix) {
+static int media_type_has_suffix(const char *media_type, const char *suffix) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
@@ -338,8 +326,7 @@ static int
 /**
  * @brief Executes the media type ieq operation.
  */
-static int
-    media_type_ieq(const char *media_type, const char *expected) {
+static int media_type_ieq(const char *media_type, const char *expected) {
   size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
@@ -363,8 +350,7 @@ static int
 /**
  * @brief Executes the media type is json operation.
  */
-static int
-    media_type_is_json(const char *media_type) {
+static int media_type_is_json(const char *media_type) {
   if (media_type_ieq(media_type, "application/json"))
     return 1;
   return media_type_has_suffix(media_type, "+json");
@@ -373,41 +359,36 @@ static int
 /**
  * @brief Executes the media type is form operation.
  */
-static int
-    media_type_is_form(const char *media_type) {
+static int media_type_is_form(const char *media_type) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
  * @brief Executes the media type is text plain operation.
  */
-static int
-    media_type_is_text_plain(const char *media_type) {
+static int media_type_is_text_plain(const char *media_type) {
   return media_type_ieq(media_type, "text/plain");
 }
 
 /**
  * @brief Executes the media type is multipart operation.
  */
-static int
-    media_type_is_multipart(const char *media_type) {
+static int media_type_is_multipart(const char *media_type) {
   return media_type_has_prefix(media_type, "multipart/");
 }
 
 /**
  * @brief Executes the media type is multipart form operation.
  */
-static int
-    media_type_is_multipart_form(const char *media_type) {
+static int media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
 /**
  * @brief Executes the first content type entry operation.
  */
-static int
-    first_content_type_entry(const char *content_type, char *buf, size_t buf_sz,
-                             const char **_out_val) {
+static int first_content_type_entry(const char *content_type, char *buf,
+                                    size_t buf_sz, const char **_out_val) {
   size_t i = 0;
   size_t j = 0;
   while (content_type[i] && isspace((unsigned char)content_type[i])) {
@@ -427,8 +408,7 @@ static int
 /**
  * @brief Executes the sanitize ident operation.
  */
-static void
-    sanitize_ident(char *out, size_t outsz, const char *in) {
+static void sanitize_ident(char *out, size_t outsz, const char *in) {
   size_t i = 0;
   size_t j = 0;
   out[0] = '\0';
@@ -450,9 +430,8 @@ static void
 /**
  * @brief Executes the multipart header param name operation.
  */
-static void
-    multipart_header_param_name(char *out, size_t outsz, const char *field,
-                                const char *header) {
+static void multipart_header_param_name(char *out, size_t outsz,
+                                        const char *field, const char *header) {
   char hdr_sanitized[128];
   out[0] = '\0';
   sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
@@ -462,8 +441,7 @@ static void
 /**
  * @brief Executes the header name is content type operation.
  */
-static int
-    header_name_is_content_type(const char *name) {
+static int header_name_is_content_type(const char *name) {
   bool _ast_iequal_10 = false;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
           _ast_iequal_10) != 0;
@@ -472,8 +450,7 @@ static int
 /**
  * @brief Executes the media type is textual operation.
  */
-static int
-    media_type_is_textual(const char *media_type) {
+static int media_type_is_textual(const char *media_type) {
   if (media_type_is_text_plain(media_type))
     return 1;
   if (media_type_has_prefix(media_type, "text/"))
@@ -488,8 +465,7 @@ static int
 /**
  * @brief Executes the media type is binary operation.
  */
-static int
-    media_type_is_binary(const char *media_type) {
+static int media_type_is_binary(const char *media_type) {
   if (media_type_is_json(media_type))
     return 0;
   if (media_type_is_form(media_type))
@@ -504,8 +480,7 @@ static int
 /**
  * @brief Executes the schema inline is string operation.
  */
-static int
-    schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
+static int schema_inline_is_string(const struct OpenAPI_SchemaRef *schema) {
   if (!schema || schema->is_array || !schema->inline_type)
     return 0;
   return strcmp(schema->inline_type, "string") == 0;
@@ -514,8 +489,7 @@ static int
 /**
  * @brief Executes the response is textual string operation.
  */
-static int
-    response_is_textual_string(const struct OpenAPI_Response *resp) {
+static int response_is_textual_string(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
     return 0;
   if (!media_type_is_textual(resp->content_type))
@@ -526,14 +500,12 @@ static int
 /**
  * @brief Executes the schema has payload operation.
  */
-static int
-    schema_has_payload(const struct OpenAPI_SchemaRef *schema);
+static int schema_has_payload(const struct OpenAPI_SchemaRef *schema);
 
 /**
  * @brief Executes the response is binary operation.
  */
-static int
-    response_is_binary(const struct OpenAPI_Response *resp) {
+static int response_is_binary(const struct OpenAPI_Response *resp) {
   if (!resp || !resp->content_type)
     return 0;
   if (!media_type_is_binary(resp->content_type))
@@ -544,8 +516,7 @@ static int
 /**
  * @brief Generates C code for write text plain success.
  */
-static int
-    write_text_plain_success(FILE *fp) {
+static int write_text_plain_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
   CHECK_IO(fprintf(fp, "        size_t body_len = res->body_len;\n"));
   CHECK_IO(fprintf(fp, "        char *tmp = (char *)malloc(body_len + 1);\n"));
@@ -562,8 +533,7 @@ static int
 /**
  * @brief Generates C code for write binary success.
  */
-static int
-    write_binary_success(FILE *fp) {
+static int write_binary_success(FILE *fp) {
   CHECK_IO(fprintf(fp, "      if (out && out_len) {\n"));
   CHECK_IO(fprintf(fp, "        if (!res->body || res->body_len == 0) {\n"));
   CHECK_IO(fprintf(fp, "          *out = NULL;\n"));
@@ -583,8 +553,7 @@ static int
 /**
  * @brief Executes the schema has payload operation.
  */
-static int
-    schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
+static int schema_has_payload(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
     return 0;
   if (schema->ref_name)
@@ -597,8 +566,8 @@ static int
 /**
  * @brief Generates C code for write inline json parse.
  */
-static int
-    write_inline_json_parse(FILE *fp, const struct OpenAPI_SchemaRef *schema) {
+static int write_inline_json_parse(FILE *fp,
+                                   const struct OpenAPI_SchemaRef *schema) {
   const char *type;
   if (!fp || !schema || !schema->inline_type)
     return EINVAL;
@@ -756,11 +725,11 @@ static int
 /**
  * @brief Generates C code for write joined form array.
  */
-static int
-    write_joined_form_array(FILE *fp, const char *field, const char *len_field,
-                            const char *items_type, char delim,
-                            const char *encode_fn, int add_encoded,
-                            int items_is_object) {
+static int write_joined_form_array(FILE *fp, const char *field,
+                                   const char *len_field,
+                                   const char *items_type, char delim,
+                                   const char *encode_fn, int add_encoded,
+                                   int items_is_object) {
   const int do_encode = (encode_fn && encode_fn[0] != '\0');
 
   if (!fp || !field || !len_field)
@@ -1004,8 +973,8 @@ static int
 /**
  * @brief Generates C code for write header param logic.
  */
-static int
-    write_header_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
+static int write_header_param_logic(FILE *fp,
+                                    const struct OpenAPI_Operation *op) {
   size_t i;
   for (i = 0; i < op->n_parameters; ++i) {
     if (op->parameters[i].in == OA_PARAM_IN_HEADER) {
@@ -1453,9 +1422,9 @@ static int
 /**
  * @brief Generates C code for write form urlencoded body.
  */
-static int
-    write_form_urlencoded_body(FILE *fp, const struct OpenAPI_Operation *op,
-                               const struct OpenAPI_Spec *spec) {
+static int write_form_urlencoded_body(FILE *fp,
+                                      const struct OpenAPI_Operation *op,
+                                      const struct OpenAPI_Spec *spec) {
   const struct OpenAPI_MediaType *_ast_find_media_type_3;
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_4;
   struct OpenAPI_Encoding *_ast_find_encoding_5;
@@ -1969,8 +1938,8 @@ static int
 /**
  * @brief Generates C code for write cookie param logic.
  */
-static int
-    write_cookie_param_logic(FILE *fp, const struct OpenAPI_Operation *op) {
+static int write_cookie_param_logic(FILE *fp,
+                                    const struct OpenAPI_Operation *op) {
   size_t i;
   int has_cookie = 0;
 
@@ -2570,8 +2539,8 @@ static int
 /**
  * @brief Generates C code for write multipart part headers.
  */
-static int
-    write_multipart_part_headers(FILE *fp, const struct OpenAPI_Encoding *enc) {
+static int write_multipart_part_headers(FILE *fp,
+                                        const struct OpenAPI_Encoding *enc) {
   size_t h;
   if (!fp || !enc || !enc->headers || enc->n_headers == 0 || !enc->name)
     return 0;
@@ -2805,9 +2774,8 @@ static int
 /**
  * @brief Generates C code for write multipart body.
  */
-static int
-    write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
-                         const struct OpenAPI_Spec *spec) {
+static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
+                                const struct OpenAPI_Spec *spec) {
   struct StructFields *_ast_openapi_spec_find_schema_for_ref_7;
   const struct OpenAPI_MediaType *_ast_find_media_type_8;
   struct OpenAPI_Encoding *_ast_find_encoding_9;
@@ -3105,8 +3073,7 @@ static int
 /**
  * @brief Checks if status range code.
  */
-static int
-    is_status_range_code(const char *code) {
+static int is_status_range_code(const char *code) {
   if (!code)
     return 0;
   return strlen(code) == 3 && code[0] >= '1' && code[0] <= '5' &&
@@ -3116,8 +3083,7 @@ static int
 /**
  * @brief Executes the status range prefix operation.
  */
-static int
-    status_range_prefix(const char *code) {
+static int status_range_prefix(const char *code) {
   if (!is_status_range_code(code))
     return 0;
   return code[0] - '0';
@@ -3126,8 +3092,7 @@ static int
 /**
  * @brief Checks if status code literal.
  */
-static int
-    is_status_code_literal(const char *code) {
+static int is_status_code_literal(const char *code) {
   if (!code || strlen(code) != 3)
     return 0;
   return code[0] >= '0' && code[0] <= '9' && code[1] >= '0' && code[1] <= '9' &&

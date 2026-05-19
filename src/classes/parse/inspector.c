@@ -74,9 +74,9 @@ void type_def_list_free(struct TypeDefList *list) {
 /**
  * @brief Adds or sets type def.
  */
-static int
-    add_type_def(struct TypeDefList *list, const enum TypeDefinitionKind kind,
-                 const char *name, void *details) {
+static int add_type_def(struct TypeDefList *list,
+                        const enum TypeDefinitionKind kind, const char *name,
+                        void *details) {
   struct TypeDefinition *item;
 
   if (list->size >= list->capacity) {
@@ -382,9 +382,8 @@ void func_sig_list_free(struct FuncSigList *list) {
 /**
  * @brief Extracts span text.
  */
-static int
-    extract_span_text(const struct TokenList *tokens, size_t start, size_t end,
-                      char **_out_val) {
+static int extract_span_text(const struct TokenList *tokens, size_t start,
+                             size_t end, char **_out_val) {
   size_t total_len = 0;
   size_t i;
   char *buf, *p;

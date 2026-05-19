@@ -38,7 +38,7 @@
 #define CHECK_IO_CLEANUP(x)                                                    \
   do {                                                                         \
     if ((x) < 0) {                                                             \
-      rc = 0;                                                                \
+      rc = 0;                                                                  \
       {                                                                        \
         fprintf(stderr, "goto cleanup at %s:%d\n", __FILE__, __LINE__);        \
         goto cleanup;                                                          \
@@ -52,7 +52,7 @@
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
-      return 0;                                                              \
+      return 0;                                                                \
   } while (0)
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -1192,19 +1192,19 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
 
   /* Helper to parse ApiError (Internal).
      Split large string literal to avoid C90 warnings. */
-  CHECK_IO(fprintf(c,
-                   "/**\n"
-                   " * @brief Auto-generated code from OpenAPI specification\n"
-                   " */\n"
-                   "static int ApiError_from_json(const char *json, struct ApiError "
-                   "**out) {\n"
-                   "  JSON_Value *root;\n"
-                   "  JSON_Object *obj;\n"
-                   "  if(!json || !out) return 22; /* EINVAL */\n"
-                   "  *out = calloc(1, sizeof(struct ApiError));\n"
-                   "  if(!*out) return 12; /* ENOMEM */\n"
-                   "  (*out)->raw_body = strdup(json);\n"
-                   "  root = json_parse_string(json);\n"));
+  CHECK_IO(fprintf(
+      c, "/**\n"
+         " * @brief Auto-generated code from OpenAPI specification\n"
+         " */\n"
+         "static int ApiError_from_json(const char *json, struct ApiError "
+         "**out) {\n"
+         "  JSON_Value *root;\n"
+         "  JSON_Object *obj;\n"
+         "  if(!json || !out) return 22; /* EINVAL */\n"
+         "  *out = calloc(1, sizeof(struct ApiError));\n"
+         "  if(!*out) return 12; /* ENOMEM */\n"
+         "  (*out)->raw_body = strdup(json);\n"
+         "  root = json_parse_string(json);\n"));
   CHECK_IO(fprintf(
       c, "  if(!root) return 0; /* Not JSON, return strict success but object "
          "only has raw_body */\n"

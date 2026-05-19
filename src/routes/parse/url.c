@@ -31,8 +31,7 @@
  *
  * Unreserved characters: ALPHA, DIGIT, "-", ".", "_", "~".
  */
-static int
-    is_unreserved(unsigned char c) {
+static int is_unreserved(unsigned char c) {
   if (isalnum(c))
     return 1;
   if (c == '-' || c == '.' || c == '_' || c == '~')
@@ -43,8 +42,7 @@ static int
 /**
  * @brief Check if a character is reserved per RFC 3986 Section 2.2.
  */
-static int
-    is_reserved(unsigned char c) {
+static int is_reserved(unsigned char c) {
   switch (c) {
   case ':':
   case '/':
@@ -73,16 +71,12 @@ static int
 /**
  * @brief Checks if hex.
  */
-static int
-    is_hex(unsigned char c) {
-  return isxdigit(c) ? 1 : 0;
-}
+static int is_hex(unsigned char c) { return isxdigit(c) ? 1 : 0; }
 
 /**
  * @brief Checks if pct encoded.
  */
-static int
-    is_pct_encoded(const char *p) {
+static int is_pct_encoded(const char *p) {
   if (!p)
     return 0;
   return (p[0] == '%' && is_hex((unsigned char)p[1]) &&
@@ -92,8 +86,7 @@ static int
 /**
  * @brief Convert a nibble to hexagonal character.
  */
-static int
-    to_hex(char code, char *_out_val) {
+static int to_hex(char code, char *_out_val) {
   static const char hex[] = "0123456789ABCDEF";
   {
     *_out_val = hex[code & 15];
@@ -104,8 +97,7 @@ static int
 /**
  * @brief Checks if unreserved form.
  */
-static int
-    is_unreserved_form(unsigned char c) {
+static int is_unreserved_form(unsigned char c) {
   if (isalnum(c))
     return 1;
   if (c == '-' || c == '.' || c == '_' || c == '*')
@@ -679,8 +671,7 @@ int url_query_build_form(const struct UrlQueryParams *qp, char **out_str) {
 /**
  * @brief Executes the append str operation.
  */
-static int
-    append_str(char **buf, size_t *len, size_t *cap, const char *s) {
+static int append_str(char **buf, size_t *len, size_t *cap, const char *s) {
   size_t slen;
   size_t need;
   char *tmp;
@@ -711,9 +702,8 @@ static int
 /**
  * @brief Executes the kv value to string operation.
  */
-static int
-    kv_value_to_string(const struct OpenAPI_KV *kv, char *buf, size_t buf_len,
-                       const char **_out_val) {
+static int kv_value_to_string(const struct OpenAPI_KV *kv, char *buf,
+                              size_t buf_len, const char **_out_val) {
   if (!kv) {
     *_out_val = NULL;
     return 0;

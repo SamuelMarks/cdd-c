@@ -58,8 +58,7 @@ struct PlainTextKeyBlob {
  * @brief Helper to acquire a cryptographic provider context.
  * Uses MS_ENH_RSA_AES_PROV for SHA-256 support.
  */
-static int
-    acquire_context(HCRYPTPROV *hProv) {
+static int acquire_context(HCRYPTPROV *hProv) {
   if (!CryptAcquireContext(hProv, NULL, MS_ENH_RSA_AES_PROV, PROV_RSA_AES,
                            CRYPT_VERIFYCONTEXT)) {
     /* If failed, try creating new keyset (rarely needed for VERIFYCONTEXT but

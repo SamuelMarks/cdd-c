@@ -214,15 +214,16 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
                            const JSON_Value *schema_val, char **out_name);
 
 #include "parson.h"
-extern C_CDD_EXPORT int parse_type_union_array_code2schema(const JSON_Array *arr,
-                                              char ***out_union,
-                                              size_t *out_count,
-                                              const char **out_primary,
-                                              int *out_nullable);
+extern C_CDD_EXPORT int
+parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
+                                   size_t *out_count, const char **out_primary,
+                                   int *out_nullable);
 
 extern C_CDD_EXPORT void free_string_array_code2schema(char **arr, size_t n);
-extern C_CDD_EXPORT int copy_string_array_code2schema(char ***dst, size_t *dst_count,
-                                         char **src, size_t src_count);
+extern C_CDD_EXPORT int copy_string_array_code2schema(char ***dst,
+                                                      size_t *dst_count,
+                                                      char **src,
+                                                      size_t src_count);
 
 #ifdef __cplusplus
 }

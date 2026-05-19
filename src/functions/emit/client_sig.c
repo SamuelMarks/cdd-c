@@ -33,8 +33,7 @@
 /**
  * @brief Executes the map type to c arg operation.
  */
-static int
-    map_type_to_c_arg(const char *oa_type, const char **_out_val) {
+static int map_type_to_c_arg(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
     return 0;
@@ -64,8 +63,7 @@ static int
 /**
  * @brief Checks if primitive type.
  */
-static int
-    is_primitive_type(const char *oa_type) {
+static int is_primitive_type(const char *oa_type) {
   if (!oa_type)
     return 0;
   return strcmp(oa_type, "integer") == 0 || strcmp(oa_type, "string") == 0 ||
@@ -75,8 +73,7 @@ static int
 /**
  * @brief Executes the param is object kv operation.
  */
-static int
-    param_is_object_kv(const struct OpenAPI_Parameter *p) {
+static int param_is_object_kv(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->is_array)
@@ -92,8 +89,7 @@ static int
 /**
  * @brief Executes the media type base len operation.
  */
-static int
-    media_type_base_len(const char *media_type, size_t *_out_val) {
+static int media_type_base_len(const char *media_type, size_t *_out_val) {
   size_t i = 0;
   if (!media_type) {
     *_out_val = 0;
@@ -110,8 +106,7 @@ static int
 /**
  * @brief Executes the media type has prefix operation.
  */
-static int
-    media_type_has_prefix(const char *media_type, const char *prefix) {
+static int media_type_has_prefix(const char *media_type, const char *prefix) {
   size_t _ast_media_type_base_len_0 = 0;
   size_t i;
   size_t len;
@@ -139,8 +134,7 @@ static int
 /**
  * @brief Executes the media type has suffix operation.
  */
-static int
-    media_type_has_suffix(const char *media_type, const char *suffix) {
+static int media_type_has_suffix(const char *media_type, const char *suffix) {
   size_t _ast_media_type_base_len_1 = 0;
   size_t i;
   size_t len;
@@ -170,8 +164,7 @@ static int
 /**
  * @brief Executes the media type ieq operation.
  */
-static int
-    media_type_ieq(const char *media_type, const char *expected) {
+static int media_type_ieq(const char *media_type, const char *expected) {
   size_t _ast_media_type_base_len_2 = 0;
   size_t i;
   size_t len;
@@ -199,8 +192,7 @@ static int
 /**
  * @brief Executes the media type is json operation.
  */
-static int
-    media_type_is_json(const char *media_type) {
+static int media_type_is_json(const char *media_type) {
   if (!media_type)
     return 0;
   if (media_type_ieq(media_type, "application/json"))
@@ -211,42 +203,37 @@ static int
 /**
  * @brief Executes the media type is form operation.
  */
-static int
-    media_type_is_form(const char *media_type) {
+static int media_type_is_form(const char *media_type) {
   return media_type_ieq(media_type, "application/x-www-form-urlencoded");
 }
 
 /**
  * @brief Executes the media type is text plain operation.
  */
-static int
-    media_type_is_text_plain(const char *media_type) {
+static int media_type_is_text_plain(const char *media_type) {
   return media_type_ieq(media_type, "text/plain");
 }
 
 /**
  * @brief Executes the media type is multipart operation.
  */
-static int
-    media_type_is_multipart(const char *media_type) {
+static int media_type_is_multipart(const char *media_type) {
   return media_type_has_prefix(media_type, "multipart/");
 }
 
 /**
  * @brief Executes the media type is multipart form operation.
  */
-static int
-    media_type_is_multipart_form(const char *media_type) {
+static int media_type_is_multipart_form(const char *media_type) {
   return media_type_ieq(media_type, "multipart/form-data");
 }
 
 /**
  * @brief Retrieves the media type.
  */
-static int
-    find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
-                    const char *name,
-                    const struct OpenAPI_MediaType **_out_val) {
+static int find_media_type(const struct OpenAPI_MediaType *mts, size_t n,
+                           const char *name,
+                           const struct OpenAPI_MediaType **_out_val) {
   size_t i;
   if (!mts || !name) {
     *_out_val = NULL;
@@ -267,8 +254,7 @@ static int
 /**
  * @brief Executes the media type is textual operation.
  */
-static int
-    media_type_is_textual(const char *media_type) {
+static int media_type_is_textual(const char *media_type) {
   if (!media_type)
     return 0;
   if (media_type_is_text_plain(media_type))
@@ -285,8 +271,7 @@ static int
 /**
  * @brief Executes the media type is binary operation.
  */
-static int
-    media_type_is_binary(const char *media_type) {
+static int media_type_is_binary(const char *media_type) {
   if (!media_type)
     return 0;
   if (media_type_is_json(media_type))
@@ -303,8 +288,7 @@ static int
 /**
  * @brief Executes the querystring param is form object operation.
  */
-static int
-    querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
+static int querystring_param_is_form_object(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->in != OA_PARAM_IN_QUERYSTRING)
@@ -323,8 +307,7 @@ static int
 /**
  * @brief Executes the querystring param is json ref operation.
  */
-static int
-    querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
+static int querystring_param_is_json_ref(const struct OpenAPI_Parameter *p) {
   if (!p)
     return 0;
   if (p->in != OA_PARAM_IN_QUERYSTRING)
@@ -340,8 +323,8 @@ static int
  * @brief Executes the querystring param json primitive type operation.
  */
 static int
-    querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
-                                          const char **_out_val) {
+querystring_param_json_primitive_type(const struct OpenAPI_Parameter *p,
+                                      const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -382,8 +365,8 @@ static int
  * @brief Executes the querystring param json array item type operation.
  */
 static int
-    querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
-                                           const char **_out_val) {
+querystring_param_json_array_item_type(const struct OpenAPI_Parameter *p,
+                                       const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -425,8 +408,8 @@ static int
  * @brief Executes the querystring param json array item ref operation.
  */
 static int
-    querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
-                                          const char **_out_val) {
+querystring_param_json_array_item_ref(const struct OpenAPI_Parameter *p,
+                                      const char **_out_val) {
   const char *item_type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -472,8 +455,8 @@ static int
  * @brief Executes the querystring param raw primitive type operation.
  */
 static int
-    querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
-                                         const char **_out_val) {
+querystring_param_raw_primitive_type(const struct OpenAPI_Parameter *p,
+                                     const char **_out_val) {
   const char *type = NULL;
   if (!p) {
     *_out_val = NULL;
@@ -517,8 +500,7 @@ static int
 /**
  * @brief Executes the map array item type operation.
  */
-static int
-    map_array_item_type(const char *oa_type, const char **_out_val) {
+static int map_array_item_type(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "const void *";
     return 0;
@@ -548,8 +530,7 @@ static int
 /**
  * @brief Executes the sanitize ident operation.
  */
-static void
-    sanitize_ident(char *out, size_t outsz, const char *in) {
+static void sanitize_ident(char *out, size_t outsz, const char *in) {
   size_t i = 0;
   size_t j = 0;
   if (!out || outsz == 0)
@@ -580,9 +561,8 @@ static void
 /**
  * @brief Executes the multipart header param name operation.
  */
-static void
-    multipart_header_param_name(char *out, size_t outsz, const char *field,
-                                const char *header) {
+static void multipart_header_param_name(char *out, size_t outsz,
+                                        const char *field, const char *header) {
   char hdr_sanitized[128];
   if (!out || outsz == 0) {
     return;
@@ -597,8 +577,7 @@ static void
 /**
  * @brief Executes the header name is content type operation.
  */
-static int
-    header_name_is_content_type(const char *name) {
+static int header_name_is_content_type(const char *name) {
   bool _ast_iequal_0 = false;
   if (!name)
     return 0;
@@ -609,8 +588,7 @@ static int
 /**
  * @brief Executes the map type to c out operation.
  */
-static int
-    map_type_to_c_out(const char *oa_type, const char **_out_val) {
+static int map_type_to_c_out(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void *";
     return 0;
@@ -640,8 +618,7 @@ static int
 /**
  * @brief Executes the map array item type out operation.
  */
-static int
-    map_array_item_type_out(const char *oa_type, const char **_out_val) {
+static int map_array_item_type_out(const char *oa_type, const char **_out_val) {
   if (!oa_type) {
     *_out_val = "void **";
     return 0;
@@ -671,8 +648,7 @@ static int
 /**
  * @brief Executes the schema has inline operation.
  */
-static int
-    schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
+static int schema_has_inline(const struct OpenAPI_SchemaRef *schema) {
   if (!schema)
     return 0;
   if (schema->inline_type)
@@ -685,9 +661,8 @@ static int
 /**
  * @brief Retrieves the success response.
  */
-static int
-    get_success_response(const struct OpenAPI_Operation *op,
-                         const struct OpenAPI_Response **_out_val) {
+static int get_success_response(const struct OpenAPI_Operation *op,
+                                const struct OpenAPI_Response **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
   if (!op) {
@@ -721,8 +696,7 @@ static int
 /**
  * @brief Executes the response is binary success operation.
  */
-static int
-    response_is_binary_success(const struct OpenAPI_Operation *op) {
+static int response_is_binary_success(const struct OpenAPI_Operation *op) {
   const struct OpenAPI_Response *_ast_get_success_response_3;
   const struct OpenAPI_Response *resp =
       (get_success_response(op, &_ast_get_success_response_3),
@@ -737,9 +711,8 @@ static int
 /**
  * @brief Retrieves the success schema.
  */
-static int
-    get_success_schema(const struct OpenAPI_Operation *op,
-                       const struct OpenAPI_SchemaRef **_out_val) {
+static int get_success_schema(const struct OpenAPI_Operation *op,
+                              const struct OpenAPI_SchemaRef **_out_val) {
   const struct OpenAPI_Response *default_resp = NULL;
   size_t i;
   for (i = 0; i < op->n_responses; ++i) {

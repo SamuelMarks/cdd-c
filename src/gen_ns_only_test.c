@@ -41,8 +41,7 @@ void ApiError_cleanup(struct ApiError *err) {
 /**
  * @brief Auto-generated code from OpenAPI specification
  */
-static int
-    ApiError_from_json(const char *json, struct ApiError **out) {
+static int ApiError_from_json(const char *json, struct ApiError **out) {
   JSON_Value *root;
   JSON_Object *obj;
   if (!json || !out)
