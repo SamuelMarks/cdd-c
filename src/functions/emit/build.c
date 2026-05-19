@@ -41,10 +41,7 @@
  * @param[in] config Build configuration.
  * @return 0 on success, EIO/EINVAL on failure.
  */
-static /**
-        * @brief Generates cmake.
-        */
-    int
+static int
     generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
   size_t i;
 

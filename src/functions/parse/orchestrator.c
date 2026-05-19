@@ -88,10 +88,7 @@ struct DependencyGraph {
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
  */
-static /**
-        * @brief Retrieves the token slice.
-        */
-    int
+static int
     get_token_slice(const struct TokenList *src, size_t start, size_t end,
                     struct TokenList *dst) {
   if (start >= src->size || end > src->size || start > end)
@@ -103,10 +100,10 @@ static /**
 }
 
 /* Helper to find specific token type within range */
-static /**
-        * @brief Retrieves the token in range.
-        */
-    int
+/**
+ * @brief Retrieves the token in range.
+ */
+static int
     find_token_in_range(const struct TokenList *tokens, size_t start,
                         size_t end, enum TokenKind kind, size_t *_out_val) {
   size_t i;
@@ -123,10 +120,10 @@ static /**
 }
 
 /* Helper for token string comparison */
-static /**
-        * @brief Executes the token eq str operation.
-        */
-    int
+/**
+ * @brief Executes the token eq str operation.
+ */
+static int
     token_eq_str(const struct Token *tok, const char *s) {
   size_t len = strlen(s);
   return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
@@ -136,10 +133,7 @@ static /**
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  */
-static /**
-        * @brief Extracts func name.
-        */
-    int
+static int
     extract_func_name(const struct TokenList *tokens, size_t start,
                       size_t body_start, char **_out_val) {
   size_t _ast_find_token_in_range_0 = 0;
@@ -182,10 +176,7 @@ static /**
 /**
  * @brief Join tokens into a single string.
  */
-static /**
-        * @brief Executes the join tokens str operation.
-        */
-    int
+static int
     join_tokens_str(const struct TokenList *tokens, size_t start, size_t end,
                     char **_out_val) {
   char *_ast_strdup_0 = NULL;
@@ -218,10 +209,7 @@ static /**
 /**
  * @brief Analyze return type tokens to determine void/int/pointer status.
  */
-static /**
-        * @brief Executes the analyze signature tokens operation.
-        */
-    void
+static void
     analyze_signature_tokens(const struct TokenList *tokens, size_t start,
                              size_t body_start, int *is_ptr, int *is_void,
                              char **type_str) {
@@ -277,10 +265,10 @@ static /**
 
 /* --- Graph Management --- */
 
-static /**
-        * @brief Executes the graph add node operation.
-        */
-    int
+/**
+ * @brief Executes the graph add node operation.
+ */
+static int
     graph_add_node(struct DependencyGraph *g, size_t idx, const char *name) {
   char *_ast_strdup_1 = NULL;
   g->nodes[idx].node_idx = idx;
@@ -299,10 +287,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the graph add edge operation.
-        */
-    int
+/**
+ * @brief Executes the graph add edge operation.
+ */
+static int
     graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
                    size_t callee_idx) {
   struct FuncNode *callee = &g->nodes[callee_idx];
@@ -327,10 +315,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the graph free contents operation.
-        */
-    void
+/**
+ * @brief Executes the graph free contents operation.
+ */
+static void
     graph_free_contents(struct DependencyGraph *g) {
   size_t i;
   if (!g || !g->nodes)
@@ -347,10 +335,10 @@ static /**
 
 /* --- Propagation Logic --- */
 
-static /**
-        * @brief Executes the propagate refactor mark operation.
-        */
-    void
+/**
+ * @brief Executes the propagate refactor mark operation.
+ */
+static void
     propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
   struct FuncNode *node = &g->nodes[idx];
   size_t i;
@@ -753,10 +741,10 @@ struct FixWalkContext {
   int error_count;
 };
 
-static /**
-        * @brief Checks if c source.
-        */
-    int
+/**
+ * @brief Checks if c source.
+ */
+static int
     is_c_source(const char *path, int *out_is_src) {
   const char *dot;
   int diff;
@@ -771,10 +759,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the fix file callback operation.
-        */
-    int
+/**
+ * @brief Executes the fix file callback operation.
+ */
+static int
     fix_file_callback(const char *path, void *user_data) {
   struct FixWalkContext *ctx = (struct FixWalkContext *)user_data;
   char *content = NULL;

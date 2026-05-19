@@ -38,10 +38,10 @@ void ApiError_cleanup(struct ApiError *err) {
   free(err);
 }
 
-static /**
-        * @brief Auto-generated code from OpenAPI specification
-        */
-    int
+/**
+ * @brief Auto-generated code from OpenAPI specification
+ */
+static int
     ApiError_from_json(const char *json, struct ApiError **out) {
   JSON_Value *root;
   JSON_Object *obj;

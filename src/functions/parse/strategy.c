@@ -25,10 +25,7 @@ static const char *DEFAULT_ERROR_CODE = "ENOMEM";
 /**
  * @brief Find explicit token indices for range extractions.
  */
-static /**
-        * @brief Retrieves the next token idx.
-        */
-    int
+static int
     find_next_token_idx(const struct TokenList *tokens, size_t start,
                         enum TokenKind kind, size_t *_out_val) {
   size_t i;
@@ -44,10 +41,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the range to string operation.
-        */
-    int
+/**
+ * @brief Executes the range to string operation.
+ */
+static int
     range_to_string(const struct TokenList *tokens, size_t start, size_t end,
                     char **out_val) {
   size_t len = 0;

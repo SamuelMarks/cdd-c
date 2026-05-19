@@ -40,10 +40,10 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
   list->capacity = 0;
 }
 
-static /**
-        * @brief Executes the list add operation.
-        */
-    int
+/**
+ * @brief Executes the list add operation.
+ */
+static int
     list_add(struct MacroOverlayList *list, const struct CstNode *node,
              struct CstNodeList *expanded) {
   if (!list || !node)

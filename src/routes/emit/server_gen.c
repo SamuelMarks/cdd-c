@@ -91,10 +91,10 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include \"c_orm_db.h\"\n");
   fprintf(fp, "#include \"c_orm_api.h\"\n");
   fprintf(fp, "static c_orm_db_t *db_conn = NULL;\n");
-  fprintf(fp, "static /**\n"
+  fprintf(fp, "/**\n"
               " * @brief Auto-generated code from OpenAPI specification\n"
               " */\n"
-              "void init_db(void) {\n");
+              "static void init_db(void) {\n");
   fprintf(fp, "    /* Initialize your c-orm database connection here */\n");
   fprintf(
       fp,

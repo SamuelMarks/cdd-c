@@ -59,10 +59,7 @@
   } while (0)
 
 /* Write Header Guard Start */
-static /**
-        * @brief Executes the print header guard operation.
-        */
-    int
+static int
     print_header_guard(FILE *hfile, const char *basename) {
   CHECK_IO(fprintf(hfile, "#ifndef %s_H\n", basename));
   CHECK_IO(fprintf(hfile, "#define %s_H\n\n", basename));
@@ -70,19 +67,19 @@ static /**
 }
 
 /* Write Header Guard End */
-static /**
-        * @brief Executes the print header guard end operation.
-        */
-    int
+/**
+ * @brief Executes the print header guard end operation.
+ */
+static int
     print_header_guard_end(FILE *hfile, const char *basename) {
   CHECK_IO(fprintf(hfile, "#endif /* !%s_H */\n", basename));
   return 0;
 }
 
-static /**
-        * @brief Generates header.
-        */
-    int
+/**
+ * @brief Generates header.
+ */
+static int
     generate_header(const char *prefix, const char *basename,
                     JSON_Object *schemas_obj,
                     const struct CodegenConfig *config) {
@@ -212,10 +209,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Generates source.
-        */
-    int
+/**
+ * @brief Generates source.
+ */
+static int
     generate_source(const char *prefix, const char *basename,
                     JSON_Object *schemas_obj,
                     const struct CodegenConfig *config) {

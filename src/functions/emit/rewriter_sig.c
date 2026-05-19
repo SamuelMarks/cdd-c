@@ -49,10 +49,7 @@ struct ParsedSig {
 /**
  * @brief Initialize ParsedSig to NULLs.
  */
-static /**
-        * @brief Executes the parsed sig init operation.
-        */
-    void
+static void
     parsed_sig_init(struct ParsedSig *sig) {
   sig->attributes = NULL;
   sig->storage = NULL;
@@ -66,10 +63,7 @@ static /**
 /**
  * @brief Free ParsedSig resources.
  */
-static /**
-        * @brief Executes the parsed sig free operation.
-        */
-    void
+static void
     parsed_sig_free(struct ParsedSig *sig) {
   if (sig->attributes)
     free(sig->attributes);
@@ -88,10 +82,7 @@ static /**
 /**
  * @brief Join tokens into a string.
  */
-static /**
-        * @brief Executes the join tokens operation.
-        */
-    int
+static int
     join_tokens(const struct TokenList *tokens, size_t start, size_t end,
                 char **out) {
   size_t len = 0;
@@ -127,10 +118,7 @@ static /**
 /**
  * @brief Check if token is a storage class specifier.
  */
-static /**
-        * @brief Checks if storage specifier.
-        */
-    int
+static int
     is_storage_specifier(const struct Token *tok) {
   switch (tok->kind) {
   case TOKEN_KEYWORD_STATIC:
@@ -158,10 +146,7 @@ static /**
  * @param close Kind of closing token.
  * @return Index of the matching closing token, or tokens->size if not found.
  */
-static /**
-        * @brief Retrieves the balanced end.
-        */
-    int
+static int
     find_balanced_end(const struct TokenList *tokens, size_t start,
                       enum TokenKind open, enum TokenKind close,
                       size_t *_out_val) {
@@ -190,10 +175,7 @@ static /**
 /**
  * @brief Identify if return type is logically 'void' (no pointers).
  */
-static /**
-        * @brief Executes the check is void operation.
-        */
-    int
+static int
     check_is_void(const struct TokenList *tokens, size_t start, size_t end) {
   size_t i;
   int saw_void = 0;
@@ -221,10 +203,7 @@ static /**
 /**
  * @brief Convert 'void' args string to empty string, or detect if empty.
  */
-static /**
-        * @brief Executes the args represent void operation.
-        */
-    int
+static int
     args_represent_void(const char *args) {
   const char *p = args;
   while (*p && isspace((unsigned char)*p))
@@ -246,10 +225,7 @@ static /**
  * @brief Check if a range contains meaningful tokens (not just
  * whitespace/comments).
  */
-static /**
-        * @brief Checks if it has meaningful tokens.
-        */
-    int
+static int
     has_meaningful_tokens(const struct TokenList *tokens, size_t start,
                           size_t end) {
   size_t i;

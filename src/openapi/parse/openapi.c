@@ -22,126 +22,123 @@
 
 /* --- Helper Function Prototypes --- */
 
-static /**
-        * @brief Parses verb from the given input.
-        */
-    int
+static int
     parse_verb(const char *v, enum OpenAPI_Verb *_out_val);
-static /**
-        * @brief Checks if fixed operation method.
-        */
-    int
+/**
+ * @brief Checks if fixed operation method.
+ */
+static int
     is_fixed_operation_method(const char *method);
-static /**
-        * @brief Parses param in from the given input.
-        */
-    int
+/**
+ * @brief Parses param in from the given input.
+ */
+static int
     parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val);
-static /**
-        * @brief Parses param style from the given input.
-        */
-    int
+/**
+ * @brief Parses param style from the given input.
+ */
+static int
     parse_param_style(const char *s, enum OpenAPI_Style *_out_val);
-static /**
-        * @brief Executes the param type is primitive operation.
-        */
-    int
+/**
+ * @brief Executes the param type is primitive operation.
+ */
+static int
     param_type_is_primitive(const char *type);
-static /**
-        * @brief Executes the param type is object like operation.
-        */
-    int
+/**
+ * @brief Executes the param type is object like operation.
+ */
+static int
     param_type_is_object_like(const struct OpenAPI_Parameter *p);
-static /**
-        * @brief Executes the validate parameter style operation.
-        */
-    int
+/**
+ * @brief Executes the validate parameter style operation.
+ */
+static int
     validate_parameter_style(const struct OpenAPI_Parameter *p,
                              int has_content);
-static /**
-        * @brief Parses security type from the given input.
-        */
-    int
+/**
+ * @brief Parses security type from the given input.
+ */
+static int
     parse_security_type(const char *type, enum OpenAPI_SecurityType *_out_val);
-static /**
-        * @brief Parses security in from the given input.
-        */
-    int
+/**
+ * @brief Parses security in from the given input.
+ */
+static int
     parse_security_in(const char *in, enum OpenAPI_SecurityIn *_out_val);
-static /**
-        * @brief Parses oauth flow type from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth flow type from the given input.
+ */
+static int
     parse_oauth_flow_type(const char *flow,
                           enum OpenAPI_OAuthFlowType *_out_val);
-static /**
-        * @brief Parses xml node type from the given input.
-        */
-    int
+/**
+ * @brief Parses xml node type from the given input.
+ */
+static int
     parse_xml_node_type(const char *node_type,
                         enum OpenAPI_XmlNodeType *_out_val);
-static /**
-        * @brief Parses any value from the given input.
-        */
-    int
+/**
+ * @brief Parses any value from the given input.
+ */
+static int
     parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out);
-static /**
-        * @brief Frees the memory associated with any value.
-        */
-    void
+/**
+ * @brief Frees the memory associated with any value.
+ */
+static void
     free_any_value(struct OpenAPI_Any *val);
-static /**
-        * @brief Parses any field from the given input.
-        */
-    int
+/**
+ * @brief Parses any field from the given input.
+ */
+static int
     parse_any_field(const JSON_Object *obj, const char *key,
                     struct OpenAPI_Any *out, int *out_set);
-static /**
-        * @brief Parses any array from the given input.
-        */
-    int
+/**
+ * @brief Parses any array from the given input.
+ */
+static int
     parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **out,
                     size_t *out_count);
-static /**
-        * @brief Collects schema extras.
-        */
-    int
+/**
+ * @brief Collects schema extras.
+ */
+static int
     collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
                           size_t skip_count, char **out_json);
-static /**
-        * @brief Collects extensions.
-        */
-    int
+/**
+ * @brief Collects extensions.
+ */
+static int
     collect_extensions(const JSON_Object *obj, char **out_json);
-static /**
-        * @brief Executes the url has query or fragment operation.
-        */
-    int
+/**
+ * @brief Executes the url has query or fragment operation.
+ */
+static int
     url_has_query_or_fragment(const char *url);
-static /**
-        * @brief Executes the openapi version supported operation.
-        */
-    int
+/**
+ * @brief Executes the openapi version supported operation.
+ */
+static int
     openapi_version_supported(const char *version);
-static /**
-        * @brief Executes the example fields valid operation.
-        */
-    int
+/**
+ * @brief Executes the example fields valid operation.
+ */
+static int
     example_fields_valid(const struct OpenAPI_Example *ex);
-static /**
-        * @brief Executes the component key is valid operation.
-        */
-    int
+/**
+ * @brief Executes the component key is valid operation.
+ */
+static int
     component_key_is_valid(const char *name);
-static /**
-        * @brief Executes the validate component key map operation.
-        */
-    int
+/**
+ * @brief Executes the validate component key map operation.
+ */
+static int
     validate_component_key_map(const JSON_Object *obj);
-static /**
-        * @brief Parses schema type from the given input.
-        */
-    int
+/**
+ * @brief Parses schema type from the given input.
+ */
+static int
     parse_schema_type(const JSON_Object *schema, int *out_nullable,
                       char **_out_val);
 
@@ -157,17 +154,17 @@ struct ResolvedRefTarget {
   char *resolved_ref;
 };
 
-static /**
-        * @brief Executes the resolve ref target operation.
-        */
-    int
+/**
+ * @brief Executes the resolve ref target operation.
+ */
+static int
     resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
                        struct ResolvedRefTarget *_out_val);
 
-static /**
-        * @brief Executes the ref name from prefix operation.
-        */
-    int
+/**
+ * @brief Executes the ref name from prefix operation.
+ */
+static int
     ref_name_from_prefix(const struct OpenAPI_Spec *spec, const char *ref,
                          const char *prefix, char **_out_val);
 
@@ -235,484 +232,484 @@ struct SchemaConstraintTarget {
   /** @brief example_set */
   int *example_set;
 };
-static /**
-        * @brief Parses schema constraints from the given input.
-        */
-    int
+/**
+ * @brief Parses schema constraints from the given input.
+ */
+static int
     parse_schema_constraints(const JSON_Object *schema,
                              struct SchemaConstraintTarget *target);
-static /**
-        * @brief Parses string enum array from the given input.
-        */
-    int
+/**
+ * @brief Parses string enum array from the given input.
+ */
+static int
     parse_string_enum_array(const JSON_Array *arr, char ***out,
                             size_t *out_count);
-static /**
-        * @brief Frees the memory associated with string array.
-        */
-    void
+/**
+ * @brief Frees the memory associated with string array.
+ */
+static void
     free_string_array(char **arr, size_t n);
-static /**
-        * @brief Creates a deep copy of string array.
-        */
-    int
+/**
+ * @brief Creates a deep copy of string array.
+ */
+static int
     copy_string_array(char ***dst, size_t *dst_count, char **src,
                       size_t src_count);
-static /**
-        * @brief Executes the media type is json operation.
-        */
-    int
+/**
+ * @brief Executes the media type is json operation.
+ */
+static int
     media_type_is_json(const char *name);
-static /**
-        * @brief Parses example object from the given input.
-        */
-    int
+/**
+ * @brief Parses example object from the given input.
+ */
+static int
     parse_example_object(const JSON_Object *ex_obj, const char *name,
                          struct OpenAPI_Example *out,
                          const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses examples object from the given input.
-        */
-    int
+/**
+ * @brief Parses examples object from the given input.
+ */
+static int
     parse_examples_object(const JSON_Object *examples,
                           struct OpenAPI_Example **out, size_t *out_count,
                           const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses media examples from the given input.
-        */
-    int
+/**
+ * @brief Parses media examples from the given input.
+ */
+static int
     parse_media_examples(const JSON_Object *media_obj,
                          struct OpenAPI_Any *example, int *example_set,
                          struct OpenAPI_Example **examples, size_t *n_examples,
                          const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses oauth scopes from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth scopes from the given input.
+ */
+static int
     parse_oauth_scopes(const JSON_Object *scopes_obj,
                        struct OpenAPI_OAuthScope **out, size_t *out_count);
-static /**
-        * @brief Parses oauth flows from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth flows from the given input.
+ */
+static int
     parse_oauth_flows(const JSON_Object *flows_obj,
                       struct OpenAPI_SecurityScheme *out);
-static /**
-        * @brief Creates a deep copy of any value.
-        */
-    int
+/**
+ * @brief Creates a deep copy of any value.
+ */
+static int
     copy_any_value(struct OpenAPI_Any *dst, const struct OpenAPI_Any *src);
-static /**
-        * @brief Creates a deep copy of schema ref.
-        */
-    int
+/**
+ * @brief Creates a deep copy of schema ref.
+ */
+static int
     copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                     const struct OpenAPI_SchemaRef *src);
-static /**
-        * @brief Frees the memory associated with example.
-        */
-    void
+/**
+ * @brief Frees the memory associated with example.
+ */
+static void
     free_example(struct OpenAPI_Example *ex);
-static /**
-        * @brief Frees the memory associated with header.
-        */
-    void
+/**
+ * @brief Frees the memory associated with header.
+ */
+static void
     free_header(struct OpenAPI_Header *hdr);
-static /**
-        * @brief Frees the memory associated with link.
-        */
-    void
+/**
+ * @brief Frees the memory associated with link.
+ */
+static void
     free_link(struct OpenAPI_Link *link);
-static /**
-        * @brief Executes the json pointer unescape operation.
-        */
-    int
+/**
+ * @brief Executes the json pointer unescape operation.
+ */
+static int
     json_pointer_unescape(const char *in, char **_out_val);
-static /**
-        * @brief Parses info from the given input.
-        */
-    int
+/**
+ * @brief Parses info from the given input.
+ */
+static int
     parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses external docs from the given input.
-        */
-    int
+/**
+ * @brief Parses external docs from the given input.
+ */
+static int
     parse_external_docs(const JSON_Object *obj,
                         struct OpenAPI_ExternalDocs *out);
-static /**
-        * @brief Parses discriminator object from the given input.
-        */
-    int
+/**
+ * @brief Parses discriminator object from the given input.
+ */
+static int
     parse_discriminator_object(const JSON_Object *obj,
                                struct OpenAPI_Discriminator *out);
-static /**
-        * @brief Parses xml object from the given input.
-        */
-    int
+/**
+ * @brief Parses xml object from the given input.
+ */
+static int
     parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out);
-static /**
-        * @brief Parses tags from the given input.
-        */
-    int
+/**
+ * @brief Parses tags from the given input.
+ */
+static int
     parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses server object from the given input.
-        */
-    int
+/**
+ * @brief Parses server object from the given input.
+ */
+static int
     parse_server_object(const JSON_Object *srv_obj,
                         struct OpenAPI_Server *out_srv);
-static /**
-        * @brief Parses servers array from the given input.
-        */
-    int
+/**
+ * @brief Parses servers array from the given input.
+ */
+static int
     parse_servers_array(const JSON_Object *parent, const char *key,
                         struct OpenAPI_Server **out_servers, size_t *out_count);
-static /**
-        * @brief Parses security field from the given input.
-        */
-    int
+/**
+ * @brief Parses security field from the given input.
+ */
+static int
     parse_security_field(const JSON_Object *obj, const char *key,
                          struct OpenAPI_SecurityRequirementSet **out,
                          size_t *out_count, int *out_set);
-static /**
-        * @brief Parses schema ref from the given input.
-        */
-    int
+/**
+ * @brief Parses schema ref from the given input.
+ */
+static int
     parse_schema_ref(const JSON_Object *schema, struct OpenAPI_SchemaRef *out,
                      const struct OpenAPI_Spec *spec);
-static /**
-        * @brief Creates a deep copy of security requirement sets.
-        */
-    int
+/**
+ * @brief Creates a deep copy of security requirement sets.
+ */
+static int
     copy_security_requirement_sets(
         struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
         const struct OpenAPI_SecurityRequirementSet *src, size_t src_count);
-static /**
-        * @brief Creates a deep copy of callback fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of callback fields.
+ */
+static int
     copy_callback_fields(struct OpenAPI_Callback *dst,
                          const struct OpenAPI_Callback *src);
-static /**
-        * @brief Creates a deep copy of operation fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of operation fields.
+ */
+static int
     copy_operation_fields(struct OpenAPI_Operation *dst,
                           const struct OpenAPI_Operation *src);
-static /**
-        * @brief Creates a deep copy of path fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of path fields.
+ */
+static int
     copy_path_fields(struct OpenAPI_Path *dst, const struct OpenAPI_Path *src);
-static /**
-        * @brief Creates a deep copy of request body fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of request body fields.
+ */
+static int
     copy_request_body_fields(struct OpenAPI_RequestBody *dst,
                              const struct OpenAPI_RequestBody *src);
-static /**
-        * @brief Creates a deep copy of media type array.
-        */
-    int
+/**
+ * @brief Creates a deep copy of media type array.
+ */
+static int
     copy_media_type_array(struct OpenAPI_MediaType **dst, size_t *dst_count,
                           const struct OpenAPI_MediaType *src,
                           size_t src_count);
-static /**
-        * @brief Applies schema ref to param.
-        */
-    int
+/**
+ * @brief Applies schema ref to param.
+ */
+static int
     apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                               const struct OpenAPI_SchemaRef *schema_ref);
-static /**
-        * @brief Applies schema ref to header.
-        */
-    int
+/**
+ * @brief Applies schema ref to header.
+ */
+static int
     apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
                                const struct OpenAPI_SchemaRef *schema_ref);
-static /**
-        * @brief Parses header object from the given input.
-        */
-    int
+/**
+ * @brief Parses header object from the given input.
+ */
+static int
     parse_header_object(const JSON_Object *hdr_obj,
                         struct OpenAPI_Header *out_hdr,
                         const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Executes the header name is content type operation.
-        */
-    int
+/**
+ * @brief Executes the header name is content type operation.
+ */
+static int
     header_name_is_content_type(const char *name);
-static /**
-        * @brief Executes the header param is reserved operation.
-        */
-    int
+/**
+ * @brief Executes the header param is reserved operation.
+ */
+static int
     header_param_is_reserved(const struct OpenAPI_Parameter *param);
-static /**
-        * @brief Parses link object from the given input.
-        */
-    int
+/**
+ * @brief Parses link object from the given input.
+ */
+static int
     parse_link_object(const JSON_Object *link_obj,
                       struct OpenAPI_Link *out_link,
                       const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses headers object from the given input.
-        */
-    int
+/**
+ * @brief Parses headers object from the given input.
+ */
+static int
     parse_headers_object(const JSON_Object *headers,
                          struct OpenAPI_Header **out_headers, size_t *out_count,
                          const struct OpenAPI_Spec *spec, int resolve_refs,
                          int ignore_content_type);
-static /**
-        * @brief Parses parameter object from the given input.
-        */
-    int
+/**
+ * @brief Parses parameter object from the given input.
+ */
+static int
     parse_parameter_object(const JSON_Object *p_obj,
                            struct OpenAPI_Parameter *out_param,
                            const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses media type object from the given input.
-        */
-    int
+/**
+ * @brief Parses media type object from the given input.
+ */
+static int
     parse_media_type_object(const JSON_Object *media_obj,
                             struct OpenAPI_MediaType *out,
                             const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses content object from the given input.
-        */
-    int
+/**
+ * @brief Parses content object from the given input.
+ */
+static int
     parse_content_object(const JSON_Object *content,
                          struct OpenAPI_MediaType **out, size_t *out_count,
                          const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses encoding object from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding object from the given input.
+ */
+static int
     parse_encoding_object(const JSON_Object *enc_obj,
                           struct OpenAPI_Encoding *out,
                           const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses encoding map from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding map from the given input.
+ */
+static int
     parse_encoding_map(const JSON_Object *enc_obj,
                        struct OpenAPI_Encoding **out, size_t *out_count,
                        const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses encoding array from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding array from the given input.
+ */
+static int
     parse_encoding_array(const JSON_Array *enc_arr,
                          struct OpenAPI_Encoding **out, size_t *out_count,
                          const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Executes the param key equals operation.
-        */
-    int
+/**
+ * @brief Executes the param key equals operation.
+ */
+static int
     param_key_equals(const struct OpenAPI_Parameter *a,
                      const struct OpenAPI_Parameter *b);
-static /**
-        * @brief Parses parameters array from the given input.
-        */
-    int
+/**
+ * @brief Parses parameters array from the given input.
+ */
+static int
     parse_parameters_array(const JSON_Array *arr,
                            struct OpenAPI_Parameter **out_params,
                            size_t *out_count, const struct OpenAPI_Spec *spec);
-static /**
-        * @brief Parses request body object from the given input.
-        */
-    int
+/**
+ * @brief Parses request body object from the given input.
+ */
+static int
     parse_request_body_object(const JSON_Object *rb_obj,
                               struct OpenAPI_RequestBody *out_rb,
                               const struct OpenAPI_Spec *spec, int resolve_refs,
                               const char *op_id);
-static /**
-        * @brief Parses response object from the given input.
-        */
-    int
+/**
+ * @brief Parses response object from the given input.
+ */
+static int
     parse_response_object(const JSON_Object *resp_obj,
                           struct OpenAPI_Response *out_resp,
                           const struct OpenAPI_Spec *spec, int resolve_refs,
                           const char *op_id, const char *resp_code);
-static /**
-        * @brief Parses links object from the given input.
-        */
-    int
+/**
+ * @brief Parses links object from the given input.
+ */
+static int
     parse_links_object(const JSON_Object *links,
                        struct OpenAPI_Link **out_links, size_t *out_count,
                        const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Parses responses from the given input.
-        */
-    int
+/**
+ * @brief Parses responses from the given input.
+ */
+static int
     parse_responses(const JSON_Object *responses,
                     struct OpenAPI_Operation *out_op,
                     const struct OpenAPI_Spec *spec, const char *op_id);
-static /**
-        * @brief Parses operation from the given input.
-        */
-    int
+/**
+ * @brief Parses operation from the given input.
+ */
+static int
     parse_operation(const char *verb_str, const JSON_Object *op_obj,
                     struct OpenAPI_Operation *out_op,
                     const struct OpenAPI_Spec *spec, int is_additional,
                     const char *route_hint);
-static /**
-        * @brief Parses callback object from the given input.
-        */
-    int
+/**
+ * @brief Parses callback object from the given input.
+ */
+static int
     parse_callback_object(const JSON_Object *cb_obj,
                           struct OpenAPI_Callback *out_cb,
                           const struct OpenAPI_Spec *spec, int resolve_refs);
-static /**
-        * @brief Retrieves the component path item.
-        */
-    int
+/**
+ * @brief Retrieves the component path item.
+ */
+static int
     find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
                              struct OpenAPI_Path **_out_val);
-static /**
-        * @brief Parses callbacks object from the given input.
-        */
-    int
+/**
+ * @brief Parses callbacks object from the given input.
+ */
+static int
     parse_callbacks_object(const JSON_Object *callbacks,
                            struct OpenAPI_Callback **out_callbacks,
                            size_t *out_count, const struct OpenAPI_Spec *spec,
                            int resolve_refs);
-static /**
-        * @brief Parses servers from the given input.
-        */
-    int
+/**
+ * @brief Parses servers from the given input.
+ */
+static int
     parse_servers(const JSON_Object *root_obj, struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses security schemes from the given input.
-        */
-    int
+/**
+ * @brief Parses security schemes from the given input.
+ */
+static int
     parse_security_schemes(const JSON_Object *components,
                            struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component parameters from the given input.
-        */
-    int
+/**
+ * @brief Parses component parameters from the given input.
+ */
+static int
     parse_component_parameters(const JSON_Object *components,
                                struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component responses from the given input.
-        */
-    int
+/**
+ * @brief Parses component responses from the given input.
+ */
+static int
     parse_component_responses(const JSON_Object *components,
                               struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component headers from the given input.
-        */
-    int
+/**
+ * @brief Parses component headers from the given input.
+ */
+static int
     parse_component_headers(const JSON_Object *components,
                             struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component request bodies from the given input.
-        */
-    int
+/**
+ * @brief Parses component request bodies from the given input.
+ */
+static int
     parse_component_request_bodies(const JSON_Object *components,
                                    struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component media types from the given input.
-        */
-    int
+/**
+ * @brief Parses component media types from the given input.
+ */
+static int
     parse_component_media_types(const JSON_Object *components,
                                 struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component examples from the given input.
-        */
-    int
+/**
+ * @brief Parses component examples from the given input.
+ */
+static int
     parse_component_examples(const JSON_Object *components,
                              struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component path items from the given input.
-        */
-    int
+/**
+ * @brief Parses component path items from the given input.
+ */
+static int
     parse_component_path_items(const JSON_Object *components,
                                struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component links from the given input.
-        */
-    int
+/**
+ * @brief Parses component links from the given input.
+ */
+static int
     parse_component_links(const JSON_Object *components,
                           struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses component callbacks from the given input.
-        */
-    int
+/**
+ * @brief Parses component callbacks from the given input.
+ */
+static int
     parse_component_callbacks(const JSON_Object *components,
                               struct OpenAPI_Spec *out);
-static /**
-        * @brief Parses components from the given input.
-        */
-    int
+/**
+ * @brief Parses components from the given input.
+ */
+static int
     parse_components(const JSON_Object *components, struct OpenAPI_Spec *out);
-static /**
-        * @brief Executes the schema is string enum only operation.
-        */
-    int
+/**
+ * @brief Executes the schema is string enum only operation.
+ */
+static int
     schema_is_string_enum_only(const JSON_Object *schema_obj);
-static /**
-        * @brief Executes the schema is struct compatible operation.
-        */
-    int
+/**
+ * @brief Executes the schema is struct compatible operation.
+ */
+static int
     schema_is_struct_compatible(const JSON_Value *schema_val,
                                 const JSON_Object *schema_obj);
-static /**
-        * @brief Parses paths object from the given input.
-        */
-    int
+/**
+ * @brief Parses paths object from the given input.
+ */
+static int
     parse_paths_object(const JSON_Object *paths_obj,
                        struct OpenAPI_Path **out_paths, size_t *out_count,
                        const struct OpenAPI_Spec *spec,
                        int require_leading_slash, int resolve_refs);
-static /**
-        * @brief Executes the validate unique operation ids operation.
-        */
-    int
+/**
+ * @brief Executes the validate unique operation ids operation.
+ */
+static int
     validate_unique_operation_ids(const struct OpenAPI_Spec *spec);
-static /**
-        * @brief Collects callback operation ids from paths.
-        */
-    int
+/**
+ * @brief Collects callback operation ids from paths.
+ */
+static int
     collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
                                               size_t n_paths, char ***ids,
                                               size_t *count, size_t *cap);
-static /**
-        * @brief Collects callback operation ids from callbacks.
-        */
-    int
+/**
+ * @brief Collects callback operation ids from callbacks.
+ */
+static int
     collect_callback_operation_ids_from_callbacks(
         const struct OpenAPI_Callback *callbacks, size_t n_callbacks,
         char ***ids, size_t *count, size_t *cap);
-static /**
-        * @brief Executes the component callback is referenced operation.
-        */
-    int
+/**
+ * @brief Executes the component callback is referenced operation.
+ */
+static int
     component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                      const char *name);
-static /**
-        * @brief Executes the validate querystring usage in callbacks operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in callbacks operation.
+ */
+static int
     validate_querystring_usage_in_callbacks(
         const struct OpenAPI_Callback *callbacks, size_t n_callbacks);
-static /**
-        * @brief Executes the validate querystring usage in paths callbacks
-        * operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in paths callbacks
+ * operation.
+ */
+static int
     validate_querystring_usage_in_paths_callbacks(
         const struct OpenAPI_Path *paths, size_t n_paths);
-static /**
-        * @brief Executes the validate querystring usage in component callbacks
-        * operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in component callbacks
+ * operation.
+ */
+static int
     validate_querystring_usage_in_component_callbacks(
         const struct OpenAPI_Spec *spec);
-static /**
-        * @brief Parses additional operations from the given input.
-        */
-    int
+/**
+ * @brief Parses additional operations from the given input.
+ */
+static int
     parse_additional_operations(const JSON_Object *path_obj,
                                 struct OpenAPI_Path *path,
                                 const struct OpenAPI_Spec *spec);
@@ -796,10 +793,10 @@ void openapi_spec_init(struct OpenAPI_Spec *spec) {
   }
 }
 
-static /**
-        * @brief Frees the memory associated with schema ref content.
-        */
-    void
+/**
+ * @brief Frees the memory associated with schema ref content.
+ */
+static void
     free_schema_ref_content(struct OpenAPI_SchemaRef *ref) {
   if (!ref)
     return;
@@ -962,10 +959,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with encoding.
-        */
-    void
+/**
+ * @brief Frees the memory associated with encoding.
+ */
+static void
     free_encoding(struct OpenAPI_Encoding *enc) {
   size_t i;
   if (!enc)
@@ -1008,10 +1005,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with media type.
-        */
-    void
+/**
+ * @brief Frees the memory associated with media type.
+ */
+static void
     free_media_type(struct OpenAPI_MediaType *mt) {
   size_t e;
   if (!mt)
@@ -1057,10 +1054,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with parameter.
-        */
-    void
+/**
+ * @brief Frees the memory associated with parameter.
+ */
+static void
     free_parameter(struct OpenAPI_Parameter *param) {
   if (!param)
     return;
@@ -1103,10 +1100,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with header.
-        */
-    void
+/**
+ * @brief Frees the memory associated with header.
+ */
+static void
     free_header(struct OpenAPI_Header *hdr) {
   if (!hdr)
     return;
@@ -1149,10 +1146,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with response.
-        */
-    void
+/**
+ * @brief Frees the memory associated with response.
+ */
+static void
     free_response(struct OpenAPI_Response *resp) {
   size_t i;
   if (!resp)
@@ -1208,10 +1205,10 @@ static /**
   free_schema_ref_content(&resp->schema);
 }
 
-static /**
-        * @brief Frees the memory associated with request body.
-        */
-    void
+/**
+ * @brief Frees the memory associated with request body.
+ */
+static void
     free_request_body(struct OpenAPI_RequestBody *rb) {
   if (!rb)
     return;
@@ -1246,10 +1243,10 @@ static /**
   free_schema_ref_content(&rb->schema);
 }
 
-static /**
-        * @brief Frees the memory associated with any value.
-        */
-    void
+/**
+ * @brief Frees the memory associated with any value.
+ */
+static void
     free_any_value(struct OpenAPI_Any *val) {
   if (!val)
     return;
@@ -1263,10 +1260,10 @@ static /**
   val->json = NULL;
 }
 
-static /**
-        * @brief Frees the memory associated with link.
-        */
-    void
+/**
+ * @brief Frees the memory associated with link.
+ */
+static void
     free_link(struct OpenAPI_Link *link) {
   size_t i;
   if (!link)
@@ -1302,26 +1299,26 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with operation.
-        */
-    void
+/**
+ * @brief Frees the memory associated with operation.
+ */
+static void
     free_operation(struct OpenAPI_Operation *op);
-static /**
-        * @brief Frees the memory associated with path item.
-        */
-    void
+/**
+ * @brief Frees the memory associated with path item.
+ */
+static void
     free_path_item(struct OpenAPI_Path *p);
-static /**
-        * @brief Frees the memory associated with callback.
-        */
-    void
+/**
+ * @brief Frees the memory associated with callback.
+ */
+static void
     free_callback(struct OpenAPI_Callback *cb);
 
-static /**
-        * @brief Frees the memory associated with security requirement.
-        */
-    void
+/**
+ * @brief Frees the memory associated with security requirement.
+ */
+static void
     free_security_requirement(struct OpenAPI_SecurityRequirement *req) {
   size_t i;
   if (!req)
@@ -1337,10 +1334,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with security requirement set.
-        */
-    void
+/**
+ * @brief Frees the memory associated with security requirement set.
+ */
+static void
     free_security_requirement_set(struct OpenAPI_SecurityRequirementSet *set) {
   size_t i;
   if (!set)
@@ -1401,10 +1398,10 @@ void openapi_free_servers_array(struct OpenAPI_Server *servers,
   free(servers);
 }
 
-static /**
-        * @brief Frees the memory associated with path item.
-        */
-    void
+/**
+ * @brief Frees the memory associated with path item.
+ */
+static void
     free_path_item(struct OpenAPI_Path *p) {
   size_t i;
   if (!p)
@@ -1444,10 +1441,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with callback.
-        */
-    void
+/**
+ * @brief Frees the memory associated with callback.
+ */
+static void
     free_callback(struct OpenAPI_Callback *cb) {
   size_t i;
   if (!cb)
@@ -1470,10 +1467,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Frees the memory associated with operation.
-        */
-    void
+/**
+ * @brief Frees the memory associated with operation.
+ */
+static void
     free_operation(struct OpenAPI_Operation *op) {
   size_t i;
   if (!op)
@@ -1931,10 +1928,7 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
 
 /* --- Parsing Helpers --- */
 
-static /**
-        * @brief Parses verb from the given input.
-        */
-    int
+static int
     parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
   if (strcmp(v, "get") == 0) {
     *_out_val = OA_VERB_GET;
@@ -1978,10 +1972,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if fixed operation method.
-        */
-    int
+/**
+ * @brief Checks if fixed operation method.
+ */
+static int
     is_fixed_operation_method(const char *method) {
   bool _ast_iequal_0 = false;
   bool _ast_iequal_1 = false;
@@ -2007,10 +2001,10 @@ static /**
          (c_cdd_str_iequal(method, "query", &_ast_iequal_8), _ast_iequal_8);
 }
 
-static /**
-        * @brief Parses param in from the given input.
-        */
-    int
+/**
+ * @brief Parses param in from the given input.
+ */
+static int
     parse_param_in(const char *in, enum OpenAPI_ParamIn *_out_val) {
   if (strcmp(in, "path") == 0) {
     *_out_val = OA_PARAM_IN_PATH;
@@ -2046,10 +2040,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses param style from the given input.
-        */
-    int
+/**
+ * @brief Parses param style from the given input.
+ */
+static int
     parse_param_style(const char *s, enum OpenAPI_Style *_out_val) {
   if (!s) {
     *_out_val = OA_STYLE_UNKNOWN;
@@ -2093,10 +2087,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the param type is primitive operation.
-        */
-    int
+/**
+ * @brief Executes the param type is primitive operation.
+ */
+static int
     param_type_is_primitive(const char *type) {
   if (!type)
     return 0;
@@ -2104,10 +2098,10 @@ static /**
          strcmp(type, "number") == 0 || strcmp(type, "boolean") == 0;
 }
 
-static /**
-        * @brief Executes the param type is object like operation.
-        */
-    int
+/**
+ * @brief Executes the param type is object like operation.
+ */
+static int
     param_type_is_object_like(const struct OpenAPI_Parameter *p) {
   if (!p || !p->type)
     return 0;
@@ -2116,10 +2110,10 @@ static /**
   return !param_type_is_primitive(p->type);
 }
 
-static /**
-        * @brief Executes the validate parameter style operation.
-        */
-    int
+/**
+ * @brief Executes the validate parameter style operation.
+ */
+static int
     validate_parameter_style(const struct OpenAPI_Parameter *p,
                              const int has_content) {
   enum OpenAPI_Style style;
@@ -2166,10 +2160,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the component key is valid operation.
-        */
-    int
+/**
+ * @brief Executes the component key is valid operation.
+ */
+static int
     component_key_is_valid(const char *name) {
   size_t i;
   if (!name || !*name)
@@ -2182,10 +2176,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the validate component key map operation.
-        */
-    int
+/**
+ * @brief Executes the validate component key map operation.
+ */
+static int
     validate_component_key_map(const JSON_Object *obj) {
   size_t i, count;
   if (!obj)
@@ -2199,10 +2193,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the header name is content type operation.
-        */
-    int
+/**
+ * @brief Executes the header name is content type operation.
+ */
+static int
     header_name_is_content_type(const char *name) {
   bool _ast_iequal_9 = false;
   if (!name)
@@ -2211,10 +2205,10 @@ static /**
           _ast_iequal_9) != 0;
 }
 
-static /**
-        * @brief Executes the header param is reserved operation.
-        */
-    int
+/**
+ * @brief Executes the header param is reserved operation.
+ */
+static int
     header_param_is_reserved(const struct OpenAPI_Parameter *param) {
   bool _ast_iequal_10 = false;
   bool _ast_iequal_11 = false;
@@ -2229,10 +2223,10 @@ static /**
           _ast_iequal_12);
 }
 
-static /**
-        * @brief Parses security type from the given input.
-        */
-    int
+/**
+ * @brief Parses security type from the given input.
+ */
+static int
     parse_security_type(const char *type, enum OpenAPI_SecurityType *_out_val) {
   if (!type) {
     *_out_val = OA_SEC_UNKNOWN;
@@ -2264,10 +2258,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses security in from the given input.
-        */
-    int
+/**
+ * @brief Parses security in from the given input.
+ */
+static int
     parse_security_in(const char *in, enum OpenAPI_SecurityIn *_out_val) {
   if (!in) {
     *_out_val = OA_SEC_IN_UNKNOWN;
@@ -2291,10 +2285,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses oauth flow type from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth flow type from the given input.
+ */
+static int
     parse_oauth_flow_type(const char *flow,
                           enum OpenAPI_OAuthFlowType *_out_val) {
   if (!flow) {
@@ -2327,10 +2321,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses xml node type from the given input.
-        */
-    int
+/**
+ * @brief Parses xml node type from the given input.
+ */
+static int
     parse_xml_node_type(const char *node_type,
                         enum OpenAPI_XmlNodeType *_out_val) {
   if (!node_type) {
@@ -2363,10 +2357,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses any value from the given input.
-        */
-    int
+/**
+ * @brief Parses any value from the given input.
+ */
+static int
     parse_any_value(const JSON_Value *val, struct OpenAPI_Any *out) {
   char *_ast_strdup_13 = NULL;
   char *_ast_strdup_14 = NULL;
@@ -2417,10 +2411,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses any field from the given input.
-        */
-    int
+/**
+ * @brief Parses any field from the given input.
+ */
+static int
     parse_any_field(const JSON_Object *obj, const char *key,
                     struct OpenAPI_Any *out, int *out_set) {
   const JSON_Value *val;
@@ -2440,10 +2434,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses any array from the given input.
-        */
-    int
+/**
+ * @brief Parses any array from the given input.
+ */
+static int
     parse_any_array(const JSON_Array *arr, struct OpenAPI_Any **const out,
                     size_t *out_count) {
   size_t i, count;
@@ -2480,10 +2474,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the key in list operation.
-        */
-    int
+/**
+ * @brief Executes the key in list operation.
+ */
+static int
     key_in_list(const char *key, const char **list, size_t count) {
   size_t i;
   if (!key || !list)
@@ -2495,18 +2489,18 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Checks if extension key.
-        */
-    int
+/**
+ * @brief Checks if extension key.
+ */
+static int
     is_extension_key(const char *key) {
   return key && key[0] == 'x' && key[1] == '-';
 }
 
-static /**
-        * @brief Executes the clone json value operation.
-        */
-    int
+/**
+ * @brief Executes the clone json value operation.
+ */
+static int
     clone_json_value(const JSON_Value *val, JSON_Value **_out_val) {
   char *serialized;
   JSON_Value *copy;
@@ -2528,10 +2522,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Collects schema extras.
-        */
-    int
+/**
+ * @brief Collects schema extras.
+ */
+static int
     collect_schema_extras(const JSON_Object *obj, const char **skip_keys,
                           size_t skip_count, char **out_json) {
   JSON_Value *_ast_clone_json_value_0;
@@ -2589,10 +2583,10 @@ static /**
   return *out_json ? 0 : ENOMEM;
 }
 
-static /**
-        * @brief Collects extensions.
-        */
-    int
+/**
+ * @brief Collects extensions.
+ */
+static int
     collect_extensions(const JSON_Object *obj, char **out_json) {
   JSON_Value *_ast_clone_json_value_1;
   char *_ast_strdup_16 = NULL;
@@ -2648,20 +2642,20 @@ static /**
   return *out_json ? 0 : ENOMEM;
 }
 
-static /**
-        * @brief Executes the url has query or fragment operation.
-        */
-    int
+/**
+ * @brief Executes the url has query or fragment operation.
+ */
+static int
     url_has_query_or_fragment(const char *url) {
   if (!url)
     return 0;
   return (strchr(url, '?') != NULL || strchr(url, '#') != NULL);
 }
 
-static /**
-        * @brief Executes the openapi version supported operation.
-        */
-    int
+/**
+ * @brief Executes the openapi version supported operation.
+ */
+static int
     openapi_version_supported(const char *version) {
   if (!version || !*version)
     return 0;
@@ -2669,10 +2663,10 @@ static /**
           (version[2] == '0' || version[2] == '1' || version[2] == '2'));
 }
 
-static /**
-        * @brief Executes the example fields valid operation.
-        */
-    int
+/**
+ * @brief Executes the example fields valid operation.
+ */
+static int
     example_fields_valid(const struct OpenAPI_Example *ex) {
   if (!ex)
     return 1;
@@ -2685,10 +2679,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the object has example and examples operation.
-        */
-    int
+/**
+ * @brief Executes the object has example and examples operation.
+ */
+static int
     object_has_example_and_examples(const JSON_Object *obj) {
   if (!obj)
     return 0;
@@ -2699,10 +2693,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses schema type from the given input.
-        */
-    int
+/**
+ * @brief Parses schema type from the given input.
+ */
+static int
     parse_schema_type(const JSON_Object *schema, int *out_nullable,
                       char **_out_val) {
   const char *type;
@@ -2754,10 +2748,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses schema constraints from the given input.
-        */
-    int
+/**
+ * @brief Parses schema constraints from the given input.
+ */
+static int
     parse_schema_constraints(const JSON_Object *schema,
                              struct SchemaConstraintTarget *target) {
   char *_ast_strdup_17 = NULL;
@@ -2858,10 +2852,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses string enum array from the given input.
-        */
-    int
+/**
+ * @brief Parses string enum array from the given input.
+ */
+static int
     parse_string_enum_array(const JSON_Array *arr, char ***out,
                             size_t *out_count) {
   char *_ast_strdup_18 = NULL;
@@ -2907,10 +2901,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Frees the memory associated with string array.
-        */
-    void
+/**
+ * @brief Frees the memory associated with string array.
+ */
+static void
     free_string_array(char **arr, size_t n) {
   size_t i;
   if (!arr)
@@ -2922,10 +2916,10 @@ static /**
   free(arr);
 }
 
-static /**
-        * @brief Creates a deep copy of string array.
-        */
-    int
+/**
+ * @brief Creates a deep copy of string array.
+ */
+static int
     copy_string_array(char ***dst, size_t *dst_count, char **src,
                       size_t src_count) {
   char *_ast_strdup_19 = NULL;
@@ -2957,10 +2951,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of example fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of example fields.
+ */
+static int
     copy_example_fields(struct OpenAPI_Example *dst,
                         const struct OpenAPI_Example *src) {
   char *_ast_strdup_20 = NULL;
@@ -3038,10 +3032,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Frees the memory associated with example.
-        */
-    void
+/**
+ * @brief Frees the memory associated with example.
+ */
+static void
     free_example(struct OpenAPI_Example *ex) {
   if (!ex)
     return;
@@ -3065,10 +3059,10 @@ static /**
     free_any_value(&ex->value);
 }
 
-static /**
-        * @brief Retrieves the component example.
-        */
-    int
+/**
+ * @brief Retrieves the component example.
+ */
+static int
     find_component_example(const struct OpenAPI_Spec *spec, const char *ref,
                            struct OpenAPI_Example **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_2;
@@ -3123,10 +3117,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses example object from the given input.
-        */
-    int
+/**
+ * @brief Parses example object from the given input.
+ */
+static int
     parse_example_object(const JSON_Object *ex_obj, const char *name,
                          struct OpenAPI_Example *out,
                          const struct OpenAPI_Spec *spec,
@@ -3225,10 +3219,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses examples object from the given input.
-        */
-    int
+/**
+ * @brief Parses examples object from the given input.
+ */
+static int
     parse_examples_object(const JSON_Object *examples,
                           struct OpenAPI_Example **out, size_t *out_count,
                           const struct OpenAPI_Spec *spec,
@@ -3270,10 +3264,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses media examples from the given input.
-        */
-    int
+/**
+ * @brief Parses media examples from the given input.
+ */
+static int
     parse_media_examples(const JSON_Object *media_obj,
                          struct OpenAPI_Any *example, int *example_set,
                          struct OpenAPI_Example **examples, size_t *n_examples,
@@ -3294,10 +3288,10 @@ static /**
   return parse_any_field(media_obj, "example", example, example_set);
 }
 
-static /**
-        * @brief Parses oauth scopes from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth scopes from the given input.
+ */
+static int
     parse_oauth_scopes(const JSON_Object *scopes_obj,
                        struct OpenAPI_OAuthScope **out, size_t *out_count) {
   char *_ast_strdup_34 = NULL;
@@ -3335,10 +3329,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses oauth flows from the given input.
-        */
-    int
+/**
+ * @brief Parses oauth flows from the given input.
+ */
+static int
     parse_oauth_flows(const JSON_Object *flows_obj,
                       struct OpenAPI_SecurityScheme *out) {
   enum OpenAPI_OAuthFlowType _ast_parse_oauth_flow_type_6;
@@ -3444,10 +3438,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the json pointer unescape operation.
-        */
-    int
+/**
+ * @brief Executes the json pointer unescape operation.
+ */
+static int
     json_pointer_unescape(const char *in, char **_out_val) {
   size_t len, i, j;
   char *out;
@@ -3483,10 +3477,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the uri has scheme prefix operation.
-        */
-    int
+/**
+ * @brief Executes the uri has scheme prefix operation.
+ */
+static int
     uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
@@ -3501,10 +3495,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the uri base len operation.
-        */
-    int
+/**
+ * @brief Executes the uri base len operation.
+ */
+static int
     uri_base_len(const char *uri, size_t *_out_val) {
   if (!uri) {
     *_out_val = 0;
@@ -3516,10 +3510,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the uri scheme len operation.
-        */
-    int
+/**
+ * @brief Executes the uri scheme len operation.
+ */
+static int
     uri_scheme_len(const char *uri, size_t len, size_t *_out_val) {
   size_t i;
   if (!uri || len == 0) {
@@ -3540,10 +3534,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the dup substr operation.
-        */
-    int
+/**
+ * @brief Executes the dup substr operation.
+ */
+static int
     dup_substr(const char *src, size_t len, char **_out_val) {
   char *out;
   if (!src) {
@@ -3563,10 +3557,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the normalize path operation.
-        */
-    int
+/**
+ * @brief Executes the normalize path operation.
+ */
+static int
     normalize_path(const char *path, char **_out_val) {
   char *_ast_dup_substr_7 = NULL;
   char *_ast_strdup_40 = NULL;
@@ -3702,10 +3696,10 @@ cleanup:
   }
 }
 
-static /**
-        * @brief Executes the resolve uri reference operation.
-        */
-    int
+/**
+ * @brief Executes the resolve uri reference operation.
+ */
+static int
     resolve_uri_reference(const char *base_uri, const char *ref,
                           char **_out_val) {
   size_t _ast_uri_scheme_len_8 = 0;
@@ -3859,10 +3853,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the compute document uri operation.
-        */
-    int
+/**
+ * @brief Executes the compute document uri operation.
+ */
+static int
     compute_document_uri(const char *self_uri, const char *retrieval_uri,
                          char **_out_val) {
   char *_ast_resolve_uri_reference_14 = NULL;
@@ -3902,10 +3896,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the root has openapi fields operation.
-        */
-    int
+/**
+ * @brief Executes the root has openapi fields operation.
+ */
+static int
     root_has_openapi_fields(const JSON_Object *root_obj) {
   if (!root_obj)
     return 0;
@@ -3921,10 +3915,10 @@ static /**
          json_object_has_value(root_obj, "jsonSchemaDialect");
 }
 
-static /**
-        * @brief Executes the root is schema document operation.
-        */
-    int
+/**
+ * @brief Executes the root is schema document operation.
+ */
+static int
     root_is_schema_document(const JSON_Value *root,
                             const JSON_Object *root_obj) {
   JSON_Value_Type type;
@@ -3943,10 +3937,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the store schema root json operation.
-        */
-    int
+/**
+ * @brief Executes the store schema root json operation.
+ */
+static int
     store_schema_root_json(struct OpenAPI_Spec *spec, const JSON_Value *root) {
   char *_ast_strdup_49 = NULL;
   char *raw_json;
@@ -3965,10 +3959,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the resolve ref target operation.
-        */
-    int
+/**
+ * @brief Executes the resolve ref target operation.
+ */
+static int
     resolve_ref_target(const struct OpenAPI_Spec *spec, const char *ref,
                        struct ResolvedRefTarget *_out_val) {
   char *_ast_dup_substr_17 = NULL;
@@ -4133,10 +4127,10 @@ int openapi_doc_registry_add(struct OpenAPI_DocRegistry *registry,
   return 0;
 }
 
-static /**
-        * @brief Executes the ref base matches self operation.
-        */
-    int
+/**
+ * @brief Executes the ref base matches self operation.
+ */
+static int
     ref_base_matches_self(const struct OpenAPI_Spec *spec, const char *ref,
                           const char *hash) {
   size_t _ast_uri_base_len_21 = 0;
@@ -4217,10 +4211,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the ref name from prefix operation.
-        */
-    int
+/**
+ * @brief Executes the ref name from prefix operation.
+ */
+static int
     ref_name_from_prefix(const struct OpenAPI_Spec *spec, const char *ref,
                          const char *prefix, char **_out_val) {
   size_t prefix_len;
@@ -4274,10 +4268,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component parameter.
-        */
-    int
+/**
+ * @brief Retrieves the component parameter.
+ */
+static int
     find_component_parameter(const struct OpenAPI_Spec *spec, const char *ref,
                              struct OpenAPI_Parameter **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_22;
@@ -4318,10 +4312,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component response.
-        */
-    int
+/**
+ * @brief Retrieves the component response.
+ */
+static int
     find_component_response(const struct OpenAPI_Spec *spec, const char *ref,
                             struct OpenAPI_Response **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_24;
@@ -4362,10 +4356,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component header.
-        */
-    int
+/**
+ * @brief Retrieves the component header.
+ */
+static int
     find_component_header(const struct OpenAPI_Spec *spec, const char *ref,
                           struct OpenAPI_Header **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_26;
@@ -4406,10 +4400,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component request body.
-        */
-    int
+/**
+ * @brief Retrieves the component request body.
+ */
+static int
     find_component_request_body(const struct OpenAPI_Spec *spec,
                                 const char *ref,
                                 struct OpenAPI_RequestBody **_out_val) {
@@ -4451,10 +4445,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component media type.
-        */
-    int
+/**
+ * @brief Retrieves the component media type.
+ */
+static int
     find_component_media_type(const struct OpenAPI_Spec *spec, const char *ref,
                               struct OpenAPI_MediaType **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_30;
@@ -4509,10 +4503,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component link.
-        */
-    int
+/**
+ * @brief Retrieves the component link.
+ */
+static int
     find_component_link(const struct OpenAPI_Spec *spec, const char *ref,
                         struct OpenAPI_Link **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_33;
@@ -4553,10 +4547,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component callback.
-        */
-    int
+/**
+ * @brief Retrieves the component callback.
+ */
+static int
     find_component_callback(const struct OpenAPI_Spec *spec, const char *ref,
                             struct OpenAPI_Callback **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_35;
@@ -4597,10 +4591,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Retrieves the component path item.
-        */
-    int
+/**
+ * @brief Retrieves the component path item.
+ */
+static int
     find_component_path_item(const struct OpenAPI_Spec *spec, const char *ref,
                              struct OpenAPI_Path **_out_val) {
   struct ResolvedRefTarget _ast_resolve_ref_target_37;
@@ -4656,10 +4650,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Creates a deep copy of schema ref.
-        */
-    int
+/**
+ * @brief Creates a deep copy of schema ref.
+ */
+static int
     copy_schema_ref(struct OpenAPI_SchemaRef *dst,
                     const struct OpenAPI_SchemaRef *src) {
   char *_ast_strdup_50 = NULL;
@@ -5190,10 +5184,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of item schema as array.
-        */
-    int
+/**
+ * @brief Creates a deep copy of item schema as array.
+ */
+static int
     copy_item_schema_as_array(struct OpenAPI_SchemaRef *dst,
                               const struct OpenAPI_SchemaRef *item) {
   if (!dst || !item)
@@ -5213,10 +5207,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of any value.
-        */
-    int
+/**
+ * @brief Creates a deep copy of any value.
+ */
+static int
     copy_any_value(struct OpenAPI_Any *dst, const struct OpenAPI_Any *src) {
   char *_ast_strdup_81 = NULL;
   char *_ast_strdup_82 = NULL;
@@ -5237,10 +5231,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of server object.
-        */
-    int
+/**
+ * @brief Creates a deep copy of server object.
+ */
+static int
     copy_server_object(struct OpenAPI_Server *dst,
                        const struct OpenAPI_Server *src) {
   char *_ast_strdup_83 = NULL;
@@ -5334,10 +5328,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of link fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of link fields.
+ */
+static int
     copy_link_fields(struct OpenAPI_Link *dst, const struct OpenAPI_Link *src) {
   char *_ast_strdup_92 = NULL;
   char *_ast_strdup_93 = NULL;
@@ -5423,10 +5417,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of parameter fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of parameter fields.
+ */
+static int
     copy_parameter_fields(struct OpenAPI_Parameter *dst,
                           const struct OpenAPI_Parameter *src) {
   char *_ast_strdup_98 = NULL;
@@ -5527,10 +5521,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of header fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of header fields.
+ */
+static int
     copy_header_fields(struct OpenAPI_Header *dst,
                        const struct OpenAPI_Header *src) {
   char *_ast_strdup_104 = NULL;
@@ -5621,10 +5615,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of encoding fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of encoding fields.
+ */
+static int
     copy_encoding_fields(struct OpenAPI_Encoding *dst,
                          const struct OpenAPI_Encoding *src) {
   char *_ast_strdup_109 = NULL;
@@ -5716,10 +5710,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of media type fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of media type fields.
+ */
+static int
     copy_media_type_fields(struct OpenAPI_MediaType *dst,
                            const struct OpenAPI_MediaType *src) {
   char *_ast_strdup_112 = NULL;
@@ -5822,10 +5816,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of media type array.
-        */
-    int
+/**
+ * @brief Creates a deep copy of media type array.
+ */
+static int
     copy_media_type_array(struct OpenAPI_MediaType **dst, size_t *dst_count,
                           const struct OpenAPI_MediaType *src,
                           size_t src_count) {
@@ -5848,10 +5842,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of response fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of response fields.
+ */
+static int
     copy_response_fields(struct OpenAPI_Response *dst,
                          const struct OpenAPI_Response *src) {
   char *_ast_strdup_114 = NULL;
@@ -5972,10 +5966,10 @@ static /**
   return copy_schema_ref(&dst->schema, &src->schema);
 }
 
-static /**
-        * @brief Creates a deep copy of security requirement sets.
-        */
-    int
+/**
+ * @brief Creates a deep copy of security requirement sets.
+ */
+static int
     copy_security_requirement_sets(
         struct OpenAPI_SecurityRequirementSet **dst, size_t *dst_count,
         const struct OpenAPI_SecurityRequirementSet *src, size_t src_count) {
@@ -6041,10 +6035,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of callback fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of callback fields.
+ */
+static int
     copy_callback_fields(struct OpenAPI_Callback *dst,
                          const struct OpenAPI_Callback *src) {
   char *_ast_strdup_124 = NULL;
@@ -6100,10 +6094,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of operation fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of operation fields.
+ */
+static int
     copy_operation_fields(struct OpenAPI_Operation *dst,
                           const struct OpenAPI_Operation *src) {
   char *_ast_strdup_129 = NULL;
@@ -6294,10 +6288,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of path fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of path fields.
+ */
+static int
     copy_path_fields(struct OpenAPI_Path *dst, const struct OpenAPI_Path *src) {
   char *_ast_strdup_141 = NULL;
   char *_ast_strdup_142 = NULL;
@@ -6398,10 +6392,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses info from the given input.
-        */
-    int
+/**
+ * @brief Parses info from the given input.
+ */
+static int
     parse_info(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
   char *_ast_strdup_146 = NULL;
   char *_ast_strdup_147 = NULL;
@@ -6534,10 +6528,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses external docs from the given input.
-        */
-    int
+/**
+ * @brief Parses external docs from the given input.
+ */
+static int
     parse_external_docs(const JSON_Object *obj,
                         struct OpenAPI_ExternalDocs *out) {
   char *_ast_strdup_157 = NULL;
@@ -6569,10 +6563,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses discriminator object from the given input.
-        */
-    int
+/**
+ * @brief Parses discriminator object from the given input.
+ */
+static int
     parse_discriminator_object(const JSON_Object *obj,
                                struct OpenAPI_Discriminator *out) {
   char *_ast_strdup_159 = NULL;
@@ -6651,10 +6645,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses xml object from the given input.
-        */
-    int
+/**
+ * @brief Parses xml object from the given input.
+ */
+static int
     parse_xml_object(const JSON_Object *obj, struct OpenAPI_Xml *out) {
   enum OpenAPI_XmlNodeType _ast_parse_xml_node_type_40;
   char *_ast_strdup_163 = NULL;
@@ -6716,10 +6710,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses tags from the given input.
-        */
-    int
+/**
+ * @brief Parses tags from the given input.
+ */
+static int
     parse_tags(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
   char *_ast_strdup_166 = NULL;
   char *_ast_strdup_167 = NULL;
@@ -6805,10 +6799,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the tag index by name operation.
-        */
-    int
+/**
+ * @brief Executes the tag index by name operation.
+ */
+static int
     tag_index_by_name(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   if (!spec || !name)
@@ -6820,10 +6814,10 @@ static /**
   return -1;
 }
 
-static /**
-        * @brief Executes the detect tag cycle operation.
-        */
-    int
+/**
+ * @brief Executes the detect tag cycle operation.
+ */
+static int
     detect_tag_cycle(const struct OpenAPI_Spec *spec, size_t idx, int *state) {
   int parent_idx;
   const char *parent;
@@ -6846,10 +6840,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate tag parents operation.
-        */
-    int
+/**
+ * @brief Executes the validate tag parents operation.
+ */
+static int
     validate_tag_parents(const struct OpenAPI_Spec *spec) {
   size_t i;
   int *state;
@@ -6877,10 +6871,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the server variable defined operation.
-        */
-    int
+/**
+ * @brief Executes the server variable defined operation.
+ */
+static int
     server_variable_defined(const struct OpenAPI_Server *srv,
                             const char *name) {
   size_t i;
@@ -6893,10 +6887,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the server variable seen operation.
-        */
-    int
+/**
+ * @brief Executes the server variable seen operation.
+ */
+static int
     server_variable_seen(char **seen, size_t seen_count, const char *name) {
   size_t i;
   if (!seen || !name)
@@ -6908,10 +6902,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate server url variables operation.
-        */
-    int
+/**
+ * @brief Executes the validate server url variables operation.
+ */
+static int
     validate_server_url_variables(const struct OpenAPI_Server *srv) {
   const char *url;
   size_t i;
@@ -6983,10 +6977,10 @@ oom:
   return ENOMEM;
 }
 
-static /**
-        * @brief Parses server object from the given input.
-        */
-    int
+/**
+ * @brief Parses server object from the given input.
+ */
+static int
     parse_server_object(const JSON_Object *srv_obj,
                         struct OpenAPI_Server *out_srv) {
   char *_ast_strdup_171 = NULL;
@@ -7117,10 +7111,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses servers array from the given input.
-        */
-    int
+/**
+ * @brief Parses servers array from the given input.
+ */
+static int
     parse_servers_array(const JSON_Object *parent, const char *key,
                         struct OpenAPI_Server **out_servers,
                         size_t *out_count) {
@@ -7177,10 +7171,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses security requirements from the given input.
-        */
-    int
+/**
+ * @brief Parses security requirements from the given input.
+ */
+static int
     parse_security_requirements(const JSON_Array *arr,
                                 struct OpenAPI_SecurityRequirementSet **out,
                                 size_t *out_count) {
@@ -7299,10 +7293,10 @@ fail:
   return rc;
 }
 
-static /**
-        * @brief Parses security field from the given input.
-        */
-    int
+/**
+ * @brief Parses security field from the given input.
+ */
+static int
     parse_security_field(const JSON_Object *obj, const char *key,
                          struct OpenAPI_SecurityRequirementSet **out,
                          size_t *out_count, int *out_set) {
@@ -7326,10 +7320,10 @@ static /**
   return parse_security_requirements(arr, out, out_count);
 }
 
-static /**
-        * @brief Executes the schema is string enum only operation.
-        */
-    int
+/**
+ * @brief Executes the schema is string enum only operation.
+ */
+static int
     schema_is_string_enum_only(const JSON_Object *schema_obj) {
   const JSON_Array *enum_arr;
   size_t i, count;
@@ -7358,10 +7352,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the schema is struct compatible operation.
-        */
-    int
+/**
+ * @brief Executes the schema is struct compatible operation.
+ */
+static int
     schema_is_struct_compatible(const JSON_Value *schema_val,
                                 const JSON_Object *schema_obj) {
   const char *type;
@@ -7383,10 +7377,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the schema has composition operation.
-        */
-    int
+/**
+ * @brief Executes the schema has composition operation.
+ */
+static int
     schema_has_composition(const JSON_Object *schema_obj) {
   if (!schema_obj)
     return 0;
@@ -7467,10 +7461,10 @@ static const char *k_items_skip_keys[] = {"$ref",
                                           "readOnly",
                                           "writeOnly"};
 
-static /**
-        * @brief Parses schema array ref from the given input.
-        */
-    int
+/**
+ * @brief Parses schema array ref from the given input.
+ */
+static int
     parse_schema_array_ref(const JSON_Array *arr,
                            struct OpenAPI_SchemaRef **out, size_t *out_count,
                            const struct OpenAPI_Spec *spec) {
@@ -7505,10 +7499,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses schema ref ptr from the given input.
-        */
-    int
+/**
+ * @brief Parses schema ref ptr from the given input.
+ */
+static int
     parse_schema_ref_ptr(const JSON_Object *obj, struct OpenAPI_SchemaRef **out,
                          const struct OpenAPI_Spec *spec) {
   struct OpenAPI_SchemaRef *schema;
@@ -7528,10 +7522,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses schema ref from the given input.
-        */
-    int
+/**
+ * @brief Parses schema ref from the given input.
+ */
+static int
     parse_schema_ref(const JSON_Object *schema, struct OpenAPI_SchemaRef *out,
                      const struct OpenAPI_Spec *spec) {
   char *_ast_parse_schema_type_41 = NULL;
@@ -8116,10 +8110,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies schema ref to param.
-        */
-    int
+/**
+ * @brief Applies schema ref to param.
+ */
+static int
     apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
                               const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_192 = NULL;
@@ -8178,10 +8172,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies schema ref to header.
-        */
-    int
+/**
+ * @brief Applies schema ref to header.
+ */
+static int
     apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
                                const struct OpenAPI_SchemaRef *schema_ref) {
   char *_ast_strdup_197 = NULL;
@@ -8239,10 +8233,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the schema name in use operation.
-        */
-    int
+/**
+ * @brief Executes the schema name in use operation.
+ */
+static int
     schema_name_in_use(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   if (!spec || !name)
@@ -8260,10 +8254,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the sanitize component name operation.
-        */
-    int
+/**
+ * @brief Executes the sanitize component name operation.
+ */
+static int
     sanitize_component_name(const char *name, char **_out_val) {
   char *_ast_strdup_202 = NULL;
   char *_ast_strdup_203 = NULL;
@@ -8303,10 +8297,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the make unique schema name operation.
-        */
-    int
+/**
+ * @brief Executes the make unique schema name operation.
+ */
+static int
     make_unique_schema_name(const struct OpenAPI_Spec *spec, const char *base,
                             char **_out_val) {
   char *_ast_strdup_204 = NULL;
@@ -8339,10 +8333,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the schema type array includes operation.
-        */
-    int
+/**
+ * @brief Executes the schema type array includes operation.
+ */
+static int
     schema_type_array_includes(const JSON_Array *arr, const char *type) {
   size_t i, count;
   if (!arr || !type)
@@ -8356,10 +8350,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the schema object is object like operation.
-        */
-    int
+/**
+ * @brief Executes the schema object is object like operation.
+ */
+static int
     schema_object_is_object_like(const JSON_Object *schema_obj) {
   const char *type;
   const JSON_Array *type_arr;
@@ -8380,10 +8374,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the append defined schema operation.
-        */
-    int
+/**
+ * @brief Executes the append defined schema operation.
+ */
+static int
     append_defined_schema(struct OpenAPI_Spec *spec, char *schema_name,
                           struct StructFields *schema_fields) {
   size_t i;
@@ -8447,10 +8441,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the raw schema name exists operation.
-        */
-    int
+/**
+ * @brief Executes the raw schema name exists operation.
+ */
+static int
     raw_schema_name_exists(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   if (!spec || !name)
@@ -8463,10 +8457,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the append raw schema operation.
-        */
-    int
+/**
+ * @brief Executes the append raw schema operation.
+ */
+static int
     append_raw_schema(struct OpenAPI_Spec *spec, const char *name,
                       const JSON_Value *schema_val) {
   char *_ast_strdup_206 = NULL;
@@ -8524,10 +8518,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the register inline schema operation.
-        */
-    int
+/**
+ * @brief Executes the register inline schema operation.
+ */
+static int
     register_inline_schema(struct OpenAPI_Spec *spec, const char *base_name,
                            const JSON_Object *schema_obj,
                            const JSON_Value *schema_val, char **out_name) {
@@ -8589,10 +8583,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the assign schema ref name operation.
-        */
-    int
+/**
+ * @brief Executes the assign schema ref name operation.
+ */
+static int
     assign_schema_ref_name(struct OpenAPI_SchemaRef *schema_ref,
                            const char *name) {
   char *_ast_strdup_208 = NULL;
@@ -8608,10 +8602,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the build inline request name operation.
-        */
-    int
+/**
+ * @brief Executes the build inline request name operation.
+ */
+static int
     build_inline_request_name(const char *op_id, int is_item, char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
   const char *suffix = is_item ? "Request_Item" : "Request";
@@ -8632,10 +8626,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the build inline response name operation.
-        */
-    int
+/**
+ * @brief Executes the build inline response name operation.
+ */
+static int
     build_inline_response_name(const char *op_id, const char *code, int is_item,
                                char **_out_val) {
   const char *op = (op_id && *op_id) ? op_id : "unnamed";
@@ -8667,10 +8661,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the build inline param name operation.
-        */
-    int
+/**
+ * @brief Executes the build inline param name operation.
+ */
+static int
     build_inline_param_name(const char *param_name, char **_out_val) {
   const char *p = (param_name && *param_name) ? param_name : "param";
   size_t len = strlen("Inline_Querystring_") + strlen(p) + 1;
@@ -8690,19 +8684,19 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses servers from the given input.
-        */
-    int
+/**
+ * @brief Parses servers from the given input.
+ */
+static int
     parse_servers(const JSON_Object *root_obj, struct OpenAPI_Spec *out) {
   return parse_servers_array(root_obj, "servers", &out->servers,
                              &out->n_servers);
 }
 
-static /**
-        * @brief Parses security schemes from the given input.
-        */
-    int
+/**
+ * @brief Parses security schemes from the given input.
+ */
+static int
     parse_security_schemes(const JSON_Object *components,
                            struct OpenAPI_Spec *out) {
   enum OpenAPI_SecurityType _ast_parse_security_type_51;
@@ -8857,10 +8851,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses header object from the given input.
-        */
-    int
+/**
+ * @brief Parses header object from the given input.
+ */
+static int
     parse_header_object(const JSON_Object *hdr_obj,
                         struct OpenAPI_Header *out_hdr,
                         const struct OpenAPI_Spec *spec,
@@ -9139,10 +9133,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses link parameters from the given input.
-        */
-    int
+/**
+ * @brief Parses link parameters from the given input.
+ */
+static int
     parse_link_parameters(const JSON_Object *params_obj,
                           struct OpenAPI_LinkParam **out_params,
                           size_t *out_count) {
@@ -9183,10 +9177,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses link object from the given input.
-        */
-    int
+/**
+ * @brief Parses link object from the given input.
+ */
+static int
     parse_link_object(const JSON_Object *link_obj,
                       struct OpenAPI_Link *out_link,
                       const struct OpenAPI_Spec *spec, const int resolve_refs) {
@@ -9316,10 +9310,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses links object from the given input.
-        */
-    int
+/**
+ * @brief Parses links object from the given input.
+ */
+static int
     parse_links_object(const JSON_Object *links,
                        struct OpenAPI_Link **out_links, size_t *out_count,
                        const struct OpenAPI_Spec *spec,
@@ -9367,10 +9361,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses headers object from the given input.
-        */
-    int
+/**
+ * @brief Parses headers object from the given input.
+ */
+static int
     parse_headers_object(const JSON_Object *headers,
                          struct OpenAPI_Header **out_headers, size_t *out_count,
                          const struct OpenAPI_Spec *spec,
@@ -9432,10 +9426,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses encoding object from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding object from the given input.
+ */
+static int
     parse_encoding_object(const JSON_Object *enc_obj,
                           struct OpenAPI_Encoding *out,
                           const struct OpenAPI_Spec *spec,
@@ -9544,10 +9538,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses encoding map from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding map from the given input.
+ */
+static int
     parse_encoding_map(const JSON_Object *enc_obj,
                        struct OpenAPI_Encoding **out, size_t *out_count,
                        const struct OpenAPI_Spec *spec,
@@ -9597,10 +9591,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses encoding array from the given input.
-        */
-    int
+/**
+ * @brief Parses encoding array from the given input.
+ */
+static int
     parse_encoding_array(const JSON_Array *enc_arr,
                          struct OpenAPI_Encoding **out, size_t *out_count,
                          const struct OpenAPI_Spec *spec,
@@ -9644,10 +9638,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses parameter object from the given input.
-        */
-    int
+/**
+ * @brief Parses parameter object from the given input.
+ */
+static int
     parse_parameter_object(const JSON_Object *p_obj,
                            struct OpenAPI_Parameter *out_param,
                            const struct OpenAPI_Spec *spec,
@@ -10016,10 +10010,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses media type object from the given input.
-        */
-    int
+/**
+ * @brief Parses media type object from the given input.
+ */
+static int
     parse_media_type_object(const JSON_Object *media_obj,
                             struct OpenAPI_MediaType *out,
                             const struct OpenAPI_Spec *spec,
@@ -10151,10 +10145,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the media type base len operation.
-        */
-    int
+/**
+ * @brief Executes the media type base len operation.
+ */
+static int
     media_type_base_len(const char *name, size_t *_out_val) {
   size_t len = 0;
   if (!name) {
@@ -10169,10 +10163,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the media type base equal operation.
-        */
-    int
+/**
+ * @brief Executes the media type base equal operation.
+ */
+static int
     media_type_base_equal(const char *a, const char *b) {
   size_t _ast_media_type_base_len_64 = 0;
   size_t _ast_media_type_base_len_65 = 0;
@@ -10190,10 +10184,10 @@ static /**
 }
 
 #if 0
-static /**
+/**
  * @brief Retrieves the media type by name.
  */
-int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
+static int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
                         const char *name, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   if (!mts || !name)
@@ -10206,10 +10200,10 @@ int find_media_type_by_name(const struct OpenAPI_MediaType *mts, size_t n,
 }
 #endif
 
-static /**
-        * @brief Executes the media type is json operation.
-        */
-    int media_type_is_json(const char *name) {
+/**
+ * @brief Executes the media type is json operation.
+ */
+static int media_type_is_json(const char *name) {
   size_t _ast_media_type_base_len_66 = 0;
   size_t len;
   if (!name)
@@ -10224,10 +10218,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the media type specificity operation.
-        */
-    int
+/**
+ * @brief Executes the media type specificity operation.
+ */
+static int
     media_type_specificity(const char *name) {
   size_t _ast_media_type_base_len_67 = 0;
   const char *slash;
@@ -10254,10 +10248,10 @@ static /**
   return 2;   /* type/subtype */
 }
 
-static /**
-        * @brief Executes the media type preference rank operation.
-        */
-    int
+/**
+ * @brief Executes the media type preference rank operation.
+ */
+static int
     media_type_preference_rank(const char *name) {
   if (!name)
     return 0;
@@ -10271,10 +10265,10 @@ static /**
 }
 
 #if 0
-static /**
+/**
  * @brief Executes the select primary media type operation.
  */
-int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, struct OpenAPI_MediaType * *_out_val) {
+static int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, struct OpenAPI_MediaType * *_out_val) {
   size_t i;
   const struct OpenAPI_MediaType *best = NULL;
   int best_spec = -1;
@@ -10299,10 +10293,10 @@ int select_primary_media_type(const struct OpenAPI_MediaType *mts, size_t n, str
 }
 #endif
 
-static /**
-        * @brief Executes the select primary media type index operation.
-        */
-    int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
+/**
+ * @brief Executes the select primary media type index operation.
+ */
+static int select_primary_media_type_index(const struct OpenAPI_MediaType *mts,
                                         size_t n) {
   size_t i;
   int best_idx = -1;
@@ -10326,10 +10320,10 @@ static /**
   return best_idx;
 }
 
-static /**
-        * @brief Retrieves the media object by name.
-        */
-    int
+/**
+ * @brief Retrieves the media object by name.
+ */
+static int
     find_media_object_by_name(const JSON_Object *content,
                               const char *media_name, JSON_Object **_out_val) {
   size_t i, count;
@@ -10362,10 +10356,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses content object from the given input.
-        */
-    int
+/**
+ * @brief Parses content object from the given input.
+ */
+static int
     parse_content_object(const JSON_Object *content,
                          struct OpenAPI_MediaType **out, size_t *out_count,
                          const struct OpenAPI_Spec *spec,
@@ -10415,10 +10409,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the param key equals operation.
-        */
-    int
+/**
+ * @brief Executes the param key equals operation.
+ */
+static int
     param_key_equals(const struct OpenAPI_Parameter *a,
                      const struct OpenAPI_Parameter *b) {
   if (!a || !b || !a->name || !b->name)
@@ -10426,10 +10420,10 @@ static /**
   return (a->in == b->in) && (strcmp(a->name, b->name) == 0);
 }
 
-static /**
-        * @brief Parses parameters array from the given input.
-        */
-    int
+/**
+ * @brief Parses parameters array from the given input.
+ */
+static int
     parse_parameters_array(const JSON_Array *arr,
                            struct OpenAPI_Parameter **out_params,
                            size_t *out_count, const struct OpenAPI_Spec *spec) {
@@ -10493,10 +10487,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses request body object from the given input.
-        */
-    int
+/**
+ * @brief Parses request body object from the given input.
+ */
+static int
     parse_request_body_object(const JSON_Object *rb_obj,
                               struct OpenAPI_RequestBody *out_rb,
                               const struct OpenAPI_Spec *spec,
@@ -10739,10 +10733,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of request body fields.
-        */
-    int
+/**
+ * @brief Creates a deep copy of request body fields.
+ */
+static int
     copy_request_body_fields(struct OpenAPI_RequestBody *dst,
                              const struct OpenAPI_RequestBody *src) {
   char *_ast_strdup_248 = NULL;
@@ -10816,10 +10810,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses response object from the given input.
-        */
-    int
+/**
+ * @brief Parses response object from the given input.
+ */
+static int
     parse_response_object(const JSON_Object *resp_obj,
                           struct OpenAPI_Response *out_resp,
                           const struct OpenAPI_Spec *spec,
@@ -11095,10 +11089,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Checks if valid response code key.
-        */
-    int
+/**
+ * @brief Checks if valid response code key.
+ */
+static int
     is_valid_response_code_key(const char *code) {
   size_t i;
   if (!code || !*code)
@@ -11116,10 +11110,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Parses responses from the given input.
-        */
-    int
+/**
+ * @brief Parses responses from the given input.
+ */
+static int
     parse_responses(const JSON_Object *responses,
                     struct OpenAPI_Operation *out_op,
                     const struct OpenAPI_Spec *spec, const char *op_id) {
@@ -11178,10 +11172,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses callback object from the given input.
-        */
-    int
+/**
+ * @brief Parses callback object from the given input.
+ */
+static int
     parse_callback_object(const JSON_Object *cb_obj,
                           struct OpenAPI_Callback *out_cb,
                           const struct OpenAPI_Spec *spec,
@@ -11245,10 +11239,10 @@ static /**
                             resolve_refs);
 }
 
-static /**
-        * @brief Parses callbacks object from the given input.
-        */
-    int
+/**
+ * @brief Parses callbacks object from the given input.
+ */
+static int
     parse_callbacks_object(const JSON_Object *callbacks,
                            struct OpenAPI_Callback **out_callbacks,
                            size_t *out_count, const struct OpenAPI_Spec *spec,
@@ -11296,10 +11290,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses operation from the given input.
-        */
-    int
+/**
+ * @brief Parses operation from the given input.
+ */
+static int
     parse_operation(const char *verb_str, const JSON_Object *op_obj,
                     struct OpenAPI_Operation *out_op,
                     const struct OpenAPI_Spec *spec, const int is_additional,
@@ -11491,10 +11485,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component parameters from the given input.
-        */
-    int
+/**
+ * @brief Parses component parameters from the given input.
+ */
+static int
     parse_component_parameters(const JSON_Object *components,
                                struct OpenAPI_Spec *out) {
   char *_ast_strdup_270 = NULL;
@@ -11547,10 +11541,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component responses from the given input.
-        */
-    int
+/**
+ * @brief Parses component responses from the given input.
+ */
+static int
     parse_component_responses(const JSON_Object *components,
                               struct OpenAPI_Spec *out) {
   char *_ast_strdup_271 = NULL;
@@ -11603,10 +11597,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component headers from the given input.
-        */
-    int
+/**
+ * @brief Parses component headers from the given input.
+ */
+static int
     parse_component_headers(const JSON_Object *components,
                             struct OpenAPI_Spec *out) {
   char *_ast_strdup_272 = NULL;
@@ -11659,10 +11653,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component request bodies from the given input.
-        */
-    int
+/**
+ * @brief Parses component request bodies from the given input.
+ */
+static int
     parse_component_request_bodies(const JSON_Object *components,
                                    struct OpenAPI_Spec *out) {
   char *_ast_strdup_273 = NULL;
@@ -11715,10 +11709,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component media types from the given input.
-        */
-    int
+/**
+ * @brief Parses component media types from the given input.
+ */
+static int
     parse_component_media_types(const JSON_Object *components,
                                 struct OpenAPI_Spec *out) {
   char *_ast_strdup_274 = NULL;
@@ -11776,10 +11770,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component examples from the given input.
-        */
-    int
+/**
+ * @brief Parses component examples from the given input.
+ */
+static int
     parse_component_examples(const JSON_Object *components,
                              struct OpenAPI_Spec *out) {
   char *_ast_strdup_276 = NULL;
@@ -11832,10 +11826,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component links from the given input.
-        */
-    int
+/**
+ * @brief Parses component links from the given input.
+ */
+static int
     parse_component_links(const JSON_Object *components,
                           struct OpenAPI_Spec *out) {
   char *_ast_strdup_277 = NULL;
@@ -11886,10 +11880,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component callbacks from the given input.
-        */
-    int
+/**
+ * @brief Parses component callbacks from the given input.
+ */
+static int
     parse_component_callbacks(const JSON_Object *components,
                               struct OpenAPI_Spec *out) {
   char *_ast_strdup_278 = NULL;
@@ -11940,10 +11934,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses component path items from the given input.
-        */
-    int
+/**
+ * @brief Parses component path items from the given input.
+ */
+static int
     parse_component_path_items(const JSON_Object *components,
                                struct OpenAPI_Spec *out) {
   char *_ast_strdup_279 = NULL;
@@ -11987,10 +11981,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses components from the given input.
-        */
-    int
+/**
+ * @brief Parses components from the given input.
+ */
+static int
     parse_components(const JSON_Object *components, struct OpenAPI_Spec *out) {
   char *_ast_strdup_280 = NULL;
   char *_ast_strdup_281 = NULL;
@@ -12166,10 +12160,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses additional operations from the given input.
-        */
-    int
+/**
+ * @brief Parses additional operations from the given input.
+ */
+static int
     parse_additional_operations(const JSON_Object *path_obj,
                                 struct OpenAPI_Path *path,
                                 const struct OpenAPI_Spec *spec) {
@@ -12210,10 +12204,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Parses paths object from the given input.
-        */
-    int
+/**
+ * @brief Parses paths object from the given input.
+ */
+static int
     parse_paths_object(const JSON_Object *paths_obj,
                        struct OpenAPI_Path **out_paths, size_t *out_count,
                        const struct OpenAPI_Spec *spec,
@@ -12397,10 +12391,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the name in list operation.
-        */
-    int
+/**
+ * @brief Executes the name in list operation.
+ */
+static int
     name_in_list(const char *name, char **names, size_t count) {
   size_t i;
   if (!name || !names)
@@ -12412,10 +12406,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Frees the memory associated with name list.
-        */
-    void
+/**
+ * @brief Frees the memory associated with name list.
+ */
+static void
     free_name_list(char **names, size_t count) {
   size_t i;
   if (!names)
@@ -12425,10 +12419,10 @@ static /**
   free(names);
 }
 
-static /**
-        * @brief Collects path template names.
-        */
-    int
+/**
+ * @brief Collects path template names.
+ */
+static int
     collect_path_template_names(const char *route, char ***out_names,
                                 size_t *out_count) {
   size_t i;
@@ -12497,10 +12491,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Retrieves the path param.
-        */
-    int
+/**
+ * @brief Retrieves the path param.
+ */
+static int
     find_path_param(const struct OpenAPI_Parameter *params, size_t n,
                     const char *name, struct OpenAPI_Parameter **_out_val) {
   size_t i;
@@ -12524,10 +12518,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the validate path params list operation.
-        */
-    int
+/**
+ * @brief Executes the validate path params list operation.
+ */
+static int
     validate_path_params_list(const struct OpenAPI_Parameter *params,
                               size_t n_params, char **template_names,
                               size_t n_template_names) {
@@ -12546,10 +12540,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate path template for operation operation.
-        */
-    int
+/**
+ * @brief Executes the validate path template for operation operation.
+ */
+static int
     validate_path_template_for_operation(const struct OpenAPI_Path *path,
                                          const struct OpenAPI_Operation *op,
                                          char **template_names,
@@ -12583,10 +12577,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate path templates operation.
-        */
-    int
+/**
+ * @brief Executes the validate path templates operation.
+ */
+static int
     validate_path_templates(const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
   for (i = 0; i < n_paths; ++i) {
@@ -12646,10 +12640,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the normalize path template route operation.
-        */
-    int
+/**
+ * @brief Executes the normalize path template route operation.
+ */
+static int
     normalize_path_template_route(const char *route, char **_out_val) {
   size_t i = 0;
   size_t len = 0;
@@ -12707,10 +12701,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the validate path template collisions operation.
-        */
-    int
+/**
+ * @brief Executes the validate path template collisions operation.
+ */
+static int
     validate_path_template_collisions(const struct OpenAPI_Path *paths,
                                       size_t n_paths) {
   char *_ast_normalize_path_template_route_83 = NULL;
@@ -12753,10 +12747,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the scan querystring usage operation.
-        */
-    void
+/**
+ * @brief Executes the scan querystring usage operation.
+ */
+static void
     scan_querystring_usage(const struct OpenAPI_Parameter *params,
                            size_t n_params, size_t *qs_count, int *has_query) {
   size_t i;
@@ -12772,10 +12766,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the validate querystring usage operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage operation.
+ */
+static int
     validate_querystring_usage(const struct OpenAPI_Path *paths,
                                size_t n_paths) {
   size_t i;
@@ -12830,10 +12824,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate querystring usage in callbacks operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in callbacks operation.
+ */
+static int
     validate_querystring_usage_in_callbacks(
         const struct OpenAPI_Callback *callbacks, size_t n_callbacks) {
   size_t i;
@@ -12850,11 +12844,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate querystring usage in operations
-        * operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in operations
+ * operation.
+ */
+static int
     validate_querystring_usage_in_operations(
         const struct OpenAPI_Operation *ops, size_t n_ops) {
   size_t i;
@@ -12869,11 +12863,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate querystring usage in paths callbacks
-        * operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in paths callbacks
+ * operation.
+ */
+static int
     validate_querystring_usage_in_paths_callbacks(
         const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
@@ -12892,11 +12886,11 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate querystring usage in component callbacks
-        * operation.
-        */
-    int
+/**
+ * @brief Executes the validate querystring usage in component callbacks
+ * operation.
+ */
+static int
     validate_querystring_usage_in_component_callbacks(
         const struct OpenAPI_Spec *spec) {
   size_t i;
@@ -12913,10 +12907,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets unique operation id.
-        */
-    int
+/**
+ * @brief Adds or sets unique operation id.
+ */
+static int
     add_unique_operation_id(char ***ids, size_t *count, size_t *cap,
                             const char *op_id) {
   char *_ast_strdup_292 = NULL;
@@ -12943,10 +12937,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects operation ids.
-        */
-    int
+/**
+ * @brief Collects operation ids.
+ */
+static int
     collect_operation_ids(const struct OpenAPI_Path *paths, size_t n_paths,
                           char ***ids, size_t *count, size_t *cap) {
   size_t i, j = 0;
@@ -12972,10 +12966,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the path item ref matches component operation.
-        */
-    int
+/**
+ * @brief Executes the path item ref matches component operation.
+ */
+static int
     path_item_ref_matches_component(const struct OpenAPI_Spec *spec,
                                     const char *ref, const char *name) {
   char *_ast_ref_name_from_prefix_85 = NULL;
@@ -12999,10 +12993,10 @@ static /**
   return match;
 }
 
-static /**
-        * @brief Executes the component path item is referenced operation.
-        */
-    int
+/**
+ * @brief Executes the component path item is referenced operation.
+ */
+static int
     component_path_item_is_referenced(const struct OpenAPI_Spec *spec,
                                       const char *name) {
   size_t i;
@@ -13021,10 +13015,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the callback ref matches component operation.
-        */
-    int
+/**
+ * @brief Executes the callback ref matches component operation.
+ */
+static int
     callback_ref_matches_component(const struct OpenAPI_Spec *spec,
                                    const char *ref, const char *name) {
   char *_ast_ref_name_from_prefix_87 = NULL;
@@ -13048,10 +13042,10 @@ static /**
   return match;
 }
 
-static /**
-        * @brief Executes the component callback is referenced in ops operation.
-        */
-    int
+/**
+ * @brief Executes the component callback is referenced in ops operation.
+ */
+static int
     component_callback_is_referenced_in_ops(const struct OpenAPI_Operation *ops,
                                             size_t n_ops,
                                             const struct OpenAPI_Spec *spec,
@@ -13070,10 +13064,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the component callback is referenced operation.
-        */
-    int
+/**
+ * @brief Executes the component callback is referenced operation.
+ */
+static int
     component_callback_is_referenced(const struct OpenAPI_Spec *spec,
                                      const char *name) {
   size_t i;
@@ -13120,10 +13114,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects callback operation ids from callbacks.
-        */
-    int
+/**
+ * @brief Collects callback operation ids from callbacks.
+ */
+static int
     collect_callback_operation_ids_from_callbacks(
         const struct OpenAPI_Callback *callbacks, size_t n_callbacks,
         char ***ids, size_t *count, size_t *cap) {
@@ -13141,10 +13135,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects callback operation ids from operations.
-        */
-    int
+/**
+ * @brief Collects callback operation ids from operations.
+ */
+static int
     collect_callback_operation_ids_from_operations(
         const struct OpenAPI_Operation *ops, size_t n_ops, char ***ids,
         size_t *count, size_t *cap) {
@@ -13161,10 +13155,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects callback operation ids from paths.
-        */
-    int
+/**
+ * @brief Collects callback operation ids from paths.
+ */
+static int
     collect_callback_operation_ids_from_paths(const struct OpenAPI_Path *paths,
                                               size_t n_paths, char ***ids,
                                               size_t *count, size_t *cap) {
@@ -13185,10 +13179,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the validate unique operation ids operation.
-        */
-    int
+/**
+ * @brief Executes the validate unique operation ids operation.
+ */
+static int
     validate_unique_operation_ids(const struct OpenAPI_Spec *spec) {
   char **ids = NULL;
   size_t count = 0;
@@ -13258,10 +13252,10 @@ cleanup:
   return rc;
 }
 
-static /**
-        * @brief Executes the openapi load from json internal operation.
-        */
-    int
+/**
+ * @brief Executes the openapi load from json internal operation.
+ */
+static int
     openapi_load_from_json_internal(const JSON_Value *root,
                                     struct OpenAPI_Spec *out,
                                     const char *retrieval_uri,
@@ -13716,10 +13710,10 @@ int openapi_spec_find_schema(const struct OpenAPI_Spec *spec, const char *name,
   }
 }
 
-static /**
-        * @brief Executes the openapi spec find schema by id operation.
-        */
-    int
+/**
+ * @brief Executes the openapi spec find schema by id operation.
+ */
+static int
     openapi_spec_find_schema_by_id(const struct OpenAPI_Spec *spec,
                                    const char *ref,
                                    struct StructFields **_out_val) {
@@ -13764,10 +13758,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the openapi spec find schema by anchor operation.
-        */
-    int
+/**
+ * @brief Executes the openapi spec find schema by anchor operation.
+ */
+static int
     openapi_spec_find_schema_by_anchor(const struct OpenAPI_Spec *spec,
                                        const char *ref, int dynamic_anchor,
                                        struct StructFields **_out_val) {

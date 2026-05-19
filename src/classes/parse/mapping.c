@@ -41,10 +41,10 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
   }
 }
 
-static /**
-        * @brief Adds or sets primitive.
-        */
-    int
+/**
+ * @brief Adds or sets primitive.
+ */
+static int
     set_primitive(struct OpenApiTypeMapping *out, const char *type,
                   const char *fmt) {
   out->kind = OA_TYPE_PRIMITIVE;
@@ -64,10 +64,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets ref.
-        */
-    int
+/**
+ * @brief Adds or sets ref.
+ */
+static int
     set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
@@ -82,10 +82,7 @@ static /**
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static /**
-        * @brief Executes the skip qualifiers operation.
-        */
-    int
+static int
     skip_qualifiers(const char *type, const char **_out_val) {
   const char *p = type;
   while (*p) {
@@ -112,10 +109,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the clean type str operation.
-        */
-    int
+/**
+ * @brief Executes the clean type str operation.
+ */
+static int
     clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;

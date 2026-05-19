@@ -33,10 +33,7 @@
 
 /* --- Helpers --- */
 
-static /**
-        * @brief Checks if source file.
-        */
-    int
+static int
     is_source_file(const char *path) {
   const char *ext = strrchr(path, '.');
   if (!ext)
@@ -44,10 +41,10 @@ static /**
   return (strcmp(ext, ".c") == 0 || strcmp(ext, ".h") == 0);
 }
 
-static /**
-        * @brief Executes the spec has tag operation.
-        */
-    int
+/**
+ * @brief Executes the spec has tag operation.
+ */
+static int
     spec_has_tag(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   for (i = 0; i < spec->n_tags; ++i) {
@@ -240,10 +237,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the spec add tag operation.
-        */
-    int
+/**
+ * @brief Executes the spec add tag operation.
+ */
+static int
     spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   char *_ast_strdup_0 = NULL;
   struct OpenAPI_Tag *new_tags;
@@ -448,10 +445,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the spec find tag operation.
-        */
-    int
+/**
+ * @brief Executes the spec find tag operation.
+ */
+static int
     spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
                   struct OpenAPI_Tag **_out_val) {
   size_t i;
@@ -465,10 +462,10 @@ static /**
   return 1;
 }
 
-static /**
-        * @brief Executes the map doc security type operation.
-        */
-    int
+/**
+ * @brief Executes the map doc security type operation.
+ */
+static int
     map_doc_security_type(enum DocSecurityType type,
                           enum OpenAPI_SecurityType *_out_val) {
   switch (type) {
@@ -500,10 +497,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the map doc security in operation.
-        */
-    int
+/**
+ * @brief Executes the map doc security in operation.
+ */
+static int
     map_doc_security_in(enum DocSecurityIn in,
                         enum OpenAPI_SecurityIn *_out_val) {
   switch (in) {
@@ -527,10 +524,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the map doc flow type operation.
-        */
-    int
+/**
+ * @brief Executes the map doc flow type operation.
+ */
+static int
     map_doc_flow_type(enum DocOAuthFlowType type,
                       enum OpenAPI_OAuthFlowType *_out_val) {
   switch (type) {
@@ -562,10 +559,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the spec find security scheme operation.
-        */
-    int
+/**
+ * @brief Executes the spec find security scheme operation.
+ */
+static int
     spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
                               struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
@@ -582,10 +579,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Adds or sets str if missing.
-        */
-    int
+/**
+ * @brief Adds or sets str if missing.
+ */
+static int
     set_str_if_missing(char **dst, const char *src) {
   char *_ast_strdup_1 = NULL;
   if (!src || !*src)
@@ -784,10 +781,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Frees the memory associated with openapi server variables.
-        */
-    void
+/**
+ * @brief Frees the memory associated with openapi server variables.
+ */
+static void
     free_openapi_server_variables(struct OpenAPI_Server *srv) {
   size_t i;
   for (i = 0; i < srv->n_variables; ++i) {
@@ -811,10 +808,10 @@ static /**
   srv->n_variables = 0;
 }
 
-static /**
-        * @brief Creates a deep copy of doc server variables.
-        */
-    int
+/**
+ * @brief Creates a deep copy of doc server variables.
+ */
+static int
     copy_doc_server_variables(struct OpenAPI_Server *dst,
                               const struct DocServer *src) {
   char *_ast_strdup_2 = NULL;
@@ -1067,10 +1064,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Merges scopes.
-        */
-    int
+/**
+ * @brief Merges scopes.
+ */
+static int
     merge_scopes(struct OpenAPI_OAuthFlow *dst,
                  const struct DocOAuthFlow *src) {
   char *_ast_strdup_7 = NULL;
@@ -1293,10 +1290,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Retrieves the oauth flow.
-        */
-    int
+/**
+ * @brief Retrieves the oauth flow.
+ */
+static int
     find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
                     enum OpenAPI_OAuthFlowType type,
                     struct OpenAPI_OAuthFlow **_out_val) {
@@ -1317,10 +1314,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Merges oauth flow.
-        */
-    int
+/**
+ * @brief Merges oauth flow.
+ */
+static int
     merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
                      const struct DocOAuthFlow *src) {
   int rc;
@@ -1340,10 +1337,10 @@ static /**
   return merge_scopes(dst, src);
 }
 
-static /**
-        * @brief Executes the validate doc oauth flow operation.
-        */
-    int
+/**
+ * @brief Executes the validate doc oauth flow operation.
+ */
+static int
     validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   if (!flow)
     return EINVAL;
@@ -1559,10 +1556,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Adds or sets oauth flows.
-        */
-    int
+/**
+ * @brief Adds or sets oauth flows.
+ */
+static int
     add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
                     const struct DocSecurityScheme *doc) {
   enum OpenAPI_OAuthFlowType _ast_map_doc_flow_type_0;
@@ -1833,10 +1830,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the spec add security scheme operation.
-        */
-    int
+/**
+ * @brief Executes the spec add security scheme operation.
+ */
+static int
     spec_add_security_scheme(struct OpenAPI_Spec *spec,
                              const struct DocSecurityScheme *doc) {
   enum OpenAPI_SecurityType _ast_map_doc_security_type_2;
@@ -2144,10 +2141,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies doc security schemes.
-        */
-    int
+/**
+ * @brief Applies doc security schemes.
+ */
+static int
     apply_doc_security_schemes(struct OpenAPI_Spec *spec,
                                const struct DocMetadata *meta) {
   size_t i;
@@ -2344,10 +2341,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the append root security operation.
-        */
-    int
+/**
+ * @brief Executes the append root security operation.
+ */
+static int
     append_root_security(struct OpenAPI_Spec *spec,
                          const struct DocMetadata *meta) {
   char *_ast_strdup_16 = NULL;
@@ -2585,10 +2582,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the append root servers operation.
-        */
-    int
+/**
+ * @brief Executes the append root servers operation.
+ */
+static int
     append_root_servers(struct OpenAPI_Spec *spec,
                         const struct DocMetadata *meta) {
   char *_ast_strdup_18 = NULL;
@@ -2818,10 +2815,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies doc global meta.
-        */
-    int
+/**
+ * @brief Applies doc global meta.
+ */
+static int
     apply_doc_global_meta(struct OpenAPI_Spec *spec,
                           const struct DocMetadata *meta) {
   char *_ast_strdup_21 = NULL;
@@ -3122,10 +3119,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the spec apply tag meta operation.
-        */
-    int
+/**
+ * @brief Executes the spec apply tag meta operation.
+ */
+static int
     spec_apply_tag_meta(struct OpenAPI_Spec *spec,
                         const struct DocTagMeta *meta) {
   struct OpenAPI_Tag *_ast_spec_find_tag_5;
@@ -3370,10 +3367,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Applies doc tag meta.
-        */
-    int
+/**
+ * @brief Applies doc tag meta.
+ */
+static int
     apply_doc_tag_meta(struct OpenAPI_Spec *spec,
                        const struct DocMetadata *meta) {
   size_t i;
@@ -3571,10 +3568,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects tags from op.
-        */
-    int
+/**
+ * @brief Collects tags from op.
+ */
+static int
     collect_tags_from_op(struct OpenAPI_Spec *spec,
                          const struct OpenAPI_Operation *op) {
   size_t i;
@@ -3771,10 +3768,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects tags from paths.
-        */
-    int
+/**
+ * @brief Collects tags from paths.
+ */
+static int
     collect_tags_from_paths(struct OpenAPI_Spec *spec,
                             const struct OpenAPI_Path *paths, size_t n_paths) {
   size_t i;
@@ -3980,10 +3977,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Collects spec tags.
-        */
-    int
+/**
+ * @brief Collects spec tags.
+ */
+static int
     collect_spec_tags(struct OpenAPI_Spec *spec) {
   int rc;
   if (!spec)
@@ -4184,10 +4181,7 @@ static /**
  * @brief Simple signature parser to split "int foo(int x, char *y)"
  * Populates `out`. Caller must free internals.
  */
-static /**
-        * @brief Parses c signature string from the given input.
-        */
-    int
+static int
     parse_c_signature_string(const char *sig_str,
                              struct C2OpenAPI_ParsedSig *out) {
   size_t _ast_token_find_next_6 = 0;
@@ -4372,10 +4366,10 @@ cleanup:
   return rc;
 }
 
-static /**
-        * @brief Frees the memory associated with parsed sig.
-        */
-    void
+/**
+ * @brief Frees the memory associated with parsed sig.
+ */
+static void
     free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   size_t i;
   if (sig->name)
@@ -4392,10 +4386,10 @@ static /**
   memset(sig, 0, sizeof(*sig));
 }
 
-static /**
-        * @brief Executes the process file operation.
-        */
-    int
+/**
+ * @brief Executes the process file operation.
+ */
+static int
     process_file(const char *path, struct OpenAPI_Spec *spec) {
   char *content = NULL;
   size_t sz = 0;
@@ -4753,10 +4747,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the walker cb operation.
-        */
-    int
+/**
+ * @brief Executes the walker cb operation.
+ */
+static int
     walker_cb(const char *path, void *user_data) {
   struct OpenAPI_Spec *spec = (struct OpenAPI_Spec *)user_data;
   if (!is_source_file(path))
@@ -4949,10 +4943,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the load base spec operation.
-        */
-    int
+/**
+ * @brief Executes the load base spec operation.
+ */
+static int
     load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
   int rc;

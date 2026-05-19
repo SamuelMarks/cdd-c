@@ -89,10 +89,7 @@ int patch_list_add(struct PatchList *list, const size_t start_idx,
  * @brief Comparator for qsort.
  * Sorts primarily by start index.
  */
-static /**
-        * @brief Executes the compare patches operation.
-        */
-    int
+static int
     compare_patches(const void *a, const void *b) {
   const struct Patch *pa = (const struct Patch *)a;
   const struct Patch *pb = (const struct Patch *)b;

@@ -14,10 +14,10 @@
 #endif
 #endif
 
-static /**
-        * @brief Executes the cdd strndup2 operation.
-        */
-    int
+/**
+ * @brief Executes the cdd strndup2 operation.
+ */
+static int
     cdd_strndup2(const char *s, size_t n, char **_out_val) {
   char *result;
   size_t len = 0;
@@ -72,10 +72,10 @@ void cli_command_free(struct CliCommand *cmd) {
   cmd->n_options = 0;
 }
 
-static /**
-        * @brief Adds or sets option.
-        */
-    int
+/**
+ * @brief Adds or sets option.
+ */
+static int
     add_option(struct CliCommand *cmd, struct CliOption **_out_val) {
   struct CliOption *opt;
   cmd->options =

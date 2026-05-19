@@ -40,10 +40,7 @@
 /**
  * @brief Generate signature string.
  */
-static /**
-        * @brief Generates expected sig.
-        */
-    int
+static int
     generate_expected_sig(const struct OpenAPI_Operation *op,
                           const struct ApiSyncConfig *cfg, char **_out_val) {
   FILE *tmp = tmpfile();
@@ -93,10 +90,7 @@ static /**
 /**
  * @brief Generate Query parameters block.
  */
-static /**
-        * @brief Generates expected query.
-        */
-    int
+static int
     generate_expected_query(const struct OpenAPI_Operation *op,
                             char **_out_val) {
   FILE *tmp = tmpfile();
@@ -137,10 +131,7 @@ static /**
  * Since we don't have access to codegen_client_body static functions, iterate
  * here.
  */
-static /**
-        * @brief Generates expected header line.
-        */
-    int
+static int
     generate_expected_header_line(const struct OpenAPI_Parameter *p,
                                   char **_out_val) {
   char *buf = malloc(512);
@@ -201,10 +192,7 @@ static /**
 /**
  * @brief Generate URL builder.
  */
-static /**
-        * @brief Generates expected url.
-        */
-    int
+static int
     generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
                           const struct ApiSyncConfig *cfg, char **_out_val) {
   FILE *tmp = tmpfile();
@@ -247,10 +235,10 @@ static /**
 
 /* --- Parsing Utils --- */
 
-static /**
-        * @brief Retrieves the function node.
-        */
-    int
+/**
+ * @brief Retrieves the function node.
+ */
+static int
     find_function_node(struct CstNodeList *cst, struct TokenList *tokens,
                        const char *func_name, struct CstNode **_out_val) {
   int _ast_token_matches_string_0 = 0;
@@ -285,10 +273,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Extracts current sig.
-        */
-    int
+/**
+ * @brief Extracts current sig.
+ */
+static int
     extract_current_sig(struct TokenList *tokens, struct CstNode *node,
                         size_t *out_end_idx, char **_out_val) {
   size_t i;
@@ -342,10 +330,10 @@ static /**
 
 /* --- Applying updates --- */
 
-static /**
-        * @brief Applies query sync.
-        */
-    void
+/**
+ * @brief Applies query sync.
+ */
+static void
     apply_query_sync(const struct OpenAPI_Operation *op,
                      struct TokenList *tokens, struct CstNode *node,
                      struct PatchList *patches) {
@@ -422,10 +410,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Applies header sync.
-        */
-    void
+/**
+ * @brief Applies header sync.
+ */
+static void
     apply_header_sync(const struct OpenAPI_Operation *op,
                       struct TokenList *tokens, struct CstNode *node,
                       struct PatchList *patches) {
@@ -508,10 +496,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Applies updates.
-        */
-    int
+/**
+ * @brief Applies updates.
+ */
+static int
     apply_updates(const char *filename, struct TokenList *tokens,
                   struct CstNodeList *cst, const struct OpenAPI_Spec *spec,
                   const struct ApiSyncConfig *cfg) {

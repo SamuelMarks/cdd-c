@@ -167,62 +167,6 @@ Generate C code from JSON schema.
 cdd-c schema2code <schema.json> <out_dir>
 ```
 
-### `sql2c`
-
-Generate C code (c-orm compatible) from SQL DDL.
-
-```shell
-cdd-c sql2c <schema.sql> <out_dir>
-```
-
-### `jsonschema2tests`
-
-Generate C tests from JSON schema.
-
-```shell
-cdd-c jsonschema2tests <schema.json> <header_to_test.h> <out.h>
-```
-
-### `migrate`
-
-Manage database migrations.
-
-```shell
-cdd-c migrate <up|down|create> [args...]
-```
-
-### `db`
-
-Drop and recreate the database schema, then run UP migrations.
-
-```shell
-cdd-c db reset
-```
-
-### `schema`
-
-Dump the current database schema state.
-
-```shell
-cdd-c schema dump [schema.sql]
-```
-
-### `seed`
-
-Seed the database with test data.
-
-```shell
-cdd-c seed [seeds.sql]
-```
-
-### `setup_test_db`
-
-Setup a test database dynamically in CI mode.
-
-```shell
-cdd-c setup_test_db [db_name]
-```
-
 ## Extensive Features & Functionality
 
 `cdd-c` is not just a standard parser; it is a full-fledged **Compiler Driven Development (CDD)** suite tailored specifically for `C` (strictly targeting ISO C90 compliance). It deeply understands C down to its comments and whitespace, treating codebase refactoring, code generation, and API alignment as first-class, lossless operations.

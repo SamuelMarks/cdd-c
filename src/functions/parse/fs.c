@@ -598,10 +598,10 @@ out_error:
 #define IS_DIR(mode) S_ISDIR(mode)
 #endif
 
-static /**
-        * @brief Executes the maybe mkdir operation.
-        */
-    int maybe_mkdir(const char *path) {
+/**
+ * @brief Executes the maybe mkdir operation.
+ */
+static int maybe_mkdir(const char *path) {
   c_stat st;
   int res;
 
