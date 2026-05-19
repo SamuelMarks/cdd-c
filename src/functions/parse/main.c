@@ -37,14 +37,7 @@
 #include <parson.h>
 /* clang-format on */
 
-static /**
-        * @brief Prints the CLI version and build configuration.
-        *
-        * Outputs the current version string alongside the status of optional
-        * database drivers (e.g., PostgreSQL, SQLite, MySQL) depending on
-        * compile-time definitions.
-        */
-    void
+static void
     print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
@@ -89,33 +82,33 @@ static /**
 #endif
 }
 
-static /**
-        * @brief Helper to display error messages for failed commands.
-        *
-        * Only outputs an error message if the return code is non-zero.
-        *
-        * @param[in] rc The return code from the executed command
-        * @param[in] command_name The name of the command that failed
-        */
-    void
+/**
+ * @brief Helper to display error messages for failed commands.
+ *
+ * Only outputs an error message if the return code is non-zero.
+ *
+ * @param[in] rc The return code from the executed command
+ * @param[in] command_name The name of the command that failed
+ */
+static void
     print_error(int rc, const char *command_name) {
   if (rc == 0)
     return;
   fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
 }
 
-static /**
-        * @brief Audits a target project directory for common code issues.
-        *
-        * Runs static analysis to find potential memory leaks or rule violations
-        * and prints a summary. Requires exactly one argument: the directory
-        * path.
-        *
-        * @param[in] argc Argument count for the command (should be 1)
-        * @param[in] argv Argument values containing the directory path
-        * @return EXIT_SUCCESS or the error code from audit_project
-        */
-    int
+/**
+ * @brief Audits a target project directory for common code issues.
+ *
+ * Runs static analysis to find potential memory leaks or rule violations
+ * and prints a summary. Requires exactly one argument: the directory
+ * path.
+ *
+ * @param[in] argc Argument count for the command (should be 1)
+ * @param[in] argv Argument values containing the directory path
+ * @return EXIT_SUCCESS or the error code from audit_project
+ */
+static int
     handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
@@ -127,13 +120,13 @@ static /**
   return rc;
 }
 
-static /**
-        * @brief Displays CLI usage information and a list of available
-        * commands.
-        *
-        * @param[in] prog_name The program executable name (usually argv[0])
-        */
-    void
+/**
+ * @brief Displays CLI usage information and a list of available
+ * commands.
+ *
+ * @param[in] prog_name The program executable name (usually argv[0])
+ */
+static void
     print_help(const char *prog_name) {
   printf("Usage: %s <command> [args]\n\n", prog_name);
   puts("Commands:");
@@ -160,34 +153,20 @@ static /**
   puts("      Generate build system files.");
   puts("  schema2code <schema.json> <out_dir>");
   puts("      Generate C code from JSON schema.");
-  puts("  sql2c <schema.sql> <out_dir>");
-  puts("      Generate C code (c-orm compatible) from SQL DDL.");
-  puts("  jsonschema2tests <schema.json> <header_to_test.h> <out.h>");
-  puts("      Generate C tests from JSON schema.");
-  puts("  migrate <up|down|create> [args...]");
-  puts("      Manage database migrations.");
-  puts("  db reset");
-  puts("      Drop and recreate the database schema, then run UP migrations.");
-  puts("  schema dump [schema.sql]");
-  puts("      Dump the current database schema state.");
-  puts("  seed [seeds.sql]");
-  puts("      Seed the database with test data.");
-  puts("  setup_test_db [db_name]");
-  puts("      Setup a test database dynamically in CI mode.");
 }
 
-static /**
-        * @brief Parses and handles the `from_openapi` command.
-        *
-        * Loads the provided OpenAPI specification and acts as a router to the
-        * correct sub-command: `to_sdk`, `to_sdk_cli`, or `to_server`.
-        * Generates C bindings, structs, and implementations.
-        *
-        * @param[in] argc Argument count, stripped of the main program name
-        * @param[in] argv Argument values for the command execution
-        * @return EXIT_SUCCESS if code generation completes without error
-        */
-    int
+/**
+ * @brief Parses and handles the `from_openapi` command.
+ *
+ * Loads the provided OpenAPI specification and acts as a router to the
+ * correct sub-command: `to_sdk`, `to_sdk_cli`, or `to_server`.
+ * Generates C bindings, structs, and implementations.
+ *
+ * @param[in] argc Argument count, stripped of the main program name
+ * @param[in] argv Argument values for the command execution
+ * @return EXIT_SUCCESS if code generation completes without error
+ */
+static int
     handle_from_openapi(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
@@ -325,19 +304,19 @@ static /**
   return rc;
 }
 
-static /**
-        * @brief Handles the `to_openapi` command parsing C code to an OpenAPI
-        * spec.
-        *
-        * Invokes the internal C-to-OpenAPI translation logic and writes the
-        * result.
-        *
-        * @param[in] argc Argument count including command flags
-        * @param[in] argv Argument values pointing to the source directory and
-        * options
-        * @return EXIT_SUCCESS if parsing and serialization succeed
-        */
-    int
+/**
+ * @brief Handles the `to_openapi` command parsing C code to an OpenAPI
+ * spec.
+ *
+ * Invokes the internal C-to-OpenAPI translation logic and writes the
+ * result.
+ *
+ * @param[in] argc Argument count including command flags
+ * @param[in] argv Argument values pointing to the source directory and
+ * options
+ * @return EXIT_SUCCESS if parsing and serialization succeed
+ */
+static int
     handle_to_openapi(int argc, char **argv) {
   const char *input_dir =
       getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
@@ -463,10 +442,8 @@ int cdd_main(int argc, char **argv) {
     rc = generate_build_system_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "schema2code") == 0) {
     rc = schema2code_main(argc - 2, argv + 2);
-  } else if (strcmp(cmd, "server_json_rpc") == 0) {
+  } else if (strcmp(cmd, "serve_json_rpc") == 0) {
     rc = server_json_rpc_main(argc - 1, argv + 1);
-  } else if (strcmp(cmd, "jsonschema2tests") == 0) {
-    rc = jsonschema2tests_main(argc - 2, argv + 2);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {

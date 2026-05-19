@@ -15,10 +15,7 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-static /**
-        * @brief Executes the my strdup operation.
-        */
-    int
+static int
     my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
@@ -133,10 +130,10 @@ void cmake_modifier_free(struct CMakeModifier *mod) {
   }
 }
 
-static /**
-        * @brief Executes the read file to string operation.
-        */
-    int
+/**
+ * @brief Executes the read file to string operation.
+ */
+static int
     read_file_to_string(const char *filename, size_t *out_len, char **out_val) {
   FILE *f;
   char *buf = NULL;

@@ -22,10 +22,7 @@
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
  */
-static /**
-        * @brief Executes the join tokens skipping ws operation.
-        */
-    int
+static int
     join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
                             size_t end, char **_out_val) {
   size_t len = 0;
@@ -76,10 +73,10 @@ int init_list_init(struct InitList *list) {
   return 0;
 }
 
-static /**
-        * @brief Executes the init value free operation.
-        */
-    void
+/**
+ * @brief Executes the init value free operation.
+ */
+static void
     init_value_free(struct InitValue *val);
 
 /**
@@ -105,10 +102,10 @@ void init_list_free(struct InitList *list) {
   list->capacity = 0;
 }
 
-static /**
-        * @brief Executes the init value free operation.
-        */
-    void
+/**
+ * @brief Executes the init value free operation.
+ */
+static void
     init_value_free(struct InitValue *val) {
   if (!val)
     return;
@@ -120,10 +117,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the init list add operation.
-        */
-    int
+/**
+ * @brief Executes the init list add operation.
+ */
+static int
     init_list_add(struct InitList *list, char *desig, struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
@@ -144,10 +141,7 @@ static /**
 
 /* --- Parsing Logic --- */
 
-static /**
-        * @brief Executes the skip ws operation.
-        */
-    int
+static int
     skip_ws(const struct TokenList *tokens, size_t idx, size_t limit,
             size_t *_out_val) {
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
@@ -158,10 +152,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if designator start.
-        */
-    int
+/**
+ * @brief Checks if designator start.
+ */
+static int
     is_designator_start(enum TokenKind k) {
   return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
 }
@@ -170,10 +164,7 @@ static /**
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
  */
-static /**
-        * @brief Parses designator from the given input.
-        */
-    int
+static int
     parse_designator(const struct TokenList *tokens, size_t start, size_t limit,
                      char **out_str, size_t *out_next) {
   size_t i = start;
@@ -209,10 +200,7 @@ static /**
  * @brief Parse a single expression (scalar value) until comma or brace.
  * Respects nested parens/blocks.
  */
-static /**
-        * @brief Parses expression str from the given input.
-        */
-    int
+static int
     parse_expression_str(const struct TokenList *tokens, size_t start,
                          size_t limit, char **out_str, size_t *out_next) {
   size_t i = start;

@@ -40,10 +40,7 @@
  * @param[in,out] info Structure to populate flags in.
  * @return 0 on success, -1 if invalid characters found.
  */
-static /**
-        * @brief Parses int suffixes from the given input.
-        */
-    int
+static int
     parse_int_suffixes(const char *str, struct IntegerInfo *info) {
   size_t i = 0;
   while (str[i] != '\0') {
@@ -98,10 +95,7 @@ static /**
  * @brief Manually parse binary string to integer.
  * stdlib lacks `strtoull` for base 2 in strict C89 (and `0b` is an extension).
  */
-static /**
-        * @brief Parses binary str from the given input.
-        */
-    int
+static int
     parse_binary_str(const char *str, char **endptr, uint64_t *_out_val) {
   uint64_t val = 0;
   const char *p = str;

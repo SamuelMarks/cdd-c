@@ -36,10 +36,10 @@ void hoist_site_list_free(struct HoistSiteList *list) {
   hoist_site_list_init(list);
 }
 
-static /**
-        * @brief Checks if basic type keyword.
-        */
-    int
+/**
+ * @brief Checks if basic type keyword.
+ */
+static int
     is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   if (!out_is_basic)
     return EINVAL;

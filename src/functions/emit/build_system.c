@@ -32,10 +32,10 @@
       return EIO;                                                              \
   } while (0)
 
-static /**
-        * @brief Generates C code for write cmake content.
-        */
-    int
+/**
+ * @brief Generates C code for write cmake content.
+ */
+static int
     write_cmake_content(FILE *fp, const char *project_name, int has_tests) {
   has_tests = 1;
 

@@ -76,10 +76,10 @@ int copy_string_array_schema_utils(char ***dst, size_t *dst_count, char **src,
   return 0;
 }
 
-static /**
-        * @brief Executes the schema exists operation.
-        */
-    int
+/**
+ * @brief Executes the schema exists operation.
+ */
+static int
     schema_exists(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   for (i = 0; i < spec->n_defined_schemas; ++i) {
@@ -91,10 +91,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the enum exists operation.
-        */
-    int
+/**
+ * @brief Executes the enum exists operation.
+ */
+static int
     enum_exists(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   for (i = 0; i < spec->n_defined_schemas; ++i) {
@@ -107,10 +107,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Creates a deep copy of enum members.
-        */
-    int
+/**
+ * @brief Creates a deep copy of enum members.
+ */
+static int
     copy_enum_members(const struct EnumMembers *src, struct EnumMembers *dst) {
   size_t i;
   if (!src || !dst)
@@ -132,10 +132,7 @@ static /**
  * Since `c_inspector` owns its memory and we need to transfer/copy into
  * `OpenAPI_Spec` (which manages its own lifecycle), we must copy.
  */
-static /**
-        * @brief Creates a deep copy of struct fields.
-        */
-    int
+static int
     copy_struct_fields(const struct StructFields *src,
                        struct StructFields *dst) {
   size_t i;

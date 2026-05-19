@@ -46,10 +46,10 @@ struct Op {
   struct DiffLine line;
 };
 
-static /**
-        * @brief Executes the split lines operation.
-        */
-    void
+/**
+ * @brief Executes the split lines operation.
+ */
+static void
     split_lines(const char *str, size_t len, struct DiffLine **out_lines,
                 size_t *out_count) {
   size_t count = 0;
@@ -92,10 +92,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Generates block new text.
-        */
-    int
+/**
+ * @brief Generates block new text.
+ */
+static int
     generate_block_new_text(const struct Block *b, struct PatchList *list,
                             const struct TokenList *tokens,
                             const struct DiffLine *old_lines) {
@@ -162,10 +162,10 @@ static /**
   return res;
 }
 
-static /**
-        * @brief Executes the append to diff operation.
-        */
-    void
+/**
+ * @brief Executes the append to diff operation.
+ */
+static void
     append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
                    const char *format, ...) {
   va_list args;

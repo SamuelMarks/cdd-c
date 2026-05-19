@@ -17,10 +17,10 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
-static /**
-        * @brief Executes the setup tokens operation.
-        */
-    struct TokenList *
+/**
+ * @brief Executes the setup tokens operation.
+ */
+static struct TokenList *
     setup_tokens(const char *code) {
   struct TokenList *tl = NULL;
   (void)tokenize(az_span_create_from_str((char *)code), &tl);
@@ -30,10 +30,7 @@ static /**
 /**
  * @brief Helper to verify a Type Chain against expected Kinds.
  */
-static /**
-        * @brief Executes the corresponding declarator parser test.
-        */
-    enum greatest_test_res
+static enum greatest_test_res
     verify_chain(struct DeclType *head, int n, ...) {
   va_list args;
   int i;

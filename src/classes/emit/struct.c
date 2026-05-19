@@ -38,10 +38,10 @@ static const char *kStrDupFunc = "strdup";
       return EIO;                                                              \
   } while (0)
 
-static /**
-        * @brief Frees the memory associated with string array.
-        */
-    void free_string_array(char **arr, size_t n) {
+/**
+ * @brief Frees the memory associated with string array.
+ */
+static void free_string_array(char **arr, size_t n) {
   size_t i;
   if (!arr)
     return;

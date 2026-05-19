@@ -63,10 +63,10 @@ void audit_stats_free(struct AuditStats *stats) {
   stats->violations.capacity = 0;
 }
 
-static /**
-        * @brief Adds or sets violation.
-        */
-    int
+/**
+ * @brief Adds or sets violation.
+ */
+static int
     add_violation(struct AuditStats *stats, const char *file_path, size_t line,
                   size_t col, const char *var_name, const char *allocator) {
   struct AuditViolationList *list = &stats->violations;
@@ -109,10 +109,7 @@ static /**
  * @param[out] line 1-based line number.
  * @param[out] col 1-based column number.
  */
-static /**
-        * @brief Retrieves the line col.
-        */
-    void
+static void
     get_line_col(const char *content, const uint8_t *token_ptr, size_t *line,
                  size_t *col) {
   const char *p = content;
@@ -133,10 +130,7 @@ static /**
 /**
  * @brief Check if filename ends with .c extension.
  */
-static /**
-        * @brief Checks if c source.
-        */
-    int
+static int
     is_c_source(const char *path, int *out_is_source) {
   const char *dot;
   int diff;
@@ -154,10 +148,7 @@ static /**
 /**
  * @brief Helper to detect functions returning allocations directly.
  */
-static /**
-        * @brief Executes the count returning allocs operation.
-        */
-    int
+static int
     count_returning_allocs(const struct TokenList *tokens, int *out_count) {
   size_t i;
   int count = 0;
@@ -196,10 +187,7 @@ static /**
  * @brief Callback for directory walker.
  * Parses file and updates stats.
  */
-static /**
-        * @brief Executes the audit file callback operation.
-        */
-    int
+static int
     audit_file_callback(const char *path, void *user_data) {
   struct AuditStats *stats = (struct AuditStats *)user_data;
   struct TokenList *tokens = NULL;

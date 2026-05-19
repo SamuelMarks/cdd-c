@@ -14,10 +14,7 @@
 #include "functions/parse/desig_init.h"
 /* clang-format on */
 
-static /**
-        * @brief Executes the c cdd strndup operation.
-        */
-    int
+static int
     c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = (char *)malloc(n + 1);
   if (!d) {

@@ -31,10 +31,7 @@
 
 /* --- Helpers --- */
 
-static /**
-        * @brief Executes the join tokens range operation.
-        */
-    int
+static int
     join_tokens_range(const struct TokenList *tokens, size_t start, size_t end,
                       char **_out_val) {
   char *_ast_strdup_0 = NULL;
@@ -70,10 +67,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the skip ws operation.
-        */
-    int
+/**
+ * @brief Executes the skip ws operation.
+ */
+static int
     skip_ws(const struct TokenList *tokens, size_t i, size_t limit,
             size_t *_out_val) {
   while (i < limit && (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
@@ -85,10 +82,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the skip ws back operation.
-        */
-    int
+/**
+ * @brief Executes the skip ws back operation.
+ */
+static int
     skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
                  size_t *_out_val) {
   if (i <= limit) {
@@ -117,10 +114,10 @@ static /**
 
 /* --- Scope Skipping --- */
 
-static /**
-        * @brief Executes the skip group operation.
-        */
-    int
+/**
+ * @brief Executes the skip group operation.
+ */
+static int
     skip_group(const struct TokenList *tokens, size_t start, size_t limit,
                enum TokenKind open_k, enum TokenKind close_k,
                size_t *_out_val) {
@@ -157,10 +154,10 @@ void decl_info_init(struct DeclInfo *info) {
   }
 }
 
-static /**
-        * @brief Frees the memory associated with decl type.
-        */
-    void
+/**
+ * @brief Frees the memory associated with decl type.
+ */
+static void
     free_decl_type(struct DeclType *t) {
   if (!t)
     return;
@@ -199,10 +196,10 @@ void decl_info_free(struct DeclInfo *info) {
   info->type = NULL;
 }
 
-static /**
-        * @brief Adds or sets type node.
-        */
-    int
+/**
+ * @brief Adds or sets type node.
+ */
+static int
     add_type_node(struct DeclInfo *info, struct DeclType **current_tail,
                   struct DeclType *node) {
   if (!node)
@@ -216,10 +213,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Executes the create node operation.
-        */
-    int
+/**
+ * @brief Executes the create node operation.
+ */
+static int
     create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
   struct DeclType *t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
   if (t)
@@ -232,10 +229,7 @@ static /**
 
 /* --- Parse Logic --- */
 
-static /**
-        * @brief Checks if grouping paren.
-        */
-    int
+static int
     is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
                       size_t limit, int *out_is_grouping) {
   size_t i;
@@ -258,10 +252,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Retrieves the abstract pivot.
-        */
-    int
+/**
+ * @brief Retrieves the abstract pivot.
+ */
+static int
     find_abstract_pivot(const struct TokenList *tokens, size_t start,
                         size_t end, size_t *_out_val) {
   size_t i = start;
@@ -342,10 +336,7 @@ static /**
 /**
  * @brief Find the declared identifier (pivot point).
  */
-static /**
-        * @brief Retrieves the pivot.
-        */
-    int
+static int
     find_pivot(const struct TokenList *tokens, size_t start, size_t end,
                int *is_abstract, size_t *_out_val) {
   size_t i = start;

@@ -105,10 +105,10 @@ int allocation_site_list_add(struct AllocationSiteList *list, size_t index,
   return 0;
 }
 
-static /**
-        * @brief Retrieves the assigned var.
-        */
-    int
+/**
+ * @brief Retrieves the assigned var.
+ */
+static int
     get_assigned_var(const struct TokenList *tokens, size_t assign_idx,
                      char **_out_val) {
   size_t i = assign_idx;
@@ -141,10 +141,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if inside condition.
-        */
-    int
+/**
+ * @brief Checks if inside condition.
+ */
+static int
     is_inside_condition(const struct TokenList *tokens, size_t idx,
                         int *out_is_inside) {
   size_t i = idx;
@@ -185,10 +185,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Checks if dereference use.
-        */
-    int
+/**
+ * @brief Checks if dereference use.
+ */
+static int
     is_dereference_use(const struct TokenList *tokens, size_t i,
                        int *out_is_deref) {
   if (!out_is_deref)

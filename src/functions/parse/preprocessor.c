@@ -55,10 +55,7 @@
 
 /* Standard IO / FS helpers */
 
-static /**
-        * @brief Executes the join path operation.
-        */
-    int
+static int
     join_path(const char *dir, const char *file, char **_out_val) {
 
   char *out;
@@ -99,10 +96,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the file exists operation.
-        */
-    int
+/**
+ * @brief Executes the file exists operation.
+ */
+static int
     file_exists(const char *path, int *out_exists) {
   FILE *f;
   if (!out_exists)
@@ -136,10 +133,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Frees the memory associated with macro def.
-        */
-    void
+/**
+ * @brief Frees the memory associated with macro def.
+ */
+static void
     free_macro_def(struct MacroDef *def) {
 
   size_t i;
@@ -163,10 +160,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the token to string operation.
-        */
-    int
+/**
+ * @brief Executes the token to string operation.
+ */
+static int
     token_to_string(const struct Token *t, char **_out_val) {
 
   char *s = malloc(t->length + 1);
@@ -188,10 +185,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Adds or sets macro internal.
-        */
-    int
+/**
+ * @brief Adds or sets macro internal.
+ */
+static int
     add_macro_internal(struct PreprocessorContext *ctx,
 
                        const struct MacroDef *def) {
@@ -223,10 +220,7 @@ static /**
  * @brief Helper to resolve include paths.
  */
 
-static /**
-        * @brief Executes the resolve path operation.
-        */
-    int
+static int
     resolve_path(const struct PreprocessorContext *ctx,
 
                  const char *current_dir, const char *include_path,
@@ -291,10 +285,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the reconstruct path operation.
-        */
-    int
+/**
+ * @brief Executes the reconstruct path operation.
+ */
+static int
     reconstruct_path(const struct TokenList *tokens, size_t start,
 
                      size_t end, char **_out_val) {
@@ -722,72 +716,69 @@ struct ExprState {
 
 /* Forward Declarations for Recursive Descent */
 
-static /**
-        * @brief Parses expr from the given input.
-        */
-    int
+static int
     parse_expr(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses logic or from the given input.
-        */
-    int
+/**
+ * @brief Parses logic or from the given input.
+ */
+static int
     parse_logic_or(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses logic and from the given input.
-        */
-    int
+/**
+ * @brief Parses logic and from the given input.
+ */
+static int
     parse_logic_and(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses equality from the given input.
-        */
-    int
+/**
+ * @brief Parses equality from the given input.
+ */
+static int
     parse_equality(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses relational from the given input.
-        */
-    int
+/**
+ * @brief Parses relational from the given input.
+ */
+static int
     parse_relational(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses shift from the given input.
-        */
-    int
+/**
+ * @brief Parses shift from the given input.
+ */
+static int
     parse_shift(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses additive from the given input.
-        */
-    int
+/**
+ * @brief Parses additive from the given input.
+ */
+static int
     parse_additive(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses multiplicative from the given input.
-        */
-    int
+/**
+ * @brief Parses multiplicative from the given input.
+ */
+static int
     parse_multiplicative(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses unary from the given input.
-        */
-    int
+/**
+ * @brief Parses unary from the given input.
+ */
+static int
     parse_unary(struct ExprState *s, long *_out_val);
 
-static /**
-        * @brief Parses primary from the given input.
-        */
-    int
+/**
+ * @brief Parses primary from the given input.
+ */
+static int
     parse_primary(struct ExprState *s, long *_out_val);
 
 /* Helper: skip whitespace */
 
-static /**
-        * @brief Executes the skip ws operation.
-        */
-    int
+/**
+ * @brief Executes the skip ws operation.
+ */
+static int
     skip_ws(struct ExprState *s, size_t *_out_val) {
   (void)_out_val;
   while (s->pos < s->end && s->tokens->tokens[s->pos].kind == TOKEN_WHITESPACE)
@@ -797,10 +788,10 @@ static /**
 
 /* Helper: Check current token kind */
 
-static /**
-        * @brief Executes the match operation.
-        */
-    int
+/**
+ * @brief Executes the match operation.
+ */
+static int
     match(struct ExprState *s, enum TokenKind kind, int *_out_val) {
   size_t _ast_skip_ws_5 = 0;
   if (!_out_val)
@@ -827,10 +818,10 @@ static /**
 
 /* Helper: Peek current token kind */
 
-static /**
-        * @brief Executes the peek operation.
-        */
-    int
+/**
+ * @brief Executes the peek operation.
+ */
+static int
     peek(struct ExprState *s, enum TokenKind *_out_val) {
 
   size_t p = s->pos;
@@ -852,10 +843,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if defined macro.
-        */
-    int
+/**
+ * @brief Checks if defined macro.
+ */
+static int
     is_defined_macro(const struct PreprocessorContext *ctx,
 
                      const struct Token *tok, int *_out_val) {
@@ -896,10 +887,7 @@ static /**
  * otherwise.
  */
 
-static /**
-        * @brief Executes the handle has include embed operation.
-        */
-    int
+static int
     handle_has_include_embed(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_7 = 0;
   int _ast_match_8 = 0;
@@ -1056,10 +1044,7 @@ static /**
  * @brief Handle __has_c_attribute logic.
  */
 
-static /**
-        * @brief Executes the handle has c attribute operation.
-        */
-    int
+static int
     handle_has_c_attribute(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_14 = 0;
   int _ast_match_15 = 0;
@@ -1208,10 +1193,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses primary from the given input.
-        */
-    int
+/**
+ * @brief Parses primary from the given input.
+ */
+static int
     parse_primary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_25 = 0;
   int _ast_match_26 = 0;
@@ -1376,10 +1361,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses unary from the given input.
-        */
-    int
+/**
+ * @brief Parses unary from the given input.
+ */
+static int
     parse_unary(struct ExprState *s, long *_out_val) {
   size_t _ast_skip_ws_37 = 0;
   int _ast_match_38 = 0;
@@ -1488,10 +1473,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses multiplicative from the given input.
-        */
-    int
+/**
+ * @brief Parses multiplicative from the given input.
+ */
+static int
     parse_multiplicative(struct ExprState *s, long *_out_val) {
   long _ast_parse_unary_53;
   int _ast_match_54 = 0;
@@ -1548,10 +1533,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses additive from the given input.
-        */
-    int
+/**
+ * @brief Parses additive from the given input.
+ */
+static int
     parse_additive(struct ExprState *s, long *_out_val) {
   long _ast_parse_multiplicative_60;
   int _ast_match_61 = 0;
@@ -1586,10 +1571,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses shift from the given input.
-        */
-    int
+/**
+ * @brief Parses shift from the given input.
+ */
+static int
     parse_shift(struct ExprState *s, long *_out_val) {
   long _ast_parse_additive_65;
   int _ast_match_66 = 0;
@@ -1624,10 +1609,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses relational from the given input.
-        */
-    int
+/**
+ * @brief Parses relational from the given input.
+ */
+static int
     parse_relational(struct ExprState *s, long *_out_val) {
   long _ast_parse_shift_70;
   enum TokenKind _ast_peek_71;
@@ -1684,10 +1669,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses equality from the given input.
-        */
-    int
+/**
+ * @brief Parses equality from the given input.
+ */
+static int
     parse_equality(struct ExprState *s, long *_out_val) {
   long _ast_parse_relational_80;
   int _ast_match_81 = 0;
@@ -1722,10 +1707,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses logic and from the given input.
-        */
-    int
+/**
+ * @brief Parses logic and from the given input.
+ */
+static int
     parse_logic_and(struct ExprState *s, long *_out_val) {
   long _ast_parse_equality_85;
   int _ast_match_86 = 0;
@@ -1748,10 +1733,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses logic or from the given input.
-        */
-    int
+/**
+ * @brief Parses logic or from the given input.
+ */
+static int
     parse_logic_or(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_and_88;
   int _ast_match_89 = 0;
@@ -1774,10 +1759,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Parses expr from the given input.
-        */
-    int
+/**
+ * @brief Parses expr from the given input.
+ */
+static int
     parse_expr(struct ExprState *s, long *_out_val) {
   long _ast_parse_logic_or_91;
   {
@@ -1824,10 +1809,7 @@ int pp_eval_expression(const struct TokenList *tokens, size_t start_idx,
 
 /* --- Embed Directive Parsing --- */
 
-static /**
-        * @brief Parses embed params from the given input.
-        */
-    int
+static int
     parse_embed_params(const struct TokenList *tokens, size_t start,
 
                        size_t end, struct PreprocessorContext *ctx,
@@ -2056,10 +2038,10 @@ struct ConditionalStack {
   int top;
 };
 
-static /**
-        * @brief Executes the stack push operation.
-        */
-    void
+/**
+ * @brief Executes the stack push operation.
+ */
+static void
     stack_push(struct ConditionalStack *st, enum CondState s) {
 
   if (st->top < 31) {
@@ -2068,10 +2050,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the stack pop operation.
-        */
-    void
+/**
+ * @brief Executes the stack pop operation.
+ */
+static void
     stack_pop(struct ConditionalStack *st) {
 
   if (st->top >= 0) {
@@ -2080,10 +2062,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Executes the stack peek operation.
-        */
-    int
+/**
+ * @brief Executes the stack peek operation.
+ */
+static int
     stack_peek(const struct ConditionalStack *st, enum CondState *_out_val) {
 
   if (st->top >= 0)
@@ -2099,10 +2081,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Checks if enabled.
-        */
-    int
+/**
+ * @brief Checks if enabled.
+ */
+static int
     is_enabled(const struct ConditionalStack *st, int *_out_val) {
 
   int i;

@@ -39,10 +39,10 @@ void safe_crt_patch_list_free(struct SafeCrtPatchList *list) {
   list->capacity = 0;
 }
 
-static /**
-        * @brief Adds or sets patch.
-        */
-    int
+/**
+ * @brief Adds or sets patch.
+ */
+static int
     add_patch(struct SafeCrtPatchList *list, size_t start, size_t end,
               const char *text) {
   struct SafeCrtPatch *p;
@@ -78,10 +78,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Extracts token text.
-        */
-    int
+/**
+ * @brief Extracts token text.
+ */
+static int
     extract_token_text(const struct TokenList *tokens, size_t start, size_t end,
                        char **_out_val) {
   size_t len = 0;
@@ -111,10 +111,10 @@ static /**
   }
 }
 
-static /**
-        * @brief Generates strcpy patch.
-        */
-    int
+/**
+ * @brief Generates strcpy patch.
+ */
+static int
     generate_strcpy_patch(const struct TokenList *tokens, size_t call_start,
                           size_t call_end, struct SafeCrtPatchList *out) {
   /* Pattern: strcpy(dest, src) */
@@ -171,10 +171,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Generates fopen patch.
-        */
-    int
+/**
+ * @brief Generates fopen patch.
+ */
+static int
     generate_fopen_patch(const struct TokenList *tokens, size_t call_start,
                          size_t call_end, struct SafeCrtPatchList *out) {
   /* Pattern: FILE *#if defined(_MSC_VER)
@@ -269,10 +269,10 @@ Find the assignment target to rewrite it as fopen_s(&f, path, mode);
   return 0;
 }
 
-static /**
-        * @brief Generates strncpy patch.
-        */
-    int
+/**
+ * @brief Generates strncpy patch.
+ */
+static int
     generate_strncpy_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
   /* Pattern: strncpy(dest, src, count) */
@@ -328,10 +328,10 @@ static /**
   return 0;
 }
 
-static /**
-        * @brief Generates sprintf patch.
-        */
-    int
+/**
+ * @brief Generates sprintf patch.
+ */
+static int
     generate_sprintf_patch(const struct TokenList *tokens, size_t call_start,
                            size_t call_end, struct SafeCrtPatchList *out) {
   /* Pattern: sprintf(dest, format, ...) */
