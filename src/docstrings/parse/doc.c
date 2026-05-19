@@ -22,16 +22,12 @@
 /**
  * @brief Check if a character is a newline.
  */
-static int
-    is_eol(char c) {
-  return c == '\n' || c == '\r';
-}
+static int is_eol(char c) { return c == '\n' || c == '\r'; }
 
 /**
  * @brief Skip whitespace in a string buffer.
  */
-static int
-    skip_ws(const char *p, const char **_out_val) {
+static int skip_ws(const char *p, const char **_out_val) {
   while (*p && isspace((unsigned char)*p) && !is_eol(*p)) {
     p++;
   }
@@ -49,9 +45,8 @@ static int
  * @param next_out [out] Pointer to where the scan stopped.
  * @return Allocated string containing the word, or NULL on failure.
  */
-static int
-    extract_word(const char *str, const char *end, const char **next_out,
-                 char **_out_val) {
+static int extract_word(const char *str, const char *end, const char **next_out,
+                        char **_out_val) {
   const char *_ast_skip_ws_0 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_0), _ast_skip_ws_0);
   const char *word_start = p;
@@ -93,8 +88,7 @@ static int
  * @brief Extract the remainder of the line as text.
  * Trims leading/trailing whitespace.
  */
-static int
-    extract_rest(const char *str, const char *end, char **_out_val) {
+static int extract_rest(const char *str, const char *end, char **_out_val) {
   const char *_ast_skip_ws_1 = NULL;
   const char *p = (skip_ws(str, &_ast_skip_ws_1), _ast_skip_ws_1);
   const char *e = end;
@@ -129,8 +123,7 @@ static int
 /**
  * @brief Adds or sets tag.
  */
-static int
-    add_tag(struct DocMetadata *out, const char *tag) {
+static int add_tag(struct DocMetadata *out, const char *tag) {
   char *_ast_strdup_0 = NULL;
   char **new_tags;
   if (!out || !tag || !*tag)
@@ -151,8 +144,7 @@ static int
 /**
  * @brief Adds or sets tag meta.
  */
-static int
-    add_tag_meta(struct DocMetadata *out, struct DocTagMeta *meta) {
+static int add_tag_meta(struct DocMetadata *out, struct DocTagMeta *meta) {
   struct DocTagMeta *new_meta;
   if (!out || !meta || !meta->name || !*meta->name)
     return 0;
@@ -171,8 +163,7 @@ static int
 /**
  * @brief Executes the trim segment operation.
  */
-static int
-    trim_segment(char *s, char **_out_val) {
+static int trim_segment(char *s, char **_out_val) {
   char *start;
   char *end;
   if (!s) {
@@ -195,9 +186,8 @@ static int
 /**
  * @brief Parses tags line from the given input.
  */
-static int
-    parse_tags_line(const char *line, const char *end,
-                    struct DocMetadata *out) {
+static int parse_tags_line(const char *line, const char *end,
+                           struct DocMetadata *out) {
   char *_ast_extract_rest_2 = NULL;
   char *_ast_trim_segment_3 = NULL;
   char *rest;
@@ -237,8 +227,7 @@ static int
 /**
  * @brief Parses bool text from the given input.
  */
-static int
-    parse_bool_text(const char *s, int *out) {
+static int parse_bool_text(const char *s, int *out) {
   int diff1, diff2, diff3, diff4;
   if (!s || !out)
     return 0;
@@ -260,9 +249,8 @@ static int
 /**
  * @brief Parses tag meta line from the given input.
  */
-static int
-    parse_tag_meta_line(const char *line, const char *end,
-                        struct DocMetadata *out) {
+static int parse_tag_meta_line(const char *line, const char *end,
+                               struct DocMetadata *out) {
   char *_ast_extract_word_4 = NULL;
   const char *_ast_skip_ws_5 = NULL;
   char *_ast_trim_segment_6 = NULL;
@@ -356,8 +344,7 @@ static int
 /**
  * @brief Parses style text from the given input.
  */
-static int
-    parse_style_text(const char *s, enum DocParamStyle *out) {
+static int parse_style_text(const char *s, enum DocParamStyle *out) {
   int diff;
   if (!s || !out)
     return 0;
@@ -407,9 +394,8 @@ static int
 /**
  * @brief Parses optional bool attr from the given input.
  */
-static void
-    parse_optional_bool_attr(const char *attr, const char *key, int *out_set,
-                             int *out_val) {
+static void parse_optional_bool_attr(const char *attr, const char *key,
+                                     int *out_set, int *out_val) {
   char *_ast_trim_segment_13 = NULL;
   size_t key_len;
   int parsed;
@@ -440,8 +426,7 @@ static void
 /**
  * @brief Parses optional example attr from the given input.
  */
-static int
-    parse_optional_example_attr(const char *attr, char **out_example) {
+static int parse_optional_example_attr(const char *attr, char **out_example) {
   char *_ast_trim_segment_14 = NULL;
   char *_ast_strdup_7 = NULL;
   char *val;
@@ -462,9 +447,8 @@ static int
 /**
  * @brief Parses deprecated line from the given input.
  */
-static int
-    parse_deprecated_line(const char *line, const char *end,
-                          struct DocMetadata *out) {
+static int parse_deprecated_line(const char *line, const char *end,
+                                 struct DocMetadata *out) {
   char *_ast_extract_rest_15 = NULL;
   char *rest;
   int value = 1;
@@ -489,9 +473,8 @@ static int
 /**
  * @brief Parses external docs line from the given input.
  */
-static int
-    parse_external_docs_line(const char *line, const char *end,
-                             struct DocMetadata *out) {
+static int parse_external_docs_line(const char *line, const char *end,
+                                    struct DocMetadata *out) {
   char *_ast_extract_word_16 = NULL;
   char *_ast_extract_rest_17 = NULL;
   const char *cur = line;
@@ -521,9 +504,8 @@ static int
 /**
  * @brief Parses contact line from the given input.
  */
-static int
-    parse_contact_line(const char *line, const char *end,
-                       struct DocMetadata *out) {
+static int parse_contact_line(const char *line, const char *end,
+                              struct DocMetadata *out) {
   char *_ast_extract_rest_18 = NULL;
   char *_ast_trim_segment_19 = NULL;
   char *_ast_trim_segment_20 = NULL;
@@ -621,9 +603,8 @@ static int
 /**
  * @brief Parses license line from the given input.
  */
-static int
-    parse_license_line(const char *line, const char *end,
-                       struct DocMetadata *out) {
+static int parse_license_line(const char *line, const char *end,
+                              struct DocMetadata *out) {
   char *_ast_extract_rest_24 = NULL;
   char *_ast_trim_segment_25 = NULL;
   char *_ast_trim_segment_26 = NULL;
@@ -734,9 +715,8 @@ static int
 /**
  * @brief Parses response header line from the given input.
  */
-static int
-    parse_response_header_line(const char *line, const char *end,
-                               struct DocMetadata *out) {
+static int parse_response_header_line(const char *line, const char *end,
+                                      struct DocMetadata *out) {
   char *_ast_extract_word_30 = NULL;
   char *_ast_extract_word_31 = NULL;
   const char *_ast_skip_ws_32 = NULL;
@@ -852,9 +832,8 @@ static int
 /**
  * @brief Parses link line from the given input.
  */
-static int
-    parse_link_line(const char *line, const char *end,
-                    struct DocMetadata *out) {
+static int parse_link_line(const char *line, const char *end,
+                           struct DocMetadata *out) {
   char *_ast_extract_word_38 = NULL;
   char *_ast_extract_word_39 = NULL;
   const char *_ast_skip_ws_40 = NULL;
@@ -1297,9 +1276,8 @@ void doc_metadata_free(struct DocMetadata *meta) {
 /**
  * @brief Parses param line from the given input.
  */
-static int
-    parse_param_line(const char *line, const char *end,
-                     struct DocMetadata *out) {
+static int parse_param_line(const char *line, const char *end,
+                            struct DocMetadata *out) {
   char *_ast_extract_word_52 = NULL;
   const char *_ast_skip_ws_53 = NULL;
   char *_ast_trim_segment_54 = NULL;
@@ -1411,9 +1389,8 @@ static int
 /**
  * @brief Parses return line from the given input.
  */
-static int
-    parse_return_line(const char *line, const char *end,
-                      struct DocMetadata *out) {
+static int parse_return_line(const char *line, const char *end,
+                             struct DocMetadata *out) {
   char *_ast_extract_word_57 = NULL;
   const char *_ast_skip_ws_58 = NULL;
   char *_ast_trim_segment_59 = NULL;
@@ -1505,8 +1482,8 @@ static int
 /**
  * @brief Executes the split scopes operation.
  */
-static int
-    split_scopes(const char *input, char ***out_scopes, size_t *out_count) {
+static int split_scopes(const char *input, char ***out_scopes,
+                        size_t *out_count) {
   char *_ast_trim_segment_63 = NULL;
   char *_ast_strdup_34 = NULL;
   char *_ast_strdup_35 = NULL;
@@ -1582,9 +1559,8 @@ static int
 /**
  * @brief Parses security line from the given input.
  */
-static int
-    parse_security_line(const char *line, const char *end,
-                        struct DocMetadata *out) {
+static int parse_security_line(const char *line, const char *end,
+                               struct DocMetadata *out) {
   char *_ast_extract_word_64 = NULL;
   char *_ast_extract_rest_65 = NULL;
   const char *cur = line;
@@ -1642,8 +1618,8 @@ static int
 /**
  * @brief Parses security type text from the given input.
  */
-static int
-    parse_security_type_text(const char *text, enum DocSecurityType *_out_val) {
+static int parse_security_type_text(const char *text,
+                                    enum DocSecurityType *_out_val) {
   if (!text) {
     *_out_val = DOC_SEC_UNSET;
     return 0;
@@ -1677,8 +1653,8 @@ static int
 /**
  * @brief Parses security in text from the given input.
  */
-static int
-    parse_security_in_text(const char *text, enum DocSecurityIn *_out_val) {
+static int parse_security_in_text(const char *text,
+                                  enum DocSecurityIn *_out_val) {
   if (!text) {
     *_out_val = DOC_SEC_IN_UNSET;
     return 0;
@@ -1704,9 +1680,8 @@ static int
 /**
  * @brief Parses oauth flow type text from the given input.
  */
-static int
-    parse_oauth_flow_type_text(const char *text,
-                               enum DocOAuthFlowType *_out_val) {
+static int parse_oauth_flow_type_text(const char *text,
+                                      enum DocOAuthFlowType *_out_val) {
   if (!text) {
     *_out_val = DOC_OAUTH_FLOW_UNSET;
     return 0;
@@ -1740,9 +1715,8 @@ static int
 /**
  * @brief Parses oauth scopes from the given input.
  */
-static int
-    parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
-                       size_t *out_count) {
+static int parse_oauth_scopes(const char *input, struct DocOAuthScope **out,
+                              size_t *out_count) {
   char **names = NULL;
   size_t n = 0;
   size_t i;
@@ -1782,9 +1756,8 @@ static int
 /**
  * @brief Parses security scheme line from the given input.
  */
-static int
-    parse_security_scheme_line(const char *line, const char *end,
-                               struct DocMetadata *out) {
+static int parse_security_scheme_line(const char *line, const char *end,
+                                      struct DocMetadata *out) {
   char *_ast_extract_word_66 = NULL;
   const char *_ast_skip_ws_67 = NULL;
   char *_ast_trim_segment_68 = NULL;
@@ -2028,8 +2001,8 @@ static int
 /**
  * @brief Retrieves the key token.
  */
-static int
-    find_key_token(char *s, const char *key, size_t *key_len, char **_out_val) {
+static int find_key_token(char *s, const char *key, size_t *key_len,
+                          char **_out_val) {
   char *p;
   size_t klen;
   if (!s || !key) {
@@ -2059,9 +2032,8 @@ static int
 /**
  * @brief Parses server line from the given input.
  */
-static int
-    parse_server_line(const char *line, const char *end,
-                      struct DocMetadata *out) {
+static int parse_server_line(const char *line, const char *end,
+                             struct DocMetadata *out) {
   char *_ast_extract_word_86 = NULL;
   char *_ast_extract_rest_87 = NULL;
   char *_ast_find_key_token_88 = NULL;
@@ -2161,14 +2133,14 @@ static int
 /**
  * @brief Executes the split scopes operation.
  */
-static int
-    split_scopes(const char *input, char ***out_scopes, size_t *out_count);
+static int split_scopes(const char *input, char ***out_scopes,
+                        size_t *out_count);
 
 /**
  * @brief Executes the split enum values operation.
  */
-static int
-    split_enum_values(const char *input, char ***out_vals, size_t *out_count) {
+static int split_enum_values(const char *input, char ***out_vals,
+                             size_t *out_count) {
   char *_ast_strdup_49 = NULL;
   char *buf;
   size_t i;
@@ -2198,9 +2170,8 @@ static int
 /**
  * @brief Parses server var line from the given input.
  */
-static int
-    parse_server_var_line(const char *line, const char *end,
-                          struct DocMetadata *out) {
+static int parse_server_var_line(const char *line, const char *end,
+                                 struct DocMetadata *out) {
   char *_ast_extract_word_93 = NULL;
   const char *_ast_skip_ws_94 = NULL;
   char *_ast_trim_segment_95 = NULL;
@@ -2333,9 +2304,8 @@ static int
 /**
  * @brief Parses encoding line from the given input.
  */
-static int
-    parse_encoding_line(const char *line, const char *end,
-                        struct DocMetadata *out, int kind) {
+static int parse_encoding_line(const char *line, const char *end,
+                               struct DocMetadata *out, int kind) {
   const char *_ast_skip_ws_100 = NULL;
   char *_ast_extract_rest_101 = NULL;
   const char *_ast_skip_ws_102 = NULL;
@@ -2431,9 +2401,8 @@ static int
 /**
  * @brief Parses request body line from the given input.
  */
-static int
-    parse_request_body_line(const char *line, const char *end,
-                            struct DocMetadata *out) {
+static int parse_request_body_line(const char *line, const char *end,
+                                   struct DocMetadata *out) {
   const char *_ast_skip_ws_107 = NULL;
   char *_ast_trim_segment_108 = NULL;
   char *_ast_trim_segment_109 = NULL;
@@ -2567,9 +2536,8 @@ static int
 /**
  * @brief Parses route line from the given input.
  */
-static int
-    parse_route_line(const char *line, const char *end,
-                     struct DocMetadata *out) {
+static int parse_route_line(const char *line, const char *end,
+                            struct DocMetadata *out) {
   char *_ast_extract_word_112 = NULL;
   char *_ast_extract_word_113 = NULL;
   const char *cur = line;

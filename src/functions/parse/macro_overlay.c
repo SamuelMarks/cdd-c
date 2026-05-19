@@ -43,9 +43,8 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
 /**
  * @brief Executes the list add operation.
  */
-static int
-    list_add(struct MacroOverlayList *list, const struct CstNode *node,
-             struct CstNodeList *expanded) {
+static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
+                    struct CstNodeList *expanded) {
   if (!list || !node)
     return EINVAL;
 

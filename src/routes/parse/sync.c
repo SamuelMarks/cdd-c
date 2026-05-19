@@ -40,9 +40,9 @@
 /**
  * @brief Generate signature string.
  */
-static int
-    generate_expected_sig(const struct OpenAPI_Operation *op,
-                          const struct ApiSyncConfig *cfg, char **_out_val) {
+static int generate_expected_sig(const struct OpenAPI_Operation *op,
+                                 const struct ApiSyncConfig *cfg,
+                                 char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
@@ -90,9 +90,8 @@ static int
 /**
  * @brief Generate Query parameters block.
  */
-static int
-    generate_expected_query(const struct OpenAPI_Operation *op,
-                            char **_out_val) {
+static int generate_expected_query(const struct OpenAPI_Operation *op,
+                                   char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
@@ -131,9 +130,8 @@ static int
  * Since we don't have access to codegen_client_body static functions, iterate
  * here.
  */
-static int
-    generate_expected_header_line(const struct OpenAPI_Parameter *p,
-                                  char **_out_val) {
+static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
+                                         char **_out_val) {
   char *buf = malloc(512);
   if (!buf) {
     *_out_val = NULL;
@@ -192,9 +190,10 @@ static int
 /**
  * @brief Generate URL builder.
  */
-static int
-    generate_expected_url(const char *path, const struct OpenAPI_Operation *op,
-                          const struct ApiSyncConfig *cfg, char **_out_val) {
+static int generate_expected_url(const char *path,
+                                 const struct OpenAPI_Operation *op,
+                                 const struct ApiSyncConfig *cfg,
+                                 char **_out_val) {
   FILE *tmp = tmpfile();
   long sz;
   char *buf;
@@ -238,9 +237,9 @@ static int
 /**
  * @brief Retrieves the function node.
  */
-static int
-    find_function_node(struct CstNodeList *cst, struct TokenList *tokens,
-                       const char *func_name, struct CstNode **_out_val) {
+static int find_function_node(struct CstNodeList *cst, struct TokenList *tokens,
+                              const char *func_name,
+                              struct CstNode **_out_val) {
   int _ast_token_matches_string_0 = 0;
   size_t i;
   for (i = 0; i < cst->size; ++i) {
@@ -276,9 +275,8 @@ static int
 /**
  * @brief Extracts current sig.
  */
-static int
-    extract_current_sig(struct TokenList *tokens, struct CstNode *node,
-                        size_t *out_end_idx, char **_out_val) {
+static int extract_current_sig(struct TokenList *tokens, struct CstNode *node,
+                               size_t *out_end_idx, char **_out_val) {
   size_t i;
   size_t start = node->start_token;
   size_t args_end = 0;
@@ -333,10 +331,9 @@ static int
 /**
  * @brief Applies query sync.
  */
-static void
-    apply_query_sync(const struct OpenAPI_Operation *op,
-                     struct TokenList *tokens, struct CstNode *node,
-                     struct PatchList *patches) {
+static void apply_query_sync(const struct OpenAPI_Operation *op,
+                             struct TokenList *tokens, struct CstNode *node,
+                             struct PatchList *patches) {
   int _ast_token_matches_string_1 = 0;
   int _ast_token_matches_string_2 = 0;
   char *_ast_generate_expected_query_3 = NULL;
@@ -413,10 +410,9 @@ static void
 /**
  * @brief Applies header sync.
  */
-static void
-    apply_header_sync(const struct OpenAPI_Operation *op,
-                      struct TokenList *tokens, struct CstNode *node,
-                      struct PatchList *patches) {
+static void apply_header_sync(const struct OpenAPI_Operation *op,
+                              struct TokenList *tokens, struct CstNode *node,
+                              struct PatchList *patches) {
   int _ast_token_matches_string_4 = 0;
   char *_ast_generate_expected_header_line_5 = NULL;
   size_t i, k;
@@ -499,10 +495,10 @@ static void
 /**
  * @brief Applies updates.
  */
-static int
-    apply_updates(const char *filename, struct TokenList *tokens,
-                  struct CstNodeList *cst, const struct OpenAPI_Spec *spec,
-                  const struct ApiSyncConfig *cfg) {
+static int apply_updates(const char *filename, struct TokenList *tokens,
+                         struct CstNodeList *cst,
+                         const struct OpenAPI_Spec *spec,
+                         const struct ApiSyncConfig *cfg) {
   struct CstNode *_ast_find_function_node_6;
   char *_ast_generate_expected_sig_7 = NULL;
   char *_ast_extract_current_sig_8 = NULL;

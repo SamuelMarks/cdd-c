@@ -44,9 +44,8 @@ void c_mapping_free(struct OpenApiTypeMapping *out) {
 /**
  * @brief Adds or sets primitive.
  */
-static int
-    set_primitive(struct OpenApiTypeMapping *out, const char *type,
-                  const char *fmt) {
+static int set_primitive(struct OpenApiTypeMapping *out, const char *type,
+                         const char *fmt) {
   out->kind = OA_TYPE_PRIMITIVE;
   c_cdd_strdup(type, &out->oa_type);
   if (!out->oa_type) {
@@ -67,8 +66,7 @@ static int
 /**
  * @brief Adds or sets ref.
  */
-static int
-    set_ref(struct OpenApiTypeMapping *out, const char *ref) {
+static int set_ref(struct OpenApiTypeMapping *out, const char *ref) {
   out->kind = OA_TYPE_OBJECT;
   /* OpenAPI usually doesn't put "type": "object" alongside $ref,
      but for internal mapping representation we mark it.
@@ -82,8 +80,7 @@ static int
 }
 
 /* Strip qualifiers like const, volatile, struct, enum */
-static int
-    skip_qualifiers(const char *type, const char **_out_val) {
+static int skip_qualifiers(const char *type, const char **_out_val) {
   const char *p = type;
   while (*p) {
     while (isspace((unsigned char)*p))
@@ -112,8 +109,7 @@ static int
 /**
  * @brief Executes the clean type str operation.
  */
-static int
-    clean_type_str(const char *in, char **_out_val) {
+static int clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
   int rc;

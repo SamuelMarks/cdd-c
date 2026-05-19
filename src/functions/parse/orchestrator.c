@@ -88,9 +88,8 @@ struct DependencyGraph {
  * @brief Extract a slice of tokens into a temporary view.
  * Does not copy token data, just pointers.
  */
-static int
-    get_token_slice(const struct TokenList *src, size_t start, size_t end,
-                    struct TokenList *dst) {
+static int get_token_slice(const struct TokenList *src, size_t start,
+                           size_t end, struct TokenList *dst) {
   if (start >= src->size || end > src->size || start > end)
     return EINVAL;
   dst->tokens = src->tokens + start;
@@ -103,9 +102,9 @@ static int
 /**
  * @brief Retrieves the token in range.
  */
-static int
-    find_token_in_range(const struct TokenList *tokens, size_t start,
-                        size_t end, enum TokenKind kind, size_t *_out_val) {
+static int find_token_in_range(const struct TokenList *tokens, size_t start,
+                               size_t end, enum TokenKind kind,
+                               size_t *_out_val) {
   size_t i;
   for (i = start; i < end; ++i) {
     if (tokens->tokens[i].kind == kind) {
@@ -123,8 +122,7 @@ static int
 /**
  * @brief Executes the token eq str operation.
  */
-static int
-    token_eq_str(const struct Token *tok, const char *s) {
+static int token_eq_str(const struct Token *tok, const char *s) {
   size_t len = strlen(s);
   return (tok->length == len && strncmp((const char *)tok->start, s, len) == 0);
 }
@@ -133,9 +131,8 @@ static int
  * @brief Extract function name from tokens.
  * Finds the identifier immediately preceding the argument list LPAREN.
  */
-static int
-    extract_func_name(const struct TokenList *tokens, size_t start,
-                      size_t body_start, char **_out_val) {
+static int extract_func_name(const struct TokenList *tokens, size_t start,
+                             size_t body_start, char **_out_val) {
   size_t _ast_find_token_in_range_0 = 0;
   size_t lparen = (find_token_in_range(tokens, start, body_start, TOKEN_LPAREN,
                                        &_ast_find_token_in_range_0),
@@ -176,9 +173,8 @@ static int
 /**
  * @brief Join tokens into a single string.
  */
-static int
-    join_tokens_str(const struct TokenList *tokens, size_t start, size_t end,
-                    char **_out_val) {
+static int join_tokens_str(const struct TokenList *tokens, size_t start,
+                           size_t end, char **_out_val) {
   char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
@@ -209,10 +205,10 @@ static int
 /**
  * @brief Analyze return type tokens to determine void/int/pointer status.
  */
-static void
-    analyze_signature_tokens(const struct TokenList *tokens, size_t start,
-                             size_t body_start, int *is_ptr, int *is_void,
-                             char **type_str) {
+static void analyze_signature_tokens(const struct TokenList *tokens,
+                                     size_t start, size_t body_start,
+                                     int *is_ptr, int *is_void,
+                                     char **type_str) {
   size_t _ast_find_token_in_range_1 = 0;
   char *_ast_join_tokens_str_2 = NULL;
   size_t i;
@@ -268,8 +264,8 @@ static void
 /**
  * @brief Executes the graph add node operation.
  */
-static int
-    graph_add_node(struct DependencyGraph *g, size_t idx, const char *name) {
+static int graph_add_node(struct DependencyGraph *g, size_t idx,
+                          const char *name) {
   char *_ast_strdup_1 = NULL;
   g->nodes[idx].node_idx = idx;
   g->nodes[idx].name = (c_cdd_strdup(name, &_ast_strdup_1), _ast_strdup_1);
@@ -290,9 +286,8 @@ static int
 /**
  * @brief Executes the graph add edge operation.
  */
-static int
-    graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
-                   size_t callee_idx) {
+static int graph_add_edge(struct DependencyGraph *g, size_t caller_idx,
+                          size_t callee_idx) {
   struct FuncNode *callee = &g->nodes[callee_idx];
   size_t i;
   /* Prevent duplicate edges */
@@ -318,8 +313,7 @@ static int
 /**
  * @brief Executes the graph free contents operation.
  */
-static void
-    graph_free_contents(struct DependencyGraph *g) {
+static void graph_free_contents(struct DependencyGraph *g) {
   size_t i;
   if (!g || !g->nodes)
     return;
@@ -338,8 +332,7 @@ static void
 /**
  * @brief Executes the propagate refactor mark operation.
  */
-static void
-    propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
+static void propagate_refactor_mark(struct DependencyGraph *g, size_t idx) {
   struct FuncNode *node = &g->nodes[idx];
   size_t i;
 
@@ -744,8 +737,7 @@ struct FixWalkContext {
 /**
  * @brief Checks if c source.
  */
-static int
-    is_c_source(const char *path, int *out_is_src) {
+static int is_c_source(const char *path, int *out_is_src) {
   const char *dot;
   int diff;
   if (!out_is_src)
@@ -762,8 +754,7 @@ static int
 /**
  * @brief Executes the fix file callback operation.
  */
-static int
-    fix_file_callback(const char *path, void *user_data) {
+static int fix_file_callback(const char *path, void *user_data) {
   struct FixWalkContext *ctx = (struct FixWalkContext *)user_data;
   char *content = NULL;
   char *result = NULL;

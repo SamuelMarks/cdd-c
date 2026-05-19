@@ -31,9 +31,8 @@
 
 /* --- Helpers --- */
 
-static int
-    join_tokens_range(const struct TokenList *tokens, size_t start, size_t end,
-                      char **_out_val) {
+static int join_tokens_range(const struct TokenList *tokens, size_t start,
+                             size_t end, char **_out_val) {
   char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
@@ -70,9 +69,8 @@ static int
 /**
  * @brief Executes the skip ws operation.
  */
-static int
-    skip_ws(const struct TokenList *tokens, size_t i, size_t limit,
-            size_t *_out_val) {
+static int skip_ws(const struct TokenList *tokens, size_t i, size_t limit,
+                   size_t *_out_val) {
   while (i < limit && (tokens->tokens[i].kind == TOKEN_WHITESPACE ||
                        tokens->tokens[i].kind == TOKEN_COMMENT))
     i++;
@@ -85,9 +83,8 @@ static int
 /**
  * @brief Executes the skip ws back operation.
  */
-static int
-    skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
-                 size_t *_out_val) {
+static int skip_ws_back(const struct TokenList *tokens, size_t i, size_t limit,
+                        size_t *_out_val) {
   if (i <= limit) {
     *_out_val = SIZE_MAX;
     return 0;
@@ -117,10 +114,9 @@ static int
 /**
  * @brief Executes the skip group operation.
  */
-static int
-    skip_group(const struct TokenList *tokens, size_t start, size_t limit,
-               enum TokenKind open_k, enum TokenKind close_k,
-               size_t *_out_val) {
+static int skip_group(const struct TokenList *tokens, size_t start,
+                      size_t limit, enum TokenKind open_k,
+                      enum TokenKind close_k, size_t *_out_val) {
   size_t i = start + 1;
   int depth = 1;
 
@@ -157,8 +153,7 @@ void decl_info_init(struct DeclInfo *info) {
 /**
  * @brief Frees the memory associated with decl type.
  */
-static void
-    free_decl_type(struct DeclType *t) {
+static void free_decl_type(struct DeclType *t) {
   if (!t)
     return;
   free_decl_type(t->inner);
@@ -199,9 +194,8 @@ void decl_info_free(struct DeclInfo *info) {
 /**
  * @brief Adds or sets type node.
  */
-static int
-    add_type_node(struct DeclInfo *info, struct DeclType **current_tail,
-                  struct DeclType *node) {
+static int add_type_node(struct DeclInfo *info, struct DeclType **current_tail,
+                         struct DeclType *node) {
   if (!node)
     return EINVAL;
   if (!info->type) {
@@ -216,8 +210,7 @@ static int
 /**
  * @brief Executes the create node operation.
  */
-static int
-    create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
+static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
   struct DeclType *t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
   if (t)
     t->kind = kind;
@@ -229,9 +222,8 @@ static int
 
 /* --- Parse Logic --- */
 
-static int
-    is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
-                      size_t limit, int *out_is_grouping) {
+static int is_grouping_paren(const struct TokenList *tokens, size_t paren_idx,
+                             size_t limit, int *out_is_grouping) {
   size_t i;
   if (!out_is_grouping)
     return EINVAL;
@@ -255,9 +247,8 @@ static int
 /**
  * @brief Retrieves the abstract pivot.
  */
-static int
-    find_abstract_pivot(const struct TokenList *tokens, size_t start,
-                        size_t end, size_t *_out_val) {
+static int find_abstract_pivot(const struct TokenList *tokens, size_t start,
+                               size_t end, size_t *_out_val) {
   size_t i = start;
   size_t best_pivot = end;
   int current_depth = 0;
@@ -336,9 +327,8 @@ static int
 /**
  * @brief Find the declared identifier (pivot point).
  */
-static int
-    find_pivot(const struct TokenList *tokens, size_t start, size_t end,
-               int *is_abstract, size_t *_out_val) {
+static int find_pivot(const struct TokenList *tokens, size_t start, size_t end,
+                      int *is_abstract, size_t *_out_val) {
   size_t i = start;
   size_t best_ident = end;
 

@@ -16,8 +16,7 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-static int
-    my_strdup(const char *s, char **out_val) {
+static int my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)
@@ -81,8 +80,7 @@ void build_info_free(struct ExtractedBuildInfo *info) {
 /**
  * @brief Adds or sets string to array.
  */
-static void
-    add_string_to_array(char ***arr, size_t *n, const char *str) {
+static void add_string_to_array(char ***arr, size_t *n, const char *str) {
   size_t i;
   /* check dupes */
   for (i = 0; i < *n; i++) {
@@ -97,8 +95,7 @@ static void
 /**
  * @brief Executes the process token operation.
  */
-static void
-    process_token(struct ExtractedBuildInfo *info, const char *tok) {
+static void process_token(struct ExtractedBuildInfo *info, const char *tok) {
   size_t len = strlen(tok);
   if (len > 2 && tok[len - 2] == '.' && tok[len - 1] == 'c') {
     const char *eq = strchr(tok, '=');

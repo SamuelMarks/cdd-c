@@ -19,9 +19,9 @@
 /**
  * @brief Comparison function to find a path by route string.
  */
-static int
-    find_path_in_list(struct OpenAPI_Path *paths, size_t n_paths,
-                      const char *route, struct OpenAPI_Path **_out_val) {
+static int find_path_in_list(struct OpenAPI_Path *paths, size_t n_paths,
+                             const char *route,
+                             struct OpenAPI_Path **_out_val) {
   size_t i;
   if (!paths || !route) {
     *_out_val = NULL;
@@ -44,9 +44,9 @@ static int
 /**
  * @brief Append a new path object to a list.
  */
-static int
-    append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
-                        const char *route, struct OpenAPI_Path **out_ptr) {
+static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
+                               const char *route,
+                               struct OpenAPI_Path **out_ptr) {
   char *_ast_strdup_0 = NULL;
   size_t new_count;
   struct OpenAPI_Path *new_arr;
@@ -79,9 +79,8 @@ static int
 /**
  * @brief Executes the append operation operation.
  */
-static int
-    append_operation(struct OpenAPI_Operation **ops, size_t *count,
-                     struct OpenAPI_Operation *op) {
+static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
+                            struct OpenAPI_Operation *op) {
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 

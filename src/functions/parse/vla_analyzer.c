@@ -14,8 +14,7 @@
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
 
-static int
-    c_cdd_strndup(const char *s, size_t n, char **_out_val) {
+static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = (char *)malloc(n + 1);
   if (!d) {
     *_out_val = NULL;
@@ -64,8 +63,7 @@ void vla_site_list_free(struct VLASiteList *list) {
 /**
  * @brief Checks if basic type keyword.
  */
-static int
-    is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
+static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   if (!out_is_basic)
     return EINVAL;
   *out_is_basic = 0;

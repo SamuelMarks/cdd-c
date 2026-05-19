@@ -22,9 +22,8 @@
  * @brief Join tokens into a string, skipping whitespace and comments.
  * Matches test expectations for normalization.
  */
-static int
-    join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
-                            size_t end, char **_out_val) {
+static int join_tokens_skipping_ws(const struct TokenList *tokens, size_t start,
+                                   size_t end, char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -76,8 +75,7 @@ int init_list_init(struct InitList *list) {
 /**
  * @brief Executes the init value free operation.
  */
-static void
-    init_value_free(struct InitValue *val);
+static void init_value_free(struct InitValue *val);
 
 /**
  * @brief Executes the init list free operation.
@@ -105,8 +103,7 @@ void init_list_free(struct InitList *list) {
 /**
  * @brief Executes the init value free operation.
  */
-static void
-    init_value_free(struct InitValue *val) {
+static void init_value_free(struct InitValue *val) {
   if (!val)
     return;
   if (val->kind == INIT_KIND_SCALAR && val->data.scalar) {
@@ -120,8 +117,8 @@ static void
 /**
  * @brief Executes the init list add operation.
  */
-static int
-    init_list_add(struct InitList *list, char *desig, struct InitValue *val) {
+static int init_list_add(struct InitList *list, char *desig,
+                         struct InitValue *val) {
   if (list->count >= list->capacity) {
     size_t new_cap = (list->capacity == 0) ? 4 : list->capacity * 2;
     struct InitItem *new_arr = (struct InitItem *)realloc(
@@ -141,9 +138,8 @@ static int
 
 /* --- Parsing Logic --- */
 
-static int
-    skip_ws(const struct TokenList *tokens, size_t idx, size_t limit,
-            size_t *_out_val) {
+static int skip_ws(const struct TokenList *tokens, size_t idx, size_t limit,
+                   size_t *_out_val) {
   while (idx < limit && tokens->tokens[idx].kind == TOKEN_WHITESPACE)
     idx++;
   {
@@ -155,8 +151,7 @@ static int
 /**
  * @brief Checks if designator start.
  */
-static int
-    is_designator_start(enum TokenKind k) {
+static int is_designator_start(enum TokenKind k) {
   return (k == TOKEN_DOT || k == TOKEN_LBRACKET);
 }
 
@@ -164,9 +159,8 @@ static int
  * @brief Parse the designator part: `.x`, `[0]`, `.x[1].y`.
  * Ends at `=` token.
  */
-static int
-    parse_designator(const struct TokenList *tokens, size_t start, size_t limit,
-                     char **out_str, size_t *out_next) {
+static int parse_designator(const struct TokenList *tokens, size_t start,
+                            size_t limit, char **out_str, size_t *out_next) {
   size_t i = start;
   size_t end_desig;
 
@@ -200,9 +194,9 @@ static int
  * @brief Parse a single expression (scalar value) until comma or brace.
  * Respects nested parens/blocks.
  */
-static int
-    parse_expression_str(const struct TokenList *tokens, size_t start,
-                         size_t limit, char **out_str, size_t *out_next) {
+static int parse_expression_str(const struct TokenList *tokens, size_t start,
+                                size_t limit, char **out_str,
+                                size_t *out_next) {
   size_t i = start;
   int depth_paren = 0;
   int depth_brace = 0; /* Should be 0 for scalar, but compound literals

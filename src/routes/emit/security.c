@@ -20,8 +20,7 @@
 #include "routes/emit/security.h"
 /* clang-format on */
 
-static int
-    uri_has_scheme_prefix(const char *uri, size_t len) {
+static int uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
   if (!uri || len == 0)
     return 0;
@@ -39,9 +38,8 @@ static int
  * @brief Compares the base part of a reference URI with a self URI to
  * determine if they match.
  */
-static int
-    ref_base_matches_self_uri(const char *self_uri, const char *ref,
-                              size_t base_len) {
+static int ref_base_matches_self_uri(const char *self_uri, const char *ref,
+                                     size_t base_len) {
   const char *self_hash;
   const char *self_base;
   size_t self_len;
@@ -81,9 +79,9 @@ static int
  * @brief Checks if a requested security scheme reference matches a given
  * scheme name, resolving relative refs.
  */
-static int
-    scheme_ref_matches_name(const char *req_scheme, const char *scheme_name,
-                            const struct OpenAPI_Spec *spec) {
+static int scheme_ref_matches_name(const char *req_scheme,
+                                   const char *scheme_name,
+                                   const struct OpenAPI_Spec *spec) {
   const char *prefix = "#/components/securitySchemes/";
   size_t prefix_len = strlen(prefix);
   const char *hash;
@@ -111,9 +109,9 @@ static int
  * an array of requirement sets.
  */
 static int
-    scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
-                            size_t n_sets, const char *scheme_name,
-                            const struct OpenAPI_Spec *spec) {
+scheme_in_security_sets(const struct OpenAPI_SecurityRequirementSet *sets,
+                        size_t n_sets, const char *scheme_name,
+                        const struct OpenAPI_Spec *spec) {
   size_t i, j;
   if (!sets || !scheme_name)
     return 0;
@@ -133,10 +131,10 @@ static int
  * falling back to global spec requirements.
  */
 static void
-    resolve_active_security(
-        const struct OpenAPI_Operation *op, const struct OpenAPI_Spec *spec,
-        const struct OpenAPI_SecurityRequirementSet **out_sets,
-        size_t *out_count, int *out_set_flag) {
+resolve_active_security(const struct OpenAPI_Operation *op,
+                        const struct OpenAPI_Spec *spec,
+                        const struct OpenAPI_SecurityRequirementSet **out_sets,
+                        size_t *out_count, int *out_set_flag) {
   if (out_sets)
     *out_sets = NULL;
   if (out_count)
@@ -170,11 +168,10 @@ static void
  * @brief Evaluates whether a given security scheme is currently active
  * within a set of requirements.
  */
-static int
-    scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
-                     const struct OpenAPI_SecurityRequirementSet *sets,
-                     size_t n_sets, int security_set,
-                     const struct OpenAPI_Spec *spec) {
+static int scheme_is_active(const struct OpenAPI_SecurityScheme *sch,
+                            const struct OpenAPI_SecurityRequirementSet *sets,
+                            size_t n_sets, int security_set,
+                            const struct OpenAPI_Spec *spec) {
   if (!sch)
     return 0;
   if (!security_set)

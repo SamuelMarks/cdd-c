@@ -49,9 +49,8 @@ struct Op {
 /**
  * @brief Executes the split lines operation.
  */
-static void
-    split_lines(const char *str, size_t len, struct DiffLine **out_lines,
-                size_t *out_count) {
+static void split_lines(const char *str, size_t len,
+                        struct DiffLine **out_lines, size_t *out_count) {
   size_t count = 0;
   size_t i;
   size_t line_idx = 0;
@@ -95,10 +94,10 @@ static void
 /**
  * @brief Generates block new text.
  */
-static int
-    generate_block_new_text(const struct Block *b, struct PatchList *list,
-                            const struct TokenList *tokens,
-                            const struct DiffLine *old_lines) {
+static int generate_block_new_text(const struct Block *b,
+                                   struct PatchList *list,
+                                   const struct TokenList *tokens,
+                                   const struct DiffLine *old_lines) {
   const char *block_start_ptr = old_lines[b->old_start_line - 1].text;
   const char *block_end_ptr =
       old_lines[b->old_end_line - 1].text + old_lines[b->old_end_line - 1].len;
@@ -165,9 +164,8 @@ static int
 /**
  * @brief Executes the append to diff operation.
  */
-static void
-    append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
-                   const char *format, ...) {
+static void append_to_diff(char **diff_str, size_t *diff_len, size_t *diff_cap,
+                           const char *format, ...) {
   va_list args;
   int printed;
   if (!*diff_str) {

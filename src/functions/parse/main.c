@@ -37,8 +37,7 @@
 #include <parson.h>
 /* clang-format on */
 
-static void
-    print_version(void) {
+static void print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
   printf("Database Driver Support:\n");
 
@@ -90,8 +89,7 @@ static void
  * @param[in] rc The return code from the executed command
  * @param[in] command_name The name of the command that failed
  */
-static void
-    print_error(int rc, const char *command_name) {
+static void print_error(int rc, const char *command_name) {
   if (rc == 0)
     return;
   fprintf(stderr, "Error executing '%s': code %d\n", command_name, rc);
@@ -108,8 +106,7 @@ static void
  * @param[in] argv Argument values containing the directory path
  * @return EXIT_SUCCESS or the error code from audit_project
  */
-static int
-    handle_audit(int argc, char **argv) {
+static int handle_audit(int argc, char **argv) {
   struct AuditStats stats;
   int rc;
   if (argc != 1)
@@ -126,8 +123,7 @@ static int
  *
  * @param[in] prog_name The program executable name (usually argv[0])
  */
-static void
-    print_help(const char *prog_name) {
+static void print_help(const char *prog_name) {
   printf("Usage: %s <command> [args]\n\n", prog_name);
   puts("Commands:");
   puts("  from_openapi to_sdk -i <spec.json> [-o <dir>]");
@@ -166,8 +162,7 @@ static void
  * @param[in] argv Argument values for the command execution
  * @return EXIT_SUCCESS if code generation completes without error
  */
-static int
-    handle_from_openapi(int argc, char **argv) {
+static int handle_from_openapi(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
   const char *out_dir = NULL;
@@ -316,8 +311,7 @@ static int
  * options
  * @return EXIT_SUCCESS if parsing and serialization succeed
  */
-static int
-    handle_to_openapi(int argc, char **argv) {
+static int handle_to_openapi(int argc, char **argv) {
   const char *input_dir =
       getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
   const char *out_file =

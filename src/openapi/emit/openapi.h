@@ -44,7 +44,8 @@ openapi_write_spec_to_json(const struct OpenAPI_Spec *spec, char **json_out);
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_val);
+extern C_CDD_EXPORT int verb_to_str_openapi(enum OpenAPI_Verb verb,
+                                            char **_out_val);
 
 /**
  * @brief Converts parameter in to string.
@@ -53,7 +54,8 @@ extern C_CDD_EXPORT int verb_to_str_openapi(enum OpenAPI_Verb verb, char **_out_
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **_out_val);
+extern C_CDD_EXPORT int param_in_to_str_openapi(enum OpenAPI_ParamIn in,
+                                                char **_out_val);
 
 /**
  * @brief Converts style to string.
@@ -62,7 +64,8 @@ extern C_CDD_EXPORT int param_in_to_str_openapi(enum OpenAPI_ParamIn in, char **
  * @param _out_val Pointer to the output string.
  * @return 0 on success.
  */
-extern C_CDD_EXPORT int style_to_str_openapi(enum OpenAPI_Style s, char **_out_val);
+extern C_CDD_EXPORT int style_to_str_openapi(enum OpenAPI_Style s,
+                                             char **_out_val);
 
 /**
  * @brief Converts xml node type to string.
@@ -72,7 +75,7 @@ extern C_CDD_EXPORT int style_to_str_openapi(enum OpenAPI_Style s, char **_out_v
  * @return 0 on success.
  */
 extern C_CDD_EXPORT int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t,
-                                        char **_out_val);
+                                                     char **_out_val);
 
 /**
  * @brief Checks if header name is content type.
@@ -88,7 +91,8 @@ extern C_CDD_EXPORT int header_name_is_content_type_openapi(const char *name);
  * @param p The parameter.
  * @return 1 if true, 0 otherwise.
  */
-extern C_CDD_EXPORT int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
+extern C_CDD_EXPORT int
+param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p);
 
 /**
  * @brief Converts oauth flow type to string.

@@ -36,8 +36,10 @@ extern C_CDD_EXPORT void free_string_array_schema_utils(char **arr, size_t n);
  * @param src_count The number of elements in the source array.
  * @return 0 on success, or an error code.
  */
-extern C_CDD_EXPORT int copy_string_array_schema_utils(char ***dst, size_t *dst_count,
-                                          char **src, size_t src_count);
+extern C_CDD_EXPORT int copy_string_array_schema_utils(char ***dst,
+                                                       size_t *dst_count,
+                                                       char **src,
+                                                       size_t src_count);
 
 /* clang-format off */
 #include "classes/parse/inspector.h"

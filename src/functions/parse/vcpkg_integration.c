@@ -16,8 +16,7 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-static int
-    my_strdup(const char *s, char **out_val) {
+static int my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
   if (!out_val)

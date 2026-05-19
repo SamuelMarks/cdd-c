@@ -20,10 +20,9 @@
 
 /* --- Implementation Helpers --- */
 
-static int
-    find_refactored_func(const struct RefactoredFunction *funcs,
-                         size_t func_count, const char *name,
-                         const struct RefactoredFunction **_out_val) {
+static int find_refactored_func(const struct RefactoredFunction *funcs,
+                                size_t func_count, const char *name,
+                                const struct RefactoredFunction **_out_val) {
   size_t i;
   if (!funcs || !name) {
     *_out_val = NULL;
@@ -46,8 +45,7 @@ static int
 /**
  * @brief Extracts token text.
  */
-static int
-    extract_token_text(const struct Token *tok, char **_out_val) {
+static int extract_token_text(const struct Token *tok, char **_out_val) {
   char *s = malloc(tok->length + 1);
   if (!s) {
     *_out_val = NULL;
@@ -64,9 +62,8 @@ static int
 /**
  * @brief Retrieves the semicolon.
  */
-static int
-    find_semicolon(const struct TokenList *tokens, size_t start,
-                   size_t *_out_val) {
+static int find_semicolon(const struct TokenList *tokens, size_t start,
+                          size_t *_out_val) {
   size_t i;
   for (i = start; i < tokens->size; ++i) {
     if (tokens->tokens[i].kind == TOKEN_SEMICOLON) {
@@ -88,9 +85,8 @@ static int
 /**
  * @brief Retrieves the stmt start.
  */
-static int
-    find_stmt_start(const struct TokenList *tokens, size_t pos,
-                    size_t *_out_val) {
+static int find_stmt_start(const struct TokenList *tokens, size_t pos,
+                           size_t *_out_val) {
   size_t i = pos;
   while (i > 0) {
     if (tokens->tokens[i - 1].kind == TOKEN_SEMICOLON ||
@@ -112,9 +108,8 @@ static int
 /**
  * @brief Executes the join tokens range operation.
  */
-static int
-    join_tokens_range(const struct TokenList *tokens, size_t start, size_t end,
-                      char **_out_val) {
+static int join_tokens_range(const struct TokenList *tokens, size_t start,
+                             size_t end, char **_out_val) {
   size_t len = 0;
   size_t i;
   char *buf, *p;
