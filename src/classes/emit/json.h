@@ -99,6 +99,17 @@ extern C_CDD_EXPORT int
 write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
                                        const struct StructFields *sf);
 
+/**
+ * @brief Generates C code for write struct array from json func.
+ * @param fp The file pointer to write to.
+ * @param struct_name The name of the struct.
+ * @param config The code generation configuration.
+ * @return 0 on success, or an error code.
+ */
+extern C_CDD_EXPORT int
+write_struct_array_from_json_func(FILE *fp, const char *struct_name,
+                                  const struct CodegenJsonConfig *config);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

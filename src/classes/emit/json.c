@@ -211,6 +211,68 @@ int write_struct_from_json_func(FILE *fp, const char *struct_name,
 /**
  * @brief Generates C code for write struct from jsonObject func.
  */
+/**
+ * @brief Generates C code for write struct array from json func.
+ * @param fp The file pointer to write to.
+ * @param struct_name The name of the struct.
+ * @param config The code generation configuration.
+ * @return 0 on success, or an error code.
+ */
+int write_struct_array_from_json_func(FILE *fp, const char *struct_name,
+                                      const struct CodegenJsonConfig *config) {
+  if (!fp || !struct_name)
+    return EINVAL;
+
+  if (config && config->guard_macro)
+    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+
+  CHECK_IO(fprintf(
+      fp,
+      "int %s_array_from_json(const char *json_str, struct %s ***out, size_t "
+      "*out_len) {\n"
+      "  JSON_Value *val = json_parse_string(json_str);\n"
+      "  JSON_Array *arr = NULL;\n"
+      "  size_t i, count;\n"
+      "  struct %s **tmp = NULL;\n"
+      "  int rc = 0;\n"
+      "  if (!val) return 22; /* EINVAL */\n"
+      "  arr = json_value_get_array(val);\n"
+      "  if (!arr) { json_value_free(val); return 22; }\n"
+      "  count = json_array_get_count(arr);\n"
+      "  if (count == 0) {\n"
+      "    *out = NULL;\n"
+      "    *out_len = 0;\n"
+      "    json_value_free(val);\n"
+      "    return 0;\n"
+      "  }\n"
+      "  tmp = (struct %s **)calloc(count, sizeof(struct %s *));\n"
+      "  if (!tmp) { json_value_free(val); return 12; /* ENOMEM */ }\n"
+      "  for (i = 0; i < count; ++i) {\n"
+      "    rc = %s_from_jsonObject(json_array_get_object(arr, i), &tmp[i]);\n"
+      "    if (rc != 0) break;\n"
+      "  }\n"
+      "  if (rc == 0) {\n"
+      "    *out = tmp;\n"
+      "    *out_len = count;\n"
+      "  } else {\n"
+      "    size_t k;\n"
+      "    for (k = 0; k < i; ++k) {\n"
+      "      if (tmp[k]) { %s_cleanup(tmp[k]); free(tmp[k]); }\n"
+      "    }\n"
+      "    free(tmp);\n"
+      "  }\n"
+      "  json_value_free(val);\n"
+      "  return rc;\n"
+      "}\n",
+      struct_name, struct_name, struct_name, struct_name, struct_name,
+      struct_name, struct_name));
+
+  if (config && config->guard_macro)
+    CHECK_IO(fprintf(fp, "#endif /* %s */\n", config->guard_macro));
+
+  return 0;
+}
+
 int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                       const struct StructFields *sf,
                                       const struct CodegenJsonConfig *config) {

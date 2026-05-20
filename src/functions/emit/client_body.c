@@ -3547,7 +3547,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       } else if (resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
         if (resp->schema.is_array) {
-          CHECK_IO(fprintf(fp, "        rc = 95; /* ENOTSUP */\n"));
+          CHECK_IO(fprintf(fp,
+                           "        rc = %s_array_from_json((const "
+                           "char*)res->body, out, out_len);\n",
+                           resp->schema.ref_name));
         } else {
           CHECK_IO(fprintf(
               fp, "        rc = %s_from_json((const char*)res->body, out);\n",
@@ -3646,7 +3649,10 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
         if (default_resp->schema.is_array) {
-          CHECK_IO(fprintf(fp, "      rc = 95; /* ENOTSUP */\n"));
+          CHECK_IO(fprintf(fp,
+                           "      rc = %s_array_from_json((const "
+                           "char*)res->body, out, out_len);\n",
+                           default_resp->schema.ref_name));
         } else {
           CHECK_IO(fprintf(
               fp, "      rc = %s_from_json((const char*)res->body, out);\n",

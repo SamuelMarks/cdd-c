@@ -219,6 +219,10 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
       hfile,
       "extern LIB_EXPORT int %s_from_json(const char *, struct %s **);\n",
       struct_name, struct_name));
+  CHECK_IO(fprintf(hfile,
+                   "extern LIB_EXPORT int %s_array_from_json(const char *, "
+                   "struct %s ***, size_t *);\n",
+                   struct_name, struct_name));
   CHECK_IO(fprintf(
       hfile, "extern LIB_EXPORT int %s_to_json(const struct %s *, char **);\n",
       struct_name, struct_name));

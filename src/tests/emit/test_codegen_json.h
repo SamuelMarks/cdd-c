@@ -161,6 +161,7 @@ TEST test_json_guards(void) {
   config.guard_macro = "JSON_ENABLED";
 
   ASSERT_EQ(0, write_struct_from_json_func(tmp, "Data", &config));
+  ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", &config));
 
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
@@ -177,10 +178,40 @@ TEST test_json_guards(void) {
   PASS();
 }
 
+TEST test_struct_array_from_json(void) {
+  FILE *tmp = tmpfile();
+  char *content = NULL;
+  long sz;
+
+  ASSERT(tmp);
+  ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Data", NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, sz + 1);
+  fread(content, 1, sz, tmp);
+
+  ASSERT(strstr(content, "int Data_array_from_json(const char *json_str, "
+                         "struct Data ***out, size_t *out_len)"));
+  ASSERT(strstr(content, "json_parse_string(json_str)"));
+  ASSERT(strstr(content, "json_value_get_array(val)"));
+  ASSERT(strstr(
+      content, "Data_from_jsonObject(json_array_get_object(arr, i), &tmp[i])"));
+
+  free(content);
+  fclose(tmp);
+  PASS();
+}
+
 TEST test_json_null_args(void) {
+  FILE *tmp = tmpfile();
   ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(EINVAL, write_struct_array_from_json_func(NULL, "S", NULL));
+  ASSERT_EQ(EINVAL, write_struct_array_from_json_func(tmp, NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
+  fclose(tmp);
   PASS();
 }
 
@@ -216,6 +247,7 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_json_recursive_obj);
   RUN_TEST(test_json_array_logic);
   RUN_TEST(test_json_guards);
+  RUN_TEST(test_struct_array_from_json);
   RUN_TEST(test_json_null_args);
   RUN_TEST(test_standalone_json_func);
 }

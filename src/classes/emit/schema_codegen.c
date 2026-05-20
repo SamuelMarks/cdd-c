@@ -293,6 +293,7 @@ static int generate_source(const char *prefix, const char *basename,
     } else if (is_object_schema) {
       CHECK_RC(write_struct_from_jsonObject_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_from_json_func(fp, name, &json_cfg));
+      CHECK_RC(write_struct_array_from_json_func(fp, name, &json_cfg));
       CHECK_RC(write_struct_to_json_func(fp, name, &sf, &json_cfg));
       CHECK_RC(write_struct_to_form_urlencoded_func(fp, name, &sf));
       if (strcmp(name, "OAuth2Error") == 0) {
