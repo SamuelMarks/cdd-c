@@ -3175,10 +3175,6 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
     }
   }
 
-  if (op->req_body.is_array) {
-    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
-                         "*/\n  return 0;\n"));
-  }
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
       (op->req_body.ref_name || schema_has_inline(&op->req_body))) {
@@ -3215,8 +3211,72 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   /* Ensure ApiError out is initialized */
   CHECK_IO(fprintf(fp, "  if (api_error) *api_error = NULL;\n\n"));
 
+  {
+    const struct OpenAPI_SchemaRef *success_schema = NULL;
+    int success_is_binary = 0;
+
+    /* Replicate client_sig.c logic for out param detection */
+    const struct OpenAPI_Response *d_resp = NULL;
+    size_t _i;
+    for (_i = 0; _i < op->n_responses; ++_i) {
+      if (!op->responses[_i].code)
+        continue;
+      if (strcmp(op->responses[_i].code, "default") == 0) {
+        d_resp = &op->responses[_i];
+        continue;
+      }
+      if (op->responses[_i].code[0] == '2') {
+        if (response_is_binary(&op->responses[_i])) {
+          success_is_binary = 1;
+        }
+        if (op->responses[_i].schema.ref_name ||
+            schema_has_inline(&op->responses[_i].schema) ||
+            op->responses[_i].schema.is_array) {
+          success_schema = &op->responses[_i].schema;
+        }
+        break;
+      }
+    }
+    if (!success_is_binary && !success_schema && d_resp) {
+      if (response_is_binary(d_resp)) {
+        success_is_binary = 1;
+      } else if (d_resp->schema.ref_name ||
+                 schema_has_inline(&d_resp->schema) ||
+                 d_resp->schema.is_array) {
+        success_schema = &d_resp->schema;
+      }
+    }
+    if (!success_is_binary && !success_schema) {
+      success_schema = &op->req_body;
+    }
+
+    if (success_is_binary) {
+      CHECK_IO(fprintf(fp, "  (void)out;\n  (void)out_len;\n"));
+    } else if (success_schema) {
+      int has_out = 0;
+      if (success_schema->is_array) {
+        if (success_schema->ref_name || success_schema->inline_type) {
+          has_out = 1;
+        }
+      } else if (success_schema->ref_name ||
+                 schema_has_inline(success_schema)) {
+        has_out = 1;
+      }
+      if (has_out) {
+        CHECK_IO(fprintf(fp, "  (void)out;\n"));
+        if (success_schema->is_array) {
+          CHECK_IO(fprintf(fp, "  (void)out_len;\n"));
+        }
+      }
+    }
+  }
+
   /* --- 2. Init & Security --- */
   CHECK_IO(fprintf(fp, "  if (!ctx || !ctx->send) return EINVAL;\n"));
+  if (op->req_body.is_array) {
+    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
+                         "*/\n  return 95; /* ENOTSUP */\n"));
+  }
   CHECK_IO(fprintf(fp, "  rc = http_request_init(&req);\n"));
   CHECK_IO(fprintf(fp, "  if (rc != 0) return rc;\n\n"));
 
@@ -3486,9 +3546,13 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
           return EIO;
       } else if (resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "      if (res->body && out) {\n"));
-        CHECK_IO(fprintf(
-            fp, "        rc = %s_from_json((const char*)res->body, out);\n",
-            resp->schema.ref_name));
+        if (resp->schema.is_array) {
+          CHECK_IO(fprintf(fp, "        rc = 95; /* ENOTSUP */\n"));
+        } else {
+          CHECK_IO(fprintf(
+              fp, "        rc = %s_from_json((const char*)res->body, out);\n",
+              resp->schema.ref_name));
+        }
         CHECK_IO(fprintf(fp, "      }\n"));
       } else if (schema_has_inline(&resp->schema)) {
         if (write_inline_json_parse(fp, &resp->schema) != 0)
@@ -3582,10 +3646,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       } else if (default_resp->schema.ref_name) {
         CHECK_IO(fprintf(fp, "    if (res->body && out) {\n"));
         if (default_resp->schema.is_array) {
-          CHECK_IO(fprintf(fp,
-                           "      rc = %s_array_from_json((const "
-                           "char*)res->body, *out, out_len);\n",
-                           default_resp->schema.ref_name));
+          CHECK_IO(fprintf(fp, "      rc = 95; /* ENOTSUP */\n"));
         } else {
           CHECK_IO(fprintf(
               fp, "      rc = %s_from_json((const char*)res->body, out);\n",
@@ -3615,10 +3676,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   /* --- 10. Cleanup --- */
   CHECK_IO(fprintf(fp, "cleanup:\n"));
-  if (op->req_body.is_array) {
-    CHECK_IO(fprintf(fp, "  /* Array serialization not supported by cdd-c yet "
-                         "*/\n  return 0;\n"));
-  }
+
   if (op->req_body.content_type &&
       media_type_is_json(op->req_body.content_type) &&
       (op->req_body.ref_name || schema_has_inline(&op->req_body))) {
