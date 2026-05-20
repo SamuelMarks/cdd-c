@@ -1231,12 +1231,14 @@ int write_lifecycle_funcs(FILE *h, FILE *c, const char *prefix,
                    "*base_url) {\n",
                    prefix));
   CHECK_IO(fprintf(c, "  int rc;\n"));
+  if (default_url_literal) {
+    CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
+                     default_url_literal));
+  }
   CHECK_IO(fprintf(c, "  if (!client) return 22; /* EINVAL */\n"));
   CHECK_IO(fprintf(c, "  rc = http_client_init(client);\n"));
   CHECK_IO(fprintf(c, "  if (rc != 0) return rc;\n"));
   if (default_url_literal) {
-    CHECK_IO(fprintf(c, "  const char *default_url = \"%s\";\n",
-                     default_url_literal));
     CHECK_IO(fprintf(c, "  if (!base_url || base_url[0] == '\\0') {\n"));
     CHECK_IO(fprintf(c, "    base_url = default_url;\n"));
     CHECK_IO(fprintf(c, "  }\n"));
@@ -3608,7 +3610,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                    "<c_abstract_http/http_curl.h>\n#define "
                    "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
                    "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
-      fprintf(tfp, "int main() {\n  struct HttpClient client;\n  "
+      fprintf(tfp, "int main(void) {\n  struct HttpClient client;\n  "
                    "C_ABSTRACT_HTTP_INIT(&client.transport);\n  client.send = "
                    "C_ABSTRACT_HTTP_SEND;\n");
 
@@ -3633,8 +3635,13 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           else
             method = "GET";
 
-          fprintf(tfp, "  {\n    struct HttpRequest req;\n    "
-                       "http_request_init(&req);\n");
+          fprintf(tfp,
+                  "  {\n    struct HttpRequest req;\n    struct HttpHeader "
+                  "*hdrs = NULL;\n"
+                  "    const char *base_url = NULL;\n    char url_buf[1024];\n"
+                  "    struct HttpResponse *res = NULL;\n"
+                  "    int allowed = 0;\n    "
+                  "http_request_init(&req);\n");
           fprintf(tfp, "    req.method = HTTP_%s;\n", method);
           if (op->verb == OA_VERB_POST || op->verb == OA_VERB_PUT ||
               op->verb == OA_VERB_PATCH) {
@@ -3652,7 +3659,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                     "strlen(\"%s\");\n",
                     body_str, body_str);
             fprintf(tfp,
-                    "    struct HttpHeader *hdrs = malloc(sizeof(struct "
+                    "    hdrs = malloc(sizeof(struct "
                     "HttpHeader) * 4);\n"
                     "    hdrs[0].key = \"Content-Type\";\n"
                     "    hdrs[0].value = \"%s\";\n"
@@ -3669,7 +3676,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                         : "application/json");
           } else {
             fprintf(tfp,
-                    "    struct HttpHeader *hdrs = malloc(sizeof(struct "
+                    "    hdrs = malloc(sizeof(struct "
                     "HttpHeader) * 3);\n    hdrs[0].key = \"api_key\";\n    "
                     "hdrs[0].value = \"special-key\";\n    hdrs[1].key = "
                     "\"Authorization\";\n"
@@ -3729,8 +3736,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           if (strcmp(parsed_base_path, "/") == 0)
             parsed_base_path = "";
 
-          fprintf(tfp, "    const char *base_url = getenv(\"BASE_URL\");\n");
-          fprintf(tfp, "    char url_buf[1024];\n");
+          fprintf(tfp, "    base_url = getenv(\"BASE_URL\");\n");
           fprintf(tfp, "    if (!base_url) {\n");
           fprintf(tfp,
                   "        snprintf(url_buf, sizeof(url_buf), "
@@ -3743,10 +3749,8 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                   parsed_base_path, formatted_path);
           fprintf(tfp, "    }\n");
           fprintf(tfp, "    req.url = url_buf;\n");
-          fprintf(tfp, "    struct HttpResponse *res = NULL;\n");
           fprintf(tfp, "    client.send(client.transport, &req, &res);\n");
 
-          fprintf(tfp, "    int allowed = 0;\n");
           fprintf(tfp, "    if (res && res->status_code >= 200 && "
                        "res->status_code < 300) allowed = 1;\n");
           for (r = 0; r < op->n_responses; ++r) {
@@ -3764,15 +3768,15 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                     op->responses[0].schema.ref_name);
             fprintf(tfp, "        if (res->body && res->status_code >= 200 && "
                          "res->status_code < 300) {\n");
-            fprintf(
-                tfp,
-                "            char *body_str = malloc(res->body_len + 1);\n");
+            fprintf(tfp,
+                    "            char *body_str = malloc(res->body_len + 1);\n"
+                    "            int rc;\n");
             fprintf(
                 tfp,
                 "            memcpy(body_str, res->body, res->body_len);\n");
             fprintf(tfp, "            body_str[res->body_len] = '\\0';\n");
             fprintf(tfp,
-                    "            int rc = %s_from_json(body_str, "
+                    "            rc = %s_from_json(body_str, "
                     "&out);\n",
                     op->responses[0].schema.ref_name);
             fprintf(tfp, "            if (rc != 0) { fprintf(stderr, \"Parse "

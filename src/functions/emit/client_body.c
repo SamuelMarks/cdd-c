@@ -3153,6 +3153,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   CHECK_IO(fprintf(fp, "  struct HttpResponse *res = NULL;\n"));
   CHECK_IO(fprintf(fp, "  int rc = 0;\n"));
   CHECK_IO(fprintf(fp, "  int attempt = 0;\n"));
+  CHECK_IO(fprintf(fp, "  int handled = 0;\n"));
 
   if (query_exists || security_query) {
     CHECK_IO(fprintf(fp, "  struct UrlQueryParams qp = {0};\n"));
@@ -3165,6 +3166,13 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   if (cookie_exists || security_cookie) {
     CHECK_IO(fprintf(fp, "  char *cookie_str = NULL;\n"));
     CHECK_IO(fprintf(fp, "  size_t cookie_len = 0;\n"));
+  }
+
+  for (i = 0; i < op->n_parameters; ++i) {
+    if (op->parameters[i].in == OA_PARAM_IN_PATH && op->parameters[i].name) {
+      CHECK_IO(
+          fprintf(fp, "  char *path_%s = NULL;\n", op->parameters[i].name));
+    }
   }
 
   if (op->req_body.is_array) {
@@ -3180,6 +3188,28 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
       media_type_is_form(op->req_body.content_type)) {
     CHECK_IO(fprintf(fp, "  struct UrlQueryParams form_qp;\n"));
     CHECK_IO(fprintf(fp, "  char *form_body = NULL;\n"));
+  }
+
+  for (i = 0; i < op->n_parameters; ++i) {
+    if (op->parameters[i].name) {
+      CHECK_IO(fprintf(fp, "  (void)%s;\n", op->parameters[i].name));
+      if (op->parameters[i].is_array ||
+          (op->parameters[i].type &&
+           strcmp(op->parameters[i].type, "array") == 0)) {
+        CHECK_IO(fprintf(fp, "  (void)%s_len;\n", op->parameters[i].name));
+      }
+    }
+  }
+  if ((op->req_body.ref_name && op->req_body.is_array) ||
+      (op->req_body.is_array && op->req_body.inline_type) ||
+      (op->req_body.content_type &&
+       media_type_is_binary(op->req_body.content_type))) {
+    CHECK_IO(fprintf(fp, "  (void)body;\n"));
+    CHECK_IO(fprintf(fp, "  (void)body_len;\n"));
+  } else if (op->req_body.ref_name || schema_has_inline(&op->req_body) ||
+             (op->req_body.content_type &&
+              media_type_is_textual(op->req_body.content_type))) {
+    CHECK_IO(fprintf(fp, "  (void)req_body;\n"));
   }
 
   /* Ensure ApiError out is initialized */
@@ -3433,7 +3463,7 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
   }
 
   /* --- 9. Responses --- */
-  CHECK_IO(fprintf(fp, "  int handled = 0;\n"));
+
   CHECK_IO(fprintf(fp, "  switch (res->status_code) {\n"));
   for (i = 0; i < op->n_responses; ++i) {
     const struct OpenAPI_Response *resp = &op->responses[i];

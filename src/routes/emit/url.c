@@ -1010,7 +1010,6 @@ static int write_path_object_serialization(FILE *fp,
                   ? "url_encode_allow_reserved"
                   : "url_encode";
 
-  CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));
   CHECK_IO(fprintf(fp, "  {\n"
                        "    size_t i;\n"
                        "    size_t path_len = 0;\n"
@@ -1149,7 +1148,6 @@ static int write_path_array_serialization(FILE *fp,
       encode_fn = "url_encode";
   }
 
-  CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));
   CHECK_IO(fprintf(fp, "  {\n    size_t i;\n    size_t path_len = 0;\n"));
   CHECK_IO(fprintf(fp, "    for(i=0; i < %s_len; ++i) {\n", name));
 
@@ -1609,7 +1607,7 @@ int codegen_url_write_builder(FILE *fp, const char *path_template,
 #endif
             prefix = buf_prefix;
           }
-          CHECK_IO(fprintf(fp, "  char *path_%s = NULL;\n", name));
+
           if (strcmp(p->type, "string") == 0) {
             CHECK_IO(fprintf(fp, "  {\n    char *enc = NULL; %s(%s, &enc);\n",
                              encode_fn, name));

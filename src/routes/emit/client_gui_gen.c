@@ -174,7 +174,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp_c, "  req.body_len = strlen(payload);\n");
   fprintf(fp_c, "  http_headers_add(&req.headers, \"Content-Type\", "
                 "\"application/x-www-form-urlencoded\");\n");
-  fprintf(fp_c, "  /* rc = http_client_send(&req, &res); stubbed */\n");
+  fprintf(fp_c, "  rc = -1; /* http_client_send(&req, &res); stubbed */\n");
   fprintf(fp_c, "  if (rc == 0 && res.body) {\n");
   fprintf(fp_c, "    rc = cdd_c_parse_oauth2_token(res.body, out_token);\n");
   fprintf(fp_c, "    free(res.body);\n");
