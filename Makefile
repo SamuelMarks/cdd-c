@@ -49,7 +49,7 @@ build_wasm:
 	@if [ ! -d "wasi-sdk" ]; then \
 		OS_NAME=$$(uname -s | tr A-Z a-z); \
 		ARCH_NAME=$$(uname -m); \
-		if [ "$$OS_NAME" = "darwin" ]; then WASI_OS="macos"; else WASI_OS="linux"; fi; \
+		if [ "$OS_NAME" = "darwin" ]; then WASI_OS="macos"; elif echo "$OS_NAME" | grep -qi "mingw\|msys\|cygwin"; then WASI_OS="mingw"; else WASI_OS="linux"; fi; \
 		if [ "$$ARCH_NAME" = "x86_64" ] || [ "$$ARCH_NAME" = "amd64" ]; then WASI_ARCH="x86_64"; else WASI_ARCH="arm64"; fi; \
 		curl -L -O "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-$${WASI_ARCH}-$${WASI_OS}.tar.gz"; \
 		tar xf wasi-sdk-24.0-*-$${WASI_OS}.tar.gz; \

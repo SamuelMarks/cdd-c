@@ -33,7 +33,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 
   /* Construct `#ifdef <condition>
 ` */
-  ifdef_len = strlen("#ifdef ") + strlen(condition) + 2;
+  ifdef_len = strlen("#ifdef ") + strlen(condition) + 20;
   ifdef_str = (char *)malloc(ifdef_len);
   if (!ifdef_str) {
     return ENOMEM;
@@ -57,7 +57,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 ` */
   if (false_code) {
     endif_len =
-        strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 1;
+        strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 20;
     endif_str = (char *)malloc(endif_len);
     if (!endif_str) {
       return ENOMEM;
@@ -68,7 +68,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
     sprintf(endif_str, "#else\n%s\n#endif \\n ", false_code);
 #endif
   } else {
-    endif_len = strlen("#endif\\n") + 1;
+    endif_len = strlen("#endif\\n") + 20;
     endif_str = (char *)malloc(endif_len);
     if (!endif_str) {
       return ENOMEM;
@@ -76,39 +76,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     strcpy_s(endif_str, endif_len, "#endif\\n");
 #else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, endif_len, "#endif\\n");
-#else
-#if defined(_MSC_VER)
-    strcpy_s(endif_str, sizeof(endif_str), "#endif\\n");
-#else
     strcpy(endif_str, "#endif\\n");
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
 #endif
   }
 
@@ -272,7 +240,7 @@ int weaver_vla_to_alloca(struct PatchList *patches,
    * size_expr + ") * sizeof(" + type_str + "));" + null terminator
    */
   len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
-        strlen(size_expr) + 11 + strlen(type_str) + 4;
+        strlen(size_expr) + 11 + strlen(type_str) + 4 + 100;
   str = (char *)malloc(len);
   if (!str) {
     return ENOMEM;

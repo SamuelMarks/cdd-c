@@ -213,7 +213,7 @@ int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {
   size_t idx;
   int rc;
   cdd_cst_node_t *parent;
-  cdd_token_t *first_tok, *last_tok;
+  cdd_token_t *first_tok = NULL, *last_tok = NULL;
 
   if (!tree || !node || !node->parent)
     return EINVAL;

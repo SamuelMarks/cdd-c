@@ -8,7 +8,7 @@ SourceDirectory: /Users/samuel/repos/cdd-openapi-test-harness/cdd-c
 BuildDirectory: /Users/samuel/repos/cdd-openapi-test-harness/cdd-c
 
 # Where to place the cost data store
-CostDataFile: 
+CostDataFile:
 
 # Site is something like machine.domain, i.e. pragmatic.crd
 Site: samuels-MacBook-Pro.local
@@ -17,11 +17,11 @@ Site: samuels-MacBook-Pro.local
 BuildName: Darwin-cc
 
 # Subprojects
-LabelsForSubprojects: 
+LabelsForSubprojects:
 
 # Submission information
 SubmitURL: http://
-SubmitInactivityTimeout: 
+SubmitInactivityTimeout:
 
 # Dashboard start time
 NightlyStartTime: 00:00:00 EDT
@@ -32,53 +32,53 @@ MakeCommand: /opt/homebrew/bin/cmake --build . --config "${CTEST_CONFIGURATION_T
 DefaultCTestConfigurationType: Release
 
 # version control
-UpdateVersionOnly: 
+UpdateVersionOnly:
 
 # CVS options
 # Default is "-d -P -A"
-CVSCommand: 
-CVSUpdateOptions: 
+CVSCommand:
+CVSUpdateOptions:
 
 # Subversion options
-SVNCommand: 
-SVNOptions: 
-SVNUpdateOptions: 
+SVNCommand:
+SVNOptions:
+SVNUpdateOptions:
 
 # Git options
 GITCommand: /opt/homebrew/bin/git
-GITInitSubmodules: 
-GITUpdateOptions: 
-GITUpdateCustom: 
+GITInitSubmodules:
+GITUpdateOptions:
+GITUpdateCustom:
 
 # Perforce options
-P4Command: 
-P4Client: 
-P4Options: 
-P4UpdateOptions: 
-P4UpdateCustom: 
+P4Command:
+P4Client:
+P4Options:
+P4UpdateOptions:
+P4UpdateCustom:
 
 # Generic update command
 UpdateCommand: /opt/homebrew/bin/git
-UpdateOptions: 
+UpdateOptions:
 UpdateType: git
 
 # Compiler info
-Compiler: 
-CompilerVersion: 
+Compiler:
+CompilerVersion:
 
 # Dynamic analysis (MemCheck)
-PurifyCommand: 
-ValgrindCommand: 
-ValgrindCommandOptions: 
-DrMemoryCommand: 
-DrMemoryCommandOptions: 
-CudaSanitizerCommand: 
-CudaSanitizerCommandOptions: 
-MemoryCheckType: 
-MemoryCheckSanitizerOptions: 
+PurifyCommand:
+ValgrindCommand:
+ValgrindCommandOptions:
+DrMemoryCommand:
+DrMemoryCommandOptions:
+CudaSanitizerCommand:
+CudaSanitizerCommandOptions:
+MemoryCheckType:
+MemoryCheckSanitizerOptions:
 MemoryCheckCommand: MEMORYCHECK_COMMAND-NOTFOUND
 MemoryCheckCommandOptions: --trace-children=yes --leak-check=full --error-exitcode=1
-MemoryCheckSuppressionFile: 
+MemoryCheckSuppressionFile:
 
 # Coverage
 CoverageCommand: /usr/bin/gcov
@@ -93,13 +93,13 @@ TimeOut: 1500
 
 # During parallel testing CTest will not start a new test if doing
 # so would cause the system load to exceed this value.
-TestLoad: 
+TestLoad:
 
-TLSVerify: 
-TLSVersion: 
+TLSVerify:
+TLSVersion:
 
-UseLaunchers: 
-CurlOptions: 
+UseLaunchers:
+CurlOptions:
 # warning, if you add new options here that have to do with submit,
 # you have to update cmCTestSubmitCommand.cxx
 

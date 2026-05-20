@@ -12,7 +12,7 @@
 
 TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_node_t *node;
+  cdd_cst_node_t *node = NULL;
   cdd_cst_symbol_t *sym;
 
   ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
@@ -72,7 +72,8 @@ TEST test_cdd_cst_semantic_basic(void) {
 TEST test_cdd_cst_semantic_tree(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_node_t *root, *func, *block, *decl, *id_node, *type_decl, *id_node2;
+  cdd_cst_node_t *root = NULL, *func = NULL, *block = NULL, *decl = NULL,
+                 *id_node = NULL, *type_decl = NULL, *id_node2 = NULL;
   cdd_token_t *tok_var = NULL;
   cdd_token_t *tok_type = NULL;
 
@@ -124,7 +125,8 @@ TEST test_cdd_cst_semantic_tree(void) {
 TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_node_t *root, *decl, *id_node, *non_id_node;
+  cdd_cst_node_t *root = NULL, *decl = NULL, *id_node = NULL,
+                 *non_id_node = NULL;
   cdd_token_t *tok_other = NULL;
   cdd_token_t *tok_oom = NULL;
 

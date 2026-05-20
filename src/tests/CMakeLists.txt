@@ -1,12 +1,12 @@
-######################### 
-# Dependencies download # 
-######################### 
+#########################
+# Dependencies download #
+#########################
 
-set(DOWNLOAD_DIR "${PROJECT_BINARY_DIR}/test_downloads") 
+set(DOWNLOAD_DIR "${PROJECT_BINARY_DIR}/test_downloads")
 
-file(TO_NATIVE_PATH "${DOWNLOAD_DIR}" DOWNLOAD_DIR) 
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN) 
-    string(REPLACE "\\" "\\\\" DOWNLOAD_DIR "${DOWNLOAD_DIR}") 
+file(TO_NATIVE_PATH "${DOWNLOAD_DIR}" DOWNLOAD_DIR)
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
+    string(REPLACE "\\" "\\\\" DOWNLOAD_DIR "${DOWNLOAD_DIR}")
 endif (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND NOT MSYS AND NOT CYGWIN)
 
 file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
@@ -19,53 +19,53 @@ endif ()
 
 set(GREATEST_URL "https://raw.githubusercontent.com/SamuelMarks/greatest/master/greatest.h")
 file(DOWNLOAD "${GREATEST_URL}" "${GREATEST_FILE}")
-################ 
-# Test library # 
-################ 
+################
+# Test library #
+################
 
-set(LIBRARY_NAME "test_c_cdd_lib") 
+set(LIBRARY_NAME "test_c_cdd_lib")
 
 set(Header_Files
-        "parse/test_analysis.h" 
-        "parse/test_c_cdd_integration.h" 
-        "parse/test_c_inspector_types.h" 
-        "parse/test_code2schema.h" 
-        "emit/test_codegen_build.h" 
-        "emit/test_generate_build_system.h" 
+        "parse/test_analysis.h"
+        "parse/test_c_cdd_integration.h"
+        "parse/test_c_inspector_types.h"
+        "parse/test_code2schema.h"
+        "emit/test_codegen_build.h"
+        "emit/test_generate_build_system.h"
         "emit/test_codegen_client_body.h"
         "emit/test_codegen_client_sig.h"
-        "emit/test_codegen_defaults.h" 
-        "emit/test_codegen_eq.h" 
+        "emit/test_codegen_defaults.h"
+        "emit/test_codegen_eq.h"
         "emit/test_codegen_json.h"
-        "emit/test_codegen_make.h" 
+        "emit/test_codegen_make.h"
         "emit/test_codegen_security.h"
         "emit/test_codegen_struct.h"
         "emit/test_codegen_types.h"
         "emit/test_codegen_url.h"
-        "emit/test_codegen_validation.h" 
-        "emit/test_codegen_root_arrays.h" 
-        "emit/test_codegen_sdk_tests.h" 
-        "parse/test_cst_parser.h" 
+        "emit/test_codegen_validation.h"
+        "emit/test_codegen_root_arrays.h"
+        "emit/test_codegen_sdk_tests.h"
+        "parse/test_cst_parser.h"
         "parse/test_crypto.h"
-        "parse/test_dataclasses.h" 
-        "parse/test_declarator_parser.h" 
+        "parse/test_dataclasses.h"
+        "parse/test_declarator_parser.h"
         "parse/test_fs.h"
-        "parse/test_json_from_and_to.h" 
-        "emit/test_openapi_client_gen.h" 
+        "parse/test_json_from_and_to.h"
+        "emit/test_openapi_client_gen.h"
         "parse/test_openapi_loader.h"
-        "parse/test_parsing.h" 
-        "emit/test_rewriter_body.h" 
-        "emit/test_rewriter_sig.h" 
+        "parse/test_parsing.h"
+        "emit/test_rewriter_body.h"
+        "emit/test_rewriter_sig.h"
         "parse/test_refactor_api_sync.h"
-        "emit/test_schema2tests.h" 
-        "emit/test_schema_codegen.h" 
+        "emit/test_schema2tests.h"
+        "emit/test_schema_codegen.h"
         "parse/test_schema_constraints.h"
         "parse/test_schema_enum_required.h"
-        "parse/test_simple_json.h" 
+        "parse/test_simple_json.h"
         "parse/test_str_utils.h"
-        "emit/test_sync_code.h" 
+        "emit/test_sync_code.h"
         "emit/test_text_patcher.h"
-        "parse/test_tokenizer.h" 
+        "parse/test_tokenizer.h"
         "emit/test_url_utils.h"
         # New Tests
         "emit/test_openapi_writer.h"
@@ -75,12 +75,12 @@ set(Header_Files
         "emit/test_aggregator.h"
         "parse/test_c2openapi_schema.h"
         "parse/test_integration_c2openapi.h"
-) 
-source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}") 
+)
+source_group("${LIBRARY_NAME} Header Files" FILES "${Header_Files}")
 
-add_library("${LIBRARY_NAME}" INTERFACE) 
-add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}") 
-set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER "${CMAKE_CURRENT_SOURCE_DIR}") 
+add_library("${LIBRARY_NAME}" INTERFACE)
+add_custom_target("${LIBRARY_NAME}-target" SOURCES "${Header_Files}")
+set_property(TARGET "${LIBRARY_NAME}-target" PROPERTY FOLDER "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_include_directories(
         "${LIBRARY_NAME}"
@@ -92,37 +92,37 @@ target_include_directories(
 )
 
 add_subdirectory("cdd_test_helpers")
-target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers") 
+target_link_libraries("${LIBRARY_NAME}" INTERFACE "cdd_test_helpers")
 
-################## 
-# Top-level test # 
-################## 
+##################
+# Top-level test #
+##################
 
-set(EXEC_NAME "test_c_cdd") 
+set(EXEC_NAME "test_c_cdd")
 
-set(Source_Files "test_c_cdd.c") 
-source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}") 
+set(Source_Files "test_c_cdd.c")
+source_group("${EXEC_NAME} Source Files" FILES "${Source_Files}")
 
-add_executable("${EXEC_NAME}" "${Source_Files}") 
+add_executable("${EXEC_NAME}" "${Source_Files}")
 
-target_include_directories( 
-        "${EXEC_NAME}" 
+target_include_directories(
+        "${EXEC_NAME}"
         PRIVATE
-        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>" 
-) 
-set_target_properties( 
-        "${EXEC_NAME}" 
+        "$<BUILD_INTERFACE:${DOWNLOAD_DIR}>"
+)
+set_target_properties(
+        "${EXEC_NAME}"
         PROPERTIES
         LINKER_LANGUAGE
         C
-) 
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}") 
+)
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}")
 
-add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}") 
+add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
 # ... (Previous Mock targets remain unchanged) ...
-add_subdirectory("mocks") 
-target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks") 
+add_subdirectory("mocks")
+target_link_libraries("${LIBRARY_NAME}" INTERFACE "simple_mocks")
 # ...
 set(EXEC_NAME "test_simple_json")
 set(Header_Files "parse/${EXEC_NAME}.h")
@@ -138,10 +138,10 @@ add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 
 
 if(MSVC)
-  
+
 endif()
 
 if(MSVC)
-  
+
 endif()
 add_subdirectory(src)

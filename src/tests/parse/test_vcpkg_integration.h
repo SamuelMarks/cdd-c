@@ -70,7 +70,7 @@ TEST test_vcpkg_builder_errors(void) {
   char *json = NULL;
   ASSERT_EQ(EINVAL, vcpkg_builder_init(NULL, "proj", NULL, NULL));
   ASSERT_EQ(EINVAL, vcpkg_builder_init(&builder, NULL, NULL, NULL));
-  
+
   vcpkg_builder_init(&builder, "proj", NULL, NULL);
   ASSERT_EQ(EINVAL, vcpkg_builder_add_dep(NULL, "dep"));
   ASSERT_EQ(EINVAL, vcpkg_builder_add_dep(&builder, NULL));
@@ -78,7 +78,7 @@ TEST test_vcpkg_builder_errors(void) {
   ASSERT_EQ(EINVAL, vcpkg_builder_scan_source(&builder, NULL));
   ASSERT_EQ(EINVAL, vcpkg_builder_generate(NULL, &json));
   ASSERT_EQ(EINVAL, vcpkg_builder_generate(&builder, NULL));
-  
+
   vcpkg_builder_free(&builder);
   PASS();
 }

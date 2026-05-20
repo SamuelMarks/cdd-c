@@ -51,9 +51,9 @@ TEST test_gen_client_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_test";
-  char *h_file = "src/gen_client_test.h";
-  char *c_file = "src/gen_client_test.c";
+  const char *base = "test_out/gen_client_test";
+  char *h_file = "test_out/src/gen_client_test.h";
+  char *c_file = "test_out/src/gen_client_test.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -86,9 +86,9 @@ TEST test_gen_client_operation_server_override(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenAPI_Server op_server;
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_op_server";
-  char *h_file = "src/gen_client_op_server.h";
-  char *c_file = "src/gen_client_op_server.c";
+  const char *base = "test_out/gen_client_op_server";
+  char *h_file = "test_out/src/gen_client_op_server.h";
+  char *c_file = "test_out/src/gen_client_op_server.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -120,9 +120,9 @@ TEST test_gen_client_text_plain_request_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_text_plain_req";
-  char *h_file = "src/gen_client_text_plain_req.h";
-  char *c_file = "src/gen_client_text_plain_req.c";
+  const char *base = "test_out/gen_client_text_plain_req";
+  char *h_file = "test_out/src/gen_client_text_plain_req.h";
+  char *c_file = "test_out/src/gen_client_text_plain_req.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -153,9 +153,9 @@ TEST test_gen_client_octet_stream_request_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_octet_req";
-  char *h_file = "src/gen_client_octet_req.h";
-  char *c_file = "src/gen_client_octet_req.c";
+  const char *base = "test_out/gen_client_octet_req";
+  char *h_file = "test_out/src/gen_client_octet_req.h";
+  char *c_file = "test_out/src/gen_client_octet_req.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -186,9 +186,9 @@ TEST test_gen_client_octet_stream_response_body(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_octet_resp";
-  char *h_file = "src/gen_client_octet_resp.h";
-  char *c_file = "src/gen_client_octet_resp.c";
+  const char *base = "test_out/gen_client_octet_resp";
+  char *h_file = "test_out/src/gen_client_octet_resp.h";
+  char *c_file = "test_out/src/gen_client_octet_resp.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -219,9 +219,9 @@ TEST test_gen_client_default_base_url_from_server(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Server server;
   struct OpenAPI_ServerVariable var;
-  const char *base = "gen_client_default_url";
-  char *h_file = "src/gen_client_default_url.h";
-  char *c_file = "src/gen_client_default_url.c";
+  const char *base = "test_out/gen_client_default_url";
+  char *h_file = "test_out/src/gen_client_default_url.h";
+  char *c_file = "test_out/src/gen_client_default_url.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -261,9 +261,9 @@ TEST test_gen_client_default_base_url_no_servers(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_client_default_url_none";
-  char *h_file = "src/gen_client_default_url_none.h";
-  char *c_file = "src/gen_client_default_url_none.c";
+  const char *base = "test_out/gen_client_default_url_none";
+  char *h_file = "test_out/src/gen_client_default_url_none.h";
+  char *c_file = "test_out/src/gen_client_default_url_none.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -293,9 +293,9 @@ TEST test_gen_client_additional_operation(void) {
   struct OpenAPI_Response resp = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Path path;
-  const char *base = "gen_additional_op";
-  char *h_file = "src/gen_additional_op.h";
-  char *c_file = "src/gen_additional_op.c";
+  const char *base = "test_out/gen_additional_op";
+  char *h_file = "test_out/src/gen_additional_op.h";
+  char *c_file = "test_out/src/gen_additional_op.c";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -345,8 +345,8 @@ TEST test_gen_client_op_params_only(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
-  const char *base = "gen_op_params";
-  char *h_file = "src/gen_op_params.h";
+  const char *base = "test_out/gen_op_params";
+  char *h_file = "test_out/src/gen_op_params.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -373,9 +373,9 @@ TEST test_gen_client_op_params_only(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_op_params.c");
-  remove("src/gen_op_params_models.h");
-  remove("src/gen_op_params_models.c");
+  remove("test_out/src/gen_op_params.c");
+  remove("test_out/src/gen_op_params_models.h");
+  remove("test_out/src/gen_op_params_models.c");
   PASS();
 }
 
@@ -384,8 +384,8 @@ TEST test_gen_client_querystring_param(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter op_param;
-  const char *base = "gen_querystring_param";
-  char *h_file = "src/gen_querystring_param.h";
+  const char *base = "test_out/gen_querystring_param";
+  char *h_file = "test_out/src/gen_querystring_param.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -411,9 +411,9 @@ TEST test_gen_client_querystring_param(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_querystring_param.c");
-  remove("src/gen_querystring_param_models.h");
-  remove("src/gen_querystring_param_models.c");
+  remove("test_out/src/gen_querystring_param.c");
+  remove("test_out/src/gen_querystring_param_models.h");
+  remove("test_out/src/gen_querystring_param_models.c");
   PASS();
 }
 
@@ -422,8 +422,8 @@ TEST test_gen_client_path_level_params(void) {
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
-  const char *base = "gen_path_params";
-  char *h_file = "src/gen_path_params.h";
+  const char *base = "test_out/gen_path_params";
+  char *h_file = "test_out/src/gen_path_params.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -453,9 +453,9 @@ TEST test_gen_client_path_level_params(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_path_params.c");
-  remove("src/gen_path_params_models.h");
-  remove("src/gen_path_params_models.c");
+  remove("test_out/src/gen_path_params.c");
+  remove("test_out/src/gen_path_params_models.h");
+  remove("test_out/src/gen_path_params_models.c");
   PASS();
 }
 
@@ -465,8 +465,8 @@ TEST test_gen_client_path_param_override(void) {
   struct OpenApiClientConfig config;
   struct OpenAPI_Parameter path_param;
   struct OpenAPI_Parameter op_param;
-  const char *base = "gen_path_override";
-  char *h_file = "src/gen_path_override.h";
+  const char *base = "test_out/gen_path_override";
+  char *h_file = "test_out/src/gen_path_override.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -500,9 +500,9 @@ TEST test_gen_client_path_param_override(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_path_override.c");
-  remove("src/gen_path_override_models.h");
-  remove("src/gen_path_override_models.c");
+  remove("test_out/src/gen_path_override.c");
+  remove("test_out/src/gen_path_override_models.h");
+  remove("test_out/src/gen_path_override_models.c");
   PASS();
 }
 
@@ -510,8 +510,8 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_group_ns_test";
-  char *h_file = "src/gen_group_ns_test.h";
+  const char *base = "test_out/gen_group_ns_test";
+  char *h_file = "test_out/src/gen_group_ns_test.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -539,9 +539,9 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_group_ns_test.c");
-  remove("src/gen_group_ns_test_models.h");
-  remove("src/gen_group_ns_test_models.c");
+  remove("test_out/src/gen_group_ns_test.c");
+  remove("test_out/src/gen_group_ns_test_models.h");
+  remove("test_out/src/gen_group_ns_test_models.c");
   PASS();
 }
 
@@ -550,8 +550,8 @@ TEST test_gen_client_namespace_only(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
   struct OpenApiClientConfig config;
-  const char *base = "gen_ns_only_test";
-  char *h_file = "src/gen_ns_only_test.h";
+  const char *base = "test_out/gen_ns_only_test";
+  char *h_file = "test_out/src/gen_ns_only_test.h";
   char *content = NULL;
   size_t sz;
   int rc;
@@ -573,9 +573,9 @@ TEST test_gen_client_namespace_only(void) {
   free(content);
 
   remove(h_file);
-  remove("src/gen_ns_only_test.c");
-  remove("src/gen_ns_only_test_models.h");
-  remove("src/gen_ns_only_test_models.c");
+  remove("test_out/src/gen_ns_only_test.c");
+  remove("test_out/src/gen_ns_only_test_models.h");
+  remove("test_out/src/gen_ns_only_test_models.c");
   PASS();
 }
 
@@ -617,36 +617,36 @@ TEST test_gen_client_defaults(void) {
   size_t sz;
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "gen_def";
+  config.filename_base = "test_out/gen_def";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
   /* Check header for default guard and model include logic */
-  read_to_file("src/gen_def.h", "r", &content, &sz);
+  read_to_file("test_out/src/gen_def.h", "r", &content, &sz);
   ASSERT(strstr(content, "GEN_DEF_H") != NULL);
   /* Derived model header name should be present in the header file */
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
   free(content);
 
   /* Check source for header inclusion */
-  read_to_file("src/gen_def.c", "r", &content, &sz);
+  read_to_file("test_out/src/gen_def.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def.h\"") != NULL);
   free(content);
 
   /* Check models header */
-  read_to_file("src/gen_def_models.h", "r", &content, &sz);
+  read_to_file("test_out/src/gen_def_models.h", "r", &content, &sz);
   ASSERT(strstr(content, "GEN_DEF_H_MODELS") != NULL);
   free(content);
 
   /* Check models source */
-  read_to_file("src/gen_def_models.c", "r", &content, &sz);
+  read_to_file("test_out/src/gen_def_models.c", "r", &content, &sz);
   ASSERT(strstr(content, "#include \"gen_def_models.h\"") != NULL);
   free(content);
 
-  remove("src/gen_def.h");
-  remove("src/gen_def.c");
-  remove("src/gen_def_models.h");
-  remove("src/gen_def_models.c");
+  remove("test_out/src/gen_def.h");
+  remove("test_out/src/gen_def.c");
+  remove("test_out/src/gen_def_models.h");
+  remove("test_out/src/gen_def_models.c");
   PASS();
 }
 
@@ -658,11 +658,11 @@ TEST test_gen_transport_selection(void) {
   size_t sz;
 
   setup_minimal_spec(&spec, &op);
-  config.filename_base = "gen_transport";
+  config.filename_base = "test_out/gen_transport";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
 
-  read_to_file("src/gen_transport.c", "r", &content, &sz);
+  read_to_file("test_out/src/gen_transport.c", "r", &content, &sz);
 
   /* Verify macros are present in preamble */
   ASSERT(strstr(content, "#ifdef USE_WININET") != NULL);
@@ -686,10 +686,10 @@ TEST test_gen_transport_selection(void) {
   ASSERT(strstr(content, "http_apple_context_free") != NULL);
 
   free(content);
-  remove("src/gen_transport.h");
-  remove("src/gen_transport.c");
-  remove("src/gen_transport_models.h");
-  remove("src/gen_transport_models.c");
+  remove("test_out/src/gen_transport.h");
+  remove("test_out/src/gen_transport.c");
+  remove("test_out/src/gen_transport_models.h");
+  remove("test_out/src/gen_transport_models.c");
   PASS();
 }
 

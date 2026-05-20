@@ -14,9 +14,27 @@ repos:
         args: ["--style=file", "-i"]
   - repo: local
     hooks:
-      - id: build-test-update-shields
-        name: Build, Test, Lint, and Update Shields
-        entry: ./scripts/pre_commit.sh
-        language: script
+      - id: build
+        name: Build
+        entry: python scripts/pre_commit.py build
+        language: python
+        pass_filenames: false
+        always_run: true
+      - id: test
+        name: Test
+        entry: python scripts/pre_commit.py test
+        language: python
+        pass_filenames: false
+        always_run: true
+      - id: lint
+        name: Lint
+        entry: python scripts/pre_commit.py lint
+        language: python
+        pass_filenames: false
+        always_run: true
+      - id: update-shields
+        name: Update Shields & Validate OpenAPI
+        entry: python scripts/pre_commit.py shields
+        language: python
         pass_filenames: false
         always_run: true

@@ -57,11 +57,15 @@ static int gen_body(const struct OpenAPI_Operation *op,
 }
 
 TEST test_body_basic_get(void) {
-  char *_ast_gen_body_0 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_0 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -87,11 +91,15 @@ TEST test_body_basic_get(void) {
 }
 
 TEST test_body_base_url_override(void) {
-  char *_ast_gen_body_1 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_1 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -113,11 +121,15 @@ TEST test_body_base_url_override(void) {
 }
 
 TEST test_body_options_verb(void) {
-  char *_ast_gen_body_2 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_2 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -137,11 +149,15 @@ TEST test_body_options_verb(void) {
 }
 
 TEST test_body_trace_verb(void) {
-  char *_ast_gen_body_3 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_3 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -161,11 +177,15 @@ TEST test_body_trace_verb(void) {
 }
 
 TEST test_body_query_verb(void) {
-  char *_ast_gen_body_4 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_4 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -185,11 +205,15 @@ TEST test_body_query_verb(void) {
 }
 
 TEST test_body_additional_connect_method(void) {
-  char *_ast_gen_body_5 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_5 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -211,12 +235,18 @@ TEST test_body_additional_connect_method(void) {
 }
 
 TEST test_body_querystring_param(void) {
-  char *_ast_gen_body_6 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_6 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -245,11 +275,15 @@ TEST test_body_querystring_param(void) {
 }
 
 TEST test_body_inline_response_string(void) {
-  char *_ast_gen_body_7 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_7 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -271,11 +305,15 @@ TEST test_body_inline_response_string(void) {
 }
 
 TEST test_body_inline_response_array_number(void) {
-  char *_ast_gen_body_8 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_8 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -298,11 +336,15 @@ TEST test_body_inline_response_array_number(void) {
 }
 
 TEST test_body_inline_request_body_string(void) {
-  char *_ast_gen_body_9 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_9 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -326,11 +368,15 @@ TEST test_body_inline_request_body_string(void) {
 }
 
 TEST test_body_inline_request_body_string_json_params(void) {
-  char *_ast_gen_body_10 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_10 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -353,11 +399,15 @@ TEST test_body_inline_request_body_string_json_params(void) {
 }
 
 TEST test_body_inline_request_body_array(void) {
-  char *_ast_gen_body_11 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_11 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -381,10 +431,12 @@ TEST test_body_inline_request_body_array(void) {
 }
 
 TEST test_body_textual_request_body_xml(void) {
-  char *_ast_gen_body_12 = NULL;
-  struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_12 = NULL;
+
+  memset(&op, 0, sizeof(op));
 
   memset(&op, 0, sizeof(op));
   openapi_spec_init(&spec);
@@ -405,10 +457,12 @@ TEST test_body_textual_request_body_xml(void) {
 }
 
 TEST test_body_binary_request_body_pdf(void) {
-  char *_ast_gen_body_13 = NULL;
-  struct OpenAPI_Operation op = {0};
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_13 = NULL;
+
+  memset(&op, 0, sizeof(op));
 
   memset(&op, 0, sizeof(op));
   openapi_spec_init(&spec);
@@ -429,12 +483,18 @@ TEST test_body_binary_request_body_pdf(void) {
 }
 
 TEST test_body_header_array_param(void) {
-  char *_ast_gen_body_14 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_14 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -466,12 +526,18 @@ TEST test_body_header_array_param(void) {
 }
 
 TEST test_body_header_object_param(void) {
-  char *_ast_gen_body_15 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_15 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -505,12 +571,18 @@ TEST test_body_header_object_param(void) {
 }
 
 TEST test_body_header_json_param_ref(void) {
-  char *_ast_gen_body_16 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_16 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -543,12 +615,18 @@ TEST test_body_header_json_param_ref(void) {
 }
 
 TEST test_body_header_number_param(void) {
-  char *_ast_gen_body_17 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_17 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -578,12 +656,18 @@ TEST test_body_header_number_param(void) {
 }
 
 TEST test_body_cookie_param(void) {
-  char *_ast_gen_body_18 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_18 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -613,12 +697,18 @@ TEST test_body_cookie_param(void) {
 }
 
 TEST test_body_cookie_param_number_array(void) {
-  char *_ast_gen_body_19 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_19 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -653,12 +743,18 @@ TEST test_body_cookie_param_number_array(void) {
 }
 
 TEST test_body_cookie_param_array_explode_false(void) {
-  char *_ast_gen_body_20 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_20 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -693,12 +789,18 @@ TEST test_body_cookie_param_array_explode_false(void) {
 }
 
 TEST test_body_cookie_param_object_form(void) {
-  char *_ast_gen_body_21 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_21 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -730,12 +832,18 @@ TEST test_body_cookie_param_object_form(void) {
 }
 
 TEST test_body_cookie_param_string_allow_reserved(void) {
-  char *_ast_gen_body_22 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Parameter param;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_22 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
+
+  memset(&param, 0, sizeof(param));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -768,14 +876,18 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
 }
 
 TEST test_body_security_query_api_key(void) {
-  char *_ast_gen_body_23 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_SecurityScheme scheme;
   struct OpenAPI_SecurityRequirement req;
   struct OpenAPI_SecurityRequirementSet sec_set;
-  char *code;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  struct OpenAPI_SecurityScheme scheme;
+  char *code = NULL;
+  char *_ast_gen_body_23 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -817,12 +929,18 @@ TEST test_body_security_query_api_key(void) {
 }
 
 TEST test_body_security_cookie_api_key(void) {
-  char *_ast_gen_body_24 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_SecurityRequirement req;
+  struct OpenAPI_SecurityRequirementSet sec_set;
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
   struct OpenAPI_SecurityScheme scheme;
-  char *code;
+  char *code = NULL;
+  char *_ast_gen_body_24 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -841,11 +959,9 @@ TEST test_body_security_cookie_api_key(void) {
   spec.security_schemes = &scheme;
   spec.n_security_schemes = 1;
 
-  struct OpenAPI_SecurityRequirement req;
   memset(&req, 0, sizeof(req));
   req.scheme = "CookieKey";
 
-  struct OpenAPI_SecurityRequirementSet sec_set;
   memset(&sec_set, 0, sizeof(sec_set));
   sec_set.requirements = &req;
   sec_set.n_requirements = 1;
@@ -865,12 +981,16 @@ TEST test_body_security_cookie_api_key(void) {
 }
 
 TEST test_body_form_urlencoded(void) {
-  char *_ast_gen_body_25 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_25 = NULL;
   char *schema_name = "FormData";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -911,12 +1031,16 @@ TEST test_body_form_urlencoded(void) {
 }
 
 TEST test_body_form_urlencoded_with_params(void) {
-  char *_ast_gen_body_26 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_26 = NULL;
   char *schema_name = "FormData";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -954,12 +1078,16 @@ TEST test_body_form_urlencoded_with_params(void) {
 }
 
 TEST test_body_form_urlencoded_object_fields(void) {
-  char *_ast_gen_body_27 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_27 = NULL;
   char *schema_name = "FormData";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -998,13 +1126,17 @@ TEST test_body_form_urlencoded_object_fields(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
-  char *_ast_gen_body_28 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
-  char *code;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_28 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1063,13 +1195,17 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
-  char *_ast_gen_body_29 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
-  char *code;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_29 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1129,13 +1265,17 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
 }
 
 TEST test_body_form_urlencoded_object_style_deep_object(void) {
-  char *_ast_gen_body_30 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
-  char *code;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_30 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1194,12 +1334,16 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
 }
 
 TEST test_body_multipart_primitives_and_arrays(void) {
-  char *_ast_gen_body_31 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_31 = NULL;
   char *schema_name = "Upload";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1250,12 +1394,16 @@ TEST test_body_multipart_primitives_and_arrays(void) {
 }
 
 TEST test_body_multipart_object_fields(void) {
-  char *_ast_gen_body_32 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_32 = NULL;
   char *schema_name = "FormData";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1297,14 +1445,18 @@ TEST test_body_multipart_object_fields(void) {
 }
 
 TEST test_body_multipart_encoding_content_type(void) {
-  char *_ast_gen_body_33 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_33 = NULL;
   char *schema_name = "Upload";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1351,14 +1503,18 @@ TEST test_body_multipart_encoding_content_type(void) {
 }
 
 TEST test_body_multipart_encoding_content_type_list(void) {
-  char *_ast_gen_body_34 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_34 = NULL;
   char *schema_name = "Upload";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1405,15 +1561,19 @@ TEST test_body_multipart_encoding_content_type_list(void) {
 }
 
 TEST test_body_multipart_encoding_headers(void) {
-  char *_ast_gen_body_35 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
-  struct OpenAPI_Spec spec;
-  struct OpenAPI_MediaType mt;
   struct OpenAPI_Encoding enc;
   struct OpenAPI_Header headers[3];
+  struct OpenAPI_Response resp;
+  struct OpenAPI_MediaType mt;
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_35 = NULL;
   char *schema_name = "Upload";
-  char *code;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1472,11 +1632,15 @@ TEST test_body_multipart_encoding_headers(void) {
 }
 
 TEST test_body_response_range_success(void) {
-  char *_ast_gen_body_36 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_36 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1498,11 +1662,15 @@ TEST test_body_response_range_success(void) {
 }
 
 TEST test_body_default_response_success(void) {
-  char *_ast_gen_body_37 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_37 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1524,11 +1692,15 @@ TEST test_body_default_response_success(void) {
 }
 
 TEST test_body_text_plain_response_string(void) {
-  char *_ast_gen_body_38 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_38 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1551,11 +1723,15 @@ TEST test_body_text_plain_response_string(void) {
 }
 
 TEST test_body_text_plain_response_range(void) {
-  char *_ast_gen_body_39 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_39 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1578,11 +1754,15 @@ TEST test_body_text_plain_response_range(void) {
 }
 
 TEST test_body_text_plain_response_default(void) {
-  char *_ast_gen_body_40 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_40 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1605,11 +1785,15 @@ TEST test_body_text_plain_response_default(void) {
 }
 
 TEST test_body_textual_response_xml(void) {
-  char *_ast_gen_body_41 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_41 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1632,11 +1816,15 @@ TEST test_body_textual_response_xml(void) {
 }
 
 TEST test_body_binary_response_pdf(void) {
-  char *_ast_gen_body_42 = NULL;
-  struct OpenAPI_Operation op = {0};
-  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
-  char *code;
+  struct OpenAPI_Operation op;
+  char *code = NULL;
+  char *_ast_gen_body_42 = NULL;
+
+  memset(&op, 0, sizeof(op));
+
+  memset(&resp, 0, sizeof(resp));
 
   memset(&op, 0, sizeof(op));
   memset(&resp, 0, sizeof(resp));
@@ -1660,6 +1848,7 @@ TEST test_body_binary_response_pdf(void) {
 TEST test_client_body_verb_mapping(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1710,6 +1899,7 @@ TEST test_client_body_verb_mapping(void) {
 TEST test_client_body_mapped_err_code(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1734,6 +1924,7 @@ TEST test_client_body_mapped_err_code(void) {
 TEST test_client_body_media_type_matching(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1763,6 +1954,7 @@ TEST test_client_body_media_type_matching(void) {
 TEST test_client_body_find_media_type_not_found(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1790,8 +1982,10 @@ TEST test_client_body_find_media_type_not_found(void) {
 }
 
 TEST test_client_body_find_encoding_not_found(void) {
+  struct OpenAPI_Encoding enc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1809,7 +2003,6 @@ TEST test_client_body_find_encoding_not_found(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/form-data";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "other_prop"; /* Different from test_prop */
   enc.content_type = "text/plain";
@@ -1841,6 +2034,7 @@ TEST test_client_body_find_encoding_not_found(void) {
 TEST test_client_body_array_items_statics(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1906,6 +2100,7 @@ TEST test_client_body_array_items_statics(void) {
 TEST test_client_body_verb_enum_indirect(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1930,8 +2125,12 @@ TEST test_client_body_verb_enum_indirect(void) {
 }
 
 TEST test_client_body_header_formatting_indirect(void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_Header hdr;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -1960,11 +2159,9 @@ TEST test_client_body_header_formatting_indirect(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "1test_prop";
 
-  struct OpenAPI_Header hdr;
   memset(&hdr, 0, sizeof(hdr));
   hdr.name =
       "1Content-Type"; /* hit sanitize starting with number, and it isn't */
@@ -1976,7 +2173,6 @@ TEST test_client_body_header_formatting_indirect(void) {
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "1test_prop";
   mf.type = "string";
@@ -1995,8 +2191,11 @@ TEST test_client_body_header_formatting_indirect(void) {
 }
 
 TEST test_client_body_media_types_textual_binary_indirect(void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2024,14 +2223,12 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "test_prop";
   mf.type = "string";
@@ -2077,8 +2274,11 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
 TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
     void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2106,14 +2306,12 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "test_prop";
   mf.type = "string";
@@ -2138,8 +2336,11 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 }
 
 TEST test_client_body_media_type_caps_indirect(void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2167,14 +2368,12 @@ TEST test_client_body_media_type_caps_indirect(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "test_prop";
   mf.type = "string";
@@ -2195,8 +2394,11 @@ TEST test_client_body_media_type_caps_indirect(void) {
 }
 
 TEST test_client_body_media_type_prefix_caps_indirect(void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2224,14 +2426,12 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "test_prop";
   mf.type = "string";
@@ -2252,8 +2452,11 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 }
 
 TEST test_client_body_media_type_prefix_suffix_short(void) {
+  struct OpenAPI_Encoding enc;
+  struct OpenAPI_MultipartField mf;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2280,14 +2483,12 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "multipart/mixed";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "test_prop";
 
   op.req_body_media_types[0].n_encoding = 1;
   op.req_body_media_types[0].encoding = &enc;
 
-  struct OpenAPI_MultipartField mf;
   memset(&mf, 0, sizeof(mf));
   mf.name = "test_prop";
   mf.type = "string";
@@ -2312,8 +2513,10 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 }
 
 TEST test_client_body_write_inline_json_parse_indirect(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2325,7 +2528,7 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
 
   /* We need to hit write_response_read -> write_inline_json_parse */
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2373,8 +2576,10 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
 }
 
 TEST test_client_body_write_inline_json_parse_types(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2385,7 +2590,7 @@ TEST test_client_body_write_inline_json_parse_types(void) {
   op.operation_id = "testInlineParseTypes";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2436,8 +2641,10 @@ TEST test_client_body_write_inline_json_parse_types(void) {
 }
 
 TEST test_client_body_write_inline_json_parse_types_indirect(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2448,7 +2655,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
   op.operation_id = "testInlineParseTypes";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2500,8 +2707,10 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
 }
 
 TEST test_client_body_form_object_style_form_explode(void) {
+  struct OpenAPI_Encoding enc;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2530,7 +2739,6 @@ TEST test_client_body_form_object_style_form_explode(void) {
   op.req_body_media_types = calloc(1, sizeof(*op.req_body_media_types));
   op.req_body_media_types[0].name = "application/x-www-form-urlencoded";
 
-  struct OpenAPI_Encoding enc;
   memset(&enc, 0, sizeof(enc));
   enc.name = "obj_prop";
   enc.style_set = 1;
@@ -2554,6 +2762,7 @@ TEST test_client_body_form_object_style_form_explode(void) {
 TEST test_client_body_cookie_object_style_form_explode(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2580,8 +2789,10 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
 }
 
 TEST test_client_body_response_is_textual_string_indirect(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2592,7 +2803,7 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   op.operation_id = "testResponseIsTextualStringIndirect";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2619,8 +2830,10 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
 }
 
 TEST test_client_body_response_is_textual_string_success(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2631,7 +2844,7 @@ TEST test_client_body_response_is_textual_string_success(void) {
   op.operation_id = "testResponseTextualSuccess";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
   resp.content_type = "text/plain";
@@ -2647,8 +2860,10 @@ TEST test_client_body_response_is_textual_string_success(void) {
 }
 
 TEST test_client_body_write_text_plain_success_indirect(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2659,7 +2874,7 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
   op.operation_id = "testResponseTextualSuccessIndirect";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
   resp.content_type = "text/plain";
@@ -2682,8 +2897,10 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
 }
 
 TEST test_client_body_write_binary_success_indirect_real(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2694,7 +2911,7 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   op.operation_id = "testResponseBinarySuccessIndirectReal";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
   resp.content_type = "image/png"; /* Binary! */
@@ -2708,8 +2925,10 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
 }
 
 TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2720,7 +2939,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   op.operation_id = "testResponseTextualSuccessIndirectRealFixed";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
   resp.content_type = "text/plain";
@@ -2739,8 +2958,10 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
 }
 
 TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2751,7 +2972,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
   op.operation_id = "testResponseTextualSuccessIndirectRealFixed4";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2777,8 +2998,10 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 }
 
 TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2789,7 +3012,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
   op.operation_id = "testInlineParseTypesString";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
 
@@ -2835,6 +3058,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
 TEST test_client_body_write_joined_form_array(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2873,8 +3097,10 @@ TEST test_client_body_write_joined_form_array(void) {
 }
 
 TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
+  struct OpenAPI_Response resp;
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op;
+
   FILE *fp = tmpfile();
 
   memset(&spec, 0, sizeof(spec));
@@ -2885,7 +3111,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   op.operation_id = "testResponseTextualSuccessIndirectRealFixed3";
 
   op.n_responses = 1;
-  struct OpenAPI_Response resp;
+
   memset(&resp, 0, sizeof(resp));
   resp.code = "200";
   resp.content_type = "text/plain";

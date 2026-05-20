@@ -109,7 +109,7 @@ static int build_block(cdd_cst_cfg_t *cfg, cdd_cst_cfg_block_t *curr_block,
 
 static int walk_function_body(cdd_cst_cfg_t *cfg,
                               cdd_cst_node_t *function_node) {
-  cdd_cst_cfg_block_t *current;
+  cdd_cst_cfg_block_t *current = NULL;
   size_t i, j;
   int rc;
 
