@@ -7,6 +7,7 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
         args: ['--fix=lf']
+        exclude: '\.(bat|cmd|ps1)$'
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:
