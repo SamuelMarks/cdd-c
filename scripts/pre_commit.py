@@ -28,6 +28,8 @@ def main():
             shutil.copy("build_cmake/bin/cdd-c", "bin/cdd-c")
         elif os.path.exists("build_cmake/bin/Release/cdd-c.exe"):
             shutil.copy("build_cmake/bin/Release/cdd-c.exe", "bin/cdd-c.exe")
+        elif os.path.exists("build_cmake/bin/cdd-c.exe"):
+            shutil.copy("build_cmake/bin/cdd-c.exe", "bin/cdd-c.exe")
         else:
             print("Warning: cdd-c binary not found after build.")
 
@@ -72,11 +74,12 @@ def main():
         run_cmd([sys.executable, "scripts/update_badges.py"])
 
         # Test OpenAPI generation
-        spec_oas3 = os.path.expanduser("~/repos/cdd-openapi-test-harness/petstore_oas3.json")
-        if not os.path.exists(spec_oas3):
-            spec_oas3 = "C:/Users/samue/repos/cdd-openapi-test-harness/petstore_oas3.json"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        repo_root = os.path.dirname(script_dir)
+        parent_dir = os.path.dirname(repo_root)
 
-        cdd_c_bin = "bin/cdd-c.exe" if os.name == "nt" else "bin/cdd-c"
+        spec_oas3 = os.path.join(parent_dir, "petstore_oas3.json")
+        cdd_c_bin = os.path.join("bin", "cdd-c.exe") if os.name == "nt" else os.path.join("bin", "cdd-c")
 
         if os.path.exists(spec_oas3) and os.path.exists(cdd_c_bin):
             print("=== OpenAPI 3.2.0 Petstore Test ===")
@@ -93,9 +96,7 @@ def main():
         else:
              print(f"Warning: Spec {spec_oas3} or binary {cdd_c_bin} not found. Skipping OAS3 test.")
 
-        spec_sw2 = os.path.expanduser("~/repos/cdd-openapi-test-harness/petstore.json")
-        if not os.path.exists(spec_sw2):
-            spec_sw2 = "C:/Users/samue/repos/cdd-openapi-test-harness/petstore.json"
+        spec_sw2 = os.path.join(parent_dir, "petstore.json")
 
         if os.path.exists(spec_sw2) and os.path.exists(cdd_c_bin):
             print("=== Swagger 2.0 Petstore Test ===")

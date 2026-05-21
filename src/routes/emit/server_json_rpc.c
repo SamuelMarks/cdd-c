@@ -144,5 +144,9 @@ C_CDD_EXPORT int server_json_rpc_main(int argc, char **argv) {
 #else
 #include "server_json_rpc.h"
 /* clang-format on */
-int server_json_rpc_main(int argc, char **argv) { return -1; }
+int server_json_rpc_main(int argc, char **argv) {
+  (void)argc;
+  (void)argv;
+  return -1;
+}
 #endif

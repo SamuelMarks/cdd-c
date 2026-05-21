@@ -37,13 +37,19 @@
 
 /* --- Generators (InMemory) --- */
 
+#if defined(__wasm__) || defined(__wasm32__)
+#define CDD_TMPFILE() NULL
+#else
+#define CDD_TMPFILE() tmpfile()
+#endif
+
 /**
  * @brief Generate signature string.
  */
 static int generate_expected_sig(const struct OpenAPI_Operation *op,
                                  const struct ApiSyncConfig *cfg,
                                  char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
   struct CodegenSigConfig sig_cfg;
@@ -92,7 +98,7 @@ static int generate_expected_sig(const struct OpenAPI_Operation *op,
  */
 static int generate_expected_query(const struct OpenAPI_Operation *op,
                                    char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
 
@@ -194,7 +200,7 @@ static int generate_expected_url(const char *path,
                                  const struct OpenAPI_Operation *op,
                                  const struct ApiSyncConfig *cfg,
                                  char **_out_val) {
-  FILE *tmp = tmpfile();
+  FILE *tmp = CDD_TMPFILE();
   long sz;
   char *buf;
   struct CodegenUrlConfig url_cfg;

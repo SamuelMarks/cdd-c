@@ -40,7 +40,8 @@ extern "C" {
 /* clang-format on */
 #define CDD_SIZE_T_FMT "zu"
 #define CDD_NUM_FORMAT PRIu64
-#elif defined(__LP64__) || defined(_LP64)
+#elif defined(__LP64__) || defined(_LP64) || defined(__wasm__) ||              \
+    defined(__wasm32__)
 #define CDD_SIZE_T_FMT "lu"
 #define CDD_NUM_FORMAT "llu"
 #else
