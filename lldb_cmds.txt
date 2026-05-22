@@ -1,5 +1,0 @@
-b openapi_load_from_json_internal
-run
-finish
-finish
-finish

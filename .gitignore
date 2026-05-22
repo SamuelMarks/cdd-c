@@ -412,3 +412,7 @@ fix_comments.py
 print_rc.c
 UNDERCOVERED.md
 fix_*.c
+
+*_err.txt
+*_cmds.txt
+missing_file_docs.txt
