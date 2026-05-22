@@ -1,11 +1,6 @@
 /**
  * @file test_url_utils.h
  * @brief Unit tests for URL encoding and query building.
- *
- * Verifies RFC 3986 compliance for encoding and correct structural assembly
- * of query strings.
- *
- * @author Samuel Marks
  */
 
 #ifndef TEST_URL_UTILS_H

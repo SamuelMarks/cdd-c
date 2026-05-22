@@ -1,3 +1,10 @@
+/**
+ * @file msvc_port.c
+ * @brief Implementation of MSVC port transformer.
+ *
+ * @author Samuel Marks
+ */
+
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
@@ -12,6 +19,12 @@
 #include <stdlib.h>
 /* clang-format on */
 
+/**
+ * @brief Replaces POSIX identifiers with MSVC counterparts.
+ *
+ * @param[in,out] tree The CST tree.
+ * @param[in,out] node The current node to process.
+ */
 static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
                                      cdd_cst_node_t *node) {
   size_t i;
@@ -52,6 +65,13 @@ static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
   }
 }
 
+/**
+ * @brief Executes the MSVC port transformer on a CST tree.
+ *
+ * @param[in,out] tree The CST tree.
+ * @param[in] config The transformer configuration.
+ * @return 0 on success, or an error code on failure.
+ */
 int cdd_transform_msvc(cdd_cst_tree_t *tree,
                        const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;

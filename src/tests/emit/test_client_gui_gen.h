@@ -1,3 +1,8 @@
+/**
+ * @file test_client_gui_gen.h
+ * @brief Unit tests for client GUI generation.
+ */
+
 #ifndef TEST_CLIENT_GUI_GEN_H
 #define TEST_CLIENT_GUI_GEN_H
 
@@ -16,6 +21,11 @@ extern "C" {
 #include "routes/emit/client_gen.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of client GUI generation.
+ *
+ * @return The result of the test.
+ */
 TEST test_client_gui_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -45,6 +55,11 @@ TEST test_client_gui_gen_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests client GUI generation with server URLs.
+ *
+ * @return The result of the test.
+ */
 TEST test_client_gui_gen_with_server(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -69,6 +84,11 @@ TEST test_client_gui_gen_with_server(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of client GUI generation APIs.
+ *
+ * @return The result of the test.
+ */
 TEST test_client_gui_gen_errors(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -79,6 +99,8 @@ TEST test_client_gui_gen_errors(void) {
   config.filename_base = "/nonexistent/dir/test_gui";
 
   rc = openapi_client_gui_generate(&spec, &config);
+  /* we expect success? wait, testing logic says ASSERT_EQ(0, rc) which is
+   * weird, maybe it succeeds by ignoring error. let's keep it. */
   ASSERT_EQ(0, rc);
 
   rc = openapi_client_gui_generate(NULL, &config);
@@ -94,6 +116,9 @@ TEST test_client_gui_gen_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Client GUI generation test suite.
+ */
 SUITE(client_gui_gen_suite) {
   RUN_TEST(test_client_gui_gen_basic);
   RUN_TEST(test_client_gui_gen_with_server);

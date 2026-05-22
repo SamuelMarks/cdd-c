@@ -1,3 +1,8 @@
+/**
+ * @file test_pragma.h
+ * @brief Unit tests for parsing _Pragma and destringizing.
+ */
+
 #ifndef TEST_PRAGMA_H
 #define TEST_PRAGMA_H
 
@@ -14,6 +19,11 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Tests tokenization of the _Pragma operator.
+ *
+ * @return The result of the test.
+ */
 TEST test_tokenize_pragma_op(void) {
   struct TokenList *tl = NULL;
   /* _Pragma ( "pack(1)" ) */
@@ -34,6 +44,11 @@ TEST test_tokenize_pragma_op(void) {
   PASS();
 }
 
+/**
+ * @brief Tests basic destringizing functionality.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_basic(void) {
   char *_ast_destringize_0 = NULL;
   char *res = (c_cdd_destringize("\"simple\"", &_ast_destringize_0),
@@ -44,6 +59,11 @@ TEST test_destringize_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests destringizing string with escaped quote.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_escaped_quote(void) {
   char *_ast_destringize_1 = NULL;
   /* "foo\"bar" -> foo"bar */
@@ -56,6 +76,11 @@ TEST test_destringize_escaped_quote(void) {
   PASS();
 }
 
+/**
+ * @brief Tests destringizing string with escaped backslash.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_escaped_backslash(void) {
   char *_ast_destringize_2 = NULL;
   /* "path\\to" -> path\to */
@@ -68,6 +93,11 @@ TEST test_destringize_escaped_backslash(void) {
   PASS();
 }
 
+/**
+ * @brief Tests destringizing a wide string literal.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_wide_literal(void) {
   char *_ast_destringize_3 = NULL;
   /* L"wide" -> wide */
@@ -79,6 +109,11 @@ TEST test_destringize_wide_literal(void) {
   PASS();
 }
 
+/**
+ * @brief Tests destringizing a complex string with mixed escapes.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_mixed(void) {
   char *_ast_destringize_4 = NULL;
   /* "a\\\"b" -> a\"b */
@@ -119,6 +154,11 @@ TEST test_destringize_mixed(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of destringize function.
+ *
+ * @return The result of the test.
+ */
 TEST test_destringize_invalids(void) {
   char *_ast_destringize_5 = NULL;
   char *_ast_destringize_6 = NULL;
@@ -133,6 +173,9 @@ TEST test_destringize_invalids(void) {
   PASS();
 }
 
+/**
+ * @brief Pragma test suite.
+ */
 SUITE(pragma_suite) {
   RUN_TEST(test_tokenize_pragma_op);
   RUN_TEST(test_destringize_basic);

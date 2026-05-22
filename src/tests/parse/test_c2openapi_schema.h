@@ -1,8 +1,6 @@
 /**
  * @file test_c2openapi_schema.h
- * @brief Unit tests for Schema Registry Integration.
- *
- * @author Samuel Marks
+ * @brief Unit tests for C to OpenAPI schema mapping.
  */
 
 #ifndef TEST_C2OPENAPI_SCHEMA_H

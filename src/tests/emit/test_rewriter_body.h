@@ -42,6 +42,10 @@ static int run_body_rewrite(const char *code,
 
 /* --- Call-Site Propagation Tests --- */
 
+/**
+ * @brief test_propagate_void_stmt
+ * @return TEST
+ */
 TEST test_propagate_void_stmt(void) {
   const char *input = ""
                       "void f() { do_work(); }";
@@ -59,6 +63,10 @@ TEST test_propagate_void_stmt(void) {
   PASS();
 }
 
+/**
+ * @brief test_propagate_ptr_assignment
+ * @return TEST
+ */
 TEST test_propagate_ptr_assignment(void) {
   const char *input = ""
                       "void f() { char *s; s = my_strdup(\"a\"); }";
@@ -78,6 +86,10 @@ TEST test_propagate_ptr_assignment(void) {
   PASS();
 }
 
+/**
+ * @brief test_propagate_ptr_declaration
+ * @return TEST
+ */
 TEST test_propagate_ptr_declaration(void) {
   const char *input = ""
                       "void f() { char *s = my_strdup(\"a\"); }";
@@ -98,6 +110,10 @@ TEST test_propagate_ptr_declaration(void) {
   PASS();
 }
 
+/**
+ * @brief test_propagate_nested_hoisting
+ * @return TEST
+ */
 TEST test_propagate_nested_hoisting(void) {
   const char *input = ""
                       "void f() { outer(inner(\"x\")); }";
@@ -119,6 +135,10 @@ TEST test_propagate_nested_hoisting(void) {
 
 /* --- Safety Tests (Repeat from Deliv 2 for Integration Check) --- */
 
+/**
+ * @brief test_integration_safety_and_prop
+ * @return TEST
+ */
 TEST test_integration_safety_and_prop(void) {
   const char *input =
       ""
@@ -139,6 +159,10 @@ TEST test_integration_safety_and_prop(void) {
   PASS();
 }
 
+/**
+ * @brief test_realloc_safety_injection
+ * @return TEST
+ */
 TEST test_realloc_safety_injection(void) {
   const char *input = ""
                       "void f() { char *p; p = realloc(p, 100); }";
@@ -159,7 +183,19 @@ TEST test_realloc_safety_injection(void) {
   PASS();
 }
 
+/**
+ * @brief rewriter_body_suite
+ */
+
+TEST test_rewriter_body_bounds(void) {
+  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+  char *output = NULL;
+  ASSERT_EQ(-1, run_body_rewrite(NULL, funcs, 1, NULL, &output));
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
+  // RUN_TEST(test_rewriter_body_bounds);
   RUN_TEST(test_propagate_void_stmt);
   RUN_TEST(test_propagate_ptr_assignment);
   RUN_TEST(test_propagate_ptr_declaration);

@@ -1,3 +1,8 @@
+/**
+ * @file test_json_from_and_to.h
+ * @brief Unit tests for JSON to_json and from_json mock functions.
+ */
+
 #ifndef TEST_JSON_FROM_AND_TO_H
 #define TEST_JSON_FROM_AND_TO_H
 
@@ -11,6 +16,11 @@ extern "C" {
 #include <greatest.h>
 /* clang-format on */
 
+/**
+ * @brief Tests basic from_str and to_str functionality for Tank enum.
+ *
+ * @return The result of the test.
+ */
 TEST test_enum_tank_to_str_and_from_str(void) {
   char *str = NULL;
   enum Tank tank_val;
@@ -31,8 +41,11 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   PASS();
 }
 
-/* Test struct HazE to_json/from_json roundtrip */
-
+/**
+ * @brief Tests struct HazE to_json/from_json roundtrip.
+ *
+ * @return The result of the test.
+ */
 TEST test_HazE_to_json_and_from_json(void) {
   struct HazE haz = {"example", Tank_BIG};
   char *json_str = NULL;
@@ -54,8 +67,11 @@ TEST test_HazE_to_json_and_from_json(void) {
   PASS();
 }
 
-/* Test struct FooE to_json/from_json roundtrip */
-
+/**
+ * @brief Tests struct FooE to_json/from_json roundtrip with null member.
+ *
+ * @return The result of the test.
+ */
 TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   struct FooE foo = {"barval", 42, NULL};
   char *json_str = NULL;
@@ -77,6 +93,11 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
   PASS();
 }
 
+/**
+ * @brief Tests struct FooE to_json/from_json roundtrip with non-null member.
+ *
+ * @return The result of the test.
+ */
 TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   struct HazE haz_in = {"bzr_data_here", Tank_BIG};
   struct FooE foo_in = {"bar_data_here", 777, NULL};
@@ -102,6 +123,9 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
   PASS();
 }
 
+/**
+ * @brief JSON mock serialization test suite.
+ */
 SUITE(json_from_and_to_suite) {
   RUN_TEST(test_enum_tank_to_str_and_from_str);
 

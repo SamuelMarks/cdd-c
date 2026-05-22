@@ -30,6 +30,10 @@ extern "C" {
 
 /**
  * @brief Convert binary buffer to hex string for easy comparison.
+ *
+ * @param[in] bin The binary buffer.
+ * @param[in] len The length of the binary buffer.
+ * @param[out] out The output hex string (must be at least len * 2 + 1 bytes).
  */
 static void bin2hex(const unsigned char *bin, size_t len, char *out) {
   size_t i;
@@ -45,11 +49,12 @@ static void bin2hex(const unsigned char *bin, size_t len, char *out) {
 
 /**
  * @brief Check a list if Platform is supported to skip tests gracefully.
- * Returns 1 if supported, 0 otherwise.
+ *
+ * @return 1 if supported, 0 otherwise.
  */
 static int is_crypto_supported(void) {
   unsigned char buf[CRYPTO_SHA256_SIZE];
-  if (crypto_sha256("test", 4, buf) == ENOTSUP) {
+  if (crypto_sha256("test", 4, buf) == ENOSYS) {
     return 0;
   }
   return 1;
@@ -57,6 +62,11 @@ static int is_crypto_supported(void) {
 
 /* SHA256 Tests */
 
+/**
+ * @brief Test SHA256 with an empty string.
+ *
+ * @return The result of the test.
+ */
 TEST test_sha256_empty_string(void) {
   unsigned char digest[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
@@ -73,6 +83,11 @@ TEST test_sha256_empty_string(void) {
   PASS();
 }
 
+/**
+ * @brief Test SHA256 with a known string.
+ *
+ * @return The result of the test.
+ */
 TEST test_sha256_known_string(void) {
   unsigned char digest[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
@@ -92,6 +107,11 @@ TEST test_sha256_known_string(void) {
 
 /* HMAC-SHA256 Tests (Vectors from RFC 4231) */
 
+/**
+ * @brief Test HMAC RFC4231 Case 1.
+ *
+ * @return The result of the test.
+ */
 TEST test_hmac_rfc4231_case1(void) {
   unsigned char mac[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
@@ -112,6 +132,11 @@ TEST test_hmac_rfc4231_case1(void) {
   PASS();
 }
 
+/**
+ * @brief Test HMAC RFC4231 Case 2.
+ *
+ * @return The result of the test.
+ */
 TEST test_hmac_rfc4231_case2(void) {
   unsigned char mac[CRYPTO_SHA256_SIZE];
   char hex[CRYPTO_SHA256_SIZE * 2 + 1];
@@ -130,6 +155,11 @@ TEST test_hmac_rfc4231_case2(void) {
   PASS();
 }
 
+/**
+ * @brief Test HMAC with empty keys or data.
+ *
+ * @return The result of the test.
+ */
 TEST test_hmac_empty_keys_or_data(void) {
   unsigned char mac[CRYPTO_SHA256_SIZE];
   const char *key = "key";
@@ -159,6 +189,9 @@ TEST test_hmac_empty_keys_or_data(void) {
   PASS();
 }
 
+/**
+ * @brief Crypto test suite.
+ */
 SUITE(crypto_suite) {
   RUN_TEST(test_sha256_empty_string);
   RUN_TEST(test_sha256_known_string);

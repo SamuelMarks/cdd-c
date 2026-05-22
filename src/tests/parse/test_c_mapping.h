@@ -24,6 +24,10 @@ extern "C" {
 #include "classes/parse/mapping.h"
 /* clang-format on */
 
+/**
+ * @brief test_mapping_int
+ * @return TEST
+ */
 TEST test_mapping_int(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -38,6 +42,10 @@ TEST test_mapping_int(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_string
+ * @return TEST
+ */
 TEST test_mapping_string(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -57,6 +65,10 @@ TEST test_mapping_string(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_struct_ref
+ * @return TEST
+ */
 TEST test_mapping_struct_ref(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -77,6 +89,10 @@ TEST test_mapping_struct_ref(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_array
+ * @return TEST
+ */
 TEST test_mapping_array(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -91,6 +107,10 @@ TEST test_mapping_array(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_bool
+ * @return TEST
+ */
 TEST test_mapping_bool(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -102,6 +122,10 @@ TEST test_mapping_bool(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_long
+ * @return TEST
+ */
 TEST test_mapping_long(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -113,6 +137,10 @@ TEST test_mapping_long(void) {
   PASS();
 }
 
+/**
+ * @brief test_mapping_void_ptr
+ * @return TEST
+ */
 TEST test_mapping_void_ptr(void) {
   struct OpenApiTypeMapping m;
   int rc;
@@ -125,6 +153,9 @@ TEST test_mapping_void_ptr(void) {
   PASS();
 }
 
+/**
+ * @brief c_mapping_suite
+ */
 SUITE(c_mapping_suite) {
   RUN_TEST(test_mapping_int);
   RUN_TEST(test_mapping_string);

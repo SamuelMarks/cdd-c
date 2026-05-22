@@ -1,3 +1,8 @@
+/**
+ * @file test_msvc_port.h
+ * @brief Unit tests for MSVC port transformer.
+ */
+
 #ifndef TEST_CDD_TRANSFORM_MSVC_PORT_H
 #define TEST_CDD_TRANSFORM_MSVC_PORT_H
 
@@ -15,6 +20,11 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
+/**
+ * @brief Test MSVC transformation of POSIX features.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_msvc(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -35,18 +45,20 @@ TEST test_cdd_transform_msvc(void) {
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 
-  printf("MSVC OUT:\n%s\n", out);
-  /* ASSERT(strstr(out, "_stricmp comment ") != NULL); */
-  /* ASSERT(strstr(out, "_strnicmp") != NULL); */
-  /* ASSERT(strstr(out, "_strdup") != NULL); */
-  /* ASSERT(strstr(out, "SSIZE_T") != NULL); */
-  /* ASSERT(strstr(out, "cdd_builtin_expect") != NULL); */
+  ASSERT(strstr(out, "_stricmp /* comment */ ") != NULL);
+  ASSERT(strstr(out, "_strnicmp") != NULL);
+  ASSERT(strstr(out, "_strdup") != NULL);
+  ASSERT(strstr(out, "SSIZE_T") != NULL);
+  ASSERT(strstr(out, "cdd_builtin_expect") != NULL);
 
   free(out);
   cdd_cst_tree_free(tree);
   PASS();
 }
 
+/**
+ * @brief Test suite for MSVC port transformer.
+ */
 SUITE(transformer_msvc_port_suite) { RUN_TEST(test_cdd_transform_msvc); }
 
 #ifdef __cplusplus

@@ -21,6 +21,10 @@ extern "C" {
 #include "functions/emit/make.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic make file generation.
+ * @return TEST
+ */
 TEST test_make_simple(void) {
   FILE *tmp = tmpfile();
   struct MakeConfig cfg;
@@ -49,6 +53,10 @@ TEST test_make_simple(void) {
   PASS();
 }
 
+/**
+ * @brief Tests make file generation with extra sources.
+ * @return TEST
+ */
 TEST test_make_extra_sources(void) {
   FILE *tmp = tmpfile();
   struct MakeConfig cfg;
@@ -59,7 +67,7 @@ TEST test_make_extra_sources(void) {
   ASSERT(tmp);
   memset(&cfg, 0, sizeof(cfg));
   cfg.project_name = "w_extras";
-  cfg.extra_sources = extras;
+  cfg.extra_sources = (const char **)extras;
   cfg.extra_source_count = 2;
 
   ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));
@@ -78,6 +86,10 @@ TEST test_make_extra_sources(void) {
   PASS();
 }
 
+/**
+ * @brief Tests make file generator with invalid arguments.
+ * @return TEST
+ */
 TEST test_make_invalid(void) {
   struct MakeConfig cfg = {0};
   FILE *tmp = tmpfile();
@@ -92,6 +104,9 @@ TEST test_make_invalid(void) {
   PASS();
 }
 
+/**
+ * @brief Suite for codegen make
+ */
 SUITE(codegen_make_suite) {
   RUN_TEST(test_make_simple);
   RUN_TEST(test_make_extra_sources);

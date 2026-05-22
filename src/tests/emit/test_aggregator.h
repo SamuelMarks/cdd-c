@@ -46,6 +46,10 @@ static void dummy_op(struct OpenAPI_Operation *op, const char *id) {
   }
 }
 
+/**
+ * @brief test_aggregator_add_new
+ * @return TEST
+ */
 TEST test_aggregator_add_new(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -67,6 +71,10 @@ TEST test_aggregator_add_new(void) {
   PASS();
 }
 
+/**
+ * @brief test_aggregator_merge_paths
+ * @return TEST
+ */
 TEST test_aggregator_merge_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
@@ -94,6 +102,10 @@ TEST test_aggregator_merge_paths(void) {
   PASS();
 }
 
+/**
+ * @brief test_aggregator_distinct_paths
+ * @return TEST
+ */
 TEST test_aggregator_distinct_paths(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op1, op2;
@@ -113,6 +125,10 @@ TEST test_aggregator_distinct_paths(void) {
   PASS();
 }
 
+/**
+ * @brief test_aggregator_add_additional_operation
+ * @return TEST
+ */
 TEST test_aggregator_add_additional_operation(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -137,6 +153,10 @@ TEST test_aggregator_add_additional_operation(void) {
   PASS();
 }
 
+/**
+ * @brief test_aggregator_add_webhook
+ * @return TEST
+ */
 TEST test_aggregator_add_webhook(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -158,6 +178,10 @@ TEST test_aggregator_add_webhook(void) {
   PASS();
 }
 
+/**
+ * @brief test_aggregator_bad_args
+ * @return TEST
+ */
 TEST test_aggregator_bad_args(void) {
   struct OpenAPI_Spec spec;
   struct OpenAPI_Operation op = {0};
@@ -175,6 +199,9 @@ TEST test_aggregator_bad_args(void) {
   PASS();
 }
 
+/**
+ * @brief aggregator_suite
+ */
 SUITE(aggregator_suite) {
   RUN_TEST(test_aggregator_add_new);
   RUN_TEST(test_aggregator_merge_paths);

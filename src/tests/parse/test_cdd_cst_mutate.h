@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_mutate.h
+ * @brief Unit tests for CST mutation.
+ */
+
 #ifndef TEST_CDD_CST_MUTATE_H
 #define TEST_CDD_CST_MUTATE_H
 
@@ -174,11 +179,95 @@ TEST test_mutate_utils(void) {
   PASS();
 }
 
-SUITE(cdd_cst_mutate_suite) {
+/* old suite */
+void old_cdd_cst_mutate_suite(void) {
   RUN_TEST(test_mutate_utils);
   RUN_TEST(test_mutate_utils);
   RUN_TEST(test_cdd_cst_mutate_errors);
   RUN_TEST(test_cdd_cst_mutate_replace);
+}
+
+/**
+ * @brief Tests child splicing
+ * @return TEST
+ */
+TEST test_cst_splice_children(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *root = NULL;
+  cdd_cst_node_t *child1 = NULL;
+  cdd_token_t *tok = NULL;
+  cdd_cst_child_t new_children[1];
+  int rc;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &root));
+  tree->root = root;
+
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child1));
+  ASSERT_EQ(0, cdd_cst_append_child_node(root, child1));
+  tree->root = root;
+
+  ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "new", &tok));
+  new_children[0].kind = CDD_CST_CHILD_TOKEN;
+  new_children[0].val.token = tok;
+
+  ASSERT_EQ(EINVAL,
+            cdd_cst_splice_children(NULL, &root, 0, 1, new_children, 1));
+  ASSERT_EQ(EINVAL,
+            cdd_cst_splice_children(tree, &root, 0, 2, new_children, 1));
+  ASSERT_EQ(EINVAL, cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
+  /* Out of bounds */
+
+  rc = cdd_cst_splice_children(tree, &root, 0, 1, new_children, 1);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(1, tree->root->num_children);
+  ASSERT_EQ(CDD_CST_CHILD_TOKEN, tree->root->children[0].kind);
+  ASSERT_EQ(tok, tree->root->children[0].val.token);
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
+/**
+ * @brief Tests finding node for token
+ * @return TEST
+ */
+TEST test_cst_find_node_for_token(void) {
+  cdd_cst_node_t *root = NULL;
+  cdd_cst_node_t *child = NULL;
+  cdd_cst_node_t *found_node = NULL;
+  cdd_token_t tok = {0};
+  size_t idx;
+
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &root));
+  ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child));
+  ASSERT_EQ(0, cdd_cst_append_child_node(root, child));
+  ASSERT_EQ(0, cdd_cst_append_child_token(child, &tok));
+
+  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(NULL, &tok, &idx, &found_node));
+  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, NULL, &idx, &found_node));
+  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, &tok, NULL, &found_node));
+  ASSERT_EQ(EINVAL, cdd_cst_find_node_for_token(root, &tok, &idx, NULL));
+
+  ASSERT_EQ(0, cdd_cst_find_node_for_token(root, &tok, &idx, &found_node));
+  ASSERT_EQ(0, idx);
+  ASSERT_EQ(child, found_node);
+
+  cdd_cst_free_node_only(child);
+  cdd_cst_free_node_only(root);
+  PASS();
+}
+
+/**
+ * @brief Rewrite mutate suite to include splice tests
+ */
+
+SUITE(cdd_cst_mutate_suite) {
+  RUN_TEST(test_cdd_cst_mutate_replace);
+  RUN_TEST(test_cdd_cst_mutate_errors);
+  RUN_TEST(test_mutate_utils);
+  RUN_TEST(test_cst_splice_children);
+  RUN_TEST(test_cst_find_node_for_token);
 }
 
 #ifdef __cplusplus

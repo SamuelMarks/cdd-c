@@ -1,3 +1,8 @@
+/**
+ * @file test_cst_parser.h
+ * @brief Unit tests for CST parser.
+ */
+
 #ifndef TEST_CST_PARSER_H
 #define TEST_CST_PARSER_H
 

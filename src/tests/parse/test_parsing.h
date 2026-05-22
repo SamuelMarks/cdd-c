@@ -1,3 +1,8 @@
+/**
+ * @file test_parsing.h
+ * @brief General parsing unit tests.
+ */
+
 #ifndef TEST_PARSING_H
 #define TEST_PARSING_H
 

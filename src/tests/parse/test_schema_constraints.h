@@ -1,3 +1,8 @@
+/**
+ * @file test_schema_constraints.h
+ * @brief Unit tests for OpenAPI schema constraint enforcement.
+ */
+
 #ifndef TEST_SCHEMA_CONSTRAINTS_H
 #define TEST_SCHEMA_CONSTRAINTS_H
 

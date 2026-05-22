@@ -1,71 +1,66 @@
-#include "c_cdd_export.h"
 /**
  * @file schema.h
- * @brief Schema Registry Integration.
- *
- * Implements logic to register C types detected in source code into the
- * central OpenAPI Components. It handles:
- * - Conversion of `c_inspector` types to `StructFields`.
- * - Deduplication (avoiding overwriting existing schemas).
- * - Recursive dependency resolution (e.g. if A uses B, register B).
- *
- * @author Samuel Marks
+ * @brief Schema constraint handling logic for code generation.
  */
 
-#ifndef C_CDD_C2OPENAPI_SCHEMA_H
-#define C_CDD_C2OPENAPI_SCHEMA_H
+#ifndef C_CDD_CODEGEN_SCHEMA_H
+#define C_CDD_CODEGEN_SCHEMA_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/**
- * @brief Frees a string array.
- *
- * @param arr The string array to free.
- * @param n The number of elements in the array.
- */
-extern C_CDD_EXPORT void free_string_array_schema_utils(char **arr, size_t n);
-
-/**
- * @brief Copies a string array.
- *
- * @param dst Pointer to the destination string array.
- * @param dst_count Pointer to the variable holding the destination count.
- * @param src The source string array.
- * @param src_count The number of elements in the source array.
- * @return 0 on success, or an error code.
- */
-extern C_CDD_EXPORT int copy_string_array_schema_utils(char ***dst,
-                                                       size_t *dst_count,
-                                                       char **src,
-                                                       size_t src_count);
-
 /* clang-format off */
-#include "classes/parse/inspector.h"
-#include "openapi/parse/openapi.h"
+#include "c_cdd_export.h"
+#include <stdio.h>
 /* clang-format on */
 
 /**
- * @brief Register a list of types discovered in a file into the Spec.
- *
- * Iterates over the definitions in `types`. For each `struct`:
- * - Checks if it's already in `spec->components.schemas`.
- * - If not, adds it.
- *
- * Note: Enums are currently registered if `c_inspector` supports them deeply,
- * but this focuses primarily on Structs for Schema Objects.
- *
- * @param[in,out] spec The OpenAPI specification to update.
- * @param[in] types The list of types found in a file by `c_inspector`.
- * @return 0 on success, ENOMEM/EINVAL on failure.
+ * @brief Schema type wrapper.
+ */
+struct SchemaType {
+  char *name;
+  char *type;
+  char *ref;
+};
+
+/**
+ * @brief Represents schema validation constraints.
+ */
+struct SchemaConstraints {
+  char **required;
+  size_t required_count;
+  size_t required_capacity;
+  int has_additional_properties;
+  struct SchemaType *additional_properties;
+};
+
+/**
+ * @brief Initializes schema constraints.
+ * @param sc Pointer to constraints struct.
+ * @return 0 on success, error code otherwise.
+ */
+extern C_CDD_EXPORT int schema_constraints_init(struct SchemaConstraints *sc);
+
+/**
+ * @brief Adds a required field to schema constraints.
+ * @param sc Pointer to constraints struct.
+ * @param field Field name.
+ * @return 0 on success, error code otherwise.
  */
 extern C_CDD_EXPORT int
-c2openapi_register_types(struct OpenAPI_Spec *spec,
-                         const struct TypeDefList *types);
+schema_constraints_add_required(struct SchemaConstraints *sc,
+                                const char *field);
+
+/**
+ * @brief Cleans up schema constraints.
+ * @param sc Pointer to constraints struct.
+ */
+extern C_CDD_EXPORT void
+schema_constraints_cleanup(struct SchemaConstraints *sc);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* C_CDD_C2OPENAPI_SCHEMA_H */
+#endif /* C_CDD_CODEGEN_SCHEMA_H */

@@ -1,9 +1,14 @@
+/**
+ * @file test_cli_cst.h
+ * @brief Unit tests for CST CLI transformer routing.
+ */
+
 #ifndef TEST_CLI_CST_H
 #define TEST_CLI_CST_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* clang-format off */
 #include <greatest.h>
@@ -14,6 +19,11 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Tests extern C transformer in audit mode via CLI.
+ *
+ * @return The result of the test.
+ */
 TEST test_cli_cst_extern_c_audit(void) {
   int argc = 4;
   char *argv[] = {"extern_c", "--audit", "test_cli_cst_file.h", NULL};
@@ -30,6 +40,11 @@ TEST test_cli_cst_extern_c_audit(void) {
   PASS();
 }
 
+/**
+ * @brief Tests extern C transformer in fix mode via CLI.
+ *
+ * @return The result of the test.
+ */
 TEST test_cli_cst_extern_c_fix(void) {
   int argc = 4;
   char *argv[] = {"extern_c", "--fix", "test_cli_cst_file.h", NULL};
@@ -46,6 +61,11 @@ TEST test_cli_cst_extern_c_fix(void) {
   PASS();
 }
 
+/**
+ * @brief Tests extern C transformer in dry-run mode via CLI.
+ *
+ * @return The result of the test.
+ */
 TEST test_cli_cst_extern_c_dry_run(void) {
   int argc = 5;
   char *argv[] = {"extern_c", "--fix", "--dry-run", "test_cli_cst_file.h",
@@ -62,6 +82,11 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of the CST CLI router.
+ *
+ * @return The result of the test.
+ */
 TEST test_cli_cst_errors(void) {
   char *argv_no_args[] = {NULL};
   char *argv_unknown[] = {"unknown_tool", NULL};
@@ -90,6 +115,9 @@ TEST test_cli_cst_errors(void) {
   PASS();
 }
 
+/**
+ * @brief CLI CST router test suite.
+ */
 SUITE(cli_cst_suite) {
   RUN_TEST(test_cli_cst_extern_c_audit);
   RUN_TEST(test_cli_cst_extern_c_fix);
@@ -99,6 +127,6 @@ SUITE(cli_cst_suite) {
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
-#endif
+#endif /* TEST_CLI_CST_H */

@@ -1,3 +1,8 @@
+/**
+ * @file test_tokenizer_trigraphs.h
+ * @brief Unit tests for tokenizer trigraphs.
+ */
+
 #ifndef TEST_TOKENIZER_TRIGRAPHS_H
 #define TEST_TOKENIZER_TRIGRAPHS_H
 

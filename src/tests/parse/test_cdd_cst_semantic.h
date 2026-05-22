@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_semantic.h
+ * @brief Unit tests for CST semantic analysis.
+ */
+
 /* clang-format off */
 #ifndef TEST_CDD_CST_SEMANTIC_H
 #define TEST_CDD_CST_SEMANTIC_H

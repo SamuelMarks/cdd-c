@@ -1,3 +1,8 @@
+/**
+ * @file weaver_attributes.c
+ * @brief Implementation of GNU attribute weaving.
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>
@@ -12,9 +17,6 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-/**
- * @brief Executes the weaver translate gcc attributes operation.
- */
 int weaver_translate_gcc_attributes(struct PatchList *patches,
                                     const struct TokenList *tokens,
                                     const struct CstNodeList *cst) {

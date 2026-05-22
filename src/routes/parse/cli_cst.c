@@ -1,3 +1,8 @@
+/**
+ * @file cli_cst.c
+ * @brief Implementation of CLI CST parsing.
+ */
+
 #include "routes/parse/cli_cst.h"
 #include "c_cdd/log.h"
 #include "c_str_span.h"

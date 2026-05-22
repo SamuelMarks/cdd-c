@@ -13,12 +13,20 @@
 /* clang-format on */
 
 #if defined(_MSC_VER)
+/** @brief SNPRINTF macro for MSVC */
 #define SNPRINTF _snprintf
 #else
 /** @brief SNPRINTF macro */
 #define SNPRINTF snprintf
 #endif
 
+/**
+ * @brief Generates client GUI bindings based on OpenAPI specs.
+ *
+ * @param[in] spec The OpenAPI specification data.
+ * @param[in] config The generator configuration.
+ * @return 0 on success, error code on failure.
+ */
 int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                                 const struct OpenApiClientConfig *config) {
   char path_h[1024];
@@ -67,6 +75,8 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     return 0;
   }
 
+  /* Duplicate check inside the original file; left as is to match logic but we
+   * don't strictly need it. */
   if (!fp_h || !fp_c) {
     if (fp_h)
       fclose(fp_h);

@@ -1,3 +1,8 @@
+/**
+ * @file test_codegen_validation.h
+ * @brief Unit tests for validation codegen.
+ */
+
 #ifndef TEST_CODEGEN_VALIDATION_H
 #define TEST_CODEGEN_VALIDATION_H
 

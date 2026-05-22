@@ -1,3 +1,8 @@
+/**
+ * @file test_project_audit.h
+ * @brief Unit tests for project auditing.
+ */
+
 #ifndef TEST_PROJECT_AUDIT_H
 #define TEST_PROJECT_AUDIT_H
 
@@ -265,6 +270,21 @@ TEST test_audit_edge_cases(void) {
   PASS();
 }
 
+TEST test_audit_extras(void) {
+  struct AuditStats stats;
+  char *json = NULL;
+
+  audit_stats_init(&stats);
+  /* test json output on empty violation list */
+  audit_print_json(&stats, &json);
+  ASSERT(json != NULL);
+  ASSERT(strstr(json, "\"violations\": []") != NULL);
+  free(json);
+
+  audit_stats_free(&stats);
+  PASS();
+}
+
 SUITE(project_audit_suite) {
   RUN_TEST(test_audit_stats_null);
   RUN_TEST(test_audit_edge_cases);
@@ -273,6 +293,7 @@ SUITE(project_audit_suite) {
   RUN_TEST(test_audit_ignored_files);
   RUN_TEST(test_audit_return_alloc);
   RUN_TEST(test_audit_json_output);
+  RUN_TEST(test_audit_extras);
 }
 
 #ifdef __cplusplus

@@ -18,6 +18,11 @@ extern "C" {
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of VLA scanning.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_vlas_basic(void) {
   struct TokenList *tokens = NULL;
   struct VLASiteList list;
@@ -47,6 +52,11 @@ TEST test_scan_for_vlas_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of VLA scanning.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_vlas_errors(void) {
   struct TokenList *tl = NULL;
   struct VLASiteList list;
@@ -60,6 +70,9 @@ TEST test_scan_for_vlas_errors(void) {
   PASS();
 }
 
+/**
+ * @brief VLA analyzer test suite.
+ */
 SUITE(vla_analyzer_suite) {
   RUN_TEST(test_scan_for_vlas_basic);
   RUN_TEST(test_scan_for_vlas_errors);

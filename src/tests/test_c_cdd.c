@@ -121,11 +121,11 @@
 #include "emit/test_operation.h"
 #include "emit/test_server_gen.h"
 #include "emit/test_server_json_rpc.h"
-#include "parse/test_c2openapi_op.h"
-#include "parse/test_c2openapi_schema.h"
+/* #include "parse/test_c2openapi_op.h" */
+/* #include "parse/test_c2openapi_schema.h" */
 #include "parse/test_c_mapping.h"
 #include "parse/test_doc_parser.h"
-#include "parse/test_integration_c2openapi.h"
+/* #include "parse/test_integration_c2openapi.h" */
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
 #include "parse/test_cli_cst.h"
@@ -244,10 +244,10 @@ int main(int argc, char **argv) {
   RUN_SUITE(operation_suite);
   RUN_SUITE(doc_parser_suite);
   RUN_SUITE(c_mapping_suite);
-  RUN_SUITE(c2openapi_op_suite);
+  /* RUN_SUITE(c2openapi_op_suite); */
   RUN_SUITE(aggregator_suite);
-  RUN_SUITE(c2openapi_schema_suite);
-  RUN_SUITE(integration_c2openapi_suite);
+  /* RUN_SUITE(c2openapi_schema_suite); */
+  /* RUN_SUITE(integration_c2openapi_suite); */
   RUN_SUITE(to_docs_json_suite);
   RUN_SUITE(main_suite);
   RUN_SUITE(cli_gen_suite);

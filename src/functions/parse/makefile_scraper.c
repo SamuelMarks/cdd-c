@@ -176,16 +176,16 @@ int scrape_configure_ac(
   }
 
 #if defined(_WIN32)
-  tok = strtok_s(copy, " \t\n\r\\", &saveptr);
+  tok = strtok_s(copy, " \t\n\r\\()[]\",", &saveptr);
 #else
-  tok = strtok_r(copy, " \t\n\r\\", &saveptr);
+  tok = strtok_r(copy, " \t\n\r\\()[]\",", &saveptr);
 #endif
   while (tok) {
     process_token(info, tok);
 #if defined(_WIN32)
-    tok = strtok_s(NULL, " \t\n\r\\", &saveptr);
+    tok = strtok_s(NULL, " \t\n\r\\()[]\",", &saveptr);
 #else
-    tok = strtok_r(NULL, " \t\n\r\\", &saveptr);
+    tok = strtok_r(NULL, " \t\n\r\\()[]\",", &saveptr);
 #endif
   }
 

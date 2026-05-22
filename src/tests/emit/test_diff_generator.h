@@ -1,6 +1,6 @@
 /**
  * @file test_diff_generator.h
- * @brief Unit tests for Diff Generator.
+ * @brief Unit tests for CST diff generation.
  */
 
 #ifndef TEST_DIFF_GENERATOR_H
@@ -17,64 +17,62 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/diff_generator.h"
+#include "functions/emit/patcher.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
-TEST test_generate_diff_basic(void) {
-  const char *src = ""
-                    "int main() {\n"
-                    "  return 0;\n"
-                    "}\n";
-
+/**
+ * @brief Tests basic diff generation
+ * @return TEST
+ */
+TEST test_diff_generation_basic(void) {
+  const char *src = "int a = 1;";
   struct TokenList *tokens = NULL;
-  struct PatchList patches;
+  struct PatchList patch_list;
   char *diff = NULL;
   int rc;
+  az_span span;
 
-  az_span span = az_span_create((uint8_t *)src, strlen(src));
+  patch_list_init(&patch_list);
+  span = az_span_create((uint8_t *)src, strlen(src));
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
 
-  patch_list_init(&patches);
+  ASSERT_EQ(EINVAL, patch_list_generate_diff(NULL, &patch_list, "a.c", &diff));
+  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, NULL, "a.c", &diff));
+  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, &patch_list, NULL, &diff));
+  ASSERT_EQ(EINVAL, patch_list_generate_diff(tokens, &patch_list, "a.c", NULL));
 
-  /* Create a dummy patch replacing '0' with '1' */
-  {
-    size_t i;
-    for (i = 0; i < tokens->size; ++i) {
-      if (tokens->tokens[i].kind == TOKEN_NUMBER_LITERAL) {
-        if (patches.size < 1) {
-          patches.patches = malloc(sizeof(struct Patch));
-          patches.capacity = 1;
-        }
-        patches.patches[0].start_token_idx = i;
-        patches.patches[0].end_token_idx = i + 1;
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-        patches.patches[0].text = _strdup("1");
-#else
-        patches.patches[0].text = strdup("1");
-#endif
-        patches.size = 1;
-        break;
-      }
-    }
-  }
-
-  rc = patch_list_generate_diff(tokens, &patches, "main.c", &diff);
+  rc = patch_list_generate_diff(tokens, &patch_list, "a.c", &diff);
   ASSERT_EQ(0, rc);
   ASSERT(diff != NULL);
+  ASSERT_EQ('\0', diff[0]);
+  free(diff);
 
-  ASSERT(strstr(diff, "--- a/main.c\n") != NULL);
-  ASSERT(strstr(diff, "+++ b/main.c\n") != NULL);
-  ASSERT(strstr(diff, "-0\n") != NULL);
-  ASSERT(strstr(diff, "+1\n") != NULL);
+  {
+    char *text = (char *)malloc(5);
+    strcpy(text, "void");
+    ASSERT_EQ(0, patch_list_add(&patch_list, 0, 1, text));
+  }
+
+  rc = patch_list_generate_diff(tokens, &patch_list, "a.c", &diff);
+  ASSERT_EQ(0, rc);
+  ASSERT(strstr(diff, "--- a/a.c"));
+  ASSERT(strstr(diff, "+++ b/a.c"));
+  ASSERT(strstr(diff, "@@ -patch 0 @@"));
+  ASSERT(strstr(diff, "-int"));
+  ASSERT(strstr(diff, "+void"));
 
   free(diff);
-  patch_list_free(&patches);
+  patch_list_free(&patch_list);
   free_token_list(tokens);
   PASS();
 }
 
-SUITE(diff_generator_suite) { RUN_TEST(test_generate_diff_basic); }
+/**
+ * @brief Suite for diff generator
+ */
+SUITE(diff_generator_suite) { RUN_TEST(test_diff_generation_basic); }
 
 #ifdef __cplusplus
 }

@@ -16,7 +16,12 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/weaver.h"
+#include "functions/emit/weaver_attributes.h"
 
+/**
+ * @brief test_weaver_wrap_ifdef_basic
+ * @return TEST
+ */
 TEST test_weaver_wrap_ifdef_basic(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -44,6 +49,10 @@ TEST test_weaver_wrap_ifdef_basic(void) {
   PASS();
 }
 
+/**
+ * @brief test_weaver_wrap_ifdef_else
+ * @return TEST
+ */
 TEST test_weaver_wrap_ifdef_else(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -72,6 +81,10 @@ TEST test_weaver_wrap_ifdef_else(void) {
   PASS();
 }
 
+/**
+ * @brief test_weaver_wrap_ifdef_invalid_args
+ * @return TEST
+ */
 TEST test_weaver_wrap_ifdef_invalid_args(void) {
   struct PatchList patches;
   struct TokenList tokens;
@@ -86,6 +99,10 @@ TEST test_weaver_wrap_ifdef_invalid_args(void) {
   PASS();
 }
 
+/**
+ * @brief test_weaver_inject_msvc_headers
+ * @return TEST
+ */
 TEST test_weaver_inject_msvc_headers(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -113,6 +130,10 @@ TEST test_weaver_inject_msvc_headers(void) {
   PASS();
 }
 
+/**
+ * @brief test_weaver_vla_to_alloca
+ * @return TEST
+ */
 TEST test_weaver_vla_to_alloca(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
@@ -167,12 +188,58 @@ ASSERT_EQ(0, res);
   PASS();
   }
 
-  SUITE(weaver_suite) {
+
+/**
+ * @brief test_weaver_translate_gcc_attributes
+ * @return TEST
+ */
+TEST test_weaver_translate_gcc_attributes(void) {
+  struct PatchList patches;
+  struct TokenList tokens;
+  struct CstNodeList cst;
+  struct CstNode node;
+  char *out_code = NULL;
+  int res;
+
+  tokens.size = 0;
+  tokens.capacity = 0;
+  tokens.tokens = NULL;
+
+  cst.size = 1;
+  cst.nodes = &node;
+  memset(&node, 0, sizeof(node));
+  node.kind = CST_NODE_GCC_ATTRIBUTE;
+  node.start = (const uint8_t*)"__attribute__((noreturn))";
+  node.length = strlen("__attribute__((noreturn))");
+  node.start_token = 0;
+  node.end_token = 1;
+
+  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(NULL, &tokens, &cst));
+  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(&patches, NULL, &cst));
+  ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(&patches, &tokens, NULL));
+
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
+
+  res = weaver_translate_gcc_attributes(&patches, &tokens, &cst);
+  ASSERT_EQ(0, res);
+  ASSERT_EQ(1, patches.size);
+  ASSERT(strstr(patches.patches[0].text, "__declspec(noreturn)") != NULL);
+
+  patch_list_free(&patches);
+  PASS();
+}
+
+/**
+ * @brief weaver_suite
+ */
+SUITE(weaver_suite) {
     RUN_TEST(test_weaver_wrap_ifdef_basic);
     RUN_TEST(test_weaver_wrap_ifdef_else);
     RUN_TEST(test_weaver_wrap_ifdef_invalid_args);
     RUN_TEST(test_weaver_inject_msvc_headers);
     RUN_TEST(test_weaver_vla_to_alloca);
+    RUN_TEST(test_weaver_translate_gcc_attributes);
   }
 
 #ifdef __cplusplus

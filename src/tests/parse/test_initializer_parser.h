@@ -26,6 +26,10 @@ static int tokenize_str(const char *s, struct TokenList **_out_val) {
   }
 }
 
+/**
+ * @brief test_init_simple_positional
+ * @return TEST
+ */
 TEST test_init_simple_positional(void) {
   struct TokenList *_ast_tokenize_str_0;
   const char *code = "{ 1, 2, 3 }";
@@ -54,6 +58,10 @@ TEST test_init_simple_positional(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_designated_fields
+ * @return TEST
+ */
 TEST test_init_designated_fields(void) {
   struct TokenList *_ast_tokenize_str_1;
   const char *code = "{ .x = 10, .y = 20 }";
@@ -80,6 +88,10 @@ TEST test_init_designated_fields(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_array_index
+ * @return TEST
+ */
 TEST test_init_array_index(void) {
   struct TokenList *_ast_tokenize_str_2;
   const char *code = "{ [0] = 1, [5] = 2 }";
@@ -106,6 +118,10 @@ TEST test_init_array_index(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_nested
+ * @return TEST
+ */
 TEST test_init_nested(void) {
   struct TokenList *_ast_tokenize_str_3;
   const char *code = "{ .pt = { .x = 1, .y = 2 }, .flag = 1 }";
@@ -141,6 +157,10 @@ TEST test_init_nested(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_mixed_expressions
+ * @return TEST
+ */
 TEST test_init_mixed_expressions(void) {
   struct TokenList *_ast_tokenize_str_4;
   /* Test complex expressions */
@@ -191,6 +211,10 @@ TEST test_init_mixed_expressions(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_trailing_comma
+ * @return TEST
+ */
 TEST test_init_trailing_comma(void) {
   struct TokenList *_ast_tokenize_str_5;
   const char *code = "{ 1, }";
@@ -211,6 +235,10 @@ TEST test_init_trailing_comma(void) {
   PASS();
 }
 
+/**
+ * @brief test_init_errors
+ * @return TEST
+ */
 TEST test_init_errors(void) {
   struct TokenList *_ast_tokenize_str_6;
   struct TokenList *_ast_tokenize_str_7;
@@ -234,6 +262,9 @@ TEST test_init_errors(void) {
   PASS();
 }
 
+/**
+ * @brief initializer_parser_suite
+ */
 SUITE(initializer_parser_suite) {
   RUN_TEST(test_init_simple_positional);
   RUN_TEST(test_init_designated_fields);

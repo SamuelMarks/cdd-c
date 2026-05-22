@@ -1,3 +1,8 @@
+/**
+ * @file test_gnu_standardizer.h
+ * @brief Unit tests for the GNU standardizer transformer.
+ */
+
 #ifndef TEST_CDD_TRANSFORM_GNU_STANDARDIZER_H
 #define TEST_CDD_TRANSFORM_GNU_STANDARDIZER_H
 

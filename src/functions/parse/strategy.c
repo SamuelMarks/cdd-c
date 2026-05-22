@@ -1,8 +1,6 @@
 /**
  * @file strategy.c
- * @brief Implementation of safety injection strategies.
- *
- * @author Samuel Marks
+ * @brief Implementation of parsing strategies.
  */
 
 /* clang-format off */

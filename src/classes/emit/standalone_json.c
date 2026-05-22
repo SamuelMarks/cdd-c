@@ -1,3 +1,8 @@
+/**
+ * @file standalone_json.c
+ * @brief Zero-allocation JSON parser code generator implementation.
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>
@@ -11,9 +16,22 @@
 int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
                                            const struct StructFields *sf) {
   size_t i;
+  int has_string = 0;
+  int has_primitive = 0;
 
   if (!fp || !struct_name || !sf)
     return EINVAL;
+
+  /* Check for string vs primitive types to structure if/else correctly */
+  for (i = 0; i < sf->size; ++i) {
+    if (strcmp(sf->fields[i].type, "string") == 0) {
+      has_string = 1;
+    } else if (strcmp(sf->fields[i].type, "integer") == 0 ||
+               strcmp(sf->fields[i].type, "number") == 0 ||
+               strcmp(sf->fields[i].type, "boolean") == 0) {
+      has_primitive = 1;
+    }
+  }
 
   fprintf(fp,
           "/**\n"
@@ -70,24 +88,28 @@ int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
   fprintf(fp, "      if (*p) *p++ = '\\0';\n\n");
 
   /* Assign strings */
-  for (i = 0; i < sf->size; ++i) {
-    const struct StructField *f = &sf->fields[i];
-    if (strcmp(f->type, "string") == 0) {
-      fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-              (i == 0) ? "if" : "else if", f->name);
-      if (f->has_max_len) {
-        fprintf(fp, "        if (strlen(val) > %lu) goto err;\n",
-                (unsigned long)f->max_len);
+  if (has_string) {
+    int string_idx = 0;
+    for (i = 0; i < sf->size; ++i) {
+      const struct StructField *f = &sf->fields[i];
+      if (strcmp(f->type, "string") == 0) {
+        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
+                (string_idx == 0) ? "if" : "else if", f->name);
+        if (f->has_max_len) {
+          fprintf(fp, "        if (strlen(val) > %lu) goto err;\n",
+                  (unsigned long)f->max_len);
+        }
+        if (f->has_min_len) {
+          fprintf(fp, "        if (strlen(val) < %lu) goto err;\n",
+                  (unsigned long)f->min_len);
+        }
+        fprintf(fp, "        ret->%s = val;\n", f->name);
+        if (f->required) {
+          fprintf(fp, "        has_%s = 1;\n", f->name);
+        }
+        fprintf(fp, "      }\n");
+        string_idx++;
       }
-      if (f->has_min_len) {
-        fprintf(fp, "        if (strlen(val) < %lu) goto err;\n",
-                (unsigned long)f->min_len);
-      }
-      fprintf(fp, "        ret->%s = val;\n", f->name);
-      if (f->required) {
-        fprintf(fp, "        has_%s = 1;\n", f->name);
-      }
-      fprintf(fp, "      }\n");
     }
   }
 
@@ -98,30 +120,35 @@ int write_struct_from_json_standalone_func(FILE *fp, const char *struct_name,
               "'\\n' && *p != '\\r') p++;\n");
   fprintf(fp, "      if (*p) *p++ = '\\0';\n\n");
 
-  /* Assign numbers */
-  for (i = 0; i < sf->size; ++i) {
-    const struct StructField *f = &sf->fields[i];
-    if (strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0) {
-      fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-              (i == 0) ? "if" : "else if", f->name);
-      if (strcmp(f->type, "integer") == 0) {
-        fprintf(fp, "        ret->%s = atoi(val);\n", f->name);
-      } else {
-        fprintf(fp, "        ret->%s = atof(val);\n", f->name);
+  /* Assign primitives */
+  if (has_primitive) {
+    int primitive_idx = 0;
+    for (i = 0; i < sf->size; ++i) {
+      const struct StructField *f = &sf->fields[i];
+      if (strcmp(f->type, "integer") == 0 || strcmp(f->type, "number") == 0) {
+        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
+                (primitive_idx == 0) ? "if" : "else if", f->name);
+        if (strcmp(f->type, "integer") == 0) {
+          fprintf(fp, "        ret->%s = atoi(val);\n", f->name);
+        } else {
+          fprintf(fp, "        ret->%s = atof(val);\n", f->name);
+        }
+        if (f->required) {
+          fprintf(fp, "        has_%s = 1;\n", f->name);
+        }
+        fprintf(fp, "      }\n");
+        primitive_idx++;
+      } else if (strcmp(f->type, "boolean") == 0) {
+        fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
+                (primitive_idx == 0) ? "if" : "else if", f->name);
+        fprintf(fp, "        ret->%s = (strcmp(val, \"true\") == 0) ? 1 : 0;\n",
+                f->name);
+        if (f->required) {
+          fprintf(fp, "        has_%s = 1;\n", f->name);
+        }
+        fprintf(fp, "      }\n");
+        primitive_idx++;
       }
-      if (f->required) {
-        fprintf(fp, "        has_%s = 1;\n", f->name);
-      }
-      fprintf(fp, "      }\n");
-    } else if (strcmp(f->type, "boolean") == 0) {
-      fprintf(fp, "      %s (strcmp(key, \"%s\") == 0) {\n",
-              (i == 0) ? "if" : "else if", f->name);
-      fprintf(fp, "        ret->%s = (strcmp(val, \"true\") == 0) ? 1 : 0;\n",
-              f->name);
-      if (f->required) {
-        fprintf(fp, "        has_%s = 1;\n", f->name);
-      }
-      fprintf(fp, "      }\n");
     }
   }
 

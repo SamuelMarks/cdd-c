@@ -1,6 +1,6 @@
 /**
  * @file test_openapi_loader.h
- * @brief Unit tests for OpenAPI Spec Loader.
+ * @brief Unit tests for OpenAPI loading.
  */
 
 #ifndef TEST_OPENAPI_LOADER_H

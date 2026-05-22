@@ -1,3 +1,8 @@
+/**
+ * @file oauth2_error.c
+ * @brief OAuth2 Error Codegen implementation
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>

@@ -15,7 +15,13 @@ extern "C" {
 #include <string.h>
 
 #include "functions/parse/vcpkg_integration.h"
+/* clang-format on */
 
+/**
+ * @brief Tests basic functionality of the Vcpkg builder.
+ *
+ * @return The result of the test.
+ */
 TEST test_vcpkg_builder_basic(void) {
   struct VcpkgManifestBuilder builder;
   char *json = NULL;
@@ -26,8 +32,7 @@ TEST test_vcpkg_builder_basic(void) {
                     "#include \"local.h\"\n"
                     "#include <zlib.h>\n";
 
-      ASSERT_EQ(
-          0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
+  ASSERT_EQ(0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
 
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
 
@@ -45,6 +50,11 @@ TEST test_vcpkg_builder_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests duplicate dependency handling in the Vcpkg builder.
+ *
+ * @return The result of the test.
+ */
 TEST test_vcpkg_builder_duplicate(void) {
   struct VcpkgManifestBuilder builder;
   const char *src = "#ifndef _MSC_VER\n"
@@ -54,7 +64,7 @@ TEST test_vcpkg_builder_duplicate(void) {
                     "#include <pthread.h>\n"
                     "#endif\n";
 
-      ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
+  ASSERT_EQ(0, vcpkg_builder_init(&builder, "proj", NULL, NULL));
   ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
 
   ASSERT_EQ(1, builder.deps_count);
@@ -64,7 +74,11 @@ TEST test_vcpkg_builder_duplicate(void) {
   PASS();
 }
 
-
+/**
+ * @brief Tests error handling in the Vcpkg builder.
+ *
+ * @return The result of the test.
+ */
 TEST test_vcpkg_builder_errors(void) {
   struct VcpkgManifestBuilder builder;
   char *json = NULL;
@@ -83,10 +97,30 @@ TEST test_vcpkg_builder_errors(void) {
   PASS();
 }
 
+TEST test_vcpkg_builder_extras(void) {
+  struct VcpkgManifestBuilder builder;
+  char *json = NULL;
+  const char *src = "#include <dirent.h>\n#  include <stdio.h>\n";
+
+  ASSERT_EQ(0, vcpkg_builder_init(&builder, "my-proj", "1.0.0", "A test proj"));
+  ASSERT_EQ(0, vcpkg_builder_scan_source(&builder, src));
+  ASSERT_EQ(0, vcpkg_builder_generate(&builder, &json));
+
+  ASSERT(strstr(json, "\"dirent\"") != NULL);
+
+  free(json);
+  vcpkg_builder_free(&builder);
+  PASS();
+}
+
+/**
+ * @brief Vcpkg integration test suite.
+ */
 SUITE(vcpkg_integration_suite) {
   RUN_TEST(test_vcpkg_builder_basic);
   RUN_TEST(test_vcpkg_builder_duplicate);
   RUN_TEST(test_vcpkg_builder_errors);
+  RUN_TEST(test_vcpkg_builder_extras);
 }
 
 #ifdef __cplusplus

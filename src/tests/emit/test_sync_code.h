@@ -12,24 +12,40 @@ extern "C" {
 #include <stdio.h>
 /* clang-format on */
 
+/**
+ * @brief test_sync_code_wrong_args
+ * @return TEST
+ */
 TEST test_sync_code_wrong_args(void) {
   char *argv[] = {"program", NULL};
   ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
   PASS();
 }
 
+/**
+ * @brief test_sync_code_main_argc
+ * @return TEST
+ */
 TEST test_sync_code_main_argc(void) {
   char *argv[] = {"foo.h"};
   ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
   PASS();
 }
 
+/**
+ * @brief test_sync_code_file_missing
+ * @return TEST
+ */
 TEST test_sync_code_file_missing(void) {
   char *argv[] = {"notfound.h", "impl.c"};
   ASSERT_EQ(ENOENT, sync_code_main(2, argv));
   PASS();
 }
 
+/**
+ * @brief test_sync_code_simple_struct_enum
+ * @return TEST
+ */
 TEST test_sync_code_simple_struct_enum(void) {
   const char *const filename = "test30.h";
   char *argv[2];
@@ -49,6 +65,10 @@ TEST test_sync_code_simple_struct_enum(void) {
   PASS();
 }
 
+/**
+ * @brief test_sync_code_empty_header
+ * @return TEST
+ */
 TEST test_sync_code_empty_header(void) {
   const char *const filename = "emptyheader.h";
   char *argv[2];
@@ -61,6 +81,10 @@ TEST test_sync_code_empty_header(void) {
   PASS();
 }
 
+/**
+ * @brief test_sync_code_no_struct_or_enum
+ * @return TEST
+ */
 TEST test_sync_code_no_struct_or_enum(void) {
   const char *const filename = "nostructenum.h";
   char *argv[2];
@@ -73,6 +97,10 @@ TEST test_sync_code_no_struct_or_enum(void) {
   PASS();
 }
 
+/**
+ * @brief test_sync_code_impl_file_cannot_open
+ * @return TEST
+ */
 TEST test_sync_code_impl_file_cannot_open(void) {
   const char *const filename = "onlystruct.h";
   char *argv[2];
@@ -84,6 +112,10 @@ TEST test_sync_code_impl_file_cannot_open(void) {
   PASS();
 }
 
+/**
+ * @brief test_sync_code_too_many_defs
+ * @return TEST
+ */
 TEST test_sync_code_too_many_defs(void) {
   char *argv[] = {"too_many.h", "too_many.c"};
   const char *const filename = argv[0];
@@ -109,6 +141,10 @@ TEST test_sync_code_too_many_defs(void) {
   PASS();
 }
 
+/**
+ * @brief test_sync_code_unterminated_defs
+ * @return TEST
+ */
 TEST test_sync_code_unterminated_defs(void) {
   char *argv[] = {"unterminated.h", "unterminated.c"};
   const char *const filename = argv[0];
@@ -124,6 +160,10 @@ TEST test_sync_code_unterminated_defs(void) {
   PASS();
 }
 
+/**
+ * @brief test_patch_header_basic
+ * @return TEST
+ */
 TEST test_patch_header_basic(void) {
   /*
      Header: void foo();
@@ -154,6 +194,10 @@ TEST test_patch_header_basic(void) {
   PASS();
 }
 
+/**
+ * @brief test_patch_header_ptr_arg
+ * @return TEST
+ */
 TEST test_patch_header_ptr_arg(void) {
   /*
     Header: char* bar(int x);
@@ -185,6 +229,10 @@ TEST test_patch_header_ptr_arg(void) {
   PASS();
 }
 
+/**
+ * @brief test_patch_header_ignore_others
+ * @return TEST
+ */
 TEST test_patch_header_ignore_others(void) {
   /*
     Header contains irrelevant function.
@@ -215,6 +263,9 @@ TEST test_patch_header_ignore_others(void) {
   PASS();
 }
 
+/**
+ * @brief sync_code_suite
+ */
 SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);

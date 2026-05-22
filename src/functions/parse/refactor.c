@@ -26,7 +26,10 @@
 /* clang-format on */
 
 /**
- * @brief Executes the refactor context init operation.
+ * @brief Initializes a refactor context.
+ *
+ * @param[out] ctx The context to initialize.
+ * @return 0 on success, EINVAL if ctx is NULL.
  */
 int refactor_context_init(struct RefactorContext *ctx) {
   if (!ctx)
@@ -37,7 +40,9 @@ int refactor_context_init(struct RefactorContext *ctx) {
 }
 
 /**
- * @brief Executes the refactor context free operation.
+ * @brief Frees a refactor context.
+ *
+ * @param[in,out] ctx The context to free.
  */
 void refactor_context_free(struct RefactorContext *ctx) {
   /* Note: func names and return types are shallow copies/refs in this design,
@@ -52,7 +57,14 @@ void refactor_context_free(struct RefactorContext *ctx) {
 }
 
 /**
- * @brief Executes the refactor context add function operation.
+ * @brief Adds a function to the refactor context.
+ *
+ * @param[in,out] ctx The context to append to.
+ * @param[in] name The name of the function to refactor.
+ * @param[in] type The refactor type.
+ * @param[in] return_type The original return type of the function.
+ * @return 0 on success, EINVAL if invalid arguments, ENOMEM if memory
+ * allocation fails.
  */
 int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
                                   const enum RefactorType type,
@@ -78,7 +90,12 @@ int refactor_context_add_function(struct RefactorContext *ctx, const char *name,
 }
 
 /**
- * @brief Applies refactoring to string.
+ * @brief Applies refactoring to a string of source code.
+ *
+ * @param[in] ctx The refactor context containing target functions.
+ * @param[in] source_code The input C source code string.
+ * @param[out] out_code The output refactored code (caller must free).
+ * @return 0 on success, or an error code on failure.
  */
 int apply_refactoring_to_string(const struct RefactorContext *ctx,
                                 const char *source_code,

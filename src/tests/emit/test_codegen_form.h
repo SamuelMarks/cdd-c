@@ -1,8 +1,6 @@
 /**
  * @file test_codegen_form.h
- * @brief Unit tests for Form Urlencoded generator.
- *
- * @author Samuel Marks
+ * @brief Unit tests for generating URL encoded form functions.
  */
 
 #ifndef TEST_CODEGEN_FORM_H
@@ -22,7 +20,11 @@ extern "C" {
 #include "classes/emit/struct.h"
 /* clang-format on */
 
-TEST test_form_urlencoded_generation(void) {
+/**
+ * @brief test_form_generation_basic
+ * @return TEST
+ */
+TEST test_form_generation_basic(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
   char *content = NULL;
@@ -31,34 +33,44 @@ TEST test_form_urlencoded_generation(void) {
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
 
-  /* simulate struct { char* user; char* pass; } */
+  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(NULL, "Form", &sf));
+  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
+  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, "Form", NULL));
+
+  /* add fields */
   {
-    struct StructField f1;
-    struct StructField f2;
+    struct StructField f1, f2, f3;
     memset(&f1, 0, sizeof(f1));
     memset(&f2, 0, sizeof(f2));
+    memset(&f3, 0, sizeof(f3));
 
-    strcpy(f1.name, "username");
+    strcpy(f1.name, "grant_type");
     strcpy(f1.type, "string");
     sf.fields[sf.size++] = f1;
 
-    strcpy(f2.name, "password");
-    strcpy(f2.type, "string");
+    strcpy(f2.name, "count");
+    strcpy(f2.type, "integer");
     sf.fields[sf.size++] = f2;
+
+    strcpy(f3.name, "active");
+    strcpy(f3.type, "boolean");
+    sf.fields[sf.size++] = f3;
   }
 
-  ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "LoginRequest", &sf));
+  ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "AuthRequest", &sf));
 
   fseek(tmp, 0, SEEK_END);
   sz = ftell(tmp);
   rewind(tmp);
+
   content = (char *)calloc(1, (size_t)sz + 1);
   fread(content, 1, (size_t)sz, tmp);
 
-  ASSERT(strstr(content, "LoginRequest_to_form_urlencoded"));
-  ASSERT(strstr(content, "LoginRequest_url_encode_form"));
-  ASSERT(strstr(content, "obj->username"));
-  ASSERT(strstr(content, "obj->password"));
+  ASSERT(strstr(content, "AuthRequest_url_encode_form"));
+  ASSERT(strstr(content, "AuthRequest_to_form_urlencoded"));
+  ASSERT(strstr(content, "grant_type"));
+  ASSERT(strstr(content, "count"));
+  ASSERT(strstr(content, "active"));
 
   free(content);
   struct_fields_free(&sf);
@@ -66,51 +78,10 @@ TEST test_form_urlencoded_generation(void) {
   PASS();
 }
 
-TEST test_form_urlencoded_exhaustive(void) {
-  FILE *tmp = tmpfile();
-  struct StructFields sf;
-  char *content = NULL;
-  long sz;
-
-  ASSERT(tmp);
-  ASSERT_EQ(0, struct_fields_init(&sf));
-
-  struct_fields_add(&sf, "username", "string", NULL, NULL, NULL);
-  struct_fields_add(&sf, "age", "integer", NULL, NULL, NULL);
-  struct_fields_add(&sf, "is_active", "boolean", NULL, NULL, NULL);
-  struct_fields_add(&sf, "unsupported_field", "unknown", NULL, NULL, NULL);
-
-  ASSERT_EQ(0, write_struct_to_form_urlencoded_func(tmp, "FullForm", &sf));
-
-  /* Test error conditions */
-  ASSERT_EQ(EINVAL,
-            write_struct_to_form_urlencoded_func(NULL, "FullForm", &sf));
-  ASSERT_EQ(EINVAL, write_struct_to_form_urlencoded_func(tmp, NULL, &sf));
-  ASSERT_EQ(EINVAL,
-            write_struct_to_form_urlencoded_func(tmp, "FullForm", NULL));
-
-  fseek(tmp, 0, SEEK_END);
-  sz = ftell(tmp);
-  rewind(tmp);
-  content = (char *)calloc(1, (size_t)sz + 1);
-  fread(content, 1, (size_t)sz, tmp);
-
-  ASSERT(strstr(content, "FullForm_to_form_urlencoded"));
-  ASSERT(strstr(content, "FullForm_url_encode_form"));
-  ASSERT(strstr(content, "obj->username"));
-  ASSERT(strstr(content, "obj->age"));
-  ASSERT(strstr(content, "obj->is_active"));
-
-  free(content);
-  struct_fields_free(&sf);
-  fclose(tmp);
-  PASS();
-}
-
-SUITE(codegen_form_suite) {
-  RUN_TEST(test_form_urlencoded_generation);
-  RUN_TEST(test_form_urlencoded_exhaustive);
-}
+/**
+ * @brief codegen_form_suite
+ */
+SUITE(codegen_form_suite) { RUN_TEST(test_form_generation_basic); }
 
 #ifdef __cplusplus
 }

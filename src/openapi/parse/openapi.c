@@ -1,11 +1,6 @@
 /**
  * @file openapi.c
- * @brief Implementation of OpenAPI extraction logic.
- *
- * Includes logic to parse `explode` and `style` for parameters,
- * `tags` for operation grouping, and full schema definitions.
- *
- * @author Samuel Marks
+ * @brief Implementation of OpenAPI parsing.
  */
 
 /* clang-format off */

@@ -1,11 +1,27 @@
-/* clang-format off */
+/**
+ * @file test_cdd_cst_escape.h
+ * @brief Unit tests for CST escape analysis.
+ */
+
 #ifndef TEST_CDD_CST_ESCAPE_H
 #define TEST_CDD_CST_ESCAPE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* clang-format off */
 #include <greatest.h>
-#include "../../classes/parse/cdd_cst_escape.h"
+#include <errno.h>
+
+#include "classes/parse/cdd_cst_escape.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality and error handling of CST escape analysis.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_escape_basic(void) {
   int escapes = -1;
   cdd_cst_tree_t tree = {0};
@@ -24,6 +40,13 @@ TEST test_cdd_cst_escape_basic(void) {
   PASS();
 }
 
+/**
+ * @brief CST escape analysis test suite.
+ */
 SUITE(cdd_cst_escape_suite) { RUN_TEST(test_cdd_cst_escape_basic); }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_CDD_CST_ESCAPE_H */

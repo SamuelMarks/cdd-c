@@ -22,6 +22,10 @@ extern "C" {
 #include "classes/emit/struct.h"
 /* clang-format on */
 
+/**
+ * @brief Test for OAuth2 error generation
+ * @return TEST
+ */
 TEST test_oauth2_error_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -30,6 +34,11 @@ TEST test_oauth2_error_generation(void) {
 
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
+
+  /* Invalid args */
+  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(NULL, "OAuth2Error", &sf));
+  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(tmp, NULL, &sf));
+  ASSERT_EQ(EINVAL, write_oauth2_error_parser_func(tmp, "OAuth2Error", NULL));
 
   /* simulate struct { char* error; char* error_description; } */
   {
@@ -67,6 +76,9 @@ TEST test_oauth2_error_generation(void) {
   PASS();
 }
 
+/**
+ * @brief Suite for codegen oauth2 error
+ */
 SUITE(codegen_oauth2_error_suite) { RUN_TEST(test_oauth2_error_generation); }
 
 #ifdef __cplusplus

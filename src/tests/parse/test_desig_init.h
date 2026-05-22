@@ -18,6 +18,11 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of designated initializer scanning.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_designated_initializers_basic(void) {
   struct TokenList *tokens = NULL;
   struct DesigInitList list;
@@ -49,6 +54,11 @@ TEST test_scan_for_designated_initializers_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of designated initializer scanning.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_designated_initializers_errors(void) {
   struct TokenList *tl = NULL;
   struct DesigInitList list;
@@ -63,6 +73,9 @@ TEST test_scan_for_designated_initializers_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Designated initializer test suite.
+ */
 SUITE(desig_init_suite) {
   RUN_TEST(test_scan_for_designated_initializers_basic);
   RUN_TEST(test_scan_for_designated_initializers_errors);

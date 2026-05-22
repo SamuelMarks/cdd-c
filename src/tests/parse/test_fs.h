@@ -1,3 +1,8 @@
+/**
+ * @file test_fs.h
+ * @brief Unit tests for filesystem utilities.
+ */
+
 #ifndef TEST_FS_H
 #define TEST_FS_H
 

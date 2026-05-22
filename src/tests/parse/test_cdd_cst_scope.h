@@ -1,13 +1,25 @@
+/**
+ * @file test_cdd_cst_scope.h
+ * @brief Unit tests for CST scope and symbol table.
+ */
+
 #ifndef TEST_CDD_CST_SCOPE_H
 #define TEST_CDD_CST_SCOPE_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
+/* clang-format off */
 #include "../../classes/parse/cdd_cst_scope.h"
 #include <greatest.h>
+/* clang-format on */
 
+/**
+ * @brief Tests basic functionality of CST scope.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_symbol_t *sym = NULL;
@@ -28,6 +40,11 @@ TEST test_cdd_cst_scope_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of CST scope APIs.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_scope_errors(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_symbol_t *sym = NULL;
@@ -67,14 +84,20 @@ TEST test_cdd_cst_scope_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Tests CST scope tag semantics.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_scope_tag(void) {
+  cdd_cst_scope_env_t *env = NULL;
+  cdd_cst_symbol_t *sym = NULL;
+
   ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_STRUCT_TAG));
   ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_UNION_TAG));
   ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_ENUM_TAG));
   ASSERT_EQ(0, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_VARIABLE));
 
-  cdd_cst_scope_env_t *env = NULL;
-  cdd_cst_symbol_t *sym = NULL;
   cdd_cst_scope_env_init(&env);
 
   cdd_cst_scope_add_symbol(env, "v", CDD_CST_SYMBOL_VARIABLE, NULL);
@@ -92,12 +115,20 @@ TEST test_cdd_cst_scope_tag(void) {
   PASS();
 }
 
+/**
+ * @brief Tests memory bounds of CST scope.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_scope_mem(void) {
   /* Test handled via alloc limits if injected, otherwise basic execution covers
    * paths. */
   PASS();
 }
 
+/**
+ * @brief CST scope test suite.
+ */
 SUITE(cdd_cst_scope_suite) {
   RUN_TEST(test_cdd_cst_scope_basic);
   RUN_TEST(test_cdd_cst_scope_errors);
@@ -107,5 +138,6 @@ SUITE(cdd_cst_scope_suite) {
 
 #ifdef __cplusplus
 }
-#endif
-#endif
+#endif /* __cplusplus */
+
+#endif /* TEST_CDD_CST_SCOPE_H */

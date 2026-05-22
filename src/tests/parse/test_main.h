@@ -1,3 +1,8 @@
+/**
+ * @file test_main.h
+ * @brief Unit tests for the main application entry point router.
+ */
+
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
@@ -10,6 +15,11 @@ extern "C" {
 #include "greatest.h"
 /* clang-format on */
 
+/**
+ * @brief Tests main with no arguments.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_no_args(void) {
   char *argv[] = {"cdd-c"};
   int rc = cdd_main(1, argv);
@@ -17,6 +27,11 @@ TEST test_main_no_args(void) {
   PASS();
 }
 
+/**
+ * @brief Tests main with the --help argument.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_help(void) {
   char *argv[] = {"cdd-c", "--help"};
   int rc = cdd_main(2, argv);
@@ -24,6 +39,11 @@ TEST test_main_help(void) {
   PASS();
 }
 
+/**
+ * @brief Tests main with the --version argument.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_version(void) {
   char *argv[] = {"cdd-c", "--version"};
   int rc = cdd_main(2, argv);
@@ -31,6 +51,11 @@ TEST test_main_version(void) {
   PASS();
 }
 
+/**
+ * @brief Tests main with an invalid command.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_invalid_command(void) {
   char *argv[] = {"cdd-c", "unknown_command"};
   int rc = cdd_main(2, argv);
@@ -38,6 +63,11 @@ TEST test_main_invalid_command(void) {
   PASS();
 }
 
+/**
+ * @brief Tests routing for main subcommands.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_subcommands(void) {
   char *argv_c2openapi[] = {"cdd-c", "c2openapi", "dir", "out.json"};
   char *argv_code2schema[] = {"cdd-c", "code2schema", "header.h",
@@ -66,12 +96,18 @@ TEST test_main_subcommands(void) {
   PASS();
 }
 
+/**
+ * @brief Tests from_openapi CLI options.
+ *
+ * @return The result of the test.
+ */
 TEST test_main_from_openapi_cli_options(void) {
   char *argv_cli[] = {"cdd-c", "from_openapi", "to_sdk_cli", "-i", "spec.json"};
   char *argv_server[] = {"cdd-c", "from_openapi", "to_server", "-i",
                          "spec.json"};
   char *argv_help[] = {"cdd-c", "from_openapi", "--help"};
   char *argv_err[] = {"cdd-c", "from_openapi", "to_sdk", "-o", "out_dir"};
+  FILE *f;
 
   /* Note: we can't test actual execution easily without creating a dummy */
   /* spec.json, but we can at least hit the help and error paths. */
@@ -79,7 +115,7 @@ TEST test_main_from_openapi_cli_options(void) {
   ASSERT_EQ(EXIT_FAILURE, cdd_main(5, argv_err)); /* missing input */
 
   /* Create a dummy spec to test the execution */
-  FILE *f = fopen("spec.json", "w");
+  f = fopen("spec.json", "w");
   fprintf(f, "{\"openapi\": \"3.1.0\", \"info\": {\"title\": \"Test\", "
              "\"version\": \"1.0\"}, \"paths\": {}}");
   fclose(f);
@@ -92,6 +128,9 @@ TEST test_main_from_openapi_cli_options(void) {
   PASS();
 }
 
+/**
+ * @brief Main logic test suite.
+ */
 SUITE(main_suite) {
   RUN_TEST(test_main_no_args);
   RUN_TEST(test_main_help);
@@ -105,4 +144,4 @@ SUITE(main_suite) {
 }
 #endif /* __cplusplus */
 
-#endif
+#endif /* TEST_MAIN_H */

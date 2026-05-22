@@ -1,8 +1,6 @@
 /**
  * @file url.c
- * @brief Implementation of RFC 3986 URL encoding and Query serialization.
- *
- * @author Samuel Marks
+ * @brief Implementation of URL parsing.
  */
 
 /* clang-format off */

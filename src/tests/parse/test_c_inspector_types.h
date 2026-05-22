@@ -26,6 +26,10 @@ extern "C" {
 #include "functions/parse/fs.h"
 /* clang-format on */
 
+/**
+ * @brief test_scan_c23_enum_fixed_type
+ * @return TEST
+ */
 TEST test_scan_c23_enum_fixed_type(void) {
   const char *filename = "test_c23_enum.h";
   const char *content = "enum E : long { A, B };";
@@ -51,6 +55,10 @@ TEST test_scan_c23_enum_fixed_type(void) {
   PASS();
 }
 
+/**
+ * @brief test_scan_c23_enum_fixed_type_whitespace
+ * @return TEST
+ */
 TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   const char *filename = "test_c23_enum_ws.h";
   const char *content = "enum  MyEnum  :  unsigned int  { X , Y };";
@@ -73,6 +81,10 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
   PASS();
 }
 
+/**
+ * @brief test_scan_classic_enum
+ * @return TEST
+ */
 TEST test_scan_classic_enum(void) {
   const char *filename = "test_classic.h";
   struct TypeDefList types;
@@ -92,6 +104,9 @@ TEST test_scan_classic_enum(void) {
   PASS();
 }
 
+/**
+ * @brief c_inspector_types_suite
+ */
 SUITE(c_inspector_types_suite) {
   RUN_TEST(test_scan_c23_enum_fixed_type);
   RUN_TEST(test_scan_c23_enum_fixed_type_whitespace);

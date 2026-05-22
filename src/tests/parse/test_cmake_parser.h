@@ -17,6 +17,11 @@ extern "C" {
 #include "functions/parse/cmake_parser.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of the CMake modifier.
+ *
+ * @return The result of the test.
+ */
 TEST test_cmake_modifier_basic(void) {
   struct CMakeModifier mod;
   char *diff_str = NULL;
@@ -28,7 +33,7 @@ TEST test_cmake_modifier_basic(void) {
 
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
-  printf("\n--- CMAKE DIFF ---\n%s\n------------------\n", diff_str);
+  /* printf("\n--- CMAKE DIFF ---\n%s\n------------------\n", diff_str); */
 
   ASSERT(strstr(diff_str, "--- CMakeLists.txt\n") != NULL);
   ASSERT(strstr(diff_str, "+++ CMakeLists.txt\n") != NULL);
@@ -46,6 +51,11 @@ TEST test_cmake_modifier_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests global settings modifications with the CMake modifier.
+ *
+ * @return The result of the test.
+ */
 TEST test_cmake_modifier_global(void) {
   struct CMakeModifier mod;
   char *diff_str = NULL;
@@ -63,6 +73,11 @@ TEST test_cmake_modifier_global(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of the CMake modifier APIs.
+ *
+ * @return The result of the test.
+ */
 TEST test_cmake_modifier_errors(void) {
   struct CMakeModifier mod;
   ASSERT_EQ(EINVAL, cmake_modifier_init(NULL, "CMakeLists.txt", "my_target"));
@@ -78,6 +93,9 @@ TEST test_cmake_modifier_errors(void) {
   PASS();
 }
 
+/**
+ * @brief CMake parser test suite.
+ */
 SUITE(cmake_parser_suite) {
   RUN_TEST(test_cmake_modifier_basic);
   RUN_TEST(test_cmake_modifier_global);

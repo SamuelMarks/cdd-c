@@ -18,6 +18,11 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of scanning for mixed declarations.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_mixed_declarations_basic(void) {
   struct TokenList *tokens = NULL;
   struct HoistSiteList list;
@@ -45,6 +50,11 @@ TEST test_scan_for_mixed_declarations_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of scanning for mixed declarations.
+ *
+ * @return The result of the test.
+ */
 TEST test_scan_for_mixed_declarations_errors(void) {
   struct TokenList *tl = setup_tokens("int a = 1;");
   struct HoistSiteList list;
@@ -58,6 +68,9 @@ TEST test_scan_for_mixed_declarations_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Declaration hoist test suite.
+ */
 SUITE(decl_hoist_suite) {
   RUN_TEST(test_scan_for_mixed_declarations_basic);
   RUN_TEST(test_scan_for_mixed_declarations_errors);

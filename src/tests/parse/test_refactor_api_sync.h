@@ -1,10 +1,6 @@
 /**
  * @file test_refactor_api_sync.h
- * @brief Integration tests for API Synchronization.
- *
- * Verifies updates to signature, URL logic, and query/header blocks.
- *
- * @author Samuel Marks
+ * @brief Unit tests for refactoring API sync logic.
  */
 
 #ifndef TEST_REFACTOR_API_SYNC_H

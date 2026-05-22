@@ -1,3 +1,8 @@
+/**
+ * @file test_codegen_root_arrays.h
+ * @brief Unit tests for root array codegen.
+ */
+
 #ifndef TEST_CODEGEN_ROOT_ARRAYS_H
 #define TEST_CODEGEN_ROOT_ARRAYS_H
 

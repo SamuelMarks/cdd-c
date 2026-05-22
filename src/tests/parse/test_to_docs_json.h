@@ -1,3 +1,7 @@
+/**
+ * @file test_to_docs_json.h
+ * @brief Unit tests for converting CST to doc JSON.
+ */
 
 /**
  * @file test_to_docs_json.h

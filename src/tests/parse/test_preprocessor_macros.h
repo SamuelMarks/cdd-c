@@ -1,3 +1,8 @@
+/**
+ * @file test_preprocessor_macros.h
+ * @brief Unit tests for preprocessor macros parsing.
+ */
+
 #ifndef TEST_PREPROCESSOR_MACROS_H
 #define TEST_PREPROCESSOR_MACROS_H
 
@@ -16,6 +21,11 @@ extern "C" {
 #include "functions/parse/preprocessor.h"
 /* clang-format on */
 
+/**
+ * @brief Tests parsing of object-like macros.
+ *
+ * @return The result of the test.
+ */
 TEST test_pp_define_object_like(void) {
   const char *fname = "test_defs.h";
   int rc;
@@ -39,6 +49,11 @@ TEST test_pp_define_object_like(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing of function-like macros.
+ *
+ * @return The result of the test.
+ */
 TEST test_pp_define_function_like(void) {
   const char *fname = "test_func_macros.h";
   int rc;
@@ -62,6 +77,11 @@ TEST test_pp_define_function_like(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing of standard variadic macros.
+ *
+ * @return The result of the test.
+ */
 TEST test_pp_define_variadic_standard(void) {
   const char *fname = "test_variadic.h";
   int rc;
@@ -88,6 +108,11 @@ TEST test_pp_define_variadic_standard(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing of empty variadic macros.
+ *
+ * @return The result of the test.
+ */
 TEST test_pp_define_variadic_empty(void) {
   const char *fname = "test_var_empty.h";
   int rc;
@@ -110,6 +135,11 @@ TEST test_pp_define_variadic_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing of GCC-style named variadic macros.
+ *
+ * @return The result of the test.
+ */
 TEST test_pp_define_variadic_gcc(void) {
   const char *fname = "test_var_gcc.h";
   int rc;
@@ -134,6 +164,9 @@ TEST test_pp_define_variadic_gcc(void) {
   PASS();
 }
 
+/**
+ * @brief Preprocessor macros test suite.
+ */
 SUITE(preprocessor_macros_suite) {
   RUN_TEST(test_pp_define_object_like);
   RUN_TEST(test_pp_define_function_like);

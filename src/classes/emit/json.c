@@ -427,22 +427,22 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern + 1, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern + 1, pl);
 #else
             strncpy(pat, f->pattern + 1, pl);
 #endif
@@ -473,22 +473,22 @@ int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
             strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
 #if defined(_MSC_VER)
-            strncpy_s(pat, pl + 1, f->pattern, pl);
+            strncpy_s(pat, sizeof(pat), f->pattern, pl);
 #else
             strncpy(pat, f->pattern, pl);
 #endif

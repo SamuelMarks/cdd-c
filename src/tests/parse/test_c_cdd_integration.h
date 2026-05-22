@@ -1,3 +1,8 @@
+/**
+ * @file test_c_cdd_integration.h
+ * @brief Integration tests for C CDD parsing.
+ */
+
 #ifndef TEST_C_CDD_INTEGRATION_H
 #define TEST_C_CDD_INTEGRATION_H
 

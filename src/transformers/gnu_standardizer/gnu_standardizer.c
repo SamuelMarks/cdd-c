@@ -1,3 +1,8 @@
+/**
+ * @file gnu_standardizer.c
+ * @brief Implementation of the GNU standardizer transformer.
+ */
+
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"

@@ -1,3 +1,8 @@
+/**
+ * @file cdd_cst_factory.c
+ * @brief Implementation of CST factory allocation and construction functions.
+ */
+
 /* clang-format off */
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
@@ -23,6 +28,9 @@ int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
   return 0;
 }
 
+/**
+ * @brief Tracks synthesized token memory to allow tree cleanup later.
+ */
 static int track_synthesized(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
     size_t new_cap =
@@ -44,7 +52,7 @@ int cdd_cst_create_token_len(cdd_cst_tree_t *tree, enum cdd_token_kind_t kind,
                              const char *text, size_t length,
                              cdd_token_t **out_token) {
   cdd_token_t *tok;
-  if (!out_token)
+  if (!out_token || !tree)
     return EINVAL;
   tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
   if (!tok) {

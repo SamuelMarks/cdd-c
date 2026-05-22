@@ -19,9 +19,18 @@ endif()
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
-    if(VCPKG_TOOLCHAIN)
-        find_package(cfs CONFIG QUIET)
-        if(NOT cfs_FOUND)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-fs" "${CMAKE_BINARY_DIR}/cfs")
+        include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/include")
+    else()
+        set(cfs_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(cfs CONFIG QUIET)
+            if(cfs_FOUND)
+                set(cfs_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT cfs_RESOLVED)
             FetchContent_Declare(
                 cfs
                 GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
@@ -30,14 +39,6 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
             FetchContent_MakeAvailable(cfs)
             include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
         endif()
-    else()
-        FetchContent_Declare(
-            cfs
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
-            GIT_TAG master
-        )
-        FetchContent_MakeAvailable(cfs)
-        include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
     endif()
 endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
@@ -271,7 +272,9 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     # c-str-span
 
-    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
+    if (TARGET c_str_span)
+        message(STATUS "c_str_span already provided by parent")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span" "${CMAKE_BINARY_DIR}/c_str_span")
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h")
             file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../c-str-span/c_str_span/c_str_span.h" span_content)
@@ -295,6 +298,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
             GIT_TAG master
         )
+        set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(c_str_span)
         if(EXISTS "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h")
             file(READ "${c_str_span_SOURCE_DIR}/c_str_span/c_str_span.h" span_content)
@@ -308,7 +312,9 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif()
 
     # c89stringutils
-    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
+    if (TARGET c89stringutils)
+        message(STATUS "c89stringutils already provided by parent")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/c89stringutils")
     else()
@@ -345,27 +351,36 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif ()
 
     # parson
-    if(FALSE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
+    if (TARGET parson)
+        message(STATUS "parson already provided by parent")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
         add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
         include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/../parson")
         if(TARGET parson AND NOT TARGET parson::parson)
             add_library(parson::parson ALIAS parson)
         endif()
-    elseif(VCPKG_TOOLCHAIN)
-        find_package(parson CONFIG REQUIRED)
     else()
-        FetchContent_Declare(
-            parson
-            GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-            GIT_TAG master
-        )
-        set(OLD_BSL ${BUILD_SHARED_LIBS})
-        set(BUILD_SHARED_LIBS OFF)
-        FetchContent_MakeAvailable(parson)
-        set(BUILD_SHARED_LIBS ${OLD_BSL})
-        include_directories(SYSTEM ${parson_SOURCE_DIR})
-        if(TARGET parson AND NOT TARGET parson::parson)
-            add_library(parson::parson ALIAS parson)
+        set(parson_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(parson CONFIG QUIET)
+            if(parson_FOUND)
+                set(parson_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT parson_RESOLVED)
+            FetchContent_Declare(
+                parson
+                GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
+                GIT_TAG master
+            )
+            set(OLD_BSL ${BUILD_SHARED_LIBS})
+            set(BUILD_SHARED_LIBS OFF)
+            FetchContent_MakeAvailable(parson)
+            set(BUILD_SHARED_LIBS ${OLD_BSL})
+            include_directories(SYSTEM ${parson_SOURCE_DIR})
+            if(TARGET parson AND NOT TARGET parson::parson)
+                add_library(parson::parson ALIAS parson)
+            endif()
         endif()
     endif()
     if (BUILD_TESTING OR C_CDD_BUILD_TESTS)

@@ -1,12 +1,6 @@
 /**
  * @file security.c
- * @brief Implementation of Security Code Generation.
- *
- * Scans an OpenAPI Operation for `security` requirements and matches them
- * against defined `securitySchemes`. Emits C code during the request setup
- * phase to inject tokens into Headers or Query Strings.
- *
- * @author Samuel Marks
+ * @brief Implementation of security code generation.
  */
 
 /* clang-format off */

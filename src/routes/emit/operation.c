@@ -1,8 +1,6 @@
 /**
  * @file operation.c
- * @brief Implementation of the Operation Builder.
- *
- * @author Samuel Marks
+ * @brief Implementation of operation logic.
  */
 
 /* clang-format off */

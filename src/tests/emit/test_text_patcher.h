@@ -1,7 +1,6 @@
 /**
  * @file test_text_patcher.h
  * @brief Unit tests for the text patching engine.
- * @author Samuel Marks
  */
 
 #ifndef TEST_TEXT_PATCHER_H
@@ -264,7 +263,23 @@ TEST test_patch_append_end(void) {
   PASS();
 }
 
+TEST test_patch_bounds(void) {
+  struct PatchList pl;
+  struct TokenList tl;
+  char *res = NULL;
+  patch_list_init(&pl);
+  ASSERT_EQ(EINVAL, patch_list_init(NULL));
+  ASSERT_EQ(EINVAL, patch_list_add(NULL, 0, 1, strdup("X")));
+  ASSERT_EQ(EINVAL, patch_list_apply(NULL, &tl, &res));
+  ASSERT_EQ(EINVAL, patch_list_apply(&pl, NULL, &res));
+  ASSERT_EQ(EINVAL, patch_list_apply(&pl, &tl, NULL));
+  patch_list_free(&pl);
+  patch_list_free(NULL); /* Should not crash */
+  PASS();
+}
+
 SUITE(text_patcher_suite) {
+  RUN_TEST(test_patch_bounds);
   RUN_TEST(test_patch_init_free);
   RUN_TEST(test_patch_basic_replacement);
   RUN_TEST(test_patch_insertion);

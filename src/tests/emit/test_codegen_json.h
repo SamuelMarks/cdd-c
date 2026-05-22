@@ -32,6 +32,10 @@ static void setup_json_fields(struct StructFields *sf) {
   struct_fields_add(sf, "data", "string", NULL, NULL, NULL);
 }
 
+/**
+ * @brief test_json_to_plain
+ * @return TEST
+ */
 TEST test_json_to_plain(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -62,6 +66,10 @@ TEST test_json_to_plain(void) {
   PASS();
 }
 
+/**
+ * @brief test_json_from_plain
+ * @return TEST
+ */
 TEST test_json_from_plain(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -91,6 +99,10 @@ TEST test_json_from_plain(void) {
   PASS();
 }
 
+/**
+ * @brief test_json_recursive_obj
+ * @return TEST
+ */
 TEST test_json_recursive_obj(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -119,6 +131,10 @@ TEST test_json_recursive_obj(void) {
   PASS();
 }
 
+/**
+ * @brief test_json_array_logic
+ * @return TEST
+ */
 TEST test_json_array_logic(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -149,6 +165,10 @@ TEST test_json_array_logic(void) {
   PASS();
 }
 
+/**
+ * @brief test_json_guards
+ * @return TEST
+ */
 TEST test_json_guards(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -178,6 +198,10 @@ TEST test_json_guards(void) {
   PASS();
 }
 
+/**
+ * @brief test_struct_array_from_json
+ * @return TEST
+ */
 TEST test_struct_array_from_json(void) {
   FILE *tmp = tmpfile();
   char *content = NULL;
@@ -204,6 +228,10 @@ TEST test_struct_array_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_json_null_args
+ * @return TEST
+ */
 TEST test_json_null_args(void) {
   FILE *tmp = tmpfile();
   ASSERT_EQ(EINVAL, write_struct_to_json_func(NULL, "S", NULL, NULL));
@@ -215,6 +243,10 @@ TEST test_json_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief test_standalone_json_func
+ * @return TEST
+ */
 TEST test_standalone_json_func(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -241,6 +273,9 @@ TEST test_standalone_json_func(void) {
   PASS();
 }
 
+/**
+ * @brief codegen_json_suite
+ */
 SUITE(codegen_json_suite) {
   RUN_TEST(test_json_to_plain);
   RUN_TEST(test_json_from_plain);

@@ -30,6 +30,10 @@ static void setup_struct_fields(struct StructFields *sf) {
   struct_fields_add(sf, "name", "string", NULL, "\"test\"", NULL);
 }
 
+/**
+ * @brief test_cleanup_generation
+ * @return TEST
+ */
 TEST test_cleanup_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -59,6 +63,10 @@ TEST test_cleanup_generation(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_generation
+ * @return TEST
+ */
 TEST test_default_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -88,6 +96,10 @@ TEST test_default_generation(void) {
   PASS();
 }
 
+/**
+ * @brief test_deepcopy_generation
+ * @return TEST
+ */
 TEST test_deepcopy_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -119,6 +131,10 @@ TEST test_deepcopy_generation(void) {
   PASS();
 }
 
+/**
+ * @brief test_eq_generation
+ * @return TEST
+ */
 TEST test_eq_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -146,6 +162,10 @@ TEST test_eq_generation(void) {
   PASS();
 }
 
+/**
+ * @brief test_guards_injection
+ * @return TEST
+ */
 TEST test_guards_injection(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -174,6 +194,10 @@ TEST test_guards_injection(void) {
   PASS();
 }
 
+/**
+ * @brief test_null_args
+ * @return TEST
+ */
 TEST test_null_args(void) {
   ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "U", NULL, NULL));
@@ -184,6 +208,10 @@ TEST test_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief test_struct_fields_add_bitwidth
+ * @return TEST
+ */
 TEST test_struct_fields_add_bitwidth(void) {
   struct StructFields sf;
   struct_fields_init(&sf);
@@ -203,6 +231,9 @@ TEST test_struct_fields_add_bitwidth(void) {
   PASS();
 }
 
+/**
+ * @brief codegen_struct_suite
+ */
 SUITE(codegen_struct_suite) {
   RUN_TEST(test_cleanup_generation);
   RUN_TEST(test_default_generation);

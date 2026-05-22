@@ -1,3 +1,8 @@
+/**
+ * @file test_strategy.h
+ * @brief Unit tests for parsing strategy algorithms.
+ */
+
 #ifndef TEST_STRATEGY_H
 #define TEST_STRATEGY_H
 
@@ -5,9 +10,16 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* clang-format off */
 #include "functions/parse/strategy.h"
 #include <greatest.h>
+/* clang-format on */
 
+/**
+ * @brief Tests error handling of the strategy injection function.
+ *
+ * @return The result of the test.
+ */
 TEST test_strategy_errors(void) {
   struct PatchList patches;
   struct AllocationSiteList allocs;
@@ -21,6 +33,9 @@ TEST test_strategy_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Strategy test suite.
+ */
 SUITE(strategy_suite) { RUN_TEST(test_strategy_errors); }
 
 #ifdef __cplusplus

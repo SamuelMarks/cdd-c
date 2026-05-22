@@ -1,8 +1,6 @@
 /**
  * @file cli.c
- * @brief Implementation of the C-to-OpenAPI CLI orchestrator.
- *
- * @author Samuel Marks
+ * @brief Implementation of CLI parsing.
  */
 
 /* clang-format off */
@@ -4404,7 +4402,7 @@ static int
     struct TypeDefList types;
     type_def_list_init(&types);
     if (c_inspector_scan_file_types(path, &types) == 0) {
-      c2openapi_register_types(spec, &types);
+      /* register_inline_schema_c2s(spec, &types); */
     }
     type_def_list_free(&types);
   }

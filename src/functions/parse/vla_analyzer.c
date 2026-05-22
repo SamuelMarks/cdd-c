@@ -14,6 +14,14 @@
 #include "functions/parse/vla_analyzer.h"
 /* clang-format on */
 
+/**
+ * @brief Duplicates a string up to a specified number of characters.
+ *
+ * @param[in] s The string to duplicate.
+ * @param[in] n The maximum number of characters to copy.
+ * @param[out] _out_val The output duplicated string.
+ * @return 0 on success.
+ */
 static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = (char *)malloc(n + 1);
   if (!d) {
@@ -29,7 +37,9 @@ static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 }
 
 /**
- * @brief Executes the vla site list init operation.
+ * @brief Initializes a VLA site list.
+ *
+ * @param[out] list The list to initialize.
  */
 void vla_site_list_init(struct VLASiteList *list) {
   if (!list)
@@ -40,7 +50,9 @@ void vla_site_list_init(struct VLASiteList *list) {
 }
 
 /**
- * @brief Executes the vla site list free operation.
+ * @brief Frees a VLA site list.
+ *
+ * @param[in,out] list The list to free.
  */
 void vla_site_list_free(struct VLASiteList *list) {
   size_t i;
@@ -61,7 +73,11 @@ void vla_site_list_free(struct VLASiteList *list) {
 }
 
 /**
- * @brief Checks if basic type keyword.
+ * @brief Checks if a token kind is a basic type keyword.
+ *
+ * @param[in] k The token kind to check.
+ * @param[out] out_is_basic Pointer to int where result (1 or 0) is stored.
+ * @return 0 on success, or EINVAL if out_is_basic is NULL.
  */
 static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   if (!out_is_basic)
@@ -85,7 +101,11 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
 }
 
 /**
- * @brief Executes the scan for vlas operation.
+ * @brief Scans for VLA (Variable Length Array) sites in a token list.
+ *
+ * @param[in] tokens The token list to scan.
+ * @param[out] list The list to populate with VLA sites.
+ * @return 0 on success, EINVAL on invalid arguments.
  */
 int scan_for_vlas(const struct TokenList *tokens, struct VLASiteList *list) {
   size_t i = 0;

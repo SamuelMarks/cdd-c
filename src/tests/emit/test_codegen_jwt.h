@@ -22,6 +22,10 @@ extern "C" {
 #include "classes/emit/struct.h"
 /* clang-format on */
 
+/**
+ * @brief Test for JWT generation functionality
+ * @return TEST
+ */
 TEST test_jwt_generation(void) {
   FILE *tmp = tmpfile();
   struct StructFields sf;
@@ -30,6 +34,11 @@ TEST test_jwt_generation(void) {
 
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
+
+  /* Invalid arguments bounds */
+  ASSERT_EQ(EINVAL, write_struct_from_jwt_func(NULL, "JwtPayload", &sf));
+  ASSERT_EQ(EINVAL, write_struct_from_jwt_func(tmp, NULL, &sf));
+  ASSERT_EQ(EINVAL, write_struct_from_jwt_func(tmp, "JwtPayload", NULL));
 
   /* simulate struct { char* sub; int exp; } */
   {
@@ -65,6 +74,9 @@ TEST test_jwt_generation(void) {
   PASS();
 }
 
+/**
+ * @brief Suite for codegen jwt
+ */
 SUITE(codegen_jwt_suite) { RUN_TEST(test_jwt_generation); }
 
 #ifdef __cplusplus

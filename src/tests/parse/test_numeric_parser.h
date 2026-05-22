@@ -20,6 +20,10 @@ extern "C" {
 /* Helper to check float equality with epsilon */
 static int dbl_eq(double a, double b) { return fabs(a - b) < 1e-9; }
 
+/**
+ * @brief test_parse_dec_int
+ * @return TEST
+ */
 TEST test_parse_dec_int(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("123", &nv));
@@ -30,6 +34,10 @@ TEST test_parse_dec_int(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_hex_int
+ * @return TEST
+ */
 TEST test_parse_hex_int(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("0xFF", &nv));
@@ -39,6 +47,10 @@ TEST test_parse_hex_int(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_bin_int
+ * @return TEST
+ */
 TEST test_parse_bin_int(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("0b101", &nv));
@@ -48,6 +60,10 @@ TEST test_parse_bin_int(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_oct_int
+ * @return TEST
+ */
 TEST test_parse_oct_int(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("010", &nv)); /* Octal 10 -> Dec 8 */
@@ -57,6 +73,10 @@ TEST test_parse_oct_int(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_int_suffixes
+ * @return TEST
+ */
 TEST test_parse_int_suffixes(void) {
   struct NumericValue nv;
 
@@ -75,6 +95,10 @@ TEST test_parse_int_suffixes(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_float_simple
+ * @return TEST
+ */
 TEST test_parse_float_simple(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("3.14", &nv));
@@ -84,6 +108,10 @@ TEST test_parse_float_simple(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_float_exponent
+ * @return TEST
+ */
 TEST test_parse_float_exponent(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("1.5e2", &nv));
@@ -92,6 +120,10 @@ TEST test_parse_float_exponent(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_float_suffix
+ * @return TEST
+ */
 TEST test_parse_float_suffix(void) {
   struct NumericValue nv;
   ASSERT_EQ(0, parse_numeric_literal("1.0f", &nv));
@@ -102,6 +134,10 @@ TEST test_parse_float_suffix(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_decimal_float_suffixes
+ * @return TEST
+ */
 TEST test_parse_decimal_float_suffixes(void) {
   struct NumericValue nv;
 
@@ -124,8 +160,16 @@ TEST test_parse_decimal_float_suffixes(void) {
   PASS();
 }
 
+/**
+ * @brief test_parse_hex_float
+ * @return TEST
+ */
 TEST test_parse_hex_float(void) { PASS(); }
 
+/**
+ * @brief test_parse_errors
+ * @return TEST
+ */
 TEST test_parse_errors(void) {
   struct NumericValue nv;
   /* Bad hex */
@@ -143,6 +187,9 @@ TEST test_parse_errors(void) {
   PASS();
 }
 
+/**
+ * @brief numeric_parser_suite
+ */
 SUITE(numeric_parser_suite) {
   RUN_TEST(test_parse_dec_int);
   RUN_TEST(test_parse_hex_int);

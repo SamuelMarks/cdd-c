@@ -1,8 +1,6 @@
 /**
  * @file cli_gen.c
- * @brief Implementation of CLI wrapper generation.
- *
- * Emits a robust C89 CLI application based on an OpenAPI definition.
+ * @brief Implementation of CLI code generation.
  */
 
 /* clang-format off */

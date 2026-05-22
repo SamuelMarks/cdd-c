@@ -1,8 +1,6 @@
 /**
  * @file server_gen.c
- * @brief Implementation of server wrapper generation.
- *
- * Emits a robust C89 server application based on an OpenAPI definition.
+ * @brief Implementation of server code generation.
  */
 
 /* clang-format off */

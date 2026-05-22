@@ -1,3 +1,8 @@
+/**
+ * @file test_code2schema.h
+ * @brief Unit tests for code to schema conversion.
+ */
+
 #include "classes/emit/schema.h"
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
@@ -761,7 +766,7 @@ TEST test_code2schema_utils(void) {
 
   json_value_free(val);
   if (union_types)
-    free_string_array_schema_utils(union_types, count);
+    free_string_array_code2schema(union_types, count);
   PASS();
 }
 

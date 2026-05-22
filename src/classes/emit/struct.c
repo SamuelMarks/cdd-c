@@ -195,67 +195,35 @@ int struct_fields_add(struct StructFields *sf, const char *name,
   memset(f, 0, sizeof(struct StructField));
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  strncpy_s(f->name, sizeof(f->name), name, sizeof(f->name) - 1);
-  f->name[sizeof(f->name) - 1] = '\0';
-
-  strncpy_s(f->type, sizeof(f->type), type, sizeof(f->type) - 1);
-  f->type[sizeof(f->type) - 1] = '\0';
-
+  strncpy_s(f->name, sizeof(f->name), name, _TRUNCATE);
+  strncpy_s(f->type, sizeof(f->type), type, _TRUNCATE);
   if (ref) {
-    strncpy_s(f->ref, sizeof(f->ref), ref, sizeof(f->ref) - 1);
-    f->ref[sizeof(f->ref) - 1] = '\0';
+    strncpy_s(f->ref, sizeof(f->ref), ref, _TRUNCATE);
   }
-
   if (default_val) {
-    strncpy_s(f->default_val, sizeof(f->default_val), default_val,
-              sizeof(f->default_val) - 1);
-    f->default_val[sizeof(f->default_val) - 1] = '\0';
+    strncpy_s(f->default_val, sizeof(f->default_val), default_val, _TRUNCATE);
   }
-
   if (bit_width) {
-    strncpy_s(f->bit_width, sizeof(f->bit_width), bit_width,
-              sizeof(f->bit_width) - 1);
-    f->bit_width[sizeof(f->bit_width) - 1] = '\0';
+    strncpy_s(f->bit_width, sizeof(f->bit_width), bit_width, _TRUNCATE);
   }
 #else
   strncpy(f->name, name, sizeof(f->name) - 1);
   f->name[sizeof(f->name) - 1] = '\0';
-
   strncpy(f->type, type, sizeof(f->type) - 1);
   f->type[sizeof(f->type) - 1] = '\0';
-
   if (ref) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    strncpy_s(f->ref, sizeof(f->ref) - 1, ref, _TRUNCATE);
-#else
     strncpy(f->ref, ref, sizeof(f->ref) - 1);
-#endif
     f->ref[sizeof(f->ref) - 1] = '\0';
   }
-
   if (default_val) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    strncpy_s(f->default_val, sizeof(f->default_val) - 1, default_val,
-              _TRUNCATE);
-#else
     strncpy(f->default_val, default_val, sizeof(f->default_val) - 1);
-#endif
     f->default_val[sizeof(f->default_val) - 1] = '\0';
   }
-
   if (bit_width) {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-    strncpy_s(f->bit_width, sizeof(f->bit_width) - 1, bit_width, _TRUNCATE);
-#else
     strncpy(f->bit_width, bit_width, sizeof(f->bit_width) - 1);
-#endif
     f->bit_width[sizeof(f->bit_width) - 1] = '\0';
   }
 #endif
-
   sf->size++;
   return 0;
 }

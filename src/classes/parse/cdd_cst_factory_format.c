@@ -1,3 +1,8 @@
+/**
+ * @file cdd_cst_factory_format.c
+ * @brief Implementation of formatting CST factory allocation functions.
+ */
+
 /* clang-format off */
 #include "cdd_cst_factory.h"
 #include "cdd_cst_mutate.h"
@@ -12,12 +17,16 @@
 
 int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
                          const char *fmt, ...) {
-  char *buf = (char *)malloc(4096);
+  char *buf;
   va_list args;
   cdd_cst_tree_t *temp_tree = NULL;
   cdd_cst_node_t *result = NULL;
   int rc;
 
+  if (!dest_tree || !out_node || !fmt)
+    return EINVAL;
+
+  buf = (char *)malloc(4096);
   if (!buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -28,13 +37,20 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
+    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
+  vsnprintf_s(buf, 4096, _TRUNCATE, fmt, args);
+#else
   vsnprintf(buf, 4096, fmt, args);
+#endif
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
   va_end(args);
 
   rc = cdd_cst_parse(az_span_create_from_str(buf), &temp_tree);
+  free(buf);
+
   if (rc == 0 && temp_tree && temp_tree->root) {
     size_t i, j;
     cdd_cst_alloc_node(CDD_CST_UNKNOWN, &result);
@@ -72,5 +88,5 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
     cdd_cst_tree_free(temp_tree);
   }
   *out_node = result;
-  return 0;
+  return rc;
 }

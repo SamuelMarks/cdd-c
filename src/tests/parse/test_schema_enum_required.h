@@ -1,6 +1,6 @@
 /**
  * @file test_schema_enum_required.h
- * @brief Tests for enum schema + required property support.
+ * @brief Unit tests for required enums in schemas.
  */
 
 #ifndef TEST_SCHEMA_ENUM_REQUIRED_H

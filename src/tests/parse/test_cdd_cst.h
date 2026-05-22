@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst.h
+ * @brief Unit tests for CST parsing and emitting roundtrips.
+ */
+
 #ifndef TEST_CDD_CST_PARSER_H
 #define TEST_CDD_CST_PARSER_H
 
@@ -13,6 +18,11 @@ extern "C" {
 #include "classes/emit/cdd_cst_emit.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic roundtrip of CST parsing and emitting.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_roundtrip_basic(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#include <stdio.h>\n"
@@ -43,6 +53,11 @@ TEST test_cdd_cst_roundtrip_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests roundtrip of macros with CST.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_roundtrip_macros(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#define MACRO(x) (x + 1)\n"
@@ -63,6 +78,11 @@ TEST test_cdd_cst_roundtrip_macros(void) {
   PASS();
 }
 
+/**
+ * @brief Tests CST parsing of asm statements.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_asm_statement(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void func() {\n"
@@ -102,6 +122,9 @@ TEST test_cdd_cst_asm_statement(void) {
   PASS();
 }
 
+/**
+ * @brief CST test suite.
+ */
 SUITE(cdd_cst_suite) {
   RUN_TEST(test_cdd_cst_roundtrip_basic);
   RUN_TEST(test_cdd_cst_roundtrip_macros);

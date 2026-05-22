@@ -1,3 +1,8 @@
+/**
+ * @file test_refactor.h
+ * @brief Unit tests for refactoring orchestration.
+ */
+
 #ifndef TEST_REFACTOR_H
 #define TEST_REFACTOR_H
 
@@ -14,6 +19,11 @@ extern "C" {
 #include "functions/parse/refactor.h"
 /* clang-format on */
 
+/**
+ * @brief Tests the lifecycle of RefactorContext.
+ *
+ * @return The result of the test.
+ */
 TEST test_refactor_context_lifecycle(void) {
   struct RefactorContext ctx;
 
@@ -36,6 +46,11 @@ TEST test_refactor_context_lifecycle(void) {
   PASS();
 }
 
+/**
+ * @brief Tests basic application of refactoring to a string.
+ *
+ * @return The result of the test.
+ */
 TEST test_apply_refactoring_to_string_basic(void) {
   struct RefactorContext ctx;
   int rc;
@@ -55,14 +70,18 @@ TEST test_apply_refactoring_to_string_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of apply_refactoring_to_string.
+ *
+ * @return The result of the test.
+ */
 TEST test_apply_refactoring_to_string_errors(void) {
   struct RefactorContext ctx;
   char *out = NULL;
 
   refactor_context_init(&ctx);
 
-  /* ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}",
-   * &out)); */
+  ASSERT_EQ(EINVAL, apply_refactoring_to_string(NULL, "int main() {}", &out));
   ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, NULL, &out));
   ASSERT_EQ(EINVAL, apply_refactoring_to_string(&ctx, "int main() {}", NULL));
 
@@ -70,6 +89,9 @@ TEST test_apply_refactoring_to_string_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Refactor test suite.
+ */
 SUITE(refactor_suite) {
   RUN_TEST(test_refactor_context_lifecycle);
   RUN_TEST(test_apply_refactoring_to_string_basic);

@@ -35,9 +35,6 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
-/**
- * @brief Executes the enum members init operation.
- */
 int enum_members_init(struct EnumMembers *em) {
   if (!em)
     return EINVAL;
@@ -51,9 +48,6 @@ int enum_members_init(struct EnumMembers *em) {
   return 0;
 }
 
-/**
- * @brief Executes the enum members free operation.
- */
 void enum_members_free(struct EnumMembers *em) {
   size_t i;
   if (!em)
@@ -70,9 +64,6 @@ void enum_members_free(struct EnumMembers *em) {
   em->capacity = 0;
 }
 
-/**
- * @brief Executes the enum members add operation.
- */
 int enum_members_add(struct EnumMembers *em, const char *name) {
   if (!em || !name)
     return EINVAL;
@@ -94,9 +85,6 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
   return 0;
 }
 
-/**
- * @brief Generates C code for write enum to str func.
- */
 int write_enum_to_str_func(FILE *fp, const char *enum_name,
                            const struct EnumMembers *em,
                            const struct CodegenEnumConfig *config) {
@@ -135,9 +123,6 @@ int write_enum_to_str_func(FILE *fp, const char *enum_name,
   return 0;
 }
 
-/**
- * @brief Generates C code for write enum from str func.
- */
 int write_enum_from_str_func(FILE *fp, const char *enum_name,
                              const struct EnumMembers *em,
                              const struct CodegenEnumConfig *config) {
@@ -173,3 +158,7 @@ int write_enum_from_str_func(FILE *fp, const char *enum_name,
 
   return 0;
 }
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif

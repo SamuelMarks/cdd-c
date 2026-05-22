@@ -20,6 +20,10 @@ extern "C" {
 #include "functions/emit/build.h"
 /* clang-format on */
 
+/**
+ * @brief test_cbuild_null_args
+ * @return TEST
+ */
 TEST test_cbuild_null_args(void) {
   struct CodegenBuildConfig config;
   FILE *tmp = tmpfile();
@@ -46,6 +50,10 @@ TEST test_cbuild_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief test_cbuild_basic_output
+ * @return TEST
+ */
 TEST test_cbuild_basic_output(void) {
   FILE *tmp = tmpfile();
   struct CodegenBuildConfig config;
@@ -92,8 +100,36 @@ TEST test_cbuild_basic_output(void) {
   PASS();
 }
 
-TEST test_cbuild_unsupported(void) { PASS(); }
+/**
+ * @brief test_cbuild_unsupported
+ * @return TEST
+ */
+TEST test_cbuild_unsupported(void) {
+  FILE *tmp = tmpfile();
+  struct CodegenBuildConfig config;
 
+  ASSERT(tmp);
+  memset(&config, 0, sizeof(config));
+  config.project_name = "PetStore";
+  config.target_name = "petstore_lib";
+
+#ifdef ENOTSUP
+  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
+  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
+  ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
+#else
+  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
+  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
+  ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));
+#endif
+
+  fclose(tmp);
+  PASS();
+}
+
+/**
+ * @brief codegen_build_suite
+ */
 SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_null_args);
   RUN_TEST(test_cbuild_basic_output);

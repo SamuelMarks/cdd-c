@@ -24,6 +24,10 @@ extern "C" {
 
 /* --- Union Tests --- */
 
+/**
+ * @brief test_write_union_to_json
+ * @return TEST
+ */
 TEST test_write_union_to_json(void) {
   struct StructFields sf;
   struct CodegenTypesConfig config = {0};
@@ -60,6 +64,10 @@ TEST test_write_union_to_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_write_union_from_json_object
+ * @return TEST
+ */
 TEST test_write_union_from_json_object(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -91,6 +99,10 @@ TEST test_write_union_from_json_object(void) {
   PASS();
 }
 
+/**
+ * @brief test_write_union_from_json
+ * @return TEST
+ */
 TEST test_write_union_from_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -123,6 +135,10 @@ TEST test_write_union_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_write_union_array_to_json
+ * @return TEST
+ */
 TEST test_write_union_array_to_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -151,6 +167,10 @@ TEST test_write_union_array_to_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_write_union_array_from_json
+ * @return TEST
+ */
 TEST test_write_union_array_from_json(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -179,6 +199,10 @@ TEST test_write_union_array_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_write_union_array_cleanup
+ * @return TEST
+ */
 TEST test_write_union_array_cleanup(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -206,6 +230,10 @@ TEST test_write_union_array_cleanup(void) {
   fclose(tmp);
   PASS();
 }
+/**
+ * @brief test_write_union_cleanup_switch
+ * @return TEST
+ */
 TEST test_write_union_cleanup_switch(void) {
   struct StructFields sf;
   FILE *tmp = tmpfile();
@@ -238,6 +266,10 @@ TEST test_write_union_cleanup_switch(void) {
 
 /* --- Root Array Tests --- */
 
+/**
+ * @brief test_root_array_string_cleanup
+ * @return TEST
+ */
 TEST test_root_array_string_cleanup(void) {
   FILE *tmp = tmpfile();
   char *content = NULL;
@@ -262,6 +294,10 @@ TEST test_root_array_string_cleanup(void) {
   PASS();
 }
 
+/**
+ * @brief test_root_array_int_from_json
+ * @return TEST
+ */
 TEST test_root_array_int_from_json(void) {
   FILE *tmp = tmpfile();
   char *content = NULL;
@@ -288,6 +324,10 @@ TEST test_root_array_int_from_json(void) {
   PASS();
 }
 
+/**
+ * @brief test_root_array_obj_to_json
+ * @return TEST
+ */
 TEST test_root_array_obj_to_json(void) {
   FILE *tmp = tmpfile();
   char *content = NULL;
@@ -344,6 +384,10 @@ TEST test_union_guards(void) {
   PASS();
 }
 
+/**
+ * @brief test_types_null_args
+ * @return TEST
+ */
 TEST test_types_null_args(void) {
   ASSERT_EQ(EINVAL, write_union_cleanup_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_union_from_json_func(NULL, "U", NULL, NULL));
@@ -351,6 +395,9 @@ TEST test_types_null_args(void) {
   PASS();
 }
 
+/**
+ * @brief codegen_types_suite
+ */
 SUITE(codegen_types_suite) {
   RUN_TEST(test_write_union_to_json);
   RUN_TEST(test_write_union_from_json_object);

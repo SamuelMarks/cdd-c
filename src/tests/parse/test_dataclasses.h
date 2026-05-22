@@ -1,3 +1,8 @@
+/**
+ * @file test_dataclasses.h
+ * @brief Unit tests for dataclasses parsing.
+ */
+
 #ifndef TEST_DATACLASSES_H
 #define TEST_DATACLASSES_H
 

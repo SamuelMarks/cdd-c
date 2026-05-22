@@ -1,3 +1,8 @@
+/**
+ * @file cdd_cst_emit.c
+ * @brief CST emit implementation
+ */
+
 /* clang-format off */
 #include "cdd_cst_emit.h"
 #include <errno.h>
@@ -6,19 +11,23 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-/** @brief Struct definition */
+/** @brief Context for emitting CST to string */
 typedef struct emit_ctx_t {
-  /** @brief field */
-  /** @brief field */
+  /** @brief Pointer to dynamically allocated buffer */
   char *buf;
-  /** @brief field */
-  /** @brief field */
+  /** @brief Current size of the buffer */
   size_t size;
-  /** @brief field */
-  /** @brief field */
+  /** @brief Capacity of the buffer */
   size_t capacity;
 } emit_ctx_t;
 
+/**
+ * @brief Appends a string to the emit context buffer.
+ * @param ctx The emit context.
+ * @param str The string to append.
+ * @param len The length of the string to append.
+ * @return 0 on success, error code otherwise.
+ */
 static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
   if (len == 0)
     return 0;
@@ -42,6 +51,12 @@ static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
   return 0;
 }
 
+/**
+ * @brief Emits trivia from a linked list.
+ * @param ctx The emit context.
+ * @param t The trivia list.
+ * @return 0 on success, error code otherwise.
+ */
 static int emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   while (t) {
     int rc = append_str(ctx, t->start, t->length);
@@ -52,6 +67,12 @@ static int emit_trivia(emit_ctx_t *ctx, cdd_trivia_t *t) {
   return 0;
 }
 
+/**
+ * @brief Emits a token.
+ * @param ctx The emit context.
+ * @param tok The token to emit.
+ * @return 0 on success, error code otherwise.
+ */
 static int emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
   int rc;
   if (!tok)
@@ -72,6 +93,12 @@ static int emit_token(emit_ctx_t *ctx, cdd_token_t *tok) {
   return emit_trivia(ctx, tok->trailing_trivia);
 }
 
+/**
+ * @brief Emits a CST node recursively.
+ * @param ctx The emit context.
+ * @param node The node to emit.
+ * @return 0 on success, error code otherwise.
+ */
 static int emit_node(emit_ctx_t *ctx, cdd_cst_node_t *node) {
   size_t i;
   if (!node)

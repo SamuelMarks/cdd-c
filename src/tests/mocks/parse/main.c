@@ -1,3 +1,8 @@
+/**
+ * @file main.c
+ * @brief Main mock runner for simple JSON serialization testing.
+ */
+
 /* clang-format off */
 #include <assert.h>
 #include <errno.h>
@@ -18,6 +23,11 @@ static const char *const foo_e_mock0 =
     "{\"bar\": \"some_bar\",\"can\": 5,\"haz\":{\"bzr\": "
     "\"some_bzr\",\"tank\": \"SMALL\"}}";
 
+/**
+ * @brief Entry point for the JSON serialization mock runner.
+ *
+ * @return EXIT_SUCCESS on success, error code otherwise.
+ */
 int main(void) {
   const enum Tank t = Tank_BIG;
 

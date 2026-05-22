@@ -1,3 +1,8 @@
+/**
+ * @file test_preprocessor.h
+ * @brief Unit tests for the C preprocessor.
+ */
+
 #ifndef TEST_PREPROCESSOR_H
 #define TEST_PREPROCESSOR_H
 

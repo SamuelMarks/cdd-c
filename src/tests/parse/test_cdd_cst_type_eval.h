@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_type_eval.h
+ * @brief Unit tests for CST type evaluation.
+ */
+
 #ifndef TEST_CDD_CST_TYPE_EVAL_H
 #define TEST_CDD_CST_TYPE_EVAL_H
 

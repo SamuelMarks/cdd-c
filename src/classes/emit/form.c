@@ -1,3 +1,8 @@
+/**
+ * @file form.c
+ * @brief Implementation of struct to form URL encoded generator.
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>

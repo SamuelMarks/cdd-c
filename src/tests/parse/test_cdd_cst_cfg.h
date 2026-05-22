@@ -1,14 +1,26 @@
+/**
+ * @file test_cdd_cst_cfg.h
+ * @brief Unit tests for CST Control Flow Graph generator.
+ */
+
 #ifndef TEST_CDD_CST_CFG_H
 #define TEST_CDD_CST_CFG_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
+/* clang-format off */
 #include "classes/parse/cdd_cst_cfg.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include <greatest.h>
+/* clang-format on */
 
+/**
+ * @brief Tests basic functionality of the CFG generator.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_cfg_basic(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_cfg_t *cfg = NULL;
@@ -42,6 +54,11 @@ TEST test_cdd_cst_cfg_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of the CFG APIs.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_cfg_errors(void) {
   cdd_cst_cfg_t *cfg = NULL;
 
@@ -54,6 +71,11 @@ TEST test_cdd_cst_cfg_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Tests CFG generator on an empty function.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_cfg_empty(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_cfg_t *cfg = NULL;
@@ -86,6 +108,11 @@ TEST test_cdd_cst_cfg_empty(void) {
   PASS();
 }
 
+/**
+ * @brief Tests CFG generator on a function without a return statement.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_cfg_no_return(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_cfg_t *cfg = NULL;
@@ -117,6 +144,10 @@ TEST test_cdd_cst_cfg_no_return(void) {
 
   PASS();
 }
+
+/**
+ * @brief CFG test suite.
+ */
 SUITE(cdd_cst_cfg_suite) {
   RUN_TEST(test_cdd_cst_cfg_no_return);
   RUN_TEST(test_cdd_cst_cfg_empty);
@@ -126,6 +157,6 @@ SUITE(cdd_cst_cfg_suite) {
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
-#endif
+#endif /* TEST_CDD_CST_CFG_H */

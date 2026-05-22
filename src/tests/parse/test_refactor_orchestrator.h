@@ -1,3 +1,8 @@
+/**
+ * @file test_refactor_orchestrator.h
+ * @brief Unit tests for the refactoring orchestrator.
+ */
+
 #ifndef TEST_REFACTOR_ORCHESTRATOR_H
 #define TEST_REFACTOR_ORCHESTRATOR_H
 

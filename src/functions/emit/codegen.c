@@ -147,6 +147,8 @@ int write_union_declaration_h(FILE *hfile, const char *union_name,
 int write_struct_declaration_h(FILE *hfile, const char *struct_name,
                                const struct StructFields *sf,
                                const struct CodegenConfig *config) {
+  if (!hfile || !struct_name || !sf)
+    return EINVAL;
   char *_ast_get_type_from_ref_3 = NULL;
   char *_ast_get_type_from_ref_4 = NULL;
   char *_ast_get_type_from_ref_5 = NULL;

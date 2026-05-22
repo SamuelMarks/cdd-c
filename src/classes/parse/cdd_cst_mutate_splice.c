@@ -1,3 +1,8 @@
+/**
+ * @file cdd_cst_mutate_splice.c
+ * @brief Implementation of CST splicing and searching functions.
+ */
+
 /* clang-format off */
 #include "cdd_cst_mutate.h"
 #include "cdd_cst_factory.h"
@@ -17,6 +22,12 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
   int rc;
   if (!tree || !node)
     return EINVAL;
+
+  /* If start_idx + consume_count goes beyond bounds, clamp or fail. We'll fail
+   * safely */
+  if (start_idx + consume_count > node->num_children) {
+    return EINVAL;
+  }
 
   cdd_cst_alloc_node(node->kind, &new_node);
   if (!new_node) {
@@ -48,9 +59,18 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
-  rc = cdd_cst_replace_node(tree, node, new_node);
-  if (rc == 0 && node_ptr)
+  if (node_ptr) {
+    if (node == tree->root) {
+      cdd_cst_free_node_only(node);
+      tree->root = new_node;
+      rc = 0;
+    } else {
+      rc = cdd_cst_replace_node(tree, node, new_node);
+    }
     *node_ptr = new_node;
+  } else {
+    rc = cdd_cst_replace_node(tree, node, new_node);
+  }
   return rc;
 }
 

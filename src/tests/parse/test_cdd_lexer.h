@@ -11,6 +11,10 @@ extern "C" {
 #include "classes/parse/cdd_lexer.h"
 /* clang-format on */
 
+/**
+ * @brief test_cdd_lexer_basic
+ * @return TEST
+ */
 TEST test_cdd_lexer_basic(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "int main() { /* comment */\n  return 0;\n}";
@@ -38,6 +42,10 @@ TEST test_cdd_lexer_basic(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_empty
+ * @return TEST
+ */
 TEST test_cdd_lexer_empty(void) {
   cdd_token_list_t *list = NULL;
   int rc = cdd_lexer_tokenize(az_span_create_from_str(""), &list);
@@ -47,6 +55,10 @@ TEST test_cdd_lexer_empty(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_trivia_only
+ * @return TEST
+ */
 TEST test_cdd_lexer_trivia_only(void) {
   cdd_token_list_t *list = NULL;
   int rc =
@@ -59,12 +71,20 @@ TEST test_cdd_lexer_trivia_only(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_errors
+ * @return TEST
+ */
 TEST test_cdd_lexer_errors(void) {
   ASSERT_EQ(EINVAL, cdd_lexer_tokenize(az_span_create_from_str(""), NULL));
   cdd_lexer_free_token_list(NULL);
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_strings
+ * @return TEST
+ */
 TEST test_cdd_lexer_strings(void) {
   cdd_token_list_t *list = NULL;
   int rc = cdd_lexer_tokenize(
@@ -81,6 +101,10 @@ TEST test_cdd_lexer_strings(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_symbols
+ * @return TEST
+ */
 TEST test_cdd_lexer_symbols(void) {
   cdd_token_list_t *list = NULL;
   int rc = cdd_lexer_tokenize(
@@ -91,6 +115,10 @@ TEST test_cdd_lexer_symbols(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_gnu_extensions
+ * @return TEST
+ */
 TEST test_cdd_lexer_gnu_extensions(void) {
   cdd_token_list_t *list = NULL;
   int rc =
@@ -112,6 +140,10 @@ TEST test_cdd_lexer_gnu_extensions(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_multiline_macro
+ * @return TEST
+ */
 TEST test_cdd_lexer_multiline_macro(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#define FOO(x) \\\n  do { \\\n    x++; // incr \\\n  } "
@@ -130,6 +162,10 @@ TEST test_cdd_lexer_multiline_macro(void) {
   PASS();
 }
 
+/**
+ * @brief test_cdd_lexer_include_next
+ * @return TEST
+ */
 TEST test_cdd_lexer_include_next(void) {
   cdd_token_list_t *list = NULL;
   const char *code = "#include_next <stdio.h>\n";
@@ -143,6 +179,9 @@ TEST test_cdd_lexer_include_next(void) {
   PASS();
 }
 
+/**
+ * @brief cdd_lexer_suite
+ */
 SUITE(cdd_lexer_suite) {
   RUN_TEST(test_cdd_lexer_basic);
   RUN_TEST(test_cdd_lexer_empty);

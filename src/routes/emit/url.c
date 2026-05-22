@@ -1,11 +1,6 @@
 /**
  * @file url.c
- * @brief Implementation of URL interpolator generation.
- *
- * Updated to include `codegen_url_write_query_params` which handles the
- * complexity of Loop Generation for Array Parameters.
- *
- * @author Samuel Marks
+ * @brief Implementation of URL generation.
  */
 
 /* clang-format off */

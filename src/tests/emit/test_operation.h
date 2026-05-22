@@ -1,3 +1,8 @@
+/**
+ * @file test_operation.h
+ * @brief Unit tests for operation generator.
+ */
+
 #ifndef TEST_OPERATION_H
 #define TEST_OPERATION_H
 

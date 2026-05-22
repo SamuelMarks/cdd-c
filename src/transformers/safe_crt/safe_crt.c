@@ -1,3 +1,8 @@
+/**
+ * @file safe_crt.c
+ * @brief Implementation of the Safe CRT transformer.
+ */
+
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"

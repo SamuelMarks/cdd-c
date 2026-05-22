@@ -1,3 +1,8 @@
+/**
+ * @file test_tokenizer.h
+ * @brief Unit tests for the tokenizer.
+ */
+
 #ifndef TEST_TOKENIZER_H
 #define TEST_TOKENIZER_H
 

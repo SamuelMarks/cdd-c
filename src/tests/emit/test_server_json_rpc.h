@@ -1,3 +1,8 @@
+/**
+ * @file test_server_json_rpc.h
+ * @brief Unit tests for JSON RPC server functionality.
+ */
+
 #ifndef TEST_SERVER_JSON_RPC_H
 #define TEST_SERVER_JSON_RPC_H
 
@@ -31,6 +36,11 @@ extern "C" {
 #endif
 /* clang-format on */
 
+/**
+ * @brief Tests binding failure scenario for the JSON RPC server.
+ *
+ * @return The result of the test.
+ */
 TEST test_server_json_rpc_bind_fail(void) {
 #if defined(_WIN32)
   SOCKET server_fd;
@@ -70,6 +80,11 @@ TEST test_server_json_rpc_bind_fail(void) {
   PASS();
 }
 
+/**
+ * @brief Tests the listen once flag behavior.
+ *
+ * @return The result of the test.
+ */
 TEST test_server_json_rpc_listen_once(void) {
   char *argv[] = {"server_json_rpc_main", "--port", "12347", "--listen", "255"};
   int argc = 5;
@@ -82,6 +97,11 @@ TEST test_server_json_rpc_listen_once(void) {
   PASS();
 }
 
+/**
+ * @brief Tests basic JSON RPC server logic without listening indefinitely.
+ *
+ * @return The result of the test.
+ */
 TEST test_server_json_rpc_basic(void) {
   char *argv[] = {"server_json_rpc_main", "--port", "12345"};
   int argc = 3;
@@ -98,6 +118,11 @@ TEST test_server_json_rpc_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests JSON RPC server with missing port arguments.
+ *
+ * @return The result of the test.
+ */
 TEST test_server_json_rpc_bad_port(void) {
   /* Try to bind to port 80 or something privileged or duplicate to force bind
      error if we want? Actually we can just run it without args. */
@@ -111,6 +136,9 @@ TEST test_server_json_rpc_bad_port(void) {
   PASS();
 }
 
+/**
+ * @brief JSON RPC Server test suite.
+ */
 SUITE(server_json_rpc_suite) {
   RUN_TEST(test_server_json_rpc_basic);
   RUN_TEST(test_server_json_rpc_bad_port);

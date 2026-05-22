@@ -1,3 +1,8 @@
+/**
+ * @file diff_generator.c
+ * @brief Implementation of CST diff generation.
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>
@@ -8,16 +13,6 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-/* Simplified diff engine. In a real scenario we'd do a line-by-line diff.
-   For CST rewrites, we can emit the old code and the new code and run a simple
-   delta. Since building a diff algorithm from scratch is complex, we will
-   approximate a diff by outputting the original tokens within a 3-line context
-   of the patch, and the replaced text.
-*/
-
-/**
- * @brief Executes the patch list generate diff operation.
- */
 int patch_list_generate_diff(const struct TokenList *tokens,
                              const struct PatchList *list, const char *filename,
                              char **out_diff) {
@@ -29,7 +24,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
   if (!tokens || !list || !filename || !out_diff)
     return EINVAL;
 
-  diff_buf = malloc(diff_cap);
+  diff_buf = (char *)malloc(diff_cap);
   if (!diff_buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -71,10 +66,14 @@ int patch_list_generate_diff(const struct TokenList *tokens,
       for (j = p->start_token_idx; j < p->end_token_idx; ++j) {
         if (diff_len + tokens->tokens[j].length + 10 > diff_cap) {
           diff_cap *= 2;
-          diff_buf = realloc(diff_buf, diff_cap);
-          if (!diff_buf) {
-            C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-            return ENOMEM;
+          {
+            char *new_buf = (char *)realloc(diff_buf, diff_cap);
+            if (!new_buf) {
+              free(diff_buf);
+              C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+              return ENOMEM;
+            }
+            diff_buf = new_buf;
           }
         }
         memcpy(diff_buf + diff_len, tokens->tokens[j].start,
@@ -88,10 +87,14 @@ int patch_list_generate_diff(const struct TokenList *tokens,
     /* Emit new tokens (we prefix with '+') */
     if (diff_len + strlen(p->text) + 10 > diff_cap) {
       diff_cap = diff_cap * 2 + strlen(p->text);
-      diff_buf = realloc(diff_buf, diff_cap);
-      if (!diff_buf) {
-        C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
-        return ENOMEM;
+      {
+        char *new_buf = (char *)realloc(diff_buf, diff_cap);
+        if (!new_buf) {
+          free(diff_buf);
+          C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+          return ENOMEM;
+        }
+        diff_buf = new_buf;
       }
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \

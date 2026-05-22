@@ -26,6 +26,10 @@ extern "C" {
 #include "functions/parse/fs.h"
 /* clang-format on */
 
+/**
+ * @brief test_gen_cmake_basic
+ * @return TEST
+ */
 TEST test_gen_cmake_basic(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
@@ -47,6 +51,10 @@ TEST test_gen_cmake_basic(void) {
   PASS();
 }
 
+/**
+ * @brief test_gen_cmake_with_tests
+ * @return TEST
+ */
 TEST test_gen_cmake_with_tests(void) {
   const char *out_file = "test_build_dir/CMakeLists.txt";
   const char *src_file = "test_build_dir/src/CMakeLists.txt";
@@ -68,6 +76,10 @@ TEST test_gen_cmake_with_tests(void) {
   PASS();
 }
 
+/**
+ * @brief test_gen_build_system_cli_args
+ * @return TEST
+ */
 TEST test_gen_build_system_cli_args(void) {
   char arg0[] = "cmake";
   char arg1[] = "test_build_dir";
@@ -101,6 +113,10 @@ TEST test_gen_build_system_cli_args(void) {
   PASS();
 }
 
+/**
+ * @brief test_gen_build_system_bad_args
+ * @return TEST
+ */
 TEST test_gen_build_system_bad_args(void) {
   char arg0_short[] = "cmake";
   char arg1_short[] = ".";
@@ -127,6 +143,9 @@ TEST test_gen_build_system_bad_args(void) {
   PASS();
 }
 
+/**
+ * @brief generate_build_system_suite
+ */
 SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_cmake_basic);
   RUN_TEST(test_gen_cmake_with_tests);

@@ -75,72 +75,89 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 
   /* Dependency Logic */
+  CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
+  CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
   CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
-  CHECK_IO(fprintf(fp, "if(VCPKG_TOOLCHAIN)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(parson REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(c89stringutils CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(c_str_span CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(
-      fp, "    FetchContent_Declare(parson GIT_REPOSITORY "
-          "https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(parson)\n"));
-  CHECK_IO(fprintf(
-      fp, "    FetchContent_Declare(c89stringutils GIT_REPOSITORY "
-          "https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c89stringutils)\n"));
-  CHECK_IO(fprintf(
-      fp, "    FetchContent_Declare(c_str_span GIT_REPOSITORY "
-          "https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c_str_span)\n"));
-  CHECK_IO(fprintf(fp, "endif()\n\n"));
 
-  CHECK_IO(fprintf(fp, "add_compile_definitions(CDD_C_OMIT_USER_STRUCT "
-                       "CDD_C_OMIT_OAUTH2_STRUCT)\n\n"));
-
-  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
-                   project_name));
-  CHECK_IO(fprintf(fp,
-                   "target_link_libraries(%s PUBLIC c89stringutils "
-                   "c89stringutils_compiler_flags)\n\n",
-                   project_name));
-  CHECK_IO(fprintf(fp,
-                   "target_link_libraries(%s PUBLIC c_str_span "
-                   "c_str_span_compiler_flags)\n\n",
-                   project_name));
-
-  /* Network and Crypto Backend Options */
+  CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
+  CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
+  /* parson */
+  CHECK_IO(fprintf(fp, "if(TARGET parson)\n    message(STATUS \"parson already "
+                       "provided by parent\")\nelse()\n"));
+  CHECK_IO(fprintf(fp, "    set(parson_RESOLVED OFF)\n"));
+  CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
+  CHECK_IO(fprintf(fp, "        find_package(parson CONFIG QUIET)\n"));
+  CHECK_IO(fprintf(fp, "        if(parson_FOUND)\n"));
+  CHECK_IO(fprintf(fp, "            set(parson_RESOLVED ON)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "    if(NOT parson_RESOLVED)\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "        if(EXISTS "
+      "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson/CMakeLists.txt\")\n"));
   CHECK_IO(
-      fprintf(fp, "set(C_ABSTRACT_HTTP_USE_CURL ON CACHE BOOL \"\" FORCE)\n"));
-  CHECK_IO(fprintf(fp, "option(C_ABSTRACT_HTTP_USE_OPENSSL \"Use OpenSSL for "
-                       "cryptography\" OFF)\n\n"));
-
-  CHECK_IO(fprintf(fp, "include(FetchContent)\n"));
+      fprintf(fp, "            FetchContent_Declare(parson SOURCE_DIR "
+                  "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson\")\n"));
+  CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
-      fp,
-      "if(EXISTS "
-      "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/CMakeLists.txt\")\n"));
-  CHECK_IO(fprintf(
-      fp,
-      "    add_subdirectory(\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http\" "
-      "\"${CMAKE_BINARY_DIR}/c-abstract-http\")\n"));
-  CHECK_IO(fprintf(
-      fp, "    include_directories(SYSTEM "
-          "\"${CMAKE_CURRENT_SOURCE_DIR}/../c-abstract-http/include\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(VCPKG_TOOLCHAIN)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(c-abstract-http CONFIG REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_Declare(\n"));
-  CHECK_IO(fprintf(fp, "        c-abstract-http\n"));
-  CHECK_IO(fprintf(fp, "        GIT_REPOSITORY "
-                       "https://github.com/SamuelMarks/c-abstract-http.git\n"));
-  CHECK_IO(fprintf(fp, "        GIT_TAG        master\n"));
-  CHECK_IO(fprintf(fp, "    )\n"));
-  CHECK_IO(fprintf(fp, "    FetchContent_MakeAvailable(c-abstract-http)\n"));
-  CHECK_IO(fprintf(fp, "    include_directories(SYSTEM "
-                       "${c-abstract-http_SOURCE_DIR}/include)\n"));
+      fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
+          "https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(parson)\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
-
+  /* c89stringutils */
+  CHECK_IO(
+      fprintf(fp, "if(TARGET c89stringutils)\n    message(STATUS "
+                  "\"c89stringutils already provided by parent\")\nelse()\n"));
+  CHECK_IO(fprintf(fp, "    set(c89stringutils_RESOLVED OFF)\n"));
+  CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
+  CHECK_IO(fprintf(fp, "        find_package(c89stringutils CONFIG QUIET)\n"));
+  CHECK_IO(fprintf(fp, "        if(c89stringutils_FOUND)\n"));
+  CHECK_IO(fprintf(fp, "            set(c89stringutils_RESOLVED ON)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "    if(NOT c89stringutils_RESOLVED)\n"));
+  CHECK_IO(fprintf(fp, "        if(EXISTS "
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
+                       "c89stringutils/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp, "            FetchContent_Declare(c89stringutils SOURCE_DIR "
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c89stringutils\")\n"));
+  CHECK_IO(fprintf(fp, "        else()\n"));
+  CHECK_IO(fprintf(
+      fp, "            FetchContent_Declare(c89stringutils GIT_REPOSITORY "
+          "https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c89stringutils)\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
+  /* c_str_span */
+  CHECK_IO(fprintf(fp, "if(TARGET c_str_span)\n    message(STATUS \"c_str_span "
+                       "already provided by parent\")\nelse()\n"));
+  CHECK_IO(fprintf(fp, "    set(c_str_span_RESOLVED OFF)\n"));
+  CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
+  CHECK_IO(fprintf(fp, "        find_package(c_str_span CONFIG QUIET)\n"));
+  CHECK_IO(fprintf(fp, "        if(c_str_span_FOUND)\n"));
+  CHECK_IO(fprintf(fp, "            set(c_str_span_RESOLVED ON)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "    if(NOT c_str_span_RESOLVED)\n"));
+  CHECK_IO(fprintf(fp, "        if(EXISTS "
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-str-span/"
+                       "CMakeLists.txt\")\n"));
+  CHECK_IO(
+      fprintf(fp, "            FetchContent_Declare(c_str_span SOURCE_DIR "
+                  "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-str-span\")\n"));
+  CHECK_IO(fprintf(fp, "        else()\n"));
+  CHECK_IO(fprintf(
+      fp, "            FetchContent_Declare(c_str_span GIT_REPOSITORY "
+          "https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c_str_span)\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
   CHECK_IO(fprintf(fp, "target_link_libraries(%s PUBLIC c-abstract-http)\n\n",
                    project_name));
 
@@ -153,6 +170,9 @@ static int write_cmake_content(FILE *fp, const char *project_name,
 
   /* Tests */
   if (has_tests) {
+    CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
+    CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
+    CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
     CHECK_IO(fprintf(fp, "include(CTest)\n"));
     CHECK_IO(fprintf(fp, "if (BUILD_TESTING)\n"));
     CHECK_IO(fprintf(fp, "    enable_testing()\n"));

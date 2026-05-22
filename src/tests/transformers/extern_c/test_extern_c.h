@@ -1,3 +1,8 @@
+/**
+ * @file test_extern_c.h
+ * @brief Unit tests for extern C transformer.
+ */
+
 #ifndef TEST_CDD_TRANSFORM_EXTERN_C_H
 #define TEST_CDD_TRANSFORM_EXTERN_C_H
 
@@ -15,6 +20,11 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of the extern C transformer.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_extern_c(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -40,6 +50,11 @@ TEST test_cdd_transform_extern_c(void) {
   PASS();
 }
 
+/**
+ * @brief Tests extern C transformer when guards already exist.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_extern_c_already_exists(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "#ifdef __cplusplus\nextern \"C\" {\n#endif\nint "
@@ -62,6 +77,9 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
   PASS();
 }
 
+/**
+ * @brief Extern C transformer test suite.
+ */
 SUITE(transformer_extern_c_suite) {
   RUN_TEST(test_cdd_transform_extern_c);
   RUN_TEST(test_cdd_transform_extern_c_already_exists);

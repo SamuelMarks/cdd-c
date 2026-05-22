@@ -1,3 +1,8 @@
+/**
+ * @file test_schema_codegen.h
+ * @brief Unit tests for schema to code generation.
+ */
+
 #include "classes/emit/schema.h"
 #ifndef TEST_SCHEMA_CODEGEN_H
 
@@ -29,6 +34,10 @@ extern "C" {
 
  * CLI integration or file inspection */
 
+/**
+ * @brief test circular
+ * @return TEST
+ */
 TEST test_schema_codegen_circular_refs(void) {
 
   /*
@@ -114,6 +123,10 @@ TEST test_schema_codegen_circular_refs(void) {
   PASS();
 }
 
+/**
+ * @brief test json guards
+ * @return TEST
+ */
 TEST test_codegen_config_json_guards(void) {
 
   /*
@@ -206,6 +219,10 @@ TEST test_codegen_config_json_guards(void) {
   PASS();
 }
 
+/**
+ * @brief test union json guards
+ * @return TEST
+ */
 TEST test_union_config_json_guards(void) {
 
   FILE *tmp = tmpfile();
@@ -258,6 +275,10 @@ TEST test_union_config_json_guards(void) {
   PASS();
 }
 
+/**
+ * @brief test codegen union output
+ * @return TEST
+ */
 TEST test_schema_codegen_union_output(void) {
   int rc;
   char *header_content = NULL;
@@ -308,6 +329,10 @@ TEST test_schema_codegen_union_output(void) {
   PASS();
 }
 
+/**
+ * @brief test inline variants
+ * @return TEST
+ */
 TEST test_schema_codegen_union_inline_variants(void) {
   int rc;
   char *header_content = NULL;
@@ -357,6 +382,10 @@ TEST test_schema_codegen_union_inline_variants(void) {
   PASS();
 }
 
+/**
+ * @brief test enum output
+ * @return TEST
+ */
 TEST test_schema_codegen_enum_output(void) {
   int rc;
   char *header_content = NULL;
@@ -401,6 +430,10 @@ TEST test_schema_codegen_enum_output(void) {
   PASS();
 }
 
+/**
+ * @brief test config guards
+ * @return TEST
+ */
 TEST test_codegen_config_utils_guards(void) {
 
   /*
@@ -473,33 +506,31 @@ TEST test_codegen_config_utils_guards(void) {
   PASS();
 }
 
-TEST test_schema_utils(void) {
-  free_string_array_schema_utils(NULL, 0);
-  char **arr = (char **)malloc(sizeof(char *) * 2);
-  arr[0] = strdup("foo");
-  arr[1] = strdup("bar");
-  free_string_array_schema_utils(arr, 2);
+/**
+ * @brief test schema constraints validation
+ * @return TEST
+ */
+TEST test_schema_constraints_bounds(void) {
+  struct SchemaConstraints sc;
 
-  char **src = (char **)malloc(sizeof(char *) * 2);
-  src[0] = strdup("test1");
-  src[1] = strdup("test2");
+  ASSERT_EQ(EINVAL, schema_constraints_init(NULL));
+  ASSERT_EQ(0, schema_constraints_init(&sc));
 
-  char **copied = NULL;
-  size_t out_count = 0;
-  ASSERT_EQ(0, copy_string_array_schema_utils(&copied, &out_count, src, 2));
-  ASSERT(copied != NULL);
-  ASSERT_EQ(2, out_count);
-  ASSERT_STR_EQ("test1", copied[0]);
-  ASSERT_STR_EQ("test2", copied[1]);
+  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "f"));
+  ASSERT_EQ(EINVAL, schema_constraints_add_required(&sc, NULL));
+  ASSERT_EQ(0, schema_constraints_add_required(&sc, "f"));
+  ASSERT_EQ(1, sc.required_count);
 
-  free_string_array_schema_utils(src, 2);
-  free_string_array_schema_utils(copied, 2);
-
+  schema_constraints_cleanup(&sc);
+  schema_constraints_cleanup(NULL); /* Should not crash */
   PASS();
 }
 
+/**
+ * @brief Suite for schema codegen
+ */
 SUITE(schema_codegen_suite) {
-  RUN_TEST(test_schema_utils);
+  RUN_TEST(test_schema_constraints_bounds);
 
   RUN_TEST(test_schema_codegen_circular_refs);
 

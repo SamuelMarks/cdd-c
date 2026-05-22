@@ -1,3 +1,8 @@
+/**
+ * @file server_json_rpc.c
+ * @brief Implementation of JSON-RPC server generation.
+ */
+
 /* clang-format off */
 #ifndef __wasi__
 #include "server_json_rpc.h"

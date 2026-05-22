@@ -13,17 +13,26 @@
 include(FetchContent)
 
 if(NOT c89stringutils_FOUND)
-    if(VCPKG_TOOLCHAIN)
-        find_package(c89stringutils CONFIG REQUIRED)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../c89stringutils" "${CMAKE_BINARY_DIR}/c89stringutils")
     else()
-        FetchContent_Declare(
-                c89stringutils
-                GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-                GIT_TAG        master
-                GIT_SHALLOW    TRUE
-        )
+        set(c89stringutils_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(c89stringutils CONFIG QUIET)
+            if(c89stringutils_FOUND)
+                set(c89stringutils_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT c89stringutils_RESOLVED)
+            FetchContent_Declare(
+                    c89stringutils
+                    GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
+                    GIT_TAG        master
+                    GIT_SHALLOW    TRUE
+            )
 
-        FetchContent_MakeAvailable(c89stringutils)
+            FetchContent_MakeAvailable(c89stringutils)
+        endif()
     endif()
 else()
     message(STATUS "Found c89stringutils installed at: ${c89stringutils_DIR}")

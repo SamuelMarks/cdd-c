@@ -1,3 +1,10 @@
+/**
+ * @file extern_c.c
+ * @brief Implementation of the extern C wrapper transformer.
+ *
+ * @author Samuel Marks
+ */
+
 /* clang-format off */
 #include "cdd_cst_transform.h"
 #include "classes/parse/cdd_cst_mutate.h"
@@ -12,6 +19,13 @@
 #include <stdlib.h>
 /* clang-format on */
 
+/**
+ * @brief Applies the extern C transformation to a given CST tree.
+ *
+ * @param[in,out] tree The CST tree.
+ * @param[in] config The transform configuration.
+ * @return 0 on success, or an error code.
+ */
 int cdd_transform_extern_c(cdd_cst_tree_t *tree,
                            const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;

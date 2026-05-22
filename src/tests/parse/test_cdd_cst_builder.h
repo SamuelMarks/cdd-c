@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_builder.h
+ * @brief Unit tests for the CST builder.
+ */
+
 #ifndef TEST_CDD_CST_BUILDER_H
 #define TEST_CDD_CST_BUILDER_H
 

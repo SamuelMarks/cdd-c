@@ -1,3 +1,8 @@
+/**
+ * @file test_flexible_array.h
+ * @brief Unit tests for parsing flexible array members.
+ */
+
 #ifndef TEST_FLEXIBLE_ARRAY_H
 #define TEST_FLEXIBLE_ARRAY_H
 
@@ -15,6 +20,11 @@ extern "C" {
 #include "classes/parse/code2schema.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic parsing of flexible array member.
+ *
+ * @return The result of the test.
+ */
 TEST test_parse_fam_basic(void) {
   struct StructFields sf;
   struct StructField *f;
@@ -36,6 +46,11 @@ TEST test_parse_fam_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing of int flexible array member.
+ *
+ * @return The result of the test.
+ */
 TEST test_parse_fam_int(void) {
   struct StructFields sf;
   struct StructField *f;
@@ -56,6 +71,11 @@ TEST test_parse_fam_int(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing pointer is not confused with FAM.
+ *
+ * @return The result of the test.
+ */
 TEST test_parse_ptr_not_fam(void) {
   struct StructFields sf;
   struct StructField *f;
@@ -74,6 +94,11 @@ TEST test_parse_ptr_not_fam(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing fixed array is not confused with FAM.
+ *
+ * @return The result of the test.
+ */
 TEST test_parse_fixed_array_not_fam(void) {
   struct StructFields sf;
   struct StructField *f;
@@ -98,6 +123,11 @@ TEST test_parse_fixed_array_not_fam(void) {
   PASS();
 }
 
+/**
+ * @brief Tests parsing FAM amongst mixed lines.
+ *
+ * @return The result of the test.
+ */
 TEST test_parse_fam_mixed_lines(void) {
   struct StructFields sf;
   int rc;
@@ -117,6 +147,9 @@ TEST test_parse_fam_mixed_lines(void) {
   PASS();
 }
 
+/**
+ * @brief Flexible array parser test suite.
+ */
 SUITE(flexible_array_suite) {
   RUN_TEST(test_parse_fam_basic);
   RUN_TEST(test_parse_fam_int);

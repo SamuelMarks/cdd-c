@@ -24,9 +24,6 @@
       return EIO;                                                              \
   } while (0)
 
-/**
- * @brief Generates C code for codegen make generate.
- */
 int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   size_t i;
 
@@ -102,3 +99,6 @@ int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
 
   return 0;
 }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif

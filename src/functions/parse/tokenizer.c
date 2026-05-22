@@ -1,16 +1,6 @@
 /**
  * @file tokenizer.c
- * @brief Implementation of the C tokenizer with Phase 1/2 support.
- *
- * Loops through the character stream, identifying boundaries based on handling
- * C89/C99/C11/C23 syntax rules.
- * Features:
- * - Trigraph replacement (Phase 1).
- * - Line Splicing (Phase 2) even inside identifiers.
- * - Unified logical char reading stream.
- * - C23 Digit Separators (e.g. `123'456`).
- *
- * @author Samuel Marks
+ * @brief Implementation of the C tokenizer.
  */
 
 /* clang-format off */

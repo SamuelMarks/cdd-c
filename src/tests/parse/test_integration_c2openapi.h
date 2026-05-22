@@ -1,13 +1,6 @@
 /**
  * @file test_integration_c2openapi.h
- * @brief End-to-End integration tests for C-to-OpenAPI generation.
- *
- * Simulates a full execution cycle:
- * 1. Create a temporary source tree with C files and doc annotations.
- * 2. Run the `c2openapi` CLI logic.
- * 3. Validate the output JSON content.
- *
- * @author Samuel Marks
+ * @brief Integration tests for C to OpenAPI conversion.
  */
 
 #ifndef TEST_INTEGRATION_C2OPENAPI_H

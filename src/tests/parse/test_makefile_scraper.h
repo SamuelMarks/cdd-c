@@ -17,6 +17,11 @@ extern "C" {
 #include "functions/parse/makefile_scraper.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of the Makefile scraper.
+ *
+ * @return The result of the test.
+ */
 TEST test_scrape_makefile_basic(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
@@ -41,7 +46,6 @@ TEST test_scrape_makefile_basic(void) {
   ASSERT(cmake_str != NULL);
 
   ASSERT(strstr(cmake_str, "project(my_proj C)") != NULL);
-  fprintf(stderr, "CMAKE_STR:\n%s\n", cmake_str);
   ASSERT(strstr(cmake_str, "add_compile_definitions(\n  DEBUG=1\n)") != NULL);
   ASSERT(strstr(cmake_str, "add_executable(my_proj\n  main.c\n  util.c\n)") !=
          NULL);
@@ -54,6 +58,11 @@ TEST test_scrape_makefile_basic(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error handling of the scraper APIs.
+ *
+ * @return The result of the test.
+ */
 TEST test_scrape_errors(void) {
   struct ExtractedBuildInfo info;
   char *cmake_str = NULL;
@@ -74,9 +83,36 @@ TEST test_scrape_errors(void) {
   PASS();
 }
 
+TEST test_scrape_configure_ac_basic(void) {
+  struct ExtractedBuildInfo info;
+  char *cmake_str = NULL;
+  const char *config = "AC_INIT([test], [1.0])\n"
+                       "AC_CONFIG_SRCDIR([main.c])\n"
+                       "CFLAGS=\"-Iinc -DTEST\"\n";
+
+  build_info_init(&info);
+  ASSERT_EQ(0, scrape_configure_ac(&info, config));
+
+  ASSERT_EQ(1, info.source_files_n);
+  ASSERT_STR_EQ("main.c", info.source_files[0]);
+
+  ASSERT_EQ(1, info.include_dirs_n);
+  ASSERT_STR_EQ("inc", info.include_dirs[0]);
+
+  ASSERT_EQ(1, info.compile_defs_n);
+  ASSERT_STR_EQ("TEST", info.compile_defs[0]);
+
+  build_info_free(&info);
+  PASS();
+}
+
+/**
+ * @brief Makefile scraper test suite.
+ */
 SUITE(makefile_scraper_suite) {
   RUN_TEST(test_scrape_makefile_basic);
   RUN_TEST(test_scrape_errors);
+  RUN_TEST(test_scrape_configure_ac_basic);
 }
 
 #ifdef __cplusplus

@@ -1,3 +1,8 @@
+/**
+ * @file test_schema2tests.h
+ * @brief Unit tests for schema2tests.
+ */
+
 #ifndef TEST_SCHEMA2TESTS_H
 #define TEST_SCHEMA2TESTS_H
 

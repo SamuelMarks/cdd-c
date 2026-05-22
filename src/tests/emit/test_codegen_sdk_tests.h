@@ -1,7 +1,6 @@
 /**
  * @file test_codegen_sdk_tests.h
  * @brief Unit tests for SDK Test Generator.
- * @author Samuel Marks
  */
 
 #ifndef TEST_CODEGEN_SDK_TESTS_H

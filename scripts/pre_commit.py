@@ -2,6 +2,12 @@ import sys
 import subprocess
 import os
 
+# Strip git environment variables that are set by pre-commit hooks,
+# because they leak into CMake's FetchContent and break internal git clones.
+for key in ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"]:
+    if key in os.environ:
+        del os.environ[key]
+
 def run_cmd(cmd, cwd=None, env=None, check=True):
     print(f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, cwd=cwd, env=env)

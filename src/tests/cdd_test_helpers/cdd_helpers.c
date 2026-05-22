@@ -11,10 +11,20 @@
 #include "cdd_helpers.h"
 /* clang-format on */
 
+/**
+ * @brief Logs a precondition failure to stderr.
+ */
 void cdd_precondition_failed(void) {
   fputs("cdd_precondition_failed\n", stderr);
 }
 
+/**
+ * @brief Writes contents to a file safely.
+ *
+ * @param[in] filename The name of the file to write to.
+ * @param[in] contents The contents to write.
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
+ */
 int write_to_file(const char *const filename, const char *const contents) {
   FILE *fh;
   int rc = 0;

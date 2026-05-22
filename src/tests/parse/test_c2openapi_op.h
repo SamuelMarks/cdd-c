@@ -1,13 +1,6 @@
 /**
  * @file test_c2openapi_op.h
  * @brief Unit tests for the Operation Builder.
- *
- * Verifies that the builder correctly:
- * - Identifies HTTP verbs from documentation or naming conventions.
- * - Categorizes parameters as Path, Query, Header, Body, or Response.
- * - Extracts types using the C mapper.
- *
- * @author Samuel Marks
  */
 
 #ifndef TEST_C2OPENAPI_OP_H

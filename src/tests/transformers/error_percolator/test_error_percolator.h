@@ -1,3 +1,8 @@
+/**
+ * @file test_error_percolator.h
+ * @brief Unit tests for error percolator transformer.
+ */
+
 #ifndef TEST_CDD_TRANSFORM_ERROR_PERCOLATOR_H
 #define TEST_CDD_TRANSFORM_ERROR_PERCOLATOR_H
 
@@ -15,6 +20,11 @@ extern "C" {
 #include "c_str_span.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic functionality of error percolation.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_percolate_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -47,6 +57,11 @@ TEST test_cdd_transform_percolate_errors(void) {
   PASS();
 }
 
+/**
+ * @brief Tests error percolation with complex allocations.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_percolate_errors_complex(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "void complex_allocs() {\n"
@@ -78,6 +93,11 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   PASS();
 }
 
+/**
+ * @brief Tests edge cases for error percolation.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code =
@@ -99,6 +119,9 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   PASS();
 }
 
+/**
+ * @brief Error percolator transformer test suite.
+ */
 SUITE(transformer_error_percolator_suite) {
   RUN_TEST(test_cdd_transform_percolate_errors);
   RUN_TEST(test_cdd_transform_percolate_errors_complex);

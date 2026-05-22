@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_trivia.h
+ * @brief Unit tests for CST trivia operations.
+ */
+
 #ifndef TEST_CDD_CST_TRIVIA_H
 #define TEST_CDD_CST_TRIVIA_H
 
@@ -13,6 +18,11 @@ extern "C" {
 #include "classes/parse/cdd_cst_trivia.h"
 /* clang-format on */
 
+/**
+ * @brief Tests basic whitespace trivia detection.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_trivia_detect(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n    return 0;\n}";
@@ -46,6 +56,11 @@ TEST test_cdd_cst_trivia_detect(void) {
   PASS();
 }
 
+/**
+ * @brief Tests tab-based trivia detection.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_trivia_detect_tabs(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n\t\treturn 0;\n}";
@@ -61,10 +76,16 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
   PASS();
 }
 
+/**
+ * @brief Tests generation of indent trivia.
+ *
+ * @return The result of the test.
+ */
 TEST test_cdd_cst_trivia_generate(void) {
   cdd_trivia_t *t = NULL;
   cdd_cst_format_config_t config = {0, 4};
   cdd_cst_format_config_t config_tabs = {1, 1};
+  int rc;
 
   ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, NULL, 2, &t));
   ASSERT_EQ(EINVAL, cdd_cst_generate_indent_trivia(NULL, &config, 2, NULL));
@@ -76,7 +97,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   free(t);
   t = NULL;
 
-  int rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
+  rc = cdd_cst_generate_indent_trivia(NULL, &config, 2, &t);
   ASSERT_EQ(0, rc);
   ASSERT(t != NULL);
   ASSERT_EQ(TRIVIA_NEWLINE, t->kind);
@@ -104,6 +125,9 @@ TEST test_cdd_cst_trivia_generate(void) {
   PASS();
 }
 
+/**
+ * @brief CST trivia test suite.
+ */
 SUITE(cdd_cst_trivia_suite) {
   RUN_TEST(test_cdd_cst_trivia_detect);
   RUN_TEST(test_cdd_cst_trivia_detect_tabs);

@@ -1023,7 +1023,7 @@ int write_root_array_from_json_func(FILE *fp, const char *name,
     CHECK_IO(fprintf(
         fp,
         "    const char *s = json_array_get_string(arr, i);\n"
-        "    if (s) (*out)[i] = c_cdd_strdup(s);\n"
+        "    if (s) (*out)[i] = strdup(s);\n"
         "    if (!(*out)[i]) {\n"
         "      /* cleanup */\n"
         "      size_t j;\n"

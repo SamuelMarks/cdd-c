@@ -1,3 +1,8 @@
+/**
+ * @file cst_printer.c
+ * @brief Implementation of CST non-destructive printing.
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>
@@ -7,9 +12,6 @@
 #include "functions/emit/cst_printer.h"
 /* clang-format on */
 
-/**
- * @brief Executes the cst print tokens exact operation.
- */
 int cst_print_tokens_exact(const struct TokenList *tokens, FILE *out) {
   size_t i;
   if (!tokens || !out)

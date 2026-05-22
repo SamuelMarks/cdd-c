@@ -1,3 +1,8 @@
+/**
+ * @file test_cdd_cst_query.h
+ * @brief Unit tests for CST querying.
+ */
+
 #ifndef TEST_CDD_CST_QUERY_H
 #define TEST_CDD_CST_QUERY_H
 

@@ -1,13 +1,6 @@
 /**
  * @file preprocessor.c
- * @brief Implementation of preprocessor logic including expression evaluation
- * and conditional scanning.
- *
- * Includes support for C23 processor introspection operators:
- * `__has_include`, `__has_embed`, and `__has_c_attribute`.
- * Parses `\#embed` parameters (limit, prefix, suffix, if_empty).
- *
- * @author Samuel Marks
+ * @brief Implementation of the C preprocessor.
  */
 
 /* clang-format off */

@@ -15,6 +15,10 @@ extern "C" {
 #include "routes/emit/server_gen.h"
 /* clang-format on */
 
+/**
+ * @brief test_server_gen_basic
+ * @return TEST
+ */
 TEST test_server_gen_basic(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -91,6 +95,10 @@ TEST test_server_gen_basic(void) {
   PASS();
 }
 
+/**
+ * @brief test_server_gen_fail_open
+ * @return TEST
+ */
 TEST test_server_gen_fail_open(void) {
   struct OpenAPI_Spec spec;
   struct OpenApiClientConfig config;
@@ -106,6 +114,9 @@ TEST test_server_gen_fail_open(void) {
   PASS();
 }
 
+/**
+ * @brief server_gen_suite
+ */
 SUITE(server_gen_suite) {
   RUN_TEST(test_server_gen_basic);
   RUN_TEST(test_server_gen_fail_open);

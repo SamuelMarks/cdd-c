@@ -49,6 +49,10 @@ static int generate_def_code(const char *struct_name, struct StructFields *sf,
   }
 }
 
+/**
+ * @brief test_default_primitive
+ * @return TEST
+ */
 TEST test_default_primitive(void) {
   char *_ast_generate_def_code_0 = NULL;
   struct StructFields sf;
@@ -71,6 +75,10 @@ TEST test_default_primitive(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_string
+ * @return TEST
+ */
 TEST test_default_string(void) {
   char *_ast_generate_def_code_1 = NULL;
   struct StructFields sf;
@@ -100,6 +108,10 @@ TEST test_default_string(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_enum
+ * @return TEST
+ */
 TEST test_default_enum(void) {
   char *_ast_generate_def_code_2 = NULL;
   struct StructFields sf;
@@ -123,6 +135,10 @@ TEST test_default_enum(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_no_defaults
+ * @return TEST
+ */
 TEST test_default_no_defaults(void) {
   char *_ast_generate_def_code_3 = NULL;
   struct StructFields sf;
@@ -144,6 +160,10 @@ TEST test_default_no_defaults(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_nullptr
+ * @return TEST
+ */
 TEST test_default_nullptr(void) {
   char *_ast_generate_def_code_4 = NULL;
   struct StructFields sf;
@@ -167,6 +187,10 @@ TEST test_default_nullptr(void) {
   PASS();
 }
 
+/**
+ * @brief test_default_binary_literal
+ * @return TEST
+ */
 TEST test_default_binary_literal(void) {
   char *_ast_generate_def_code_5 = NULL;
   struct StructFields sf;
@@ -193,6 +217,45 @@ TEST test_default_binary_literal(void) {
   PASS();
 }
 
+/**
+ * @brief codegen_defaults_suite
+ */
+
+TEST test_codegen_forward_decl_bounds(void) {
+  FILE *tmp = tmpfile();
+  ASSERT(tmp);
+  ASSERT_EQ(EINVAL, write_forward_decl(NULL, "X"));
+  ASSERT_EQ(EINVAL, write_forward_decl(tmp, NULL));
+  ASSERT_EQ(0, write_forward_decl(tmp, "X"));
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_codegen_h_bounds(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  struct CodegenConfig cfg;
+  memset(&cfg, 0, sizeof(cfg));
+  struct_fields_init(&sf);
+
+  ASSERT(tmp);
+  ASSERT_EQ(EINVAL, write_enum_declaration_h(NULL, "E", &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_enum_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_enum_declaration_h(tmp, "E", NULL, &cfg));
+
+  ASSERT_EQ(EINVAL, write_union_declaration_h(NULL, "U", &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_union_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_union_declaration_h(tmp, "U", NULL, &cfg));
+
+  ASSERT_EQ(EINVAL, write_struct_declaration_h(NULL, "S", &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_struct_declaration_h(tmp, NULL, &sf, &cfg));
+  ASSERT_EQ(EINVAL, write_struct_declaration_h(tmp, "S", NULL, &cfg));
+
+  fclose(tmp);
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_primitive);
   RUN_TEST(test_default_string);
@@ -200,6 +263,8 @@ SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_no_defaults);
   RUN_TEST(test_default_nullptr);
   RUN_TEST(test_default_binary_literal);
+  RUN_TEST(test_codegen_forward_decl_bounds);
+  RUN_TEST(test_codegen_h_bounds);
 }
 
 #ifdef __cplusplus

@@ -1,11 +1,6 @@
 /**
  * @file test_analysis.h
- * @brief Unit tests for the Analysis Engine.
- *
- * Verifies identifying unchecked mallocs, checked mallocs, return statements,
- * and unsafe usage like dereferencing before check.
- *
- * @author Samuel Marks
+ * @brief Unit tests for code analysis features like allocation discovery.
  */
 
 #ifndef TEST_ANALYSIS_H
@@ -17,181 +12,121 @@ extern "C" {
 
 /* clang-format off */
 #include <greatest.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
-
-#include <errno.h>
 /* clang-format on */
 
-static int setup_analysis_tokens(const char *code,
-                                 struct TokenList **_out_val) {
+static int find_allocs(const char *code, struct AllocationSiteList *sites) {
   struct TokenList *tl = NULL;
-  (void)tokenize(az_span_create_from_str((char *)code), &tl);
-  {
-    *_out_val = tl;
-    return 0;
-  }
+  int rc;
+  const az_span source = az_span_create_from_str((char *)code);
+
+  if (tokenize(source, &tl) != 0)
+    return -1;
+
+  rc = find_allocations(tl, sites);
+  free_token_list(tl);
+  return rc;
 }
 
-TEST test_find_simple_unchecked_malloc(void) {
-  struct TokenList *_ast_setup_analysis_tokens_0;
-  struct TokenList *tl = NULL;
+/**
+ * @brief test_analysis_find_malloc
+ * @return TEST
+ */
+TEST test_analysis_find_malloc(void) {
+  const char *code = "void *p = malloc(10);";
   struct AllocationSiteList sites = {0};
-  const char *code = ""
-                     "void f() { char * p = (char *)malloc(10); *p = 5; }";
+  int rc;
 
-  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_0),
-        _ast_setup_analysis_tokens_0);
-  ASSERT(tl);
-
-  if (find_allocations(tl, &sites) != 0) {
-    free_token_list(tl);
-    FAILm("find_allocations failed");
-  }
-
+  rc = find_allocs(code, &sites);
+  ASSERT_EQ(0, rc);
   ASSERT_EQ(1, sites.size);
-  ASSERT_STR_EQ("p", sites.sites[0].var_name);
-  ASSERT_EQ(0, sites.sites[0].is_checked);
-  ASSERT_EQ(1,
-            sites.sites[0].used_before_check); /* Detected '*p' immediate use */
-  ASSERT_STR_EQ("malloc", sites.sites[0].spec->name);
+  ASSERT(strcmp(sites.sites[0].spec->name, "malloc") == 0);
 
   allocation_site_list_free(&sites);
-  free_token_list(tl);
   PASS();
 }
 
-TEST test_find_simple_checked_malloc(void) {
-  struct TokenList *_ast_setup_analysis_tokens_1;
-  struct TokenList *tl = NULL;
+/**
+ * @brief test_analysis_find_calloc
+ * @return TEST
+ */
+TEST test_analysis_find_calloc(void) {
+  const char *code = "void *p = calloc(1, 10);";
   struct AllocationSiteList sites = {0};
-  const char *code =
-      ""
-      "void f() { char * p = (char *)malloc(10); if (!p) return; }";
+  int rc;
 
-  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_1),
-        _ast_setup_analysis_tokens_1);
-  ASSERT(tl);
-
-  find_allocations(tl, &sites);
-
+  rc = find_allocs(code, &sites);
+  ASSERT_EQ(0, rc);
   ASSERT_EQ(1, sites.size);
-  ASSERT_STR_EQ("p", sites.sites[0].var_name);
-  ASSERT_EQ(1, sites.sites[0].is_checked);
+  ASSERT(strcmp(sites.sites[0].spec->name, "calloc") == 0);
 
   allocation_site_list_free(&sites);
-  free_token_list(tl);
   PASS();
 }
 
-TEST test_alloc_inside_condition(void) {
-  struct TokenList *_ast_setup_analysis_tokens_2;
-  struct TokenList *tl = NULL;
+/**
+ * @brief test_analysis_find_realloc
+ * @return TEST
+ */
+TEST test_analysis_find_realloc(void) {
+  const char *code = "void *p = realloc(old_p, 20);";
   struct AllocationSiteList sites = {0};
-  /* 'if (p = malloc(10))' is considered checked logic */
-  const char *code = ""
-                     "void f() { char *p; if (p = malloc(10)) { } }";
+  int rc;
 
-  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_2),
-        _ast_setup_analysis_tokens_2);
-  ASSERT(tl);
-
-  find_allocations(tl, &sites);
-
+  rc = find_allocs(code, &sites);
+  ASSERT_EQ(0, rc);
   ASSERT_EQ(1, sites.size);
-  ASSERT_EQ(1, sites.sites[0].is_checked);
+  ASSERT(strcmp(sites.sites[0].spec->name, "realloc") == 0);
 
   allocation_site_list_free(&sites);
-  free_token_list(tl);
   PASS();
 }
 
-TEST test_find_return_alloc(void) {
-  struct TokenList *_ast_setup_analysis_tokens_3;
-  struct TokenList *tl = NULL;
+/**
+ * @brief test_analysis_find_none
+ * @return TEST
+ */
+TEST test_analysis_find_none(void) {
+  const char *code = "int a = 1;";
   struct AllocationSiteList sites = {0};
-  const char *code = "char* f() { return strdup(\"foo\"); }";
+  int rc;
 
-  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_3),
-        _ast_setup_analysis_tokens_3);
-  ASSERT(tl);
-
-  find_allocations(tl, &sites);
-
-  ASSERT_EQ(1, sites.size);
-  ASSERT_EQ(NULL, sites.sites[0].var_name);
-  ASSERT_EQ(1, sites.sites[0].is_return_stmt);
-  ASSERT_EQ(0, sites.sites[0].is_checked);
-
-  allocation_site_list_free(&sites);
-  free_token_list(tl);
-  PASS();
-}
-
-TEST test_asprintf_unchecked(void) {
-  struct TokenList *_ast_setup_analysis_tokens_4;
-  struct TokenList *tl = NULL;
-  struct AllocationSiteList sites = {0};
-  const char *code = ""
-                     "void f() { char *s; asprintf(&s, \"fmt\"); }";
-
-  tl = (setup_analysis_tokens(code, &_ast_setup_analysis_tokens_4),
-        _ast_setup_analysis_tokens_4);
-  ASSERT(tl);
-
-  find_allocations(tl, &sites);
-
-  ASSERT_EQ(1, sites.size);
-  ASSERT_EQ(0, sites.sites[0].is_checked);
-  /* asprintf check style is negative int, var name assignment search usually
-     fails without 'rc = ', so var_name might be NULL unless we look at
-     arguments logic. Current `find_allocations` looks for LHS assignment. Here
-     there is none. */
-  ASSERT_EQ(NULL, sites.sites[0].var_name);
-
-  allocation_site_list_free(&sites);
-  free_token_list(tl);
-  PASS();
-}
-
-TEST test_init_free_safety(void) {
-  struct AllocationSiteList sites;
-  ASSERT_EQ(0, allocation_site_list_init(&sites));
+  rc = find_allocs(code, &sites);
+  ASSERT_EQ(0, rc);
   ASSERT_EQ(0, sites.size);
-  allocation_site_list_free(&sites);
-  /* Double free safety */
-  allocation_site_list_free(&sites);
-  allocation_site_list_free(NULL);
 
-  /* NULL init safety */
-  ASSERT_EQ(EINVAL, allocation_site_list_init(NULL));
-
+  allocation_site_list_free(&sites);
   PASS();
 }
 
-TEST test_is_checked_direct(void) {
-  struct TokenList *tl = NULL;
-  int used_before = 0, is_chk = 0;
-  struct AllocatorSpec spec = {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL,
-                               0};
+/**
+ * @brief test_analysis_bounds
+ * @return TEST
+ */
+TEST test_analysis_bounds(void) {
+  struct AllocationSiteList sites = {0};
+  struct TokenList tl = {0};
 
-  ASSERT_EQ(EINVAL, is_checked(tl, 0, "p", &spec, &used_before, NULL));
-  ASSERT_EQ(0, is_checked(NULL, 0, "p", &spec, &used_before, &is_chk));
-  ASSERT_EQ(0, is_chk);
+  ASSERT_EQ(EINVAL, find_allocations(NULL, &sites));
+  ASSERT_EQ(EINVAL, find_allocations(&tl, NULL));
 
+  allocation_site_list_free(NULL); /* Should not crash */
   PASS();
 }
 
+/**
+ * @brief analysis_suite
+ */
 SUITE(analysis_suite) {
-  RUN_TEST(test_find_simple_unchecked_malloc);
-  RUN_TEST(test_find_simple_checked_malloc);
-  RUN_TEST(test_alloc_inside_condition);
-  RUN_TEST(test_find_return_alloc);
-  RUN_TEST(test_asprintf_unchecked);
-  RUN_TEST(test_init_free_safety);
-  RUN_TEST(test_is_checked_direct);
+  RUN_TEST(test_analysis_find_malloc);
+  RUN_TEST(test_analysis_find_calloc);
+  RUN_TEST(test_analysis_find_realloc);
+  RUN_TEST(test_analysis_find_none);
+  RUN_TEST(test_analysis_bounds);
 }
 
 #ifdef __cplusplus

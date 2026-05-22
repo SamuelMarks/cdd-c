@@ -1,11 +1,6 @@
 /**
  * @file test_codegen_security.h
  * @brief Unit tests for Security Code Generator.
- *
- * Verifies that the correct authentication injection logic is emitted
- * for various security schemes (Bearer, API Key).
- *
- * @author Samuel Marks
  */
 
 #ifndef TEST_CODEGEN_SECURITY_H

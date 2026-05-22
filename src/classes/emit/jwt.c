@@ -1,3 +1,8 @@
+/**
+ * @file jwt.c
+ * @brief JWT codegen implementation
+ */
+
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>

@@ -1,3 +1,8 @@
+/**
+ * @file db_loader.c
+ * @brief Dynamic loader checking for DB clients
+ */
+
 /* clang-format off */
 #include "functions/parse/db_loader.h"
 #include <stddef.h>
@@ -14,6 +19,14 @@
 #endif
 /* clang-format on */
 
+/**
+ * @brief Internal function to check if a dynamic library can be loaded.
+ *
+ * @param win_name Name of the DLL on Windows.
+ * @param posix_name Name of the Shared Object on POSIX.
+ * @param[out] out_avail 1 if available, 0 otherwise.
+ * @return int 0 on success, error code otherwise.
+ */
 static int check_lib(const char *win_name, const char *posix_name,
                      int *out_avail) {
   (void)win_name;
@@ -46,9 +59,11 @@ static int check_lib(const char *win_name, const char *posix_name,
 int check_libpq_available(int *out_avail) {
   return check_lib("libpq.dll", "libpq.so", out_avail);
 }
+
 int check_sqlite3_available(int *out_avail) {
   return check_lib("sqlite3.dll", "libsqlite3.so", out_avail);
 }
+
 int check_mysql_available(int *out_avail) {
   return check_lib("libmysql.dll", "libmysqlclient.so", out_avail);
 }

@@ -1,11 +1,6 @@
 /**
  * @file openapi.c
- * @brief Implementation of OpenAPI serialization logic (Advanced).
- *
- * Handles deep object serialization, parameter styles, security schemes,
- * servers, and multipart schema construction.
- *
- * @author Samuel Marks
+ * @brief Implementation of OpenAPI generation.
  */
 
 /* clang-format off */

@@ -20,9 +20,12 @@ extern "C" {
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
 
+/**
+ * @brief Tests exact CST printing.
+ * @return TEST
+ */
 TEST test_cst_print_exact(void) {
   const char *src = "/* comment */\n"
-                    ""
                     "int main(void) {\n"
                     "  int a = 1; \\\n"
                     "  int b = 2;\n"
@@ -37,6 +40,10 @@ TEST test_cst_print_exact(void) {
   az_span span = az_span_create((uint8_t *)src, strlen(src));
   rc = tokenize(span, &tokens);
   ASSERT_EQ(0, rc);
+
+  /* Invalid args */
+  ASSERT_EQ(EINVAL, cst_print_tokens_exact(NULL, stdout));
+  ASSERT_EQ(EINVAL, cst_print_tokens_exact(tokens, NULL));
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   rc = fopen_s(&f, "test_cst_print.txt", "wb+");
@@ -62,6 +69,9 @@ TEST test_cst_print_exact(void) {
   PASS();
 }
 
+/**
+ * @brief Suite for CST printing
+ */
 SUITE(cst_printer_suite) { RUN_TEST(test_cst_print_exact); }
 
 #ifdef __cplusplus

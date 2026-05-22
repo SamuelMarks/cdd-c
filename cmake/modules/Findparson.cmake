@@ -1,16 +1,25 @@
 include(FetchContent)
 
 if(NOT parson_FOUND)
-    if(VCPKG_TOOLCHAIN)
-        find_package(parson CONFIG REQUIRED)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../parson/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../parson" "${CMAKE_BINARY_DIR}/parson")
     else()
-        FetchContent_Declare(
-                parson
-                GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-                GIT_TAG master
-        )
+        set(parson_RESOLVED OFF)
+        if(VCPKG_TOOLCHAIN)
+            find_package(parson CONFIG QUIET)
+            if(parson_FOUND)
+                set(parson_RESOLVED ON)
+            endif()
+        endif()
+        if(NOT parson_RESOLVED)
+            FetchContent_Declare(
+                    parson
+                    GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
+                    GIT_TAG master
+            )
 
-        FetchContent_MakeAvailable(parson)
+            FetchContent_MakeAvailable(parson)
+        endif()
     endif()
 endif()
 

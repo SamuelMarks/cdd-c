@@ -1,15 +1,6 @@
 /**
  * @file sync.c
- * @brief Implementation of API Synchronization.
- *
- * Updates implementation bodies to match OpenApi specs.
- * Handles:
- * - Signature rewrites.
- * - Query Parameter block generation (supporting Explode/Arrays).
- * - Header Parameter injection (primitive implementation locally).
- * - URL construction updates.
- *
- * @author Samuel Marks
+ * @brief Implementation of sync parsing.
  */
 
 /* clang-format off */

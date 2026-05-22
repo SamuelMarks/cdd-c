@@ -1,8 +1,6 @@
 /**
  * @file aggregator.c
- * @brief Implementation of the OpenAPI Path Aggregator.
- *
- * @author Samuel Marks
+ * @brief Implementation of route aggregation.
  */
 
 /* clang-format off */

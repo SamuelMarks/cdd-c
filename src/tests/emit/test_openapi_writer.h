@@ -1,13 +1,6 @@
 /**
  * @file test_openapi_writer.h
  * @brief Unit tests for OpenAPI Writer module.
- *
- * Verifies that in-memory structures are correctly serialized to valid
- * JSON strings matching the OpenAPI 3.2 specification structure.
- * Includes coverage for Advanced features: Security Schemes, Parameter Styles,
- * and Multipart/Recursive schemes.
- *
- * @author Samuel Marks
  */
 
 #ifndef TEST_OPENAPI_WRITER_H

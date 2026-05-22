@@ -1,13 +1,6 @@
 /**
  * @file client_gen.c
- * @brief Implementation of the OpenAPI Client Generator.
- *
- * Generates client code including the standard `ApiError` struct and its
- * implementation for RFC 7807 support. Uses tags from the specification
- * combined with optional global namespaces to generate distinct API function
- * groups (`Namespace_Resource_prefix_operation`).
- *
- * @author Samuel Marks
+ * @brief Implementation of client code generation.
  */
 
 /* clang-format off */
