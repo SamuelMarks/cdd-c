@@ -351,10 +351,11 @@ TEST test_query_null_safety(void) {
 }
 
 TEST test_url_utils_write_query_json_param(void) {
+  FILE *fp;
   struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
 
-  FILE *fp = fopen("test_url_json.txt", "w");
+  fp = fopen("test_url_json.txt", "w");
   ASSERT(fp != NULL);
 
   ASSERT_EQ(EINVAL, write_query_json_param(NULL, NULL));

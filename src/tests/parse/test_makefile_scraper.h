@@ -85,7 +85,6 @@ TEST test_scrape_errors(void) {
 
 TEST test_scrape_configure_ac_basic(void) {
   struct ExtractedBuildInfo info;
-  char *cmake_str = NULL;
   const char *config = "AC_INIT([test], [1.0])\n"
                        "AC_CONFIG_SRCDIR([main.c])\n"
                        "CFLAGS=\"-Iinc -DTEST\"\n";

@@ -240,7 +240,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(cdd_cst_type_eval_suite);
 
   RUN_SUITE(openapi_writer_suite);
-  SUITE(operation_suite);
   RUN_SUITE(operation_suite);
   RUN_SUITE(doc_parser_suite);
   RUN_SUITE(c_mapping_suite);

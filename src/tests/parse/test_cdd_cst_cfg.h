@@ -23,6 +23,8 @@ extern "C" {
  */
 TEST test_cdd_cst_cfg_basic(void) {
   cdd_cst_tree_t *tree = NULL;
+  size_t i;
+  cdd_cst_node_t *func = NULL;
   cdd_cst_cfg_t *cfg = NULL;
   int rc;
   const char *src = "int main() { return 0; }";
@@ -30,8 +32,6 @@ TEST test_cdd_cst_cfg_basic(void) {
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *func = NULL;
-  size_t i;
   for (i = 0; i < tree->root->num_children; i++) {
     if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
       if (tree->root->children[i].val.node->kind ==
@@ -79,14 +79,14 @@ TEST test_cdd_cst_cfg_errors(void) {
 TEST test_cdd_cst_cfg_empty(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_cfg_t *cfg = NULL;
+  size_t i;
+  cdd_cst_node_t *func = NULL;
   int rc;
   const char *src = "void main() { }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *func = NULL;
-  size_t i;
   for (i = 0; i < tree->root->num_children; i++) {
     if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
       if (tree->root->children[i].val.node->kind ==
@@ -116,14 +116,14 @@ TEST test_cdd_cst_cfg_empty(void) {
 TEST test_cdd_cst_cfg_no_return(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_cfg_t *cfg = NULL;
+  size_t i;
+  cdd_cst_node_t *func = NULL;
   int rc;
   const char *src = "void main() { int a = 5; }";
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *func = NULL;
-  size_t i;
   for (i = 0; i < tree->root->num_children; i++) {
     if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
       if (tree->root->children[i].val.node->kind ==

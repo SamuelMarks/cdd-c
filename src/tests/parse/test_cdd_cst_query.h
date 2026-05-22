@@ -19,11 +19,8 @@ extern "C" {
 /* clang-format on */
 
 static int dummy_visitor(cdd_cst_node_t *node, void *user_data) {
-  (void)node;
-  (void)user_data;
-  (void)node;
-  (void)user_data;
   int *count = (int *)user_data;
+  (void)node;
   (*count)++;
   return 0;
 }
@@ -236,6 +233,9 @@ TEST test_cdd_cst_query_calls(void) {
 
 TEST test_cdd_cst_query_extra(void) {
   cdd_cst_query_result_t res;
+  int post_count = 0;
+  cdd_cst_tree_t *tree_tmp = NULL;
+
   ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type(NULL, CDD_CST_UNKNOWN, &res));
   ASSERT_EQ(EINVAL, cdd_cst_find_nodes_by_type((cdd_cst_node_t *)1,
                                                CDD_CST_UNKNOWN, NULL));
@@ -245,8 +245,6 @@ TEST test_cdd_cst_query_extra(void) {
   ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(NULL, NULL, NULL));
   ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(NULL, NULL, NULL));
 
-  int post_count = 0;
-  cdd_cst_tree_t *tree_tmp = NULL;
   cdd_cst_parse(az_span_create_from_str("int x;"), &tree_tmp);
   ASSERT_EQ(0, cdd_cst_traverse_postorder(tree_tmp->root, dummy_visitor,
                                           &post_count));

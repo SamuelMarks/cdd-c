@@ -141,13 +141,13 @@ TEST test_tokenizer_error_handling(void) {
   int is_match = 0;
   size_t next_idx = 0;
   enum TokenKind kind;
+  struct Token dummy_tok;
 
   ASSERT_EQ(EINVAL, token_matches_string(NULL, "match", NULL));
   ASSERT_EQ(0, token_matches_string(NULL, "match", &is_match));
   ASSERT_EQ(0, is_match);
 
   /* Create dummy token for testing */
-  struct Token dummy_tok;
   dummy_tok.start = (const uint8_t *)"match";
   dummy_tok.length = 5;
   dummy_tok.kind = TOKEN_IDENTIFIER;

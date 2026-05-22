@@ -265,28 +265,27 @@ TEST test_code2schema_parse_struct_and_enum(void) {
   char *argv[] = {"test1.h", "test1.schema.json"};
   const char *const filename = argv[0];
   char *json = argv[1];
+  int out_val;
+  char trim_buf[32] = "hello   ";
+  char trim_buf2[32] = "hello ; ";
   int rc = write_to_file(filename,
                          "enum Colors { RED, GREEN = 5, BLUE };\n"
                          "struct Point { double x; double y; int used; };\n");
+
   ASSERT_EQ(0, rc);
 
-  {
-    int out_val;
-    ASSERT_EQ(0, str_starts_with("hello", "hel", &out_val));
-    ASSERT(out_val != 0);
-    ASSERT_EQ(0, str_starts_with("hello", "helo", &out_val));
-    ASSERT(out_val == 0);
-    ASSERT_EQ(0, str_starts_with(NULL, "hel", &out_val));
-    ASSERT(out_val == 0);
-    ASSERT_EQ(0, str_starts_with("hello", NULL, &out_val));
-    ASSERT(out_val == 0);
-  }
+  ASSERT_EQ(0, str_starts_with("hello", "hel", &out_val));
+  ASSERT(out_val != 0);
+  ASSERT_EQ(0, str_starts_with("hello", "helo", &out_val));
+  ASSERT(out_val == 0);
+  ASSERT_EQ(0, str_starts_with(NULL, "hel", &out_val));
+  ASSERT(out_val == 0);
+  ASSERT_EQ(0, str_starts_with("hello", NULL, &out_val));
+  ASSERT(out_val == 0);
 
-  char trim_buf[32] = "hello   ";
   trim_trailing(trim_buf);
   ASSERT_STR_EQ("hello", trim_buf);
 
-  char trim_buf2[32] = "hello ; ";
   trim_trailing(trim_buf2);
   ASSERT_STR_EQ("hello", trim_buf2);
 
@@ -574,15 +573,19 @@ TEST test_code2schema_merge_struct_field(void) {
 
 TEST test_code2schema_discriminator_value(void) {
   char *val = NULL;
+  JSON_Value *jv;
+  JSON_Object *jo;
+  JSON_Value *jv2;
+  JSON_Object *jo2;
 
   /* NULLs */
   ASSERT_EQ(0, discriminator_value_for_variant(NULL, NULL, NULL, &val));
   ASSERT(val == NULL);
 
-  JSON_Value *jv = json_parse_string(
+  jv = json_parse_string(
       "{\"mapping\": {\"test\": \"#/components/schemas/MyRef\", \"test2\": "
       "\"MyRef2\"}}");
-  JSON_Object *jo = json_value_get_object(jv);
+  jo = json_value_get_object(jv);
 
   ASSERT_EQ(0, discriminator_value_for_variant(
                    jo, NULL, "#/components/schemas/MyRef", &val));
@@ -601,8 +604,8 @@ TEST test_code2schema_discriminator_value(void) {
   val = NULL;
 
   /* What about when mapping doesn't exist but disc_obj does */
-  JSON_Value *jv2 = json_parse_string("{}");
-  JSON_Object *jo2 = json_value_get_object(jv2);
+  jv2 = json_parse_string("{}");
+  jo2 = json_value_get_object(jv2);
   ASSERT_EQ(0, discriminator_value_for_variant(jo2, "MyRef2", NULL, &val));
   ASSERT_STR_EQ("MyRef2", val);
   free(val);
@@ -639,12 +642,12 @@ TEST test_code2schema_sanitize_identifier(void) {
 
 TEST test_code2schema_make_unique_variant_name(void) {
   char *val = NULL;
+  struct StructFields sf;
 
   /* NULLs */
   ASSERT_EQ(0, make_unique_variant_name(NULL, "test", 0, &val));
   ASSERT(val == NULL);
 
-  struct StructFields sf;
   struct_fields_init(&sf);
   struct_fields_add(&sf, "test", "int", NULL, NULL, NULL);
 
@@ -697,19 +700,19 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
   char *val = NULL;
 
   /* NULLs */
-  ASSERT_EQ(EINVAL,
-            register_inline_schema_c2s(NULL, NULL, NULL, NULL, NULL, &val));
-
   JSON_Value *jv = json_parse_string("{}");
   JSON_Object *jo = json_value_get_object(jv);
   JSON_Value *schema_val = json_parse_string("{\"type\": \"string\"}");
+  char *val2 = NULL;
+
+  ASSERT_EQ(EINVAL,
+            register_inline_schema_c2s(NULL, NULL, NULL, NULL, NULL, &val));
 
   ASSERT_EQ(0, register_inline_schema_c2s(jo, "test", "var", "suf", schema_val,
                                           &val));
   ASSERT_STR_EQ("test_var_suf", val);
 
   /* Already exists */
-  char *val2 = NULL;
   ASSERT_EQ(0, register_inline_schema_c2s(jo, "test", "var", "suf", schema_val,
                                           &val2));
   ASSERT_STR_EQ("test_var_suf", val2);
@@ -722,20 +725,29 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
 }
 
 TEST test_code2schema_utils(void) {
+  char **s_arr;
+  char **s_src;
+  char **s_copied = NULL;
+  size_t s_count = 0;
+  JSON_Value *val;
+  JSON_Array *arr;
+  char **union_types = NULL;
+  size_t count = 0;
+  const char *primary = NULL;
+  int nullable = 0;
+
   ASSERT_EQ(0,
             parse_type_union_array_code2schema(NULL, NULL, NULL, NULL, NULL));
 
   free_string_array_code2schema(NULL, 0);
-  char **s_arr = (char **)malloc(sizeof(char *) * 2);
+  s_arr = (char **)malloc(sizeof(char *) * 2);
   s_arr[0] = strdup("test");
   s_arr[1] = strdup("test2");
   free_string_array_code2schema(s_arr, 2);
 
-  char **s_src = (char **)malloc(sizeof(char *) * 2);
+  s_src = (char **)malloc(sizeof(char *) * 2);
   s_src[0] = strdup("foo");
   s_src[1] = strdup("bar");
-  char **s_copied = NULL;
-  size_t s_count = 0;
 
   ASSERT_EQ(EINVAL, copy_string_array_code2schema(NULL, NULL, NULL, 0));
   ASSERT_EQ(0, copy_string_array_code2schema(&s_copied, &s_count, s_src, 2));
@@ -744,13 +756,8 @@ TEST test_code2schema_utils(void) {
   free_string_array_code2schema(s_copied, 2);
   free_string_array_code2schema(s_src, 2);
 
-  JSON_Value *val = json_value_init_array();
-  JSON_Array *arr = json_value_get_array(val);
-
-  char **union_types = NULL;
-  size_t count = 0;
-  const char *primary = NULL;
-  int nullable = 0;
+  val = json_value_init_array();
+  arr = json_value_get_array(val);
 
   ASSERT_EQ(0, parse_type_union_array_code2schema(arr, &union_types, &count,
                                                   &primary, &nullable));

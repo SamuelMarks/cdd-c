@@ -27,8 +27,11 @@ TEST test_cdd_cst_trivia_detect(void) {
   cdd_cst_tree_t *tree = NULL;
   const char *code = "int main() {\n    return 0;\n}";
   cdd_cst_format_config_t config;
+  cdd_cst_tree_t tree2;
   int rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
+
+  memset(&tree2, 0, sizeof(tree2));
 
   ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(NULL, &config));
   ASSERT_EQ(EINVAL, cdd_cst_detect_format_config(tree, NULL));
@@ -40,7 +43,6 @@ TEST test_cdd_cst_trivia_detect(void) {
 
   cdd_cst_tree_free(tree);
 
-  cdd_cst_tree_t tree2 = {0};
   ASSERT_EQ(0, cdd_cst_detect_format_config(&tree2, &config));
 
   tree = NULL;

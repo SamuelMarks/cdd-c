@@ -80,8 +80,9 @@ TEST test_main_subcommands(void) {
   char *argv_audit[] = {"cdd-c", "audit", "dir"};
   char *argv_to_openapi[] = {"cdd-c", "to_openapi", "-f", "dir"};
   char *argv_to_docs[] = {"cdd-c", "to_docs_json", "-i", "spec.json"};
-  char *argv_from_openapi[] = {"cdd-c", "from_openapi", "to_sdk", "-i",
-                               "spec.json"};
+  char *argv_from_openapi[] = {
+      "cdd-c",     "from_openapi", "to_sdk",        "-i",
+      "spec.json", "-o",           "test_out_dir_3"};
 
   cdd_main(4, argv_c2openapi);
   cdd_main(4, argv_code2schema);
@@ -91,7 +92,7 @@ TEST test_main_subcommands(void) {
   cdd_main(3, argv_audit);
   cdd_main(4, argv_to_openapi);
   cdd_main(4, argv_to_docs);
-  cdd_main(5, argv_from_openapi);
+  cdd_main(7, argv_from_openapi);
 
   PASS();
 }
@@ -102,9 +103,10 @@ TEST test_main_subcommands(void) {
  * @return The result of the test.
  */
 TEST test_main_from_openapi_cli_options(void) {
-  char *argv_cli[] = {"cdd-c", "from_openapi", "to_sdk_cli", "-i", "spec.json"};
-  char *argv_server[] = {"cdd-c", "from_openapi", "to_server", "-i",
-                         "spec.json"};
+  char *argv_cli[] = {"cdd-c",     "from_openapi", "to_sdk_cli",  "-i",
+                      "spec.json", "-o",           "test_out_dir"};
+  char *argv_server[] = {"cdd-c",     "from_openapi", "to_server",     "-i",
+                         "spec.json", "-o",           "test_out_dir_2"};
   char *argv_help[] = {"cdd-c", "from_openapi", "--help"};
   char *argv_err[] = {"cdd-c", "from_openapi", "to_sdk", "-o", "out_dir"};
   FILE *f;
@@ -120,8 +122,8 @@ TEST test_main_from_openapi_cli_options(void) {
              "\"version\": \"1.0\"}, \"paths\": {}}");
   fclose(f);
 
-  ASSERT_EQ(0, cdd_main(5, argv_cli));
-  ASSERT_EQ(0, cdd_main(5, argv_server));
+  ASSERT_EQ(0, cdd_main(7, argv_cli));
+  ASSERT_EQ(0, cdd_main(7, argv_server));
 
   remove("spec.json");
 

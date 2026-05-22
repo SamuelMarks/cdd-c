@@ -4768,6 +4768,7 @@ TEST test_writer_xml_types(void) {
 }
 
 TEST test_openapi_utils(void) {
+  struct OpenAPI_Parameter p;
   char *out = NULL;
 
   /* Hit the default missing branches */
@@ -4791,7 +4792,6 @@ TEST test_openapi_utils(void) {
   ASSERT_EQ(0, header_name_is_content_type_openapi(NULL));
   ASSERT_EQ(1, header_name_is_content_type_openapi("Content-Type"));
 
-  struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
   ASSERT_EQ(0, param_is_reserved_header_openapi(NULL));
   p.in = OA_PARAM_IN_HEADER;

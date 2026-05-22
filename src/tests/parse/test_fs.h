@@ -28,6 +28,7 @@ extern "C" {
 
 TEST test_get_basename(void) {
   char *res = NULL;
+  int is_dir = 0;
   int rc;
 
   rc = get_basename(PATH_SEP "foo" PATH_SEP "bar" PATH_SEP "baz.txt", &res);
@@ -35,7 +36,6 @@ TEST test_get_basename(void) {
   ASSERT_STR_EQ("baz.txt", res);
   free(res);
 
-  int is_dir = 0;
   ASSERT_EQ(EINVAL, fs_is_directory(NULL, &is_dir));
   ASSERT_EQ(
       0, fs_is_directory("/path/that/does/not/exist/ever/ever/ever", &is_dir));
@@ -177,12 +177,14 @@ TEST test_fs_fopen_error_from(void) {
 
 TEST test_fs_cp(void) {
   extern int cp(const char *dst, const char *src);
+  FILE *f;
+  int rc;
 
-  FILE *f = fopen("test_cp_src.txt", "w");
+  f = fopen("test_cp_src.txt", "w");
   fprintf(f, "test");
   fclose(f);
 
-  int rc = cp("test_cp_dst.txt", "test_cp_src.txt");
+  rc = cp("test_cp_dst.txt", "test_cp_src.txt");
   ASSERT_EQ(0, rc);
 
   remove("test_cp_src.txt");

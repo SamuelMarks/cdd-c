@@ -207,7 +207,13 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
 #else
       snprintf(buf, sizeof(buf), "\"%s\"", path);
 #endif
-      rc = cdd_cst_bld_string(builder, buf);
+      {
+        const char *pooled = pool_string(builder->tree, buf);
+        if (!pooled) {
+          return ENOMEM;
+        }
+        rc = cdd_cst_bld_string(builder, pooled);
+      }
     }
   }
   if (rc == 0)

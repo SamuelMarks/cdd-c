@@ -1003,13 +1003,14 @@ TEST test_client_gen_verb_to_string(void) {
 }
 
 TEST test_client_gen_write_docblock(void) {
+  FILE *fp;
   struct OpenAPI_Path path;
   struct OpenAPI_Operation op;
 
   memset(&path, 0, sizeof(path));
   memset(&op, 0, sizeof(op));
 
-  FILE *fp = fopen("test_docblock.txt", "w");
+  fp = fopen("test_docblock.txt", "w");
   ASSERT(fp != NULL);
 
   /* Fallback */
@@ -1100,12 +1101,13 @@ TEST test_client_gen_write_preambles(void) {
 #endif
 
 TEST test_client_gen_emit_operation(void) {
+  struct OpenAPI_Path bad_path;
+  struct OpenAPI_Operation bad_op;
+
   /* Missing params */
   ASSERT_EQ(EINVAL, emit_operation(NULL, NULL, NULL, NULL, NULL, NULL, NULL));
 
   /* Test early merge return */
-  struct OpenAPI_Path bad_path;
-  struct OpenAPI_Operation bad_op;
   memset(&bad_path, 0, sizeof(bad_path));
   memset(&bad_op, 0, sizeof(bad_op));
 

@@ -64,13 +64,14 @@ TEST test_operation_parse_example_any(void) {
 
 TEST test_operation_any_from_json_value(void) {
   struct OpenAPI_Any out;
+  JSON_Value *jv = NULL;
 
   /* NULL */
   ASSERT_EQ(EINVAL, any_from_json_value(NULL, NULL));
   ASSERT_EQ(0, any_from_json_value(NULL, &out));
 
   /* Types */
-  JSON_Value *jv = json_parse_string("\"hello\"");
+  jv = json_parse_string("\"hello\"");
   ASSERT_EQ(0, any_from_json_value(jv, &out));
   ASSERT_EQ(OA_ANY_STRING, out.type);
   ASSERT_STR_EQ("hello", out.string);
@@ -107,6 +108,7 @@ TEST test_operation_any_from_json_value(void) {
 TEST test_operation_parse_link_params_json(void) {
   struct OpenAPI_LinkParam *out = NULL;
   size_t count = 0;
+  size_t i;
 
   /* NULLs */
   ASSERT_EQ(0, parse_link_params_json(NULL, &out, &count));
@@ -131,7 +133,6 @@ TEST test_operation_parse_link_params_json(void) {
   ASSERT_STR_EQ("b", out[1].name);
   ASSERT_EQ(OA_ANY_STRING, out[1].value.type);
 
-  size_t i;
   for (i = 0; i < count; i++) {
     free(out[i].name);
     if (out[i].value.type == OA_ANY_STRING)
@@ -145,10 +146,10 @@ TEST test_operation_parse_link_params_json(void) {
 }
 
 TEST test_operation_free_openapi_server_variables_op(void) {
+  struct OpenAPI_Server srv;
   /* NULL */
   free_openapi_server_variables_op(NULL);
 
-  struct OpenAPI_Server srv;
   memset(&srv, 0, sizeof(srv));
   free_openapi_server_variables_op(&srv);
 
@@ -336,6 +337,7 @@ TEST test_operation_apply_example(void) {
 TEST test_operation_ensure_response_for_code(void) {
   struct OpenAPI_Operation op;
   struct OpenAPI_Response *out = NULL;
+  size_t i;
 
   memset(&op, 0, sizeof(op));
 
@@ -362,7 +364,6 @@ TEST test_operation_ensure_response_for_code(void) {
   ASSERT(out == &op.responses[0]);
   ASSERT_EQ(2, op.n_responses);
 
-  size_t i;
   for (i = 0; i < op.n_responses; i++) {
     free(op.responses[i].code);
     free(op.responses[i].description);

@@ -45,6 +45,8 @@ TEST test_cdd_transform_msvc(void) {
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 
+  printf("OUT WAS:\n[%s]\n", out);
+
   ASSERT(strstr(out, "_stricmp /* comment */ ") != NULL);
   ASSERT(strstr(out, "_strnicmp") != NULL);
   ASSERT(strstr(out, "_strdup") != NULL);

@@ -198,7 +198,6 @@ TEST test_weaver_translate_gcc_attributes(void) {
   struct TokenList tokens;
   struct CstNodeList cst;
   struct CstNode node;
-  char *out_code = NULL;
   int res;
 
   tokens.size = 0;

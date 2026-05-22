@@ -24,12 +24,12 @@ extern "C" {
 
 TEST test_cdd_cst_mutate_replace(void) {
   cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *clone = NULL;
   const char *code = "int main() {\n  return 0;\n}";
   char *out = NULL;
   cdd_cst_query_result_t res;
   int rc;
   cdd_cst_node_t *target;
-  cdd_cst_node_t *clone = NULL;
 
   rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
   ASSERT_EQ(0, rc);
@@ -63,6 +63,16 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
   cdd_cst_node_t *node2 = NULL;
+  cdd_cst_node_t *clone = NULL;
+  cdd_cst_node_t *detach_parent = NULL;
+  cdd_cst_node_t *detach_child = NULL;
+  cdd_cst_tree_t *tree3 = NULL;
+  cdd_cst_node_t *valid_child = NULL;
+  cdd_cst_tree_t *tree4 = NULL;
+  cdd_cst_node_t *splice_root = NULL;
+  cdd_cst_child_t new_children[1];
+  cdd_token_t mock_token2;
+  cdd_cst_node_t *parent_node = NULL;
 
   cdd_cst_parse(az_span_create_from_str(""), &tree);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &node);
@@ -77,8 +87,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(EINVAL, cdd_cst_detach_node(NULL, node));
   ASSERT_EQ(EINVAL, cdd_cst_detach_node(tree, node));
 
-  cdd_cst_node_t *detach_parent = NULL;
-  cdd_cst_node_t *detach_child = NULL;
   cdd_cst_alloc_node(CDD_CST_BLOCK, &detach_parent);
   cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &detach_child);
 
@@ -94,17 +102,14 @@ TEST test_cdd_cst_mutate_errors(void) {
      cdd_cst_insert_node_after expects target to have a parent. Let's just use
      the tree. */
 
-  cdd_cst_tree_t *tree3 = NULL;
   cdd_cst_parse(az_span_create_from_str("int x;"), &tree3);
-  cdd_cst_node_t *valid_child = tree3->root->children[0].val.node;
+  valid_child = tree3->root->children[0].val.node;
   ASSERT_EQ(0, cdd_cst_detach_node(tree3, valid_child));
 
   cdd_cst_tree_free(tree3);
-  cdd_cst_tree_t *tree4 = NULL;
   cdd_cst_parse(az_span_create_from_str("int y;"), &tree4);
-  cdd_cst_node_t *splice_root = tree4->root;
+  splice_root = tree4->root;
 
-  cdd_cst_child_t new_children[1];
   new_children[0].kind = CDD_CST_CHILD_NODE;
   new_children[0].val.node = splice_root;
 
@@ -121,7 +126,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(EINVAL, cdd_cst_remove_child(detach_parent, 100));
   /* removed */
 
-  cdd_token_t mock_token2;
   memset(&mock_token2, 0, sizeof(mock_token2));
 
   ASSERT_EQ(EINVAL, cdd_cst_replace_token_child(NULL, 0, &mock_token2));
@@ -145,7 +149,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(EINVAL, cdd_cst_insert_node_before(node, node2));
   /* node2 is not a child of node's parent (it has no parent), so replace fails
    */
-  cdd_cst_node_t *parent_node = NULL;
   cdd_cst_alloc_node(CDD_CST_BLOCK, &parent_node);
   node->parent = parent_node;
   ASSERT_EQ(ENOENT, cdd_cst_replace_node(tree, node, node2));
@@ -159,7 +162,6 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(ENOENT, cdd_cst_insert_node_after(node, node2));
 
   cdd_cst_tree_free(tree);
-  cdd_cst_node_t *clone = NULL;
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(NULL, detach_parent, &clone));
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, NULL, &clone));
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, detach_parent, NULL));
@@ -171,9 +173,9 @@ TEST test_cdd_cst_mutate_errors(void) {
 
 TEST test_mutate_utils(void) {
   size_t idx;
+  cdd_token_t *t;
   ASSERT_EQ(EINVAL, find_child_index_mutate(NULL, NULL, &idx));
 
-  cdd_token_t *t;
   ASSERT_EQ(EINVAL, find_first_token_mutate(NULL, &t));
 
   PASS();

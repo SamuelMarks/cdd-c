@@ -321,7 +321,8 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   ASSERT_EQ(0, rc);
 
   {
-    cdd_cst_node_t *nodes[1] = {spliced_node};
+    cdd_cst_node_t *nodes[1];
+    nodes[0] = spliced_node;
     rc = cdd_cst_splice_nodes(&b, replacement_node, 0, nodes, 1);
     ASSERT_EQ(0, rc);
   }
@@ -405,6 +406,7 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *root = NULL;
   cdd_cst_builder_t b;
+  char buf[3000];
 
   tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
@@ -418,7 +420,6 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   b.error_state = 0;
 
   /* buffer overflow */
-  char buf[3000];
   memset(buf, 'a', 2999);
   buf[2999] = '\0';
   cdd_cst_quote(&b, "123%s", buf);

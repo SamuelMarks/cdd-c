@@ -43,6 +43,8 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size;
   int rc;
+  cdd_cst_node_t *decl = NULL;
+  size_t i;
   const char *src = "int a;";
 
   rc = cdd_cst_scope_env_init(&env);
@@ -51,8 +53,6 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *decl = NULL;
-  size_t i;
   for (i = 0; i < tree->root->num_children; i++) {
     if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
       decl = tree->root->children[i].val.node;
@@ -76,6 +76,11 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_scope_env_t *env = NULL;
   size_t size, align;
   int rc;
+  cdd_cst_node_t *decl = NULL;
+  size_t i;
+  cdd_cst_tree_t *tree2 = NULL;
+  cdd_cst_node_t *decl2 = NULL;
+  cdd_cst_node_t *empty_node = NULL;
   const char *src = "int *a;";
 
   rc = cdd_cst_scope_env_init(&env);
@@ -84,8 +89,6 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *decl = NULL;
-  size_t i;
   for (i = 0; i < tree->root->num_children; i++) {
     if (tree->root->children[i].kind == CDD_CST_CHILD_NODE) {
       decl = tree->root->children[i].val.node;
@@ -102,11 +105,9 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(0, rc);
 
   /* Unknown type so extract_type_name returns unknown */
-  cdd_cst_tree_t *tree2 = NULL;
   rc = cdd_cst_parse(az_span_create_from_str("struct Unknown x;"), &tree2);
   ASSERT_EQ(0, rc);
 
-  cdd_cst_node_t *decl2 = NULL;
   for (i = 0; i < tree2->root->num_children; i++) {
     if (tree2->root->children[i].kind == CDD_CST_CHILD_NODE) {
       decl2 = tree2->root->children[i].val.node;
@@ -126,7 +127,6 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   /* removed assert */
 
   /* Fallback testing (e.g. unsupported type or empty declaration) */
-  cdd_cst_node_t *empty_node = NULL;
   cdd_cst_alloc_node(CDD_CST_ASM_STATEMENT, &empty_node);
   rc = cdd_cst_eval_sizeof(env, empty_node, CDD_CST_ABI_LP64, &size);
   ASSERT_EQ(ENOSYS, rc);
