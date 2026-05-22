@@ -18,7 +18,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Base
         run: sudo apt-get install -y cmake
       - name: Build cdd-c
