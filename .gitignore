@@ -208,7 +208,7 @@ CMakeUserPresets.json
 !CMakeLists.txt
 !cmake/modules/*.cmake
 Makefile
-!Makefile
+!/Makefile
 
 # Extreme Catch-all Wildcards for Confident git add .
 contrib/
@@ -404,15 +404,20 @@ out_cov/
 petstore.json
 petstore_oas3.json
 c-cmake-ci.yml
-lldb_cmds.txt
-gcc_err.txt
-missing_file_docs.txt
+*_cmds.txt
+*_err.txt
+missing_*.txt
 fix_empty.py
 fix_comments.py
 print_rc.c
 UNDERCOVERED.md
 fix_*.c
 
-*_err.txt
-*_cmds.txt
-missing_file_docs.txt
+# Automatically generated / downloaded files
+CMakeDoxyfile.in
+DartConfiguration.tcl
+Doxyfile
+*Config.h
+test_downloads/
+/package-lock.json
+

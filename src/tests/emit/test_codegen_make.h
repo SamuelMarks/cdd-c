@@ -67,7 +67,7 @@ TEST test_make_extra_sources(void) {
   ASSERT(tmp);
   memset(&cfg, 0, sizeof(cfg));
   cfg.project_name = "w_extras";
-  cfg.extra_sources = (const char **)extras;
+  cfg.extra_sources = (char **)extras;
   cfg.extra_source_count = 2;
 
   ASSERT_EQ(0, codegen_make_generate(tmp, &cfg));

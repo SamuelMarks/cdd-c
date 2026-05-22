@@ -155,6 +155,9 @@ int rewrite_body(const struct TokenList *tokens,
   int injected_rc = 0;
   size_t tmp_var_counter = 0;
 
+  if (!tokens || !out_code)
+    return EINVAL;
+
   /* 1. Initialize Patcher */
   if (patch_list_init(&patches) != 0)
     return ENOMEM;

@@ -266,6 +266,7 @@ TEST test_patch_append_end(void) {
 TEST test_patch_bounds(void) {
   struct PatchList pl;
   struct TokenList tl;
+  memset(&tl, 0, sizeof(tl));
   char *res = NULL;
   patch_list_init(&pl);
   ASSERT_EQ(EINVAL, patch_list_init(NULL));

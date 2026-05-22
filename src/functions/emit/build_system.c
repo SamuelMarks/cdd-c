@@ -193,11 +193,11 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "    if(NOT c_abstract_http_RESOLVED)\n"));
   CHECK_IO(fprintf(fp, "        if(EXISTS "
-                       "\"\${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
                        "c-abstract-http/CMakeLists.txt\")\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(c-abstract-http SOURCE_DIR "
-          "\"\${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-abstract-http\")\n"));
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-abstract-http\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp,
@@ -208,11 +208,11 @@ static int write_cmake_content(FILE *fp, const char *project_name,
       fprintf(fp, "        FetchContent_MakeAvailable(c-abstract-http)\n"));
   CHECK_IO(fprintf(fp, "        if(NOT TARGET c-abstract-http)\n"));
   CHECK_IO(fprintf(
-      fp, "            add_subdirectory(\"\${c-abstract-http_SOURCE_DIR}\" "
-          "\"\${c-abstract-http_BINARY_DIR}\")\n"));
+      fp, "            add_subdirectory(\"${c-abstract-http_SOURCE_DIR}\" "
+          "\"${c-abstract-http_BINARY_DIR}\")\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        include_directories(SYSTEM "
-                       "\"\${c-abstract-http_SOURCE_DIR}/include\")\n"));
+                       "\"${c-abstract-http_SOURCE_DIR}/include\")\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
 

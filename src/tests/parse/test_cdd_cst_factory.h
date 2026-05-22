@@ -120,12 +120,6 @@ TEST test_cst_append_child_token(void) {
  * @brief Suite for CST factory
  */
 /* old suite */
-void old_cdd_cst_factory_suite(void) {
-  RUN_TEST(test_cst_alloc_node);
-  RUN_TEST(test_cst_create_token);
-  RUN_TEST(test_cst_append_child_node);
-  RUN_TEST(test_cst_append_child_token);
-}
 
 /**
  * @brief Tests parse format.

@@ -180,12 +180,6 @@ TEST test_mutate_utils(void) {
 }
 
 /* old suite */
-void old_cdd_cst_mutate_suite(void) {
-  RUN_TEST(test_mutate_utils);
-  RUN_TEST(test_mutate_utils);
-  RUN_TEST(test_cdd_cst_mutate_errors);
-  RUN_TEST(test_cdd_cst_mutate_replace);
-}
 
 /**
  * @brief Tests child splicing

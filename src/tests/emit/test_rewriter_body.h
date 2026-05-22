@@ -25,6 +25,9 @@ static int run_body_rewrite(const char *code,
   int rc;
   const az_span source = az_span_create_from_str((char *)code);
 
+  if (!code || !out)
+    return -1;
+
   if (tokenize(source, &tl) != 0)
     return -1;
 
@@ -195,7 +198,7 @@ TEST test_rewriter_body_bounds(void) {
 }
 
 SUITE(rewriter_body_suite) {
-  // RUN_TEST(test_rewriter_body_bounds);
+  RUN_TEST(test_rewriter_body_bounds);
   RUN_TEST(test_propagate_void_stmt);
   RUN_TEST(test_propagate_ptr_assignment);
   RUN_TEST(test_propagate_ptr_declaration);
