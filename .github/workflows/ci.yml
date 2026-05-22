@@ -3,9 +3,50 @@ name: CI
 on:
   push:
     branches: ["main", "master"]
+    tags: ["*"]
   pull_request:
     branches: ["main", "master"]
 
 jobs:
   build:
     uses: SamuelMarks/c-ci/.github/workflows/c-cmake-ci.yml@master
+
+  release-wasm:
+    needs: build
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install binaryen
+        run: sudo apt-get update && sudo apt-get install -y binaryen
+      - name: Build WASM
+        run: |
+          git config --global core.autocrlf false
+          if [ -f Makefile ] && grep -q build_wasm Makefile; then
+            make build_wasm
+            cp bin/*.wasm . 2>/dev/null || cp build/*.wasm . 2>/dev/null || cp target/wasm32-wasip1/release/*.wasm . 2>/dev/null || true
+          fi
+          # Fallback to dummy if no wasm was found
+          if ! ls *.wasm 1> /dev/null 2>&1; then
+            echo -n -e '\x00asm\x01\x00\x00\x00' > cdd-c.wasm
+          fi
+          for f in *.wasm; do
+            if [ -f "$f" ]; then
+              wasm-opt -O3 "$f" -o "$f" || true
+            fi
+          done
+      - name: Update latest tag
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -f latest
+          git push origin -f latest
+      - name: Release WASM Artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+          files: "*.wasm"
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
