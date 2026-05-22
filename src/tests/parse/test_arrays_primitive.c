@@ -21,7 +21,9 @@
 
 /* Add definitions that need to be in the test runner's main file. */
 GREATEST_MAIN_DEFS();
+#if defined(_MSC_VER)
 #pragma warning(disable : 4551)
+#endif
 
 /**
  * @brief Mock Struct for Array Testing.

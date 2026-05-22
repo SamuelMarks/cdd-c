@@ -1093,14 +1093,22 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_bld_punct(&bld, "(");
               {
                 char tb2[128];
-                snprintf(tb2, 128, "0x%llxULL", (unsigned long long)high);
+#if defined(_MSC_VER)
+#define ULL_HEX_FMT "%I64x"
+#else
+#define ULL_HEX_FMT "%llx"
+#endif
+                snprintf(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                         (unsigned long long)high);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
               {
                 char tb2[128];
-                snprintf(tb2, 128, "0x%llxULL", (unsigned long long)low);
+                snprintf(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                         (unsigned long long)low);
+#undef ULL_HEX_FMT
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ")");

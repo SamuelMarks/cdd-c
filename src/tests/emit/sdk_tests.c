@@ -151,8 +151,9 @@ int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                    "#include \"%s\"\n\n",
                    config->client_header));
 
-  CHECK_IO(fprintf(fp, "GREATEST_MAIN_DEFS();\n"
-                       "#pragma warning(disable: 4551)\n\n"));
+  CHECK_IO(fprintf(
+      fp, "GREATEST_MAIN_DEFS();\n"
+          "#if defined(_MSC_VER)\n#pragma warning(disable: 4551)\n#endif\n\n"));
 
   /* Iterate Operations */
   for (i = 0; i < spec->n_paths; ++i) {

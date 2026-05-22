@@ -222,9 +222,20 @@ TEST test_cdd_128_casts(void) {
   ASSERT_EQ(-1LL, i64);
   ASSERT_EQ(0, cdd_float_to_int128(-123.45f, &ires));
   ASSERT_EQ(-1LL, ires.high);
-  printf("ires.low=%llx\n", (unsigned long long)ires.low);
 
-  ASSERT_EQ_FMT(0xFFFFFFFFFFFFFF85ULL, ires.low, "%llx");
+#if defined(_MSC_VER)
+#define ULL_HEX_FMT "%I64x"
+#else
+#define ULL_HEX_FMT "%llx"
+#endif
+
+  printf("ires.low=" ULL_HEX_FMT "\n", (unsigned long long)ires.low);
+
+  ASSERT_EQ_FMT((unsigned long long)0xFFFFFFFFFFFFFF85ULL,
+                (unsigned long long)ires.low, ULL_HEX_FMT);
+
+#undef ULL_HEX_FMT
+
   ASSERT_EQ(0, cdd_double_to_int128(456.78, &ires));
   ASSERT_EQ(0, ires.high);
   ASSERT_EQ(456, ires.low);

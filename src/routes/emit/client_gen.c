@@ -3587,7 +3587,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   if (config && config->create_tests_and_mocks) {
-    char tdir[512], tfile[512];
+    char tdir[512], tfile[640];
     FILE *tfp;
     snprintf(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
     makedirs(tdir);

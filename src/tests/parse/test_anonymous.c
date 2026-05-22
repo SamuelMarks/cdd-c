@@ -15,7 +15,9 @@
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
+#if defined(_MSC_VER)
 #pragma warning(disable : 4551)
+#endif
 
 TEST test_lift_anonymous_struct(void) {
   const char *src = "struct Parent {\n"

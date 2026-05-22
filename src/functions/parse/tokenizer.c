@@ -857,8 +857,8 @@ int token_matches_string(const struct Token *tok, const char *match,
 
     {
       if (m_len == 13)
-        fprintf(stderr, "Mismatched at idx %zu: c='%c' match='%c'\n", i_match,
-                c, match[i_match]);
+        fprintf(stderr, "Mismatched at idx %lu: c='%c' match='%c'\n",
+                (unsigned long)i_match, c, match[i_match]);
       *_out_val = 0;
       return 0;
     }
@@ -872,9 +872,10 @@ int token_matches_string(const struct Token *tok, const char *match,
     *_out_val = (i_tok >= tok->length && i_match == m_len);
     if (m_len == 13 && match[0] == '_')
       fprintf(stderr,
-              "token_matches_string END! match='%s' tok_len=%zu i_tok=%zu "
-              "i_match=%zu out=%d\n",
-              match, tok->length, i_tok, i_match, *_out_val);
+              "token_matches_string END! match='%s' tok_len=%lu i_tok=%lu "
+              "i_match=%lu out=%d\n",
+              match, (unsigned long)tok->length, (unsigned long)i_tok,
+              (unsigned long)i_match, *_out_val);
     return 0;
   }
 }

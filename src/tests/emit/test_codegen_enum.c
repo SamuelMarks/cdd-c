@@ -22,7 +22,9 @@
 
 /* Standard definitions for greatest library */
 GREATEST_MAIN_DEFS();
+#if defined(_MSC_VER)
 #pragma warning(disable : 4551)
+#endif
 
 /**
  * @brief Setup: Create a basic enum member list for testing.

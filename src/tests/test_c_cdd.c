@@ -1,5 +1,7 @@
 #if defined(_MSC_VER)
+#if defined(_MSC_VER)
 #pragma warning(disable : 4005)
+#endif
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
