@@ -94,7 +94,7 @@ def main():
                 shutil.rmtree("test_out_oas3")
             os.makedirs("test_out_oas3", exist_ok=True)
             run_cmd([cdd_c_bin, "from_openapi", "to_sdk", "-i", spec_oas3, "-o", "test_out_oas3", "--tests"])
-            run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON"], cwd="test_out_oas3")
+            run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON", "-DFETCHCONTENT_SOURCE_DIR_CDD_C=.."], cwd="test_out_oas3")
             run_cmd(["cmake", "--build", "."], cwd="test_out_oas3")
             result = subprocess.run(["ctest", "--output-on-failure"], cwd="test_out_oas3")
             if result.returncode != 0:
@@ -111,7 +111,7 @@ def main():
                 shutil.rmtree("test_out_sw2")
             os.makedirs("test_out_sw2", exist_ok=True)
             run_cmd([cdd_c_bin, "from_openapi", "to_sdk", "-i", spec_sw2, "-o", "test_out_sw2", "--tests"])
-            run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON"], cwd="test_out_sw2")
+            run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON", "-DFETCHCONTENT_SOURCE_DIR_CDD_C=.."], cwd="test_out_sw2")
             run_cmd(["cmake", "--build", "."], cwd="test_out_sw2")
             result = subprocess.run(["ctest", "--output-on-failure"], cwd="test_out_sw2")
             if result.returncode != 0:

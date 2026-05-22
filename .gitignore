@@ -411,3 +411,4 @@ fix_empty.py
 fix_comments.py
 print_rc.c
 UNDERCOVERED.md
+fix_*.c

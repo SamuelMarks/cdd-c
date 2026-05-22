@@ -81,6 +81,7 @@ static int write_cmake_content(FILE *fp, const char *project_name,
 
   CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
   CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
+  CHECK_IO(fprintf(fp, "set(BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\n"));
   /* parson */
   CHECK_IO(fprintf(fp, "if(TARGET parson)\n    message(STATUS \"parson already "
                        "provided by parent\")\nelse()\n"));
@@ -96,21 +97,27 @@ static int write_cmake_content(FILE *fp, const char *project_name,
       fp,
       "        if(EXISTS "
       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson/CMakeLists.txt\")\n"));
-  CHECK_IO(
-      fprintf(fp, "            FetchContent_Declare(parson SOURCE_DIR "
-                  "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson\")\n"));
+  CHECK_IO(fprintf(fp,
+                   "            FetchContent_Declare(parson SOURCE_DIR "
+                   "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
           "https://github.com/SamuelMarks/parson.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(parson)\n"));
+  CHECK_IO(fprintf(fp, "        if(NOT TARGET parson)\n"));
+  CHECK_IO(fprintf(fp, "            add_subdirectory(\"${parson_SOURCE_DIR}\" "
+                       "\"${parson_BINARY_DIR}\")\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(
+      fp, "        include_directories(SYSTEM \"${parson_SOURCE_DIR}\")\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
   /* c89stringutils */
-  CHECK_IO(
-      fprintf(fp, "if(TARGET c89stringutils)\n    message(STATUS "
-                  "\"c89stringutils already provided by parent\")\nelse()\n"));
+  CHECK_IO(fprintf(fp,
+                   "if(TARGET c89stringutils)\n    message(STATUS "
+                   "\"c89stringutils already provided by parent\")\nelse()\n"));
   CHECK_IO(fprintf(fp, "    set(c89stringutils_RESOLVED OFF)\n"));
   CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
   CHECK_IO(fprintf(fp, "        find_package(c89stringutils CONFIG QUIET)\n"));
@@ -131,6 +138,13 @@ static int write_cmake_content(FILE *fp, const char *project_name,
           "https://github.com/offscale/c89stringutils.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c89stringutils)\n"));
+  CHECK_IO(fprintf(fp, "        if(NOT TARGET c89stringutils)\n"));
+  CHECK_IO(fprintf(
+      fp, "            add_subdirectory(\"${c89stringutils_SOURCE_DIR}\" "
+          "\"${c89stringutils_BINARY_DIR}\")\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "        include_directories(SYSTEM "
+                       "\"${c89stringutils_SOURCE_DIR}/c89stringutils\")\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
   /* c_str_span */
@@ -156,8 +170,52 @@ static int write_cmake_content(FILE *fp, const char *project_name,
           "https://github.com/SamuelMarks/c-str-span.git GIT_TAG master)\n"));
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "        FetchContent_MakeAvailable(c_str_span)\n"));
+  CHECK_IO(fprintf(fp, "        if(NOT TARGET c_str_span)\n"));
+  CHECK_IO(fprintf(fp,
+                   "            add_subdirectory(\"${c_str_span_SOURCE_DIR}\" "
+                   "\"${c_str_span_BINARY_DIR}\")\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "        include_directories(SYSTEM \"${c_str_span_SOURCE_DIR}\")\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "endif()\n\n"));
+  /* c-abstract-http */
+  CHECK_IO(
+      fprintf(fp, "if(TARGET c-abstract-http)\n    message(STATUS "
+                  "\"c-abstract-http already provided by parent\")\nelse()\n"));
+  CHECK_IO(fprintf(fp, "    set(c_abstract_http_RESOLVED OFF)\n"));
+  CHECK_IO(fprintf(fp, "    if(VCPKG_TOOLCHAIN)\n"));
+  CHECK_IO(fprintf(fp, "        find_package(c-abstract-http CONFIG QUIET)\n"));
+  CHECK_IO(fprintf(fp, "        if(c-abstract-http_FOUND)\n"));
+  CHECK_IO(fprintf(fp, "            set(c_abstract_http_RESOLVED ON)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "    if(NOT c_abstract_http_RESOLVED)\n"));
+  CHECK_IO(fprintf(fp, "        if(EXISTS "
+                       "\"\${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
+                       "c-abstract-http/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp, "            FetchContent_Declare(c-abstract-http SOURCE_DIR "
+          "\"\${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-abstract-http\")\n"));
+  CHECK_IO(fprintf(fp, "        else()\n"));
+  CHECK_IO(fprintf(
+      fp,
+      "            FetchContent_Declare(c-abstract-http GIT_REPOSITORY "
+      "https://github.com/SamuelMarks/c-abstract-http.git GIT_TAG master)\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(
+      fprintf(fp, "        FetchContent_MakeAvailable(c-abstract-http)\n"));
+  CHECK_IO(fprintf(fp, "        if(NOT TARGET c-abstract-http)\n"));
+  CHECK_IO(fprintf(
+      fp, "            add_subdirectory(\"\${c-abstract-http_SOURCE_DIR}\" "
+          "\"\${c-abstract-http_BINARY_DIR}\")\n"));
+  CHECK_IO(fprintf(fp, "        endif()\n"));
+  CHECK_IO(fprintf(fp, "        include_directories(SYSTEM "
+                       "\"\${c-abstract-http_SOURCE_DIR}/include\")\n"));
+  CHECK_IO(fprintf(fp, "    endif()\n"));
+  CHECK_IO(fprintf(fp, "endif()\n\n"));
+
   CHECK_IO(fprintf(fp, "target_link_libraries(%s PUBLIC c-abstract-http)\n\n",
                    project_name));
 
@@ -165,11 +223,13 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "target_include_directories(%s PUBLIC\n", project_name));
   CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\n"));
   CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>\n"));
+  CHECK_IO(fprintf(fp, "    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>\n"));
   CHECK_IO(fprintf(fp, "    $<INSTALL_INTERFACE:include>\n"));
   CHECK_IO(fprintf(fp, ")\n\n"));
 
   /* Tests */
   if (has_tests) {
+    CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
     CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
     CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));
     CHECK_IO(fprintf(fp, "set(BUILD_TESTING ON CACHE BOOL \"\" FORCE)\n"));

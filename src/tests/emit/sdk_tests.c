@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
@@ -146,6 +147,7 @@ int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                    "#include <greatest.h>\n"
                    "#include <stdlib.h>\n"
                    "#include <string.h>\n"
+                   "#include <ctype.h>\n"
                    "#include \"%s\"\n\n",
                    config->client_header));
 
