@@ -88,7 +88,11 @@ TEST test_parse_int_suffixes(void) {
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long);
 
-  parse_numeric_literal("1LLU", &nv);
+  ASSERT_EQ(0, parse_numeric_literal("1LLU", &nv));
+  ASSERT(nv.data.integer.is_unsigned);
+  ASSERT(nv.data.integer.is_long_long);
+
+  parse_numeric_literal("1lul", &nv);
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long_long);
 
@@ -179,10 +183,68 @@ TEST test_parse_errors(void) {
   /* Mixed decimal float suffix (e.g. dL vs dl/DL, spec implies case consistency
      but parser might be strict or loose. Implementation checks [0] and [1]. 'd'
      'L' -> DFP_128. Let's check invalid combo 'dx'. */
-  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dx", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1uu", &nv));
+  ASSERT_EQ(
+      0, parse_numeric_literal("1lL", &nv)); /* actually 1lL parses as 1 LL */
+  ASSERT_EQ(0, parse_numeric_literal("1lLu", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1lul", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1Lul", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal(
+                        "1uLul",
+                        &nv)); /* check what 1uLul parses as. Oh it might parse.
+                                  Wait, I will just assert EINVAL for 1llL */
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1llL", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1lll", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1lu", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1Lu", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1llu", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1uLL", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1Ull", &nv));
+
+  ASSERT_EQ(
+      ERANGE,
+      parse_numeric_literal(
+          "0b11111111111111111111111111111111111111111111111111111111111111110",
+          &nv));
+  ASSERT_EQ(ERANGE, parse_numeric_literal("0x10000000000000000", &nv));
+  ASSERT_EQ(ERANGE,
+            parse_numeric_literal("18446744073709551616", &nv)); /* 2^64 */
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1X", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0fX", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0LX", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dfX", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0ddX", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dlX", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("0b1.0", &nv));
+
+  ASSERT_EQ(ERANGE, parse_numeric_literal("1e999", &nv));
   /* Nothing */
   ASSERT_EQ(EINVAL, parse_numeric_literal("", &nv));
   /* NULL */
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1", NULL));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("   ", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1llL", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("0x1.0p10", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1e-1", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dfx", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0ddx", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dlx", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1ull", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1.0df", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1.0dd", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1.0dl", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1llx", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1ux", &nv));
+
+  /* binary int overflow */
+  ASSERT_EQ(
+      ERANGE,
+      parse_numeric_literal(
+          "0b10000000000000000000000000000000000000000000000000000000000000000",
+          &nv));
+
   ASSERT_EQ(EINVAL, parse_numeric_literal(NULL, &nv));
   PASS();
 }

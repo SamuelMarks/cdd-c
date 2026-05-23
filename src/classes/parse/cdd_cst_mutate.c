@@ -151,8 +151,8 @@ int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
   return 0;
 }
 
-int insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
-                           cdd_cst_node_t *new_node) {
+int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
+                                 cdd_cst_node_t *new_node) {
   if (!parent || !new_node || idx > parent->num_children)
     return EINVAL;
 
@@ -192,7 +192,7 @@ int cdd_cst_insert_node_before(cdd_cst_node_t *target_node,
   if (rc != 0)
     return rc;
 
-  return insert_child_at_mutate(target_node->parent, idx, new_node);
+  return cdd_cst_insert_child_node_at(target_node->parent, idx, new_node);
 }
 
 int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
@@ -206,7 +206,7 @@ int cdd_cst_insert_node_after(cdd_cst_node_t *target_node,
   if (rc != 0)
     return rc;
 
-  return insert_child_at_mutate(target_node->parent, idx + 1, new_node);
+  return cdd_cst_insert_child_node_at(target_node->parent, idx + 1, new_node);
 }
 
 int cdd_cst_detach_node(cdd_cst_tree_t *tree, cdd_cst_node_t *node) {

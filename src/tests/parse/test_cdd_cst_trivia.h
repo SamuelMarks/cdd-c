@@ -55,6 +55,28 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(2, config.indent_width); /* "  " is 2 spaces */
   cdd_cst_tree_free(tree);
 
+  /* Test fallback to 4 spaces */
+  tree = NULL;
+  code = "int main() {\n     return 0;\n}"; /* 5 spaces avg >= 3 -> 4 spaces */
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  ASSERT_EQ(0, rc);
+  rc = cdd_cst_detect_format_config(tree, &config);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(0, config.use_tabs);
+  ASSERT_EQ(4, config.indent_width);
+  cdd_cst_tree_free(tree);
+
+  /* Test spaces > 8 ignored from sum */
+  tree = NULL;
+  code = "int main() {\n         return 0;\n}"; /* 9 spaces ignored */
+  rc = cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+  ASSERT_EQ(0, rc);
+  rc = cdd_cst_detect_format_config(tree, &config);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(0, config.use_tabs);
+  ASSERT_EQ(2, config.indent_width); /* default if no space counts added */
+  cdd_cst_tree_free(tree);
+
   PASS();
 }
 

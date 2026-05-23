@@ -22,6 +22,9 @@ extern "C" {
 #include "classes/emit/cdd_cst_emit.h"
 /* clang-format on */
 
+int insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
+                           cdd_cst_node_t *new_node);
+
 TEST test_cdd_cst_mutate_replace(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *clone = NULL;
@@ -214,11 +217,48 @@ TEST test_cst_splice_children(void) {
   ASSERT_EQ(EINVAL, cdd_cst_splice_children(tree, NULL, 0, 1, new_children, 1));
   /* Out of bounds */
 
-  rc = cdd_cst_splice_children(tree, &root, 0, 1, new_children, 1);
-  ASSERT_EQ(0, rc);
-  ASSERT_EQ(1, tree->root->num_children);
-  ASSERT_EQ(CDD_CST_CHILD_TOKEN, tree->root->children[0].kind);
-  ASSERT_EQ(tok, tree->root->children[0].val.token);
+  /* Test out node pointer */
+  {
+    cdd_cst_node_t *out_node = NULL;
+    cdd_cst_node_t *old_root = tree->root;
+    rc = cdd_cst_splice_children(tree, &old_root, 0, 1, new_children, 1);
+    ASSERT_EQ(0, rc);
+    ASSERT_EQ(old_root,
+              tree->root); /* updated variable points to the new root */
+  }
+
+  cdd_cst_tree_free(tree);
+
+  /* Test passing NULL for node_ptr on non-root */
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree->root = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  cdd_cst_append_child_node(tree->root, calloc(1, sizeof(cdd_cst_node_t)));
+  {
+    cdd_cst_node_t *target = tree->root->children[0].val.node;
+    cdd_cst_child_t new_children2[1] = {0};
+    rc =
+        cdd_cst_splice_children(tree, &target, 0, 0, new_children2, 0); /* OK */
+    ASSERT_EQ(0, rc);
+
+    rc = cdd_cst_splice_children(tree, NULL, 0, 0, new_children2, 0);
+    ASSERT_EQ(EINVAL, rc);
+  }
+  cdd_cst_tree_free(tree);
+
+  /* Actually, test passing a pointer to the node we're replacing */
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  tree->root = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  cdd_cst_append_child_node(tree->root, calloc(1, sizeof(cdd_cst_node_t)));
+  {
+    cdd_cst_node_t *target = tree->root->children[0].val.node;
+    cdd_cst_node_t *ptr_copy = target;
+    cdd_cst_child_t new_children2[1] = {0};
+
+    rc = cdd_cst_splice_children(tree, &ptr_copy, 0, 0, new_children2, 0);
+    ASSERT_EQ(0, rc);
+    ASSERT(ptr_copy != target);
+    ASSERT_EQ(ptr_copy, tree->root->children[0].val.node);
+  }
 
   cdd_cst_tree_free(tree);
   PASS();
@@ -249,6 +289,14 @@ TEST test_cst_find_node_for_token(void) {
   ASSERT_EQ(0, idx);
   ASSERT_EQ(child, found_node);
 
+  {
+    cdd_token_t not_found_tok = {0};
+    found_node = NULL;
+    ASSERT_EQ(ENOENT, cdd_cst_find_node_for_token(root, &not_found_tok, &idx,
+                                                  &found_node));
+    ASSERT_EQ(NULL, found_node);
+  }
+
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(root);
   PASS();
@@ -258,12 +306,70 @@ TEST test_cst_find_node_for_token(void) {
  * @brief Rewrite mutate suite to include splice tests
  */
 
+TEST test_cdd_cst_insert_node_after_success(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *parent = NULL;
+  cdd_cst_node_t *child1 = NULL;
+  cdd_cst_node_t *child2 = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &parent);
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child1);
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child2);
+
+  cdd_cst_append_child_node(parent, child1);
+
+  ASSERT_EQ(0, cdd_cst_insert_node_after(child1, child2));
+
+  ASSERT_EQ(2, parent->num_children);
+  ASSERT_EQ(child1, parent->children[0].val.node);
+  ASSERT_EQ(child2, parent->children[1].val.node);
+
+  cdd_cst_free_node_only(parent);
+  cdd_cst_free_node_only(child1);
+  cdd_cst_free_node_only(child2);
+  cdd_cst_tree_free(tree);
+
+  PASS();
+}
+
+TEST test_cdd_cst_insert_node_before_success(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *parent = NULL;
+  cdd_cst_node_t *child1 = NULL;
+  cdd_cst_node_t *child2 = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &parent);
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child1);
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &child2);
+
+  cdd_cst_append_child_node(parent, child1);
+
+  ASSERT_EQ(0, cdd_cst_insert_node_before(child1, child2));
+
+  ASSERT_EQ(2, parent->num_children);
+  ASSERT_EQ(child2, parent->children[0].val.node);
+  ASSERT_EQ(child1, parent->children[1].val.node);
+
+  cdd_cst_free_node_only(parent);
+  cdd_cst_free_node_only(child1);
+  cdd_cst_free_node_only(child2);
+  cdd_cst_tree_free(tree);
+
+  PASS();
+}
+
 SUITE(cdd_cst_mutate_suite) {
   RUN_TEST(test_cdd_cst_mutate_replace);
   RUN_TEST(test_cdd_cst_mutate_errors);
   RUN_TEST(test_mutate_utils);
   RUN_TEST(test_cst_splice_children);
   RUN_TEST(test_cst_find_node_for_token);
+  RUN_TEST(test_cdd_cst_insert_node_after_success);
+  RUN_TEST(test_cdd_cst_insert_node_before_success);
 }
 
 #ifdef __cplusplus

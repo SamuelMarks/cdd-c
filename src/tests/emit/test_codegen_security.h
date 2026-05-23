@@ -335,6 +335,49 @@ TEST test_sec_multiple_schemes(void) {
 
 TEST test_sec_null_safety(void) {
   ASSERT_EQ(EINVAL, codegen_security_write_apply(NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, codegen_security_write_server_apply(NULL, NULL, NULL));
+  PASS();
+}
+
+TEST test_sec_server_apply_basic_and_bearer(void) {
+  struct OpenAPI_Spec spec;
+  struct OpenAPI_SecurityScheme schemes[2];
+  struct OpenAPI_Operation op;
+  FILE *tmp = tmpfile();
+  char *content = NULL;
+  long sz;
+
+  memset(&spec, 0, sizeof(spec));
+  memset(schemes, 0, sizeof(schemes));
+  memset(&op, 0, sizeof(op));
+
+  schemes[0].name = "bearerAuth";
+  schemes[0].type = OA_SEC_HTTP;
+  schemes[0].scheme = "bearer";
+
+  schemes[1].name = "basicAuth";
+  schemes[1].type = OA_SEC_HTTP;
+  schemes[1].scheme = "basic";
+
+  spec.security_schemes = schemes;
+  spec.n_security_schemes = 2;
+
+  ASSERT(tmp);
+  ASSERT_EQ(0, codegen_security_write_server_apply(tmp, &op, &spec));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, sz + 1);
+  fread(content, 1, sz, tmp);
+
+  ASSERT(strstr(content, "Validate Bearer Token / OAuth2"));
+  ASSERT(strstr(content, "c_rest_middleware_bearer_auth"));
+  ASSERT(strstr(content, "Validate Basic Auth"));
+  ASSERT(strstr(content, "c_rest_middleware_basic_auth"));
+
+  free(content);
+  fclose(tmp);
   PASS();
 }
 
@@ -390,6 +433,7 @@ SUITE(codegen_security_suite) {
   RUN_TEST(test_sec_api_key_cookie);
   RUN_TEST(test_sec_multiple_schemes);
   RUN_TEST(test_sec_security_requirements_filter);
+  RUN_TEST(test_sec_server_apply_basic_and_bearer);
   RUN_TEST(test_sec_null_safety);
 }
 

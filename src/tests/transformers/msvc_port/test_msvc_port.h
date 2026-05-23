@@ -42,6 +42,25 @@ TEST test_cdd_transform_msvc(void) {
   rc = cdd_transform_msvc(tree, &config);
   ASSERT_EQ(0, rc);
 
+  /* Test nulls */
+  ASSERT_EQ(EINVAL, cdd_transform_msvc(NULL, &config));
+  cdd_cst_tree_t empty_tree = {0};
+  ASSERT_EQ(EINVAL, cdd_transform_msvc(&empty_tree, &config));
+
+  /* Test malformed nodes / builder errors. We will manually construct a
+   * malformed tree but it's easier to just pass a tree with a missing file.
+   * Wait, msvc_port replaces strdup etc. */
+  {
+    cdd_cst_tree_t *tree2 = NULL;
+    cdd_cst_node_t *node = NULL;
+    cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &node);
+    tree2 = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+    tree2->root = node;
+    ASSERT_EQ(
+        0, cdd_transform_msvc(tree2, &config)); /* Should not crash on empty */
+    cdd_cst_tree_free(tree2);
+  }
+
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 

@@ -272,9 +272,12 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
   char *str = NULL;
   size_t i;
 
-  if (!stats || !root_val) {
-    *out_json = NULL;
-    return 0;
+  if (!stats || !out_json || !root_val) {
+    if (out_json)
+      *out_json = NULL;
+    if (root_val)
+      json_value_free(root_val);
+    return EINVAL;
   }
 
   root_obj = json_value_get_object(root_val);

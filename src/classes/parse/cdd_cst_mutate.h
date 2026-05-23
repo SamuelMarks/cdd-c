@@ -86,8 +86,9 @@ extern int clone_trivia_list_mutate(cdd_trivia_t *head,
 
 extern int clone_token_mutate(cdd_token_t *tok, cdd_token_t **out_token);
 
-extern int insert_child_at_mutate(cdd_cst_node_t *parent, size_t idx,
-                                  cdd_cst_node_t *new_node);
+extern C_CDD_EXPORT int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent,
+                                                     size_t idx,
+                                                     cdd_cst_node_t *new_node);
 
 extern int remove_child_at_mutate(cdd_cst_node_t *parent, size_t idx);
 

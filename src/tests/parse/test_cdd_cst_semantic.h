@@ -36,17 +36,44 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   ASSERT_EQ(
       0, cdd_cst_scope_add_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE, node));
 
+  /* Test adding a tag to check namespace differentiation */
+  ASSERT_EQ(0, cdd_cst_scope_add_symbol(env, "foo_tag",
+                                        CDD_CST_SYMBOL_STRUCT_TAG, node));
+
+  /* Force scope children capacity realloc (requires 5 blocks within one parent)
+   */
+  {
+    int i;
+    for (i = 0; i < 6; i++) {
+      ASSERT_EQ(0, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+      ASSERT_EQ(0, cdd_cst_scope_leave(env));
+    }
+  }
+
   ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(NULL, "foo",
                                                 CDD_CST_SYMBOL_VARIABLE, &sym));
   ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(env, NULL,
                                                 CDD_CST_SYMBOL_VARIABLE, &sym));
   ASSERT_EQ(EINVAL, cdd_cst_scope_lookup_symbol(env, "foo",
                                                 CDD_CST_SYMBOL_VARIABLE, NULL));
+
+  /* Lookup the variable */
   ASSERT_EQ(0, cdd_cst_scope_lookup_symbol(env, "foo", CDD_CST_SYMBOL_VARIABLE,
                                            &sym));
   ASSERT_NEQ(NULL, sym);
   ASSERT_EQ(CDD_CST_SYMBOL_VARIABLE, sym->kind);
   ASSERT_STR_EQ("foo", sym->name);
+
+  /* Lookup the tag */
+  ASSERT_EQ(0, cdd_cst_scope_lookup_symbol(env, "foo_tag",
+                                           CDD_CST_SYMBOL_STRUCT_TAG, &sym));
+  ASSERT_NEQ(NULL, sym);
+  ASSERT_EQ(CDD_CST_SYMBOL_STRUCT_TAG, sym->kind);
+  ASSERT_STR_EQ("foo_tag", sym->name);
+
+  /* Lookup missing */
+  ASSERT_EQ(ENOENT, cdd_cst_scope_lookup_symbol(env, "missing",
+                                                CDD_CST_SYMBOL_VARIABLE, &sym));
 
   ASSERT_EQ(0, cdd_cst_scope_leave(env));      /* pop function */
   ASSERT_EQ(0, cdd_cst_scope_leave(env));      /* pop block */
@@ -158,10 +185,20 @@ TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_alloc_node(CDD_CST_EXPRESSION, &non_id_node);
   cdd_cst_append_child_node(decl, non_id_node);
 
+  /* Add child node traversal test by adding a child to root that has a child */
+  cdd_cst_node_t *traverse_parent = NULL;
+  cdd_cst_node_t *traverse_child = NULL;
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &traverse_parent);
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &traverse_child);
+  cdd_cst_append_child_node(traverse_parent, traverse_child);
+  cdd_cst_append_child_node(root, traverse_parent);
+
   ASSERT_EQ(0, cdd_cst_build_semantic_info(&tree, &env));
   ASSERT_NEQ(NULL, env);
 
   cdd_cst_scope_env_free(env);
+  cdd_cst_free_node_only(traverse_child);
+  cdd_cst_free_node_only(traverse_parent);
   cdd_cst_free_node_only(non_id_node);
   cdd_cst_free_node_only(id_node);
   cdd_cst_free_node_only(decl);

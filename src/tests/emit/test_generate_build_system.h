@@ -143,6 +143,58 @@ TEST test_gen_build_system_bad_args(void) {
   PASS();
 }
 
+TEST test_gen_cmake_null_args(void) {
+  ASSERT_EQ(EINVAL, generate_cmake_project("out", NULL, 0));
+  PASS();
+}
+
+TEST test_gen_cmake_null_outdir(void) {
+  /* This should create CMakeLists.txt and src/CMakeLists.txt in the current
+   * directory */
+  int rc = generate_cmake_project(NULL, "MyLib", 0);
+  ASSERT_EQ(0, rc);
+  remove("CMakeLists.txt");
+  remove("src/CMakeLists.txt");
+  /* Don't strictly need to rmdir src but it's polite */
+  PASS();
+}
+
+TEST test_gen_cmake_bad_makedirs(void) {
+  /* Passing an empty string to makedirs often fails or does nothing depending
+     on OS, but we can try a definitely invalid path like a file that exists but
+     is not a dir */
+  FILE *f = fopen("test_dummy_file_for_makedirs", "w");
+  if (f) {
+    fclose(f);
+    ASSERT_NEQ(0, generate_cmake_project("test_dummy_file_for_makedirs/foo",
+                                         "MyLib", 0));
+    remove("test_dummy_file_for_makedirs");
+  }
+  PASS();
+}
+
+TEST test_gen_build_system_cli_args_tests(void) {
+  char *argv[] = {"cmake", "test_build_dir_tests", "CLIProjWithTests", "test"};
+  int rc = generate_build_system_main(4, argv);
+  ASSERT_EQ(EXIT_SUCCESS, rc);
+
+  remove("test_build_dir_tests/src/CMakeLists.txt");
+  remove("test_build_dir_tests/CMakeLists.txt");
+  PASS();
+}
+
+TEST test_gen_build_system_cli_args_fail(void) {
+  char *argv[] = {"cmake", "test_dummy_file_for_makedirs/foo",
+                  "CLIProjWithTests"};
+  FILE *f = fopen("test_dummy_file_for_makedirs", "w");
+  if (f) {
+    fclose(f);
+    ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(3, argv));
+    remove("test_dummy_file_for_makedirs");
+  }
+  PASS();
+}
+
 /**
  * @brief generate_build_system_suite
  */
@@ -151,6 +203,11 @@ SUITE(generate_build_system_suite) {
   RUN_TEST(test_gen_cmake_with_tests);
   RUN_TEST(test_gen_build_system_cli_args);
   RUN_TEST(test_gen_build_system_bad_args);
+  RUN_TEST(test_gen_cmake_null_args);
+  RUN_TEST(test_gen_cmake_null_outdir);
+  RUN_TEST(test_gen_cmake_bad_makedirs);
+  RUN_TEST(test_gen_build_system_cli_args_tests);
+  RUN_TEST(test_gen_build_system_cli_args_fail);
 }
 
 #ifdef __cplusplus

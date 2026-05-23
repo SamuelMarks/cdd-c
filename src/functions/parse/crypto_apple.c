@@ -30,8 +30,6 @@ int crypto_sha256(const void *data, size_t data_len,
                   unsigned char *out_digest) {
   if (!data || !out_digest)
     return EINVAL;
-  if (data_len > 0 && !data)
-    return EINVAL;
   CC_SHA256(data, (CC_LONG)data_len, out_digest);
   return 0;
 }

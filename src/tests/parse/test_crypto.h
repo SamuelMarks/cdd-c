@@ -77,6 +77,9 @@ TEST test_sha256_empty_string(void) {
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
 
+  ASSERT_EQ(EINVAL, crypto_sha256(NULL, 0, digest));
+  ASSERT_EQ(EINVAL, crypto_sha256("", 0, NULL));
+
   ASSERT_EQ(0, crypto_sha256("", 0, digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
   ASSERT_STR_EQ(expected, hex);
@@ -123,6 +126,11 @@ TEST test_hmac_rfc4231_case1(void) {
 
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
+
+  ASSERT_EQ(EINVAL, crypto_hmac_sha256(NULL, 1, data, strlen(data), mac));
+  ASSERT_EQ(EINVAL, crypto_hmac_sha256(key, sizeof(key), NULL, 1, mac));
+  ASSERT_EQ(EINVAL,
+            crypto_hmac_sha256(key, sizeof(key), data, strlen(data), NULL));
 
   memset(key, 0x0b, sizeof(key));
 

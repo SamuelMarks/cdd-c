@@ -26,12 +26,16 @@
 
 #include <greatest.h>
 
+#include "c_cdd/test_int128.h"
+#include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_codegen_build.h"
 #include "emit/test_codegen_client_body.h"
 #include "emit/test_codegen_client_sig.h"
 #include "emit/test_codegen_defaults.h"
+#include "emit/test_codegen_enum.h"
 #include "emit/test_codegen_eq.h"
 #include "emit/test_codegen_json.h"
+#include "emit/test_standalone_json.h"
 #include "emit/test_codegen_form.h"
 #include "emit/test_codegen_jwt.h"
 #include "emit/test_codegen_oauth2_error.h"
@@ -128,6 +132,7 @@
 #include "parse/test_c_mapping.h"
 #include "parse/test_doc_parser.h"
 /* #include "parse/test_integration_c2openapi.h" */
+#include "parse/test_macro_overlay.h"
 #include "parse/test_main.h"
 #include "parse/test_to_docs_json.h"
 #include "parse/test_cli_cst.h"
@@ -160,8 +165,10 @@ int main(int argc, char **argv) {
   RUN_SUITE(client_body_suite);
   RUN_SUITE(client_sig_suite);
   RUN_SUITE(codegen_defaults_suite);
+  RUN_SUITE(codegen_enum_suite);
   RUN_SUITE(codegen_eq_suite);
   RUN_SUITE(codegen_json_suite);
+  RUN_SUITE(standalone_json_suite);
   RUN_SUITE(codegen_form_suite);
   RUN_SUITE(codegen_jwt_suite);
   RUN_SUITE(codegen_oauth2_error_suite);
@@ -179,6 +186,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(cdd_cst_mutate_suite);
   RUN_SUITE(cdd_cst_query_suite);
   RUN_SUITE(cdd_cst_trivia_suite);
+  RUN_SUITE(cdd_cst_emit_unit_suite);
   RUN_SUITE(transformer_extern_c_suite);
   RUN_SUITE(transformer_msvc_port_suite);
   RUN_SUITE(transformer_gnu_standardizer_suite);
@@ -254,6 +262,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(cli_gen_suite);
   RUN_SUITE(cdd_helpers_suite);
   RUN_SUITE(client_gui_gen_suite);
+  RUN_SUITE(macro_overlay_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(server_json_rpc_suite);
   RUN_SUITE(cli_cst_suite);

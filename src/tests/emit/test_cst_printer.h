@@ -58,6 +58,14 @@ TEST test_cst_print_exact(void) {
   rc = cst_print_tokens_exact(tokens, f);
   ASSERT_EQ(0, rc);
 
+  {
+    FILE *readonly_f = fopen("test_cst_print.txt", "r");
+    if (readonly_f) {
+      ASSERT_EQ(EIO, cst_print_tokens_exact(tokens, readonly_f));
+      fclose(readonly_f);
+    }
+  }
+
   fseek(f, 0, SEEK_SET);
   fread(buffer, 1, sizeof(buffer) - 1, f);
   fclose(f);

@@ -76,10 +76,59 @@ TEST test_oauth2_error_generation(void) {
   PASS();
 }
 
+TEST test_oauth2_error_generation_non_string(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  char *content = NULL;
+  long sz;
+
+  ASSERT(tmp);
+  ASSERT_EQ(0, struct_fields_init(&sf));
+
+  /* simulate struct with non-string fields */
+  {
+    struct StructField f1;
+    struct StructField f2;
+    memset(&f1, 0, sizeof(f1));
+    memset(&f2, 0, sizeof(f2));
+
+    strcpy(f1.name, "error");
+    strcpy(f1.type, "integer");
+    sf.fields[sf.size++] = f1;
+
+    strcpy(f2.name, "error_description");
+    strcpy(f2.type, "integer");
+    sf.fields[sf.size++] = f2;
+  }
+
+  ASSERT_EQ(0,
+            write_oauth2_error_parser_func(tmp, "OAuth2ErrorNonString", &sf));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+  content = (char *)calloc(1, (size_t)sz + 1);
+  fread(content, 1, (size_t)sz, tmp);
+
+  ASSERT(strstr(content, "enum OAuth2ErrorNonStringErrorType"));
+  ASSERT(strstr(content, "OAuth2ErrorNonString_parse_oauth2_error"));
+  ASSERT(strstr(content, "invalid_grant"));
+  ASSERT(strstr(content, "ret->error = val;") == NULL);
+  ASSERT(strstr(content, "ret->error_description = val;") == NULL);
+
+  free(content);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
 /**
  * @brief Suite for codegen oauth2 error
  */
-SUITE(codegen_oauth2_error_suite) { RUN_TEST(test_oauth2_error_generation); }
+SUITE(codegen_oauth2_error_suite) {
+  RUN_TEST(test_oauth2_error_generation);
+  RUN_TEST(test_oauth2_error_generation_non_string);
+}
 
 #ifdef __cplusplus
 }

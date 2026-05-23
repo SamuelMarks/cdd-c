@@ -221,12 +221,59 @@ TEST test_default_binary_literal(void) {
  * @brief codegen_defaults_suite
  */
 
-TEST test_codegen_forward_decl_bounds(void) {
+TEST test_write_forward_decl_bounds(void) {
   FILE *tmp = tmpfile();
   ASSERT(tmp);
   ASSERT_EQ(EINVAL, write_forward_decl(NULL, "X"));
   ASSERT_EQ(EINVAL, write_forward_decl(tmp, NULL));
   ASSERT_EQ(0, write_forward_decl(tmp, "X"));
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_write_forward_decl_io_fail(void) {
+  FILE *tmp = fopen("/dev/null", "r");
+  ASSERT(tmp);
+  ASSERT_EQ(EIO, write_forward_decl(tmp, "X"));
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_write_enum_declaration_h_io_fail(void) {
+  FILE *tmp = fopen("/dev/null", "r");
+  struct StructFields sf;
+  struct CodegenConfig cfg;
+  memset(&cfg, 0, sizeof(cfg));
+  struct_fields_init(&sf);
+
+  ASSERT(tmp);
+  ASSERT_EQ(EIO, write_enum_declaration_h(tmp, "E", &sf, &cfg));
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_write_struct_declaration_h_io_fail(void) {
+  FILE *tmp = fopen("/dev/null", "r");
+  struct StructFields sf;
+  struct CodegenConfig cfg;
+  memset(&cfg, 0, sizeof(cfg));
+  struct_fields_init(&sf);
+
+  ASSERT(tmp);
+  ASSERT_EQ(EIO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
+  fclose(tmp);
+  PASS();
+}
+
+TEST test_write_union_declaration_h_io_fail(void) {
+  FILE *tmp = fopen("/dev/null", "r");
+  struct StructFields sf;
+  struct CodegenConfig cfg;
+  memset(&cfg, 0, sizeof(cfg));
+  struct_fields_init(&sf);
+
+  ASSERT(tmp);
+  ASSERT_EQ(EIO, write_union_declaration_h(tmp, "U", &sf, &cfg));
   fclose(tmp);
   PASS();
 }
@@ -263,7 +310,11 @@ SUITE(codegen_defaults_suite) {
   RUN_TEST(test_default_no_defaults);
   RUN_TEST(test_default_nullptr);
   RUN_TEST(test_default_binary_literal);
-  RUN_TEST(test_codegen_forward_decl_bounds);
+  RUN_TEST(test_write_forward_decl_bounds);
+  RUN_TEST(test_write_forward_decl_io_fail);
+  RUN_TEST(test_write_enum_declaration_h_io_fail);
+  RUN_TEST(test_write_struct_declaration_h_io_fail);
+  RUN_TEST(test_write_union_declaration_h_io_fail);
   RUN_TEST(test_codegen_h_bounds);
 }
 

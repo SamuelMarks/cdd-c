@@ -957,9 +957,47 @@ TEST test_query_gen_json_content_ref(void) {
   PASS();
 }
 
+TEST test_media_type_is_json_url(void) {
+  ASSERT_EQ(0, media_type_is_json_url(NULL));
+  ASSERT_EQ(1, media_type_is_json_url("application/json"));
+  ASSERT_EQ(1, media_type_is_json_url("application/vnd.api+json"));
+  ASSERT_EQ(1, media_type_is_json_url("APPLICATION/JSON"));
+  ASSERT_EQ(1, media_type_is_json_url("application/JSON"));
+  ASSERT_EQ(1, media_type_is_json_url("application/vnd.api+JSON"));
+  ASSERT_EQ(1,
+            media_type_is_json_url("application/vnd.api+json; charset=utf-8"));
+  ASSERT_EQ(0, media_type_is_json_url("application/xml"));
+  ASSERT_EQ(0, media_type_is_json_url("text/plain"));
+  ASSERT_EQ(0, media_type_is_json_url("application/json+xml"));
+  ASSERT_EQ(0, media_type_is_json_url("json"));
+  ASSERT_EQ(1, media_type_is_json_url("+json"));
+  PASS();
+}
+
+TEST test_querystring_param_null_checks(void) {
+  const char *out_val;
+  ASSERT_EQ(0, querystring_param_is_form_object(NULL));
+  ASSERT_EQ(0, querystring_param_is_json_ref(NULL));
+  ASSERT_EQ(0, querystring_param_json_primitive_type(NULL, &out_val));
+  ASSERT_EQ(NULL, out_val);
+
+  struct OpenAPI_Parameter p;
+  memset(&p, 0, sizeof(p));
+  p.in = OA_PARAM_IN_HEADER; /* not query */
+
+  ASSERT_EQ(0, querystring_param_is_form_object(&p));
+  ASSERT_EQ(0, querystring_param_is_json_ref(&p));
+  ASSERT_EQ(0, querystring_param_json_primitive_type(&p, &out_val));
+  ASSERT_EQ(NULL, out_val);
+
+  PASS();
+}
+
 SUITE(codegen_url_suite) {
   /* Re-run original tests */
   /* (Omitted for brevity in this file update but would be here) */
+  RUN_TEST(test_media_type_is_json_url);
+  RUN_TEST(test_querystring_param_null_checks);
   RUN_TEST(test_query_gen_scalar);
   RUN_TEST(test_query_gen_scalar_number);
   RUN_TEST(test_query_gen_array_explode_int);

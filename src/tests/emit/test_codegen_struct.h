@@ -208,10 +208,80 @@ TEST test_null_args(void) {
   PASS();
 }
 
+TEST test_struct_debug_func(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  char *content = NULL;
+  long sz;
+
+  ASSERT(tmp);
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
+  struct_fields_add(&sf, "name", "string", NULL, "\"test\"", NULL);
+  struct_fields_add(&sf, "val", "number", NULL, "1.0", NULL);
+  struct_fields_add(&sf, "is_active", "boolean", NULL, "1", NULL);
+  struct_fields_add(&sf, "status", "enum", "Status", "1", NULL);
+  struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+  struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
+  struct_fields_add(&sf, "user", "object", "User", NULL, NULL);
+  struct_fields_add(&sf, "unknown", "unknown", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
+
+  ASSERT_EQ(0, write_struct_debug_func(tmp, "TestStruct", &sf, NULL));
+
+  fseek(tmp, 0, SEEK_END);
+  sz = ftell(tmp);
+  rewind(tmp);
+
+  content = (char *)calloc(1, sz + 1);
+  fread(content, 1, sz, tmp);
+
+  ASSERT(strstr(content, "TestStruct_debug"));
+  ASSERT(strstr(content, "obj->id"));
+  ASSERT(strstr(content, "obj->name"));
+  ASSERT(strstr(content, "obj->val"));
+  ASSERT(strstr(content, "obj->items[i]"));
+  ASSERT(strstr(content, "(unknown)"));
+
+  free(content);
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
 /**
- * @brief test_struct_fields_add_bitwidth
+ * @brief test_struct_invalid_args
  * @return TEST
  */
+TEST test_struct_invalid_args(void) {
+  struct StructFields sf;
+  struct_fields_init(&sf);
+
+  ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(EINVAL, write_struct_debug_func(stdout, NULL, &sf, NULL));
+  ASSERT_EQ(EINVAL, write_struct_debug_func(stdout, "S", NULL, NULL));
+
+  ASSERT_EQ(EINVAL, write_struct_cleanup_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(EINVAL, write_struct_default_func(NULL, "S", &sf, NULL));
+  ASSERT_EQ(EINVAL, write_struct_deepcopy_func(NULL, "S", &sf, NULL));
+
+  /* also trigger deepcopy array path */
+  {
+    FILE *tmp = tmpfile();
+    struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
+    struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+    struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+    struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
+    struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
+    ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, NULL));
+    fclose(tmp);
+  }
+
+  struct_fields_free(&sf);
+  PASS();
+}
 TEST test_struct_fields_add_bitwidth(void) {
   struct StructFields sf;
   struct_fields_init(&sf);
@@ -242,6 +312,8 @@ SUITE(codegen_struct_suite) {
   RUN_TEST(test_guards_injection);
   RUN_TEST(test_null_args);
   RUN_TEST(test_struct_fields_add_bitwidth);
+  RUN_TEST(test_struct_debug_func);
+  RUN_TEST(test_struct_invalid_args);
 }
 
 #ifdef __cplusplus

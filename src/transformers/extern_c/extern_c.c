@@ -97,8 +97,9 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
         if (insert_after_node) {
           cdd_cst_insert_node_after(insert_after_node, top_node);
         } else if (tree->root->num_children > 0) {
-          cdd_cst_insert_node_before(tree->root->children[0].val.node,
-                                     top_node);
+          cdd_cst_insert_child_node_at(tree->root, 0, top_node);
+        } else {
+          cdd_cst_append_child_node(tree->root, top_node);
         }
       } else {
         free(top_node->children);
@@ -120,10 +121,14 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_bld_extern_c_close(&bld);
       if (!cdd_cst_builder_has_error(&bld)) {
         if (tree->root->num_children > 0) {
-          cdd_cst_node_t *last_node =
-              tree->root->children[tree->root->num_children - 1].val.node;
-          if (last_node != bot_node) {
-            cdd_cst_insert_node_after(last_node, bot_node);
+          if (tree->root->children[tree->root->num_children - 1].kind ==
+                  CDD_CST_CHILD_TOKEN &&
+              tree->root->children[tree->root->num_children - 1]
+                      .val.token->kind == CDD_TOKEN_EOF) {
+            cdd_cst_insert_child_node_at(
+                tree->root, tree->root->num_children - 1, bot_node);
+          } else {
+            cdd_cst_append_child_node(tree->root, bot_node);
           }
         } else {
           cdd_cst_append_child_node(tree->root, bot_node);

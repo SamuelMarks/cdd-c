@@ -39,6 +39,12 @@ TEST test_write_union_to_json(void) {
   struct_fields_init(&sf);
   struct_fields_add(&sf, "id", "integer", NULL, NULL, NULL);
   struct_fields_add(&sf, "name", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "obj", "object", "SomeObj", NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+  struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
 
   /* Generate */
   ASSERT_EQ(0, write_union_to_json_func(tmp, "MyUnion", &sf, &config));
@@ -57,6 +63,8 @@ TEST test_write_union_to_json(void) {
   /* Check case for name */
   ASSERT(strstr(content, "case MyUnion_name:"));
   ASSERT(strstr(content, "obj->data.name"));
+  /* Check case for obj */
+  ASSERT(strstr(content, "case MyUnion_obj:"));
 
   free(content);
   struct_fields_free(&sf);
@@ -113,6 +121,13 @@ TEST test_write_union_from_json(void) {
   struct_fields_init(&sf);
   struct_fields_add(&sf, "s", "string", NULL, NULL, NULL);
   struct_fields_add(&sf, "i", "integer", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "n", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "e", "enum", "MyEnum", NULL, NULL);
+  struct_fields_add(&sf, "a", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "nl", "null", NULL, NULL, NULL);
+
+  sf.union_is_anyof = 1;
 
   ASSERT_EQ(0, write_union_from_json_func(tmp, "MixU", &sf, NULL));
 
@@ -391,7 +406,32 @@ TEST test_union_guards(void) {
 TEST test_types_null_args(void) {
   ASSERT_EQ(EINVAL, write_union_cleanup_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_union_from_json_func(NULL, "U", NULL, NULL));
+  ASSERT_EQ(EINVAL, write_union_to_json_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_root_array_cleanup_func(NULL, "A", "T", NULL, NULL));
+  ASSERT_EQ(EINVAL, write_root_array_to_json_func(NULL, "A", "T", NULL, NULL));
+  ASSERT_EQ(EINVAL,
+            write_root_array_from_json_func(NULL, "A", "T", NULL, NULL));
+  PASS();
+}
+
+TEST test_types_io_fail(void) {
+  FILE *tmp = fopen("/dev/null", "r");
+  struct StructFields sf;
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "string", "t", "s", 0, 0);
+
+  ASSERT(tmp);
+  ASSERT_EQ(EIO, write_union_to_json_func(tmp, "U", &sf, NULL));
+  ASSERT_EQ(EIO, write_union_from_json_func(tmp, "U", &sf, NULL));
+  ASSERT_EQ(EIO, write_union_cleanup_func(tmp, "U", &sf, NULL));
+
+  ASSERT_EQ(EIO, write_root_array_to_json_func(tmp, "A", "string", NULL, NULL));
+  ASSERT_EQ(EIO,
+            write_root_array_from_json_func(tmp, "A", "string", NULL, NULL));
+  ASSERT_EQ(EIO, write_root_array_cleanup_func(tmp, "A", "string", NULL, NULL));
+
+  struct_fields_free(&sf);
+  fclose(tmp);
   PASS();
 }
 
@@ -411,6 +451,7 @@ SUITE(codegen_types_suite) {
   RUN_TEST(test_root_array_obj_to_json);
   RUN_TEST(test_union_guards);
   RUN_TEST(test_types_null_args);
+  RUN_TEST(test_types_io_fail);
 }
 
 #ifdef __cplusplus

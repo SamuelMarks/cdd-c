@@ -153,12 +153,17 @@ TEST test_audit_return_alloc(void) {
 
 TEST test_audit_json_output(void) {
   struct AuditStats stats;
-  char *json;
+  char *json = NULL;
 
   audit_stats_init(&stats);
   stats.files_scanned = 10;
   stats.allocations_checked = 20;
   stats.allocations_unchecked = 1;
+
+  /* Null checks */
+  ASSERT_EQ(EINVAL, audit_print_json(NULL, &json));
+  ASSERT_EQ(NULL, json);
+  ASSERT_EQ(EINVAL, audit_print_json(&stats, NULL));
 
   /* Manually inject a violation to test JSON serialization mechanics
    * independent of FS */

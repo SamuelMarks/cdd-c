@@ -197,21 +197,51 @@ TEST test_weaver_translate_gcc_attributes(void) {
   struct PatchList patches;
   struct TokenList tokens;
   struct CstNodeList cst;
-  struct CstNode node;
+  struct CstNode nodes[5];
   int res;
 
   tokens.size = 0;
   tokens.capacity = 0;
   tokens.tokens = NULL;
 
-  cst.size = 1;
-  cst.nodes = &node;
-  memset(&node, 0, sizeof(node));
-  node.kind = CST_NODE_GCC_ATTRIBUTE;
-  node.start = (const uint8_t*)"__attribute__((noreturn))";
-  node.length = strlen("__attribute__((noreturn))");
-  node.start_token = 0;
-  node.end_token = 1;
+  cst.size = 5;
+  cst.nodes = nodes;
+  memset(nodes, 0, sizeof(nodes));
+
+  /* noreturn */
+  nodes[0].kind = CST_NODE_GCC_ATTRIBUTE;
+  nodes[0].start = (const uint8_t*)"__attribute__((noreturn))";
+  nodes[0].length = strlen("__attribute__((noreturn))");
+  nodes[0].start_token = 0;
+  nodes[0].end_token = 1;
+
+  /* packed */
+  nodes[1].kind = CST_NODE_GCC_ATTRIBUTE;
+  nodes[1].start = (const uint8_t*)"__attribute__((packed))";
+  nodes[1].length = strlen("__attribute__((packed))");
+  nodes[1].start_token = 2;
+  nodes[1].end_token = 3;
+
+  /* visibility */
+  nodes[2].kind = CST_NODE_GCC_ATTRIBUTE;
+  nodes[2].start = (const uint8_t*)"__attribute__((visibility(\"default\")))";
+  nodes[2].length = strlen("__attribute__((visibility(\"default\")))");
+  nodes[2].start_token = 4;
+  nodes[2].end_token = 5;
+
+  /* unused */
+  nodes[3].kind = CST_NODE_GCC_ATTRIBUTE;
+  nodes[3].start = (const uint8_t*)"__attribute__((unused))";
+  nodes[3].length = strlen("__attribute__((unused))");
+  nodes[3].start_token = 6;
+  nodes[3].end_token = 7;
+
+  /* format */
+  nodes[4].kind = CST_NODE_GCC_ATTRIBUTE;
+  nodes[4].start = (const uint8_t*)"__attribute__((format(printf, 1, 2)))";
+  nodes[4].length = strlen("__attribute__((format(printf, 1, 2)))");
+  nodes[4].start_token = 8;
+  nodes[4].end_token = 9;
 
   ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(NULL, &tokens, &cst));
   ASSERT_EQ(EINVAL, weaver_translate_gcc_attributes(&patches, NULL, &cst));
@@ -222,8 +252,14 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
   res = weaver_translate_gcc_attributes(&patches, &tokens, &cst);
   ASSERT_EQ(0, res);
-  ASSERT_EQ(1, patches.size);
+
+  /* Note: packed and unused don't currently generate a replacement, so we expect 3 patches total */
+  ASSERT_EQ(3, patches.size);
+
+  /* Validate some output exists for noreturn, visibility, and format. Order matches iteration */
   ASSERT(strstr(patches.patches[0].text, "__declspec(noreturn)") != NULL);
+  ASSERT(strstr(patches.patches[1].text, "visibility") != NULL);
+  ASSERT(strstr(patches.patches[2].text, "format") != NULL);
 
   patch_list_free(&patches);
   PASS();

@@ -246,18 +246,6 @@ static int handle_from_openapi(int argc, char **argv) {
 
     rc = openapi_load_from_json(root, &spec);
 
-    if (out_dir) {
-      char snapshot_path[1024];
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-      sprintf_s(snapshot_path, sizeof(snapshot_path),
-                "%s/openapi.snapshot.json", out_dir);
-#else
-      sprintf(snapshot_path, "%s/openapi.snapshot.json", out_dir);
-#endif
-      json_serialize_to_file(root, snapshot_path);
-    }
-
     json_value_free(root);
 
     if (rc != 0) {

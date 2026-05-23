@@ -104,6 +104,16 @@ TEST test_make_invalid(void) {
   PASS();
 }
 
+TEST test_make_io_failure(void) {
+  struct MakeConfig cfg = {0};
+  cfg.project_name = "test_io";
+  FILE *f = fopen("/dev/null", "r");
+  ASSERT(f);
+  ASSERT_EQ(EIO, codegen_make_generate(f, &cfg));
+  fclose(f);
+  PASS();
+}
+
 /**
  * @brief Suite for codegen make
  */
@@ -111,6 +121,7 @@ SUITE(codegen_make_suite) {
   RUN_TEST(test_make_simple);
   RUN_TEST(test_make_extra_sources);
   RUN_TEST(test_make_invalid);
+  RUN_TEST(test_make_io_failure);
 }
 
 #ifdef __cplusplus

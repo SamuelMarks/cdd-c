@@ -61,6 +61,18 @@ TEST test_cst_create_token(void) {
   ASSERT_EQ(1, tree->num_synthesized);
   ASSERT_EQ(tok, tree->synthesized_tokens[0]);
 
+  /* Force realloc in track_synthesized (default cap is something big, 128?
+   * Let's check: 128) */
+  {
+    int i;
+    for (i = 0; i < 130; i++) {
+      cdd_token_t *extra_tok = NULL;
+      ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo",
+                                        &extra_tok));
+    }
+    ASSERT_EQ(131, tree->num_synthesized);
+  }
+
   cdd_cst_tree_free(tree);
   PASS();
 }
@@ -84,6 +96,26 @@ TEST test_cst_append_child_node(void) {
   ASSERT_EQ(CDD_CST_CHILD_NODE, parent->children[0].kind);
   ASSERT_EQ(child, parent->children[0].val.node);
   ASSERT_EQ(parent, child->parent);
+
+  /* Force realloc by exceeding initial capacity (8) */
+  {
+    int i;
+    for (i = 0; i < 15; i++) {
+      cdd_cst_node_t *extra_child = NULL;
+      ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &extra_child));
+      ASSERT_EQ(0, cdd_cst_append_child_node(parent, extra_child));
+    }
+    ASSERT_EQ(16, parent->num_children);
+  }
+
+  /* free_node_only won't recursively free the extra children, we must free them
+   * to avoid leaks */
+  {
+    int i;
+    for (i = 1; i < parent->num_children; i++) {
+      cdd_cst_free_node_only(parent->children[i].val.node);
+    }
+  }
 
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(parent);
@@ -110,6 +142,15 @@ TEST test_cst_append_child_token(void) {
   ASSERT_EQ(1, parent->num_children);
   ASSERT_EQ(CDD_CST_CHILD_TOKEN, parent->children[0].kind);
   ASSERT_EQ(tok, parent->children[0].val.token);
+
+  /* Force realloc by exceeding initial capacity (8) */
+  {
+    int i;
+    for (i = 0; i < 15; i++) {
+      ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
+    }
+    ASSERT_EQ(16, parent->num_children);
+  }
 
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
@@ -139,8 +180,15 @@ TEST test_cst_parse_format(void) {
   rc = cdd_cst_parse_format(tree, &node, "int a = %d;", 5);
   ASSERT_EQ(0, rc);
   ASSERT(node != NULL);
-
   cdd_cst_free_node_only(node);
+
+  /* Try parse with invalid tokens to trigger token skip logic */
+  rc = cdd_cst_parse_format(tree, &node, "int a = @;");
+  ASSERT_EQ(0, rc);
+  ASSERT(node != NULL);
+  cdd_cst_free_node_only(node);
+
+  /* Clean up */
   cdd_cst_tree_free(tree);
   PASS();
 }
