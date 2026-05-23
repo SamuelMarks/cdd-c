@@ -151,7 +151,7 @@ int c_inspector_scan_file_types(const char *filename, struct TypeDefList *out) {
         break;
 
       if (state == ST_NONE) {
-        bool starts1 = false, starts2 = false;
+        int starts1 = false, starts2 = false;
         c_cdd_str_starts_with(p, "enum ", &starts1);
         c_cdd_str_starts_with(p, "struct ", &starts2);
         if (starts1 || starts2) {

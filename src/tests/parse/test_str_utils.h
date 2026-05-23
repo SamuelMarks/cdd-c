@@ -50,11 +50,11 @@ TEST test_c_cdd_strdup_empty(void) {
 /* --- str_starts_with tests --- */
 
 TEST test_c_cdd_str_starts_with(void) {
-  bool _ast_starts_with_3 = false;
-  bool _ast_starts_with_4 = false;
-  bool _ast_starts_with_5 = false;
-  bool _ast_starts_with_6 = false;
-  bool _ast_starts_with_7 = false;
+  int _ast_starts_with_3 = false;
+  int _ast_starts_with_4 = false;
+  int _ast_starts_with_5 = false;
+  int _ast_starts_with_6 = false;
+  int _ast_starts_with_7 = false;
   ASSERT((c_cdd_str_starts_with("prefix_string", "prefix", &_ast_starts_with_3),
           _ast_starts_with_3));
   ASSERT(
@@ -72,9 +72,9 @@ TEST test_c_cdd_str_starts_with(void) {
 }
 
 TEST test_c_cdd_str_starts_with_null(void) {
-  bool _ast_starts_with_8 = false;
-  bool _ast_starts_with_9 = false;
-  bool _ast_starts_with_10 = false;
+  int _ast_starts_with_8 = false;
+  int _ast_starts_with_9 = false;
+  int _ast_starts_with_10 = false;
   ASSERT(!(c_cdd_str_starts_with(NULL, "param", &_ast_starts_with_8),
            _ast_starts_with_8));
   ASSERT(!(c_cdd_str_starts_with("param", NULL, &_ast_starts_with_9),
@@ -87,9 +87,9 @@ TEST test_c_cdd_str_starts_with_null(void) {
 /* --- str_equal tests --- */
 
 TEST test_c_cdd_str_equal(void) {
-  bool _ast_equal_11 = false;
-  bool _ast_equal_12 = false;
-  bool _ast_equal_13 = false;
+  int _ast_equal_11 = false;
+  int _ast_equal_12 = false;
+  int _ast_equal_13 = false;
   ASSERT((c_cdd_str_equal("foo", "foo", &_ast_equal_11), _ast_equal_11));
   ASSERT(!(c_cdd_str_equal("foo", "bar", &_ast_equal_12), _ast_equal_12));
   ASSERT(!(c_cdd_str_equal("foo", "fo", &_ast_equal_13), _ast_equal_13));
@@ -97,9 +97,9 @@ TEST test_c_cdd_str_equal(void) {
 }
 
 TEST test_c_cdd_str_equal_nulls(void) {
-  bool _ast_equal_14 = false;
-  bool _ast_equal_15 = false;
-  bool _ast_equal_16 = false;
+  int _ast_equal_14 = false;
+  int _ast_equal_15 = false;
+  int _ast_equal_16 = false;
   ASSERT((c_cdd_str_equal(NULL, NULL, &_ast_equal_14), _ast_equal_14));
   ASSERT(!(c_cdd_str_equal("foo", NULL, &_ast_equal_15), _ast_equal_15));
   ASSERT(!(c_cdd_str_equal(NULL, "foo", &_ast_equal_16), _ast_equal_16));
@@ -109,10 +109,10 @@ TEST test_c_cdd_str_equal_nulls(void) {
 /* --- str_iequal tests --- */
 
 TEST test_c_cdd_str_iequal(void) {
-  bool _ast_iequal_17 = false;
-  bool _ast_iequal_18 = false;
-  bool _ast_iequal_19 = false;
-  bool _ast_iequal_20 = false;
+  int _ast_iequal_17 = false;
+  int _ast_iequal_18 = false;
+  int _ast_iequal_19 = false;
+  int _ast_iequal_20 = false;
   ASSERT((c_cdd_str_iequal("Foo", "foo", &_ast_iequal_17), _ast_iequal_17));
   ASSERT((c_cdd_str_iequal("Content-Type", "content-type", &_ast_iequal_18),
           _ast_iequal_18));
@@ -122,9 +122,9 @@ TEST test_c_cdd_str_iequal(void) {
 }
 
 TEST test_c_cdd_str_iequal_nulls(void) {
-  bool _ast_iequal_21 = false;
-  bool _ast_iequal_22 = false;
-  bool _ast_iequal_23 = false;
+  int _ast_iequal_21 = false;
+  int _ast_iequal_22 = false;
+  int _ast_iequal_23 = false;
   ASSERT((c_cdd_str_iequal(NULL, NULL, &_ast_iequal_21), _ast_iequal_21));
   ASSERT(!(c_cdd_str_iequal("foo", NULL, &_ast_iequal_22), _ast_iequal_22));
   ASSERT(!(c_cdd_str_iequal(NULL, "foo", &_ast_iequal_23), _ast_iequal_23));
@@ -166,10 +166,10 @@ TEST test_c_cdd_str_after_last_null(void) {
 /* --- ref_is_type tests --- */
 
 TEST test_c_cdd_ref_is_type(void) {
-  bool _ast_ref_is_type_29 = false;
-  bool _ast_ref_is_type_30 = false;
-  bool _ast_ref_is_type_31 = false;
-  bool _ast_ref_is_type_32 = false;
+  int _ast_ref_is_type_29 = false;
+  int _ast_ref_is_type_30 = false;
+  int _ast_ref_is_type_31 = false;
+  int _ast_ref_is_type_32 = false;
   ASSERT((c_cdd_ref_is_type("#/components/schemas/Integer", "Integer",
                             &_ast_ref_is_type_29),
           _ast_ref_is_type_29));
@@ -300,9 +300,9 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 }
 
 TEST test_c_cdd_ref_is_type_null(void) {
-  bool _ast_ref_is_type_33 = false;
-  bool _ast_ref_is_type_34 = false;
-  bool _ast_ref_is_type_35 = false;
+  int _ast_ref_is_type_33 = false;
+  int _ast_ref_is_type_34 = false;
+  int _ast_ref_is_type_35 = false;
   ASSERT(!(c_cdd_ref_is_type(NULL, "Type", &_ast_ref_is_type_33),
            _ast_ref_is_type_33));
   ASSERT(!(c_cdd_ref_is_type("Ref", NULL, &_ast_ref_is_type_34),

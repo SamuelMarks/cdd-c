@@ -196,7 +196,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
   }
   /* Structs / Enums */
   else {
-    bool starts1 = false, starts2 = false;
+    int starts1 = false, starts2 = false;
     c_cdd_str_starts_with(c_type, "struct ", &starts1);
     c_cdd_str_starts_with(c_type, "enum ", &starts2);
     if (starts1 || starts2) {

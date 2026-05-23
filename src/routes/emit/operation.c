@@ -24,9 +24,9 @@
  * @brief Checks if reserved header name.
  */
 int is_reserved_header_name(const char *name) {
-  bool _ast_iequal_0 = false;
-  bool _ast_iequal_1 = false;
-  bool _ast_iequal_2 = false;
+  int _ast_iequal_0 = false;
+  int _ast_iequal_1 = false;
+  int _ast_iequal_2 = false;
   if (!name || !*name)
     return 0;
   if ((c_cdd_str_iequal(name, "accept", &_ast_iequal_0), _ast_iequal_0))
@@ -430,7 +430,7 @@ int copy_doc_server_variables_op(struct OpenAPI_Server *dst,
  */
 int find_response_by_code(struct OpenAPI_Operation *op, const char *code,
                           struct OpenAPI_Response **_out_val) {
-  bool _ast_iequal_15 = false;
+  int _ast_iequal_15 = false;
   size_t i;
   if (!op || !code) {
     *_out_val = NULL;
@@ -548,7 +548,7 @@ int ensure_response_for_code(struct OpenAPI_Operation *op, const char *code,
   struct OpenAPI_Response *_ast_find_response_by_code_1;
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
-  bool _ast_iequal_18 = false;
+  int _ast_iequal_18 = false;
   struct OpenAPI_Response *resp;
   struct OpenAPI_Response *new_resps;
   if (!op || !code) {
@@ -599,7 +599,7 @@ int ensure_response_for_code(struct OpenAPI_Operation *op, const char *code,
  */
 int add_header_to_response(struct OpenAPI_Response *resp,
                            const struct DocResponseHeader *dh) {
-  bool _ast_iequal_19 = false;
+  int _ast_iequal_19 = false;
   char *_ast_strdup_20 = NULL;
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
@@ -1367,9 +1367,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
   struct OpenAPI_Response *_ast_ensure_response_for_code_7;
   struct OpenAPI_Response *_ast_ensure_response_for_code_8;
   char *_ast_strdup_56 = NULL;
-  bool _ast_starts_with_57 = false;
-  bool _ast_starts_with_58 = false;
-  bool _ast_starts_with_59 = false;
+  int _ast_starts_with_57 = false;
+  int _ast_starts_with_58 = false;
+  int _ast_starts_with_59 = false;
   char *_ast_strdup_60 = NULL;
   char *_ast_strdup_61 = NULL;
   char *_ast_strdup_62 = NULL;
@@ -1411,9 +1411,9 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
   char *_ast_strdup_98 = NULL;
   char *_ast_strdup_99 = NULL;
   char *_ast_strdup_100 = NULL;
-  bool _ast_iequal_101 = false;
+  int _ast_iequal_101 = false;
   char *_ast_strdup_102 = NULL;
-  bool _ast_iequal_103 = false;
+  int _ast_iequal_103 = false;
   char *_ast_strdup_104 = NULL;
   char *_ast_strdup_105 = NULL;
   char *_ast_strdup_106 = NULL;

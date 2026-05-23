@@ -93,16 +93,16 @@ static int verb_to_enum_str(enum OpenAPI_Verb v, const char **_out_val) {
  * @brief Executes the method str to enum str operation.
  */
 static int method_str_to_enum_str(const char *method, const char **_out_val) {
-  bool _ast_iequal_0 = false;
-  bool _ast_iequal_1 = false;
-  bool _ast_iequal_2 = false;
-  bool _ast_iequal_3 = false;
-  bool _ast_iequal_4 = false;
-  bool _ast_iequal_5 = false;
-  bool _ast_iequal_6 = false;
-  bool _ast_iequal_7 = false;
-  bool _ast_iequal_8 = false;
-  bool _ast_iequal_9 = false;
+  int _ast_iequal_0 = false;
+  int _ast_iequal_1 = false;
+  int _ast_iequal_2 = false;
+  int _ast_iequal_3 = false;
+  int _ast_iequal_4 = false;
+  int _ast_iequal_5 = false;
+  int _ast_iequal_6 = false;
+  int _ast_iequal_7 = false;
+  int _ast_iequal_8 = false;
+  int _ast_iequal_9 = false;
   if (!method) {
     *_out_val = NULL;
     return 0;
@@ -442,7 +442,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
  * @brief Executes the header name is content type operation.
  */
 static int header_name_is_content_type(const char *name) {
-  bool _ast_iequal_10 = false;
+  int _ast_iequal_10 = false;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_10),
           _ast_iequal_10) != 0;
 }

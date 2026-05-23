@@ -64,7 +64,7 @@ TEST test_cst_create_token(void) {
   /* Force realloc in track_synthesized (default cap is something big, 128?
    * Let's check: 128) */
   {
-    int i;
+    size_t i;
     for (i = 0; i < 130; i++) {
       cdd_token_t *extra_tok = NULL;
       ASSERT_EQ(0, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "foo",
@@ -99,7 +99,7 @@ TEST test_cst_append_child_node(void) {
 
   /* Force realloc by exceeding initial capacity (8) */
   {
-    int i;
+    size_t i;
     for (i = 0; i < 15; i++) {
       cdd_cst_node_t *extra_child = NULL;
       ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &extra_child));
@@ -111,7 +111,7 @@ TEST test_cst_append_child_node(void) {
   /* free_node_only won't recursively free the extra children, we must free them
    * to avoid leaks */
   {
-    int i;
+    size_t i;
     for (i = 1; i < parent->num_children; i++) {
       cdd_cst_free_node_only(parent->children[i].val.node);
     }
@@ -145,7 +145,7 @@ TEST test_cst_append_child_token(void) {
 
   /* Force realloc by exceeding initial capacity (8) */
   {
-    int i;
+    size_t i;
     for (i = 0; i < 15; i++) {
       ASSERT_EQ(0, cdd_cst_append_child_token(parent, tok));
     }

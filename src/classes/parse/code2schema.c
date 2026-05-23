@@ -71,7 +71,7 @@ void trim_trailing(char *str) {
 
 int str_starts_with(const char *str, const char *prefix, int *_out_val) {
   {
-    bool b = false;
+    int b = 0;
     c_cdd_str_starts_with(str, prefix, &b);
     if (_out_val)
       *_out_val = b;

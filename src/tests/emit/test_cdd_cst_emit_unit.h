@@ -52,7 +52,7 @@ TEST test_cdd_cst_emit_null_children(void) {
   children[1].val.token = NULL;
 
   /* Child 2 is unknown kind */
-  children[2].kind = CDD_CST_UNKNOWN;
+  children[2].kind = (enum cdd_cst_child_kind_t) - 1;
 
   ASSERT_EQ(0, cdd_cst_emit(&tree, &out));
   ASSERT(out != NULL);

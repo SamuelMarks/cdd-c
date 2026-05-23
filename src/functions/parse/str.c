@@ -41,7 +41,7 @@ int c_cdd_strdup(const char *s, char **out_s) {
 /**
  * @brief Executes the c cdd str starts with operation.
  */
-int c_cdd_str_starts_with(const char *str, const char *prefix, bool *out_b) {
+int c_cdd_str_starts_with(const char *str, const char *prefix, int *out_b) {
   size_t i;
   if (str == NULL || prefix == NULL) {
     *out_b = false;
@@ -60,7 +60,7 @@ int c_cdd_str_starts_with(const char *str, const char *prefix, bool *out_b) {
 /**
  * @brief Executes the c cdd str equal operation.
  */
-int c_cdd_str_equal(const char *a, const char *b, bool *out_b) {
+int c_cdd_str_equal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
     return 0;
@@ -76,7 +76,7 @@ int c_cdd_str_equal(const char *a, const char *b, bool *out_b) {
 /**
  * @brief Executes the c cdd str iequal operation.
  */
-int c_cdd_str_iequal(const char *a, const char *b, bool *out_b) {
+int c_cdd_str_iequal(const char *a, const char *b, int *out_b) {
   if (a == b) {
     *out_b = true;
     return 0;
@@ -115,7 +115,7 @@ int c_cdd_str_after_last(const char *str, const int delimiter,
 /**
  * @brief Executes the c cdd ref is type operation.
  */
-int c_cdd_ref_is_type(const char *ref, const char *type, bool *out_b) {
+int c_cdd_ref_is_type(const char *ref, const char *type, int *out_b) {
   const char *extracted = NULL;
   if (ref == NULL || type == NULL) {
     *out_b = false;

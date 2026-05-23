@@ -421,3 +421,10 @@ Doxyfile
 test_downloads/
 /package-lock.json
 
+# Local test outputs and binaries
+gcov_report.txt
+oom_test
+remaining.txt
+test.txt
+test_c90
+test_codegen_enum_io

@@ -503,7 +503,7 @@ int xml_node_type_to_str_openapi(enum OpenAPI_XmlNodeType t, char **_out_val) {
  * @return 1 if true, 0 otherwise.
  */
 int header_name_is_content_type_openapi(const char *name) {
-  bool _ast_iequal_0 = false;
+  int _ast_iequal_0 = false;
   if (!name)
     return 0;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
@@ -517,9 +517,9 @@ int header_name_is_content_type_openapi(const char *name) {
  * @return 1 if true, 0 otherwise.
  */
 int param_is_reserved_header_openapi(const struct OpenAPI_Parameter *p) {
-  bool _ast_iequal_1 = false;
-  bool _ast_iequal_2 = false;
-  bool _ast_iequal_3 = false;
+  int _ast_iequal_1 = false;
+  int _ast_iequal_2 = false;
+  int _ast_iequal_3 = false;
   if (!p || p->in != OA_PARAM_IN_HEADER || !p->name)
     return 0;
   return (c_cdd_str_iequal(p->name, "Accept", &_ast_iequal_1), _ast_iequal_1) !=

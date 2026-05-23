@@ -1888,15 +1888,15 @@ static int parse_verb(const char *v, enum OpenAPI_Verb *_out_val) {
  * @brief Checks if fixed operation method.
  */
 static int is_fixed_operation_method(const char *method) {
-  bool _ast_iequal_0 = false;
-  bool _ast_iequal_1 = false;
-  bool _ast_iequal_2 = false;
-  bool _ast_iequal_3 = false;
-  bool _ast_iequal_4 = false;
-  bool _ast_iequal_5 = false;
-  bool _ast_iequal_6 = false;
-  bool _ast_iequal_7 = false;
-  bool _ast_iequal_8 = false;
+  int _ast_iequal_0 = false;
+  int _ast_iequal_1 = false;
+  int _ast_iequal_2 = false;
+  int _ast_iequal_3 = false;
+  int _ast_iequal_4 = false;
+  int _ast_iequal_5 = false;
+  int _ast_iequal_6 = false;
+  int _ast_iequal_7 = false;
+  int _ast_iequal_8 = false;
   if (!method)
     return 0;
   return (c_cdd_str_iequal(method, "get", &_ast_iequal_0), _ast_iequal_0) !=
@@ -2101,7 +2101,7 @@ static int validate_component_key_map(const JSON_Object *obj) {
  * @brief Executes the header name is content type operation.
  */
 static int header_name_is_content_type(const char *name) {
-  bool _ast_iequal_9 = false;
+  int _ast_iequal_9 = false;
   if (!name)
     return 0;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_9),
@@ -2112,9 +2112,9 @@ static int header_name_is_content_type(const char *name) {
  * @brief Executes the header param is reserved operation.
  */
 static int header_param_is_reserved(const struct OpenAPI_Parameter *param) {
-  bool _ast_iequal_10 = false;
-  bool _ast_iequal_11 = false;
-  bool _ast_iequal_12 = false;
+  int _ast_iequal_10 = false;
+  int _ast_iequal_11 = false;
+  int _ast_iequal_12 = false;
   if (!param || param->in != OA_PARAM_IN_HEADER || !param->name)
     return 0;
   return (c_cdd_str_iequal(param->name, "Accept", &_ast_iequal_10),

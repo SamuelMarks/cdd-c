@@ -578,7 +578,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
  * @brief Executes the header name is content type operation.
  */
 static int header_name_is_content_type(const char *name) {
-  bool _ast_iequal_0 = false;
+  int _ast_iequal_0 = false;
   if (!name)
     return 0;
   return (c_cdd_str_iequal(name, "Content-Type", &_ast_iequal_0),
