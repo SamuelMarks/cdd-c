@@ -243,6 +243,22 @@ TEST test_cdd_cst_query_extra(void) {
   ASSERT_EQ(EINVAL,
             cdd_cst_find_function_calls_named((cdd_cst_node_t *)1, NULL, &res));
   ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(NULL, NULL, NULL));
+
+  {
+    cdd_cst_node_t *n1_dummy = NULL;
+    cdd_cst_alloc_node(CDD_CST_EXPRESSION, &n1_dummy);
+    ASSERT_EQ(EINVAL, cdd_cst_traverse_preorder(n1_dummy, NULL, NULL));
+    ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(n1_dummy, NULL, NULL));
+    ASSERT_EQ(EINVAL,
+              cdd_cst_find_nodes_by_type(n1_dummy, CDD_CST_IDENTIFIER, NULL));
+    ASSERT_EQ(EINVAL,
+              cdd_cst_find_nodes_by_type(NULL, CDD_CST_IDENTIFIER, &res));
+    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(n1_dummy, NULL, &res));
+    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(NULL, "foo", &res));
+    ASSERT_EQ(EINVAL, cdd_cst_find_function_calls_named(n1_dummy, "foo", NULL));
+    cdd_cst_free_node_only(n1_dummy);
+  }
+
   ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(NULL, NULL, NULL));
 
   cdd_cst_parse(az_span_create_from_str("int x;"), &tree_tmp);
@@ -334,7 +350,172 @@ TEST test_cdd_cst_query_extra(void) {
   PASS();
 }
 
+static int fail_visitor_post(cdd_cst_node_t *node, void *user_data) {
+  (void)user_data;
+  if (node->kind == CDD_CST_EXPRESSION)
+    return EINVAL;
+  return 0;
+}
+TEST test_query_postorder_fail(void) {
+  cdd_cst_node_t *n1 = NULL, *n2 = NULL;
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &n1);
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &n2);
+  cdd_cst_append_child_node(n1, n2);
+
+  ASSERT_EQ(EINVAL, cdd_cst_traverse_postorder(n1, fail_visitor_post, NULL));
+
+  cdd_cst_free_node_only(n1);
+  cdd_cst_free_node_only(n2);
+  PASS();
+}
+
+TEST test_query_call_expr_coverage(void) {
+  cdd_cst_query_result_t res = {0};
+  cdd_cst_node_t dummy_call = {0};
+  dummy_call.kind = CDD_CST_CALL_EXPR;
+  dummy_call.capacity = 1;
+  dummy_call.num_children = 1;
+  cdd_cst_child_t children[2] = {0};
+  dummy_call.children = children;
+
+  cdd_token_t tok = {0};
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  tok.start = (const uint8_t *)"qux";
+  tok.length = 3;
+  children[0].kind = CDD_CST_CHILD_TOKEN;
+  children[0].val.token = &tok;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  tok.start = (const uint8_t *)"bar";
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  tok.kind = CDD_TOKEN_NUMBER;
+  tok.start = (const uint8_t *)"foo";
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  tok.start = (const uint8_t *)"foo";
+  tok.length = 100;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+  tok.length = 3;
+
+  /* CDD_CST_CALL_EXPR with identifier node */
+  cdd_cst_node_t id_node = {0};
+  id_node.kind = CDD_CST_IDENTIFIER;
+  id_node.num_children = 1;
+  id_node.capacity = 1;
+  cdd_cst_child_t id_child = {0};
+  id_node.children = &id_child;
+
+  id_child.kind = CDD_CST_CHILD_TOKEN;
+  id_child.val.token = &tok;
+
+  dummy_call.num_children = 1;
+  children[0].kind = CDD_CST_CHILD_NODE;
+  children[0].val.node = &id_node;
+
+  tok.start = (const uint8_t *)"qux";
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  tok.start = (const uint8_t *)"bar";
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  tok.kind = CDD_TOKEN_NUMBER;
+  tok.start = (const uint8_t *)"foo";
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  id_child.kind = CDD_CST_CHILD_NODE;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  id_node.num_children = 0;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+  id_node.kind = CDD_CST_EXPRESSION;
+  id_node.num_children = 1;
+  id_child.kind = CDD_CST_CHILD_TOKEN;
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+  ASSERT_EQ(0, res.size);
+  if (res.nodes)
+    free(res.nodes);
+  memset(&res, 0, sizeof(res));
+
+#ifdef CDD_BUILD_TESTS
+  id_node.kind = CDD_CST_IDENTIFIER;
+  extern int g_cdd_query_err_fail;
+  g_cdd_query_err_fail = 1;
+  ASSERT_EQ(ENOMEM,
+            cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  g_cdd_query_err_fail = 0;
+  if (res.nodes)
+    free(res.nodes);
+
+  dummy_call.kind = CDD_CST_UNKNOWN;
+  dummy_call.num_children = 2;
+  children[0].kind = CDD_CST_CHILD_TOKEN;
+  children[0].val.token = &tok;
+  cdd_token_t tok2 = {0};
+  children[1].kind = CDD_CST_CHILD_TOKEN;
+  children[1].val.token = &tok2;
+  tok2.kind = CDD_TOKEN_LPAREN;
+  g_cdd_query_err_fail = 1;
+  ASSERT_EQ(ENOMEM,
+            cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  g_cdd_query_err_fail = 0;
+  if (res.nodes)
+    free(res.nodes);
+
+  dummy_call.kind = CDD_CST_CALL_EXPR;
+  g_cdd_query_err_fail = 1;
+  ASSERT_EQ(ENOMEM,
+            cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  g_cdd_query_err_fail = 0;
+  if (res.nodes)
+    free(res.nodes);
+#endif
+
+  PASS();
+}
+
 SUITE(cdd_cst_query_suite) {
+  RUN_TEST(test_query_postorder_fail);
+  RUN_TEST(test_query_call_expr_coverage);
   RUN_TEST(test_cdd_cst_query_types);
   RUN_TEST(test_cdd_cst_query_calls);
   RUN_TEST(test_cdd_cst_query_extra);

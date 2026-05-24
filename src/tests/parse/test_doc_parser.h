@@ -704,6 +704,70 @@ TEST test_doc_parse_encodings(void) {
   PASS();
 }
 
+TEST test_doc_oom_and_edges(void) {
+  struct DocMetadata meta;
+  doc_metadata_init(&meta);
+
+  const char *comment = "/**\n * @route GET /users/{id}   \n */";
+  doc_parse_block(comment, &meta);
+  ASSERT_STR_EQ("/users/{id}", meta.route);
+  doc_metadata_free(&meta);
+
+  doc_metadata_init(&meta);
+  const char *comment2 = "/**\n * @summary some text   \n */";
+  doc_parse_block(comment2, &meta);
+  ASSERT_STR_EQ("some text", meta.summary);
+  doc_metadata_free(&meta);
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+  doc_metadata_init(&meta);
+  g_cdd_fail_alloc = 1;
+  int rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+  g_cdd_fail_alloc = 0;
+  if (rc_oom == ENOMEM) { /* passed */
+  } else {
+    printf("FAILED rc_oom=%d\n", rc_oom);
+  }
+  doc_metadata_free(&meta);
+
+  doc_metadata_init(&meta);
+  g_cdd_fail_alloc = 2;
+  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+  g_cdd_fail_alloc = 0;
+  if (rc_oom == ENOMEM) { /* passed */
+  } else {
+    printf("FAILED rc_oom=%d\n", rc_oom);
+  }
+  doc_metadata_free(&meta);
+
+  doc_metadata_init(&meta);
+  g_cdd_fail_alloc = 3;
+  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+  g_cdd_fail_alloc = 0;
+  if (rc_oom == ENOMEM) { /* passed */
+  } else {
+    printf("FAILED rc_oom=%d\n", rc_oom);
+  }
+  doc_metadata_free(&meta);
+
+  {
+    extern int g_cdd_fail_alloc;
+    int i;
+    for (i = 1; i < 100; i++) {
+      doc_metadata_init(&meta);
+      g_cdd_fail_alloc = i;
+      rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+      g_cdd_fail_alloc = 0;
+      doc_metadata_free(&meta);
+      if (rc_oom == 0)
+        break;
+    }
+  }
+
+#endif
+  PASS();
+}
+
 SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_init_free);
   RUN_TEST(test_doc_parse_simple_route);
@@ -735,6 +799,7 @@ SUITE(doc_parser_suite) {
   RUN_TEST(test_doc_parse_invalid_inputs);
   RUN_TEST(test_doc_parse_malformed_lines);
   RUN_TEST(test_doc_parse_encodings);
+  RUN_TEST(test_doc_oom_and_edges);
 }
 
 #ifdef __cplusplus

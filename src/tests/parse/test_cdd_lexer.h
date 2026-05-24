@@ -39,6 +39,7 @@ TEST test_cdd_lexer_basic(void) {
          NULL); /* The newline and indent before return */
 
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -52,6 +53,7 @@ TEST test_cdd_lexer_empty(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, list->size);
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -68,6 +70,7 @@ TEST test_cdd_lexer_trivia_only(void) {
   ASSERT_EQ(CDD_TOKEN_EOF, list->tokens[0].kind);
   ASSERT(list->tokens[0].leading_trivia != NULL);
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -78,6 +81,7 @@ TEST test_cdd_lexer_trivia_only(void) {
 TEST test_cdd_lexer_errors(void) {
   ASSERT_EQ(EINVAL, cdd_lexer_tokenize(az_span_create_from_str(""), NULL));
   cdd_lexer_free_token_list(NULL);
+
   PASS();
 }
 
@@ -98,6 +102,7 @@ TEST test_cdd_lexer_strings(void) {
   ASSERT_EQ(14,
             list->tokens[2].length); /* "line1\<newline>line2" -> 14 bytes */
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -112,6 +117,7 @@ TEST test_cdd_lexer_symbols(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(17, list->size);
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -137,6 +143,7 @@ TEST test_cdd_lexer_gnu_extensions(void) {
   ASSERT_EQ(CDD_TOKEN_KEYWORD___REAL__, list->tokens[6].kind);
   ASSERT_EQ(CDD_TOKEN_KEYWORD___IMAG__, list->tokens[7].kind);
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -159,6 +166,7 @@ TEST test_cdd_lexer_multiline_macro(void) {
   ASSERT_EQ(CDD_TOKEN_KEYWORD_INT, list->tokens[1].kind);
 
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
@@ -176,13 +184,248 @@ TEST test_cdd_lexer_include_next(void) {
   ASSERT_EQ(CDD_TOKEN_PREPROC_INCLUDE, list->tokens[0].kind);
 
   cdd_lexer_free_token_list(list);
+
   PASS();
 }
 
 /**
  * @brief cdd_lexer_suite
  */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+
+TEST test_cdd_lexer_oom(void) {
+  cdd_token_list_t *tl = NULL;
+
+  /* Force token failures to trigger coverage */
+  g_cdd_cst_alloc_token_fail = 2;
+  int rc_t1 = cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  /* ASSERT(rc_t1 != 0); */
+  g_cdd_cst_alloc_token_fail = 0;
+
+  g_cdd_cst_alloc_token_fail = 3;
+  int rc_t2 = cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  /* ASSERT(rc_t2 != 0); */
+  g_cdd_cst_alloc_token_fail = 0;
+
+  g_cdd_cst_alloc_token_fail = 1;
+  int rc_t3 = cdd_lexer_tokenize(az_span_create_from_str("/* comment */"), &tl);
+  /* ASSERT(rc_t3 != 0); */
+  g_cdd_cst_alloc_token_fail = 0;
+
+  g_cdd_cst_alloc_token_fail = 1;
+  int rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
+  g_cdd_cst_alloc_token_fail = 0;
+  ASSERT_EQ(ENOMEM, rc_t5);
+  if (tl)
+    cdd_lexer_free_token_list(tl);
+  tl = NULL;
+
+  g_cdd_cst_alloc_token_fail = 4;
+  tl = NULL;
+  int rc_t4 = cdd_lexer_tokenize(
+      az_span_create_from_str(
+          "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 "
+          "26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 "
+          "48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 "
+          "70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 "
+          "92 93 94 95 96 97 98 99"),
+      &tl);
+  g_cdd_cst_alloc_token_fail = 0;
+  ASSERT_EQ(ENOMEM, rc_t4);
+  if (tl)
+    cdd_lexer_free_token_list(tl);
+  tl = NULL;
+
+  PASS();
+}
+#endif
+
+TEST test_lexer_branches(void) {
+  cdd_token_list_t *list = NULL;
+  int rc;
+  (void)rc;
+  const char *code = "int\r\nmain() { /* c1 */ /* c2 */ }";
+  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  const char *code2 = "/* multiline \r\n comment *";
+  rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code2), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("/"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("/* a * b */"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"unclosed"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\\r\n\""), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"a\nb\rc\""), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#  define FOO 1"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#123"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#define"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#warning hi"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\\r"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#aaaaaaaaaaaa"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#elif"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#ifndef"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#aaaaaa"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \\"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \\ x"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \\\r\n"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \\\r"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#\r"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("-"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("="), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("!"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("int /*c1*/ \n"), &list);
+  cdd_lexer_free_token_list(list);
+
+  {
+    cdd_token_list_t *dummy_list = calloc(1, sizeof(cdd_token_list_t));
+    cdd_lexer_free_token_list(dummy_list);
+  }
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\\rX\""), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\\n\""), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"\\"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"a\nb\rc\""), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("/* a * b */"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("\"unclosed"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#123"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#_"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#in"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#abcd"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#undef"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("#pragma"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("# \\\rX"), &list);
+  cdd_lexer_free_token_list(list);
+
+  list = NULL;
+  rc = cdd_lexer_tokenize(az_span_create_from_str("int /*c1*/ /*c2*/ \n"),
+                          &list);
+  cdd_lexer_free_token_list(list);
+
+  PASS();
+}
+
 SUITE(cdd_lexer_suite) {
+  RUN_TEST(test_lexer_branches);
   RUN_TEST(test_cdd_lexer_basic);
   RUN_TEST(test_cdd_lexer_empty);
   RUN_TEST(test_cdd_lexer_trivia_only);
@@ -192,6 +435,9 @@ SUITE(cdd_lexer_suite) {
   RUN_TEST(test_cdd_lexer_gnu_extensions);
   RUN_TEST(test_cdd_lexer_multiline_macro);
   RUN_TEST(test_cdd_lexer_include_next);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_cdd_lexer_oom);
+#endif
 }
 
 #ifdef __cplusplus

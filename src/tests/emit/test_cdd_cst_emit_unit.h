@@ -121,11 +121,134 @@ TEST test_cdd_cst_emit_large_string(void) {
   PASS();
 }
 
+TEST test_cdd_cst_emit_oom(void) {
+  cdd_cst_tree_t tree = {0};
+  cdd_cst_node_t root = {0};
+  cdd_token_t tok = {0};
+  cdd_cst_child_t child = {0};
+  char *out = NULL;
+
+  /* Test overflow in append_str via tok->length */
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  tok.start = (const uint8_t *)"";
+  tok.length = (size_t)-1; /* SIZE_MAX */
+
+  tree.root = &root;
+  root.children = &child;
+  root.num_children = 1;
+  child.kind = CDD_CST_CHILD_TOKEN;
+  child.val.token = &tok;
+
+  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+
+  PASS();
+}
+
+TEST test_cdd_cst_emit_oom_trivia(void) {
+  cdd_cst_tree_t tree = {0};
+  cdd_cst_node_t root = {0};
+  cdd_token_t tok = {0};
+  cdd_trivia_t triv = {0};
+  cdd_cst_child_t child = {0};
+  char *out = NULL;
+
+  triv.start = (const uint8_t *)"";
+  triv.length = (size_t)-1; /* SIZE_MAX */
+
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  tok.start = (const uint8_t *)"A";
+  tok.length = 1;
+  tok.leading_trivia = &triv;
+
+  tree.root = &root;
+  root.children = &child;
+  root.num_children = 1;
+  child.kind = CDD_CST_CHILD_TOKEN;
+  child.val.token = &tok;
+
+  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+
+  PASS();
+}
+
+TEST test_cdd_cst_emit_oom_realloc(void) {
+  cdd_cst_tree_t tree = {0};
+  cdd_cst_node_t root = {0};
+  cdd_token_t tok = {0};
+  cdd_cst_child_t child = {0};
+  char *out = NULL;
+
+  /* Test legitimate realloc failure by requesting an impossibly large block */
+  tok.kind = CDD_TOKEN_IDENTIFIER;
+  tok.start = (const uint8_t *)"A";
+  tok.length =
+      ((size_t)-1) / 2 + 2048; /* Larger than 2^63, will fail realloc */
+
+  tree.root = &root;
+  root.children = &child;
+  root.num_children = 1;
+  child.kind = CDD_CST_CHILD_TOKEN;
+  child.val.token = &tok;
+
+  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+
+  PASS();
+}
+
+TEST test_cdd_cst_emit_oom_multi(void) {
+  cdd_cst_tree_t tree = {0};
+  cdd_cst_node_t root = {0};
+  cdd_token_t tok1 = {0};
+  cdd_token_t tok2 = {0};
+  cdd_cst_child_t children[2] = {0};
+  char *out = NULL;
+
+  /* First token succeeds and allocates buf */
+  tok1.kind = CDD_TOKEN_IDENTIFIER;
+  tok1.start = (const uint8_t *)"A";
+  tok1.length = 1;
+
+  /* Second token fails via overflow */
+  tok2.kind = CDD_TOKEN_IDENTIFIER;
+  tok2.start = (const uint8_t *)"";
+  tok2.length = (size_t)-1; /* SIZE_MAX */
+
+  tree.root = &root;
+  root.children = children;
+  root.num_children = 2;
+
+  children[0].kind = CDD_CST_CHILD_TOKEN;
+  children[0].val.token = &tok1;
+  children[1].kind = CDD_CST_CHILD_TOKEN;
+  children[1].val.token = &tok2;
+
+  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+
+  PASS();
+}
+
+TEST test_cdd_cst_emit_empty_oom(void) {
+  cdd_cst_tree_t tree = {0};
+  char *out = NULL;
+  extern int g_cdd_fail_alloc;
+
+  g_cdd_fail_alloc = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  g_cdd_fail_alloc = 0;
+
+  PASS();
+}
+
 SUITE(cdd_cst_emit_unit_suite) {
   RUN_TEST(test_cdd_cst_emit_invalid);
   RUN_TEST(test_cdd_cst_emit_empty);
   RUN_TEST(test_cdd_cst_emit_null_children);
   RUN_TEST(test_cdd_cst_emit_large_string);
+  RUN_TEST(test_cdd_cst_emit_oom);
+  RUN_TEST(test_cdd_cst_emit_oom_trivia);
+  RUN_TEST(test_cdd_cst_emit_oom_realloc);
+  RUN_TEST(test_cdd_cst_emit_oom_multi);
+  RUN_TEST(test_cdd_cst_emit_empty_oom);
 }
 
 #ifdef __cplusplus

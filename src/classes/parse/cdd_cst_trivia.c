@@ -46,7 +46,7 @@ int cdd_cst_detect_format_config(cdd_cst_tree_t *tree,
           } else if (t->start[last_nl + 1] == ' ') {
             size_t spaces = t->length - (last_nl + 1);
             space_count++;
-            if (spaces > 0 && spaces <= 8) {
+            if (spaces <= 8) {
               total_space_indents++;
               sum_space_indent += spaces;
             }
@@ -82,11 +82,19 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
   size_t total_spaces;
   uint8_t *ws_buf;
 
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_cst_alloc_token_fail;
+#endif
   (void)tree;
   if (!config || !out_trivia)
     return EINVAL;
 
-  nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail == 1)
+    nl = NULL;
+  else
+#endif
+    nl = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!nl) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -100,14 +108,24 @@ int cdd_cst_generate_indent_trivia(cdd_cst_tree_t *tree,
     return 0;
   }
 
-  ws = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail == 2)
+    ws = NULL;
+  else
+#endif
+    ws = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
   if (!ws) {
     free(nl);
     return ENOMEM;
   }
 
   total_spaces = config->indent_width * indent_level;
-  ws_buf = (uint8_t *)malloc(total_spaces);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail == 3)
+    ws_buf = NULL;
+  else
+#endif
+    ws_buf = (uint8_t *)malloc(total_spaces);
   if (!ws_buf) {
     free(nl);
     free(ws);

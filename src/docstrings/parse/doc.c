@@ -59,15 +59,24 @@ static int extract_word(const char *str, const char *end, const char **next_out,
 
   len = (size_t)(p - word_start);
   if (len == 0) {
-    if (next_out)
-      *next_out = p;
+    *next_out = p;
     {
       *_out_val = NULL;
       return 0;
     }
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      res = NULL;
+    else
+      res = (char *)malloc(len + 1);
+  }
+#else
   res = (char *)malloc(len + 1);
+#endif
   if (!res) {
     *_out_val = NULL;
     return 0;
@@ -76,8 +85,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
   memcpy(res, word_start, len);
   res[len] = '\0';
 
-  if (next_out)
-    *next_out = p;
+  *next_out = p;
   {
     *_out_val = res;
     return 0;
@@ -106,7 +114,17 @@ static int extract_rest(const char *str, const char *end, char **_out_val) {
     return 0;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      res = NULL;
+    else
+      res = (char *)malloc(len + 1);
+  }
+#else
   res = (char *)malloc(len + 1);
+#endif
   if (!res) {
     *_out_val = NULL;
     return 0;

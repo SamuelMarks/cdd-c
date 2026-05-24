@@ -30,7 +30,18 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
       char *replacement = NULL;
       /* Extract text from tokens directly */
       size_t len = node->length;
-      char *attr_text = (char *)malloc(len + 1);
+      char *attr_text = NULL;
+#ifdef CDD_BUILD_TESTS
+      {
+        extern int g_cdd_fail_alloc;
+        if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+          attr_text = NULL;
+        else
+          attr_text = (char *)malloc(len + 1);
+      }
+#else
+      attr_text = (char *)malloc(len + 1);
+#endif
       if (!attr_text) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
@@ -67,6 +78,8 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
       if (replacement) {
         int rc = patch_list_add(patches, node->start_token, node->end_token,
                                 replacement);
+        printf("weaver_attr patch_list_add rc=%d\n", rc);
+        printf("patch_list_add rc=%d\n", rc);
         if (rc != 0) {
           free(attr_text);
           return rc;

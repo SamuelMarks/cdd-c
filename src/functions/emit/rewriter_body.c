@@ -159,6 +159,13 @@ int rewrite_body(const struct TokenList *tokens,
     return EINVAL;
 
   /* 1. Initialize Patcher */
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc == 1)
+      return ENOMEM;
+  }
+#endif
   if (patch_list_init(&patches) != 0)
     return ENOMEM;
 

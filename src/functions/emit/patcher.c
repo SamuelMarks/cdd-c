@@ -26,7 +26,18 @@ int patch_list_init(struct PatchList *list) {
     return EINVAL;
   list->size = 0;
   list->capacity = 8;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc == 1000)
+      list->patches = NULL;
+    else
+      list->patches =
+          (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
+  }
+#else
   list->patches = (struct Patch *)calloc(list->capacity, sizeof(struct Patch));
+#endif
   if (!list->patches) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -67,8 +78,20 @@ int patch_list_add(struct PatchList *list, const size_t start_idx,
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 8 : list->capacity * 2;
-    struct Patch *new_arr =
+    struct Patch *new_arr;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc == 2000)
+        new_arr = NULL;
+      else
+        new_arr = (struct Patch *)realloc(list->patches,
+                                          new_cap * sizeof(struct Patch));
+    }
+#else
+    new_arr =
         (struct Patch *)realloc(list->patches, new_cap * sizeof(struct Patch));
+#endif
     if (!new_arr) {
       free(text); /* Prevent leak on alloc failure */
       return ENOMEM;
@@ -145,7 +168,17 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
+#ifdef CDD_BUILD_TESTS
+        {
+          extern int g_cdd_fail_alloc;
+          if (g_cdd_fail_alloc == 3000)
+            tmp = NULL;
+          else
+            tmp = (char *)realloc(output, out_cap);
+        }
+#else
         tmp = (char *)realloc(output, out_cap);
+#endif
         if (!tmp) {
           rc = ENOMEM;
           goto cleanup;
@@ -182,7 +215,17 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
       while (out_len + tok_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
+#ifdef CDD_BUILD_TESTS
+        {
+          extern int g_cdd_fail_alloc;
+          if (g_cdd_fail_alloc == 3000)
+            tmp = NULL;
+          else
+            tmp = (char *)realloc(output, out_cap);
+        }
+#else
         tmp = (char *)realloc(output, out_cap);
+#endif
         if (!tmp) {
           rc = ENOMEM;
           goto cleanup;
@@ -208,7 +251,17 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
       while (out_len + text_len + 1 > out_cap) {
         char *tmp;
         out_cap = out_cap * 2 + text_len;
+#ifdef CDD_BUILD_TESTS
+        {
+          extern int g_cdd_fail_alloc;
+          if (g_cdd_fail_alloc == 3000)
+            tmp = NULL;
+          else
+            tmp = (char *)realloc(output, out_cap);
+        }
+#else
         tmp = (char *)realloc(output, out_cap);
+#endif
         if (!tmp) {
           rc = ENOMEM;
           goto cleanup;

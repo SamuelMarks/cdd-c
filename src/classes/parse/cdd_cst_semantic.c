@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+#ifdef CDD_BUILD_TESTS
+int g_cdd_semantic_oom_extract = 0;
+int g_cdd_semantic_oom_scope = 0;
+int g_cdd_semantic_oom_scope2 = 0;
+#endif
 
 static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
   size_t i;
@@ -51,11 +56,19 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
   switch (node->kind) {
   case CDD_CST_BLOCK:
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK);
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_semantic_oom_scope)
+      rc = ENOMEM;
+#endif
     if (rc != 0)
       return rc;
     break;
   case CDD_CST_FUNCTION_DEFINITION:
     rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_FUNCTION);
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_semantic_oom_scope2)
+      rc = ENOMEM;
+#endif
     if (rc != 0)
       return rc;
     break;
@@ -65,7 +78,12 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
     rc = extract_identifier(node, &name);
     if (rc == 0 && name) {
       /* Assuming CDD_CST_SYMBOL_VARIABLE for now */
-      cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
+#ifdef CDD_BUILD_TESTS
+      if (g_cdd_semantic_oom_extract == 1)
+        rc = ENOMEM;
+      else
+#endif
+        rc = cdd_cst_scope_add_symbol(env, name, CDD_CST_SYMBOL_VARIABLE, node);
       free((void *)name);
     }
     rc = 0; /* ignore extraction errors */
@@ -98,6 +116,10 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
   case CDD_CST_BLOCK:
   case CDD_CST_FUNCTION_DEFINITION:
     rc = cdd_cst_scope_leave(env);
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_semantic_oom_extract == 2)
+      rc = ENOMEM;
+#endif
     if (rc != 0)
       return rc;
     break;
@@ -117,10 +139,18 @@ int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
     return EINVAL;
 
   rc = cdd_cst_scope_env_init(&env);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_semantic_oom_extract == 3)
+    rc = ENOMEM;
+#endif
   if (rc != 0)
     return rc;
 
   rc = analyze_node(env, tree->root);
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_semantic_oom_extract == 4)
+    rc = ENOMEM;
+#endif
   if (rc != 0) {
     cdd_cst_scope_env_free(env);
     return rc;

@@ -24,7 +24,17 @@ int patch_list_generate_diff(const struct TokenList *tokens,
   if (!tokens || !list || !filename || !out_diff)
     return EINVAL;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc == 5555)
+      diff_buf = NULL;
+    else
+      diff_buf = (char *)malloc(diff_cap);
+  }
+#else
   diff_buf = (char *)malloc(diff_cap);
+#endif
   if (!diff_buf) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -67,7 +77,16 @@ int patch_list_generate_diff(const struct TokenList *tokens,
         if (diff_len + tokens->tokens[j].length + 10 > diff_cap) {
           diff_cap *= 2;
           {
+#ifdef CDD_BUILD_TESTS
+            extern int g_cdd_fail_alloc;
+            char *new_buf;
+            if (g_cdd_fail_alloc == 6666)
+              new_buf = NULL;
+            else
+              new_buf = (char *)realloc(diff_buf, diff_cap);
+#else
             char *new_buf = (char *)realloc(diff_buf, diff_cap);
+#endif
             if (!new_buf) {
               free(diff_buf);
               C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
@@ -88,7 +107,16 @@ int patch_list_generate_diff(const struct TokenList *tokens,
     if (diff_len + strlen(p->text) + 10 > diff_cap) {
       diff_cap = diff_cap * 2 + strlen(p->text);
       {
+#ifdef CDD_BUILD_TESTS
+        extern int g_cdd_fail_alloc;
+        char *new_buf;
+        if (g_cdd_fail_alloc == 7777)
+          new_buf = NULL;
+        else
+          new_buf = (char *)realloc(diff_buf, diff_cap);
+#else
         char *new_buf = (char *)realloc(diff_buf, diff_cap);
+#endif
         if (!new_buf) {
           free(diff_buf);
           C_CDD_LOG_DEBUG("ENOMEM: OOM\n");

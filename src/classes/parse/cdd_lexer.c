@@ -1,3 +1,6 @@
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+#endif
 /* clang-format off */
 #include "cdd_lexer.h"
 #include <ctype.h>
@@ -9,10 +12,17 @@
 
 static int alloc_trivia(enum cdd_trivia_kind_t kind, const uint8_t *start,
                         size_t length, cdd_trivia_t **out_trivia) {
+#ifdef CDD_BUILD_TESTS
+
+#endif
   cdd_trivia_t *t;
-  if (!out_trivia)
-    return EINVAL;
   t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail == 1) {
+    free(t);
+    t = NULL;
+  }
+#endif
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -97,6 +107,9 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
 }
 
 int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
+#ifdef CDD_BUILD_TESTS
+
+#endif
   cdd_token_list_t *list;
   const uint8_t *base = az_span_ptr(source);
   size_t len = (size_t)az_span_size(source);
@@ -111,6 +124,12 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
     return EINVAL;
 
   list = (cdd_token_list_t *)calloc(1, sizeof(cdd_token_list_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail == 2) {
+    free(list);
+    list = NULL;
+  }
+#endif
   if (!list) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -118,6 +137,13 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 
   list->capacity = 64;
   list->tokens = (cdd_token_t *)calloc(list->capacity, sizeof(cdd_token_t));
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_cst_alloc_token_fail == 3) {
+    free(list->tokens);
+    list->tokens = NULL;
+  }
+#endif
   if (!list->tokens) {
     free(list);
     return ENOMEM;
@@ -146,14 +172,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
         if (!t)
           goto error;
         if (!is_newline && prev_token && !pending_trivia_head) {
-          cdd_trivia_t *tail = prev_token->trailing_trivia;
-          if (!tail) {
-            prev_token->trailing_trivia = t;
-          } else {
-            while (tail->next)
-              tail = tail->next;
-            tail->next = t;
-          }
+          prev_token->trailing_trivia = t;
         } else {
           append_trivia(&pending_trivia_head, &pending_trivia_tail, t);
           prev_token = NULL;
@@ -202,8 +221,15 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
 
     if (list->size >= list->capacity) {
       size_t new_cap = list->capacity * 2;
-      cdd_token_t *new_arr =
-          (cdd_token_t *)realloc(list->tokens, new_cap * sizeof(cdd_token_t));
+      cdd_token_t *new_arr;
+#ifdef CDD_BUILD_TESTS
+
+      if (g_cdd_cst_alloc_token_fail == 4)
+        new_arr = NULL;
+      else
+#endif
+        new_arr =
+            (cdd_token_t *)realloc(list->tokens, new_cap * sizeof(cdd_token_t));
       if (!new_arr)
         goto error;
       memset(new_arr + list->capacity, 0,
@@ -281,10 +307,11 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
                base[id_start] != '\n') {
           id_start++;
         }
-        if (id_start < len && isalpha(base[id_start])) {
+        if (id_start < len &&
+            (isalpha(base[id_start]) || base[id_start] == '_')) {
           size_t id_end = id_start;
           size_t id_len;
-          while (id_end < len && isalpha(base[id_end]))
+          while (id_end < len && (isalnum(base[id_end]) || base[id_end] == '_'))
             id_end++;
           id_len = id_end - id_start;
           if (id_len == 7 && memcmp(base + id_start, "include", 7) == 0)
@@ -417,11 +444,11 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
   if (pending_trivia_head) {
     if (list->size > 0) {
       cdd_trivia_t *tail = list->tokens[list->size - 1].trailing_trivia;
+
       if (!tail) {
         list->tokens[list->size - 1].trailing_trivia = pending_trivia_head;
       } else {
-        while (tail->next)
-          tail = tail->next;
+        /* Since trailing_trivia only ever has 1 node */
         tail->next = pending_trivia_head;
       }
     } else {

@@ -751,6 +751,63 @@ TEST test_schema_type_union_roundtrip(void) {
   PASS();
 }
 
+TEST test_schema_constraints_cleanup_branch(void) {
+  struct SchemaConstraints sc;
+
+  /* NULL checks */
+  ASSERT_EQ(EINVAL, schema_constraints_init(NULL));
+  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "a"));
+  ASSERT_EQ(EINVAL, schema_constraints_add_required(&sc, NULL));
+  schema_constraints_cleanup(NULL);
+
+  schema_constraints_init(&sc);
+
+  /* Add required so it cleans it up */
+  schema_constraints_add_required(&sc, "req1");
+
+  /* Mock additional properties */
+  sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
+  sc.additional_properties->name = malloc(4);
+  strcpy(sc.additional_properties->name, "foo");
+  sc.additional_properties->type = malloc(4);
+  strcpy(sc.additional_properties->type, "bar");
+  sc.additional_properties->ref = malloc(4);
+  strcpy(sc.additional_properties->ref, "baz");
+
+  schema_constraints_cleanup(&sc);
+
+  /* required[i] == NULL */
+  schema_constraints_init(&sc);
+  schema_constraints_add_required(&sc, "r");
+  free(sc.required[0]);
+  sc.required[0] = NULL;
+  schema_constraints_cleanup(&sc);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_schema_strdup_fail;
+    struct SchemaConstraints sc_oom;
+    schema_constraints_init(&sc_oom);
+    g_schema_strdup_fail = 1;
+    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc_oom, "req2"));
+    g_schema_strdup_fail = 0;
+    schema_constraints_cleanup(&sc_oom);
+  }
+#endif
+
+  PASS();
+}
+
+TEST test_schema_constraints_cleanup_null_fields(void) {
+  struct SchemaConstraints sc;
+  schema_constraints_init(&sc);
+
+  sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
+  schema_constraints_cleanup(&sc);
+
+  PASS();
+}
+
 SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_constraints_roundtrip);
   RUN_TEST(test_schema_annotations_roundtrip);
@@ -760,6 +817,8 @@ SUITE(schema_constraints_suite) {
   RUN_TEST(test_schema_keyword_passthrough);
   RUN_TEST(test_schema_allof_keyword_merge);
   RUN_TEST(test_schema_type_union_roundtrip);
+  RUN_TEST(test_schema_constraints_cleanup_null_fields);
+  RUN_TEST(test_schema_constraints_cleanup_branch);
 }
 
 #ifdef __cplusplus

@@ -510,41 +510,277 @@ TEST test_codegen_config_utils_guards(void) {
  * @brief test schema constraints validation
  * @return TEST
  */
+#ifdef CDD_BUILD_TESTS
+extern int g_schema_strdup_fail;
+#endif
+
 TEST test_schema_constraints_bounds(void) {
   struct SchemaConstraints sc;
 
   ASSERT_EQ(EINVAL, schema_constraints_init(NULL));
   ASSERT_EQ(0, schema_constraints_init(&sc));
 
-  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "f"));
+  ASSERT_EQ(EINVAL, schema_constraints_add_required(NULL, "a"));
   ASSERT_EQ(EINVAL, schema_constraints_add_required(&sc, NULL));
-  ASSERT_EQ(0, schema_constraints_add_required(&sc, "f"));
-  ASSERT_EQ(1, sc.required_count);
+
+  ASSERT_EQ(0, schema_constraints_add_required(&sc, "field_a"));
+  ASSERT_EQ(0, schema_constraints_add_required(&sc, "field_b"));
+
+#ifdef CDD_BUILD_TESTS
+  /* Test OOM via overflow */
+  {
+    size_t old_cap = sc.required_capacity;
+    size_t old_count = sc.required_count;
+    char **old_req = sc.required;
+    sc.required_capacity = ((size_t)-1) / 16 - 100;
+    sc.required_count = sc.required_capacity;
+
+    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc, "oom"));
+
+    sc.required_capacity = old_cap;
+    sc.required_count = old_count;
+    sc.required = old_req;
+
+    g_schema_strdup_fail = 1;
+    ASSERT_EQ(ENOMEM, schema_constraints_add_required(&sc, "oom2"));
+    g_schema_strdup_fail = 0;
+  }
+#endif
 
   schema_constraints_cleanup(&sc);
-  schema_constraints_cleanup(NULL); /* Should not crash */
+  schema_constraints_cleanup(NULL); /* Should be safe */
+
+  /* Test cleanup of additional properties */
+  schema_constraints_init(&sc);
+  sc.has_additional_properties = 1;
+  sc.additional_properties =
+      (struct SchemaType *)calloc(1, sizeof(struct SchemaType));
+  sc.additional_properties->name = (char *)malloc(2);
+  strcpy(sc.additional_properties->name, "n");
+  sc.additional_properties->type = (char *)malloc(2);
+  strcpy(sc.additional_properties->type, "t");
+  sc.additional_properties->ref = (char *)malloc(2);
+  strcpy(sc.additional_properties->ref, "r");
+  schema_constraints_cleanup(&sc);
+
   PASS();
 }
-
 /**
  * @brief Suite for schema codegen
  */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_schema_fail_io_after;
+extern int g_schema_io_calls;
+#endif
+
+TEST test_schema_codegen_cli_exhaustive_io(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  int rc;
+  const char *schema_json = "{"
+                            "\"components\": {"
+                            "  \"schemas\": {"
+                            "    \"MyStruct\": {"
+                            "      \"type\": \"object\","
+                            "      \"properties\": {"
+                            "        \"foo\": { \"type\": \"string\" }"
+                            "      }"
+                            "    }"
+                            "  }"
+                            "}"
+                            "}";
+  FILE *f = fopen("test_codegen_schema_io.json", "w");
+  fputs(schema_json, f);
+  fclose(f);
+
+  for (i = 0; i < 1000; ++i) {
+    g_schema_fail_io_after = i;
+    g_schema_io_calls = 0;
+
+    void *root = json_parse_file("test_codegen_schema_io.json");
+    void *schemas =
+        json_object_get_object(json_value_get_object(root), "components");
+    schemas = json_object_get_object(schemas, "schemas");
+
+    rc = generate_header("test_codegen_schema_io.json", "out_prefix", schemas,
+                         NULL);
+    if (rc == 0)
+      rc = generate_source("test_codegen_schema_io.json", "out_prefix", schemas,
+                           NULL);
+    json_value_free(root);
+
+    if (rc == 0)
+      break;
+    ASSERT(rc != 0);
+  }
+
+  g_schema_fail_io_after = -1;
+  remove("test_codegen_schema_io.json");
+#endif
+  PASS();
+}
+
+TEST test_schema_codegen_union_arrays(void) {
+  int rc;
+  const char *const filename = "union_array_schema.json";
+  const char *argv[2];
+  const char *schema =
+      "{"
+      "\"components\":{"
+      "\"schemas\":{"
+      "\"Pet\":{\"type\":\"object\",\"properties\":{\"meow\":{\"type\":"
+      "\"string\"}}},"
+      "\"UnionNumber\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
+      "\"type\": \"number\" } } ] },\"UnionInteger\": { \"oneOf\": [ { "
+      "\"type\": \"array\", \"items\": { \"type\": \"integer\" } } ] },"
+      "\"UnionBool\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
+      "\"type\": \"boolean\" } } ] },"
+      "\"UnionRef\": { \"oneOf\": [ { \"type\": \"array\", \"items\": { "
+      "\"$ref\": \"#/components/schemas/Pet\" } } ] }"
+      "}}}";
+  argv[0] = filename;
+  argv[1] = "union_array_out";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  {
+    void *root = json_parse_file(filename);
+    void *schemas =
+        json_object_get_object(json_value_get_object(root), "components");
+    schemas = json_object_get_object(schemas, "schemas");
+    rc = generate_header(filename, argv[1], schemas, NULL);
+    if (rc == 0)
+      rc = generate_source(filename, argv[1], schemas, NULL);
+    json_value_free(root);
+  }
+  ASSERT_EQ(0, rc);
+
+  remove(filename);
+  remove("union_array_out.h");
+  remove("union_array_out.c");
+  remove("union_array_out_types.h");
+  PASS();
+}
+
+TEST test_schema_codegen_specific_structs(void) {
+  int rc;
+  const char *const filename = "specific_structs.json";
+  const char *argv[2];
+  const char *schema =
+      "{"
+      "\"components\":{"
+      "\"schemas\":{"
+      "\"OAuth2Error\":{\"type\":\"object\",\"properties\":{\"error\":{"
+      "\"type\":\"string\"}}},"
+      "\"JwtPayload\":{\"type\":\"object\",\"properties\":{\"sub\":{\"type\":"
+      "\"string\"}}},"
+      "\"OAuth2TokenResponse\":{\"type\":\"object\",\"properties\":{\"access_"
+      "token\":{\"type\":\"string\"}}}"
+      "}}}";
+  argv[0] = filename;
+  argv[1] = "specific_out";
+
+  rc = write_to_file(filename, schema);
+  ASSERT_EQ(0, rc);
+
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT_EQ(0, rc);
+
+  remove(filename);
+  remove("specific_out.h");
+  remove("specific_out.c");
+  PASS();
+}
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fail_alloc;
+#endif
+
+TEST test_schema_codegen_main_paths(void) {
+  int rc;
+  const char *const filename = "main_paths.json";
+  const char *argv[5];
+  const char *schema_defs =
+      "{"
+      "\"$defs\":{"
+      "\"X\":{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}}}"
+      "}}";
+
+  /* 1. argc < 2 */
+  rc = schema2code_main(1, (char **)argv);
+  ASSERT(rc != 0);
+
+  /* 2. get_basename fails */
+#ifdef CDD_BUILD_TESTS
+  argv[0] = "a";
+  argv[1] = "b";
+  g_cdd_fail_alloc = 1;
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT(rc != 0);
+  g_cdd_fail_alloc = 0;
+#endif
+
+  /* 3. flags parsing */
+  rc = write_to_file(filename, schema_defs);
+  ASSERT_EQ(0, rc);
+  argv[0] = filename;
+  argv[1] = "main_out";
+  argv[2] = "--guard-enum=EG";
+  argv[3] = "--guard-json=JG";
+  argv[4] = "--guard-utils=UG";
+  rc = schema2code_main(5, (char **)argv);
+  ASSERT_EQ(0, rc);
+  remove("main_out.h");
+  remove("main_out.c");
+
+  /* 4. json_parse_file fails */
+  argv[0] = "does_not_exist.json";
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT(rc != 0);
+
+  /* 5. missing schemas */
+  write_to_file(filename, "{}");
+  argv[0] = filename;
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT(rc != 0);
+
+  /* 6. generate_header / generate_source fails */
+#ifdef CDD_BUILD_TESTS
+  write_to_file(filename, schema_defs);
+  g_schema_fail_io_after = 0;
+  g_schema_io_calls = 0;
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT(rc != 0);
+
+  g_schema_fail_io_after = 3; /* Succeed header start, fail later */
+  g_schema_io_calls = 0;
+  rc = schema2code_main(2, (char **)argv);
+  ASSERT(rc != 0);
+
+  g_schema_fail_io_after = -1;
+#endif
+
+  remove(filename);
+  remove("main_out.h");
+  remove("main_out.c");
+  PASS();
+}
+
 SUITE(schema_codegen_suite) {
+  RUN_TEST(test_schema_codegen_cli_exhaustive_io);
   RUN_TEST(test_schema_constraints_bounds);
-
   RUN_TEST(test_schema_codegen_circular_refs);
-
   RUN_TEST(test_codegen_config_json_guards);
-
   RUN_TEST(test_union_config_json_guards);
-
   RUN_TEST(test_schema_codegen_union_output);
-
   RUN_TEST(test_schema_codegen_union_inline_variants);
-
+  RUN_TEST(test_schema_codegen_union_arrays);
   RUN_TEST(test_schema_codegen_enum_output);
-
   RUN_TEST(test_codegen_config_utils_guards);
+  RUN_TEST(test_schema_codegen_specific_structs);
+  RUN_TEST(test_schema_codegen_main_paths);
 }
 
 #ifdef __cplusplus

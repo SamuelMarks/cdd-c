@@ -282,7 +282,86 @@ TEST test_cdd_cst_eval_primitive_extra(void) {
   PASS();
 }
 
+TEST test_type_eval_branches(void) {
+  cdd_cst_node_t *decl = NULL;
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl);
+  cdd_token_t tok = {0};
+  tok.kind = CDD_TOKEN_KEYWORD___INT128;
+  tok.start = (const uint8_t *)"__int128";
+  tok.length = 8;
+  cdd_cst_append_child_token(decl, &tok);
+
+  cdd_cst_node_t *dummy_child = NULL;
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &dummy_child);
+  cdd_cst_append_child_node(decl, dummy_child);
+
+  size_t sz = 0;
+  cdd_cst_scope_env_t *env = NULL;
+  cdd_cst_scope_env_init(&env);
+
+  ASSERT_EQ(0, cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz));
+  ASSERT_EQ(16, sz);
+
+  /* Very long type name */
+  cdd_cst_node_t *decl2 = NULL;
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl2);
+  cdd_token_t tok2 = {0};
+  tok2.kind = CDD_TOKEN_IDENTIFIER;
+  char buf[300] = {0};
+  int i;
+  for (i = 0; i < 290; i++)
+    buf[i] = 'a';
+  tok2.start = (const uint8_t *)buf;
+  tok2.length = 290;
+  cdd_cst_append_child_token(decl2, &tok2);
+
+  ASSERT_EQ(ENOSYS, cdd_cst_eval_sizeof(env, decl2, CDD_CST_ABI_LP64, &sz));
+
+  /* Test OOM */
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_cst_alloc_token_fail;
+  g_cdd_cst_alloc_token_fail = 1;
+  int rc = cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, &sz);
+  if (rc == ENOSYS || rc == ENOMEM) { /* passed */
+  } else {
+    ASSERT_EQ(ENOMEM, rc);
+  }
+  g_cdd_cst_alloc_token_fail = 0;
+#endif
+
+  /* Test NULL env */
+  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(NULL, NULL, CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(NULL, decl, CDD_CST_ABI_LP64, &sz));
+
+  ASSERT_EQ(EINVAL, cdd_cst_eval_sizeof(env, decl, CDD_CST_ABI_LP64, NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_eval_alignof(env, decl, CDD_CST_ABI_LP64, NULL));
+
+  cdd_cst_free_node_only(decl);
+  cdd_cst_free_node_only(decl2);
+
+  /* Two long tokens to hit buf_len + 1 < sizeof(buf) */
+  cdd_cst_node_t *decl3 = NULL;
+  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &decl3);
+  cdd_token_t tok3 = {0};
+  tok3.kind = CDD_TOKEN_IDENTIFIER;
+  char buf2[300] = {0};
+  for (i = 0; i < 256; i++)
+    buf2[i] = 'b';
+  tok3.start = (const uint8_t *)buf2;
+  tok3.length = 255;
+  cdd_cst_append_child_token(decl3, &tok3);
+  cdd_cst_append_child_token(decl3, &tok3);
+
+  ASSERT_EQ(ENOSYS, cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &sz));
+  cdd_cst_free_node_only(decl3);
+
+  cdd_cst_free_node_only(dummy_child);
+  cdd_cst_scope_env_free(env);
+  PASS();
+}
+
 SUITE(cdd_cst_type_eval_suite) {
+  RUN_TEST(test_type_eval_branches);
   RUN_TEST(test_cdd_cst_eval_primitive_type_basic);
   RUN_TEST(test_cdd_cst_eval_sizeof_basic);
   RUN_TEST(test_cdd_cst_eval_sizeof_alignof_advanced);

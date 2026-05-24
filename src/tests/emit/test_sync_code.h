@@ -7,6 +7,7 @@ extern "C" {
 
 /* clang-format off */
 #include "functions/emit/sync.h"
+#include "functions/parse/fs.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 #include <greatest.h>
 #include <stdio.h>
@@ -263,12 +264,46 @@ TEST test_patch_header_ignore_others(void) {
   PASS();
 }
 
+TEST test_sync_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  const char *argv[] = {"header.h", "impl.c"};
+  remove("header.h");
+
+  FILE *f = fopen("header.h", "w");
+  if (f) {
+    fprintf(f, "struct A { int a; };\n");
+    fclose(f);
+  }
+
+  extern int g_cdd_fail_alloc;
+  extern int g_cdd_fprintf_fail;
+  g_cdd_fprintf_fail = 8001;
+  int rc_s = sync_code_main(2, (char **)argv);
+  printf("test_sync_oom rc_s=%d\n", rc_s);
+  g_cdd_fail_alloc = 0;
+  if (rc_s != EIO)
+    printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
+  ASSERT_EQ(EIO, rc_s);
+
+  extern int g_cdd_fprintf_fail;
+  g_cdd_fprintf_fail = 8002;
+  int rc_s2 = sync_code_main(2, (char **)argv);
+  g_cdd_fprintf_fail = 0;
+  ASSERT_EQ(0, rc_s2);
+  g_cdd_fail_alloc = 0;
+
+  remove("header.h");
+#endif
+  PASS();
+}
+
 /**
  * @brief sync_code_suite
  */
 SUITE(sync_code_suite) {
   RUN_TEST(test_sync_code_wrong_args);
   RUN_TEST(test_sync_code_main_argc);
+  RUN_TEST(test_sync_oom);
   RUN_TEST(test_sync_code_file_missing);
   RUN_TEST(test_sync_code_simple_struct_enum);
   RUN_TEST(test_sync_code_empty_header);

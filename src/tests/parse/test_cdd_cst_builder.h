@@ -87,6 +87,8 @@ TEST test_cdd_cst_builder_basic(void) {
   ASSERT_EQ(0, rc);
 
   /* Manual tree free since we built it from scratch without a lexer list */
+
+  cdd_cst_free_node_only(NULL);
   cdd_cst_tree_free(tree);
 
   PASS();
@@ -475,8 +477,206 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_cst_realloc_fail;
+#endif
+
+TEST test_cdd_cst_builder_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_builder_t b;
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *root = NULL;
+  int rc;
+
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  tree->root = root;
+  cdd_cst_builder_init(&b, tree, root);
+
+  g_cdd_cst_alloc_token_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "a"));
+  g_cdd_cst_alloc_token_fail = 0;
+
+  b.error_state = 0;
+
+  /* Trigger realloc in track_synthesized */
+  tree->synthesized_capacity = 0;
+  tree->num_synthesized = 0;
+  g_cdd_cst_realloc_fail = 1;
+  {
+    cdd_token_t *out_tok = NULL;
+    ASSERT_EQ(ENOMEM, cdd_cst_create_token(tree, CDD_TOKEN_IDENTIFIER, "test",
+                                           &out_tok));
+  }
+  g_cdd_cst_realloc_fail = 0;
+  g_cdd_cst_realloc_fail = 1;
+  {
+    cdd_cst_node_t *n1 = NULL;
+    cdd_cst_node_t *n2 = NULL;
+    cdd_token_t tok = {0};
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1);
+    cdd_cst_alloc_node(CDD_CST_STATEMENT, &n2);
+    ASSERT_EQ(ENOMEM, cdd_cst_append_child_node(n1, n2));
+    ASSERT_EQ(ENOMEM, cdd_cst_append_child_token(n1, &tok));
+    cdd_cst_free_node_only(n1);
+    cdd_cst_free_node_only(n2);
+  }
+  g_cdd_cst_realloc_fail = 0;
+
+  /* To trigger append_child_token failure inside cdd_cst_bld_token */
+  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success1");
+  b.target_node->capacity = 0;
+  b.target_node->num_children = 0;
+  g_cdd_cst_realloc_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "trigger"));
+  g_cdd_cst_realloc_fail = 0;
+  b.error_state = 0;
+
+  /* To trigger append_child_node failure inside cdd_cst_bld_block_open */
+  cdd_cst_bld_token(&b, CDD_TOKEN_IDENTIFIER, "success2");
+  b.target_node->capacity = 0;
+  b.target_node->num_children = 0;
+  g_cdd_cst_realloc_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_open(&b));
+  g_cdd_cst_realloc_fail = 0;
+  b.error_state = 0;
+
+  g_cdd_cst_alloc_node_fail = 1;
+  {
+    cdd_cst_node_t *n1 = NULL;
+    ASSERT_EQ(ENOMEM, cdd_cst_alloc_node(CDD_CST_STATEMENT, &n1));
+  }
+  g_cdd_cst_alloc_node_fail = 0;
+
+  /* For trivia array OOM */
+  g_cdd_cst_alloc_token_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "test"));
+  g_cdd_cst_alloc_token_fail = 0;
+  b.error_state = 0;
+
+  cdd_cst_tree_free(tree);
+#endif
+  PASS();
+}
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_cst_realloc_fail;
+#endif
+
+TEST test_cdd_cst_builder_punct_all(void) {
+  cdd_cst_builder_t b;
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *root = NULL;
+
+  tree = (cdd_cst_tree_t *)calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  tree->root = root;
+  cdd_cst_builder_init(&b, tree, root);
+
+  /* Test all punct types */
+  cdd_cst_bld_punct(&b, "[");
+  cdd_cst_bld_punct(&b, "]");
+  cdd_cst_bld_punct(&b, "{");
+  cdd_cst_bld_punct(&b, "}");
+  cdd_cst_bld_punct(&b, "...");
+  cdd_cst_bld_punct(&b, "->");
+  cdd_cst_bld_punct(&b, ".");
+  cdd_cst_bld_punct(&b, "+");
+  cdd_cst_bld_punct(&b, "-");
+  cdd_cst_bld_punct(&b, "*");
+  cdd_cst_bld_punct(&b, "/");
+  cdd_cst_bld_punct(&b, "%");
+  cdd_cst_bld_punct(&b, "==");
+  cdd_cst_bld_punct(&b, "!=");
+  cdd_cst_bld_punct(&b, "<");
+  cdd_cst_bld_punct(&b, ">");
+  cdd_cst_bld_punct(&b, "<=");
+  cdd_cst_bld_punct(&b, ">=");
+  cdd_cst_bld_punct(&b, "&&");
+  cdd_cst_bld_punct(&b, "||");
+  cdd_cst_bld_punct(&b, "!");
+  cdd_cst_bld_punct(&b, "&");
+  cdd_cst_bld_punct(&b, "|");
+  cdd_cst_bld_punct(&b, "^");
+  cdd_cst_bld_punct(&b, "~");
+  cdd_cst_bld_punct(&b, "<<");
+  cdd_cst_bld_punct(&b, ">>");
+  cdd_cst_bld_punct(&b, "=");
+  cdd_cst_bld_punct(&b, "+=");
+  cdd_cst_bld_punct(&b, "-=");
+  cdd_cst_bld_punct(&b, "*=");
+  cdd_cst_bld_punct(&b, "/=");
+  cdd_cst_bld_punct(&b, "%=");
+  cdd_cst_bld_punct(&b, "<<=");
+  cdd_cst_bld_punct(&b, ">>=");
+  cdd_cst_bld_punct(&b, "&=");
+  cdd_cst_bld_punct(&b, "^=");
+  cdd_cst_bld_punct(&b, "|=");
+  cdd_cst_bld_punct(&b, "?");
+  cdd_cst_bld_punct(&b, ":");
+  cdd_cst_bld_punct(&b, ",");
+  cdd_cst_bld_punct(&b, "#");
+  cdd_cst_bld_punct(&b, "##");
+  cdd_cst_bld_punct(&b, "++");
+  cdd_cst_bld_punct(&b, "--");
+  cdd_cst_bld_punct(&b, "other");
+
+  /* Test all remaining builder functions for EINVAL and error_state */
+  ASSERT_EQ(EINVAL, cdd_cst_bld_include(NULL, "a", 0));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_ifndef(NULL, "a"));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_ifdef(NULL, "a"));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_line_comment(NULL, "a"));
+  ASSERT_EQ(EINVAL, cdd_cst_bld_block_comment(NULL, "a"));
+
+  b.error_state = ENOMEM;
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "a", 0));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_ifndef(&b, "a"));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_ifdef(&b, "a"));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_line_comment(&b, "a"));
+  ASSERT_EQ(ENOMEM, cdd_cst_bld_block_comment(&b, "a"));
+  b.error_state = 0;
+
+  cdd_cst_bld_include(&b, "a", 0);
+  cdd_cst_bld_ifndef(&b, "a");
+  cdd_cst_bld_ifdef(&b, "a");
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cst_alloc_token_fail;
+    /* pool_string_safe OOM */
+    g_cdd_cst_alloc_token_fail = 1;
+    ASSERT_EQ(ENOMEM, cdd_cst_bld_ident(&b, "a"));
+    g_cdd_cst_alloc_token_fail = 0;
+    b.error_state = 0;
+
+    /* space OOM inside indent */
+    g_cdd_cst_alloc_token_fail = 1;
+    ASSERT_EQ(ENOMEM, cdd_cst_bld_indent(&b, 1));
+    g_cdd_cst_alloc_token_fail = 0;
+    b.error_state = 0;
+
+    /* include OOM coverage */
+    g_cdd_cst_alloc_token_fail = 1;
+    ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "test1.h", 1));
+    g_cdd_cst_alloc_token_fail = 0;
+    b.error_state = 0;
+
+    g_cdd_cst_alloc_token_fail = 1;
+    ASSERT_EQ(ENOMEM, cdd_cst_bld_include(&b, "test2.h", 0));
+    g_cdd_cst_alloc_token_fail = 0;
+    b.error_state = 0;
+  }
+#endif
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(cdd_cst_builder_suite) {
   RUN_TEST(test_cdd_cst_builder_basic);
+  RUN_TEST(test_cdd_cst_builder_extra);
   RUN_TEST(test_cdd_cst_builder_errors_extra);
   RUN_TEST(test_cdd_cst_builder_macros);
   RUN_TEST(test_cdd_cst_builder_quote);
@@ -486,6 +686,8 @@ SUITE(cdd_cst_builder_suite) {
   RUN_TEST(test_cdd_cst_builder_errors);
   RUN_TEST(test_cdd_cst_builder_trivia_and_splice);
   RUN_TEST(test_cdd_cst_builder_extra);
+  RUN_TEST(test_cdd_cst_builder_oom);
+  RUN_TEST(test_cdd_cst_builder_punct_all);
 }
 
 #ifdef __cplusplus

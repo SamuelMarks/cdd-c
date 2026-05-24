@@ -60,6 +60,14 @@ TEST test_standalone_json_gen(void) {
     f3.required = 1;
     sf.fields[sf.size++] = f3;
 
+    {
+      struct StructField f_opt_bool = {0};
+      strcpy(f_opt_bool.name, "opt_bool");
+      strcpy(f_opt_bool.type, "boolean");
+      f_opt_bool.required = 0;
+      sf.fields[sf.size++] = f_opt_bool;
+    }
+
     strcpy(f4.name, "my_num");
     strcpy(f4.type, "number");
     f4.required = 1;

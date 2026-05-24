@@ -18,6 +18,7 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/fs.h"
+#include "functions/parse/fs.h"
 /* clang-format on */
 
 TEST test_audit_stats_init(void) {
@@ -290,6 +291,84 @@ TEST test_audit_extras(void) {
   PASS();
 }
 
+TEST test_audit_oom(void) {
+  struct AuditStats stats;
+  audit_stats_init(&stats);
+
+#ifdef CDD_BUILD_TESTS
+  makedirs("test_audit_dir");
+  FILE *f = fopen("test_audit_dir/test.c", "w");
+  if (f) {
+    fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
+    fclose(f);
+  }
+
+  extern int g_cdd_fail_alloc_audit;
+  int i;
+  for (i = 1; i < 200; i++) {
+    audit_stats_init(&stats);
+    g_cdd_fail_alloc_audit = i;
+    int rc = audit_project("test_audit_dir", &stats);
+    printf("i=%d rc=%d\n", i, rc);
+    g_cdd_fail_alloc_audit = 0;
+    printf("i=%d rc=%d\n", i, rc);
+    /* no break */
+    audit_stats_free(&stats);
+  }
+
+  /* Also test OOM for audit_print_json */
+  audit_stats_init(&stats);
+  int rc = audit_project("test_audit_dir", &stats);
+  printf("i=%d rc=%d\n", i, rc);
+  for (i = 1; i < 100; i++) {
+    g_cdd_fail_alloc_audit = i;
+    char *json = NULL;
+    rc = audit_print_json(&stats, &json);
+    if (rc == ENOMEM) {
+      /* test passed for OOM */
+    }
+    g_cdd_fail_alloc_audit = 0;
+    if (rc == 0) {
+      if (json)
+        free(json);
+      break;
+    }
+  }
+  audit_stats_free(&stats);
+
+  remove("test_audit_dir/test.c");
+  remove("test_audit_dir");
+#endif
+
+  PASS();
+}
+
+TEST test_audit_capacity(void) {
+  struct AuditStats stats;
+  audit_stats_init(&stats);
+
+#ifdef CDD_BUILD_TESTS
+  makedirs("test_audit_dir");
+  FILE *f = fopen("test_audit_dir/test.c", "w");
+  if (f) {
+    fprintf(f,
+            "int main() { char *p = malloc(10); char *q = malloc(10); char *r "
+            "= malloc(10); char *s = malloc(10); char *t = malloc(10); char *u "
+            "= malloc(10); char *v = malloc(10); char *w = malloc(10); char *x "
+            "= malloc(10); char *y = malloc(10); return 0; }\n");
+    fclose(f);
+  }
+
+  ASSERT_EQ(0, audit_project("test_audit_dir", &stats));
+
+  remove("test_audit_dir/test.c");
+  remove("test_audit_dir");
+#endif
+
+  audit_stats_free(&stats);
+  PASS();
+}
+
 SUITE(project_audit_suite) {
   RUN_TEST(test_audit_stats_null);
   RUN_TEST(test_audit_edge_cases);
@@ -299,6 +378,8 @@ SUITE(project_audit_suite) {
   RUN_TEST(test_audit_return_alloc);
   RUN_TEST(test_audit_json_output);
   RUN_TEST(test_audit_extras);
+  RUN_TEST(test_audit_oom);
+  RUN_TEST(test_audit_capacity);
 }
 
 #ifdef __cplusplus

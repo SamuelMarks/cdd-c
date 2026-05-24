@@ -277,3 +277,10 @@ int main(int argc, char **argv) {
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
+
+#ifdef CDD_BUILD_TESTS
+int g_cdd_fail_alloc = 0;
+int g_cdd_fail_alloc_audit = 0;
+int g_cdd_fprintf_fail = 0;
+int g_cdd_mock_dlopen_success = 0;
+#endif

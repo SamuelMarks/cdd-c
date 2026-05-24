@@ -23,7 +23,28 @@
  * @return 0 on success.
  */
 static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
-  char *d = (char *)malloc(n + 1);
+  char *d = NULL;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      d = NULL;
+    else
+      d = (char *)malloc(n + 1);
+  }
+#else
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      d = NULL;
+    else
+      d = (char *)malloc(n + 1);
+  }
+#else
+  d = (char *)malloc(n + 1);
+#endif
+#endif
   if (!d) {
     *_out_val = NULL;
     return 0;
@@ -92,8 +113,19 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {
       if (brace_depth >= brace_cap) {
         brace_cap = brace_cap == 0 ? 16 : brace_cap * 2;
+#ifdef CDD_BUILD_TESTS
+        {
+          extern int g_cdd_fail_alloc;
+          if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+            brace_stack = NULL;
+          else
+            brace_stack =
+                (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
+        }
+#else
         brace_stack =
             (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
+#endif
         if (!brace_stack) {
           res = ENOMEM;
           goto cleanup;

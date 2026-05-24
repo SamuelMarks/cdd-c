@@ -349,6 +349,11 @@ int cdd_cst_bld_block_close(cdd_cst_builder_t *builder) {
 
 static const char *pool_string(cdd_cst_tree_t *tree, const char *str) {
   char *dup;
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_cst_alloc_token_fail;
+  if (g_cdd_cst_alloc_token_fail)
+    return NULL;
+#endif
   if (!tree || !str)
     return NULL;
 #if defined(_MSC_VER)
@@ -518,12 +523,21 @@ int cdd_cst_bld_line_comment(cdd_cst_builder_t *builder, const char *text) {
 
 static int create_trivia(cdd_cst_tree_t *tree, const char *text,
                          cdd_trivia_t **out_trivia) {
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_cst_alloc_token_fail;
+#endif
   cdd_trivia_t *t;
   char *dup;
   if (!tree || !text || !out_trivia)
     return EINVAL;
   *out_trivia = NULL;
-  t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cst_alloc_token_fail)
+    t = NULL;
+  else
+#endif
+    t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+
   if (!t) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;

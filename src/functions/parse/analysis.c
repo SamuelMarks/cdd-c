@@ -122,7 +122,18 @@ static int get_assigned_var(const struct TokenList *tokens, size_t assign_idx,
 
   if (tokens->tokens[i].kind == TOKEN_IDENTIFIER) {
     const struct Token *tok = &tokens->tokens[i];
-    char *name = (char *)malloc(tok->length + 1);
+    char *name = NULL;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        name = NULL;
+      else
+        name = (char *)malloc(tok->length + 1);
+    }
+#else
+    name = (char *)malloc(tok->length + 1);
+#endif
     if (!name) {
       *_out_val = NULL;
       return 0;

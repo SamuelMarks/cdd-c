@@ -405,6 +405,21 @@ TEST test_c_cdd_stricmp(void) {
 
 /* --- Suite definition --- */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_str_unquote_malloc_fail;
+#endif
+
+TEST test_c_cdd_destringize_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  char *out = NULL;
+  g_str_unquote_malloc_fail = 1;
+  ASSERT_EQ(0, c_cdd_destringize("\"test\"", &out));
+  ASSERT_EQ(NULL, out);
+  g_str_unquote_malloc_fail = 0;
+#endif
+  PASS();
+}
+
 SUITE(str_utils_suite) {
   RUN_TEST(test_c_cdd_stricmp);
   RUN_TEST(test_c_cdd_strdup_basic);
@@ -428,6 +443,7 @@ SUITE(str_utils_suite) {
   RUN_TEST(test_c_cdd_ref_is_type_null);
   RUN_TEST(test_c_cdd_str_trim_trailing_whitespace_null);
   RUN_TEST(test_c_cdd_destringize);
+  RUN_TEST(test_c_cdd_destringize_oom);
 }
 
 #ifdef __cplusplus

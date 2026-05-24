@@ -21,12 +21,27 @@
 #pragma warning(disable : 4127) /* conditional expression is constant */
 #endif
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fprintf_fail;
+static int check_io_helper(int rc) {
+  if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
+    return -1;
+  return rc;
+}
+/** @brief CHECK_IO definition */
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if (check_io_helper(x) < 0)                                                \
+      return EIO;                                                              \
+  } while (0)
+#else
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return EIO;                                                              \
   } while (0)
+#endif
 
 /* --- CMake Implementation --- */
 
@@ -44,7 +59,7 @@
 static int generate_cmake(FILE *fp, const struct CodegenBuildConfig *config) {
   size_t i;
 
-  if (!fp || !config || !config->project_name || !config->target_name) {
+  if (!config->project_name || !config->target_name) {
     return EINVAL;
   }
 

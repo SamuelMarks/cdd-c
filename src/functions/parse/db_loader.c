@@ -39,10 +39,36 @@ static int check_lib(const char *win_name, const char *posix_name,
     return 22; /* EINVAL */
   *out_avail = 0;
 #if defined(_WIN32)
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_mock_dlopen_success;
+    HMODULE h = g_cdd_mock_dlopen_success ? (HMODULE)1 : LoadLibraryA(win_name);
+    if (h) {
+      if (!g_cdd_mock_dlopen_success)
+        FreeLibrary(h);
+      *out_avail = 1;
+      return 0;
+    }
+  }
+#else
   {
     HMODULE h = LoadLibraryA(win_name);
     if (h) {
       FreeLibrary(h);
+      *out_avail = 1;
+      return 0;
+    }
+  }
+#endif
+#else
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_mock_dlopen_success;
+    void *h =
+        g_cdd_mock_dlopen_success ? (void *)1 : dlopen(posix_name, RTLD_LAZY);
+    if (h) {
+      if (!g_cdd_mock_dlopen_success)
+        dlclose(h);
       *out_avail = 1;
       return 0;
     }
@@ -56,6 +82,7 @@ static int check_lib(const char *win_name, const char *posix_name,
       return 0;
     }
   }
+#endif
 #endif
   return 0;
 }

@@ -226,6 +226,17 @@ TEST test_cst_splice_children(void) {
               tree->root); /* updated variable points to the new root */
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cst_alloc_node_fail;
+    cdd_cst_node_t *o_root = tree->root;
+    g_cdd_cst_alloc_node_fail = 1;
+    ASSERT_EQ(ENOMEM,
+              cdd_cst_splice_children(tree, &o_root, 0, 1, new_children, 1));
+    g_cdd_cst_alloc_node_fail = 0;
+  }
+#endif
+
   cdd_cst_tree_free(tree);
 
   /* Test passing NULL for node_ptr on non-root */

@@ -60,6 +60,7 @@ static int parse_int_suffixes(const char *str, struct IntegerInfo *info) {
              'uLL'. We need to handle `ll` as a unit or statefully. */
           info->is_long = 0;
           info->is_long_long = 1;
+          i++;
         } else {
           /* Just valid transition from single L to LL if current is 'l'?
              Actually logic:
@@ -107,8 +108,7 @@ static int parse_binary_str(const char *str, char **endptr,
     }
     p++;
   }
-  if (endptr)
-    *endptr = (char *)p;
+  *endptr = (char *)p;
   {
     *_out_val = val;
     return 0;
@@ -195,19 +195,16 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
     /* Parse Suffixes */
     if (*end_ptr != '\0') {
       /* C23 Decimal Float Suffixes: df/DF, dd/DD, dl/DL */
-      if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
-          (end_ptr[1] == 'f' || end_ptr[1] == 'F')) {
-        out->data.floating.is_decimal = DFP_32;
-        if (end_ptr[2] != '\0')
+      if (end_ptr[0] == 'd' || end_ptr[0] == 'D') {
+        if (end_ptr[1] == 'f' || end_ptr[1] == 'F') {
+          out->data.floating.is_decimal = DFP_32;
+        } else if (end_ptr[1] == 'd' || end_ptr[1] == 'D') {
+          out->data.floating.is_decimal = DFP_64;
+        } else if (end_ptr[1] == 'l' || end_ptr[1] == 'L') {
+          out->data.floating.is_decimal = DFP_128;
+        } else {
           return EINVAL;
-      } else if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
-                 (end_ptr[1] == 'd' || end_ptr[1] == 'D')) {
-        out->data.floating.is_decimal = DFP_64;
-        if (end_ptr[2] != '\0')
-          return EINVAL;
-      } else if ((end_ptr[0] == 'd' || end_ptr[0] == 'D') &&
-                 (end_ptr[1] == 'l' || end_ptr[1] == 'L')) {
-        out->data.floating.is_decimal = DFP_128;
+        }
         if (end_ptr[2] != '\0')
           return EINVAL;
       }
@@ -244,7 +241,7 @@ int parse_numeric_literal(const char *str, struct NumericValue *out) {
 
     if (errno == ERANGE)
       return ERANGE;
-    if (end_ptr == start_digits && *start_digits != '\0')
+    if (end_ptr == start_digits)
       return EINVAL;
 
     out->data.integer.value = val;

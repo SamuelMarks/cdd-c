@@ -107,10 +107,48 @@ TEST test_scan_classic_enum(void) {
 /**
  * @brief c_inspector_types_suite
  */
+
+TEST test_inspector_nulls(void) {
+  ASSERT_EQ(EINVAL, type_def_list_init(NULL));
+  type_def_list_free(NULL);
+
+  /* Create an empty struct/enum with NULL details to test free bounds */
+  struct TypeDefList list = {0};
+  type_def_list_init(&list);
+
+  list.items = calloc(2, sizeof(struct TypeDefinition));
+  list.size = 2;
+  list.capacity = 2;
+
+  list.items[0].kind = KIND_ENUM;
+  list.items[0].details.enum_members = NULL;
+
+  list.items[1].kind = KIND_STRUCT;
+  list.items[1].details.struct_fields = NULL;
+
+  type_def_list_free(&list);
+
+  /* Create a struct with fields, one of which has NULL name */
+  type_def_list_init(&list);
+  list.items = calloc(1, sizeof(struct TypeDefinition));
+  list.size = 1;
+  list.capacity = 1;
+  list.items[0].kind = KIND_STRUCT;
+  list.items[0].details.struct_fields = calloc(1, sizeof(struct StructFields));
+  list.items[0].details.struct_fields->fields =
+      calloc(1, sizeof(struct StructField));
+  list.items[0].details.struct_fields->size = 1;
+  list.items[0].details.struct_fields->capacity = 1;
+  type_def_list_free(&list);
+
+  PASS();
+}
+
 SUITE(c_inspector_types_suite) {
   RUN_TEST(test_scan_c23_enum_fixed_type);
   RUN_TEST(test_scan_c23_enum_fixed_type_whitespace);
   RUN_TEST(test_scan_classic_enum);
+  RUN_TEST(test_inspector_nulls);
 }
 
 #ifdef __cplusplus

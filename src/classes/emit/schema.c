@@ -12,6 +12,27 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+#include <stdarg.h>
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  va_list args;
+  int rc;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  rc = vfprintf(stream, format, args);
+  va_end(args);
+  return rc;
+}
+#define FPRINTF_HOOK cdd_fprintf_hook
+#else
+#define FPRINTF_HOOK fprintf
+#endif
+
 int schema_constraints_init(struct SchemaConstraints *sc) {
   if (!sc)
     return EINVAL;
@@ -22,6 +43,10 @@ int schema_constraints_init(struct SchemaConstraints *sc) {
   sc->additional_properties = NULL;
   return 0;
 }
+
+#ifdef CDD_BUILD_TESTS
+int g_schema_strdup_fail = 0;
+#endif
 
 int schema_constraints_add_required(struct SchemaConstraints *sc,
                                     const char *field) {
@@ -38,7 +63,15 @@ int schema_constraints_add_required(struct SchemaConstraints *sc,
     sc->required = new_req;
     sc->required_capacity = new_cap;
   }
-  c_cdd_strdup(field, &sc->required[sc->required_count]);
+#ifdef CDD_BUILD_TESTS
+  if (g_schema_strdup_fail) {
+    sc->required[sc->required_count] = NULL;
+  } else {
+#endif
+    c_cdd_strdup(field, &sc->required[sc->required_count]);
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!sc->required[sc->required_count])
     return ENOMEM;
 

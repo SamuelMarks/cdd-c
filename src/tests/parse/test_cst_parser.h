@@ -356,7 +356,101 @@ TEST test_cst_find_first(void) {
   PASS();
 }
 
+TEST test_cst_parser_extra(void) {
+  cdd_cst_tree_t *tree = NULL;
+
+  /* Empty tree free */
+  cdd_cst_tree_t *t2 = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_tree_free(t2);
+
+  /* Missing EOF / No tokens */
+  cdd_cst_parse(az_span_create_from_str(""), &tree);
+  cdd_cst_tree_free(tree);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cst_alloc_node_fail;
+    extern int g_cdd_cst_realloc_fail;
+
+    g_cdd_cst_alloc_node_fail = 1;
+    tree = NULL;
+    ASSERT_EQ(ENOMEM, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    g_cdd_cst_alloc_node_fail = 0;
+
+    g_cdd_cst_alloc_node_fail = 2;
+    tree = NULL;
+    ASSERT_EQ(ENOMEM, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    if (tree)
+      cdd_cst_tree_free(tree);
+    g_cdd_cst_alloc_node_fail = 0;
+
+    g_cdd_cst_realloc_fail = 1;
+    tree = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str("int x;"), &tree));
+    if (tree)
+      cdd_cst_tree_free(tree);
+    g_cdd_cst_realloc_fail = 0;
+
+    g_cdd_cst_realloc_fail = 2;
+    tree = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                   "int a, b, c, d, e, f, g, h, i, j;"),
+                               &tree));
+    if (tree)
+      cdd_cst_tree_free(tree);
+    g_cdd_cst_realloc_fail = 0;
+
+    g_cdd_cst_realloc_fail = 2;
+    tree = NULL;
+    ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(
+                                   "int a, b, c, d, e, f, g, h, i, j;"),
+                               &tree));
+    if (tree)
+      cdd_cst_tree_free(tree);
+    g_cdd_cst_realloc_fail = 0;
+  }
+#endif
+
+  PASS();
+}
+
+TEST parse_tokens_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  struct TokenList *tl = NULL;
+  tokenize(
+      az_span_create_from_str("int main() { char *p = malloc(10); return 0; }"),
+      &tl);
+
+  struct CstNodeList cst_nodes;
+  memset(&cst_nodes, 0, sizeof(cst_nodes));
+
+  extern int g_cdd_fail_alloc;
+  int i;
+  for (i = 1; i < 200; i++) {
+    memset(&cst_nodes, 0, sizeof(cst_nodes));
+    g_cdd_fail_alloc = i;
+    int rc = parse_tokens(tl, &cst_nodes);
+    g_cdd_fail_alloc = 0;
+    if (rc == 0) {
+      free_cst_node_list(&cst_nodes);
+      break;
+    }
+    free_cst_node_list(&cst_nodes);
+  }
+
+  free_token_list(tl);
+#endif
+  PASS();
+}
+
+TEST test_cst_branches(void) {
+  struct CstNode *out_node_ptr = NULL;
+  ASSERT_EQ(0, cst_find_first(NULL, 0, &out_node_ptr));
+  PASS();
+}
+
 SUITE(cst_parser_suite) {
+  RUN_TEST(test_cst_parser_extra);
   RUN_TEST(add_node_basic);
   RUN_TEST(parse_tokens_basic);
   RUN_TEST(parse_tokens_empty);
@@ -364,6 +458,8 @@ SUITE(cst_parser_suite) {
   RUN_TEST(parse_tokens_forward_declaration);
   RUN_TEST(parse_tokens_anonymous_struct);
   RUN_TEST(parse_tokens_struct_variable_declaration);
+  RUN_TEST(parse_tokens_oom);
+  RUN_TEST(test_cst_branches);
 
   RUN_TEST(parse_simple_array_init);
   RUN_TEST(parse_compound_literal);

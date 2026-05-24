@@ -71,9 +71,33 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 /**
  * @brief Declaration hoist test suite.
  */
+
+TEST test_decl_hoist_edges(void) {
+  hoist_site_list_init(NULL);
+  hoist_site_list_free(NULL);
+
+  struct HoistSiteList list = {0};
+  hoist_site_list_free(&list);
+
+  struct TokenList *tl = NULL;
+  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(NULL, &list));
+  ASSERT_EQ(EINVAL, scan_for_mixed_declarations(tl, NULL));
+
+  tokenize(az_span_create_from_str("int main() { int a; return 0; }"), &tl);
+  list.capacity = 1;
+  list.count = 1;
+  list.sites = calloc(1, sizeof(struct HoistSite));
+
+  hoist_site_list_free(&list);
+
+  free_token_list(tl);
+  PASS();
+}
+
 SUITE(decl_hoist_suite) {
   RUN_TEST(test_scan_for_mixed_declarations_basic);
   RUN_TEST(test_scan_for_mixed_declarations_errors);
+  RUN_TEST(test_decl_hoist_edges);
 }
 
 #ifdef __cplusplus

@@ -18,11 +18,25 @@
 #endif
 
 /** @brief CHECK_IO definition */
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fprintf_fail;
+static int check_io_helper_make(int rc) {
+  if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
+    return -1;
+  return rc;
+}
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if (check_io_helper_make(x) < 0)                                           \
+      return EIO;                                                              \
+  } while (0)
+#else
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return EIO;                                                              \
   } while (0)
+#endif
 
 int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   size_t i;

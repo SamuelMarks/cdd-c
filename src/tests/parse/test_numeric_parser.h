@@ -31,6 +31,10 @@ TEST test_parse_dec_int(void) {
   ASSERT_EQ(123, nv.data.integer.value);
   ASSERT_EQ(10, nv.data.integer.base);
   ASSERT_EQ(0, nv.data.integer.is_unsigned);
+
+  ASSERT_EQ(0, parse_numeric_literal("1Lull", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1luLL", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("0", &nv));
   PASS();
 }
 
@@ -44,6 +48,20 @@ TEST test_parse_hex_int(void) {
   ASSERT_EQ(NUMERIC_INTEGER, nv.kind);
   ASSERT_EQ(255, nv.data.integer.value);
   ASSERT_EQ(16, nv.data.integer.base);
+
+  ASSERT_EQ(0, parse_numeric_literal("0X1A", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1e-5", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1E+5", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("0x1p-5", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("0X1P+5", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1e*", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("e5", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("p5", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("0x1p*", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1e-5*", &nv));
+
   PASS();
 }
 
@@ -134,6 +152,10 @@ TEST test_parse_float_suffix(void) {
   ASSERT(nv.data.floating.is_float);
 
   ASSERT_EQ(0, parse_numeric_literal("1.0L", &nv));
+
+  ASSERT_EQ(0, parse_numeric_literal("1.0F", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1.0l", &nv));
+
   ASSERT(nv.data.floating.is_long_double);
   PASS();
 }
@@ -147,6 +169,9 @@ TEST test_parse_decimal_float_suffixes(void) {
 
   /* _Decimal32 */
   ASSERT_EQ(0, parse_numeric_literal("1.2df", &nv));
+
+  ASSERT_EQ(0, parse_numeric_literal("1.2DF", &nv));
+
   ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
   ASSERT_EQ(DFP_32, nv.data.floating.is_decimal);
 
@@ -154,6 +179,7 @@ TEST test_parse_decimal_float_suffixes(void) {
   ASSERT_EQ(0, parse_numeric_literal("3.14dd", &nv));
   ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
   ASSERT_EQ(DFP_64, nv.data.floating.is_decimal);
+  ASSERT_EQ(0, parse_numeric_literal("3.14dD", &nv));
 
   /* _Decimal128 */
   ASSERT_EQ(0, parse_numeric_literal("0.1DL",
@@ -178,8 +204,15 @@ TEST test_parse_errors(void) {
   struct NumericValue nv;
   /* Bad hex */
   ASSERT_EQ(EINVAL, parse_numeric_literal("0xZZ", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("0x", &nv));
+  ASSERT_EQ(EINVAL, parse_numeric_literal("0b", &nv));
+
   /* Bad float suffix */
   ASSERT_EQ(EINVAL, parse_numeric_literal("1.0z", &nv));
+
+  ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dz", &nv));
+
   /* Mixed decimal float suffix (e.g. dL vs dl/DL, spec implies case consistency
      but parser might be strict or loose. Implementation checks [0] and [1]. 'd'
      'L' -> DFP_128. Let's check invalid combo 'dx'. */
@@ -199,6 +232,15 @@ TEST test_parse_errors(void) {
   ASSERT_EQ(0, parse_numeric_literal("1Lu", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1llu", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1uLL", &nv));
+
+  ASSERT_EQ(0, parse_numeric_literal("1LL", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1Ll", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1ULL", &nv));
+
+  ASSERT_EQ(0, parse_numeric_literal("1LL", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1Ll", &nv));
+  ASSERT_EQ(0, parse_numeric_literal("1ULL", &nv));
+
   ASSERT_EQ(0, parse_numeric_literal("1Ull", &nv));
 
   ASSERT_EQ(

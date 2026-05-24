@@ -33,6 +33,9 @@ struct safe_crt_arena_t {
 
 static safe_crt_arena_t *global_arena = NULL;
 static cdd_cst_tree_t *current_tree = NULL;
+#ifdef CDD_BUILD_TESTS
+int g_safe_crt_malloc_fail = 0;
+#endif
 
 static void arena_free_all(void) {
   safe_crt_arena_t *node = global_arena;
@@ -49,7 +52,15 @@ static int arena_alloc(size_t len, void **out_ptr) {
   if (!out_ptr)
     return EINVAL;
   *out_ptr = NULL;
-  node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
+#ifdef CDD_BUILD_TESTS
+  if (g_safe_crt_malloc_fail == 1) {
+    node = NULL;
+  } else {
+#endif
+    node = (safe_crt_arena_t *)malloc(sizeof(safe_crt_arena_t) + len);
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!node) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -102,7 +113,9 @@ static int parse_expr_ast(cdd_cst_node_t *stmt, size_t *idx, int stop_at_comma,
     if (t->kind == CDD_TOKEN_COMMA && stop_at_comma)
       break;
 
-    arena_alloc(sizeof(expr_t), (void **)&node);
+    if (arena_alloc(sizeof(expr_t), (void **)&node) != 0) {
+      break;
+    }
     memset(node, 0, sizeof(expr_t));
     node->tok = t;
 
@@ -538,6 +551,16 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           is_safe = 23;
         else if (strcmp(name, "_putenv") == 0 || strcmp(name, "_wputenv") == 0)
           is_safe = 24;
+        else if (strcmp(name, "strerror") == 0 ||
+                 strcmp(name, "_strerror") == 0)
+          is_safe = 27;
+        else if (strcmp(name, "_wcserror") == 0)
+          is_safe = 26;
+        else if (strcmp(name, "_ecvt") == 0 || strcmp(name, "_fcvt") == 0)
+          is_safe = 28;
+        else if (strcmp(name, "strtok") == 0 || strcmp(name, "wcstok") == 0 ||
+                 strcmp(name, "_mbstok") == 0)
+          is_safe = 29;
         else if (strcmp(name, "qsort") == 0 || strcmp(name, "bsearch") == 0)
           is_safe = 25;
       }
@@ -547,7 +570,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
 
       if (is_safe && is_safe != 18 && is_safe != 19 && is_safe != 20 &&
           is_safe != 21 && is_safe != 22 && is_safe != 23 && is_safe != 24 &&
-          is_safe != 25) {
+          is_safe != 25 && is_safe != 26 && is_safe != 27 && is_safe != 28 &&
+          is_safe != 29) {
         char safe_name[256];
         cdd_token_t *ct = NULL;
         if (strcmp(name, "strlen") == 0) {
@@ -910,6 +934,52 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
         cdd_cst_bld_punct(bld, ",");
         cdd_cst_bld_space(bld);
         cdd_cst_bld_ident(bld, "NULL");
+      } else if (is_safe == 29) {
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+        cdd_cst_bld_ident(bld, "_s");
+        cdd_cst_bld_punct(bld, "(");
+        for (k = 0; k < node->num_args; k++) {
+          if (k > 0) {
+            cdd_cst_bld_punct(bld, ",");
+            cdd_cst_bld_space(bld);
+          }
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
+        }
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_punct(bld, "&");
+        if (strcmp(name, "strtok") == 0)
+          cdd_cst_bld_ident(bld, "__strtokctx");
+        else if (strcmp(name, "wcstok") == 0)
+          cdd_cst_bld_ident(bld, "__wcstokctx");
+        else
+          cdd_cst_bld_ident(bld, "__mbstokctx");
+      } else if (is_safe == 26 || is_safe == 27 || is_safe == 28) {
+        const char *bufname =
+            is_safe == 26
+                ? "__wcserrbuf"
+                : (is_safe == 27 ? "__errbuf"
+                                 : (strcmp(name, "_ecvt") == 0 ? "__ecvtbuf"
+                                                               : "__fcvtbuf"));
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, name));
+        cdd_cst_bld_ident(bld, "_s");
+        cdd_cst_bld_punct(bld, "(");
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, bufname));
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, is_safe == 28 ? "128" : "94");
+        for (k = 0; k < node->num_args; k++) {
+          cdd_cst_bld_punct(bld, ",");
+          cdd_cst_bld_space(bld);
+          changes += emit_ast_bld(node->args[k], bld, is_msc);
+        }
+        cdd_cst_bld_punct(bld, ")");
+        cdd_cst_bld_punct(bld, ",");
+        cdd_cst_bld_space(bld);
+        cdd_cst_bld_ident(bld, pool_string_safe(bld->tree, bufname));
+        cdd_cst_bld_punct(bld, ")");
       } else if (is_safe == 7) {
         size_t format_idx = 0;
         if (strcmp(name, "fscanf") == 0 || strcmp(name, "sscanf") == 0 ||
@@ -991,12 +1061,8 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
             }
           }
         } else {
-          for (k = 0; k < node->num_args; k++) {
-            if (k > 0) {
-              cdd_cst_bld_punct(bld, ",");
-              cdd_cst_bld_space(bld);
-            }
-            changes += emit_ast_bld(node->args[k], bld, is_msc);
+          if (node->num_args > 0) {
+            changes += emit_ast_bld(node->args[0], bld, is_msc);
           }
         }
       } else {
@@ -1469,6 +1535,10 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
           cdd_cst_bld_newline(&bld);
           cdd_cst_bld_endif(&bld);
 
+#ifdef CDD_BUILD_TESTS
+          if (g_safe_crt_malloc_fail == 6)
+            bld.error_state = 1;
+#endif
           if (!cdd_cst_builder_has_error(&bld)) {
             cdd_cst_replace_node(tree, stmt, new_node);
             replaced_any = 1;

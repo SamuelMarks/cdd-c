@@ -15,6 +15,27 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+#include <stdarg.h>
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  va_list args;
+  int rc;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  rc = vfprintf(stream, format, args);
+  va_end(args);
+  return rc;
+}
+#define FPRINTF_HOOK cdd_fprintf_hook
+#else
+#define FPRINTF_HOOK fprintf
+#endif
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable : 4127) /* conditional expression is constant */
@@ -35,12 +56,26 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 
+#ifdef CDD_BUILD_TESTS
+int g_enum_members_init_fail = 0;
+int g_enum_members_add_fail = 0;
+int g_enum_members_add_strdup_fail = 0;
+#endif
+
 int enum_members_init(struct EnumMembers *em) {
   if (!em)
     return EINVAL;
   em->size = 0;
   em->capacity = 8;
-  em->members = (char **)calloc(em->capacity, sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+  if (g_enum_members_init_fail) {
+    em->members = NULL;
+  } else {
+#endif
+    em->members = (char **)calloc(em->capacity, sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!em->members) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -69,8 +104,16 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
     return EINVAL;
   if (em->size >= em->capacity) {
     const size_t new_cap = em->capacity == 0 ? 8 : em->capacity * 2;
-    char **new_members =
-        (char **)realloc(em->members, new_cap * sizeof(char *));
+    char **new_members;
+#ifdef CDD_BUILD_TESTS
+    if (g_enum_members_add_fail) {
+      new_members = NULL;
+    } else {
+#endif
+      new_members = (char **)realloc(em->members, new_cap * sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+    }
+#endif
     if (!new_members) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -78,7 +121,15 @@ int enum_members_add(struct EnumMembers *em, const char *name) {
     em->members = new_members;
     em->capacity = new_cap;
   }
-  c_cdd_strdup(name, &em->members[em->size]);
+#ifdef CDD_BUILD_TESTS
+  if (g_enum_members_add_strdup_fail) {
+    em->members[em->size] = NULL;
+  } else {
+#endif
+    c_cdd_strdup(name, &em->members[em->size]);
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!em->members[em->size])
     return ENOMEM;
   em->size++;
@@ -93,32 +144,32 @@ int write_enum_to_str_func(FILE *fp, const char *enum_name,
     return EINVAL;
 
   if (config && config->guard_macro) {
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
   }
 
-  CHECK_IO(fprintf(fp,
-                   "int %s_to_str(enum %s val, char **str_out) {\n"
-                   "  if (str_out == NULL) return EINVAL;\n"
-                   "  switch (val) {\n",
-                   enum_name, enum_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "int %s_to_str(enum %s val, char **str_out) {\n"
+                        "  if (str_out == NULL) return EINVAL;\n"
+                        "  switch (val) {\n",
+                        enum_name, enum_name));
 
   for (i = 0; i < em->size; i++) {
     if (em->members[i] && strcmp(em->members[i], "UNKNOWN") != 0) {
-      CHECK_IO(fprintf(
+      CHECK_IO(FPRINTF_HOOK(
           fp, "    case %s_%s:\n      *str_out = %s(\"%s\");\n      break;\n",
           enum_name, em->members[i], kStrDupFunc, em->members[i]));
     }
   }
-  CHECK_IO(fprintf(fp,
-                   "    case %s_UNKNOWN:\n    default:\n      *str_out = "
-                   "%s(\"UNKNOWN\");\n      break;\n  }\n  if "
-                   "(*str_out == NULL) return ENOMEM;\n  return 0;\n}\n",
-                   enum_name, kStrDupFunc));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "    case %s_UNKNOWN:\n    default:\n      *str_out = "
+                        "%s(\"UNKNOWN\");\n      break;\n  }\n  if "
+                        "(*str_out == NULL) return ENOMEM;\n  return 0;\n}\n",
+                        enum_name, kStrDupFunc));
 
   if (config && config->guard_macro) {
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));
   }
-  CHECK_IO(fprintf(fp, "\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "\n"));
 
   return 0;
 }
@@ -131,30 +182,30 @@ int write_enum_from_str_func(FILE *fp, const char *enum_name,
     return EINVAL;
 
   if (config && config->guard_macro) {
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
   }
 
-  CHECK_IO(fprintf(fp,
-                   "int %s_from_str(const char *str, enum %s *val) {\n"
-                   "  if (val == NULL) return EINVAL;\n"
-                   "  else if (str == NULL) *val = %s_UNKNOWN;\n",
-                   enum_name, enum_name, enum_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "int %s_from_str(const char *str, enum %s *val) {\n"
+                        "  if (val == NULL) return EINVAL;\n"
+                        "  else if (str == NULL) *val = %s_UNKNOWN;\n",
+                        enum_name, enum_name, enum_name));
 
   for (i = 0; i < em->size; i++) {
     /* Skip explicit logic for "UNKNOWN" member, let the final else catch it */
     if (em->members[i] && strcmp(em->members[i], "UNKNOWN") != 0) {
-      CHECK_IO(fprintf(fp,
-                       "  else if (strcmp(str, \"%s\") == 0) *val = %s_%s;\n",
-                       em->members[i], enum_name, em->members[i]));
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "  else if (strcmp(str, \"%s\") == 0) *val = %s_%s;\n",
+          em->members[i], enum_name, em->members[i]));
     }
   }
-  CHECK_IO(
-      fprintf(fp, "  else *val = %s_UNKNOWN;\n  return 0;\n}\n", enum_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "  else *val = %s_UNKNOWN;\n  return 0;\n}\n",
+                        enum_name));
 
   if (config && config->guard_macro) {
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n", config->guard_macro));
   }
-  CHECK_IO(fprintf(fp, "\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "\n"));
 
   return 0;
 }

@@ -1,0 +1,188 @@
+- [ ] bin_cdd.c 0.00% 100.00% 0.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [ ] 96.88% 97.54% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [ ] 98.69% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] 100.00% 100.00% 100.00%
+- [x] classes/parse/cdd_cst_mutate.c 79.66% 73.49% 100.00%
+- [x] classes/parse/cdd_cst_mutate_splice.c 96.83% 93.48% 100.00%
+- [x] classes/parse/cdd_cst_parser.c 84.46% 72.41% 100.00%
+- [x] classes/parse/cdd_cst_query.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/cdd_cst_scope.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/cdd_cst_semantic.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/cdd_cst_trivia.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/cdd_cst_type_eval.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/cdd_lexer.c 100.00% 100.00% 100.00%
+- [x] classes/parse/code2schema.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/initializer.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/inspector.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/mapping.c (100.00%, 100.00%, 100.00%)
+- [x] classes/parse/numeric.c 100.00% 100.00% 100.00%
+- [x] docstrings/parse/doc.c 100.00% 100.00% 100.00%
+- [x] functions/emit/build.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/build_system.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/client_body.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/client_sig.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/codegen.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/diff_generator.c (100.00%, 100.00%, 100.00%)
+- [x] functions/emit/make.c 100.00% 100.00% 100.00%
+- [x] functions/emit/patcher.c 100.00% 100.00% 100.00%
+- [x] functions/emit/rewriter_body.c 100.00% 100.00% 100.00%
+- [x] functions/emit/rewriter_sig.c 100.00% 100.00% 100.00%
+- [x] functions/emit/sync.c 100.00% 100.00% 100.00%
+- [x] functions/emit/weaver.c 100.00% 100.00% 100.00%
+- [x] functions/emit/weaver_attributes.c 100.00% 100.00% 100.00%
+- [x] functions/parse/analysis.c 100.00% 100.00% 100.00%
+- [x] functions/parse/audit.c 100.00% 100.00% 100.00%
+- [x] functions/parse/cmake_parser.c 100.00% 100.00% 100.00%
+- [x] functions/parse/cst.c 100.00% 100.00% 100.00%
+- [x] functions/parse/db_loader.c 100.00% 100.00% 100.00%
+- [x] functions/parse/decl_hoist.c 100.00% 100.00% 100.00%
+- [x] functions/parse/declarator.c 100.00% 100.00% 100.00%
+- [x] functions/parse/desig_init.c 100.00% 100.00% 100.00%
+- [ ] functions/parse/fs.c 70.35% 64.46% 81.25%
+- [ ] functions/parse/macro_overlay.c 90.16% 79.41% 100.00%
+- [ ] functions/parse/main.c 94.02% 87.10% 100.00%
+- [ ] functions/parse/makefile_scraper.c 93.23% 82.43% 100.00%
+- [ ] functions/parse/orchestrator.c 85.75% 72.37% 100.00%
+- [ ] functions/parse/preprocessor.c 77.07% 57.61% 97.22%
+- [ ] functions/parse/refactor.c 91.30% 80.77% 100.00%
+- [ ] functions/parse/str.c 98.50% 97.56% 100.00%
+- [ ] functions/parse/strategy.c 73.57% 56.25% 100.00%
+- [ ] functions/parse/tokenizer.c 72.91% 66.79% 100.00%
+- [ ] functions/parse/vcpkg_integration.c 92.52% 75.49% 100.00%
+- [ ] functions/parse/vla_analyzer.c 91.57% 70.71% 100.00%
+- [ ] openapi/emit/openapi.c 77.85% 63.25% 100.00%
+- [ ] openapi/parse/openapi.c 70.69% 55.84% 97.60%
+- [ ] routes/emit/aggregator.c 86.84% 64.81% 100.00%
+- [ ] routes/emit/cli_gen.c 87.80% 63.89% 100.00%
+- [ ] routes/emit/client_gen.c 66.13% 56.28% 100.00%
+- [ ] routes/emit/client_gui_gen.c 93.22% 58.70% 100.00%
+- [ ] routes/emit/operation.c 32.34% 25.60% 65.62%
+- [ ] routes/emit/security.c 85.34% 58.41% 100.00%
+- [ ] routes/emit/server_gen.c 87.35% 67.35% 100.00%
+- [ ] routes/emit/server_json_rpc.c 74.42% 61.54% 100.00%
+- [ ] routes/emit/url.c 72.52% 41.70% 100.00%
+- [ ] routes/parse/cli.c 6.99% 4.56% 6.06%
+- [ ] routes/parse/cli_cst.c 84.35% 83.33% 100.00%
+- [ ] routes/parse/sync.c 88.62% 65.84% 100.00%
+- [ ] routes/parse/url.c 82.84% 69.90% 100.00%
+- [ ] tests/c_cdd/test_int128.h 0.00% 0.00% 0.00%
+- [ ] tests/cdd_test_helpers/cdd_helpers.c 75.00% 70.00% 100.00%
+- [ ] tests/cdd_test_helpers/mock_server.c 0.00% 0.00% 0.00%
+- [ ] tests/emit/schema2tests.c 86.72% 74.14% 100.00%
+- [ ] tests/emit/sdk_tests.c 94.74% 63.43% 100.00%
+- [ ] tests/emit/test_aggregator.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_cdd_cst_emit_unit.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_cli_gen.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_client_gui_gen.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_build.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_client_body.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_client_sig.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_defaults.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_enum.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_eq.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_form.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_json.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_jwt.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_make.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_oauth2_error.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_root_arrays.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_sdk_tests.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_security.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_struct.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_types.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_url.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_codegen_validation.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_cst_printer.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_diff_generator.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_generate_build_system.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_openapi_client_gen.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_openapi_writer.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_operation.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_rewriter_body.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_rewriter_sig.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_schema2tests.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_schema_codegen.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_server_gen.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_server_json_rpc.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_standalone_json.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_sync_code.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_text_patcher.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_url_utils.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_weaver.h 0.00% 0.00% 0.00%
+- [ ] tests/mocks/emit/simple_json.c 84.35% 74.76% 100.00%
+- [ ] tests/mocks/parse/main.c 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_analysis.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_c_cdd_integration.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_c_inspector_types.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_c_mapping.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_builder.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_cfg.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_escape.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_factory.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_mutate.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_query.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_scope.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_semantic.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_trivia.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_cst_type_eval.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cdd_lexer.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cli_cst.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cmake_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_code2schema.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_crypto.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_cst_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_dataclasses.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_db_loader.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_decl_hoist.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_declarator_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_desig_init.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_doc_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_flexible_array.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_fs.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_initializer_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_json_from_and_to.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_macro_overlay.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_main.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_makefile_scraper.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_numeric_parser.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_openapi_loader.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_parsing.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_pragma.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_preprocessor.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_preprocessor_macros.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_project_audit.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_refactor.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_refactor_api_sync.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_refactor_orchestrator.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_schema_constraints.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_schema_enum_required.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_simple_json.c 100.00% 18.63% 37.50%
+- [ ] tests/parse/test_simple_json.h 97.83% 38.89% 100.00%
+- [ ] tests/parse/test_str_utils.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_strategy.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_to_docs_json.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_tokenizer.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_tokenizer_trigraphs.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_vcpkg_integration.h 0.00% 0.00% 0.00%
+- [ ] tests/parse/test_vla_analyzer.h 0.00% 0.00% 0.00%
+- [ ] tests/test_c_cdd.c 0.00% 0.00% 0.00%
+- [ ] tests/transformers/error_percolator/test_error_percolator.h 0.00% 0.00% 0.00%
+- [ ] tests/transformers/extern_c/test_extern_c.h 0.00% 0.00% 0.00%
+- [ ] tests/transformers/gnu_standardizer/test_gnu_standardizer.h 0.00% 0.00% 0.00%
+- [ ] tests/transformers/msvc_port/test_msvc_port.h 0.00% 0.00% 0.00%
+- [ ] tests/transformers/safe_crt/test_safe_crt.h 0.00% 0.00% 0.00%
+- [ ] transformers/error_percolator/error_percolator.c 96.17% 62.31% 100.00%
+- [ ] transformers/extern_c/extern_c.c 94.32% 73.21% 100.00%
+- [ ] transformers/gnu_standardizer/gnu_standardizer.c 79.37% 58.68% 100.00%
+- [ ] transformers/msvc_port/msvc_port.c 96.70% 76.56% 100.00%
+- [ ] transformers/safe_crt/safe_crt.c 83.64% 68.55% 100.00%

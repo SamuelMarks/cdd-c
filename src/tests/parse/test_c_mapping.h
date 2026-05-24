@@ -39,6 +39,28 @@ TEST test_mapping_int(void) {
   ASSERT_STR_EQ("integer", m.oa_type);
   ASSERT_STR_EQ("int32", m.oa_format);
   c_mapping_free(&m);
+
+  /* Empty string */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("", "x", &m));
+  c_mapping_free(&m);
+
+  /* void type (not pointer) */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("void", "x", &m));
+  c_mapping_free(&m);
+
+  /* const volatile signed unsigned */
+  c_mapping_init(&m);
+  ASSERT_EQ(0,
+            c_mapping_map_type("const volatile signed unsigned int", "x", &m));
+  c_mapping_free(&m);
+
+  /* array mapping */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("struct Item *", "ptr[]", &m));
+  c_mapping_free(&m);
+
   PASS();
 }
 
@@ -143,13 +165,175 @@ TEST test_mapping_long(void) {
  */
 TEST test_mapping_void_ptr(void) {
   struct OpenApiTypeMapping m;
-  int rc;
-  /* void* -> string (binary) */
-  rc = c_mapping_map_type("void *", "data", &m);
+  c_mapping_init(&m);
+  int rc = c_mapping_map_type("void *", "data", &m);
   ASSERT_EQ(0, rc);
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("string", m.oa_type);
   ASSERT_STR_EQ("binary", m.oa_format);
   c_mapping_free(&m);
+  PASS();
+}
+
+TEST test_mapping_coverage(void) {
+  struct OpenApiTypeMapping m = {0};
+
+  /* NULL tests */
+  c_mapping_init(NULL);
+  ASSERT_EQ(EINVAL, c_mapping_map_type("int", "x", NULL));
+  c_mapping_free(NULL);
+
+  /* long, short, float, size_t */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("long int", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("integer", m.oa_type);
+  ASSERT_STR_EQ("int64", m.oa_format);
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("short int", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("integer", m.oa_type);
+  ASSERT_EQ(NULL, m.oa_format);
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("float", "x", &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("number", m.oa_type);
+  ASSERT_STR_EQ("float", m.oa_format);
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("size_t", NULL, &m));
+  ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
+  ASSERT_STR_EQ("integer", m.oa_type);
+  ASSERT_STR_EQ("int64", m.oa_format);
+  c_mapping_free(&m);
+
+  /* pointers and references */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("struct MyStruct *", "x", &m));
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("int *", "x", &m));
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("const volatile int", "x", &m));
+  c_mapping_free(&m);
+
+#ifdef CDD_BUILD_TESTS
+  /* Simulate OOMs */
+  extern int g_cdd_strdup_fail;
+  g_cdd_strdup_fail = 1;
+  int rc_oom = c_mapping_map_type("int", "x", &m);
+  printf("RC_OOM=%d ENOMEM=%d\n", rc_oom, ENOMEM);
+  ASSERT_EQ(ENOMEM, rc_oom);
+  g_cdd_strdup_fail = 0;
+  c_mapping_free(&m);
+
+  /* Trigger inner_type/inner_ref duplication OOM */
+  int i;
+  for (i = 1; i < 10; i++) {
+    g_cdd_strdup_fail = i;
+    c_mapping_init(&m);
+    int rc = c_mapping_map_type("int *", "x[]", &m);
+    g_cdd_strdup_fail = 0;
+    c_mapping_free(&m);
+  }
+#endif
+
+  /* Empty string */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("", "x", &m));
+  c_mapping_free(&m);
+
+  /* void type (not pointer) */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("void", "x", &m));
+  c_mapping_free(&m);
+
+  /* const volatile signed unsigned */
+  c_mapping_init(&m);
+  ASSERT_EQ(0,
+            c_mapping_map_type("const volatile signed unsigned int", "x", &m));
+  c_mapping_free(&m);
+
+  /* array mapping */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("struct Item *", "ptr[]", &m));
+  c_mapping_free(&m);
+
+  /* Test end-of-string qualifiers */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("const", "x", &m));
+  c_mapping_free(&m);
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("volatile", "x", &m));
+  c_mapping_free(&m);
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("signed", "x", &m));
+  c_mapping_free(&m);
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("unsigned", "x", &m));
+  c_mapping_free(&m);
+
+  /* Simulate strdup OOM inside mapping */
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_strdup_fail;
+
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(ENOMEM, c_mapping_map_type("enum MyEnum", "x", &m));
+    g_cdd_strdup_fail = 0;
+
+    g_cdd_strdup_fail = 1;
+    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    g_cdd_strdup_fail = 0;
+    c_mapping_free(&m);
+
+    g_cdd_strdup_fail = 2;
+    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    g_cdd_strdup_fail = 0;
+    c_mapping_free(&m);
+
+    g_cdd_strdup_fail = 2;
+    ASSERT_EQ(ENOMEM, c_mapping_map_type("int *", "x", &m));
+    g_cdd_strdup_fail = 0;
+    c_mapping_free(&m);
+
+    g_cdd_strdup_fail = 3;
+    ASSERT_EQ(ENOMEM, c_mapping_map_type("struct MyStruct *", "x[]", &m));
+    g_cdd_strdup_fail = 0;
+    c_mapping_free(&m);
+  }
+#endif
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("short", "x", &m));
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("double", "x", &m));
+  c_mapping_free(&m);
+
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("_Bool", "x", &m));
+  c_mapping_free(&m);
+
+  /* Test spaces after struct */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("struct   Foo", "x", &m));
+  c_mapping_free(&m);
+
+  /* Test empty struct name */
+  c_mapping_init(&m);
+  ASSERT_EQ(0, c_mapping_map_type("struct ", "x", &m));
+  c_mapping_free(&m);
+
   PASS();
 }
 
@@ -164,6 +348,7 @@ SUITE(c_mapping_suite) {
   RUN_TEST(test_mapping_bool);
   RUN_TEST(test_mapping_long);
   RUN_TEST(test_mapping_void_ptr);
+  RUN_TEST(test_mapping_coverage);
 }
 
 #ifdef __cplusplus

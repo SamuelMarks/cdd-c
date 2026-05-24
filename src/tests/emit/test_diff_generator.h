@@ -65,6 +65,65 @@ TEST test_diff_generation_basic(void) {
 
   free(diff);
   patch_list_free(&patch_list);
+
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+  g_cdd_fail_alloc = 5555;
+  char *diff2 = NULL;
+  ASSERT_EQ(ENOMEM,
+            patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2));
+  g_cdd_fail_alloc = 0;
+#endif
+
+  char huge_str[5000];
+  memset(huge_str, 'x', 4999);
+  huge_str[4999] = '\0';
+
+  struct PatchList patch_list2;
+  patch_list_init(&patch_list2);
+  patch_list_add(&patch_list2, 0, 1, strdup(huge_str));
+
+  /* Trigger realloc success */
+  char *diff3 = NULL;
+  ASSERT_EQ(0, patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
+  ASSERT(diff3 != NULL);
+  free(diff3);
+
+#ifdef CDD_BUILD_TESTS
+  /* Trigger realloc failure */
+  diff3 = NULL;
+  extern int g_cdd_fail_alloc;
+  g_cdd_fail_alloc = 7777;
+  ASSERT_EQ(ENOMEM,
+            patch_list_generate_diff(tokens, &patch_list2, "a.c", &diff3));
+  g_cdd_fail_alloc = 0;
+
+  /* Trigger realloc failure in the other branch */
+  /* For the other branch, we need a huge token! */
+  struct TokenList *tokens2 = NULL;
+  tokenize(az_span_create_from_str(huge_str), &tokens2);
+
+  struct PatchList patch_list3;
+  patch_list_init(&patch_list3);
+  patch_list_add(&patch_list3, 0, 1, strdup("small"));
+
+  diff3 = NULL;
+  g_cdd_fail_alloc = 6666;
+  ASSERT_EQ(ENOMEM,
+            patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3));
+  g_cdd_fail_alloc = 0;
+
+  /* Trigger realloc success in the first branch */
+  diff3 = NULL;
+  ASSERT_EQ(0, patch_list_generate_diff(tokens2, &patch_list3, "a.c", &diff3));
+  ASSERT(diff3 != NULL);
+  free(diff3);
+
+  patch_list_free(&patch_list3);
+  free_token_list(tokens2);
+#endif
+
+  patch_list_free(&patch_list2);
   free_token_list(tokens);
   PASS();
 }

@@ -18,6 +18,7 @@ extern "C" {
 #include <string.h>
 
 #include "functions/emit/build.h"
+#include "functions/emit/build_system.h"
 /* clang-format on */
 
 /**
@@ -127,6 +128,63 @@ TEST test_cbuild_unsupported(void) {
   PASS();
 }
 
+TEST test_build_system_oom(void) {
+  /* Using generate_cmake_project directly */
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fprintf_fail;
+  int i;
+  for (i = 1; i < 200; i++) {
+    g_cdd_fprintf_fail = i;
+
+    int rc = generate_cmake_project("test_build_sys_out", "Proj", 1);
+    g_cdd_fprintf_fail = 0;
+    if (rc == 0)
+      break;
+  }
+  remove("test_build_sys_out/CMakeLists.txt");
+
+#endif
+
+  ASSERT_EQ(0, generate_cmake_project("test_build_sys_out", "Proj", 0));
+  remove("test_build_sys_out/CMakeLists.txt");
+
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+  g_cdd_fail_alloc = 1111;
+  ASSERT_EQ(ENOMEM, generate_cmake_project("test_build_sys_out", "Proj", 0));
+  g_cdd_fail_alloc = 0;
+
+  g_cdd_fail_alloc = 2222;
+  ASSERT_EQ(ENOMEM, generate_cmake_project(NULL, "Proj", 0));
+  g_cdd_fail_alloc = 0;
+
+  ASSERT_EQ(0, generate_cmake_project(NULL, "Proj", 0));
+  remove("CMakeLists.txt");
+
+  /* Test fopen failure */
+
+  g_cdd_fail_alloc = 4444;
+  ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
+  g_cdd_fail_alloc = 0;
+
+  g_cdd_fail_alloc = 3334;
+  int rc_fp2 = generate_cmake_project(NULL, "Proj", 0);
+  g_cdd_fail_alloc = 0;
+  ASSERT(rc_fp2 != 0);
+
+  g_cdd_fail_alloc = 4445;
+  ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
+  g_cdd_fail_alloc = 0;
+
+  g_cdd_fail_alloc = 3333;
+  int rc_fp = generate_cmake_project(NULL, "Proj", 0);
+  g_cdd_fail_alloc = 0;
+  ASSERT(rc_fp != 0);
+#endif
+
+  PASS();
+}
+
 /**
  * @brief codegen_build_suite
  */
@@ -134,6 +192,7 @@ SUITE(codegen_build_suite) {
   RUN_TEST(test_cbuild_null_args);
   RUN_TEST(test_cbuild_basic_output);
   RUN_TEST(test_cbuild_unsupported);
+  RUN_TEST(test_build_system_oom);
 }
 
 #ifdef __cplusplus

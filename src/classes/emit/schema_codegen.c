@@ -39,6 +39,30 @@
 #endif
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+#include <stdarg.h>
+int g_schema_fail_io_after = -1;
+int g_schema_io_calls = 0;
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  va_list args;
+  int rc;
+  printf("hook: after=%d calls=%d\n", g_schema_fail_io_after,
+         g_schema_io_calls);
+  if (g_schema_fail_io_after >= 0 &&
+      ++g_schema_io_calls > g_schema_fail_io_after)
+    return -1;
+  va_start(args, format);
+  rc = vfprintf(stream, format, args);
+  va_end(args);
+  return rc;
+}
+#define FPRINTF_HOOK cdd_fprintf_hook
+#else
+#define FPRINTF_HOOK fprintf
+#endif
+
 #ifndef PATH_MAX
 /** @brief PATH_MAX definition */
 #define PATH_MAX 4096
@@ -60,8 +84,8 @@
 
 /* Write Header Guard Start */
 static int print_header_guard(FILE *hfile, const char *basename) {
-  CHECK_IO(fprintf(hfile, "#ifndef %s_H\n", basename));
-  CHECK_IO(fprintf(hfile, "#define %s_H\n\n", basename));
+  CHECK_IO(FPRINTF_HOOK(hfile, "#ifndef %s_H\n", basename));
+  CHECK_IO(FPRINTF_HOOK(hfile, "#define %s_H\n\n", basename));
   return 0;
 }
 
@@ -70,16 +94,16 @@ static int print_header_guard(FILE *hfile, const char *basename) {
  * @brief Executes the print header guard end operation.
  */
 static int print_header_guard_end(FILE *hfile, const char *basename) {
-  CHECK_IO(fprintf(hfile, "#endif /* !%s_H */\n", basename));
+  CHECK_IO(FPRINTF_HOOK(hfile, "#endif /* !%s_H */\n", basename));
   return 0;
 }
 
 /**
  * @brief Generates header.
  */
-static int generate_header(const char *prefix, const char *basename,
-                           JSON_Object *schemas_obj,
-                           const struct CodegenConfig *config) {
+int generate_header(const char *prefix, const char *basename,
+                    JSON_Object *schemas_obj,
+                    const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
@@ -103,36 +127,36 @@ static int generate_header(const char *prefix, const char *basename,
     return errno;
 
   CHECK_RC(print_header_guard(fp, basename));
-  CHECK_IO(fprintf(fp, "#include <stdlib.h>\n"
-                       "#include \"lib_export.h\"\n\n"
-                       "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
-                       "typedef signed __int8 int8_t;\n"
-                       "typedef unsigned __int8 uint8_t;\n"
-                       "typedef signed __int16 int16_t;\n"
-                       "typedef unsigned __int16 uint16_t;\n"
-                       "typedef signed __int32 int32_t;\n"
-                       "typedef unsigned __int32 uint32_t;\n"
-                       "typedef signed __int64 int64_t;\n"
-                       "typedef unsigned __int64 uint64_t;\n"
-                       "#else\n"
-                       "#include <stdint.h>\n"
-                       "#endif\n\n"
-                       "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
-                       "#if !defined(__cplusplus)\n"
-                       "#ifndef bool\n"
-                       "#define bool unsigned char\n"
-                       "#endif\n"
-                       "#ifndef true\n"
-                       "#define true 1\n"
-                       "#endif\n"
-                       "#ifndef false\n"
-                       "#define false 0\n"
-                       "#endif\n"
-                       "#endif\n"
-                       "#else\n"
-                       "#include <stdbool.h>\n"
-                       "#endif\n\n"
-                       "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "#include <stdlib.h>\n"
+                            "#include \"lib_export.h\"\n\n"
+                            "#if defined(_MSC_VER) && _MSC_VER < 1600\n"
+                            "typedef signed __int8 int8_t;\n"
+                            "typedef unsigned __int8 uint8_t;\n"
+                            "typedef signed __int16 int16_t;\n"
+                            "typedef unsigned __int16 uint16_t;\n"
+                            "typedef signed __int32 int32_t;\n"
+                            "typedef unsigned __int32 uint32_t;\n"
+                            "typedef signed __int64 int64_t;\n"
+                            "typedef unsigned __int64 uint64_t;\n"
+                            "#else\n"
+                            "#include <stdint.h>\n"
+                            "#endif\n\n"
+                            "#if defined(_MSC_VER) && _MSC_VER < 1800\n"
+                            "#if !defined(__cplusplus)\n"
+                            "#ifndef bool\n"
+                            "#define bool unsigned char\n"
+                            "#endif\n"
+                            "#ifndef true\n"
+                            "#define true 1\n"
+                            "#endif\n"
+                            "#ifndef false\n"
+                            "#define false 0\n"
+                            "#endif\n"
+                            "#endif\n"
+                            "#else\n"
+                            "#include <stdbool.h>\n"
+                            "#endif\n\n"
+                            "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"));
 
   /* Pass 1: Forward Decls */
   for (i = 0; i < json_object_get_count(schemas_obj); i++) {
@@ -200,7 +224,7 @@ static int generate_header(const char *prefix, const char *basename,
     struct_fields_free(&sf);
   }
 
-  CHECK_IO(fprintf(fp, "#ifdef __cplusplus\n}\n#endif\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "#ifdef __cplusplus\n}\n#endif\n"));
   CHECK_RC(print_header_guard_end(fp, basename));
   fclose(fp);
   return 0;
@@ -209,9 +233,9 @@ static int generate_header(const char *prefix, const char *basename,
 /**
  * @brief Generates source.
  */
-static int generate_source(const char *prefix, const char *basename,
-                           JSON_Object *schemas_obj,
-                           const struct CodegenConfig *config) {
+int generate_source(const char *prefix, const char *basename,
+                    JSON_Object *schemas_obj,
+                    const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
@@ -252,7 +276,8 @@ static int generate_source(const char *prefix, const char *basename,
   if (!fp)
     return errno;
 
-  CHECK_IO(fprintf(fp,
+  CHECK_IO(
+      FPRINTF_HOOK(fp,
                    "#include <errno.h>\\n#include <stdio.h>\\n#include "
                    "<stdlib.h>\\n#include "
                    "<string.h>\\n#include <parson.h>\\n#include "

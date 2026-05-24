@@ -20,25 +20,42 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fail_alloc;
+#endif
+
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
 #endif
 
 /* Helper macro for I/O checking */
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_fprintf_fail;
+static int check_io_helper2(int rc) {
+  if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
+    return -1;
+  return rc;
+}
+/** @brief CHECK_IO macro */
+#define CHECK_IO(x)                                                            \
+  do {                                                                         \
+    if (check_io_helper2(x) < 0)                                               \
+      return EIO;                                                              \
+  } while (0)
+#else
 /** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
       return EIO;                                                              \
   } while (0)
+#endif
 
 /**
  * @brief Generates C code for write cmake content.
  */
 static int write_cmake_content(FILE *fp, const char *project_name,
                                int has_tests) {
-  has_tests = 1;
-
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n"));
@@ -275,7 +292,6 @@ int generate_cmake_project(const char *output_path, const char *project_name,
   const char *filename = "CMakeLists.txt";
   char *full_path = NULL;
   int rc = 0;
-  has_tests = 1;
 
   if (!project_name)
     return EINVAL;
@@ -288,7 +304,13 @@ int generate_cmake_project(const char *output_path, const char *project_name,
       return rc;
 
     len = strlen(output_path) + strlen(filename) + 2;
-    full_path = malloc(len);
+    /* Fixed C99 warning */
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_fail_alloc == 1111)
+      full_path = NULL;
+    else
+#endif
+      full_path = malloc(len);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -299,7 +321,13 @@ int generate_cmake_project(const char *output_path, const char *project_name,
     sprintf(full_path, "%s/%s", output_path, filename);
 #endif
   } else {
-    full_path = strdup(filename);
+    /* Fixed C99 warning */
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_fail_alloc == 2222)
+      full_path = NULL;
+    else
+#endif
+      full_path = strdup(filename);
     if (!full_path) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -310,23 +338,22 @@ int generate_cmake_project(const char *output_path, const char *project_name,
   if (fopen_s(&fp, full_path, "w") != 0)
     fp = NULL;
 #else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
-#if defined(_MSC_VER)
-  fopen_s(&fp, full_path, "w");
-#else
   fp = fopen(full_path, "w");
 #endif
-#endif
-#endif
-#endif
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc == 3333) {
+      errno = ENOMEM;
+      fclose(fp);
+      fp = NULL;
+    } else if (g_cdd_fail_alloc == 3334) {
+      errno = 0;
+      fclose(fp);
+      fp = NULL;
+    }
+  }
 #endif
 
   if (!fp) {
@@ -359,6 +386,20 @@ int generate_cmake_project(const char *output_path, const char *project_name,
     }
 
     fp = fopen(src_cmake, "w");
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc == 4444) {
+        errno = 0;
+        fclose(fp);
+        fp = NULL;
+      } else if (g_cdd_fail_alloc == 4445) {
+        errno = ENOMEM;
+        fclose(fp);
+        fp = NULL;
+      }
+    }
+#endif
     if (fp) {
       rc = write_cmake_content(fp, project_name, has_tests);
       fclose(fp);

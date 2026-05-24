@@ -4,13 +4,21 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+#ifdef CDD_BUILD_TESTS
+int g_cdd_cfg_alloc_fail = 0;
+#endif
 
 static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,
                        cdd_cst_cfg_block_t **out_block) {
   cdd_cst_cfg_block_t *block;
   if (!cfg || !out_block)
     return EINVAL;
-  block = (cdd_cst_cfg_block_t *)calloc(1, sizeof(cdd_cst_cfg_block_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+    block = NULL;
+  else
+#endif
+    block = (cdd_cst_cfg_block_t *)calloc(1, sizeof(cdd_cst_cfg_block_t));
   if (!block) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -21,8 +29,14 @@ static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,
 
   if (cfg->num_blocks >= cfg->capacity) {
     size_t new_cap = cfg->capacity == 0 ? 16 : cfg->capacity * 2;
-    cdd_cst_cfg_block_t **new_arr = (cdd_cst_cfg_block_t **)realloc(
-        cfg->blocks, new_cap * sizeof(cdd_cst_cfg_block_t *));
+    cdd_cst_cfg_block_t **new_arr;
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_cst_cfg_block_t **)realloc(
+          cfg->blocks, new_cap * sizeof(cdd_cst_cfg_block_t *));
     if (!new_arr) {
       free(block);
       return ENOMEM;
@@ -37,10 +51,21 @@ static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,
 
 static int add_edge(cdd_cst_cfg_block_t *from, cdd_cst_cfg_block_t *to,
                     int is_cond, int cond_val) {
-  cdd_cst_cfg_edge_t *edge =
-      (cdd_cst_cfg_edge_t *)calloc(1, sizeof(cdd_cst_cfg_edge_t));
-  cdd_cst_cfg_edge_t *back_edge =
-      (cdd_cst_cfg_edge_t *)calloc(1, sizeof(cdd_cst_cfg_edge_t));
+  cdd_cst_cfg_edge_t *edge;
+  cdd_cst_cfg_edge_t *back_edge;
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+    edge = NULL;
+  else
+#endif
+    edge = (cdd_cst_cfg_edge_t *)calloc(1, sizeof(cdd_cst_cfg_edge_t));
+
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+    back_edge = NULL;
+  else
+#endif
+    back_edge = (cdd_cst_cfg_edge_t *)calloc(1, sizeof(cdd_cst_cfg_edge_t));
 
   if (!edge || !back_edge) {
     if (edge)
@@ -86,8 +111,14 @@ static int build_block(cdd_cst_cfg_t *cfg, cdd_cst_cfg_block_t *curr_block,
 
   if (curr_block->num_statements >= curr_block->capacity) {
     size_t new_cap = curr_block->capacity == 0 ? 8 : curr_block->capacity * 2;
-    cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
-        curr_block->statements, new_cap * sizeof(cdd_cst_node_t *));
+    cdd_cst_node_t **new_arr;
+#ifdef CDD_BUILD_TESTS
+    if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_cst_node_t **)realloc(curr_block->statements,
+                                           new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -155,7 +186,12 @@ int cdd_cst_cfg_build(cdd_cst_node_t *function_node, cdd_cst_cfg_t **out_cfg) {
   if (!function_node || !out_cfg)
     return EINVAL;
 
-  cfg = (cdd_cst_cfg_t *)calloc(1, sizeof(cdd_cst_cfg_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_cfg_alloc_fail && --g_cdd_cfg_alloc_fail == 0)
+    cfg = NULL;
+  else
+#endif
+    cfg = (cdd_cst_cfg_t *)calloc(1, sizeof(cdd_cst_cfg_t));
   if (!cfg) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;

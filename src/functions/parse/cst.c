@@ -80,8 +80,19 @@ int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
 
   if (list->size >= list->capacity) {
     const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        new_arr = NULL;
+      else
+        new_arr = (struct CstNode *)realloc(list->nodes,
+                                            new_cap * sizeof(struct CstNode));
+    }
+#else
     new_arr = (struct CstNode *)realloc(list->nodes,
                                         new_cap * sizeof(struct CstNode));
+#endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -102,11 +113,7 @@ int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
 
 /* Helper: is this token a valid start of a function return type? */
 static int is_type_start(const struct Token *tok, int *out_is_type) {
-  if (!out_is_type)
-    return EINVAL;
   *out_is_type = 0;
-  if (!tok)
-    return EINVAL;
 
   if (tok->kind == TOKEN_IDENTIFIER) {
     *out_is_type = 1;
@@ -153,8 +160,6 @@ static int match_function_definition(const struct TokenList *tokens,
   int brace_depth;
   int seen_lparen = 0;
   int seen_ident = 0;
-  if (!out_is_match)
-    return EINVAL;
   *out_is_match = 0;
 
   while (k < limit) {

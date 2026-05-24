@@ -59,18 +59,14 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
-  if (node_ptr) {
-    if (node == tree->root) {
-      cdd_cst_free_node_only(node);
-      tree->root = new_node;
-      rc = 0;
-    } else {
-      rc = cdd_cst_replace_node(tree, node, new_node);
-    }
-    *node_ptr = new_node;
+  if (node == tree->root) {
+    cdd_cst_free_node_only(node);
+    tree->root = new_node;
+    rc = 0;
   } else {
     rc = cdd_cst_replace_node(tree, node, new_node);
   }
+  *node_ptr = new_node;
   return rc;
 }
 
@@ -92,8 +88,7 @@ int cdd_cst_find_node_for_token(cdd_cst_node_t *root, cdd_token_t *tok,
     } else if (root->children[i].kind == CDD_CST_CHILD_NODE) {
       cdd_cst_node_t *found = NULL;
       if (cdd_cst_find_node_for_token(root->children[i].val.node, tok, out_idx,
-                                      &found) == 0 &&
-          found) {
+                                      &found) == 0) {
         *out_node = found;
         return 0;
       }

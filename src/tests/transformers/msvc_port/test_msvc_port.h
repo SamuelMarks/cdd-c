@@ -79,10 +79,34 @@ TEST test_cdd_transform_msvc(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern int g_msvc_port_bld_fail;
+#endif
+
+TEST test_cdd_transform_msvc_builder_fails(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  const char *code = "#include <unistd.h>\n";
+  cdd_transform_config_t config = {0, 2, 0};
+
+  cdd_cst_parse(az_span_create_from_str((char *)code), &tree);
+
+  g_msvc_port_bld_fail = 1;
+  cdd_transform_msvc(tree, &config);
+  g_msvc_port_bld_fail = 0;
+
+  cdd_cst_tree_free(tree);
+#endif
+  PASS();
+}
+
 /**
  * @brief Test suite for MSVC port transformer.
  */
-SUITE(transformer_msvc_port_suite) { RUN_TEST(test_cdd_transform_msvc); }
+SUITE(transformer_msvc_port_suite) {
+  RUN_TEST(test_cdd_transform_msvc);
+  RUN_TEST(test_cdd_transform_msvc_builder_fails);
+}
 
 #ifdef __cplusplus
 }

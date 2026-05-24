@@ -170,6 +170,11 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(3, root->num_children); /* added top and bottom nodes */
 
+  /* Test when it's not an ifdef */
+  tok_ifdef->kind = CDD_TOKEN_PREPROC_IFNDEF;
+  rc = cdd_transform_extern_c(tree, &config);
+  ASSERT_EQ(0, rc);
+
   /* Cleanup */
   free(tok_ifdef);
   free(tok_cpp);
@@ -180,6 +185,33 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
 /**
  * @brief Extern C transformer test suite.
  */
+#ifdef CDD_BUILD_TESTS
+extern int g_extern_c_top_node_fail;
+extern int g_extern_c_bot_node_fail;
+#endif
+
+TEST test_cdd_transform_extern_c_builder_fails(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = calloc(1, sizeof(cdd_cst_tree_t));
+  cdd_cst_node_t *root = calloc(1, sizeof(cdd_cst_node_t));
+  cdd_transform_config_t config = {0, 2, 0};
+
+  root->kind = CDD_CST_TRANSLATION_UNIT;
+  tree->root = root;
+
+  g_extern_c_top_node_fail = 1;
+  cdd_transform_extern_c(tree, &config);
+  g_extern_c_top_node_fail = 0;
+
+  g_extern_c_bot_node_fail = 1;
+  cdd_transform_extern_c(tree, &config);
+  g_extern_c_bot_node_fail = 0;
+
+  cdd_cst_tree_free(tree);
+#endif
+  PASS();
+}
+
 SUITE(transformer_extern_c_suite) {
   RUN_TEST(test_cdd_transform_extern_c);
   RUN_TEST(test_cdd_transform_extern_c_null_args);
@@ -187,6 +219,7 @@ SUITE(transformer_extern_c_suite) {
   RUN_TEST(test_cdd_transform_extern_c_empty_c_file);
   RUN_TEST(test_cdd_transform_extern_c_malformed_ifdef);
   RUN_TEST(test_cdd_transform_extern_c_already_exists);
+  RUN_TEST(test_cdd_transform_extern_c_builder_fails);
 }
 
 #ifdef __cplusplus

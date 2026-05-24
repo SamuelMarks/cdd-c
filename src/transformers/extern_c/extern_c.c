@@ -26,6 +26,11 @@
  * @param[in] config The transform configuration.
  * @return 0 on success, or an error code.
  */
+#ifdef CDD_BUILD_TESTS
+int g_extern_c_top_node_fail = 0;
+int g_extern_c_bot_node_fail = 0;
+#endif
+
 int cdd_transform_extern_c(cdd_cst_tree_t *tree,
                            const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -93,6 +98,10 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_builder_init(&bld, tree, top_node);
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_open(&bld);
+#ifdef CDD_BUILD_TESTS
+      if (g_extern_c_top_node_fail)
+        bld.error_state = 1;
+#endif
       if (!cdd_cst_builder_has_error(&bld)) {
         if (insert_after_node) {
           cdd_cst_insert_node_after(insert_after_node, top_node);
@@ -119,6 +128,10 @@ int cdd_transform_extern_c(cdd_cst_tree_t *tree,
       cdd_cst_builder_init(&bld, tree, bot_node);
       cdd_cst_bld_newline(&bld);
       cdd_cst_bld_extern_c_close(&bld);
+#ifdef CDD_BUILD_TESTS
+      if (g_extern_c_bot_node_fail)
+        bld.error_state = 1;
+#endif
       if (!cdd_cst_builder_has_error(&bld)) {
         if (tree->root->num_children > 0) {
           if (tree->root->children[tree->root->num_children - 1].kind ==

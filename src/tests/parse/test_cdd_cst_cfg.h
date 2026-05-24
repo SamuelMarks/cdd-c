@@ -59,6 +59,67 @@ TEST test_cdd_cst_cfg_basic(void) {
  *
  * @return The result of the test.
  */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cfg_alloc_fail;
+#endif
+
+TEST test_cdd_cst_cfg_oom(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *func = NULL;
+  cdd_cst_cfg_t *cfg = NULL;
+  int rc;
+  const char *src = "int main() { return 0; }";
+
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  ASSERT_EQ(0, rc);
+  func = tree->root;
+
+  /* Missing EINVAL tests */
+  ASSERT_EQ(EINVAL, cdd_cst_cfg_build(func, NULL));
+  ASSERT_EQ(EINVAL, cdd_cst_cfg_build(NULL, &cfg));
+
+#ifdef CDD_BUILD_TESTS
+  g_cdd_cfg_alloc_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_cfg_build(func, &cfg));
+  g_cdd_cfg_alloc_fail = 0;
+#endif
+
+  {
+    const char *long_src = "int main() { if(1){} if(1){} if(1){} if(1){} "
+                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} }";
+    cdd_cst_tree_t *t2 = NULL;
+    cdd_cst_cfg_t *cfg2 = NULL;
+    rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
+    ASSERT_EQ(0, rc);
+    cdd_cst_cfg_free(cfg2);
+    cdd_cst_tree_free(t2);
+  }
+  {
+    extern int g_cdd_cfg_alloc_fail;
+    int i;
+    const char *ret_src = "int f() { return 0; }";
+    cdd_cst_tree_t *ret_t = NULL;
+    cdd_cst_cfg_t *ret_cfg = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);
+    for (i = 1; i < 100; ++i) {
+      g_cdd_cfg_alloc_fail = i;
+      rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
+      if (rc == 0) {
+        cdd_cst_cfg_free(ret_cfg);
+        break;
+      }
+    }
+    g_cdd_cfg_alloc_fail = 0;
+    cdd_cst_tree_free(ret_t);
+  }
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
 TEST test_cdd_cst_cfg_errors(void) {
   cdd_cst_cfg_t *cfg = NULL;
 
@@ -145,14 +206,84 @@ TEST test_cdd_cst_cfg_no_return(void) {
   PASS();
 }
 
+TEST test_cdd_cst_cfg_extra(void) {
+  /* Internal functions alloc_block and add_edge are static.
+   * To achieve 100% coverage, we trigger failures via public API using OOM
+   * mocks.
+   */
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *func = NULL;
+  cdd_cst_cfg_t *cfg = NULL;
+  int rc;
+  const char *src = "int main() { if (1) { return 0; } else { return 1; } }";
+
+  rc = cdd_cst_parse(az_span_create_from_str((char *)src), &tree);
+  ASSERT_EQ(0, rc);
+  func = tree->root->children[0].val.node; /* get function node */
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cfg_alloc_fail;
+    int i;
+    for (i = 1; i < 100; ++i) {
+      g_cdd_cfg_alloc_fail = i;
+      rc = cdd_cst_cfg_build(func, &cfg);
+      if (rc == 0) {
+        cdd_cst_cfg_free(cfg);
+        break;
+      }
+      ASSERT_EQ(ENOMEM, rc);
+    }
+    g_cdd_cfg_alloc_fail = 0;
+  }
+#endif
+
+  {
+    const char *long_src = "int main() { if(1){} if(1){} if(1){} if(1){} "
+                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} "
+                           "if(1){} if(1){} if(1){} if(1){} if(1){} if(1){} }";
+    cdd_cst_tree_t *t2 = NULL;
+    cdd_cst_cfg_t *cfg2 = NULL;
+    rc = cdd_cst_parse(az_span_create_from_str((char *)long_src), &t2);
+    ASSERT_EQ(0, rc);
+    rc = cdd_cst_cfg_build(t2->root->children[0].val.node, &cfg2);
+    ASSERT_EQ(0, rc);
+    cdd_cst_cfg_free(cfg2);
+    cdd_cst_tree_free(t2);
+  }
+  {
+    extern int g_cdd_cfg_alloc_fail;
+    int i;
+    const char *ret_src = "int f() { return 0; }";
+    cdd_cst_tree_t *ret_t = NULL;
+    cdd_cst_cfg_t *ret_cfg = NULL;
+    cdd_cst_parse(az_span_create_from_str((char *)ret_src), &ret_t);
+    for (i = 1; i < 100; ++i) {
+      g_cdd_cfg_alloc_fail = i;
+      rc = cdd_cst_cfg_build(ret_t->root->children[0].val.node, &ret_cfg);
+      if (rc == 0) {
+        cdd_cst_cfg_free(ret_cfg);
+        break;
+      }
+    }
+    g_cdd_cfg_alloc_fail = 0;
+    cdd_cst_tree_free(ret_t);
+  }
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 /**
  * @brief CFG test suite.
  */
 SUITE(cdd_cst_cfg_suite) {
+  RUN_TEST(test_cdd_cst_cfg_extra);
   RUN_TEST(test_cdd_cst_cfg_no_return);
   RUN_TEST(test_cdd_cst_cfg_empty);
   RUN_TEST(test_cdd_cst_cfg_basic);
   RUN_TEST(test_cdd_cst_cfg_errors);
+  RUN_TEST(test_cdd_cst_cfg_oom);
 }
 
 #ifdef __cplusplus

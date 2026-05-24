@@ -24,6 +24,16 @@ extern "C" {
  * basename.
  * @return 0 on success, non-zero error code (errno or EXIT_FAILURE) on failure.
  */
+/* Forward declarations for testing */
+#include "parson.h"
+struct CodegenConfig;
+extern int generate_header(const char *prefix, const char *basename,
+                           JSON_Object *schemas_obj,
+                           const struct CodegenConfig *config);
+extern int generate_source(const char *prefix, const char *basename,
+                           JSON_Object *schemas_obj,
+                           const struct CodegenConfig *config);
+
 extern C_CDD_EXPORT int schema2code_main(int argc, char **argv);
 
 #ifdef __cplusplus

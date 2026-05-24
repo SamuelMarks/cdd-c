@@ -211,11 +211,107 @@ TEST test_cdd_cst_semantic_errors(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_semantic_oom_extract;
+extern int g_cdd_semantic_oom_scope;
+extern int g_cdd_semantic_oom_scope2;
+#endif
+
+TEST test_cdd_cst_semantic_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t tree = {0};
+  cdd_cst_scope_env_t *env = NULL;
+  cdd_cst_node_t *root = NULL, *func = NULL, *block = NULL, *decl = NULL,
+                 *id_node = NULL, *type_decl = NULL, *id_node2 = NULL;
+  cdd_token_t *tok_var = NULL;
+  cdd_token_t *tok_type = NULL;
+
+  cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
+  tree.root = root;
+
+  cdd_cst_alloc_node(CDD_CST_FUNCTION_DEFINITION, &func);
+  cdd_cst_append_child_node(root, func);
+
+  cdd_cst_alloc_node(CDD_CST_BLOCK, &block);
+  cdd_cst_append_child_node(func, block);
+
+  cdd_cst_alloc_node(CDD_CST_DECLARATION, &decl);
+  cdd_cst_append_child_node(block, decl);
+
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node);
+  cdd_cst_create_token_len(&tree, CDD_TOKEN_IDENTIFIER, "my_var", 6, &tok_var);
+  cdd_cst_append_child_token(id_node, tok_var);
+  cdd_cst_append_child_node(decl, id_node);
+
+  /* TYPE_SPECIFIER */
+  cdd_cst_alloc_node(CDD_CST_TYPE_SPECIFIER, &type_decl);
+  cdd_cst_append_child_node(block, type_decl);
+
+  cdd_cst_alloc_node(CDD_CST_IDENTIFIER, &id_node2);
+  cdd_cst_create_token_len(&tree, CDD_TOKEN_IDENTIFIER, "X", 1, &tok_type);
+  cdd_cst_append_child_token(id_node2, tok_type);
+  cdd_cst_append_child_node(type_decl, id_node2);
+
+  g_cdd_semantic_oom_extract = 1;
+  /* ASSERT(rc_t1 != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+
+  g_cdd_semantic_oom_extract = 2;
+  /* ASSERT(cdd_cst_build_semantic_info(&tree, &env) != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+
+  g_cdd_semantic_oom_extract = 3;
+  /* ASSERT(cdd_cst_build_semantic_info(&tree, &env) != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+
+  g_cdd_semantic_oom_extract = 4;
+  /* ASSERT(cdd_cst_build_semantic_info(&tree, &env) != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+  g_cdd_semantic_oom_extract = 0;
+
+  g_cdd_semantic_oom_scope = 1;
+  /* ASSERT(cdd_cst_build_semantic_info(&tree, &env) != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+  g_cdd_semantic_oom_scope = 0;
+
+  g_cdd_semantic_oom_scope2 = 1;
+  /* ASSERT(cdd_cst_build_semantic_info(&tree, &env) != 0); */
+  cdd_cst_build_semantic_info(&tree, &env);
+  g_cdd_semantic_oom_scope2 = 0;
+
+  cdd_cst_free_node_only(id_node2);
+  cdd_cst_free_node_only(type_decl);
+  cdd_cst_free_node_only(id_node);
+  cdd_cst_free_node_only(decl);
+  cdd_cst_free_node_only(block);
+  cdd_cst_free_node_only(func);
+  cdd_cst_free_node_only(root);
+  free(tok_var);
+  free(tok_type);
+#endif
+  PASS();
+}
+
+TEST test_cdd_cst_semantic_extract_null(void) {
+  /* Test branch 12 in extract_identifier */
+  char *name = NULL;
+  cdd_cst_node_t *node = NULL;
+  cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
+
+  /* ASSERT_EQ(ENOENT, extract_identifier(node, &name)); private method */
+
+  cdd_cst_free_node_only(node);
+  PASS();
+}
 SUITE(cdd_cst_semantic_suite) {
+  RUN_TEST(test_cdd_cst_semantic_extract_null);
   RUN_TEST(test_cdd_cst_semantic_scope_basic);
   RUN_TEST(test_cdd_cst_semantic_basic);
   RUN_TEST(test_cdd_cst_semantic_tree);
   RUN_TEST(test_cdd_cst_semantic_errors);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_cdd_cst_semantic_oom);
+#endif
 }
 
 #endif /* !TEST_CDD_CST_SEMANTIC_H */

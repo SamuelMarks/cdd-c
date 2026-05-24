@@ -62,6 +62,7 @@ TEST test_cmake_modifier_global(void) {
 
   ASSERT_EQ(0, cmake_modifier_init(&mod, "CMakeLists.txt", NULL));
   ASSERT_EQ(0, cmake_modifier_add_compile_opt(&mod, "/W4"));
+  ASSERT_EQ(0, cmake_modifier_add_link_lib(&mod, "libm.a"));
 
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
   ASSERT(diff_str != NULL);
@@ -93,6 +94,95 @@ TEST test_cmake_modifier_errors(void) {
   PASS();
 }
 
+TEST test_cmake_parser_oom(void) {
+
+#ifdef CDD_BUILD_TESTS
+  struct CMakeModifier mod;
+  char *diff_str = NULL;
+
+  makedirs("test_cmake_dir");
+  FILE *f = fopen("test_cmake_dir/CMakeLists.txt", "w");
+  if (f) {
+    fprintf(
+        f,
+        "project(test)\nadd_library(test a.c)\ntarget_include_directories(test "
+        "PUBLIC inc)\ntarget_link_libraries(test PRIVATE cfs)\n");
+    fclose(f);
+  }
+
+  extern int g_cdd_fail_alloc;
+  int i;
+
+  for (i = 1; i < 20; i++) {
+    g_cdd_fail_alloc = i;
+    int rc = cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_fail_alloc = 0;
+    if (rc == 0)
+      cmake_modifier_free(&mod);
+  }
+
+  for (i = 1; i < 20; i++) {
+    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_fail_alloc = i;
+    int rc = cmake_modifier_add_compile_opt(&mod, "/W4");
+    g_cdd_fail_alloc = 0;
+    cmake_modifier_free(&mod);
+  }
+
+  for (i = 1; i < 20; i++) {
+    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    g_cdd_fail_alloc = i;
+    int rc = cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+    g_cdd_fail_alloc = 0;
+    cmake_modifier_free(&mod);
+  }
+
+  for (i = 1; i < 200; i++) {
+    cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists.txt", "test");
+    cmake_modifier_add_compile_opt(&mod, "/W4");
+    cmake_modifier_add_link_lib(&mod, "ws2_32.lib");
+
+    g_cdd_fail_alloc = i;
+    int rc = cmake_modifier_apply_diff(&mod, &diff_str);
+    g_cdd_fail_alloc = 0;
+    if (diff_str) {
+      free(diff_str);
+      diff_str = NULL;
+    }
+    cmake_modifier_free(&mod);
+  }
+
+  /* Trigger src[len-1] != '
+' */
+  FILE *f2 = fopen("test_cmake_dir/CMakeLists2.txt", "w");
+  if (f2) {
+    fprintf(f2, "project(test) ");
+    fclose(f2);
+  }
+  cmake_modifier_init(&mod, "test_cmake_dir/CMakeLists2.txt", "test");
+  cmake_modifier_apply_diff(&mod, &diff_str);
+  if (diff_str)
+    free(diff_str);
+  cmake_modifier_free(&mod);
+
+  /* Test free NULL */
+  cmake_modifier_free(NULL);
+
+  /* Test fopen failure */
+  ASSERT_EQ(
+      0, cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test"));
+  ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
+  cmake_modifier_free(&mod);
+
+  remove("test_cmake_dir/CMakeLists2.txt");
+
+  remove("test_cmake_dir/CMakeLists.txt");
+  remove("test_cmake_dir");
+#endif
+
+  PASS();
+}
+
 /**
  * @brief CMake parser test suite.
  */
@@ -100,6 +190,7 @@ SUITE(cmake_parser_suite) {
   RUN_TEST(test_cmake_modifier_basic);
   RUN_TEST(test_cmake_modifier_global);
   RUN_TEST(test_cmake_modifier_errors);
+  RUN_TEST(test_cmake_parser_oom);
 }
 
 #ifdef __cplusplus

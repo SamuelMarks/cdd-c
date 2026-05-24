@@ -47,7 +47,17 @@ static int join_tokens_range(const struct TokenList *tokens, size_t start,
     len += tokens->tokens[i].length;
   }
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      buf = NULL;
+    else
+      buf = (char *)malloc(len + 1);
+  }
+#else
   buf = (char *)malloc(len + 1);
+#endif
   if (!buf) {
     *_out_val = NULL;
     return 0;
@@ -211,7 +221,28 @@ static int add_type_node(struct DeclInfo *info, struct DeclType **current_tail,
  * @brief Executes the create node operation.
  */
 static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
-  struct DeclType *t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
+  struct DeclType *t = NULL;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      t = NULL;
+    else
+      t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
+  }
+#else
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      t = NULL;
+    else
+      t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
+  }
+#else
+  t = (struct DeclType *)calloc(1, sizeof(struct DeclType));
+#endif
+#endif
   if (t)
     t->kind = kind;
   {

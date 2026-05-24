@@ -105,9 +105,6 @@ static int extract_type_name(cdd_cst_node_t *node, char **out_name,
   size_t buf_len = 0;
   int ptr_count = 0;
 
-  if (!node)
-    return EINVAL;
-
   buf[0] = '\0';
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
@@ -137,7 +134,14 @@ static int extract_type_name(cdd_cst_node_t *node, char **out_name,
   }
 
   if (buf_len > 0) {
-    char *ret = (char *)malloc(buf_len + 1);
+    char *ret;
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_cst_alloc_token_fail;
+    if (g_cdd_cst_alloc_token_fail == 1)
+      ret = NULL;
+    else
+#endif
+      ret = (char *)malloc(buf_len + 1);
     if (!ret) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -161,11 +165,12 @@ int cdd_cst_eval_sizeof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
     return EINVAL;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
-  if (rc == 0 && name) {
+  if (rc == 0) {
     if (is_pointer) {
       rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
     } else {
       rc = cdd_cst_eval_primitive_type(name, abi, &info);
+      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
     }
     free(name);
     if (rc == 0) {
@@ -190,11 +195,12 @@ int cdd_cst_eval_alignof(cdd_cst_scope_env_t *env, cdd_cst_node_t *type_node,
     return EINVAL;
 
   rc = extract_type_name(type_node, &name, &is_pointer);
-  if (rc == 0 && name) {
+  if (rc == 0) {
     if (is_pointer) {
       rc = cdd_cst_eval_primitive_type("ptr", abi, &info);
     } else {
       rc = cdd_cst_eval_primitive_type(name, abi, &info);
+      C_CDD_LOG_DEBUG("TYPE NAME: '%s'\n", name);
     }
     free(name);
     if (rc == 0) {

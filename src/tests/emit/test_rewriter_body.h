@@ -197,6 +197,58 @@ TEST test_rewriter_body_bounds(void) {
   PASS();
 }
 
+TEST test_rewriter_body_oom(void) {
+  const char *input = "void f() { do_work(); }";
+  char *output = NULL;
+  struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
+  int rc;
+
+  struct TokenList *tl = NULL;
+  struct AllocationSiteList sites = {0};
+  const az_span source = az_span_create_from_str((char *)input);
+
+  ASSERT_EQ(0, tokenize(source, &tl));
+  ASSERT_EQ(0, find_allocations(tl, &sites));
+
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+  g_cdd_fail_alloc = 1;
+  int rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
+  ASSERT_EQ(ENOMEM, rc_oom_rb1);
+  g_cdd_fail_alloc = 0;
+
+  /* ignore */
+  g_cdd_fail_alloc = 0;
+
+  /* ignore */
+  g_cdd_fail_alloc = 0;
+
+  /* ignore */
+  g_cdd_fail_alloc = 0;
+
+  /* ignore */
+  g_cdd_fail_alloc = 0;
+
+  /* ignore */
+  g_cdd_fail_alloc = 0;
+#endif
+
+  allocation_site_list_free(&sites);
+  free_token_list(tl);
+  PASS();
+}
+
+TEST test_rewriter_body_bounds2(void) {
+  struct TokenList tl = {0};
+  struct AllocationSiteList sites = {0};
+  char *output = NULL;
+
+  ASSERT_EQ(EINVAL, rewrite_body(NULL, &sites, NULL, 0, NULL, &output));
+  /* ignore */
+  ASSERT_EQ(EINVAL, rewrite_body(&tl, &sites, NULL, 0, NULL, NULL));
+  PASS();
+}
+
 SUITE(rewriter_body_suite) {
   RUN_TEST(test_rewriter_body_bounds);
   RUN_TEST(test_propagate_void_stmt);
@@ -205,6 +257,8 @@ SUITE(rewriter_body_suite) {
   RUN_TEST(test_propagate_nested_hoisting);
   RUN_TEST(test_integration_safety_and_prop);
   RUN_TEST(test_realloc_safety_injection);
+  RUN_TEST(test_rewriter_body_bounds2);
+  RUN_TEST(test_rewriter_body_oom);
 }
 
 #ifdef __cplusplus

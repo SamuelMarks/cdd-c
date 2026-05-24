@@ -32,7 +32,7 @@ int find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token) {
       return 0;
     } else {
       cdd_token_t *t = NULL;
-      if (find_first_token_mutate(node->children[i].val.node, &t) == 0 && t) {
+      if (find_first_token_mutate(node->children[i].val.node, &t) == 0) {
         *out_token = t;
         return 0;
       }
@@ -43,8 +43,6 @@ int find_first_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_token) {
 
 static int find_last_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_tok) {
   size_t i;
-  if (!node || !out_tok)
-    return EINVAL;
   *out_tok = NULL;
   for (i = node->num_children; i > 0; i--) {
     size_t idx = i - 1;
@@ -53,7 +51,7 @@ static int find_last_token_mutate(cdd_cst_node_t *node, cdd_token_t **out_tok) {
       return 0;
     } else {
       cdd_token_t *t = NULL;
-      if (find_last_token_mutate(node->children[idx].val.node, &t) == 0 && t) {
+      if (find_last_token_mutate(node->children[idx].val.node, &t) == 0) {
         *out_tok = t;
         return 0;
       }
@@ -69,9 +67,22 @@ int clone_trivia_list_mutate(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
     return EINVAL;
   *out_trivia = NULL;
   while (head) {
-    cdd_trivia_t *t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    cdd_trivia_t *t;
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_cst_alloc_token_fail;
+    if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
+      t = NULL;
+    else
+#endif
+      t = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
     if (!t) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      /* Need to properly loop and free it */
+      while (new_head) {
+        cdd_trivia_t *tmp = new_head;
+        new_head = new_head->next;
+        free(tmp);
+      }
       return ENOMEM;
     }
     t->kind = head->kind;
@@ -94,8 +105,15 @@ int track_synthesized_token_mutate(cdd_cst_tree_t *tree, cdd_token_t *tok) {
   if (tree->num_synthesized >= tree->synthesized_capacity) {
     size_t new_cap =
         tree->synthesized_capacity == 0 ? 16 : tree->synthesized_capacity * 2;
-    cdd_token_t **new_arr = (cdd_token_t **)realloc(
-        tree->synthesized_tokens, new_cap * sizeof(cdd_token_t *));
+    cdd_token_t **new_arr;
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_cst_realloc_fail;
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_token_t **)realloc(tree->synthesized_tokens,
+                                        new_cap * sizeof(cdd_token_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -158,8 +176,15 @@ int cdd_cst_insert_child_node_at(cdd_cst_node_t *parent, size_t idx,
 
   if (parent->num_children >= parent->capacity) {
     size_t new_cap = parent->capacity == 0 ? 8 : parent->capacity * 2;
-    cdd_cst_child_t *new_arr = (cdd_cst_child_t *)realloc(
-        parent->children, new_cap * sizeof(cdd_cst_child_t));
+    cdd_cst_child_t *new_arr;
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_cst_realloc_fail;
+    if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_cst_child_t *)realloc(parent->children,
+                                           new_cap * sizeof(cdd_cst_child_t));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -258,7 +283,17 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   if (!tree || !root || !out_clone)
     return EINVAL;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cst_alloc_node_fail;
+    if (g_cdd_cst_alloc_node_fail && --g_cdd_cst_alloc_node_fail == 0)
+      clone = NULL;
+    else
+      clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+  }
+#else
   clone = (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
+#endif
   if (!clone) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -267,8 +302,19 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
   clone->kind = root->kind;
   if (root->num_children > 0) {
     clone->capacity = root->capacity;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_cst_realloc_fail;
+      if (g_cdd_cst_realloc_fail && --g_cdd_cst_realloc_fail == 0)
+        clone->children = NULL;
+      else
+        clone->children =
+            (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
+    }
+#else
     clone->children =
         (cdd_cst_child_t *)calloc(clone->capacity, sizeof(cdd_cst_child_t));
+#endif
     if (!clone->children) {
       free(clone);
       return ENOMEM;
@@ -277,7 +323,14 @@ int cdd_cst_clone_tree(cdd_cst_tree_t *tree, cdd_cst_node_t *root,
     for (i = 0; i < root->num_children; i++) {
       if (root->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *orig_tok = root->children[i].val.token;
-        cdd_token_t *new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
+        cdd_token_t *new_tok;
+#ifdef CDD_BUILD_TESTS
+        extern int g_cdd_cst_alloc_token_fail;
+        if (g_cdd_cst_alloc_token_fail && --g_cdd_cst_alloc_token_fail == 0)
+          new_tok = NULL;
+        else
+#endif
+          new_tok = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
         if (!new_tok) {
           rc = ENOMEM;
           goto err;

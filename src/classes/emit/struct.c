@@ -30,8 +30,29 @@ static const char *kStrDupFunc = "_strdup";
 #else
 static const char *kStrDupFunc = "strdup";
 #endif
+#ifdef CDD_BUILD_TESTS
+#include <stdarg.h>
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define FPRINTF_HOOK cdd_fprintf_hook
+#else
+#define FPRINTF_HOOK fprintf
+#endif
 
-/** @brief CHECK_IO definition */
+/* Terser error checking */
+/** @brief CHECK_IO macro */
 #define CHECK_IO(x)                                                            \
   do {                                                                         \
     if ((x) < 0)                                                               \
@@ -43,8 +64,6 @@ static const char *kStrDupFunc = "strdup";
  */
 static void free_string_array(char **arr, size_t n) {
   size_t i;
-  if (!arr)
-    return;
   for (i = 0; i < n; ++i) {
     if (arr[i]) {
       free(arr[i]);
@@ -72,6 +91,10 @@ int get_type_from_ref(const char *ref, char **_out_val) {
   }
 }
 
+#ifdef CDD_BUILD_TESTS
+int g_struct_fields_init_fail = 0;
+#endif
+
 /**
  * @brief Executes the struct fields init operation.
  */
@@ -80,8 +103,16 @@ int struct_fields_init(struct StructFields *sf) {
     return EINVAL;
   sf->size = 0;
   sf->capacity = 8;
-  sf->fields =
-      (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
+#ifdef CDD_BUILD_TESTS
+  if (g_struct_fields_init_fail) {
+    sf->fields = NULL;
+  } else {
+#endif
+    sf->fields =
+        (struct StructField *)calloc(sf->capacity, sizeof(struct StructField));
+#ifdef CDD_BUILD_TESTS
+  }
+#endif
   if (!sf->fields) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -168,6 +199,10 @@ void struct_fields_free(struct StructFields *sf) {
   }
 }
 
+#ifdef CDD_BUILD_TESTS
+int g_struct_fields_add_fail = 0;
+#endif
+
 /**
  * @brief Executes the struct fields add operation.
  */
@@ -180,8 +215,17 @@ int struct_fields_add(struct StructFields *sf, const char *name,
 
   if (sf->size >= sf->capacity) {
     const size_t new_cap = sf->capacity * 2;
-    struct StructField *new_arr = (struct StructField *)realloc(
-        sf->fields, new_cap * sizeof(struct StructField));
+    struct StructField *new_arr;
+#ifdef CDD_BUILD_TESTS
+    if (g_struct_fields_add_fail) {
+      new_arr = NULL;
+    } else {
+#endif
+      new_arr = (struct StructField *)realloc(
+          sf->fields, new_cap * sizeof(struct StructField));
+#ifdef CDD_BUILD_TESTS
+    }
+#endif
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -270,15 +314,15 @@ int write_struct_cleanup_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(fprintf(fp,
-                   "void %s_cleanup(struct %s *obj) {\n"
-                   "  if (!obj) return;\n",
-                   struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "void %s_cleanup(struct %s *obj) {\n"
+                        "  if (!obj) return;\n",
+                        struct_name, struct_name));
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  { size_t i;\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  { size_t i;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
@@ -286,41 +330,42 @@ int write_struct_cleanup_func(FILE *fp, const char *struct_name,
     char *r = sf->fields[i].ref;
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(fprintf(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (obj->%s) free((void*)obj->%s);\n", n, n));
     } else if (strcmp(t, "object") == 0) {
       {
         char *tn = NULL;
         get_type_from_ref(r, &tn);
-        CHECK_IO(fprintf(
+        CHECK_IO(FPRINTF_HOOK(
             fp, "  if (obj->%s) {%s_cleanup(obj->%s); free(obj->%s); }\n", n,
             tn, n, n));
       }
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(fprintf(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
       if (strcmp(r, "string") == 0) {
-        CHECK_IO(fprintf(fp, "    free(obj->%s[i]);\n", n));
+        CHECK_IO(FPRINTF_HOOK(fp, "    free(obj->%s[i]);\n", n));
       } else if (strcmp(r, "object") == 0 ||
                  (strcmp(r, "integer") != 0 && strcmp(r, "boolean") != 0 &&
                   strcmp(r, "number") != 0)) {
         {
           char *tn = NULL;
           get_type_from_ref(r, &tn);
-          CHECK_IO(fprintf(
+          CHECK_IO(FPRINTF_HOOK(
               fp, "    %s_cleanup(obj->%s[i]); free(obj->%s[i]);\n", tn, n, n));
         }
       }
-      CHECK_IO(fprintf(fp, "  }\n"));
-      CHECK_IO(fprintf(fp, "  free(obj->%s);\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  free(obj->%s);\n", n));
     }
   }
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  }\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(fprintf(fp, "  free(obj);\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  free(obj);\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }
@@ -335,18 +380,18 @@ int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
     return EINVAL;
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(
-      fprintf(fp, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
-              struct_name, struct_name, struct_name));
-  CHECK_IO(fprintf(fp,
-                   "  if (!dest) return EINVAL;\n"
-                   "  if (!src) { *dest = NULL; return 0; }\n"
-                   "  *dest = malloc(sizeof(struct %s));\n"
-                   "  if (!*dest) return ENOMEM;\n"
-                   "  memcpy(*dest, src, sizeof(struct %s));\n\n",
-                   struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "int %s_deepcopy(const struct %s *src, struct %s **dest) {\n",
+      struct_name, struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "  if (!dest) return EINVAL;\n"
+                        "  if (!src) { *dest = NULL; return 0; }\n"
+                        "  *dest = malloc(sizeof(struct %s));\n"
+                        "  if (!*dest) return ENOMEM;\n"
+                        "  memcpy(*dest, src, sizeof(struct %s));\n\n",
+                        struct_name, struct_name));
 
   {
     size_t i;
@@ -355,21 +400,21 @@ int write_struct_deepcopy_func(FILE *fp, const char *struct_name,
       const char *t = sf->fields[i].type;
 
       if (strcmp(t, "string") == 0) {
-        CHECK_IO(fprintf(fp,
-                         "  if (src->%s) {\n"
-                         "    (*dest)->%s = %s(src->%s);\n"
-                         "    if (!(*dest)->%s) { %s_cleanup(*dest); "
-                         "*dest=NULL; return ENOMEM; }\n"
-                         "  }\n",
-                         n, n, kStrDupFunc, n, n, struct_name));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "  if (src->%s) {\n"
+                              "    (*dest)->%s = %s(src->%s);\n"
+                              "    if (!(*dest)->%s) { %s_cleanup(*dest); "
+                              "*dest=NULL; return ENOMEM; }\n"
+                              "  }\n",
+                              n, n, kStrDupFunc, n, n, struct_name));
       }
     }
   }
 
-  CHECK_IO(fprintf(fp, "  return 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return 0;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }
@@ -391,15 +436,16 @@ int write_struct_eq_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(fprintf(fp, "int %s_eq(const struct %s *a, const struct %s *b) {\n",
-                   struct_name, struct_name, struct_name));
-  CHECK_IO(fprintf(fp, "  if (a == b) return 1;\n"
-                       "  if (!a || !b) return 0;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "int %s_eq(const struct %s *a, const struct %s *b) {\n",
+                        struct_name, struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (a == b) return 1;\n"
+                            "  if (!a || !b) return 0;\n"));
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  { size_t i;\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  { size_t i;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
@@ -408,39 +454,40 @@ int write_struct_eq_func(FILE *fp, const char *struct_name,
     get_type_from_ref(sf->fields[i].ref, &r);
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(fprintf(fp,
-                       "  if (a->%s != b->%s && (!a->%s || !b->%s || "
-                       "strcmp(a->%s, b->%s) != 0)) return 0;\n",
-                       n, n, n, n, n, n));
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "  if (a->%s != b->%s && (!a->%s || !b->%s || "
+                            "strcmp(a->%s, b->%s) != 0)) return 0;\n",
+                            n, n, n, n, n, n));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(fp, "  if (!%s_eq(a->%s, b->%s)) return 0;\n", r, n, n));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  if (!%s_eq(a->%s, b->%s)) return 0;\n", r, n, n));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(fprintf(fp, "  if (a->n_%s != b->n_%s) return 0;\n", n, n));
-      CHECK_IO(fprintf(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (a->n_%s != b->n_%s) return 0;\n", n, n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < a->n_%s; ++i) {\n", n));
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "number") == 0) {
-        CHECK_IO(
-            fprintf(fp, "    if (a->%s[i] != b->%s[i]) return 0;\n", n, n));
+        CHECK_IO(FPRINTF_HOOK(fp, "    if (a->%s[i] != b->%s[i]) return 0;\n",
+                              n, n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(fprintf(
+        CHECK_IO(FPRINTF_HOOK(
             fp, "    if (strcmp(a->%s[i], b->%s[i]) != 0) return 0;\n", n, n));
       } else {
-        CHECK_IO(fprintf(fp, "    if (!%s_eq(a->%s[i], b->%s[i])) return 0;\n",
-                         r, n, n));
+        CHECK_IO(FPRINTF_HOOK(
+            fp, "    if (!%s_eq(a->%s[i], b->%s[i])) return 0;\n", r, n, n));
       }
-      CHECK_IO(fprintf(fp, "  }\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
     } else {
-      CHECK_IO(fprintf(fp, "  if (a->%s != b->%s) return 0;\n", n, n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (a->%s != b->%s) return 0;\n", n, n));
     }
   }
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  }\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(fprintf(fp, "  return 1;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return 1;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }
@@ -466,16 +513,16 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(fprintf(fp, "int %s_default(struct %s **out) {\n", struct_name,
-                   struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "int %s_default(struct %s **out) {\n", struct_name,
+                        struct_name));
   if (rc_needed)
-    CHECK_IO(fprintf(fp, "  int rc;\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  int rc;\n"));
 
-  CHECK_IO(fprintf(fp, "  if (!out) return EINVAL;\n"));
-  CHECK_IO(fprintf(fp, "  *out = calloc(1, sizeof(**out));\n"));
-  CHECK_IO(fprintf(fp, "  if (!*out) return ENOMEM;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!out) return EINVAL;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  *out = calloc(1, sizeof(**out));\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!*out) return ENOMEM;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *def = sf->fields[i].default_val;
@@ -487,26 +534,27 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
 
       if (strcmp(t, "string") == 0) {
         if (strcmp(def, "nullptr") == 0) {
-          CHECK_IO(fprintf(fp, "  (*out)->%s = NULL;\n", n));
+          CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = NULL;\n", n));
         } else {
+          CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s(%s);\n", n, kStrDupFunc,
+                                def));
           CHECK_IO(
-              fprintf(fp, "  (*out)->%s = %s(%s);\n", n, kStrDupFunc, def));
-          CHECK_IO(fprintf(fp,
+              FPRINTF_HOOK(fp,
                            "  if (!(*out)->%s) { %s_cleanup(*out); *out=NULL; "
                            "return ENOMEM; }\n",
                            n, struct_name));
         }
       } else if (strcmp(t, "enum") == 0) {
-        CHECK_IO(
-            fprintf(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r, def, n));
-        CHECK_IO(fprintf(
+        CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_from_str(%s, &(*out)->%s);\n", r,
+                              def, n));
+        CHECK_IO(FPRINTF_HOOK(
             fp, "  if (rc != 0) { %s_cleanup(*out); *out=NULL; return rc; }\n",
             struct_name));
       } else {
         /* Primitives (integer/boolean/number) */
         /* Check for C23 nullptr -> NULL pointer mapping */
         if (strcmp(def, "nullptr") == 0) {
-          CHECK_IO(fprintf(fp, "  (*out)->%s = NULL;\n", n));
+          CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = NULL;\n", n));
         }
         /* Check for C23 Binary Literal -> Decimal Conversion */
         else if (strlen(def) > 2 && def[0] == '0' &&
@@ -514,28 +562,28 @@ int write_struct_default_func(FILE *fp, const char *struct_name,
           struct NumericValue nv;
           /* If using C89 target, we must emit decimal. */
           /* Attempt to parse binary literal */
-          if (parse_numeric_literal(def, &nv) == 0 &&
-              nv.kind == NUMERIC_INTEGER) {
+          if (parse_numeric_literal(def, &nv) == 0) {
             /* Emit as largest decimal constant suffix-aware?
                Usually just cast logic is sufficient in C source. */
             /* Using unsigned long long format */
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %" CDD_NUM_FORMAT ";\n", n,
-                             (unsigned long long)nv.data.integer.value));
+            CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %" CDD_NUM_FORMAT ";\n",
+                                  n,
+                                  (unsigned long long)nv.data.integer.value));
           } else {
             /* Fallback: print as is (if parse failed or invalid) */
-            CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
+            CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));
           }
         } else {
-          CHECK_IO(fprintf(fp, "  (*out)->%s = %s;\n", n, def));
+          CHECK_IO(FPRINTF_HOOK(fp, "  (*out)->%s = %s;\n", n, def));
         }
       }
     }
   }
 
-  CHECK_IO(fprintf(fp, "  return 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return 0;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }
@@ -557,20 +605,20 @@ int write_struct_debug_func(FILE *fp, const char *struct_name,
   }
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(fprintf(fp, "int %s_debug(const struct %s *obj, FILE *fp) {\n",
-                   struct_name, struct_name));
-  CHECK_IO(fprintf(fp, "  int rc = 0;\n"));
-  CHECK_IO(fprintf(fp, "  if (!fp) return EINVAL;\n"));
-  CHECK_IO(fprintf(
-      fp, "  if (!obj) { return fprintf(fp, \"(null)\\n\") < 0 ? -1 : 0; }\n"));
-  CHECK_IO(
-      fprintf(fp, "  rc = fprintf(fp, \"struct %s {\\n\");\n", struct_name));
-  CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "int %s_debug(const struct %s *obj, FILE *fp) {\n",
+                        struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "  int rc = 0;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!fp) return EINVAL;\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (!obj) { return fprintf(fp, "
+                            "\"(null)\\n\") < 0 ? -1 : 0; }\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"struct %s {\\n\");\n",
+                        struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  { size_t i;\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  { size_t i;\n"));
 
   for (i = 0; i < sf->size; ++i) {
     const char *n = sf->fields[i].name;
@@ -579,65 +627,68 @@ int write_struct_debug_func(FILE *fp, const char *struct_name,
     get_type_from_ref(sf->fields[i].ref, &r);
 
     if (strcmp(t, "string") == 0) {
-      CHECK_IO(fprintf(fp,
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
                        "  rc = fprintf(fp, \"  %s: \\\"%%s\\\"\\n\", obj->%s ? "
                        "obj->%s : \"(null)\");\n",
                        n, n, n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
     } else if (strcmp(t, "object") == 0) {
-      CHECK_IO(fprintf(fp, "  rc = fprintf(fp, \"  %s: \");\n", n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
-      CHECK_IO(fprintf(fp, "  rc = %s_debug(obj->%s, fp);\n", r, n));
-      CHECK_IO(fprintf(fp, "  if (rc != 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: \");\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  rc = %s_debug(obj->%s, fp);\n", r, n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc != 0) return rc;\n"));
     } else if (strcmp(t, "array") == 0) {
-      CHECK_IO(fprintf(fp, "  rc = fprintf(fp, \"  %s: [\\n\");\n", n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
-      CHECK_IO(fprintf(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: [\\n\");\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  for (i = 0; i < obj->n_%s; ++i) {\n", n));
       if (strcmp(r, "integer") == 0 || strcmp(r, "boolean") == 0 ||
           strcmp(r, "enum") == 0) {
-        CHECK_IO(fprintf(
+        CHECK_IO(FPRINTF_HOOK(
             fp, "    rc = fprintf(fp, \"    %%d\\n\", (int)obj->%s[i]);\n", n));
       } else if (strcmp(r, "number") == 0) {
-        CHECK_IO(fprintf(
+        CHECK_IO(FPRINTF_HOOK(
             fp, "    rc = fprintf(fp, \"    %%f\\n\", (double)obj->%s[i]);\n",
             n));
       } else if (strcmp(r, "string") == 0) {
-        CHECK_IO(fprintf(fp,
-                         "    rc = fprintf(fp, \"    \\\"%%s\\\"\\n\", "
-                         "obj->%s[i] ? obj->%s[i] : \"(null)\");\n",
-                         n, n));
+        CHECK_IO(FPRINTF_HOOK(fp,
+                              "    rc = fprintf(fp, \"    \\\"%%s\\\"\\n\", "
+                              "obj->%s[i] ? obj->%s[i] : \"(null)\");\n",
+                              n, n));
       } else {
-        CHECK_IO(fprintf(fp, "    rc = %s_debug(obj->%s[i], fp);\n", r, n));
-        CHECK_IO(fprintf(fp, "    if (rc != 0) return rc;\n"));
+        CHECK_IO(
+            FPRINTF_HOOK(fp, "    rc = %s_debug(obj->%s[i], fp);\n", r, n));
+        CHECK_IO(FPRINTF_HOOK(fp, "    if (rc != 0) return rc;\n"));
       }
-      CHECK_IO(fprintf(fp, "    if (rc < 0) return rc;\n"));
-      CHECK_IO(fprintf(fp, "  }\n"));
-      CHECK_IO(fprintf(fp, "  rc = fprintf(fp, \"  ]\\n\");\n"));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "    if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  ]\\n\");\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
     } else if (strcmp(t, "integer") == 0 || strcmp(t, "boolean") == 0 ||
                strcmp(t, "enum") == 0) {
-      CHECK_IO(fprintf(
+      CHECK_IO(FPRINTF_HOOK(
           fp, "  rc = fprintf(fp, \"  %s: %%d\\n\", (int)obj->%s);\n", n, n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
     } else if (strcmp(t, "number") == 0) {
-      CHECK_IO(fprintf(
+      CHECK_IO(FPRINTF_HOOK(
           fp, "  rc = fprintf(fp, \"  %s: %%f\\n\", (double)obj->%s);\n", n,
           n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
     } else {
-      CHECK_IO(fprintf(fp, "  rc = fprintf(fp, \"  %s: (unknown)\\n\");\n", n));
-      CHECK_IO(fprintf(fp, "  if (rc < 0) return rc;\n"));
+      CHECK_IO(
+          FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"  %s: (unknown)\\n\");\n", n));
+      CHECK_IO(FPRINTF_HOOK(fp, "  if (rc < 0) return rc;\n"));
     }
   }
 
   if (iter_needed)
-    CHECK_IO(fprintf(fp, "  }\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "  }\n"));
 
-  CHECK_IO(fprintf(fp, "  rc = fprintf(fp, \"}\\n\");\n"));
-  CHECK_IO(fprintf(fp, "  return rc < 0 ? rc : 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  rc = fprintf(fp, \"}\\n\");\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return rc < 0 ? rc : 0;\n}\n"));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }
@@ -652,14 +703,15 @@ int write_struct_display_func(FILE *fp, const char *struct_name,
     return EINVAL;
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#ifdef %s\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#ifdef %s\n", config->guard_macro));
 
-  CHECK_IO(fprintf(fp, "int %s_display(const struct %s *obj, FILE *fp) {\n",
-                   struct_name, struct_name));
-  CHECK_IO(fprintf(fp, "  return %s_debug(obj, fp);\n}\n", struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "int %s_display(const struct %s *obj, FILE *fp) {\n",
+                        struct_name, struct_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "  return %s_debug(obj, fp);\n}\n", struct_name));
 
   if (config && config->guard_macro)
-    CHECK_IO(fprintf(fp, "#endif /* %s */\n\n", config->guard_macro));
+    CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->guard_macro));
 
   return 0;
 }

@@ -34,7 +34,19 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
   /* Construct `#ifdef <condition>
 ` */
   ifdef_len = strlen("#ifdef ") + strlen(condition) + 20;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      ifdef_str = NULL;
+    else
+      ifdef_str = (char *)malloc(ifdef_len);
+  }
+#else
   ifdef_str = (char *)malloc(ifdef_len);
+#endif
+
   if (!ifdef_str) {
     return ENOMEM;
   }
@@ -58,7 +70,19 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
   if (false_code) {
     endif_len =
         strlen("#else\\n") + strlen(false_code) + strlen("\\n#endif\\n") + 20;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        endif_str = NULL;
+      else
+        endif_str = (char *)malloc(endif_len);
+    }
+#else
     endif_str = (char *)malloc(endif_len);
+#endif
+
     if (!endif_str) {
       return ENOMEM;
     }
@@ -69,7 +93,19 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 #endif
   } else {
     endif_len = strlen("#endif\\n") + 20;
+
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc;
+      if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+        endif_str = NULL;
+      else
+        endif_str = (char *)malloc(endif_len);
+    }
+#else
     endif_str = (char *)malloc(endif_len);
+#endif
+
     if (!endif_str) {
       return ENOMEM;
     }
@@ -155,7 +191,19 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
   }
 
   len = 256;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      str = NULL;
+    else
+      str = (char *)malloc(len);
+  }
+#else
   str = (char *)malloc(len);
+#endif
+
   if (!str) {
     return ENOMEM;
   }
@@ -241,7 +289,19 @@ int weaver_vla_to_alloca(struct PatchList *patches,
    */
   len = strlen(type_str) + 2 + strlen(var_name) + 4 + strlen(type_str) + 13 +
         strlen(size_expr) + 11 + strlen(type_str) + 4 + 100;
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      str = NULL;
+    else
+      str = (char *)malloc(len);
+  }
+#else
   str = (char *)malloc(len);
+#endif
+
   if (!str) {
     return ENOMEM;
   }

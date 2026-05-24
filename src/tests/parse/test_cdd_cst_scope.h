@@ -22,7 +22,49 @@ extern "C" {
  */
 TEST test_cdd_cst_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
+
+  {
+    cdd_cst_scope_env_t *env2;
+    cdd_cst_scope_env_init(&env2);
+    env2->current_scope = NULL;
+    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
+                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    cdd_cst_scope_env_free(env2);
+  }
+
   cdd_cst_symbol_t *sym = NULL;
+
+  ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
+  cdd_cst_scope_env_free(NULL);
+
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_scope_alloc_fail;
+  g_cdd_scope_alloc_fail = 2;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+  g_cdd_scope_alloc_fail = 0;
+#endif
+
+  /* Manual free scope NULL test via a dummy scope child */
+  ASSERT_EQ(0, cdd_cst_scope_env_init(&env));
+  env->global_scope->capacity = 1;
+  env->global_scope->num_children = 1;
+  env->global_scope->children = calloc(1, sizeof(cdd_cst_scope_t *));
+  env->global_scope->children[0] = NULL;
+  cdd_cst_scope_env_free(env);
+  env = NULL;
+
+  {
+    cdd_cst_scope_env_t *env2;
+    cdd_cst_scope_env_init(&env2);
+    env2->current_scope = NULL;
+    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
+                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    cdd_cst_scope_env_free(env2);
+  }
 
   ASSERT_EQ(0, cdd_cst_scope_env_init(&env));
   ASSERT_EQ(0, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
@@ -47,6 +89,18 @@ TEST test_cdd_cst_scope_basic(void) {
  */
 TEST test_cdd_cst_scope_errors(void) {
   cdd_cst_scope_env_t *env = NULL;
+
+  {
+    cdd_cst_scope_env_t *env2;
+    cdd_cst_scope_env_init(&env2);
+    env2->current_scope = NULL;
+    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
+                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    cdd_cst_scope_env_free(env2);
+  }
+
   cdd_cst_symbol_t *sym = NULL;
 
   ASSERT_EQ(EINVAL, cdd_cst_scope_env_init(NULL));
@@ -91,6 +145,18 @@ TEST test_cdd_cst_scope_errors(void) {
  */
 TEST test_cdd_cst_scope_tag(void) {
   cdd_cst_scope_env_t *env = NULL;
+
+  {
+    cdd_cst_scope_env_t *env2;
+    cdd_cst_scope_env_init(&env2);
+    env2->current_scope = NULL;
+    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
+                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    cdd_cst_scope_env_free(env2);
+  }
+
   cdd_cst_symbol_t *sym = NULL;
 
   ASSERT_EQ(1, cdd_cst_symbol_is_tag(CDD_CST_SYMBOL_STRUCT_TAG));
@@ -129,11 +195,60 @@ TEST test_cdd_cst_scope_mem(void) {
 /**
  * @brief CST scope test suite.
  */
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_scope_alloc_fail;
+
+TEST test_cdd_cst_scope_oom(void) {
+  cdd_cst_scope_env_t *env = NULL;
+
+  {
+    cdd_cst_scope_env_t *env2;
+    cdd_cst_scope_env_init(&env2);
+    env2->current_scope = NULL;
+    ASSERT_EQ(EINVAL, cdd_cst_scope_enter(env2, CDD_CST_SCOPE_BLOCK));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env2));
+    ASSERT_EQ(EINVAL, cdd_cst_scope_add_symbol(env2, "test",
+                                               CDD_CST_SYMBOL_VARIABLE, NULL));
+    cdd_cst_scope_env_free(env2);
+  }
+
+  g_cdd_scope_alloc_fail = 1;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+  extern int g_cdd_scope_alloc_fail;
+  g_cdd_scope_alloc_fail = 2;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
+
+  g_cdd_scope_alloc_fail = 0;
+  cdd_cst_scope_env_init(&env);
+
+  g_cdd_scope_alloc_fail = 3;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+
+  g_cdd_scope_alloc_fail = 4;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_enter(env, CDD_CST_SCOPE_BLOCK));
+
+  g_cdd_scope_alloc_fail = 5;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_add_symbol(env, "my_var",
+                                             CDD_CST_SYMBOL_VARIABLE, NULL));
+
+  g_cdd_scope_alloc_fail = 6;
+  ASSERT_EQ(ENOMEM, cdd_cst_scope_add_symbol(env, "my_var2",
+                                             CDD_CST_SYMBOL_VARIABLE, NULL));
+
+  g_cdd_scope_alloc_fail = 0;
+  cdd_cst_scope_env_free(env);
+  PASS();
+}
+#endif
 SUITE(cdd_cst_scope_suite) {
   RUN_TEST(test_cdd_cst_scope_basic);
   RUN_TEST(test_cdd_cst_scope_errors);
   RUN_TEST(test_cdd_cst_scope_tag);
   RUN_TEST(test_cdd_cst_scope_mem);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_cdd_cst_scope_oom);
+#endif
 }
 
 #ifdef __cplusplus

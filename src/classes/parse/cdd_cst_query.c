@@ -1,8 +1,14 @@
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_query_err_fail;
+#endif
 /* clang-format off */
 #include "cdd_cst_query.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+int g_cdd_query_err_fail = 0;
+int g_cdd_query_realloc_fail = 0;
 #include "c_cdd/log.h"
 /* clang-format on */
 
@@ -51,8 +57,15 @@ int cdd_cst_traverse_postorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
 static int append_result(cdd_cst_query_result_t *res, cdd_cst_node_t *node) {
   if (res->size >= res->capacity) {
     size_t new_cap = res->capacity == 0 ? 16 : res->capacity * 2;
-    cdd_cst_node_t **new_arr = (cdd_cst_node_t **)realloc(
-        res->nodes, new_cap * sizeof(cdd_cst_node_t *));
+    cdd_cst_node_t **new_arr;
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_query_realloc_fail;
+    if (g_cdd_query_realloc_fail)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_cst_node_t **)realloc(res->nodes,
+                                           new_cap * sizeof(cdd_cst_node_t *));
     if (!new_arr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -77,6 +90,11 @@ static int type_visitor(cdd_cst_node_t *node, void *user_data) {
   type_query_ctx_t *ctx = (type_query_ctx_t *)user_data;
   if (node->kind == ctx->target_kind) {
     ctx->err = append_result(ctx->res, node);
+#ifdef CDD_BUILD_TESTS
+
+    if (g_cdd_query_err_fail)
+      ctx->err = ENOMEM;
+#endif
     if (ctx->err != 0)
       return ctx->err;
   }
@@ -136,12 +154,17 @@ static int call_visitor(cdd_cst_node_t *node, void *user_data) {
             tok->length == ctx->func_name_len) {
           if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
             ctx->err = append_result(ctx->res, node);
+#ifdef CDD_BUILD_TESTS
+
+            if (g_cdd_query_err_fail)
+              ctx->err = ENOMEM;
+#endif
             if (ctx->err != 0)
               return ctx->err;
             break; /* found match for this call node */
           }
         }
-      } else if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      } else {
         /* Sometimes the call expr's first child is an IDENTIFIER node */
         cdd_cst_node_t *child = node->children[i].val.node;
         if (child->kind == CDD_CST_IDENTIFIER && child->num_children > 0 &&
@@ -151,6 +174,11 @@ static int call_visitor(cdd_cst_node_t *node, void *user_data) {
               tok->length == ctx->func_name_len) {
             if (memcmp(tok->start, ctx->func_name, ctx->func_name_len) == 0) {
               ctx->err = append_result(ctx->res, node);
+#ifdef CDD_BUILD_TESTS
+
+              if (g_cdd_query_err_fail)
+                ctx->err = ENOMEM;
+#endif
               if (ctx->err != 0)
                 return ctx->err;
               break;
@@ -173,6 +201,11 @@ static int call_visitor(cdd_cst_node_t *node, void *user_data) {
                 node->children[i + 1].kind == CDD_CST_CHILD_TOKEN) {
               if (node->children[i + 1].val.token->kind == CDD_TOKEN_LPAREN) {
                 ctx->err = append_result(ctx->res, node);
+#ifdef CDD_BUILD_TESTS
+
+                if (g_cdd_query_err_fail)
+                  ctx->err = ENOMEM;
+#endif
                 if (ctx->err != 0)
                   return ctx->err;
                 break;

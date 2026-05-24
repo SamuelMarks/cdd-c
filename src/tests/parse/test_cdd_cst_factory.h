@@ -197,12 +197,84 @@ TEST test_cst_parse_format(void) {
  * @brief Test test_cst_parse_format is now in the suite
  */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+extern int g_cdd_cst_alloc_node_fail;
+
+TEST test_cdd_cst_parse_format_oom(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *node = NULL;
+  int rc;
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+
+  g_cdd_cst_alloc_token_fail = 1;
+  {
+    int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
+    if (rc_tmp != ENOMEM) {
+      printf("rc_tmp = %d, expected ENOMEM\n", rc_tmp);
+    }
+    ASSERT(rc_tmp != 0);
+  }
+  g_cdd_cst_alloc_token_fail = 0;
+
+  g_cdd_cst_alloc_node_fail = 1;
+  {
+    int rc_tmp = cdd_cst_parse_format(tree, &node, "int x;");
+    if (rc_tmp != ENOMEM) {
+      printf("rc_tmp = %d, expected ENOMEM\n", rc_tmp);
+    }
+    ASSERT(rc_tmp != 0);
+  }
+  g_cdd_cst_alloc_node_fail = 0;
+
+  /* Create an invalid format string that triggers the parsing failure to return
+     ENOMEM Or just an empty parsing result */
+  ASSERT_EQ(0, cdd_cst_parse_format(tree, &node, ""));
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+#endif
+TEST test_cst_parse_format_extra(void) {
+  cdd_cst_tree_t *tree = NULL;
+  cdd_cst_node_t *node = NULL;
+  int rc;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+
+  /* Provide a large formatted string to test `vasprintf` failure path or large
+   * buffer fallback */
+  rc = cdd_cst_parse_format(tree, &node, "int a = %*d;", 1000, 5);
+  ASSERT_EQ(0, rc);
+  ASSERT(node != NULL);
+  cdd_cst_free_node_only(node);
+
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_cst_realloc_fail;
+    /* fail node alloc inside format parser (use a high value to avoid parser
+     * failing first) */
+    g_cdd_cst_alloc_node_fail = 1000;
+    rc = cdd_cst_parse_format(tree, &node, "int x;");
+    ASSERT_EQ(ENOENT, rc);
+    g_cdd_cst_alloc_node_fail = 0;
+  }
+#endif
+
+  cdd_cst_tree_free(tree);
+  PASS();
+}
+
 SUITE(cdd_cst_factory_suite) {
   RUN_TEST(test_cst_alloc_node);
   RUN_TEST(test_cst_create_token);
   RUN_TEST(test_cst_append_child_node);
   RUN_TEST(test_cst_append_child_token);
   RUN_TEST(test_cst_parse_format);
+  RUN_TEST(test_cst_parse_format_extra);
+#ifdef CDD_BUILD_TESTS
+  RUN_TEST(test_cdd_cst_parse_format_oom);
+#endif
 }
 
 #ifdef __cplusplus

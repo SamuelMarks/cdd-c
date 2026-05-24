@@ -1,3 +1,6 @@
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_scope_alloc_fail;
+#endif
 /* clang-format off */
 #include "cdd_cst_scope.h"
 #include <errno.h>
@@ -6,6 +9,8 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+int g_cdd_scope_alloc_fail = 0;
+
 int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   cdd_cst_scope_env_t *env;
   cdd_cst_scope_t *global;
@@ -13,13 +18,24 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   if (!out_env)
     return EINVAL;
 
-  env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_scope_alloc_fail == 1)
+    env = NULL;
+  else
+#endif
+    env = (cdd_cst_scope_env_t *)calloc(1, sizeof(cdd_cst_scope_env_t));
   if (!env) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
 
-  global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+#ifdef CDD_BUILD_TESTS
+  if (g_cdd_scope_alloc_fail == 2)
+    global = NULL;
+  else
+#endif
+    global = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!global) {
     free(env);
     return ENOMEM;
@@ -36,8 +52,7 @@ int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
 static void free_symbols(cdd_cst_symbol_t *sym) {
   while (sym) {
     cdd_cst_symbol_t *next = sym->next;
-    if (sym->name)
-      free((void *)sym->name);
+    free((void *)sym->name);
     free(sym);
     sym = next;
   }
@@ -73,7 +88,13 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
   parent = env->current_scope;
 
-  new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_scope_alloc_fail == 3)
+    new_scope = NULL;
+  else
+#endif
+    new_scope = (cdd_cst_scope_t *)calloc(1, sizeof(cdd_cst_scope_t));
   if (!new_scope) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -84,8 +105,15 @@ int cdd_cst_scope_enter(cdd_cst_scope_env_t *env,
 
   if (parent->num_children >= parent->capacity) {
     size_t new_cap = parent->capacity == 0 ? 4 : parent->capacity * 2;
-    cdd_cst_scope_t **new_arr = (cdd_cst_scope_t **)realloc(
-        parent->children, new_cap * sizeof(cdd_cst_scope_t *));
+    cdd_cst_scope_t **new_arr;
+#ifdef CDD_BUILD_TESTS
+
+    if (g_cdd_scope_alloc_fail == 4)
+      new_arr = NULL;
+    else
+#endif
+      new_arr = (cdd_cst_scope_t **)realloc(
+          parent->children, new_cap * sizeof(cdd_cst_scope_t *));
     if (!new_arr) {
       free(new_scope);
       return ENOMEM;
@@ -111,10 +139,14 @@ int cdd_cst_scope_leave(cdd_cst_scope_env_t *env) {
 static int cdd_strdup(const char *s, char **out_s) {
   size_t len;
   char *d;
-  if (!s || !out_s)
-    return EINVAL;
   len = strlen(s);
-  d = (char *)malloc(len + 1);
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_scope_alloc_fail == 5)
+    d = NULL;
+  else
+#endif
+    d = (char *)malloc(len + 1);
   if (!d) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -132,7 +164,13 @@ int cdd_cst_scope_add_symbol(cdd_cst_scope_env_t *env, const char *name,
   if (!env || !env->current_scope || !name)
     return EINVAL;
 
-  sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_scope_alloc_fail == 6)
+    sym = NULL;
+  else
+#endif
+    sym = (cdd_cst_symbol_t *)calloc(1, sizeof(cdd_cst_symbol_t));
   if (!sym) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;

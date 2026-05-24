@@ -21,8 +21,6 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                                cdd_token_t **modified_funcs,
                                size_t num_modified) {
   size_t i;
-  if (!node)
-    return;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_token_t *tok = node->children[i].val.token;
@@ -240,6 +238,10 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
   }
 }
 
+#ifdef CDD_BUILD_TESTS
+int g_err_perc_fail = 0;
+#endif
+
 int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                    const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -396,7 +398,15 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             if (cloned) {
               char *tmp_name;
               size_t len = ptr_tok->length;
-              tmp_name = (char *)malloc(len + 1);
+#ifdef CDD_BUILD_TESTS
+              if (g_err_perc_fail == 4) {
+                tmp_name = NULL;
+              } else {
+#endif
+                tmp_name = (char *)malloc(len + 1);
+#ifdef CDD_BUILD_TESTS
+              }
+#endif
               if (!tmp_name) {
                 free(cloned);
                 continue;
@@ -444,6 +454,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               }
               cdd_cst_bld_space(&bld);
               cdd_cst_bld_punct(&bld, "}");
+#ifdef CDD_BUILD_TESTS
+              if (g_err_perc_fail == 1)
+                bld.error_state = 1;
+#endif
               if (!cdd_cst_builder_has_error(&bld)) {
                 cdd_cst_insert_node_after(stmt, cloned);
               } else {
@@ -504,6 +518,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                         cdd_cst_bld_space(&bld);
                         cdd_cst_bld_int(&bld, 0);
                       }
+#ifdef CDD_BUILD_TESTS
+                      if (g_err_perc_fail == 3)
+                        bld.error_state = 1;
+#endif
                       if (!cdd_cst_builder_has_error(&bld) &&
                           temp->num_children > 0) {
                         cdd_trivia_t *lt = ret_tok->leading_trivia;
@@ -550,6 +568,10 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             cdd_cst_bld_space(&bld);
             cdd_cst_bld_ident(&bld, "rc");
             cdd_cst_bld_punct(&bld, ";");
+#ifdef CDD_BUILD_TESTS
+            if (g_err_perc_fail == 2)
+              bld.error_state = 1;
+#endif
             if (!cdd_cst_builder_has_error(&bld)) {
               size_t k;
               for (k = func->num_children; k-- > 0;) {

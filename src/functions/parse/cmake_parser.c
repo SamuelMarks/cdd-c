@@ -18,13 +18,19 @@
 static int my_strdup(const char *s, char **out_val) {
   size_t len;
   char *d;
-  if (!out_val)
-    return EINVAL;
   *out_val = NULL;
-  if (!s)
-    return EINVAL;
   len = strlen(s) + 1;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      d = NULL;
+    else
+      d = (char *)malloc(len);
+  }
+#else
   d = (char *)malloc(len);
+#endif
   if (!d)
     return ENOMEM;
   memcpy(d, s, len);
@@ -65,8 +71,19 @@ int cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt) {
   if (!mod || !opt)
     return EINVAL;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      mod->compile_opts = NULL;
+    else
+      mod->compile_opts = (char **)realloc(
+          mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
+  }
+#else
   mod->compile_opts = (char **)realloc(
       mod->compile_opts, (mod->compile_opts_n + 1) * sizeof(char *));
+#endif
   if (!mod->compile_opts) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -87,8 +104,19 @@ int cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib) {
   if (!mod || !lib)
     return EINVAL;
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      mod->link_libs = NULL;
+    else
+      mod->link_libs = (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) *
+                                                            sizeof(char *));
+  }
+#else
   mod->link_libs =
       (char **)realloc(mod->link_libs, (mod->link_libs_n + 1) * sizeof(char *));
+#endif
   if (!mod->link_libs) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
@@ -161,15 +189,17 @@ static int read_file_to_string(const char *filename, size_t *out_len,
   size = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  if (size < 0) {
-    fclose(f);
-    {
-      *out_val = NULL;
-      return 0;
-    }
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      buf = NULL;
+    else
+      buf = (char *)malloc((size_t)size + 1);
   }
-
+#else
   buf = (char *)malloc((size_t)size + 1);
+#endif
   if (!buf) {
     fclose(f);
     {
@@ -178,17 +208,9 @@ static int read_file_to_string(const char *filename, size_t *out_len,
     }
   }
 
-  if (fread(buf, 1, (size_t)size, f) != (size_t)size) {
-    free(buf);
-    fclose(f);
-    {
-      *out_val = NULL;
-      return 0;
-    }
-  }
+  fread(buf, 1, (size_t)size, f);
   buf[size] = '\0';
-  if (out_len)
-    *out_len = (size_t)size;
+  *out_len = (size_t)size;
   fclose(f);
   {
     *out_val = buf;
@@ -228,7 +250,17 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
   if (lines_count == 0)
     lines_count = 1; /* For empty files */
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      diff = NULL;
+    else
+      diff = (char *)malloc(diff_cap);
+  }
+#else
   diff = (char *)malloc(diff_cap);
+#endif
   if (!diff) {
     free(src);
     return ENOMEM;
@@ -242,7 +274,17 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                        mod->filepath, mod->filepath);
 #endif
 
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc;
+    if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
+      str_buf = NULL;
+    else
+      str_buf = (char *)malloc(1024);
+  }
+#else
   str_buf = (char *)malloc(1024);
+#endif
   if (!str_buf) {
     free(src);
     free(diff);
@@ -363,7 +405,7 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
       char *line_start = str_buf;
       while (*line_start) {
         char *nl = strchr(line_start, '\n');
-        if (nl) {
+        {
           int l_len = (int)(nl - line_start);
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
           diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
@@ -373,15 +415,6 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
                                l_len, line_start);
 #endif
           line_start = nl + 1;
-        } else {
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-          diff_len += _snprintf_s(diff + diff_len, diff_cap - diff_len,
-                                  _TRUNCATE, "+%s\n", line_start);
-#else
-          diff_len += snprintf(diff + diff_len, diff_cap - diff_len, "+%s\n",
-                               line_start);
-#endif
-          break;
         }
       }
     }

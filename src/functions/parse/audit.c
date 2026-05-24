@@ -72,8 +72,20 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
   struct AuditViolationList *list = &stats->violations;
   if (list->size >= list->capacity) {
     size_t new_cap = list->capacity == 0 ? 8 : list->capacity * 2;
-    struct AuditViolation *new_items = (struct AuditViolation *)realloc(
+    struct AuditViolation *new_items;
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fail_alloc_audit;
+      if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
+        new_items = NULL;
+      else
+        new_items = (struct AuditViolation *)realloc(
+            list->items, new_cap * sizeof(struct AuditViolation));
+    }
+#else
+    new_items = (struct AuditViolation *)realloc(
         list->items, new_cap * sizeof(struct AuditViolation));
+#endif
     if (!new_items) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return ENOMEM;
@@ -81,16 +93,49 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
     list->items = new_items;
     list->capacity = new_cap;
   }
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc_audit;
+    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
+      list->items[list->size].file_path = NULL;
+    else
+      list->items[list->size].file_path = strdup(file_path);
+  }
+#else
   list->items[list->size].file_path = strdup(file_path);
+#endif
   list->items[list->size].line = line;
   list->items[list->size].col = col;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc_audit;
+    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
+      list->items[list->size].variable_name = NULL;
+    else
+      list->items[list->size].variable_name =
+          var_name ? strdup(var_name) : NULL;
+  }
+#else
   list->items[list->size].variable_name = var_name ? strdup(var_name) : NULL;
+#endif
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc_audit;
+    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
+      list->items[list->size].allocator_name = NULL;
+    else
+      list->items[list->size].allocator_name =
+          allocator ? strdup(allocator) : NULL;
+  }
+#else
   list->items[list->size].allocator_name = allocator ? strdup(allocator) : NULL;
+#endif
 
   if (!list->items[list->size].file_path ||
       (var_name && !list->items[list->size].variable_name) ||
       (allocator && !list->items[list->size].allocator_name)) {
     /* Handle partial alloc failure */
+    printf("PARTIAL ALLOC FAILURE\n");
     free(list->items[list->size].file_path);
     free(list->items[list->size].variable_name);
     free(list->items[list->size].allocator_name);
@@ -230,6 +275,8 @@ static int audit_file_callback(const char *path, void *user_data) {
         get_line_col(content, tok->start, &line, &col);
 
         /* Add to details */
+        printf("var_name=%s\n",
+               sites.sites[i].var_name ? sites.sites[i].var_name : "NULL");
         add_violation(stats, path, line, col, sites.sites[i].var_name,
                       sites.sites[i].spec->name);
 
@@ -267,10 +314,21 @@ int audit_project(const char *root_path, struct AuditStats *stats) {
  * @brief Executes the audit print json operation.
  */
 int audit_print_json(const struct AuditStats *stats, char **out_json) {
-  JSON_Value *root_val = json_value_init_object();
+  JSON_Value *root_val = NULL;
   JSON_Object *root_obj;
   char *str = NULL;
   size_t i;
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fail_alloc_audit;
+    if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
+      root_val = NULL;
+    else
+      root_val = json_value_init_object();
+  }
+#else
+  root_val = json_value_init_object();
+#endif
 
   if (!stats || !out_json || !root_val) {
     if (out_json)

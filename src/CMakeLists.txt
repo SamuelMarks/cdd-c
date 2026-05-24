@@ -218,6 +218,7 @@ target_include_directories(
 
 # Dependencies
 if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
+target_compile_definitions("${LIBRARY_NAME}" PUBLIC CDD_BUILD_TESTS)
 if (C_CDD_USE_LIBCURL)
     if(NOT TARGET CURL::libcurl)
         if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)

@@ -124,7 +124,55 @@ TEST test_make_io_failure(void) {
 /**
  * @brief Suite for codegen make
  */
+
+TEST test_make_oom(void) {
+  struct MakeConfig config = {0};
+  config.project_name = "proj";
+  const char *srcs[] = {"a.c", "b.c"};
+  config.extra_sources = (char **)srcs;
+  config.extra_source_count = 2;
+
+  FILE *fp = fopen("test_make_out.txt", "w");
+  ASSERT(fp);
+
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fprintf_fail;
+  int i;
+  for (i = 1; i < 200; i++) {
+    g_cdd_fprintf_fail = i;
+    int rc = codegen_make_generate(fp, &config);
+    g_cdd_fprintf_fail = 0;
+    if (rc == 0)
+      break;
+  }
+#endif
+
+  fclose(fp);
+
+  fp = fopen("test_make_out.txt", "w");
+  struct MakeConfig config2 = {0};
+  config2.project_name = "proj";
+  config2.min_cmake_version = "3.20";
+  ASSERT_EQ(0, codegen_make_generate(fp, &config2));
+  fclose(fp);
+
+  remove("test_make_out.txt");
+
+  fp = fopen("test_make_out.txt", "w");
+  struct MakeConfig config3 = {0};
+  config3.project_name = "proj";
+  const char *srcs2[] = {NULL};
+  config3.extra_sources = (char **)srcs2;
+  config3.extra_source_count = 1;
+  ASSERT_EQ(0, codegen_make_generate(fp, &config3));
+  fclose(fp);
+  remove("test_make_out.txt");
+
+  PASS();
+}
+
 SUITE(codegen_make_suite) {
+  RUN_TEST(test_make_oom);
   RUN_TEST(test_make_simple);
   RUN_TEST(test_make_extra_sources);
   RUN_TEST(test_make_invalid);

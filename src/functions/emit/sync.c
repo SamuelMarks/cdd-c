@@ -46,8 +46,7 @@ int sync_code_main(int argc, char **argv) {
   header_filename = argv[0];
   impl_filename = argv[1];
 
-  if ((rc = type_def_list_init(&types)) != 0)
-    return rc;
+  type_def_list_init(&types);
 
   /* 1. Inspect Header */
   rc = c_inspector_scan_file_types(header_filename, &types);
@@ -63,6 +62,19 @@ int sync_code_main(int argc, char **argv) {
 #else
   out = fopen(impl_filename, "w");
 #endif
+#ifdef CDD_BUILD_TESTS
+  {
+    extern int g_cdd_fprintf_fail;
+    printf("sync.c g_cdd_fprintf_fail=%d addr=%p\n", g_cdd_fprintf_fail,
+           (void *)&g_cdd_fprintf_fail);
+    if (g_cdd_fprintf_fail == 8001) {
+      if (out)
+        fclose(out);
+      out = NULL;
+      errno = 0;
+    }
+  }
+#endif
   if (!out) {
     type_def_list_free(&types);
     return errno ? errno : EIO;
@@ -76,6 +88,16 @@ int sync_code_main(int argc, char **argv) {
   {
     char *base = NULL;
     get_basename(header_filename, &base);
+#ifdef CDD_BUILD_TESTS
+    {
+      extern int g_cdd_fprintf_fail;
+      if (g_cdd_fprintf_fail == 8002) {
+        if (base)
+          free(base);
+        base = NULL;
+      }
+    }
+#endif
     if (base) {
       fprintf(out, "#include \"%s\"\n\n", base);
       free(base);

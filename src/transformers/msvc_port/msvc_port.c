@@ -28,8 +28,6 @@
 static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
                                      cdd_cst_node_t *node) {
   size_t i;
-  if (!node)
-    return;
   for (i = 0; i < node->num_children; i++) {
     if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
       cdd_token_t *t = node->children[i].val.token;
@@ -72,6 +70,10 @@ static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
  * @param[in] config The transformer configuration.
  * @return 0 on success, or an error code on failure.
  */
+#ifdef CDD_BUILD_TESTS
+int g_msvc_port_bld_fail = 0;
+#endif
+
 int cdd_transform_msvc(cdd_cst_tree_t *tree,
                        const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -127,6 +129,11 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
               cdd_cst_bld_else(&bld);
               cdd_cst_bld_include(&bld, "win_compat_sym.h", 0);
               cdd_cst_bld_endif(&bld);
+
+#ifdef CDD_BUILD_TESTS
+              if (g_msvc_port_bld_fail)
+                bld.error_state = 1;
+#endif
 
               if (!cdd_cst_builder_has_error(&bld)) {
                 cdd_cst_replace_node(tree, dir, wrap_node);

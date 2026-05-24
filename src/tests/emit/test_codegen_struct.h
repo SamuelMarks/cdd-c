@@ -58,6 +58,9 @@ TEST test_cleanup_generation(void) {
   ASSERT(strstr(content, "free(obj);"));
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -91,6 +94,9 @@ TEST test_default_generation(void) {
   ASSERT(strstr(content, "strdup(\"test\");"));
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -126,6 +132,9 @@ TEST test_deepcopy_generation(void) {
 #endif
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -157,6 +166,9 @@ TEST test_eq_generation(void) {
   ASSERT(strstr(content, "strcmp(a->name, b->name)"));
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -189,6 +201,9 @@ TEST test_guards_injection(void) {
   ASSERT(strstr(content, "#endif /* MY_GUARD */"));
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -224,6 +239,10 @@ TEST test_struct_debug_func(void) {
   struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
   struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
   struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+  struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
+  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
+  struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
   struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
   struct_fields_add(&sf, "user", "object", "User", NULL, NULL);
   struct_fields_add(&sf, "unknown", "unknown", NULL, NULL, NULL);
@@ -246,6 +265,9 @@ TEST test_struct_debug_func(void) {
   ASSERT(strstr(content, "(unknown)"));
 
   free(content);
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   PASS();
@@ -273,12 +295,19 @@ TEST test_struct_invalid_args(void) {
     struct_fields_add(&sf, "items", "array", "string", NULL, NULL);
     struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
     struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+    struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
+    struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+    struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
+    struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
     struct_fields_add(&sf, "arr_obj", "array", "object", NULL, NULL);
     struct_fields_add(&sf, "arr_unknown", "array", "unknown", NULL, NULL);
     ASSERT_EQ(0, write_struct_deepcopy_func(tmp, "S", &sf, NULL));
     fclose(tmp);
   }
 
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   PASS();
 }
@@ -297,6 +326,9 @@ TEST test_struct_fields_add_bitwidth(void) {
   ASSERT_EQ(2, sf.size);
   ASSERT_STR_EQ("\0", sf.fields[1].bit_width);
 
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   PASS();
 }
@@ -304,7 +336,292 @@ TEST test_struct_fields_add_bitwidth(void) {
 /**
  * @brief codegen_struct_suite
  */
+
+TEST test_struct_io_errors(void) {
+  FILE *readonly_f = fopen("test_codegen_struct_ro.txt", "w");
+  struct StructFields sf;
+  struct CodegenStructConfig config = {0};
+  fclose(readonly_f);
+
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
+  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+  struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
+  struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+
+  readonly_f = fopen("test_codegen_struct_ro.txt", "r");
+  if (readonly_f) {
+    ASSERT_EQ(EIO, write_struct_cleanup_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(EIO, write_struct_default_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(EIO,
+              write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(EIO, write_struct_eq_func(readonly_f, "Test", &sf, &config));
+    ASSERT_EQ(EIO, write_struct_debug_func(readonly_f, "Test", &sf, &config));
+    fclose(readonly_f);
+  }
+  remove("test_codegen_struct_ro.txt");
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
+  struct_fields_free(&sf);
+
+  PASS();
+}
+
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+extern int g_struct_fields_init_fail;
+extern int g_struct_fields_add_fail;
+#endif
+
+TEST test_struct_exhaustive_io(void) {
+#ifdef CDD_BUILD_TESTS
+  int i, rc;
+  struct StructFields sf;
+  struct CodegenStructConfig config = {0};
+
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
+  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "arr_obj", "array", "Obj", NULL, NULL);
+  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "arr_num", "array", "number", NULL, NULL);
+  struct_fields_add(&sf, "arr_enum", "array", "enum", "Enum", NULL);
+  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  struct_fields_add(&sf, "def_123", "integer", NULL, "123", NULL);
+  struct_fields_add(&sf, "def_hex", "integer", NULL, "0x10", NULL);
+  struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+  struct_fields_add(&sf, "enm", "enum", "Enum", "VAL", NULL);
+  struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "unk", "unknown", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr_unk", "array", "unknown", NULL, NULL);
+  struct_fields_add(&sf, "arr_obj2", "array", "object", NULL, NULL);
+  struct_fields_add(&sf, "arr_bool", "array", "boolean", NULL, NULL);
+  struct_fields_add(&sf, "def_str", "string", NULL, "\"test\"", NULL);
+  struct_fields_add(&sf, "def_str_null", "string", NULL, "nullptr", NULL);
+  struct_fields_add(&sf, "def_prim_null", "integer", NULL, "nullptr", NULL);
+  struct_fields_add(&sf, "def_bin", "integer", NULL, "0b10", NULL);
+  struct_fields_add(&sf, "def_bin_B", "integer", NULL, "0B10", NULL);
+  struct_fields_add(&sf, "def_bin_bad", "integer", NULL, "0bXX", NULL);
+  struct_fields_add(&sf, "def_prim", "integer", NULL, "42", NULL);
+
+  /* Optional fields */
+  struct_fields_add(&sf, "opt_str", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].required = 0;
+
+  sf.is_union = 1;
+  sf.union_is_anyof = 0;
+  sf.union_discriminator = (char *)malloc(5);
+  strcpy(sf.union_discriminator, "type");
+  sf.n_union_variants = 1;
+  sf.union_variants =
+      (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
+  sf.union_variants[0].n_property_names = 1;
+  sf.union_variants[0].property_names = (char **)calloc(1, sizeof(char *));
+  sf.union_variants[0].property_names[0] = (char *)malloc(2);
+  strcpy(sf.union_variants[0].property_names[0], "a");
+  sf.union_variants[0].n_required_props = 1;
+  sf.union_variants[0].required_props = (char **)calloc(1, sizeof(char *));
+  sf.union_variants[0].required_props[0] = (char *)malloc(2);
+  strcpy(sf.union_variants[0].required_props[0], "a");
+  sf.union_variants[0].disc_value = (char *)malloc(5);
+  strcpy(sf.union_variants[0].disc_value, "val1");
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_display_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_default_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_eq_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_debug_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  config.guard_macro = "MY_GUARD";
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_default_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_deepcopy_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_eq_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_debug_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+  }
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_display_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 600; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_cleanup_func(tmp, "Test", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  g_fail_io_after = -1;
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
+  struct_fields_free(&sf);
+#endif
+  PASS();
+}
+
+TEST test_struct_fields_init_oom(void) {
+  struct StructFields sf;
+#ifdef CDD_BUILD_TESTS
+  g_struct_fields_init_fail = 1;
+  ASSERT_EQ(ENOMEM, struct_fields_init(&sf));
+  g_struct_fields_init_fail = 0;
+#endif
+
+  ASSERT_EQ(EINVAL, struct_fields_init(NULL));
+  ASSERT_EQ(0, struct_fields_init(&sf));
+  ASSERT_EQ(EINVAL, struct_fields_add(NULL, "a", "b", NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, struct_fields_add(&sf, NULL, "b", NULL, NULL, NULL));
+  ASSERT_EQ(EINVAL, struct_fields_add(&sf, "a", NULL, NULL, NULL, NULL));
+
+  struct StructField *f = NULL;
+  ASSERT_EQ(0, struct_fields_get(NULL, "a", &f));
+  ASSERT_EQ(0, struct_fields_get(&sf, NULL, &f));
+
+  /* Test get_type_from_ref null */
+  char *val = NULL;
+  ASSERT_EQ(0, get_type_from_ref(NULL, &val));
+  ASSERT_STR_EQ("", val);
+
+  /* Free string array null */
+  sf.is_union = 1;
+  sf.union_is_anyof = 0;
+  sf.union_discriminator = (char *)malloc(5);
+  strcpy(sf.union_discriminator, "type");
+  sf.n_union_variants = 1;
+  sf.union_variants =
+      (struct UnionVariantMeta *)calloc(1, sizeof(struct UnionVariantMeta));
+  /* We leave required_props and property_names NULL */
+
+  /* Force capacity expansion */
+  sf.capacity = 1;
+  sf.size = 1;
+#ifdef CDD_BUILD_TESTS
+  g_struct_fields_add_fail = 1;
+  ASSERT_EQ(ENOMEM,
+            struct_fields_add(&sf, "new_field", "string", NULL, NULL, NULL));
+  g_struct_fields_add_fail = 0;
+#endif
+
+  struct_fields_free(NULL);
+  struct StructFields sf_empty = {0};
+  struct_fields_free(&sf_empty);
+  struct_fields_free(&sf);
+  PASS();
+}
+
 SUITE(codegen_struct_suite) {
+  RUN_TEST(test_struct_io_errors);
+  RUN_TEST(test_struct_exhaustive_io);
+  RUN_TEST(test_struct_fields_init_oom);
   RUN_TEST(test_cleanup_generation);
   RUN_TEST(test_default_generation);
   RUN_TEST(test_deepcopy_generation);

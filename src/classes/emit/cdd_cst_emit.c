@@ -31,11 +31,20 @@ typedef struct emit_ctx_t {
 static int append_str(emit_ctx_t *ctx, const uint8_t *str, size_t len) {
   if (len == 0)
     return 0;
+  if (len > (size_t)-1 - ctx->size - 1) {
+    C_CDD_LOG_DEBUG("ENOMEM: Overflow\n");
+    return ENOMEM;
+  }
   if (ctx->size + len + 1 > ctx->capacity) {
     char *new_buf;
     size_t new_cap = ctx->capacity == 0 ? 1024 : ctx->capacity * 2;
     while (ctx->size + len + 1 > new_cap) {
-      new_cap *= 2;
+      size_t next_cap = new_cap * 2;
+      if (next_cap < new_cap) {
+        new_cap = ctx->size + len + 1;
+        break;
+      }
+      new_cap = next_cap;
     }
     new_buf = (char *)realloc(ctx->buf, new_cap);
     if (!new_buf) {
@@ -134,7 +143,14 @@ int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
 
   if (!ctx.buf) {
     /* Empty file */
+
+#ifdef CDD_BUILD_TESTS
+    extern int g_cdd_fail_alloc;
+    ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : malloc(1));
+#else
     ctx.buf = (char *)malloc(1);
+#endif
+
     if (!ctx.buf)
       return ENOMEM;
     ctx.buf[0] = '\0';

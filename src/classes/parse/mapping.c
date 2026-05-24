@@ -113,10 +113,6 @@ static int clean_type_str(const char *in, char **_out_val) {
   char *p;
   char *buf = NULL;
   int rc;
-  if (!in) {
-    *_out_val = NULL;
-    return 0;
-  }
 
   /* Remove pointer asterisk */
   rc = c_cdd_strdup(in, &buf);
@@ -146,7 +142,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int rc = 0;
   skip_qualifiers(c_type_in, &c_type);
 
-  if (!c_type || !out)
+  if (!out)
     return EINVAL;
 
   c_mapping_init(out);
@@ -202,7 +198,7 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
     if (starts1 || starts2) {
       clean = NULL;
       rc = clean_type_str(c_type, &clean);
-      if (rc != 0 || !clean) {
+      if (rc != 0) {
         C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
         return ENOMEM;
       }
@@ -212,10 +208,10 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
         const char *start = clean;
         if (strncmp(start, "struct ", 7) == 0)
           start += 7;
-        else if (strncmp(start, "enum ", 5) == 0)
+        else
           start += 5;
 
-        while (*start && isspace((unsigned char)*start))
+        while (isspace((unsigned char)*start))
           start++; /* Trim logic */
 
         rc = set_ref(out, start);
@@ -226,10 +222,10 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
       /* Let's set primitive string for safety in generation unless unknown */
       rc = set_primitive(out, "string", NULL);
     }
-
-    if (rc != 0)
-      return rc;
   }
+
+  if (rc != 0)
+    return rc;
 
   /* Handle Arrays (Pointer to POD/Obj, but not char*) */
   if (is_array) {

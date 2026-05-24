@@ -44,6 +44,9 @@ TEST test_json_to_plain(void) {
 
   ASSERT(tmp);
   setup_json_fields(&sf);
+  printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
+         sf.fields[0].has_max, sf.fields[0].exclusive_min,
+         sf.fields[0].exclusive_max);
 
   ASSERT_EQ(0, write_struct_to_json_func(tmp, "Data", &sf, NULL));
 
@@ -78,6 +81,9 @@ TEST test_json_from_plain(void) {
 
   ASSERT(tmp);
   setup_json_fields(&sf);
+  printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
+         sf.fields[0].has_max, sf.fields[0].exclusive_min,
+         sf.fields[0].exclusive_max);
 
   ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Data", &sf, NULL));
 
@@ -178,6 +184,95 @@ TEST test_json_guards(void) {
 
   ASSERT(tmp);
   setup_json_fields(&sf);
+  printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
+         sf.fields[0].has_max, sf.fields[0].exclusive_min,
+         sf.fields[0].exclusive_max);
+  /* Number with min/max */
+  struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Integer with min/max exclusive */
+  struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Number with inclusive min/max */
+  struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* String with regex patterns */
+  struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+  struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+  struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+  struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "contains");
+
+  /* Integer with inclusive min/max */
+  struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* Number with only max */
+  struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Number with only exclusive min (bizarre but technically possible) */
+  struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+
+  /* Number with only exclusive max */
+  struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Integer with only max */
+  struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* Integer with only exclusive min */
+  struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+
+  /* Integer with only exclusive max */
+  struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
   config.guard_macro = "JSON_ENABLED";
 
   ASSERT_EQ(0, write_struct_from_json_func(tmp, "Data", &config));
@@ -239,6 +334,120 @@ TEST test_json_null_args(void) {
   ASSERT_EQ(EINVAL, write_struct_array_from_json_func(NULL, "S", NULL));
   ASSERT_EQ(EINVAL, write_struct_array_from_json_func(tmp, NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
+
+  {
+    FILE *readonly_f = fopen("test_codegen_json_ro.txt", "w");
+    struct StructFields sf;
+    struct CodegenJsonConfig config;
+
+    setup_json_fields(&sf);
+    printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
+           sf.fields[0].has_max, sf.fields[0].exclusive_min,
+           sf.fields[0].exclusive_max);
+
+    /* Number with min/max */
+    struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 1;
+    sf.fields[sf.size - 1].min_val = 0.0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 100.0;
+    sf.fields[sf.size - 1].exclusive_min = 1;
+    sf.fields[sf.size - 1].exclusive_max = 1;
+
+    /* Integer with min/max exclusive */
+    struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 1;
+    sf.fields[sf.size - 1].min_val = 0.0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 10.0;
+    sf.fields[sf.size - 1].exclusive_min = 1;
+    sf.fields[sf.size - 1].exclusive_max = 1;
+
+    /* Number with inclusive min/max */
+    struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 1;
+    sf.fields[sf.size - 1].min_val = 0.0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 100.0;
+    sf.fields[sf.size - 1].exclusive_min = 0;
+    sf.fields[sf.size - 1].exclusive_max = 0;
+
+    /* String with regex patterns */
+    struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+    strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+    struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+    strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+    struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+    strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+    struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+    strcpy(sf.fields[sf.size - 1].pattern, "contains");
+
+    /* Integer with inclusive min/max */
+    struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 1;
+    sf.fields[sf.size - 1].min_val = 0.0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 100.0;
+    sf.fields[sf.size - 1].exclusive_min = 0;
+    sf.fields[sf.size - 1].exclusive_max = 0;
+
+    /* Number with only max */
+    struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 10.0;
+    sf.fields[sf.size - 1].exclusive_max = 1;
+
+    /* Number with only exclusive min (bizarre but technically possible) */
+    struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 0;
+    sf.fields[sf.size - 1].exclusive_min = 1;
+
+    /* Number with only exclusive max */
+    struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 0;
+    sf.fields[sf.size - 1].exclusive_min = 0;
+    sf.fields[sf.size - 1].exclusive_max = 1;
+
+    /* Integer with only max */
+    struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 1;
+    sf.fields[sf.size - 1].max_val = 10.0;
+    sf.fields[sf.size - 1].exclusive_max = 0;
+
+    /* Integer with only exclusive min */
+    struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 0;
+    sf.fields[sf.size - 1].exclusive_min = 1;
+
+    /* Integer with only exclusive max */
+    struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
+    sf.fields[sf.size - 1].has_min = 0;
+    sf.fields[sf.size - 1].has_max = 0;
+    sf.fields[sf.size - 1].exclusive_min = 0;
+    sf.fields[sf.size - 1].exclusive_max = 1;
+
+    config.guard_macro = "JSON_ENABLED";
+
+    fclose(readonly_f);
+    readonly_f = fopen("test_codegen_json_ro.txt", "r");
+    if (readonly_f) {
+      ASSERT_EQ(EIO, write_struct_to_json_func(readonly_f, "S", &sf, NULL));
+      ASSERT_EQ(EIO, write_struct_from_json_func(readonly_f, "S", &config));
+      ASSERT_EQ(EIO,
+                write_struct_array_from_json_func(readonly_f, "S", &config));
+      ASSERT_EQ(EIO, write_struct_from_jsonObject_func(readonly_f, "S", &sf,
+                                                       &config));
+      fclose(readonly_f);
+    }
+    remove("test_codegen_json_ro.txt");
+    struct_fields_free(&sf);
+  }
+
   fclose(tmp);
   PASS();
 }
@@ -255,6 +464,9 @@ TEST test_standalone_json_func(void) {
 
   ASSERT(tmp);
   setup_json_fields(&sf);
+  printf("\nid flags: %d %d %d %d\n", sf.fields[0].has_min,
+         sf.fields[0].has_max, sf.fields[0].exclusive_min,
+         sf.fields[0].exclusive_max);
 
   ASSERT_EQ(0, write_struct_from_json_standalone_func(tmp, "Data", &sf));
 
@@ -276,6 +488,272 @@ TEST test_standalone_json_func(void) {
 /**
  * @brief codegen_json_suite
  */
+#ifdef CDD_BUILD_TESTS
+extern int g_fail_io_after;
+extern int g_io_calls;
+#endif
+
+TEST test_json_exhaustive_io(void) {
+#ifdef CDD_BUILD_TESTS
+  int i;
+  int rc;
+  struct StructFields sf;
+  struct CodegenJsonConfig config;
+
+  struct_fields_init(&sf);
+  struct_fields_add(&sf, "id", "integer", NULL, "0", NULL);
+  struct_fields_add(&sf, "data", "string", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr", "array", "string", NULL, NULL);
+  struct_fields_add(&sf, "obj", "object", "Obj", NULL, NULL);
+  struct_fields_add(&sf, "enm", "enum", "Enum", NULL, NULL);
+  struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
+  struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
+  struct_fields_add(&sf, "arr_int", "array", "integer", NULL, NULL);
+  struct_fields_add(&sf, "arr_obj", "array", "Obj", NULL, NULL);
+
+  /* Optional fields */
+  struct_fields_add(&sf, "opt_str", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].required = 0;
+
+  /* Min/Max lengths */
+  struct_fields_add(&sf, "len_str", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min_len = 1;
+  sf.fields[sf.size - 1].min_len = 5;
+  sf.fields[sf.size - 1].has_max_len = 1;
+  sf.fields[sf.size - 1].max_len = 10;
+
+  /* Min/Max items */
+  struct_fields_add(&sf, "len_arr", "array", "string", NULL, NULL);
+  sf.fields[sf.size - 1].has_min_items = 1;
+  sf.fields[sf.size - 1].min_items = 1;
+  sf.fields[sf.size - 1].has_max_items = 1;
+  sf.fields[sf.size - 1].max_items = 3;
+
+  /* Write-only and Read-only */
+  struct_fields_add(&sf, "w_only", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].write_only = 1;
+  struct_fields_add(&sf, "r_only", "string", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].read_only = 1;
+
+  /* Number with min/max */
+  struct_fields_add(&sf, "num_bounded", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Integer with min/max exclusive */
+  struct_fields_add(&sf, "int_bounded", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Number with inclusive min/max */
+  struct_fields_add(&sf, "num_bounded_inc", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* String with regex patterns */
+  struct_fields_add(&sf, "pat_exact", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "^exact$");
+  struct_fields_add(&sf, "pat_prefix", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "^prefix");
+  struct_fields_add(&sf, "pat_suffix", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "suffix$");
+  struct_fields_add(&sf, "pat_contains", "string", NULL, NULL, NULL);
+  strcpy(sf.fields[sf.size - 1].pattern, "contains");
+
+  /* Integer with inclusive min/max */
+  struct_fields_add(&sf, "int_bounded_inc", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 1;
+  sf.fields[sf.size - 1].min_val = 0.0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 100.0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* Number with only max */
+  struct_fields_add(&sf, "num_max_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Number with only exclusive min (bizarre but technically possible) */
+  struct_fields_add(&sf, "num_ex_min_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+
+  /* Number with only exclusive max */
+  struct_fields_add(&sf, "num_ex_max_only", "number", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  /* Integer with only max */
+  struct_fields_add(&sf, "int_max_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 1;
+  sf.fields[sf.size - 1].max_val = 10.0;
+  sf.fields[sf.size - 1].exclusive_max = 0;
+
+  /* Integer with only exclusive min */
+  struct_fields_add(&sf, "int_ex_min_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 1;
+
+  /* Integer with only exclusive max */
+  struct_fields_add(&sf, "int_ex_max_only", "integer", NULL, NULL, NULL);
+  sf.fields[sf.size - 1].has_min = 0;
+  sf.fields[sf.size - 1].has_max = 0;
+  sf.fields[sf.size - 1].exclusive_min = 0;
+  sf.fields[sf.size - 1].exclusive_max = 1;
+
+  config.guard_macro = "JSON_ENABLED";
+
+  for (i = 0; i < 500; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 500; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_from_json_func(tmp, "Data", &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 500; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_array_from_json_func(tmp, "Data", &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  for (i = 0; i < 500; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_from_jsonObject_func(tmp, "Data", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  config.guard_macro = NULL;
+  for (i = 0; i < 500; ++i) {
+    FILE *tmp = tmpfile();
+    g_fail_io_after = i;
+    g_io_calls = 0;
+    rc = write_struct_to_json_func(tmp, "Data", &sf, &config);
+    fclose(tmp);
+    if (rc == 0)
+      break;
+    ASSERT_EQ(EIO, rc);
+  }
+
+  g_fail_io_after = -1;
+  struct_fields_free(&sf);
+#endif
+  PASS();
+}
+
+TEST test_codegen_json_extra(void) {
+  FILE *tmp = tmpfile();
+  struct StructFields sf;
+  struct CodegenJsonConfig config;
+
+  ASSERT(tmp);
+  struct_fields_init(&sf);
+
+  /* Add fields for missing coverage:
+     - exclusive_max, exclusive_min
+     - max_len without min_len
+     - min_items, max_items
+   */
+  {
+    ASSERT_EQ(0, struct_fields_add(&sf, "v1", "number", NULL, NULL, NULL));
+    struct StructField *f = &sf.fields[sf.size - 1];
+    f->has_min = 1;
+    f->min_val = 0;
+    f->exclusive_min = 1;
+    f->has_max = 1;
+    f->max_val = 10;
+    f->exclusive_max = 1;
+  }
+  {
+    ASSERT_EQ(0, struct_fields_add(&sf, "v2", "string", NULL, NULL, NULL));
+    struct StructField *f = &sf.fields[sf.size - 1];
+    f->has_max_len = 1;
+    f->max_len = 5;
+  }
+  {
+    ASSERT_EQ(0, struct_fields_add(&sf, "v3", "array", "string", NULL, NULL));
+    struct StructField *f = &sf.fields[sf.size - 1];
+    f->has_min_items = 1;
+    f->min_items = 1;
+    f->has_max_items = 1;
+    f->max_items = 5;
+  }
+  {
+    ASSERT_EQ(0, struct_fields_add(&sf, "v4", "string", NULL, NULL, NULL));
+    struct StructField *f = &sf.fields[sf.size - 1];
+    f->has_min_len = 1;
+    f->min_len = 1;
+  }
+  {
+    ASSERT_EQ(0, struct_fields_add(&sf, "v5", "array", "string", NULL, NULL));
+    struct StructField *f = &sf.fields[sf.size - 1];
+    f->has_min_items = 0;
+    f->has_max_items = 1;
+    f->max_items = 10;
+  }
+
+  memset(&config, 0, sizeof(config));
+
+  /* config == NULL tests */
+  ASSERT_EQ(0, write_struct_from_json_func(tmp, "Extra", NULL));
+  ASSERT_EQ(0, write_struct_to_json_func(tmp, "Extra", &sf, NULL));
+  ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Extra", NULL));
+  ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Extra", &sf, NULL));
+
+  ASSERT_EQ(0, write_struct_from_json_func(tmp, "Extra", &config));
+  ASSERT_EQ(0, write_struct_to_json_func(tmp, "Extra", &sf, &config));
+  ASSERT_EQ(0, write_struct_array_from_json_func(tmp, "Extra", &config));
+  ASSERT_EQ(0, write_struct_from_jsonObject_func(tmp, "Extra", &sf, &config));
+
+  struct_fields_free(&sf);
+  fclose(tmp);
+  PASS();
+}
+
 SUITE(codegen_json_suite) {
   RUN_TEST(test_json_to_plain);
   RUN_TEST(test_json_from_plain);
@@ -285,6 +763,8 @@ SUITE(codegen_json_suite) {
   RUN_TEST(test_struct_array_from_json);
   RUN_TEST(test_json_null_args);
   RUN_TEST(test_standalone_json_func);
+  RUN_TEST(test_json_exhaustive_io);
+  RUN_TEST(test_codegen_json_extra);
 }
 
 #ifdef __cplusplus

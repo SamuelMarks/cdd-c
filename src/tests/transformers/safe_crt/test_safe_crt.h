@@ -51,7 +51,7 @@ TEST test_cdd_transform_safe_crt(void) {
       "  fprintf(f, \"%s\", dest);\n"
       "  scanf(\"%s %d %c\", dest, &idx, &ch);\n"
       "  fscanf(f, \"%10s\", dest);\n"
-      "  sscanf(dest, \"%[a-z] %s\", dest2, dest3);\n"
+      "  sscanf(dest, \"%[a-z] %% %*d %s\", dest2, dest3);\n"
       "  _itoa(idx, dest, 10);\n"
       "  _mbscpy(dest, \"abc\");\n"
       "  _mbsncpy(dest, \"abc\", 2);\n"
@@ -81,6 +81,13 @@ TEST test_cdd_transform_safe_crt(void) {
       "  if (1) strcpy(dest, \"e\");\n"
       "  for (;;) strcpy(dest, \"f\");\n"
       "  idx = (int)strlen(dest);\n"
+      "  strerror(1);\n"
+      "  _wcserror(1);\n"
+      "  strtok(dest, \"a\");\n"
+      "  wcstok(wdest, L\"a\");\n"
+      "  _mbstok(dest, \"a\");\n"
+      "  _ecvt(d, 1, &idx, &idx);\n"
+      "  _fcvt(d, 1, &idx, &idx);\n"
       "  /* prefix */ strcpy(dest, /* src */ \"g\" /* suffix */);\n"
       "}\n"
       "#define MY_COPY_MACRO(a, b) strcpy(a, b)\n"
@@ -156,9 +163,9 @@ TEST test_cdd_transform_safe_crt(void) {
                      "&idx, &ch, (unsigned)sizeof(ch));") != NULL);
   ASSERT(strstr(out, "fscanf_s(f, \"%10s\", dest, (unsigned)sizeof(dest));") !=
          NULL);
-  ASSERT(strstr(out,
-                "sscanf_s(dest, \"%[a-z] %s\", dest2, (unsigned)sizeof(dest2), "
-                "dest3, (unsigned)sizeof(dest3));") != NULL);
+  ASSERT(strstr(out, "sscanf_s(dest, \"%[a-z] %% %*d %s\", dest2, "
+                     "(unsigned)sizeof(dest2), "
+                     "dest3, (unsigned)sizeof(dest3));") != NULL);
 
   /* Test _itoa, _mbscpy, freopen, _wfopen additions */
   ASSERT(strstr(out, "_itoa_s(idx, dest, sizeof(dest), 10);") != NULL);
@@ -189,6 +196,18 @@ TEST test_cdd_transform_safe_crt(void) {
 
   /* Test strlen addition */
   ASSERT(strstr(out, "strnlen_s(dest, sizeof(dest))") != NULL);
+  ASSERT(strstr(out, "strtok_s(dest, \"a\", &__strtokctx)") != NULL);
+  ASSERT(strstr(out, "wcstok_s(wdest, L\"a\", &__wcstokctx)") != NULL);
+  ASSERT(strstr(out, "_mbstok_s(dest, \"a\", &__mbstokctx)") != NULL);
+  ASSERT(
+      strstr(out, "((_ecvt_s(__ecvtbuf, 128, d, 1, &idx, &idx), __ecvtbuf))") !=
+      NULL);
+  ASSERT(
+      strstr(out, "((_fcvt_s(__fcvtbuf, 128, d, 1, &idx, &idx), __fcvtbuf))") !=
+      NULL);
+  ASSERT(strstr(out, "((strerror_s(__errbuf, 94, 1), __errbuf))") != NULL);
+  ASSERT(strstr(out, "((_wcserror_s(__wcserrbuf, 94, 1), __wcserrbuf))") !=
+         NULL);
 
   /* Test preservation of inline comments */
   ASSERT(strstr(out,
@@ -205,6 +224,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   const char *code =
       "void edge_cases() {\n"
       "  char buf[256];\n"
+      "\n#if defined(_MSC_VER)\n"
+
       "  int dummy = 1;\n"
       "  if (dummy) strcpy(buf, \"abc\"); else strcpy(buf, \"def\");\n"
       "  switch (dummy) { case 1: strcpy(buf, \"a\"); }\n"
@@ -212,6 +233,15 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
       "  while (dummy) strcpy(buf, \"y\");\n"
       "  do strcpy(buf, \"z\"); while (0);\n"
       "  { strcpy(buf, \"foo\"); }\n"
+      "  fscanf(stdout, \"123\", &dummy, &dummy);\n"
+
+      "  fscanf(stdout, \"123\", &dummy);\n"
+
+      "  scanf();\n"
+      "  fscanf(stdout);\n"
+      "  printf();\n"
+      "  scanf(\"123\", &dummy, &dummy);\n"
+
       "  printf(\"hello\");\n" /* not transformed without args */
       "}\n";
   cdd_transform_config_t config = {0, 2, 0};
@@ -225,9 +255,82 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   PASS();
 }
 
+#ifdef CDD_BUILD_TESTS
+extern int g_safe_crt_malloc_fail;
+extern int g_cdd_cst_alloc_node_fail;
+#endif
+
+TEST test_cdd_transform_safe_crt_oom(void) {
+#ifdef CDD_BUILD_TESTS
+  cdd_cst_tree_t *tree = NULL;
+  const char *code =
+      "void f() { char buf[10]; char *p; double d; wchar_t wbuf[10]; p = "
+      "strtok(buf, \"a\"); p = wcstok(wbuf, L\"a\"); _mbstok(buf, \"a\"); "
+      "strerror(1); _wcserror(1); _ecvt(d, 1, 0, 0); _fcvt(d, 1, 0, 0); "
+      "ctime(NULL); getenv(\"A\"); _wgetenv(L\"A\"); strcpy(buf, \"abc\"); }";
+  cdd_transform_config_t config = {0, 2, 0};
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+
+  g_safe_crt_malloc_fail = 1;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_cdd_cst_alloc_node_fail = 1;
+  cdd_transform_safe_crt(tree, &config);
+  g_cdd_cst_alloc_node_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_safe_crt_malloc_fail = 2;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  tree = NULL;
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_safe_crt_malloc_fail = 6;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_safe_crt_malloc_fail = 3;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_safe_crt_malloc_fail = 4;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
+  g_safe_crt_malloc_fail = 5;
+  cdd_transform_safe_crt(tree, &config);
+  g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
+  tree = NULL;
+
+  cdd_cst_tree_t *tree2 = NULL;
+  ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree2));
+  cdd_transform_safe_crt(tree2, &config);
+  cdd_cst_tree_free(tree2);
+
+#endif
+  PASS();
+}
+
 SUITE(transformer_safe_crt_suite) {
   RUN_TEST(test_cdd_transform_safe_crt);
   RUN_TEST(test_cdd_transform_safe_crt_edge_cases);
+  RUN_TEST(test_cdd_transform_safe_crt_oom);
 }
 
 #ifdef __cplusplus

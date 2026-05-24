@@ -1,3 +1,6 @@
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_cst_alloc_token_fail;
+#endif
 /**
  * @file code2schema.c
  * @brief Implementation of C header parsing and code-to-schema conversion.
@@ -362,13 +365,20 @@ int copy_string_array_code2schema(char ***dst, size_t *dst_count, char **src,
   *dst_count = 0;
   if (!src || src_count == 0)
     return 0;
-  out = (char **)calloc(src_count, sizeof(char *));
+#ifdef CDD_BUILD_TESTS
+
+  if (g_cdd_cst_alloc_token_fail == 1)
+    out = NULL;
+  else
+#endif
+    out = (char **)calloc(src_count, sizeof(char *));
   if (!out) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
   for (i = 0; i < src_count; ++i) {
     if (src[i]) {
+
       c_cdd_strdup(src[i], &out[i]);
       if (!out[i]) {
         free_string_array_code2schema(out, src_count);

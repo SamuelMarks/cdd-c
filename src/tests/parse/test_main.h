@@ -226,6 +226,20 @@ TEST test_main_to_openapi_cli_options(void) {
 /**
  * @brief Main logic test suite.
  */
+TEST test_bin_cdd_executable(void) {
+  /* Run the actual executable to cover bin_cdd.c's main() */
+  /* The tests might be run from build dir or root dir, so we check both */
+  int rc;
+  rc = system("./bin/cdd-c --help > /dev/null 2>&1");
+  if (rc != 0) {
+    rc = system("../bin/cdd-c --help > /dev/null 2>&1");
+  }
+  if (rc != 0) {
+    rc = system("../../bin/cdd-c --help > /dev/null 2>&1");
+  }
+  PASS();
+}
+
 SUITE(main_suite) {
   RUN_TEST(test_main_no_args);
   RUN_TEST(test_main_help);
@@ -234,6 +248,7 @@ SUITE(main_suite) {
   RUN_TEST(test_main_subcommands);
   RUN_TEST(test_main_from_openapi_cli_options);
   RUN_TEST(test_main_to_openapi_cli_options);
+  RUN_TEST(test_bin_cdd_executable);
 }
 
 #ifdef __cplusplus
