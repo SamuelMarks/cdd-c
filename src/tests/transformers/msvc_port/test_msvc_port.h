@@ -43,9 +43,11 @@ TEST test_cdd_transform_msvc(void) {
   ASSERT_EQ(0, rc);
 
   /* Test nulls */
-  ASSERT_EQ(EINVAL, cdd_transform_msvc(NULL, &config));
-  cdd_cst_tree_t empty_tree = {0};
-  ASSERT_EQ(EINVAL, cdd_transform_msvc(&empty_tree, &config));
+  {
+    cdd_cst_tree_t empty_tree = {0};
+    ASSERT_EQ(EINVAL, cdd_transform_msvc(NULL, &config));
+    ASSERT_EQ(EINVAL, cdd_transform_msvc(&empty_tree, &config));
+  }
 
   /* Test malformed nodes / builder errors. We will manually construct a
    * malformed tree but it's easier to just pass a tree with a missing file.

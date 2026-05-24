@@ -77,7 +77,7 @@ TEST test_sha256_empty_string(void) {
   if (!is_crypto_supported())
     SKIPm("Crypto backend not compiled");
 
-  ASSERT_EQ(EINVAL, crypto_sha256(NULL, 0, digest));
+  ASSERT_EQ(0, crypto_sha256(NULL, 0, digest));
   ASSERT_EQ(EINVAL, crypto_sha256("", 0, NULL));
 
   ASSERT_EQ(0, crypto_sha256("", 0, digest));

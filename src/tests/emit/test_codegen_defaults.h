@@ -14,6 +14,12 @@ extern "C" {
 #include "functions/emit/codegen.h"
 /* clang-format on */
 
+#ifdef _WIN32
+#define DEV_NULL "nul"
+#else
+#define DEV_NULL "/dev/null"
+#endif
+
 /* Helper to generate code and return as string buffer */
 static int generate_def_code(const char *struct_name, struct StructFields *sf,
                              char **_out_val) {
@@ -232,7 +238,7 @@ TEST test_write_forward_decl_bounds(void) {
 }
 
 TEST test_write_forward_decl_io_fail(void) {
-  FILE *tmp = fopen("/dev/null", "r");
+  FILE *tmp = fopen(DEV_NULL, "r");
   ASSERT(tmp);
   ASSERT_EQ(EIO, write_forward_decl(tmp, "X"));
   fclose(tmp);
@@ -240,7 +246,7 @@ TEST test_write_forward_decl_io_fail(void) {
 }
 
 TEST test_write_enum_declaration_h_io_fail(void) {
-  FILE *tmp = fopen("/dev/null", "r");
+  FILE *tmp = fopen(DEV_NULL, "r");
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
@@ -253,7 +259,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
 }
 
 TEST test_write_struct_declaration_h_io_fail(void) {
-  FILE *tmp = fopen("/dev/null", "r");
+  FILE *tmp = fopen(DEV_NULL, "r");
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
@@ -266,7 +272,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
 }
 
 TEST test_write_union_declaration_h_io_fail(void) {
-  FILE *tmp = fopen("/dev/null", "r");
+  FILE *tmp = fopen(DEV_NULL, "r");
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));

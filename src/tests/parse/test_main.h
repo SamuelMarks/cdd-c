@@ -35,10 +35,10 @@ TEST test_main_no_args(void) {
  */
 TEST test_main_help(void) {
   char *argv[] = {"cdd-c", "--help"};
+  char *argv2[] = {"cdd-c", "-h"};
   int rc = cdd_main(2, argv);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
 
-  char *argv2[] = {"cdd-c", "-h"};
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
   PASS();
@@ -51,10 +51,10 @@ TEST test_main_help(void) {
  */
 TEST test_main_version(void) {
   char *argv[] = {"cdd-c", "--version"};
+  char *argv2[] = {"cdd-c", "-v"};
   int rc = cdd_main(2, argv);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
 
-  char *argv2[] = {"cdd-c", "-v"};
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
   PASS();
@@ -67,10 +67,10 @@ TEST test_main_version(void) {
  */
 TEST test_main_invalid_command(void) {
   char *argv[] = {"cdd-c", "unknown_command"};
+  char *argv2[] = {"cdd-c", "openapi2client"};
   int rc = cdd_main(2, argv);
   ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
 
-  char *argv2[] = {"cdd-c", "openapi2client"};
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
   PASS();
@@ -135,6 +135,7 @@ TEST test_main_from_openapi_cli_options(void) {
                         "--no-installable-package",
                         "--tests",
                         "yes"};
+  char *argv_env[] = {"cdd-c", "from_openapi", "to_sdk"};
   FILE *f;
 
   /* Note: we can't test actual execution easily without creating a dummy */
@@ -152,8 +153,6 @@ TEST test_main_from_openapi_cli_options(void) {
   setenv("CDD_INPUT_FILE", "spec.json", 1);
   setenv("CDD_OUT_DIR", "test_out_dir_env", 1);
 #endif
-
-  char *argv_env[] = {"cdd-c", "from_openapi", "to_sdk"};
 
   /* Create a dummy spec to test the execution */
   f = fopen("spec.json", "w");
@@ -191,6 +190,7 @@ TEST test_main_to_openapi_cli_options(void) {
   char *argv_flags[] = {"cdd-c", "to_openapi", "-i", "indir", "-o", "outdir"};
   char *argv_flags2[] = {"cdd-c",  "to_openapi", "--input",
                          "indir2", "--output",   "outdir2"};
+  char *argv_env[] = {"cdd-c", "to_openapi"};
 
   ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help));
   ASSERT_EQ(EXIT_SUCCESS, cdd_main(3, argv_help2));
@@ -208,7 +208,6 @@ TEST test_main_to_openapi_cli_options(void) {
   setenv("CDD_OUT_FILE", "outdir3", 1);
 #endif
 
-  char *argv_env[] = {"cdd-c", "to_openapi"};
   /* still fails because it's not implemented, but we hit the env var branch */
   cdd_main(2, argv_env);
 

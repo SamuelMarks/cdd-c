@@ -30,6 +30,10 @@ TEST test_cdd_math_add_sub(void) {
   cdd_uint128_t u1 = cdd_make_uint128(0, 10);
   cdd_uint128_t u2 = cdd_make_uint128(0, 20);
   cdd_uint128_t uout;
+  cdd_int128_t i1 = cdd_make_int128(0, 10);
+  cdd_int128_t i2 = cdd_make_int128(0, 20);
+  cdd_int128_t iout;
+
   cdd_uint128_add(u1, u2, &uout);
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(30, uout.low);
@@ -38,9 +42,6 @@ TEST test_cdd_math_add_sub(void) {
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(20, uout.low);
 
-  cdd_int128_t i1 = cdd_make_int128(0, 10);
-  cdd_int128_t i2 = cdd_make_int128(0, 20);
-  cdd_int128_t iout;
   cdd_int128_add(i1, i2, &iout);
   ASSERT_EQ(0, iout.high);
   ASSERT_EQ(30, iout.low);
@@ -55,6 +56,10 @@ TEST test_cdd_math_mul_div(void) {
   cdd_uint128_t u1 = cdd_make_uint128(0, 10);
   cdd_uint128_t u2 = cdd_make_uint128(0, 20);
   cdd_uint128_t uout;
+  cdd_int128_t i1 = cdd_make_int128(0, 10);
+  cdd_int128_t i2 = cdd_make_int128(0, 20);
+  cdd_int128_t iout;
+
   cdd_uint128_mul(u1, u2, &uout);
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(200, uout.low);
@@ -63,9 +68,6 @@ TEST test_cdd_math_mul_div(void) {
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(20, uout.low);
 
-  cdd_int128_t i1 = cdd_make_int128(0, 10);
-  cdd_int128_t i2 = cdd_make_int128(0, 20);
-  cdd_int128_t iout;
   cdd_int128_mul(i1, i2, &iout);
   ASSERT_EQ(0, iout.high);
   ASSERT_EQ(200, iout.low);
@@ -80,6 +82,10 @@ TEST test_cdd_math_mod_shl_shr(void) {
   cdd_uint128_t u1 = cdd_make_uint128(0, 25);
   cdd_uint128_t u2 = cdd_make_uint128(0, 10);
   cdd_uint128_t uout;
+  cdd_int128_t i1 = cdd_make_int128(0, 25);
+  cdd_int128_t i2 = cdd_make_int128(0, 10);
+  cdd_int128_t iout;
+
   cdd_uint128_mod(u1, u2, &uout);
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(5, uout.low);
@@ -92,9 +98,6 @@ TEST test_cdd_math_mod_shl_shr(void) {
   ASSERT_EQ(0, uout.high);
   ASSERT_EQ(25, uout.low);
 
-  cdd_int128_t i1 = cdd_make_int128(0, 25);
-  cdd_int128_t i2 = cdd_make_int128(0, 10);
-  cdd_int128_t iout;
   cdd_int128_mod(i1, i2, &iout);
   ASSERT_EQ(0, iout.high);
   ASSERT_EQ(5, iout.low);
@@ -113,6 +116,9 @@ TEST test_cdd_math_bitwise(void) {
   cdd_uint128_t u1 = cdd_make_uint128(0, 3);
   cdd_uint128_t u2 = cdd_make_uint128(0, 1);
   cdd_uint128_t uout;
+  cdd_int128_t i1 = cdd_make_int128(0, 3);
+  cdd_int128_t i2 = cdd_make_int128(0, 1);
+  cdd_int128_t iout;
 
   cdd_uint128_and(u1, u2, &uout);
   ASSERT_EQ(1, uout.low);
@@ -122,10 +128,6 @@ TEST test_cdd_math_bitwise(void) {
   ASSERT_EQ(2, uout.low);
   cdd_uint128_not(u2, &uout);
   ASSERT_EQ(~1ULL, uout.low);
-
-  cdd_int128_t i1 = cdd_make_int128(0, 3);
-  cdd_int128_t i2 = cdd_make_int128(0, 1);
-  cdd_int128_t iout;
 
   cdd_int128_and(i1, i2, &iout);
   ASSERT_EQ(1, iout.low);

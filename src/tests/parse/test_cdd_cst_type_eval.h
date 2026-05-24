@@ -125,33 +125,35 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   cdd_cst_tree_free(tree2);
 
   /* What if extract_type_name has multiple spaces? */
-  cdd_cst_tree_t *tree3 = NULL;
-  cdd_cst_node_t *decl3 = NULL;
-  rc = cdd_cst_parse(az_span_create_from_str("unsigned long long int a;"),
-                     &tree3);
-  ASSERT_EQ(0, rc);
-  for (i = 0; i < tree3->root->num_children; i++) {
-    if (tree3->root->children[i].kind == CDD_CST_CHILD_NODE) {
-      decl3 = tree3->root->children[i].val.node;
-      break;
+  {
+    cdd_cst_tree_t *tree3 = NULL;
+    cdd_cst_node_t *decl3 = NULL;
+    rc = cdd_cst_parse(az_span_create_from_str("unsigned long long int a;"),
+                       &tree3);
+    ASSERT_EQ(0, rc);
+    for (i = 0; i < tree3->root->num_children; i++) {
+      if (tree3->root->children[i].kind == CDD_CST_CHILD_NODE) {
+        decl3 = tree3->root->children[i].val.node;
+        break;
+      }
     }
+    ASSERT(decl3 != NULL);
+    rc = cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &size);
+    ASSERT_EQ(ENOSYS, rc); /* "unsigned long long int" is not in the hardcoded
+                              primitive map but tests loop coverage */
+    cdd_cst_tree_free(tree3);
   }
-  ASSERT(decl3 != NULL);
-  rc = cdd_cst_eval_sizeof(env, decl3, CDD_CST_ABI_LP64, &size);
-  ASSERT_EQ(ENOSYS, rc); /* "unsigned long long int" is not in the hardcoded
-                            primitive map but tests loop coverage */
-  cdd_cst_tree_free(tree3);
 
   /* What if extract_type_name buffer overflows? (256 bytes) */
   {
     char huge_type[300];
+    cdd_cst_tree_t *tree4 = NULL;
+    cdd_cst_node_t *decl4 = NULL;
     memset(huge_type, 'a', 290);
     huge_type[290] = ' ';
     huge_type[291] = 'x';
     huge_type[292] = ';';
     huge_type[293] = '\0';
-    cdd_cst_tree_t *tree4 = NULL;
-    cdd_cst_node_t *decl4 = NULL;
     rc = cdd_cst_parse(az_span_create_from_str(huge_type), &tree4);
     ASSERT_EQ(0, rc);
     for (i = 0; i < tree4->root->num_children; i++) {

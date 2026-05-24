@@ -219,7 +219,6 @@ TEST test_cst_splice_children(void) {
 
   /* Test out node pointer */
   {
-    cdd_cst_node_t *out_node = NULL;
     cdd_cst_node_t *old_root = tree->root;
     rc = cdd_cst_splice_children(tree, &old_root, 0, 1, new_children, 1);
     ASSERT_EQ(0, rc);

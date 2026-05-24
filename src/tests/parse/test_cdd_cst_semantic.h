@@ -186,19 +186,21 @@ TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_append_child_node(decl, non_id_node);
 
   /* Add child node traversal test by adding a child to root that has a child */
-  cdd_cst_node_t *traverse_parent = NULL;
-  cdd_cst_node_t *traverse_child = NULL;
-  cdd_cst_alloc_node(CDD_CST_BLOCK, &traverse_parent);
-  cdd_cst_alloc_node(CDD_CST_EXPRESSION, &traverse_child);
-  cdd_cst_append_child_node(traverse_parent, traverse_child);
-  cdd_cst_append_child_node(root, traverse_parent);
+  {
+    cdd_cst_node_t *traverse_parent = NULL;
+    cdd_cst_node_t *traverse_child = NULL;
+    cdd_cst_alloc_node(CDD_CST_BLOCK, &traverse_parent);
+    cdd_cst_alloc_node(CDD_CST_EXPRESSION, &traverse_child);
+    cdd_cst_append_child_node(traverse_parent, traverse_child);
+    cdd_cst_append_child_node(root, traverse_parent);
 
-  ASSERT_EQ(0, cdd_cst_build_semantic_info(&tree, &env));
-  ASSERT_NEQ(NULL, env);
+    ASSERT_EQ(0, cdd_cst_build_semantic_info(&tree, &env));
+    ASSERT_NEQ(NULL, env);
 
-  cdd_cst_scope_env_free(env);
-  cdd_cst_free_node_only(traverse_child);
-  cdd_cst_free_node_only(traverse_parent);
+    cdd_cst_scope_env_free(env);
+    cdd_cst_free_node_only(traverse_child);
+    cdd_cst_free_node_only(traverse_parent);
+  }
   cdd_cst_free_node_only(non_id_node);
   cdd_cst_free_node_only(id_node);
   cdd_cst_free_node_only(decl);

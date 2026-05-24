@@ -59,7 +59,6 @@ TEST test_enum_generation(void) {
   /* Test OOM during string duplication by failing strdup somehow? We can fail
    * the next realloc instead */
   {
-    size_t old_cap = em.capacity;
     while (em.size < em.capacity) {
       ASSERT_EQ(0, enum_members_add(&em, "FILL"));
     }

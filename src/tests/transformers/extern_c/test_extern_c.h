@@ -57,9 +57,9 @@ TEST test_cdd_transform_extern_c(void) {
  */
 TEST test_cdd_transform_extern_c_null_args(void) {
   cdd_transform_config_t config = {0, 2, 0};
+  cdd_cst_tree_t tree = {0};
   ASSERT_EQ(EINVAL, cdd_transform_extern_c(NULL, &config));
 
-  cdd_cst_tree_t tree = {0};
   ASSERT_EQ(EINVAL, cdd_transform_extern_c(&tree, &config));
   PASS();
 }
@@ -142,7 +142,6 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
   cdd_cst_node_t *dir = calloc(1, sizeof(cdd_cst_node_t));
   cdd_token_t *tok_ifdef = calloc(1, sizeof(cdd_token_t));
   cdd_token_t *tok_cpp = calloc(1, sizeof(cdd_token_t));
-  char *out = NULL;
   int rc;
   cdd_transform_config_t config = {0, 2, 0};
 

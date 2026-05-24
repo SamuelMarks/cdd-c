@@ -39,6 +39,7 @@ TEST test_standalone_json_gen(void) {
     struct StructField f2 = {0};
     struct StructField f3 = {0};
     struct StructField f4 = {0};
+    struct StructField f5 = {0};
 
     strcpy(f1.name, "my_str");
     strcpy(f1.type, "string");
@@ -64,7 +65,6 @@ TEST test_standalone_json_gen(void) {
     f4.required = 1;
     sf.fields[sf.size++] = f4;
 
-    struct StructField f5 = {0};
     strcpy(f5.name, "my_arr");
     strcpy(f5.type, "array");
     sf.fields[sf.size++] = f5;

@@ -414,8 +414,14 @@ TEST test_types_null_args(void) {
   PASS();
 }
 
+#ifdef _WIN32
+#define DEV_NULL "nul"
+#else
+#define DEV_NULL "/dev/null"
+#endif
+
 TEST test_types_io_fail(void) {
-  FILE *tmp = fopen("/dev/null", "r");
+  FILE *tmp = fopen(DEV_NULL, "r");
   struct StructFields sf;
   struct_fields_init(&sf);
   struct_fields_add(&sf, "string", "t", "s", 0, 0);

@@ -70,7 +70,6 @@ TEST test_cdd_cst_emit_null_children(void) {
 TEST test_cdd_cst_emit_large_string(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
-  cdd_cst_child_t child = {0};
   cdd_token_t tok = {0};
   cdd_trivia_t t1 = {0};
   cdd_trivia_t t2 = {0};

@@ -163,13 +163,14 @@ TEST test_destringize_invalids(void) {
   char *_ast_destringize_5 = NULL;
   char *_ast_destringize_6 = NULL;
   char *_ast_destringize_7 = NULL;
+  char *_ast_destringize_8 = NULL;
+  char *_ast_destringize_9 = NULL;
+  char *empty = NULL;
+
   ASSERT_EQ(NULL,
             (c_cdd_destringize(NULL, &_ast_destringize_5), _ast_destringize_5));
   ASSERT_EQ(NULL, (c_cdd_destringize("unquoted", &_ast_destringize_6),
                    _ast_destringize_6));
-  char *_ast_destringize_8 = NULL;
-  char *_ast_destringize_9 = NULL;
-  char *_ast_destringize_10 = NULL;
   ASSERT_EQ(NULL,
             (c_cdd_destringize("'c'", &_ast_destringize_7),
              _ast_destringize_7)); /* Char literal not supported by this */
@@ -177,7 +178,6 @@ TEST test_destringize_invalids(void) {
                    _ast_destringize_8));
   ASSERT_EQ(NULL,
             (c_cdd_destringize("L", &_ast_destringize_9), _ast_destringize_9));
-  char *empty = NULL;
   c_cdd_destringize("\"\"", &empty);
   ASSERT_EQ(0, strlen(empty));
   free(empty);

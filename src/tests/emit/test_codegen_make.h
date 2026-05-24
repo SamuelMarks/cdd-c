@@ -104,10 +104,17 @@ TEST test_make_invalid(void) {
   PASS();
 }
 
+#ifdef _WIN32
+#define DEV_NULL "nul"
+#else
+#define DEV_NULL "/dev/null"
+#endif
+
 TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
+  FILE *f;
   cfg.project_name = "test_io";
-  FILE *f = fopen("/dev/null", "r");
+  f = fopen(DEV_NULL, "r");
   ASSERT(f);
   ASSERT_EQ(EIO, codegen_make_generate(f, &cfg));
   fclose(f);

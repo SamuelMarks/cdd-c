@@ -976,12 +976,12 @@ TEST test_media_type_is_json_url(void) {
 
 TEST test_querystring_param_null_checks(void) {
   const char *out_val;
+  struct OpenAPI_Parameter p;
   ASSERT_EQ(0, querystring_param_is_form_object(NULL));
   ASSERT_EQ(0, querystring_param_is_json_ref(NULL));
   ASSERT_EQ(0, querystring_param_json_primitive_type(NULL, &out_val));
   ASSERT_EQ(NULL, out_val);
 
-  struct OpenAPI_Parameter p;
   memset(&p, 0, sizeof(p));
   p.in = OA_PARAM_IN_HEADER; /* not query */
 
