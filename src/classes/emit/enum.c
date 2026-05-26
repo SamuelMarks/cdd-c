@@ -20,7 +20,11 @@
 extern int g_fail_io_after;
 extern int g_io_calls;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
+#else
+    ;
+#endif
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_list args;
   int rc;

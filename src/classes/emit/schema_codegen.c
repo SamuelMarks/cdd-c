@@ -44,7 +44,11 @@
 int g_schema_fail_io_after = -1;
 int g_schema_io_calls = 0;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+#if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
+#else
+    ;
+#endif
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_list args;
   int rc;
