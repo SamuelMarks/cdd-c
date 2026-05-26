@@ -114,11 +114,11 @@ TEST test_scan_classic_enum(void) {
  */
 
 TEST test_inspector_nulls(void) {
+  struct TypeDefList list = {0};
   ASSERT_EQ(EINVAL, type_def_list_init(NULL));
   type_def_list_free(NULL);
 
   /* Create an empty struct/enum with NULL details to test free bounds */
-  struct TypeDefList list = {0};
   type_def_list_init(&list);
 
   list.items = calloc(2, sizeof(struct TypeDefinition));

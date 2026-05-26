@@ -741,8 +741,9 @@ TEST test_codegen_json_extra(void) {
      - min_items, max_items
    */
   {
+    struct StructField *f;
     ASSERT_EQ(0, struct_fields_add(&sf, "v1", "number", NULL, NULL, NULL));
-    struct StructField *f = &sf.fields[sf.size - 1];
+    f = &sf.fields[sf.size - 1];
     f->has_min = 1;
     f->min_val = 0;
     f->exclusive_min = 1;
@@ -751,28 +752,32 @@ TEST test_codegen_json_extra(void) {
     f->exclusive_max = 1;
   }
   {
+    struct StructField *f;
     ASSERT_EQ(0, struct_fields_add(&sf, "v2", "string", NULL, NULL, NULL));
-    struct StructField *f = &sf.fields[sf.size - 1];
+    f = &sf.fields[sf.size - 1];
     f->has_max_len = 1;
     f->max_len = 5;
   }
   {
+    struct StructField *f;
     ASSERT_EQ(0, struct_fields_add(&sf, "v3", "array", "string", NULL, NULL));
-    struct StructField *f = &sf.fields[sf.size - 1];
+    f = &sf.fields[sf.size - 1];
     f->has_min_items = 1;
     f->min_items = 1;
     f->has_max_items = 1;
     f->max_items = 5;
   }
   {
+    struct StructField *f;
     ASSERT_EQ(0, struct_fields_add(&sf, "v4", "string", NULL, NULL, NULL));
-    struct StructField *f = &sf.fields[sf.size - 1];
+    f = &sf.fields[sf.size - 1];
     f->has_min_len = 1;
     f->min_len = 1;
   }
   {
+    struct StructField *f;
     ASSERT_EQ(0, struct_fields_add(&sf, "v5", "array", "string", NULL, NULL));
-    struct StructField *f = &sf.fields[sf.size - 1];
+    f = &sf.fields[sf.size - 1];
     f->has_min_items = 0;
     f->has_max_items = 1;
     f->max_items = 10;

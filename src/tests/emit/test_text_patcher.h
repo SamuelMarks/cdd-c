@@ -293,57 +293,64 @@ TEST test_patch_bounds(void) {
 TEST test_patcher_oom(void) {
   struct PatchList list;
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
-  g_cdd_fail_alloc = 1000;
-  ASSERT_EQ(ENOMEM, patch_list_init(&list));
-  g_cdd_fail_alloc = 0;
+  {
+    int i;
+    struct TokenList tl2;
+    extern int g_cdd_fail_alloc;
+    g_cdd_fail_alloc = 1000;
+    ASSERT_EQ(ENOMEM, patch_list_init(&list));
+    g_cdd_fail_alloc = 0;
 
-  patch_list_init(&list);
-  /* fill it up to trigger realloc */
-  int i;
-  for (i = 0; i < 8; i++) {
-    patch_list_add(&list, 0, 1, strdup("a"));
+    patch_list_init(&list);
+    /* fill it up to trigger realloc */
+    for (i = 0; i < 8; i++) {
+      patch_list_add(&list, 0, 1, strdup("a"));
+    }
+    g_cdd_fail_alloc = 2000;
+    ASSERT_EQ(ENOMEM, patch_list_add(&list, 0, 1, strdup("b")));
+    g_cdd_fail_alloc = 0;
+
+    /* also test realloc success */
+    ASSERT_EQ(0, patch_list_add(&list, 0, 1, strdup("c")));
+
+    /* also test patch with text = NULL in free */
+    list.patches[0].text = NULL;
+    patch_list_free(&list);
+
+    /* Test patch_list_apply OOM */
+    g_cdd_fail_alloc = 1000;
+    memset(&tl2, 0, sizeof(tl2));
+    /* ignore rc_oom since we modified tl2 instead of tl_huge! */
+
+    g_cdd_fail_alloc = 0;
   }
-  g_cdd_fail_alloc = 2000;
-  ASSERT_EQ(ENOMEM, patch_list_add(&list, 0, 1, strdup("b")));
-  g_cdd_fail_alloc = 0;
-
-  /* also test realloc success */
-  ASSERT_EQ(0, patch_list_add(&list, 0, 1, strdup("c")));
-
-  /* also test patch with text = NULL in free */
-  list.patches[0].text = NULL;
-  patch_list_free(&list);
-
-  /* Test patch_list_apply OOM */
-  g_cdd_fail_alloc = 1000;
-  struct TokenList tl2;
-  memset(&tl2, 0, sizeof(tl2));
-  /* ignore rc_oom since we modified tl2 instead of tl_huge! */
-
-  g_cdd_fail_alloc = 0;
-
 #endif
   g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_patcher_invalid(void) {
+  struct PatchList pl2;
+  char huge_str[2000];
+  struct TokenList *tl_huge = NULL;
+  char *res_huge = NULL;
+  struct PatchList pl3;
+  struct TokenList tl_empty;
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+#endif
+
   ASSERT_EQ(EINVAL, patch_list_add(NULL, 0, 1, strdup("a")));
 
-  struct PatchList pl2;
   patch_list_init(&pl2);
 
-  char huge_str[2000];
   memset(huge_str, 'x', 1999);
   huge_str[1999] = '\0';
 
   patch_list_add(&pl2, 0, 1, strdup(huge_str));
 
-  struct TokenList *tl_huge = NULL;
   setup_patch_tokens(huge_str, &tl_huge);
 
-  char *res_huge = NULL;
   /* ignore */
   free(res_huge);
 
@@ -353,7 +360,6 @@ TEST test_patcher_invalid(void) {
 
   g_cdd_fail_alloc = 0;
 #endif
-  struct PatchList pl3;
   patch_list_init(&pl3);
 
   res_huge = NULL;
@@ -361,10 +367,8 @@ TEST test_patcher_invalid(void) {
 
 #ifdef CDD_BUILD_TESTS
   res_huge = NULL;
-  extern int g_cdd_fail_alloc;
   g_cdd_fail_alloc =
       2; /* second alloc! first alloc is output=malloc(out_cap) */
-  struct TokenList tl_empty;
   memset(&tl_empty, 0, sizeof(tl_empty));
   /* ignore */
   g_cdd_fail_alloc = 0;
@@ -373,7 +377,6 @@ TEST test_patcher_invalid(void) {
   /* Trigger realloc failure in patch_list_apply for original token content */
 #ifdef CDD_BUILD_TESTS
   res_huge = NULL;
-  extern int g_cdd_fail_alloc;
   g_cdd_fail_alloc = 2000; /* first alloc, because it reset! */
   /* ignore */
   g_cdd_fail_alloc = 0;

@@ -457,10 +457,10 @@ TEST test_types_null_args(void) {
 #endif
 
 TEST test_types_io_fail(void) {
+  struct StructFields sf;
   FILE *tmp = tmpfile();
   g_fail_io_after = 0;
   g_io_calls = 0;
-  struct StructFields sf;
   struct_fields_init(&sf);
   struct_fields_add(&sf, "string", "t", "s", 0, 0);
 

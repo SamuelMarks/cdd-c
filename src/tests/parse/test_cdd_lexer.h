@@ -208,6 +208,7 @@ extern int g_cdd_cst_alloc_token_fail;
 
 TEST test_cdd_lexer_oom(void) {
   cdd_token_list_t *tl = NULL;
+  int rc_t5, rc_t4;
 
   /* Force token failures to trigger coverage */
   g_cdd_cst_alloc_token_fail = 2;
@@ -226,7 +227,7 @@ TEST test_cdd_lexer_oom(void) {
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 1;
-  int rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
+  rc_t5 = cdd_lexer_tokenize(az_span_create_from_str("  whitespace"), &tl);
   g_cdd_cst_alloc_token_fail = 0;
   ASSERT_EQ(ENOMEM, rc_t5);
   if (tl)
@@ -235,7 +236,7 @@ TEST test_cdd_lexer_oom(void) {
 
   g_cdd_cst_alloc_token_fail = 4;
   tl = NULL;
-  int rc_t4 = cdd_lexer_tokenize(
+  rc_t4 = cdd_lexer_tokenize(
       az_span_create_from_str(
           "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 "
           "26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 "
@@ -257,13 +258,15 @@ TEST test_cdd_lexer_oom(void) {
 TEST test_lexer_branches(void) {
   cdd_token_list_t *list = NULL;
   int rc;
+  const char *code;
+  const char *code2;
   (void)rc;
-  const char *code = "int\r\nmain() { /* c1 */ /* c2 */ }";
+  code = "int\r\nmain() { /* c1 */ /* c2 */ }";
   rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code), &list);
   cdd_lexer_free_token_list(list);
 
   list = NULL;
-  const char *code2 = "/* multiline \r\n comment *";
+  code2 = "/* multiline \r\n comment *";
   rc = cdd_lexer_tokenize(az_span_create_from_str((char *)code2), &list);
   cdd_lexer_free_token_list(list);
 

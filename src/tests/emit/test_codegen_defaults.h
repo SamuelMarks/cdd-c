@@ -246,6 +246,8 @@ TEST test_write_forward_decl_bounds(void) {
 
 TEST test_write_forward_decl_io_fail(void) {
   FILE *tmp = tmpfile();
+  int rc;
+  (void)rc;
   g_fail_io_after = 0;
   g_io_calls = 0;
   ASSERT(tmp);
@@ -260,11 +262,13 @@ TEST test_write_forward_decl_io_fail(void) {
 }
 
 TEST test_write_enum_declaration_h_io_fail(void) {
-  FILE *tmp = tmpfile();
-  g_fail_io_after = 0;
-  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
+  FILE *tmp = tmpfile();
+  int rc;
+  (void)rc;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
@@ -273,7 +277,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  int rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
+  rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
   printf("RC WAS %d\n", rc);
   ASSERT_EQ(EIO, rc);
   fclose(tmp);
@@ -282,11 +286,13 @@ TEST test_write_enum_declaration_h_io_fail(void) {
 }
 
 TEST test_write_struct_declaration_h_io_fail(void) {
-  FILE *tmp = tmpfile();
-  g_fail_io_after = 0;
-  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
+  FILE *tmp = tmpfile();
+  int rc;
+  (void)rc;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
@@ -302,11 +308,13 @@ TEST test_write_struct_declaration_h_io_fail(void) {
 }
 
 TEST test_write_union_declaration_h_io_fail(void) {
-  FILE *tmp = tmpfile();
-  g_fail_io_after = 0;
-  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
+  FILE *tmp = tmpfile();
+  int rc;
+  (void)rc;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
@@ -315,7 +323,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   g_io_calls = 0;
   g_fail_io_after = 0;
   g_io_calls = 0;
-  int rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
+  rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
   printf("RC WAS %d\n", rc);
   ASSERT_EQ(EIO, rc);
   fclose(tmp);

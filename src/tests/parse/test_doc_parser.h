@@ -738,23 +738,27 @@ TEST test_doc_parse_encodings(void) {
 
 TEST test_doc_oom_and_edges(void) {
   struct DocMetadata meta;
+  const char *comment = "/**\n * @route GET /users/{id}   \n */";
+  const char *comment2 = "/**\n * @summary some text   \n */";
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_fail_alloc;
+  int rc_oom;
+#endif
+
   doc_metadata_init(&meta);
 
-  const char *comment = "/**\n * @route GET /users/{id}   \n */";
   doc_parse_block(comment, &meta);
   ASSERT_STR_EQ("/users/{id}", meta.route);
   doc_metadata_free(&meta);
 
   doc_metadata_init(&meta);
-  const char *comment2 = "/**\n * @summary some text   \n */";
   doc_parse_block(comment2, &meta);
   ASSERT_STR_EQ("some text", meta.summary);
   doc_metadata_free(&meta);
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
   doc_metadata_init(&meta);
   g_cdd_fail_alloc = 1;
-  int rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
+  rc_oom = doc_parse_block("/**\n * @route GET /users/{id}\n */", &meta);
   g_cdd_fail_alloc = 0;
   if (rc_oom == ENOMEM) { /* passed */
   } else {

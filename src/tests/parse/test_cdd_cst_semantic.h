@@ -301,7 +301,7 @@ TEST test_cdd_cst_semantic_oom(void) {
 
 TEST test_cdd_cst_semantic_extract_null(void) {
   /* Test branch 12 in extract_identifier */
-  char *name = NULL;
+  /* char *name = NULL; */
   cdd_cst_node_t *node = NULL;
   cdd_cst_alloc_node(CDD_CST_STATEMENT, &node);
 

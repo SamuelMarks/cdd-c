@@ -280,37 +280,42 @@ TEST test_patch_header_ignore_others(void) {
 
 TEST test_sync_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  const char *argv[] = {"header.h", "impl.c"};
-  remove("header.h");
+  {
+    const char *argv[] = {"header.h", "impl.c"};
+    FILE *f;
+    extern int g_cdd_fail_alloc;
+    extern int g_cdd_fprintf_fail;
+    int rc_s;
+    int rc_s2;
 
-  FILE *f = fopen("header.h", "w");
-  if (f) {
-    fprintf(f, "struct A { int a; };\n");
-    fclose(f);
+    remove("header.h");
+
+    f = fopen("header.h", "w");
+    if (f) {
+      fprintf(f, "struct A { int a; };\n");
+      fclose(f);
+    }
+
+    g_cdd_fprintf_fail = 8001;
+    rc_s = sync_code_main(2, (char **)argv);
+    printf("test_sync_oom rc_s=%d\n", rc_s);
+    g_cdd_fail_alloc = 0;
+    if (rc_s != EIO)
+      printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    ASSERT_EQ(EIO, rc_s);
+
+    g_cdd_fprintf_fail = 8002;
+    rc_s2 = sync_code_main(2, (char **)argv);
+    g_cdd_fprintf_fail = 0;
+    ASSERT_EQ(0, rc_s2);
+    g_cdd_fail_alloc = 0;
+
+    remove("header.h");
   }
-
-  extern int g_cdd_fail_alloc;
-  extern int g_cdd_fprintf_fail;
-  g_cdd_fprintf_fail = 8001;
-  int rc_s = sync_code_main(2, (char **)argv);
-  printf("test_sync_oom rc_s=%d\n", rc_s);
-  g_cdd_fail_alloc = 0;
-  if (rc_s != EIO)
-    printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  g_fail_io_after = 0;
-  g_io_calls = 0;
-  ASSERT_EQ(EIO, rc_s);
-
-  extern int g_cdd_fprintf_fail;
-  g_cdd_fprintf_fail = 8002;
-  int rc_s2 = sync_code_main(2, (char **)argv);
-  g_cdd_fprintf_fail = 0;
-  ASSERT_EQ(0, rc_s2);
-  g_cdd_fail_alloc = 0;
-
-  remove("header.h");
 #endif
   g_fail_io_after = -1;
   PASS();

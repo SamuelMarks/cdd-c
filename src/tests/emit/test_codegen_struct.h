@@ -59,8 +59,6 @@ TEST test_cleanup_generation(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -96,8 +94,6 @@ TEST test_default_generation(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -135,8 +131,6 @@ TEST test_deepcopy_generation(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -170,8 +164,6 @@ TEST test_eq_generation(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -206,8 +198,6 @@ TEST test_guards_injection(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -272,8 +262,6 @@ TEST test_struct_debug_func(void) {
 
   free(content);
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
   g_fail_io_after = -1;
@@ -313,8 +301,6 @@ TEST test_struct_invalid_args(void) {
   }
 
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -335,8 +321,6 @@ TEST test_struct_fields_add_bitwidth(void) {
   ASSERT_STR_EQ("\0", sf.fields[1].bit_width);
 
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
@@ -380,8 +364,6 @@ TEST test_struct_io_errors(void) {
     fclose(readonly_f);
   }
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
 
@@ -594,8 +576,6 @@ TEST test_struct_exhaustive_io(void) {
 
   g_fail_io_after = -1;
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
 #endif
   g_fail_io_after = -1;
@@ -604,6 +584,8 @@ TEST test_struct_exhaustive_io(void) {
 
 TEST test_struct_fields_init_oom(void) {
   struct StructFields sf;
+  struct StructField *f = NULL;
+  char *val = NULL;
 #ifdef CDD_BUILD_TESTS
   g_struct_fields_init_fail = 1;
   ASSERT_EQ(ENOMEM, struct_fields_init(&sf));
@@ -616,12 +598,10 @@ TEST test_struct_fields_init_oom(void) {
   ASSERT_EQ(EINVAL, struct_fields_add(&sf, NULL, "b", NULL, NULL, NULL));
   ASSERT_EQ(EINVAL, struct_fields_add(&sf, "a", NULL, NULL, NULL, NULL));
 
-  struct StructField *f = NULL;
   ASSERT_EQ(0, struct_fields_get(NULL, "a", &f));
   ASSERT_EQ(0, struct_fields_get(&sf, NULL, &f));
 
   /* Test get_type_from_ref null */
-  char *val = NULL;
   ASSERT_EQ(0, get_type_from_ref(NULL, &val));
   ASSERT_STR_EQ("", val);
 
@@ -646,8 +626,6 @@ TEST test_struct_fields_init_oom(void) {
 #endif
 
   struct_fields_free(NULL);
-  struct StructFields sf_empty = {0};
-  struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();

@@ -28,6 +28,20 @@ extern int g_io_calls;
 
 #include <greatest.h>
 
+static char g_cdd_test_tmp_buf[65536][64];
+
+static FILE* cdd_test_tmpfile(void) {
+    static int counter = 0;
+    FILE *f;
+    if (counter >= 65536) counter = 0;
+    sprintf(g_cdd_test_tmp_buf[counter], "cdd_test_tmp_%d.txt", counter);
+    remove(g_cdd_test_tmp_buf[counter]);
+    f = fopen(g_cdd_test_tmp_buf[counter], "w+b");
+    counter++;
+    return f;
+}
+#define tmpfile() cdd_test_tmpfile()
+
 #include "c_cdd/test_int128.h"
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_codegen_build.h"

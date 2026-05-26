@@ -173,8 +173,9 @@ TEST test_mapping_long(void) {
  */
 TEST test_mapping_void_ptr(void) {
   struct OpenApiTypeMapping m;
+  int rc;
   c_mapping_init(&m);
-  int rc = c_mapping_map_type("void *", "data", &m);
+  rc = c_mapping_map_type("void *", "data", &m);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(OA_TYPE_PRIMITIVE, m.kind);
   ASSERT_STR_EQ("string", m.oa_type);
@@ -235,23 +236,26 @@ TEST test_mapping_coverage(void) {
   c_mapping_free(&m);
 
 #ifdef CDD_BUILD_TESTS
-  /* Simulate OOMs */
-  extern int g_cdd_strdup_fail;
-  g_cdd_strdup_fail = 1;
-  int rc_oom = c_mapping_map_type("int", "x", &m);
-  printf("RC_OOM=%d ENOMEM=%d\n", rc_oom, ENOMEM);
-  ASSERT_EQ(ENOMEM, rc_oom);
-  g_cdd_strdup_fail = 0;
-  c_mapping_free(&m);
-
-  /* Trigger inner_type/inner_ref duplication OOM */
-  int i;
-  for (i = 1; i < 10; i++) {
-    g_cdd_strdup_fail = i;
-    c_mapping_init(&m);
-    int rc = c_mapping_map_type("int *", "x[]", &m);
+  {
+    /* Simulate OOMs */
+    extern int g_cdd_strdup_fail;
+    int rc_oom;
+    int i;
+    g_cdd_strdup_fail = 1;
+    rc_oom = c_mapping_map_type("int", "x", &m);
+    printf("RC_OOM=%d ENOMEM=%d\n", rc_oom, ENOMEM);
+    ASSERT_EQ(ENOMEM, rc_oom);
     g_cdd_strdup_fail = 0;
     c_mapping_free(&m);
+
+    /* Trigger inner_type/inner_ref duplication OOM */
+    for (i = 1; i < 10; i++) {
+      g_cdd_strdup_fail = i;
+      c_mapping_init(&m);
+      (void)c_mapping_map_type("int *", "x[]", &m);
+      g_cdd_strdup_fail = 0;
+      c_mapping_free(&m);
+    }
   }
 #endif
 

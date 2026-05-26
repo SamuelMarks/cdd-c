@@ -164,9 +164,10 @@ extern int g_cdd_cst_alloc_token_fail;
 TEST test_cdd_cst_trivia_oom(void) {
   cdd_cst_format_config_t config = {0};
   cdd_trivia_t *out = NULL;
+  int rc_tmp, rc_tmp3;
 
   g_cdd_cst_alloc_token_fail = 1;
-  int rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
+  rc_tmp = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   if (rc_tmp != ENOMEM) {
     printf("cdd_cst_generate_indent_trivia = %d, expected ENOMEM\n", rc_tmp);
   }
@@ -180,7 +181,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   ASSERT(rc_tmp != 0);
 
   g_cdd_cst_alloc_token_fail = 3;
-  int rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
+  rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
   g_cdd_cst_alloc_token_fail = 0;
   g_fail_io_after = -1;
@@ -192,20 +193,21 @@ TEST test_cdd_cst_trivia_oom(void) {
 TEST test_trivia_branches(void) {
   cdd_cst_tree_t tree = {0};
   cdd_token_list_t lst = {0};
+  cdd_trivia_t t1 = {0};
+  cdd_trivia_t t2 = {0};
+  cdd_trivia_t t3 = {0};
+  cdd_cst_format_config_t config = {0};
   tree.base_tokens = &lst;
   lst.size = 1;
   lst.capacity = 1;
   lst.tokens = calloc(1, sizeof(cdd_token_t));
 
-  cdd_trivia_t t1 = {0};
   t1.kind = TRIVIA_WHITESPACE; /* Not newline */
 
-  cdd_trivia_t t2 = {0};
   t2.kind = TRIVIA_NEWLINE;
   t2.start = (const uint8_t *)"abc";
   t2.length = 3; /* No newline char */
 
-  cdd_trivia_t t3 = {0};
   t3.kind = TRIVIA_NEWLINE;
   t3.start = (const uint8_t *)"\n\r";
   t3.length = 2; /* After newline is not space/tab */
@@ -214,7 +216,6 @@ TEST test_trivia_branches(void) {
   t2.next = &t3;
   lst.tokens[0].leading_trivia = &t1;
 
-  cdd_cst_format_config_t config = {0};
   cdd_cst_detect_format_config(&tree, &config);
 
   free(lst.tokens);

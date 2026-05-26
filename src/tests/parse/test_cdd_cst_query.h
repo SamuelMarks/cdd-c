@@ -378,13 +378,19 @@ TEST test_query_postorder_fail(void) {
 TEST test_query_call_expr_coverage(void) {
   cdd_cst_query_result_t res = {0};
   cdd_cst_node_t dummy_call = {0};
+  cdd_cst_child_t children[2] = {0};
+  cdd_token_t tok = {0};
+  cdd_cst_node_t id_node = {0};
+  cdd_cst_child_t id_child = {0};
+  cdd_token_t tok2 = {0};
+#ifdef CDD_BUILD_TESTS
+  extern int g_cdd_query_err_fail;
+#endif
+
   dummy_call.kind = CDD_CST_CALL_EXPR;
   dummy_call.capacity = 1;
   dummy_call.num_children = 1;
-  cdd_cst_child_t children[2] = {0};
   dummy_call.children = children;
-
-  cdd_token_t tok = {0};
   tok.kind = CDD_TOKEN_IDENTIFIER;
   tok.start = (const uint8_t *)"qux";
   tok.length = 3;
@@ -422,11 +428,9 @@ TEST test_query_call_expr_coverage(void) {
   tok.length = 3;
 
   /* CDD_CST_CALL_EXPR with identifier node */
-  cdd_cst_node_t id_node = {0};
   id_node.kind = CDD_CST_IDENTIFIER;
   id_node.num_children = 1;
   id_node.capacity = 1;
-  cdd_cst_child_t id_child = {0};
   id_node.children = &id_child;
 
   id_child.kind = CDD_CST_CHILD_TOKEN;
@@ -484,7 +488,6 @@ TEST test_query_call_expr_coverage(void) {
 
 #ifdef CDD_BUILD_TESTS
   id_node.kind = CDD_CST_IDENTIFIER;
-  extern int g_cdd_query_err_fail;
   g_cdd_query_err_fail = 1;
   ASSERT_EQ(ENOMEM,
             cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
@@ -496,7 +499,6 @@ TEST test_query_call_expr_coverage(void) {
   dummy_call.num_children = 2;
   children[0].kind = CDD_CST_CHILD_TOKEN;
   children[0].val.token = &tok;
-  cdd_token_t tok2 = {0};
   children[1].kind = CDD_CST_CHILD_TOKEN;
   children[1].val.token = &tok2;
   tok2.kind = CDD_TOKEN_LPAREN;

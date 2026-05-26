@@ -24,6 +24,7 @@ extern "C" {
 
 TEST test_cdd_transform_safe_crt(void) {
   cdd_cst_tree_t *tree = NULL;
+
   const char *code =
       "void foo() {\n"
       "  char dest[10];\n"
@@ -224,6 +225,7 @@ TEST test_cdd_transform_safe_crt(void) {
 
 TEST test_cdd_transform_safe_crt_edge_cases(void) {
   cdd_cst_tree_t *tree = NULL;
+
   const char *code =
       "void edge_cases() {\n"
       "  char buf[256];\n"
@@ -267,6 +269,8 @@ extern int g_cdd_cst_alloc_node_fail;
 TEST test_cdd_transform_safe_crt_oom(void) {
 #ifdef CDD_BUILD_TESTS
   cdd_cst_tree_t *tree = NULL;
+  cdd_cst_tree_t *tree2 = NULL;
+
   const char *code =
       "void f() { char buf[10]; char *p; double d; wchar_t wbuf[10]; p = "
       "strtok(buf, \"a\"); p = wcstok(wbuf, L\"a\"); _mbstok(buf, \"a\"); "
@@ -322,7 +326,6 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   cdd_cst_tree_free(tree);
   tree = NULL;
 
-  cdd_cst_tree_t *tree2 = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree2));
   cdd_transform_safe_crt(tree2, &config);
   cdd_cst_tree_free(tree2);

@@ -34,6 +34,9 @@ TEST test_oauth2_error_generation(void) {
   char *content = NULL;
   long sz;
 
+  if (!tmp)
+    printf("tmpfile() failed\n");
+
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));
 
@@ -84,6 +87,9 @@ TEST test_oauth2_error_generation_non_string(void) {
   struct StructFields sf;
   char *content = NULL;
   long sz;
+
+  if (!tmp)
+    printf("tmpfile() failed\n");
 
   ASSERT(tmp);
   ASSERT_EQ(0, struct_fields_init(&sf));

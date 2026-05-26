@@ -138,10 +138,11 @@ TEST test_build_system_oom(void) {
 #ifdef CDD_BUILD_TESTS
   extern int g_cdd_fprintf_fail;
   int i;
+  int rc;
   for (i = 1; i < 200; i++) {
     g_cdd_fprintf_fail = i;
 
-    int rc = generate_cmake_project("test_build_sys_out", "Proj", 1);
+    rc = generate_cmake_project("test_build_sys_out", "Proj", 1);
     g_cdd_fprintf_fail = 0;
     if (rc == 0)
       break;
@@ -154,37 +155,41 @@ TEST test_build_system_oom(void) {
   remove("test_build_sys_out/CMakeLists.txt");
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
-  g_cdd_fail_alloc = 1111;
-  ASSERT_EQ(ENOMEM, generate_cmake_project("test_build_sys_out", "Proj", 0));
-  g_cdd_fail_alloc = 0;
+  {
+    extern int g_cdd_fail_alloc;
+    int rc_fp2;
+    int rc_fp;
+    g_cdd_fail_alloc = 1111;
+    ASSERT_EQ(ENOMEM, generate_cmake_project("test_build_sys_out", "Proj", 0));
+    g_cdd_fail_alloc = 0;
 
-  g_cdd_fail_alloc = 2222;
-  ASSERT_EQ(ENOMEM, generate_cmake_project(NULL, "Proj", 0));
-  g_cdd_fail_alloc = 0;
+    g_cdd_fail_alloc = 2222;
+    ASSERT_EQ(ENOMEM, generate_cmake_project(NULL, "Proj", 0));
+    g_cdd_fail_alloc = 0;
 
-  ASSERT_EQ(0, generate_cmake_project(NULL, "Proj", 0));
-  remove("CMakeLists.txt");
+    ASSERT_EQ(0, generate_cmake_project(NULL, "Proj", 0));
+    remove("CMakeLists.txt");
 
-  /* Test fopen failure */
+    /* Test fopen failure */
 
-  g_cdd_fail_alloc = 4444;
-  ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
-  g_cdd_fail_alloc = 0;
+    g_cdd_fail_alloc = 4444;
+    ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
+    g_cdd_fail_alloc = 0;
 
-  g_cdd_fail_alloc = 3334;
-  int rc_fp2 = generate_cmake_project(NULL, "Proj", 0);
-  g_cdd_fail_alloc = 0;
-  ASSERT(rc_fp2 != 0);
+    g_cdd_fail_alloc = 3334;
+    rc_fp2 = generate_cmake_project(NULL, "Proj", 0);
+    g_cdd_fail_alloc = 0;
+    ASSERT(rc_fp2 != 0);
 
-  g_cdd_fail_alloc = 4445;
-  ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
-  g_cdd_fail_alloc = 0;
+    g_cdd_fail_alloc = 4445;
+    ASSERT(generate_cmake_project("test_build_sys_out", "Proj", 0) != 0);
+    g_cdd_fail_alloc = 0;
 
-  g_cdd_fail_alloc = 3333;
-  int rc_fp = generate_cmake_project(NULL, "Proj", 0);
-  g_cdd_fail_alloc = 0;
-  ASSERT(rc_fp != 0);
+    g_cdd_fail_alloc = 3333;
+    rc_fp = generate_cmake_project(NULL, "Proj", 0);
+    g_cdd_fail_alloc = 0;
+    ASSERT(rc_fp != 0);
+  }
 #endif
   g_fail_io_after = -1;
 

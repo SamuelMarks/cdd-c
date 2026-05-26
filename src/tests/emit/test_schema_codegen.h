@@ -605,12 +605,13 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
   fclose(f);
 
   for (i = 0; i < 1000; ++i) {
+    void *root;
+    void *schemas;
     g_schema_fail_io_after = i;
     g_schema_io_calls = 0;
 
-    void *root = json_parse_file("test_codegen_schema_io.json");
-    void *schemas =
-        json_object_get_object(json_value_get_object(root), "components");
+    root = json_parse_file("test_codegen_schema_io.json");
+    schemas = json_object_get_object(json_value_get_object(root), "components");
     schemas = json_object_get_object(schemas, "schemas");
 
     rc = generate_header("test_codegen_schema_io.json", "out_prefix", schemas,

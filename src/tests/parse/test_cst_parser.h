@@ -433,29 +433,33 @@ TEST test_cst_parser_extra(void) {
 
 TEST parse_tokens_oom(void) {
 #ifdef CDD_BUILD_TESTS
-  struct TokenList *tl = NULL;
-  tokenize(
-      az_span_create_from_str("int main() { char *p = malloc(10); return 0; }"),
-      &tl);
+  {
+    struct TokenList *tl = NULL;
+    struct CstNodeList cst_nodes;
+    extern int g_cdd_fail_alloc;
+    int i;
+    int rc;
 
-  struct CstNodeList cst_nodes;
-  memset(&cst_nodes, 0, sizeof(cst_nodes));
+    tokenize(az_span_create_from_str(
+                 "int main() { char *p = malloc(10); return 0; }"),
+             &tl);
 
-  extern int g_cdd_fail_alloc;
-  int i;
-  for (i = 1; i < 200; i++) {
     memset(&cst_nodes, 0, sizeof(cst_nodes));
-    g_cdd_fail_alloc = i;
-    int rc = parse_tokens(tl, &cst_nodes);
-    g_cdd_fail_alloc = 0;
-    if (rc == 0) {
-      free_cst_node_list(&cst_nodes);
-      break;
-    }
-    free_cst_node_list(&cst_nodes);
-  }
 
-  free_token_list(tl);
+    for (i = 1; i < 200; i++) {
+      memset(&cst_nodes, 0, sizeof(cst_nodes));
+      g_cdd_fail_alloc = i;
+      rc = parse_tokens(tl, &cst_nodes);
+      g_cdd_fail_alloc = 0;
+      if (rc == 0) {
+        free_cst_node_list(&cst_nodes);
+        break;
+      }
+      free_cst_node_list(&cst_nodes);
+    }
+
+    free_token_list(tl);
+  }
 #endif
   g_fail_io_after = -1;
   PASS();

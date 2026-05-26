@@ -77,13 +77,13 @@ TEST test_scan_for_mixed_declarations_errors(void) {
  */
 
 TEST test_decl_hoist_edges(void) {
+  struct HoistSiteList list = {0};
+  struct TokenList *tl = NULL;
   hoist_site_list_init(NULL);
   hoist_site_list_free(NULL);
 
-  struct HoistSiteList list = {0};
   hoist_site_list_free(&list);
 
-  struct TokenList *tl = NULL;
   ASSERT_EQ(EINVAL, scan_for_mixed_declarations(NULL, &list));
   ASSERT_EQ(EINVAL, scan_for_mixed_declarations(tl, NULL));
 

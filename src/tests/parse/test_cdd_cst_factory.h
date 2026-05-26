@@ -211,7 +211,6 @@ extern int g_cdd_cst_alloc_node_fail;
 TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_tree_t *tree = NULL;
   cdd_cst_node_t *node = NULL;
-  int rc;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
 
   g_cdd_cst_alloc_token_fail = 1;

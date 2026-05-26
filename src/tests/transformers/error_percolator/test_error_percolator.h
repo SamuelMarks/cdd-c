@@ -158,11 +158,11 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   /* Mock an unknown block node manually to hit the unknown branch logic */
   {
     cdd_cst_node_t *unknown_node = calloc(1, sizeof(cdd_cst_node_t));
+    cdd_token_t *rbrace_tok = calloc(1, sizeof(cdd_token_t));
+    cdd_cst_child_t *c = calloc(1, sizeof(cdd_cst_child_t));
     unknown_node->kind = CDD_CST_UNKNOWN;
     /* Add an RBRACE to it so it matches */
-    cdd_token_t *rbrace_tok = calloc(1, sizeof(cdd_token_t));
     rbrace_tok->kind = CDD_TOKEN_RBRACE;
-    cdd_cst_child_t *c = calloc(1, sizeof(cdd_cst_child_t));
     c->kind = CDD_CST_CHILD_TOKEN;
     c->val.token = rbrace_tok;
     unknown_node->children = c;

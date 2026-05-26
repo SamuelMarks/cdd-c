@@ -219,26 +219,29 @@ TEST test_rewriter_body_oom(void) {
   ASSERT_EQ(0, find_allocations(tl, &sites));
 
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
-  g_cdd_fail_alloc = 1;
-  int rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
-  ASSERT_EQ(ENOMEM, rc_oom_rb1);
-  g_cdd_fail_alloc = 0;
+  {
+    extern int g_cdd_fail_alloc;
+    int rc_oom_rb1;
+    g_cdd_fail_alloc = 1;
+    rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);
+    ASSERT_EQ(ENOMEM, rc_oom_rb1);
+    g_cdd_fail_alloc = 0;
 
-  /* ignore */
-  g_cdd_fail_alloc = 0;
+    /* ignore */
+    g_cdd_fail_alloc = 0;
 
-  /* ignore */
-  g_cdd_fail_alloc = 0;
+    /* ignore */
+    g_cdd_fail_alloc = 0;
 
-  /* ignore */
-  g_cdd_fail_alloc = 0;
+    /* ignore */
+    g_cdd_fail_alloc = 0;
 
-  /* ignore */
-  g_cdd_fail_alloc = 0;
+    /* ignore */
+    g_cdd_fail_alloc = 0;
 
-  /* ignore */
-  g_cdd_fail_alloc = 0;
+    /* ignore */
+    g_cdd_fail_alloc = 0;
+  }
 #endif
 
   allocation_site_list_free(&sites);

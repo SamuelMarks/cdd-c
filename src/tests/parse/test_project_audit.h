@@ -9,7 +9,7 @@ extern int g_io_calls;
 #define TEST_PROJECT_AUDIT_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" {}
 #endif /* __cplusplus */
 
 /* clang-format off */
@@ -306,48 +306,53 @@ TEST test_audit_oom(void) {
   audit_stats_init(&stats);
 
 #ifdef CDD_BUILD_TESTS
-  makedirs("test_audit_dir");
-  FILE *f = fopen("test_audit_dir/test.c", "w");
-  if (f) {
-    fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
-    fclose(f);
-  }
+  {
+    FILE *f;
+    extern int g_cdd_fail_alloc_audit;
+    int i;
+    int rc;
+    char *json;
 
-  extern int g_cdd_fail_alloc_audit;
-  int i;
-  for (i = 1; i < 200; i++) {
+    makedirs("test_audit_dir");
+    f = fopen("test_audit_dir/test.c", "w");
+    if (f) {
+      fprintf(f, "int main() { char *p = malloc(10); return 0; }\n");
+      fclose(f);
+    }
+    for (i = 1; i < 200; i++) {
+      audit_stats_init(&stats);
+      g_cdd_fail_alloc_audit = i;
+      rc = audit_project("test_audit_dir", &stats);
+      printf("i=%d rc=%d\n", i, rc);
+      g_cdd_fail_alloc_audit = 0;
+      printf("i=%d rc=%d\n", i, rc);
+      /* no break */
+      audit_stats_free(&stats);
+    }
+
+    /* Also test OOM for audit_print_json */
     audit_stats_init(&stats);
-    g_cdd_fail_alloc_audit = i;
-    int rc = audit_project("test_audit_dir", &stats);
+    rc = audit_project("test_audit_dir", &stats);
     printf("i=%d rc=%d\n", i, rc);
-    g_cdd_fail_alloc_audit = 0;
-    printf("i=%d rc=%d\n", i, rc);
-    /* no break */
+    for (i = 1; i < 100; i++) {
+      g_cdd_fail_alloc_audit = i;
+      json = NULL;
+      rc = audit_print_json(&stats, &json);
+      if (rc == ENOMEM) {
+        /* test passed for OOM */
+      }
+      g_cdd_fail_alloc_audit = 0;
+      if (rc == 0) {
+        if (json)
+          free(json);
+        break;
+      }
+    }
     audit_stats_free(&stats);
-  }
 
-  /* Also test OOM for audit_print_json */
-  audit_stats_init(&stats);
-  int rc = audit_project("test_audit_dir", &stats);
-  printf("i=%d rc=%d\n", i, rc);
-  for (i = 1; i < 100; i++) {
-    g_cdd_fail_alloc_audit = i;
-    char *json = NULL;
-    rc = audit_print_json(&stats, &json);
-    if (rc == ENOMEM) {
-      /* test passed for OOM */
-    }
-    g_cdd_fail_alloc_audit = 0;
-    if (rc == 0) {
-      if (json)
-        free(json);
-      break;
-    }
+    remove("test_audit_dir/test.c");
+    remove("test_audit_dir");
   }
-  audit_stats_free(&stats);
-
-  remove("test_audit_dir/test.c");
-  remove("test_audit_dir");
 #endif
   g_fail_io_after = -1;
 
@@ -359,21 +364,25 @@ TEST test_audit_capacity(void) {
   audit_stats_init(&stats);
 
 #ifdef CDD_BUILD_TESTS
-  makedirs("test_audit_dir");
-  FILE *f = fopen("test_audit_dir/test.c", "w");
-  if (f) {
-    fprintf(f,
-            "int main() { char *p = malloc(10); char *q = malloc(10); char *r "
-            "= malloc(10); char *s = malloc(10); char *t = malloc(10); char *u "
-            "= malloc(10); char *v = malloc(10); char *w = malloc(10); char *x "
-            "= malloc(10); char *y = malloc(10); return 0; }\n");
-    fclose(f);
+  {
+    FILE *f;
+    makedirs("test_audit_dir");
+    f = fopen("test_audit_dir/test.c", "w");
+    if (f) {
+      fprintf(
+          f,
+          "int main() { char *p = malloc(10); char *q = malloc(10); char *r "
+          "= malloc(10); char *s = malloc(10); char *t = malloc(10); char *u "
+          "= malloc(10); char *v = malloc(10); char *w = malloc(10); char *x "
+          "= malloc(10); char *y = malloc(10); return 0; }\n");
+      fclose(f);
+    }
+
+    ASSERT_EQ(0, audit_project("test_audit_dir", &stats));
+
+    remove("test_audit_dir/test.c");
+    remove("test_audit_dir");
   }
-
-  ASSERT_EQ(0, audit_project("test_audit_dir", &stats));
-
-  remove("test_audit_dir/test.c");
-  remove("test_audit_dir");
 #endif
 
   audit_stats_free(&stats);
