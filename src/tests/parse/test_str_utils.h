@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_str_utils.h
  * @brief Unit tests for shared string utilities.
@@ -29,12 +31,14 @@ TEST test_c_cdd_strdup_basic(void) {
   ASSERT(dup != input); /* Pointers must check distinct */
   ASSERT_STR_EQ(input, dup);
   free(dup);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_c_cdd_strdup_null(void) {
   char *_ast_strdup_1 = NULL;
   ASSERT((c_cdd_strdup(NULL, &_ast_strdup_1), _ast_strdup_1) == NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -44,6 +48,7 @@ TEST test_c_cdd_strdup_empty(void) {
   ASSERT(dup != NULL);
   ASSERT_STR_EQ("", dup);
   free(dup);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -68,6 +73,7 @@ TEST test_c_cdd_str_starts_with(void) {
   /* Empty prefix matches everything */
   ASSERT((c_cdd_str_starts_with("anything", "", &_ast_starts_with_7),
           _ast_starts_with_7));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -81,6 +87,7 @@ TEST test_c_cdd_str_starts_with_null(void) {
            _ast_starts_with_9));
   ASSERT(!(c_cdd_str_starts_with(NULL, NULL, &_ast_starts_with_10),
            _ast_starts_with_10));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -93,6 +100,7 @@ TEST test_c_cdd_str_equal(void) {
   ASSERT((c_cdd_str_equal("foo", "foo", &_ast_equal_11), _ast_equal_11));
   ASSERT(!(c_cdd_str_equal("foo", "bar", &_ast_equal_12), _ast_equal_12));
   ASSERT(!(c_cdd_str_equal("foo", "fo", &_ast_equal_13), _ast_equal_13));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -103,6 +111,7 @@ TEST test_c_cdd_str_equal_nulls(void) {
   ASSERT((c_cdd_str_equal(NULL, NULL, &_ast_equal_14), _ast_equal_14));
   ASSERT(!(c_cdd_str_equal("foo", NULL, &_ast_equal_15), _ast_equal_15));
   ASSERT(!(c_cdd_str_equal(NULL, "foo", &_ast_equal_16), _ast_equal_16));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -118,6 +127,7 @@ TEST test_c_cdd_str_iequal(void) {
           _ast_iequal_18));
   ASSERT(!(c_cdd_str_iequal("Foo", "bar", &_ast_iequal_19), _ast_iequal_19));
   ASSERT(!(c_cdd_str_iequal("Foo", "fo", &_ast_iequal_20), _ast_iequal_20));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -128,6 +138,7 @@ TEST test_c_cdd_str_iequal_nulls(void) {
   ASSERT((c_cdd_str_iequal(NULL, NULL, &_ast_iequal_21), _ast_iequal_21));
   ASSERT(!(c_cdd_str_iequal("foo", NULL, &_ast_iequal_22), _ast_iequal_22));
   ASSERT(!(c_cdd_str_iequal(NULL, "foo", &_ast_iequal_23), _ast_iequal_23));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -153,6 +164,7 @@ TEST test_c_cdd_str_after_last(void) {
   /* Empty string */
   ASSERT_STR_EQ("", (c_cdd_str_after_last("", '/', &_ast_after_last_27),
                      _ast_after_last_27));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -160,6 +172,7 @@ TEST test_c_cdd_str_after_last_null(void) {
   const char *_ast_after_last_28 = NULL;
   ASSERT_STR_EQ("", (c_cdd_str_after_last(NULL, '/', &_ast_after_last_28),
                      _ast_after_last_28));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -180,6 +193,7 @@ TEST test_c_cdd_ref_is_type(void) {
            _ast_ref_is_type_31)); /* No slash, direct compar */
   ASSERT((c_cdd_ref_is_type("DirectMatch", "DirectMatch", &_ast_ref_is_type_32),
           _ast_ref_is_type_32));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -295,6 +309,7 @@ TEST test_c_cdd_str_trim_trailing_whitespace(void) {
 #endif
   c_cdd_str_trim_trailing_whitespace(buf);
   ASSERT_STR_EQ("a b c", buf);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -309,11 +324,13 @@ TEST test_c_cdd_ref_is_type_null(void) {
            _ast_ref_is_type_34));
   ASSERT(!(c_cdd_ref_is_type(NULL, NULL, &_ast_ref_is_type_35),
            _ast_ref_is_type_35));
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_c_cdd_str_trim_trailing_whitespace_null(void) {
   c_cdd_str_trim_trailing_whitespace(NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -375,6 +392,7 @@ TEST test_c_cdd_destringize(void) {
          NULL);
   ASSERT((c_cdd_destringize("bad", &_ast_destringize_45),
           _ast_destringize_45) == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -400,6 +418,7 @@ TEST test_c_cdd_stricmp(void) {
   ASSERT_EQ(0, c_cdd_stricmp(NULL, "hello", &diff));
   ASSERT(diff < 0);
   ASSERT_EQ(22, c_cdd_stricmp("hello", "hello", NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -417,6 +436,7 @@ TEST test_c_cdd_destringize_oom(void) {
   ASSERT_EQ(NULL, out);
   g_str_unquote_malloc_fail = 0;
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

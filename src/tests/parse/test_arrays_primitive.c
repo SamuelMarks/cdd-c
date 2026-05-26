@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_arrays_primitive.c
  * @brief Unit tests for primitive array generation and parsing.
@@ -83,6 +85,7 @@ TEST test_generated_copy_logic(void) {
   free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -180,6 +183,7 @@ TEST test_code2schema_array_detection(void) {
   free(json_content);
   remove("test_array.h");
   remove(json_out_file);
+  g_fail_io_after = -1;
   PASS();
 }
 

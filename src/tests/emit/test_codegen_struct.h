@@ -63,6 +63,7 @@ TEST test_cleanup_generation(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -99,6 +100,7 @@ TEST test_default_generation(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -137,6 +139,7 @@ TEST test_deepcopy_generation(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -171,6 +174,7 @@ TEST test_eq_generation(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -206,6 +210,7 @@ TEST test_guards_injection(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,6 +225,7 @@ TEST test_null_args(void) {
   ASSERT_EQ(EINVAL, write_struct_eq_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_debug_func(NULL, "U", NULL, NULL));
   ASSERT_EQ(EINVAL, write_struct_display_func(NULL, "U", NULL, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -270,6 +276,7 @@ TEST test_struct_debug_func(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -309,6 +316,7 @@ TEST test_struct_invalid_args(void) {
   struct StructFields sf_empty = {0};
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_struct_fields_add_bitwidth(void) {
@@ -330,6 +338,7 @@ TEST test_struct_fields_add_bitwidth(void) {
   struct StructFields sf_empty = {0};
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -338,10 +347,9 @@ TEST test_struct_fields_add_bitwidth(void) {
  */
 
 TEST test_struct_io_errors(void) {
-  FILE *readonly_f = fopen("test_codegen_struct_ro.txt", "w");
+  FILE *readonly_f = tmpfile();
   struct StructFields sf;
   struct CodegenStructConfig config = {0};
-  fclose(readonly_f);
 
   struct_fields_init(&sf);
   struct_fields_add(&sf, "id", "int", NULL, NULL, NULL);
@@ -352,21 +360,30 @@ TEST test_struct_io_errors(void) {
   struct_fields_add(&sf, "num", "number", NULL, NULL, NULL);
   struct_fields_add(&sf, "b", "boolean", NULL, NULL, NULL);
 
-  readonly_f = fopen("test_codegen_struct_ro.txt", "r");
   if (readonly_f) {
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, write_struct_cleanup_func(readonly_f, "Test", &sf, &config));
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, write_struct_default_func(readonly_f, "Test", &sf, &config));
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO,
               write_struct_deepcopy_func(readonly_f, "Test", &sf, &config));
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, write_struct_eq_func(readonly_f, "Test", &sf, &config));
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, write_struct_debug_func(readonly_f, "Test", &sf, &config));
     fclose(readonly_f);
   }
-  remove("test_codegen_struct_ro.txt");
   struct_fields_free(NULL);
   struct StructFields sf_empty = {0};
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -441,6 +458,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -452,6 +471,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -463,6 +484,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -474,6 +497,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -485,6 +510,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -496,6 +523,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -545,6 +574,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -556,6 +587,8 @@ TEST test_struct_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -565,6 +598,7 @@ TEST test_struct_exhaustive_io(void) {
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -615,6 +649,7 @@ TEST test_struct_fields_init_oom(void) {
   struct StructFields sf_empty = {0};
   struct_fields_free(&sf_empty);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 

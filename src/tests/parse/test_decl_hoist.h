@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_decl_hoist.h
  * @brief Unit tests for declaration hoisting analysis.
@@ -47,6 +49,7 @@ TEST test_scan_for_mixed_declarations_basic(void) {
 
   hoist_site_list_free(&list);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -65,6 +68,7 @@ TEST test_scan_for_mixed_declarations_errors(void) {
 
   hoist_site_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -91,6 +95,7 @@ TEST test_decl_hoist_edges(void) {
   hoist_site_list_free(&list);
 
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 

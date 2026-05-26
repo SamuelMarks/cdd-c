@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_oauth2_error.h
  * @brief Unit tests for OAuth2 Error generator.
@@ -73,6 +75,7 @@ TEST test_oauth2_error_generation(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -119,6 +122,7 @@ TEST test_oauth2_error_generation_non_string(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_builder.h
  * @brief Unit tests for the CST builder.
@@ -90,6 +92,7 @@ TEST test_cdd_cst_builder_basic(void) {
 
   cdd_cst_free_node_only(NULL);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -156,6 +159,7 @@ TEST test_cdd_cst_builder_macros(void) {
   free(out);
   cdd_cst_builder_free(&b);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -190,6 +194,7 @@ TEST test_cdd_cst_builder_quote(void) {
   free(out);
   cdd_cst_builder_free(&b);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,6 +225,7 @@ TEST test_cdd_cst_builder_snippet(void) {
   free(out);
   cdd_cst_builder_free(&b);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -257,6 +263,7 @@ TEST test_cdd_cst_builder_comments(void) {
   free(out);
   cdd_cst_builder_free(&b);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -284,6 +291,7 @@ TEST test_cdd_cst_builder_errors(void) {
 
   rc = cdd_cst_bld_space(NULL);
   ASSERT_EQ(EINVAL, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -346,6 +354,7 @@ TEST test_cdd_cst_builder_trivia_and_splice(void) {
   cdd_cst_builder_free(&b);
   cdd_cst_free_node_only(target_node);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -401,6 +410,7 @@ TEST test_cdd_cst_builder_extra(void) {
   ASSERT_EQ(ENOMEM, cdd_cst_bld_snippet(&b, "snippet"));
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -427,6 +437,7 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   cdd_cst_quote(&b, "123%s", buf);
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -474,6 +485,7 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_tree_free(tree);
 
   /* leak root intentionally */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -557,6 +569,7 @@ TEST test_cdd_cst_builder_oom(void) {
 
   cdd_cst_tree_free(tree);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -671,6 +684,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
 #endif
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_refactor.h
  * @brief Unit tests for refactoring orchestration.
@@ -42,6 +44,7 @@ TEST test_refactor_context_lifecycle(void) {
 
   refactor_context_free(&ctx);
   refactor_context_free(NULL); /* Safe */
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -67,6 +70,7 @@ TEST test_apply_refactoring_to_string_basic(void) {
 
   free(out);
   refactor_context_free(&ctx);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -91,6 +95,7 @@ TEST test_apply_refactoring_to_string_errors(void) {
      can pass a malformed AST? No, this function tokenizes it itself. */
 
   refactor_context_free(&ctx);
+  g_fail_io_after = -1;
   PASS();
 }
 

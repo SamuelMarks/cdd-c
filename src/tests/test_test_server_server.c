@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /* Auto-generated greatest.h test stub for server endpoints */
 
 #include <c_rest_request.h>
@@ -14,6 +16,7 @@ TEST test_server_handle_doGet(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doGet(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -25,6 +28,7 @@ TEST test_server_handle_doPost(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doPost(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -36,6 +40,7 @@ TEST test_server_handle_doPut(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doPut(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -47,6 +52,7 @@ TEST test_server_handle_doDelete(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doDelete(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -58,6 +64,7 @@ TEST test_server_handle_doOptions(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doOptions(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -69,6 +76,7 @@ TEST test_server_handle_doHead(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doHead(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -80,6 +88,7 @@ TEST test_server_handle_doPatch(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doPatch(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -91,6 +100,7 @@ TEST test_server_handle_doTrace(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doTrace(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -102,6 +112,7 @@ TEST test_server_handle_doUnknown(void) {
   memset(&res, 0, sizeof(res));
   /* int status = handle_doUnknown(&req, &res, NULL); */
   /* ASSERT_EQ(200, status); */
+  g_fail_io_after = -1;
   PASS();
 }
 

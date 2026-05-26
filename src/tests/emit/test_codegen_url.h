@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_url.h
  * @brief Unit tests for the URL Code Generator and Query logic.
@@ -103,6 +105,7 @@ TEST test_query_gen_scalar(void) {
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", page)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"page\", num_buf)") != NULL);
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -128,6 +131,7 @@ TEST test_query_gen_scalar_number(void) {
   ASSERT(strstr(code, "sprintf(num_buf, \"%g\", ratio)") != NULL);
   ASSERT(strstr(code, "url_query_add(&qp, \"ratio\", num_buf)") != NULL);
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -160,6 +164,7 @@ TEST test_query_gen_array_explode_int(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"ids\", num_buf)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -190,6 +195,7 @@ TEST test_query_gen_array_explode_number(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"ratios\", num_buf)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -219,6 +225,7 @@ TEST test_query_gen_array_explode_string(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", tags[i])") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -250,6 +257,7 @@ TEST test_query_gen_array_form_default_explode(void) {
   ASSERT(strstr(code, "joined_len") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -276,6 +284,7 @@ TEST test_query_gen_querystring(void) {
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -305,6 +314,7 @@ TEST test_query_gen_querystring_form_object(void) {
   ASSERT(strstr(code, "const struct OpenAPI_KV *kv = &qs[i]") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -334,6 +344,7 @@ TEST test_query_gen_querystring_json_ref(void) {
   ASSERT(strstr(code, "url_encode(qs_json, &qs_enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -363,6 +374,7 @@ TEST test_query_gen_querystring_json_primitive(void) {
   ASSERT(strstr(code, "url_encode(qs_json, &qs_enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -393,6 +405,7 @@ TEST test_query_gen_querystring_json_array(void) {
   ASSERT(strstr(code, "json_array_append_string") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -424,6 +437,7 @@ TEST test_query_gen_querystring_json_array_object(void) {
   ASSERT(strstr(code, "json_array_append_value") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -453,6 +467,7 @@ TEST test_query_gen_querystring_raw_string(void) {
   ASSERT(strstr(code, "asprintf(&query_str, \"?%s\", qs_enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -482,6 +497,7 @@ TEST test_query_gen_querystring_raw_integer(void) {
   ASSERT(strstr(code, "url_encode(num_buf, &qs_enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -513,6 +529,7 @@ TEST test_query_gen_array_form_explode_false(void) {
   ASSERT(strstr(code, "joined[joined_len++] = ','") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -543,6 +560,7 @@ TEST test_query_gen_array_space_delimited(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", joined)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -573,6 +591,7 @@ TEST test_query_gen_array_pipe_delimited(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"tags\", joined)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -600,6 +619,7 @@ TEST test_query_gen_scalar_allow_reserved(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\", enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -631,6 +651,7 @@ TEST test_query_gen_array_explode_allow_reserved(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"tags\", enc)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -660,6 +681,7 @@ TEST test_query_gen_object_form_explode(void) {
   ASSERT(strstr(code, "url_query_add(&qp, kv_key, kv_raw)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -691,6 +713,7 @@ TEST test_query_gen_object_form_explode_false(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -718,6 +741,7 @@ TEST test_query_gen_object_deep_object(void) {
   ASSERT(strstr(code, "url_query_add(&qp, deep_key, kv_raw)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -745,6 +769,7 @@ TEST test_query_gen_object_space_delimited(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -772,6 +797,7 @@ TEST test_query_gen_object_pipe_delimited(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"filter\", joined)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -803,6 +829,7 @@ TEST test_query_gen_object_space_delimited_allow_reserved(void) {
   ASSERT(strstr(code, "\"%20\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -835,6 +862,7 @@ TEST test_query_gen_array_space_delimited_allow_reserved(void) {
   ASSERT(strstr(code, "\"%20\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -857,6 +885,7 @@ TEST test_path_matrix_param_string(void) {
   ASSERT(strstr(code, "\";id=%s\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -881,6 +910,7 @@ TEST test_path_label_array_explode(void) {
   ASSERT(strstr(code, "memcpy(path_tags + path_len, \".\", 1)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -905,6 +935,7 @@ TEST test_path_matrix_object_explode_false(void) {
   ASSERT(strstr(code, "path_color") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -926,6 +957,7 @@ TEST test_path_simple_param_number(void) {
   ASSERT(strstr(code, "asprintf(&path_id") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -954,6 +986,7 @@ TEST test_query_gen_json_content_ref(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&qp, \"filter\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -971,6 +1004,7 @@ TEST test_media_type_is_json_url(void) {
   ASSERT_EQ(0, media_type_is_json_url("application/json+xml"));
   ASSERT_EQ(0, media_type_is_json_url("json"));
   ASSERT_EQ(1, media_type_is_json_url("+json"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -989,6 +1023,7 @@ TEST test_querystring_param_null_checks(void) {
   ASSERT_EQ(0, querystring_param_is_json_ref(&p));
   ASSERT_EQ(0, querystring_param_json_primitive_type(&p, &out_val));
   ASSERT_EQ(NULL, out_val);
+  g_fail_io_after = -1;
 
   PASS();
 }

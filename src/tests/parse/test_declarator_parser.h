@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_DECLARATOR_PARSER_H
 #define TEST_DECLARATOR_PARSER_H
 
@@ -42,6 +44,7 @@ static enum greatest_test_res verify_chain(struct DeclType *head, int n, ...) {
   }
   va_end(args);
   ASSERT_EQ(NULL, curr);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -66,6 +69,7 @@ TEST test_parse_basic_int(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -87,6 +91,7 @@ TEST test_parse_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -116,6 +121,7 @@ TEST test_parse_pointer_qualifiers(void) { /* int * const volatile p */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -136,6 +142,7 @@ TEST test_parse_atomic_specifier(void) { /* _Atomic(int) ax */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -156,6 +163,7 @@ TEST test_parse_complex_specifier(void) { /* double _Complex c */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -177,6 +185,7 @@ TEST test_parse_atomic_qualifier_on_ptr(void) { /* int * _Atomic ap */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -198,6 +207,7 @@ TEST test_parse_atomic_qualifier_on_base(void) { /* _Atomic int x */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -219,6 +229,7 @@ TEST test_abstract_atomic_ptr(void) { /* _Atomic(int) * */
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -234,6 +245,7 @@ TEST test_parse_func_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -250,6 +262,7 @@ TEST test_parse_func_array(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -265,6 +278,7 @@ TEST test_abstract_func_ptr(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -280,6 +294,7 @@ TEST test_abstract_array(void) {
 
   decl_info_free(&info);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -291,6 +306,7 @@ TEST test_parse_decl_errors(void) {
   ASSERT_EQ(EINVAL, parse_declaration(tl, 0, tl->size, NULL));
 
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 

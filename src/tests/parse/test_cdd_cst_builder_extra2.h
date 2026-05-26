@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_builder_t b;
   b.error_state = EINVAL;
@@ -79,6 +81,7 @@ TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_bld_punct(&valid_b, ":");
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }

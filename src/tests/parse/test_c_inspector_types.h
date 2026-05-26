@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_c_inspector_types.h
  * @brief Unit tests for C inspector type scanning logic.
@@ -52,6 +54,7 @@ TEST test_scan_c23_enum_fixed_type(void) {
 
   type_def_list_free(&types);
   remove(filename);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -78,6 +81,7 @@ TEST test_scan_c23_enum_fixed_type_whitespace(void) {
 
   type_def_list_free(&types);
   remove(filename);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -101,6 +105,7 @@ TEST test_scan_classic_enum(void) {
 
   type_def_list_free(&types);
   remove(filename);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -140,6 +145,7 @@ TEST test_inspector_nulls(void) {
   list.items[0].details.struct_fields->size = 1;
   list.items[0].details.struct_fields->capacity = 1;
   type_def_list_free(&list);
+  g_fail_io_after = -1;
 
   PASS();
 }

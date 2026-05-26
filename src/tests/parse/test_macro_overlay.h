@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_MACRO_OVERLAY_H
 #define TEST_MACRO_OVERLAY_H
 
@@ -27,12 +29,14 @@ TEST test_macro_overlay_basic(void) {
 
   macro_overlay_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_macro_overlay_null_args(void) {
   macro_overlay_list_init(NULL);
   macro_overlay_list_free(NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -74,6 +78,7 @@ TEST test_macro_overlay_with_nodes(void) {
 
   free(cst.nodes);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -95,6 +100,7 @@ TEST test_macro_overlay_free_with_expanded(void) {
   list.nodes[0].expanded_ast = expanded;
 
   macro_overlay_list_free(&list);
+  g_fail_io_after = -1;
   PASS();
 }
 

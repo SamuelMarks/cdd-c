@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_msvc_port.h
  * @brief Unit tests for MSVC port transformer.
@@ -76,6 +78,7 @@ TEST test_cdd_transform_msvc(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -97,6 +100,7 @@ TEST test_cdd_transform_msvc_builder_fails(void) {
 
   cdd_cst_tree_free(tree);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

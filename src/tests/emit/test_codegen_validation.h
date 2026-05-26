@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_validation.h
  * @brief Unit tests for validation codegen.
@@ -76,6 +78,7 @@ TEST test_int_min_validation(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -102,6 +105,7 @@ TEST test_int_exclusive_min(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -127,6 +131,7 @@ TEST test_double_max_validation(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -153,6 +158,7 @@ TEST test_double_exclusive_max(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -180,6 +186,7 @@ TEST test_min_and_max(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -208,6 +215,7 @@ TEST test_string_len_validation(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -244,6 +252,7 @@ TEST test_string_simple_pattern_prefix(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -280,6 +289,7 @@ TEST test_string_simple_pattern_suffix(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -316,6 +326,7 @@ TEST test_string_simple_pattern_exact(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -352,6 +363,7 @@ TEST test_string_simple_pattern_contains(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 

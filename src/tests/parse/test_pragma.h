@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_pragma.h
  * @brief Unit tests for parsing _Pragma and destringizing.
@@ -41,6 +43,7 @@ TEST test_tokenize_pragma_op(void) {
   ASSERT_EQ(TOKEN_RPAREN, tl->tokens[3].kind);
 
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -56,6 +59,7 @@ TEST test_destringize_basic(void) {
   ASSERT(res);
   ASSERT_STR_EQ("simple", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -73,6 +77,7 @@ TEST test_destringize_escaped_quote(void) {
   ASSERT(res);
   ASSERT_STR_EQ("foo\"bar", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -90,6 +95,7 @@ TEST test_destringize_escaped_backslash(void) {
   ASSERT(res);
   ASSERT_STR_EQ("path\\to", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -106,6 +112,7 @@ TEST test_destringize_wide_literal(void) {
   ASSERT(res);
   ASSERT_STR_EQ("wide", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -151,6 +158,7 @@ TEST test_destringize_mixed(void) {
   ASSERT(res);
   ASSERT_STR_EQ("a\\\"b", res); /* C String comparison: a\"b */
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,6 +189,7 @@ TEST test_destringize_invalids(void) {
   c_cdd_destringize("\"\"", &empty);
   ASSERT_EQ(0, strlen(empty));
   free(empty);
+  g_fail_io_after = -1;
   PASS();
 }
 

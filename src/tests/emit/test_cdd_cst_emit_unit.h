@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_CDD_CST_EMIT_UNIT_H
 #define TEST_CDD_CST_EMIT_UNIT_H
 
@@ -17,6 +19,7 @@ TEST test_cdd_cst_emit_invalid(void) {
   char *out = NULL;
   ASSERT_EQ(EINVAL, cdd_cst_emit(NULL, &out));
   ASSERT_EQ(EINVAL, cdd_cst_emit(&t, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -29,6 +32,7 @@ TEST test_cdd_cst_emit_empty(void) {
   ASSERT(out != NULL);
   ASSERT_EQ(0, strlen(out));
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -63,6 +67,7 @@ TEST test_cdd_cst_emit_null_children(void) {
   {
     /* Not easy to simulate ENOMEM without mock, but we can hit EOF logic */
   }
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -117,6 +122,7 @@ TEST test_cdd_cst_emit_large_string(void) {
 
   free(out);
   free(large_str);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -140,6 +146,7 @@ TEST test_cdd_cst_emit_oom(void) {
   child.val.token = &tok;
 
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -167,6 +174,7 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   child.val.token = &tok;
 
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -191,6 +199,7 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
   child.val.token = &tok;
 
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -223,6 +232,7 @@ TEST test_cdd_cst_emit_oom_multi(void) {
   children[1].val.token = &tok2;
 
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -235,6 +245,7 @@ TEST test_cdd_cst_emit_empty_oom(void) {
   g_cdd_fail_alloc = 1;
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));
   g_cdd_fail_alloc = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }

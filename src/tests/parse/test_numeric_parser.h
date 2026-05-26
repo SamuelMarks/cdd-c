@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_NUMERIC_PARSER_H
 #define TEST_NUMERIC_PARSER_H
 
@@ -35,6 +37,7 @@ TEST test_parse_dec_int(void) {
   ASSERT_EQ(0, parse_numeric_literal("1Lull", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1luLL", &nv));
   ASSERT_EQ(0, parse_numeric_literal("0", &nv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -61,6 +64,7 @@ TEST test_parse_hex_int(void) {
 
   ASSERT_EQ(EINVAL, parse_numeric_literal("0x1p*", &nv));
   ASSERT_EQ(EINVAL, parse_numeric_literal("1e-5*", &nv));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -75,6 +79,7 @@ TEST test_parse_bin_int(void) {
   ASSERT_EQ(NUMERIC_INTEGER, nv.kind);
   ASSERT_EQ(5, nv.data.integer.value);
   ASSERT_EQ(2, nv.data.integer.base);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -88,6 +93,7 @@ TEST test_parse_oct_int(void) {
   ASSERT_EQ(NUMERIC_INTEGER, nv.kind);
   ASSERT_EQ(8, nv.data.integer.value);
   ASSERT_EQ(8, nv.data.integer.base);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -113,6 +119,7 @@ TEST test_parse_int_suffixes(void) {
   parse_numeric_literal("1lul", &nv);
   ASSERT(nv.data.integer.is_unsigned);
   ASSERT(nv.data.integer.is_long_long);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -127,6 +134,7 @@ TEST test_parse_float_simple(void) {
   ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
   ASSERT(dbl_eq(3.14, nv.data.floating.value));
   ASSERT_EQ(0, nv.data.floating.is_float);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -139,6 +147,7 @@ TEST test_parse_float_exponent(void) {
   ASSERT_EQ(0, parse_numeric_literal("1.5e2", &nv));
   ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
   ASSERT(dbl_eq(150.0, nv.data.floating.value));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,6 +166,7 @@ TEST test_parse_float_suffix(void) {
   ASSERT_EQ(0, parse_numeric_literal("1.0l", &nv));
 
   ASSERT(nv.data.floating.is_long_double);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -186,6 +196,7 @@ TEST test_parse_decimal_float_suffixes(void) {
                                      &nv)); /* Case insensitive suffix check */
   ASSERT_EQ(NUMERIC_FLOAT, nv.kind);
   ASSERT_EQ(DFP_128, nv.data.floating.is_decimal);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -288,6 +299,7 @@ TEST test_parse_errors(void) {
           &nv));
 
   ASSERT_EQ(EINVAL, parse_numeric_literal(NULL, &nv));
+  g_fail_io_after = -1;
   PASS();
 }
 

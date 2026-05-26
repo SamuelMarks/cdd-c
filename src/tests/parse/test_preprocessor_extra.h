@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 static int abort_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;
@@ -24,5 +26,6 @@ TEST test_preprocessor_abort(void) {
   cfs_remove("sys_include/stdio.h");
   cfs_remove("sys_include/stdlib.h");
   cfs_remove("sys_include");
+  g_fail_io_after = -1;
   PASS();
 }

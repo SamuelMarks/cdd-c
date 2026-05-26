@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_sdk_tests.h
  * @brief Unit tests for SDK Test Generator.
@@ -86,11 +88,13 @@ TEST test_gen_sdk_test_basic(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_gen_sdk_test_nulls(void) {
   ASSERT_EQ(EINVAL, codegen_sdk_tests_generate(NULL, NULL, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -149,6 +153,7 @@ TEST test_gen_sdk_test_exhaustive(void) {
   ASSERT_EQ(0, codegen_sdk_tests_generate(tmp, &spec, &config));
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

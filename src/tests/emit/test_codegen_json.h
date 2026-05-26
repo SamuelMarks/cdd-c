@@ -66,6 +66,7 @@ TEST test_json_to_plain(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -102,6 +103,7 @@ TEST test_json_from_plain(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -134,6 +136,7 @@ TEST test_json_recursive_obj(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -168,6 +171,7 @@ TEST test_json_array_logic(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -290,6 +294,7 @@ TEST test_json_guards(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -320,6 +325,7 @@ TEST test_struct_array_from_json(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -336,7 +342,7 @@ TEST test_json_null_args(void) {
   ASSERT_EQ(EINVAL, write_struct_from_jsonObject_func(NULL, "S", NULL, NULL));
 
   {
-    FILE *readonly_f = fopen("test_codegen_json_ro.txt", "w");
+    FILE *readonly_f = tmpfile();
     struct StructFields sf;
     struct CodegenJsonConfig config;
 
@@ -433,22 +439,36 @@ TEST test_json_null_args(void) {
 
     config.guard_macro = "JSON_ENABLED";
 
-    fclose(readonly_f);
-    readonly_f = fopen("test_codegen_json_ro.txt", "r");
     if (readonly_f) {
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO, write_struct_to_json_func(readonly_f, "S", &sf, NULL));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO, write_struct_from_json_func(readonly_f, "S", &config));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO,
                 write_struct_array_from_json_func(readonly_f, "S", &config));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO, write_struct_from_jsonObject_func(readonly_f, "S", &sf,
                                                        &config));
       fclose(readonly_f);
     }
-    remove("test_codegen_json_ro.txt");
     struct_fields_free(&sf);
   }
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -482,6 +502,7 @@ TEST test_standalone_json_func(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -631,6 +652,10 @@ TEST test_json_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -642,6 +667,10 @@ TEST test_json_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -653,6 +682,10 @@ TEST test_json_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -664,6 +697,10 @@ TEST test_json_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -676,12 +713,17 @@ TEST test_json_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
   g_fail_io_after = -1;
   struct_fields_free(&sf);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -751,6 +793,7 @@ TEST test_codegen_json_extra(void) {
 
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

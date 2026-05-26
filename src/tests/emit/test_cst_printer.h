@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cst_printer.h
  * @brief Unit tests for CST non-destructive printing.
@@ -59,8 +61,12 @@ TEST test_cst_print_exact(void) {
   ASSERT_EQ(0, rc);
 
   {
-    FILE *readonly_f = fopen("test_cst_print.txt", "r");
+    FILE *readonly_f = tmpfile();
     if (readonly_f) {
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO, cst_print_tokens_exact(tokens, readonly_f));
       fclose(readonly_f);
     }
@@ -74,6 +80,7 @@ TEST test_cst_print_exact(void) {
   ASSERT_STR_EQ(src, buffer);
 
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

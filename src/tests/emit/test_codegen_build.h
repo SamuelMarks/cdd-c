@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_build.h
  * @brief Unit tests for CMakeLists generator logic.
@@ -48,6 +50,7 @@ TEST test_cbuild_null_args(void) {
   ASSERT_EQ(EINVAL, codegen_build_generate(BUILD_SYS_CMAKE, tmp, &config));
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -98,6 +101,7 @@ TEST test_cbuild_basic_output(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -125,6 +129,7 @@ TEST test_cbuild_unsupported(void) {
 #endif
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,6 +186,7 @@ TEST test_build_system_oom(void) {
   g_cdd_fail_alloc = 0;
   ASSERT(rc_fp != 0);
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }

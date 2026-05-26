@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_desig_init.h
  * @brief Unit tests for designated initializer analysis.
@@ -51,6 +53,7 @@ TEST test_scan_for_designated_initializers_basic(void) {
 
   desig_init_list_free(&list);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -70,6 +73,7 @@ TEST test_scan_for_designated_initializers_errors(void) {
 
   desig_init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 

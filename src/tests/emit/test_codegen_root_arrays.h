@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_root_arrays.h
  * @brief Unit tests for root array codegen.
@@ -73,6 +75,7 @@ TEST test_root_int_array_from_json(void) {
   /* Check assignment cast */
   ASSERT(strstr(code, "(*out)[i] = (int)json_array_get_number(arr, i);"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -92,6 +95,7 @@ TEST test_root_string_array_from_json(void) {
   /* cleanup on failure */
   ASSERT(strstr(code, "free((*out)[j])"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +114,7 @@ TEST test_root_obj_array_from_json(void) {
       code,
       "MyObj_from_jsonObject(json_array_get_object(arr, i), &(*out)[i])"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -124,6 +129,7 @@ TEST test_root_int_array_to_json(void) {
   ASSERT(strstr(code, "jasprintf(json_out, \"[\")"));
   ASSERT(strstr(code, "jasprintf(json_out, \"%d\", in[i])"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -137,6 +143,7 @@ TEST test_root_obj_array_to_json(void) {
                       "len, char **json_out)"));
   ASSERT(strstr(code, "MyObj_to_json(in[i], &tmp)"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -160,6 +167,7 @@ TEST test_root_array_cleanup(void) {
   ASSERT(code);
   ASSERT(strstr(code, "free(in)"));
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 

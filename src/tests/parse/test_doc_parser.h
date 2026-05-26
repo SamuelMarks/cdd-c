@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_doc_parser.h
  * @brief Unit tests for the Documentation Comment Parser.
@@ -42,6 +44,7 @@ TEST test_doc_init_free(void) {
 
   /* Ensure free is safe on empty */
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -58,6 +61,7 @@ TEST test_doc_parse_simple_route(void) {
   ASSERT_STR_EQ("/users/{id}", meta.route);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -72,6 +76,7 @@ TEST test_doc_parse_route_no_verb(void) {
   ASSERT_STR_EQ("/simple/path", meta.route);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -89,6 +94,7 @@ TEST test_doc_parse_webhook_route(void) {
   ASSERT_EQ(1, meta.is_webhook);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -123,6 +129,7 @@ TEST test_doc_parse_params(void) {
   ASSERT_STR_EQ("Optional filter", meta.params[2].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -151,6 +158,7 @@ TEST test_doc_parse_param_attributes_extended(void) {
   ASSERT_EQ(1, meta.params[0].allow_empty_value);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -168,6 +176,7 @@ TEST test_doc_parse_param_format(void) {
   ASSERT_STR_EQ("int64", meta.params[0].format);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -187,6 +196,7 @@ TEST test_doc_parse_param_deprecated(void) {
   ASSERT_EQ(1, meta.params[0].deprecated);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -206,6 +216,7 @@ TEST test_doc_parse_param_content_type(void) {
   ASSERT_STR_EQ("application/json", meta.params[0].content_type);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -230,6 +241,7 @@ TEST test_doc_parse_returns(void) {
   ASSERT_STR_EQ("Not Found", meta.returns[1].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -260,6 +272,7 @@ TEST test_doc_parse_response_headers(void) {
   ASSERT_EQ(1, meta.response_headers[1].required);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -278,6 +291,7 @@ TEST test_doc_parse_response_header_format(void) {
   ASSERT_STR_EQ("int64", meta.response_headers[0].format);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -307,6 +321,7 @@ TEST test_doc_parse_link(void) {
   ASSERT_STR_EQ("Next link", meta.links[0].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -325,6 +340,7 @@ TEST test_doc_parse_return_content_type(void) {
   ASSERT_STR_EQ("OK", meta.returns[0].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -338,6 +354,7 @@ TEST test_doc_parse_summary(void) {
   ASSERT_STR_EQ("This is a summary", meta.summary);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -351,6 +368,7 @@ TEST test_doc_parse_operation_id(void) {
   ASSERT_STR_EQ("getUserById", meta.operation_id);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -369,6 +387,7 @@ TEST test_doc_parse_description_and_deprecated(void) {
   ASSERT_EQ(0, meta.deprecated);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -392,6 +411,7 @@ TEST test_doc_parse_tags_and_external_docs(void) {
   ASSERT_STR_EQ("More docs", meta.external_docs_description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -416,6 +436,7 @@ TEST test_doc_parse_tag_meta(void) {
   ASSERT_STR_EQ("More docs", meta.tag_meta[0].external_docs_description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -439,6 +460,7 @@ TEST test_doc_parse_security(void) {
   ASSERT_STR_EQ("read:pets", meta.security[1].scopes[1]);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -492,6 +514,7 @@ TEST test_doc_parse_security_scheme(void) {
   ASSERT_STR_EQ("write:pets", meta.security_schemes[3].flows[0].scopes[1].name);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -518,6 +541,7 @@ TEST test_doc_parse_server_and_request_body(void) {
   ASSERT_STR_EQ("Upload payload", meta.request_body_description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -546,6 +570,7 @@ TEST test_doc_parse_server_variables(void) {
   ASSERT_STR_EQ("AWS region", meta.servers[0].variables[1].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -569,6 +594,7 @@ TEST test_doc_parse_info_overrides(void) {
   ASSERT_STR_EQ("https://example.com/terms", meta.terms_of_service);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -592,6 +618,7 @@ TEST test_doc_parse_contact_license(void) {
   ASSERT_EQ(NULL, meta.license_url);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -613,6 +640,7 @@ TEST test_doc_parse_request_body_multi_content(void) {
   ASSERT_STR_EQ("XML body", meta.request_bodies[1].description);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -638,6 +666,7 @@ TEST test_doc_parse_examples(void) {
   ASSERT_STR_EQ("{\"name\":\"x\"}", meta.request_bodies[0].example);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -652,6 +681,7 @@ TEST test_doc_parse_invalid_inputs(void) {
   ASSERT_EQ(0, doc_parse_block("", &meta));
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -672,6 +702,7 @@ TEST test_doc_parse_malformed_lines(void) {
   ASSERT_EQ(0, meta.n_params);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -701,6 +732,7 @@ TEST test_doc_parse_encodings(void) {
   ASSERT_EQ(2, meta.encodings[2].kind);
 
   doc_metadata_free(&meta);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -765,6 +797,7 @@ TEST test_doc_oom_and_edges(void) {
   }
 
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

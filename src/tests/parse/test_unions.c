@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_unions.c
  * @brief Unit tests for Tagged Union code generation.
@@ -55,6 +57,7 @@ TEST test_write_union_to_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -88,6 +91,7 @@ TEST test_write_union_from_json_object(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -120,6 +124,7 @@ TEST test_write_union_from_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 TEST test_write_union_cleanup(void) {
@@ -152,6 +157,7 @@ TEST test_write_union_cleanup(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

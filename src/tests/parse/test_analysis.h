@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_analysis.h
  * @brief Unit tests for code analysis features like allocation discovery.
@@ -47,6 +49,7 @@ TEST test_analysis_find_malloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "malloc") == 0);
 
   allocation_site_list_free(&sites);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -65,6 +68,7 @@ TEST test_analysis_find_calloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "calloc") == 0);
 
   allocation_site_list_free(&sites);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -83,6 +87,7 @@ TEST test_analysis_find_realloc(void) {
   ASSERT(strcmp(sites.sites[0].spec->name, "realloc") == 0);
 
   allocation_site_list_free(&sites);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -100,6 +105,7 @@ TEST test_analysis_find_none(void) {
   ASSERT_EQ(0, sites.size);
 
   allocation_site_list_free(&sites);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -115,6 +121,7 @@ TEST test_analysis_bounds(void) {
   ASSERT_EQ(EINVAL, find_allocations(&tl, NULL));
 
   allocation_site_list_free(NULL); /* Should not crash */
+  g_fail_io_after = -1;
   PASS();
 }
 

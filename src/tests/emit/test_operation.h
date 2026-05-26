@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_operation.h
  * @brief Unit tests for operation generator.
@@ -17,6 +19,7 @@ TEST test_operation_is_reserved_header_name(void) {
   ASSERT_EQ(1, is_reserved_header_name("Content-Type"));
   ASSERT_EQ(1, is_reserved_header_name("Authorization"));
   ASSERT_EQ(0, is_reserved_header_name("X-Custom"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -58,6 +61,7 @@ TEST test_operation_parse_example_any(void) {
   ASSERT_EQ(OA_ANY_JSON, out.type);
   ASSERT(strstr(out.json, "a") != NULL);
   free(out.json);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -101,6 +105,7 @@ TEST test_operation_any_from_json_value(void) {
   ASSERT(strstr(out.json, "a") != NULL);
   free(out.json);
   json_value_free(jv);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -141,6 +146,7 @@ TEST test_operation_parse_link_params_json(void) {
       free(out[i].value.json);
   }
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -167,6 +173,7 @@ TEST test_operation_free_openapi_server_variables_op(void) {
   free_openapi_server_variables_op(&srv);
   ASSERT(srv.variables == NULL);
   ASSERT_EQ(0, srv.n_variables);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -215,6 +222,7 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   free(src.variables[0].enum_values[1]);
   free(src.variables[0].enum_values);
   free(src.variables);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -245,6 +253,7 @@ TEST test_operation_find_response_by_code(void) {
   ASSERT(out == NULL);
 
   free(op.responses);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -266,6 +275,7 @@ TEST test_operation_find_media_type_op(void) {
 
   ASSERT_EQ(0, find_media_type_op(mts, 2, "not-found", &out));
   ASSERT(out == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -331,6 +341,7 @@ TEST test_operation_apply_example(void) {
 
   free(mt.example.string);
   free(resp.example.string);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -369,6 +380,7 @@ TEST test_operation_ensure_response_for_code(void) {
     free(op.responses[i].description);
   }
   free(op.responses);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -420,6 +432,7 @@ TEST test_operation_add_header_to_response(void) {
   free(resp.headers[0].schema.inline_type);
   free(resp.headers[0].example.string);
   free(resp.headers);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -473,6 +486,7 @@ TEST test_operation_add_link_to_response(void) {
   free(resp.links[0].server);
   free(resp.links[0].request_body.json);
   free(resp.links);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -491,6 +505,7 @@ TEST test_operation_add_param_to_op(void) {
   ASSERT_STR_EQ("test_param", op.parameters[0].name);
 
   free(op.parameters);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -515,6 +530,7 @@ TEST test_operation_schema_ref_has_data_basic(void) {
   memset(&ref, 0, sizeof(ref));
   ref.is_array = 1;
   ASSERT_EQ(1, schema_ref_has_data_basic(&ref));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -543,6 +559,7 @@ TEST test_operation_copy_schema_ref_basic(void) {
   free(dst.ref_name);
   free(dst.ref);
   free(dst.inline_type);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -564,6 +581,7 @@ TEST test_operation_response_has_media_type(void) {
   ASSERT_EQ(0, response_has_media_type(&resp, "test2"));
 
   free(resp.content_media_types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -579,6 +597,7 @@ TEST test_operation_is_struct_pointer(void) {
 
   ASSERT_EQ(1, is_struct_pointer("struct MyStruct **", &is_dp));
   ASSERT_EQ(1, is_dp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -612,6 +631,7 @@ TEST test_operation_doc_style_to_openapi(void) {
 
   ASSERT_EQ(0, doc_style_to_openapi(DOC_PARAM_STYLE_UNSET, &out));
   ASSERT_EQ(OA_STYLE_UNKNOWN, out);
+  g_fail_io_after = -1;
 
   PASS();
 }

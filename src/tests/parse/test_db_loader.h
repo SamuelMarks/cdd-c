@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_DB_LOADER_H
 #define TEST_DB_LOADER_H
 
@@ -22,6 +24,7 @@ TEST test_db_loader_basic(void) {
   ASSERT_EQ(22, check_libpq_available(NULL));
   ASSERT_EQ(22, check_sqlite3_available(NULL));
   ASSERT_EQ(22, check_mysql_available(NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -39,6 +42,7 @@ TEST test_db_loader_success(void) {
   ASSERT_EQ(1, avail);
   g_cdd_mock_dlopen_success = 0;
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

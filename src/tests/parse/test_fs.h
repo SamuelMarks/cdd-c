@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_fs.h
  * @brief Unit tests for filesystem utilities.
@@ -55,6 +57,7 @@ TEST test_get_basename(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ(".", res);
   free(res);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -70,6 +73,7 @@ TEST test_read_to_file_error(void) {
 
   rc = read_to_file(NULL, "r", &s, &size);
   ASSERT_EQ(EINVAL, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -136,6 +140,7 @@ TEST test_walk_directory(void) {
     free(f2);
   }
   free(root);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -150,6 +155,7 @@ TEST test_makedir_check(void) {
   /* rmdir(t); */
   free(p);
   free(t);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -171,6 +177,7 @@ TEST test_fs_fopen_error_from(void) {
   ASSERT_EQ(FOPEN_PERMISSION_DENIED, err);
   fopen_error_from(EIO, &err);
   ASSERT_EQ(FOPEN_UNKNOWN_ERROR, err);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -194,6 +201,7 @@ TEST test_fs_cp(void) {
   rc = cp("invalid/dst/path", "invalid_src.txt");
 
   ASSERT(rc != 0);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -221,6 +229,7 @@ TEST test_fs_basename_dirname_edge_cases(void) {
   ASSERT_STR_EQ("/", out);
   free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -242,6 +251,7 @@ TEST test_fs_dirname_more_edge_cases(void) {
   ASSERT_STR_EQ("foo", out);
   free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -268,6 +278,7 @@ TEST test_fs_write_to_file(void) {
   rmdir(tmp_dir);
   free(file_path);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -279,6 +290,7 @@ TEST test_fs_dirname_foo(void) {
   ASSERT_STR_EQ(".", out);
   free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -289,6 +301,7 @@ TEST test_fs_cdd_fopen_too_long(void) {
 
   ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
   ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -296,6 +309,7 @@ TEST test_fs_cdd_fopen_too_long(void) {
 TEST test_fs_write_to_file_errors(void) {
   ASSERT_NEQ(
       0, fs_write_to_file("/invalid/path/that/cannot/exist/ever.txt", "hello"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -311,6 +325,7 @@ TEST test_read_from_fh_errors(void) {
   ASSERT_EQ(EINVAL, read_from_fh(f, &data, NULL));
 
   fclose(f);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -343,6 +358,7 @@ TEST test_ascii_wide_conversion(void) {
   ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, NULL, 32, &alen));
   ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 0, &alen));
   ASSERT_EQ(EINVAL, wide_to_ascii(wbuf, abuf, 32, NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }

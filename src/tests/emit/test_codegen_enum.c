@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_enum.c
  * @brief Unit tests for Enum code generation module.
@@ -68,6 +70,7 @@ TEST test_enum_to_str_basic(void) {
   free(content);
   enum_members_free(&em);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -104,6 +107,7 @@ TEST test_enum_from_str_basic(void) {
   free(content);
   enum_members_free(&em);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,6 +142,7 @@ TEST test_enum_guards(void) {
   free(content);
   enum_members_free(&em);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -160,6 +165,7 @@ TEST test_enum_null_safety(void) {
 
   fclose(f);
   enum_members_free(&em);
+  g_fail_io_after = -1;
   PASS();
 }
 

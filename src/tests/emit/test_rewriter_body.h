@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_REWRITER_BODY_H
 #define TEST_REWRITER_BODY_H
 
@@ -63,6 +65,7 @@ TEST test_propagate_void_stmt(void) {
   ASSERT(strstr(output, "rc = do_work(); if (rc != 0) return rc;") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -86,6 +89,7 @@ TEST test_propagate_ptr_assignment(void) {
   ASSERT(strstr(output, "if (rc != 0) return rc;") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +114,7 @@ TEST test_propagate_ptr_declaration(void) {
   ASSERT(strstr(output, "; rc = my_strdup(\"a\", &s);") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -133,6 +138,7 @@ TEST test_propagate_nested_hoisting(void) {
   ASSERT(strstr(output, "outer(_tmp_cdd_0);") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -159,6 +165,7 @@ TEST test_integration_safety_and_prop(void) {
   ASSERT(strstr(output, "rc = do_work();") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -183,6 +190,7 @@ TEST test_realloc_safety_injection(void) {
   ASSERT(strstr(output, "p = _safe_tmp;") != NULL);
 
   free(output);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -194,6 +202,7 @@ TEST test_rewriter_body_bounds(void) {
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
   char *output = NULL;
   ASSERT_EQ(-1, run_body_rewrite(NULL, funcs, 1, NULL, &output));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -235,6 +244,7 @@ TEST test_rewriter_body_oom(void) {
 
   allocation_site_list_free(&sites);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -246,6 +256,7 @@ TEST test_rewriter_body_bounds2(void) {
   ASSERT_EQ(EINVAL, rewrite_body(NULL, &sites, NULL, 0, NULL, &output));
   /* ignore */
   ASSERT_EQ(EINVAL, rewrite_body(&tl, &sites, NULL, 0, NULL, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 

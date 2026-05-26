@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_make.h
  * @brief Unit tests for CMake generator.
@@ -50,6 +52,7 @@ TEST test_make_simple(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -83,6 +86,7 @@ TEST test_make_extra_sources(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -101,23 +105,29 @@ TEST test_make_invalid(void) {
   ASSERT_EQ(EINVAL, codegen_make_generate(tmp, &cfg)); /* No name */
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 #ifdef _WIN32
-#define DEV_NULL "nul"
 #else
-#define DEV_NULL "/dev/null"
 #endif
 
 TEST test_make_io_failure(void) {
   struct MakeConfig cfg = {0};
   FILE *f;
   cfg.project_name = "test_io";
-  f = fopen(DEV_NULL, "r");
+  f = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT(f);
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, codegen_make_generate(f, &cfg));
   fclose(f);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -167,6 +177,7 @@ TEST test_make_oom(void) {
   ASSERT_EQ(0, codegen_make_generate(fp, &config3));
   fclose(fp);
   remove("test_make_out.txt");
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_CLI_GEN_H
 #define TEST_CLI_GEN_H
 
@@ -57,6 +59,7 @@ TEST test_cli_gen_basic(void) {
   free(spec.paths[0].operations[0].parameters);
   free(spec.paths[0].operations);
   free(spec.paths);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -76,6 +79,7 @@ TEST test_cli_gen_fail_open(void) {
 
   rc = openapi_cli_generate(&spec, &config);
   ASSERT_EQ(0, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -147,6 +151,7 @@ TEST test_cli_gen_full(void) {
   free(spec.paths[0].operations[0].parameters);
   free(spec.paths[0].operations);
   free(spec.paths);
+  g_fail_io_after = -1;
 
   PASS();
 }

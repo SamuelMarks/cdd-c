@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_CODEGEN_DEFAULTS_H
 #define TEST_CODEGEN_DEFAULTS_H
 
@@ -15,9 +17,7 @@ extern "C" {
 /* clang-format on */
 
 #ifdef _WIN32
-#define DEV_NULL "nul"
 #else
-#define DEV_NULL "/dev/null"
 #endif
 
 /* Helper to generate code and return as string buffer */
@@ -78,6 +78,7 @@ TEST test_default_primitive(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -111,6 +112,7 @@ TEST test_default_string(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,6 +140,7 @@ TEST test_default_enum(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -163,6 +166,7 @@ TEST test_default_no_defaults(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -190,6 +194,7 @@ TEST test_default_nullptr(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,6 +225,7 @@ TEST test_default_binary_literal(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -234,53 +240,86 @@ TEST test_write_forward_decl_bounds(void) {
   ASSERT_EQ(EINVAL, write_forward_decl(tmp, NULL));
   ASSERT_EQ(0, write_forward_decl(tmp, "X"));
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_write_forward_decl_io_fail(void) {
-  FILE *tmp = fopen(DEV_NULL, "r");
+  FILE *tmp = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT(tmp);
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_forward_decl(tmp, "X"));
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_write_enum_declaration_h_io_fail(void) {
-  FILE *tmp = fopen(DEV_NULL, "r");
+  FILE *tmp = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
   ASSERT(tmp);
-  ASSERT_EQ(EIO, write_enum_declaration_h(tmp, "E", &sf, &cfg));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  int rc = write_enum_declaration_h(tmp, "E", &sf, &cfg);
+  printf("RC WAS %d\n", rc);
+  ASSERT_EQ(EIO, rc);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_write_struct_declaration_h_io_fail(void) {
-  FILE *tmp = fopen(DEV_NULL, "r");
+  FILE *tmp = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
   ASSERT(tmp);
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_write_union_declaration_h_io_fail(void) {
-  FILE *tmp = fopen(DEV_NULL, "r");
+  FILE *tmp = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   struct StructFields sf;
   struct CodegenConfig cfg;
   memset(&cfg, 0, sizeof(cfg));
   struct_fields_init(&sf);
 
   ASSERT(tmp);
-  ASSERT_EQ(EIO, write_union_declaration_h(tmp, "U", &sf, &cfg));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  int rc = write_union_declaration_h(tmp, "U", &sf, &cfg);
+  printf("RC WAS %d\n", rc);
+  ASSERT_EQ(EIO, rc);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -306,6 +345,7 @@ TEST test_codegen_h_bounds(void) {
 
   fclose(tmp);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 

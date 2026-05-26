@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_security.h
  * @brief Unit tests for Security Code Generator.
@@ -91,6 +93,7 @@ TEST test_sec_bearer_token(void) {
   ASSERT(strstr(code, "if (rc != 0) goto cleanup;"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -117,6 +120,7 @@ TEST test_sec_oauth2_bearer_token(void) {
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -143,6 +147,7 @@ TEST test_sec_openid_bearer_token(void) {
                 "http_request_set_auth_bearer(&req, NULL /* bearer_token */)"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -170,6 +175,7 @@ TEST test_sec_basic_token(void) {
                 "http_request_set_auth_basic(&req, NULL /* basic_token */)"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -200,6 +206,7 @@ TEST test_sec_api_key_header(void) {
                       "NULL /* api_key_ApiKeyAuth */)"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -243,6 +250,7 @@ TEST test_sec_uri_requirement_matches_component(void) {
   ASSERT(strstr(code, "http_headers_add(&req.headers, \"X-API-KEY\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -271,6 +279,7 @@ TEST test_sec_api_key_query(void) {
                       "NULL /* api_key_QueryKey */)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -298,6 +307,7 @@ TEST test_sec_api_key_cookie(void) {
   ASSERT(strstr(code, "session_id") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -330,12 +340,14 @@ TEST test_sec_multiple_schemes(void) {
   ASSERT(strstr(code, "api_key_key"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_sec_null_safety(void) {
   ASSERT_EQ(EINVAL, codegen_security_write_apply(NULL, NULL, NULL));
   ASSERT_EQ(EINVAL, codegen_security_write_server_apply(NULL, NULL, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -378,6 +390,7 @@ TEST test_sec_server_apply_basic_and_bearer(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -419,6 +432,7 @@ TEST test_sec_security_requirements_filter(void) {
   ASSERT(!strstr(code, "bearer_token"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 

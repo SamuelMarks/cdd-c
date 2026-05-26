@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cli_parser.h
  * @brief Unit tests for parsing C CLI argument parsers.
@@ -82,6 +84,7 @@ TEST test_cli_parser_getopt(void) {
   free_cst_node_list(nodes);
   free(nodes);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -92,6 +95,7 @@ TEST test_cli_parser_mappings(void) {
   /* No wait, these are in client_body.c. */
   /* We want the mappings from cli.c which are internal to `cli.c`. */
   /* cli.c isn't mocked directly. */
+  g_fail_io_after = -1;
 
   PASS();
 }

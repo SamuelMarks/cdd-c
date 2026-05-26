@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_code2schema.h
  * @brief Unit tests for code to schema conversion.
@@ -71,6 +73,7 @@ TEST test_write_enum_functions(void) {
   remove("tmp_enum_func.c");
 
   enum_members_free(&em);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -80,6 +83,7 @@ TEST test_struct_fields_manage(void) {
   ASSERT_EQ(0, struct_fields_add(&sf, "name", "string", NULL, NULL, NULL));
   ASSERT_EQ(0, struct_fields_add(&sf, "num", "integer", NULL, NULL, NULL));
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -90,6 +94,7 @@ TEST test_str_starts_with(void) {
           _ast_str_starts_with_0));
   ASSERT(!(str_starts_with("structFoo", "enum", &_ast_str_starts_with_1),
            _ast_str_starts_with_1));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -104,6 +109,7 @@ TEST test_parse_struct_member_line(void) {
   ASSERT_EQ(0, parse_struct_member_line("enum Color *e;", &sf));
   ASSERT_EQ(0, parse_struct_member_line("struct Point * p;", &sf));
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -129,6 +135,7 @@ TEST test_parse_struct_member_bitfield(void) {
   ASSERT_STR_EQ("1", sf.fields[2].bit_width);
 
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -155,6 +162,7 @@ TEST test_parse_struct_member_format_mapping(void) {
   ASSERT(strstr(arr_field->items_extra_json, "\"format\":\"int64\"") != NULL);
 
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -179,6 +187,7 @@ TEST test_write_struct_functions(void) {
 
   struct_fields_free(&test_struct_fields);
   fclose(tmpf);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -200,6 +209,7 @@ TEST test_struct_fields_overflow(void) {
   }
   ASSERT_GT(sf.size, n * 2);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -221,6 +231,7 @@ TEST test_enum_members_overflow(void) {
   }
   ASSERT_GT(em.size, n * 2);
   enum_members_free(&em);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -237,6 +248,7 @@ TEST test_trim_trailing(void) {
 #endif
   trim_trailing(a);
   ASSERT_STR_EQ("foo", a);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -245,6 +257,7 @@ TEST test_code2schema_main_bad_args(void) {
   char *argv[] = {"bad"};
   /* Passing 1 args */
   ASSERT_EQ(EXIT_FAILURE, code2schema_main(1, argv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -258,6 +271,7 @@ TEST test_code2schema_parsing_details(void) {
             code2schema_main(2, argv)); /* Call with 2 args (in, out) */
   remove(argv[0]);
   remove(argv[1]);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -295,12 +309,14 @@ TEST test_code2schema_parse_struct_and_enum(void) {
   ASSERT_EQ(EXIT_SUCCESS, rc);
   remove(filename);
   remove(json);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_code2schema_file_not_found(void) {
   char *argv[] = {"no_such_file.h", "out.json"};
   ASSERT_EQ(EXIT_FAILURE, code2schema_main(2, argv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -331,6 +347,7 @@ TEST test_codegen_enum_null_args(void) {
 
   enum_members_free(&em_valid);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -357,6 +374,7 @@ TEST test_codegen_enum_with_unknown(void) {
 
   enum_members_free(&em);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -393,6 +411,7 @@ TEST test_codegen_all_field_types(void) {
 
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -424,6 +443,7 @@ TEST test_codegen_empty_struct_and_enum(void) {
   enum_members_free(&em);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -475,6 +495,7 @@ TEST test_codegen_struct_null_args(void) {
 
   struct_fields_free(&sf_valid);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -505,6 +526,7 @@ TEST test_parse_struct_member_annotations(void) {
          NULL);
 
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -567,6 +589,7 @@ TEST test_code2schema_merge_struct_field(void) {
   ASSERT_EQ(10, f1.max_len);
   ASSERT_EQ(5, f1.min_items);
   ASSERT_EQ(5, f1.max_items);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -613,6 +636,7 @@ TEST test_code2schema_discriminator_value(void) {
   json_value_free(jv2);
 
   json_value_free(jv);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -636,6 +660,7 @@ TEST test_code2schema_sanitize_identifier(void) {
                                                         first char rule maybe */
   free(val);
   val = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -670,6 +695,7 @@ TEST test_code2schema_make_unique_variant_name(void) {
   val = NULL;
 
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -692,6 +718,7 @@ TEST test_code2schema_make_inline_schema_name(void) {
   ASSERT_STR_EQ("Union_Var", val);
   free(val);
   val = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -721,6 +748,7 @@ TEST test_code2schema_register_inline_schema_c2s(void) {
   free(val2);
   json_value_free(jv);
   json_value_free(schema_val);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -774,6 +802,7 @@ TEST test_code2schema_utils(void) {
   json_value_free(val);
   if (union_types)
     free_string_array_code2schema(union_types, count);
+  g_fail_io_after = -1;
   PASS();
 }
 

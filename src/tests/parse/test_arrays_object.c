@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_arrays_object.c
  * @brief Unit tests for Object Arrays generation and parsing.
@@ -69,6 +71,7 @@ TEST test_generated_obj_array_logic(void) {
   free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -127,6 +130,7 @@ TEST test_code2schema_obj_array_detection(void) {
   free(json_content);
   remove("test_obj_array.h");
   remove(json_out_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -161,6 +165,7 @@ TEST test_cleanup_generation(void) {
   free(output_buf);
   fclose(tmp);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 

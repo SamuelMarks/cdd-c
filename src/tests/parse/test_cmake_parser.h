@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cmake_parser.h
  * @brief Unit tests for CMake parser modifications.
@@ -48,6 +50,7 @@ TEST test_cmake_modifier_basic(void) {
 
   free(diff_str);
   cmake_modifier_free(&mod);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -71,6 +74,7 @@ TEST test_cmake_modifier_global(void) {
 
   free(diff_str);
   cmake_modifier_free(&mod);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -91,6 +95,7 @@ TEST test_cmake_modifier_errors(void) {
   ASSERT_EQ(EINVAL, cmake_modifier_add_link_lib(&mod, NULL));
 
   cmake_modifier_free(&mod);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -179,6 +184,7 @@ TEST test_cmake_parser_oom(void) {
   remove("test_cmake_dir/CMakeLists.txt");
   remove("test_cmake_dir");
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }

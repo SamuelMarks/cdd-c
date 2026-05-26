@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_main.h
  * @brief Unit tests for the main application entry point router.
@@ -25,6 +27,7 @@ TEST test_main_no_args(void) {
   char *argv[] = {"cdd-c"};
   int rc = cdd_main(1, argv);
   ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -41,6 +44,7 @@ TEST test_main_help(void) {
 
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -57,6 +61,7 @@ TEST test_main_version(void) {
 
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_SUCCESS, rc, "%d");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -73,6 +78,7 @@ TEST test_main_invalid_command(void) {
 
   rc = cdd_main(2, argv2);
   ASSERT_EQ_FMT(EXIT_FAILURE, rc, "%d");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +116,7 @@ TEST test_main_subcommands(void) {
   cdd_main(7, argv_from_openapi);
   cdd_main(2, argv_serve_json_rpc);
   cdd_main(3, argv_transformer);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -174,6 +181,7 @@ TEST test_main_from_openapi_cli_options(void) {
   unsetenv("CDD_INPUT_FILE");
   unsetenv("CDD_OUT_DIR");
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -219,6 +227,7 @@ TEST test_main_to_openapi_cli_options(void) {
   unsetenv("CDD_INPUT_DIR");
   unsetenv("CDD_OUT_FILE");
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -237,6 +246,7 @@ TEST test_bin_cdd_executable(void) {
   if (rc != 0) {
     rc = system("../../bin/cdd-c --help > /dev/null 2>&1");
   }
+  g_fail_io_after = -1;
   PASS();
 }
 

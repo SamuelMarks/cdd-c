@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_aggregator.h
  * @brief Unit tests for OpenAPI Aggregator logic.
@@ -68,6 +70,7 @@ TEST test_aggregator_add_new(void) {
   ASSERT_EQ(NULL, op.operation_id);
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -99,6 +102,7 @@ TEST test_aggregator_merge_paths(void) {
   ASSERT_STR_EQ("createUser", spec.paths[0].operations[1].operation_id);
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -122,6 +126,7 @@ TEST test_aggregator_distinct_paths(void) {
   ASSERT_STR_EQ("/b", spec.paths[1].route);
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -150,6 +155,7 @@ TEST test_aggregator_add_additional_operation(void) {
   ASSERT_STR_EQ("COPY", spec.paths[0].additional_operations[0].method);
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -175,6 +181,7 @@ TEST test_aggregator_add_webhook(void) {
   ASSERT_EQ(NULL, op.operation_id);
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -196,6 +203,7 @@ TEST test_aggregator_bad_args(void) {
    * here. */
   free(op.operation_id);
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 

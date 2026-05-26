@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_generate_build_system.h
  * @brief Unit tests for build system generation logic.
@@ -48,6 +50,7 @@ TEST test_gen_cmake_basic(void) {
   free(content);
   remove(out_file);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -73,6 +76,7 @@ TEST test_gen_cmake_with_tests(void) {
   free(content);
   remove(out_file);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +114,7 @@ TEST test_gen_build_system_cli_args(void) {
   }
   remove("test_build_dir/src/CMakeLists.txt");
   remove("test_build_dir/CMakeLists.txt");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -139,12 +144,14 @@ TEST test_gen_build_system_bad_args(void) {
 
   /* Unsupported type */
   ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(3, argv_bad));
+  g_fail_io_after = -1;
 
   PASS();
 }
 
 TEST test_gen_cmake_null_args(void) {
   ASSERT_EQ(EINVAL, generate_cmake_project("out", NULL, 0));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -156,6 +163,7 @@ TEST test_gen_cmake_null_outdir(void) {
   remove("CMakeLists.txt");
   remove("src/CMakeLists.txt");
   /* Don't strictly need to rmdir src but it's polite */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -170,6 +178,7 @@ TEST test_gen_cmake_bad_makedirs(void) {
                                          "MyLib", 0));
     remove("test_dummy_file_for_makedirs");
   }
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -180,6 +189,7 @@ TEST test_gen_build_system_cli_args_tests(void) {
 
   remove("test_build_dir_tests/src/CMakeLists.txt");
   remove("test_build_dir_tests/CMakeLists.txt");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -192,6 +202,7 @@ TEST test_gen_build_system_cli_args_fail(void) {
     ASSERT_EQ(EXIT_FAILURE, generate_build_system_main(3, argv));
     remove("test_dummy_file_for_makedirs");
   }
+  g_fail_io_after = -1;
   PASS();
 }
 

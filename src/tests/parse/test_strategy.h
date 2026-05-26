@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_strategy.h
  * @brief Unit tests for parsing strategy algorithms.
@@ -29,6 +31,7 @@ TEST test_strategy_errors(void) {
 
   ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, &allocs, &patches));
   ASSERT_EQ(EINVAL, strategy_inject_safety_checks(NULL, NULL, &patches));
+  g_fail_io_after = -1;
 
   PASS();
 }

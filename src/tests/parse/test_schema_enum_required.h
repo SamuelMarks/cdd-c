@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_schema_enum_required.h
  * @brief Unit tests for required enums in schemas.
@@ -79,6 +81,7 @@ TEST test_loader_enum_and_required(void) {
   }
 
   openapi_spec_free(&spec);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -141,6 +144,7 @@ TEST test_writer_enum_and_required(void) {
   free(json);
   struct_fields_free(&schemas[0]);
   struct_fields_free(&schemas[1]);
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_openapi_client_gen.h
  * @brief Tests for the OpenAPI Client Library Generator.
@@ -78,6 +80,7 @@ TEST test_gen_client_basic(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -113,6 +116,7 @@ TEST test_gen_client_operation_server_override(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -146,6 +150,7 @@ TEST test_gen_client_text_plain_request_body(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -179,6 +184,7 @@ TEST test_gen_client_octet_stream_request_body(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -210,6 +216,7 @@ TEST test_gen_client_octet_stream_response_body(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -254,6 +261,7 @@ TEST test_gen_client_default_base_url_from_server(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -284,6 +292,7 @@ TEST test_gen_client_default_base_url_no_servers(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -337,6 +346,7 @@ TEST test_gen_client_additional_operation(void) {
 
   remove(h_file);
   remove(c_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -376,6 +386,7 @@ TEST test_gen_client_op_params_only(void) {
   remove("test_out/src/gen_op_params.c");
   remove("test_out/src/gen_op_params_models.h");
   remove("test_out/src/gen_op_params_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -414,6 +425,7 @@ TEST test_gen_client_querystring_param(void) {
   remove("test_out/src/gen_querystring_param.c");
   remove("test_out/src/gen_querystring_param_models.h");
   remove("test_out/src/gen_querystring_param_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -456,6 +468,7 @@ TEST test_gen_client_path_level_params(void) {
   remove("test_out/src/gen_path_params.c");
   remove("test_out/src/gen_path_params_models.h");
   remove("test_out/src/gen_path_params_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -503,6 +516,7 @@ TEST test_gen_client_path_param_override(void) {
   remove("test_out/src/gen_path_override.c");
   remove("test_out/src/gen_path_override_models.h");
   remove("test_out/src/gen_path_override_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -542,6 +556,7 @@ TEST test_gen_client_grouped_tags_namespace(void) {
   remove("test_out/src/gen_group_ns_test.c");
   remove("test_out/src/gen_group_ns_test_models.h");
   remove("test_out/src/gen_group_ns_test_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -576,6 +591,7 @@ TEST test_gen_client_namespace_only(void) {
   remove("test_out/src/gen_ns_only_test.c");
   remove("test_out/src/gen_ns_only_test_models.h");
   remove("test_out/src/gen_ns_only_test_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -593,6 +609,7 @@ TEST test_gen_client_error_nulls(void) {
 
   config.filename_base = NULL;
   ASSERT_EQ(EINVAL, openapi_client_generate(&spec, &config));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -606,6 +623,7 @@ TEST test_gen_client_file_error(void) {
   config.filename_base = "/this_dir_does_not_exist/file";
 
   ASSERT_EQ(0, openapi_client_generate(&spec, &config));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -647,6 +665,7 @@ TEST test_gen_client_defaults(void) {
   remove("test_out/src/gen_def.c");
   remove("test_out/src/gen_def_models.h");
   remove("test_out/src/gen_def_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -690,6 +709,7 @@ TEST test_gen_transport_selection(void) {
   remove("test_out/src/gen_transport.c");
   remove("test_out/src/gen_transport_models.h");
   remove("test_out/src/gen_transport_models.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -727,6 +747,7 @@ TEST test_client_gen_find_server_variable(void) {
   /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
    * now */
   free(srv.variables);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -795,6 +816,7 @@ TEST test_client_gen_render_server_url_default(void) {
   /* Test docblock fail on ENOMEM using mocking if needed but probably skip for
    * now */
   free(srv.variables);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -814,6 +836,7 @@ TEST test_client_gen_escape_c_string_literal(void) {
   ASSERT_STR_EQ("hello \\\"world\\\"\\n\\r\\t", out);
   free(out);
   out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -843,6 +866,7 @@ TEST test_client_gen_select_operation_server(void) {
   free(op.servers[0].variables);
   free(op.servers);
   free(path.servers);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -855,6 +879,7 @@ TEST test_client_gen_build_base_url_literal(void) {
   ASSERT_EQ(0, build_base_url_literal("http://test.com", &out));
   ASSERT_STR_EQ("\"http://test.com\"", out);
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -865,6 +890,7 @@ TEST test_client_gen_generate_guard(void) {
   ASSERT_EQ(0, generate_guard("my-test.h", &out));
   ASSERT_STR_EQ("MY_TEST_H_H", out);
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -875,6 +901,7 @@ TEST test_client_gen_derive_model_header(void) {
   ASSERT_EQ(0, derive_model_header("test", &out));
   ASSERT_STR_EQ("test_models.h", out);
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -888,6 +915,7 @@ TEST test_client_gen_sanitize_tag(void) {
   ASSERT_EQ(0, sanitize_tag("my-tag! test", &out));
   ASSERT_STR_EQ("My_tag__test", out);
   free(out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -913,6 +941,7 @@ TEST test_client_gen_param_keys_match(void) {
 
   b.in = OA_PARAM_IN_HEADER;
   ASSERT_EQ(1, param_keys_match(&a, &b));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -963,6 +992,7 @@ TEST test_client_gen_build_effective_parameters(void) {
 
   free(path.parameters);
   free(op.parameters);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -998,6 +1028,7 @@ TEST test_client_gen_verb_to_string(void) {
 
   ASSERT_EQ(0, verb_to_string(OA_VERB_UNKNOWN, &out));
   ASSERT_STR_EQ("UNKNOWN", out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1066,6 +1097,7 @@ TEST test_client_gen_write_docblock(void) {
   free(op.parameters);
   fclose(fp);
   remove("test_docblock.txt");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1095,6 +1127,7 @@ TEST test_client_gen_write_preambles(void) {
   fclose(fp2);
   remove("test9.h");
   remove("test10.c");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -1113,6 +1146,7 @@ TEST test_client_gen_emit_operation(void) {
 
   /* Force build_effective_parameters to fail */
   /* Wait, missing args handled at top covers this */
+  g_fail_io_after = -1;
   PASS();
 }
 

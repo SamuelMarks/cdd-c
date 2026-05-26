@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_factory.h
  * @brief Unit tests for the CST factory.
@@ -33,6 +35,7 @@ TEST test_cst_alloc_node(void) {
   ASSERT_EQ(CDD_CST_DECLARATION, node->kind);
 
   cdd_cst_free_node_only(node);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -74,6 +77,7 @@ TEST test_cst_create_token(void) {
   }
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -119,6 +123,7 @@ TEST test_cst_append_child_node(void) {
 
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(parent);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -154,6 +159,7 @@ TEST test_cst_append_child_token(void) {
 
   cdd_cst_free_node_only(parent);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -190,6 +196,7 @@ TEST test_cst_parse_format(void) {
 
   /* Clean up */
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -232,6 +239,7 @@ TEST test_cdd_cst_parse_format_oom(void) {
   ASSERT_EQ(0, cdd_cst_parse_format(tree, &node, ""));
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 #endif
@@ -262,6 +270,7 @@ TEST test_cst_parse_format_extra(void) {
 #endif
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 

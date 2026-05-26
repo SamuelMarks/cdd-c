@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_extern_c.h
  * @brief Unit tests for extern C transformer.
@@ -47,6 +49,7 @@ TEST test_cdd_transform_extern_c(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -61,6 +64,7 @@ TEST test_cdd_transform_extern_c_null_args(void) {
   ASSERT_EQ(EINVAL, cdd_transform_extern_c(NULL, &config));
 
   ASSERT_EQ(EINVAL, cdd_transform_extern_c(&tree, &config));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -85,6 +89,7 @@ TEST test_cdd_transform_extern_c_empty_tree(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -109,6 +114,7 @@ TEST test_cdd_transform_extern_c_empty_c_file(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -133,6 +139,7 @@ TEST test_cdd_transform_extern_c_malformed_ifdef(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -179,6 +186,7 @@ TEST test_cdd_transform_extern_c_already_exists(void) {
   free(tok_ifdef);
   free(tok_cpp);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -209,6 +217,7 @@ TEST test_cdd_transform_extern_c_builder_fails(void) {
 
   cdd_cst_tree_free(tree);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

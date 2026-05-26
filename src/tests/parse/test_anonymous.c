@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_anonymous.c
  * @brief Integration tests for anonymous structure lifting.
@@ -74,6 +76,7 @@ TEST test_lift_anonymous_struct(void) {
 
   remove("anon.h");
   remove("anon.json");
+  g_fail_io_after = -1;
   PASS();
 }
 

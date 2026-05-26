@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_dataclasses.h
  * @brief Unit tests for dataclasses parsing.
@@ -103,6 +105,7 @@ TEST test_recursive_cleanup(void) {
 
   /* Should recursively free 'next' without crashing */
   Node_cleanup(head);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -130,6 +133,7 @@ TEST test_recursive_deepcopy(void) {
 
   Node_cleanup(head);
   Node_cleanup(copy);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -155,6 +159,7 @@ TEST test_recursive_eq(void) {
 
   free(n1);
   free(n2);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -182,6 +187,7 @@ TEST test_FooE_default_deepcopy_eq_cleanup(void) {
 
   FooE_cleanup(foo0);
   FooE_cleanup(foo1);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -209,6 +215,7 @@ TEST test_HazE_default_deepcopy_eq_cleanup(void) {
 
   HazE_cleanup(h0);
   HazE_cleanup(h1);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -237,6 +244,7 @@ TEST test_FooE_json_roundtrip(void) {
   }
   free(json_out);
   FooE_cleanup(foo_in);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -263,6 +271,7 @@ TEST test_HazE_json_roundtrip(void) {
   }
   free(json_out);
   HazE_cleanup(haz_in);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -286,6 +295,7 @@ TEST test_json_parsing_errors(void) {
   ASSERT_EQ(0,
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": null}", &f));
   FooE_cleanup(f);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -314,6 +324,7 @@ TEST test_json_parsing_corner_cases(void) {
   ASSERT(f != NULL);
   ASSERT(f->bar == NULL);
   FooE_cleanup(f);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -351,6 +362,7 @@ TEST test_null_args_and_errors(void) {
 
   ASSERT_EQ(EINVAL, FooE_deepcopy(foo_e_ptr, NULL));
   ASSERT_EQ(EINVAL, HazE_deepcopy(haz_e_ptr, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -369,6 +381,7 @@ TEST test_debug_and_display(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -406,6 +419,7 @@ TEST test_display_fail(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -441,6 +455,7 @@ TEST test_eq_null_cases(void) {
   FooE_cleanup(f2);
   HazE_cleanup(h1);
   HazE_cleanup(h2);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -489,6 +504,7 @@ TEST test_Tank_to_str_from_str(void) {
   ASSERT_EQ(Tank_UNKNOWN, val);
 
   ASSERT_EQ(EINVAL, Tank_from_str("BIG", NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -496,6 +512,7 @@ TEST test_Tank_to_str_from_str(void) {
 TEST test_cleanup_null(void) {
   FooE_cleanup(NULL);
   HazE_cleanup(NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -540,6 +557,7 @@ TEST test_to_json_with_null_fields(void) {
   }
   free(json_out);
   json_out = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -579,6 +597,7 @@ TEST test_debug_fail(void) {
 
   FooE_cleanup(foo);
   HazE_cleanup(haz);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -613,6 +632,7 @@ TEST test_json_parsing_wrong_types(void) {
             FooE_from_json("{\"bar\": \"v\", \"can\": 1, \"haz\": 123}", &f));
   ASSERT(f->haz == NULL);
   FooE_cleanup(f);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -641,6 +661,7 @@ TEST test_deepcopy_null_fields(void) {
   ASSERT(foo_out->can == 42);
   ASSERT(foo_out->haz == NULL);
   FooE_cleanup(foo_out);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -674,6 +695,7 @@ TEST test_json_parsing_missing_fields(void) {
   ASSERT(f != NULL);
   ASSERT(f->can == 0);
   FooE_cleanup(f);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -691,6 +713,7 @@ TEST test_debug_with_null_nested(void) {
   ASSERT_EQ(0, rc);
 
   FooE_cleanup(f);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -705,6 +728,7 @@ TEST test_debug_with_empty_strings(void) {
   ASSERT_EQ(0, FooE_debug(&foo, tmp));
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -720,6 +744,7 @@ TEST test_HazE_deepcopy_alloc_fail(void) {
     ASSERT(haz_out != NULL);
     HazE_cleanup(haz_out);
   }
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -746,6 +771,7 @@ TEST test_simple_json_HazE_more_eq_cases(void) {
 
   HazE_cleanup(h1);
   HazE_cleanup(h2);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -768,6 +794,7 @@ TEST test_simple_json_more_eq_cases(void) {
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -786,6 +813,7 @@ TEST test_FooE_eq_nested_diff(void) {
 
   FooE_cleanup(f1);
   FooE_cleanup(f2);
+  g_fail_io_after = -1;
   PASS();
 }
 

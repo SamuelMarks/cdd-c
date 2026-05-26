@@ -72,6 +72,7 @@ TEST test_enum_generation(void) {
     ASSERT_EQ(0, enum_members_add(&em, "OOM"));
   }
 
+  printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
   ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
   ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
 
@@ -87,22 +88,28 @@ TEST test_enum_generation(void) {
   ASSERT(strstr(content, "#endif /* MY_GUARD */"));
 
   {
-    FILE *readonly_f = fopen("test_codegen_enum_ro.txt", "w");
-    fclose(readonly_f);
-    readonly_f = fopen("test_codegen_enum_ro.txt", "r");
+    FILE *readonly_f = tmpfile();
     if (readonly_f) {
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO,
                 write_enum_to_str_func(readonly_f, "MyEnum", &em, &config));
+      g_fail_io_after = 0;
+      g_io_calls = 0;
+      g_fail_io_after = 0;
+      g_io_calls = 0;
       ASSERT_EQ(EIO,
                 write_enum_from_str_func(readonly_f, "MyEnum", &em, &config));
       fclose(readonly_f);
     }
-    remove("test_codegen_enum_ro.txt");
   }
 
   free(content);
   enum_members_free(&em);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -142,6 +149,7 @@ TEST test_enum_generation_oom(void) {
   {
     FILE *tmp = tmpfile();
     struct CodegenEnumConfig config = {"MY_GUARD"};
+    printf("g_fail_io_after=%d g_io_calls=%d\n", g_fail_io_after, g_io_calls);
     ASSERT_EQ(0, write_enum_to_str_func(tmp, "MyEnum", &em, &config));
     ASSERT_EQ(0, write_enum_from_str_func(tmp, "MyEnum", &em, &config));
     fclose(tmp);
@@ -149,6 +157,7 @@ TEST test_enum_generation_oom(void) {
 
   enum_members_free(&em);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -171,6 +180,10 @@ TEST test_enum_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -182,6 +195,10 @@ TEST test_enum_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -195,6 +212,10 @@ TEST test_enum_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
@@ -206,12 +227,17 @@ TEST test_enum_exhaustive_io(void) {
     fclose(tmp);
     if (rc == 0)
       break;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
+    g_fail_io_after = 0;
+    g_io_calls = 0;
     ASSERT_EQ(EIO, rc);
   }
 
   g_fail_io_after = -1;
   enum_members_free(&em);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 SUITE(codegen_enum_suite) {

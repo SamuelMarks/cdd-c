@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_escape.h
  * @brief Unit tests for CST escape analysis.
@@ -36,6 +38,7 @@ TEST test_cdd_cst_escape_basic(void) {
   ASSERT_EQ(EINVAL, cdd_cst_symbol_escapes(&sym, NULL));
   ASSERT_EQ(0, cdd_cst_symbol_escapes(&sym, &escapes));
   ASSERT_EQ(0, escapes);
+  g_fail_io_after = -1;
 
   PASS();
 }

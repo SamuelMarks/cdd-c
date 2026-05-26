@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_SYNC_CODE_H
 #define TEST_SYNC_CODE_H
 
@@ -20,6 +22,7 @@ extern "C" {
 TEST test_sync_code_wrong_args(void) {
   char *argv[] = {"program", NULL};
   ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -30,6 +33,7 @@ TEST test_sync_code_wrong_args(void) {
 TEST test_sync_code_main_argc(void) {
   char *argv[] = {"foo.h"};
   ASSERT_EQ(EXIT_FAILURE, sync_code_main(1, argv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -40,6 +44,7 @@ TEST test_sync_code_main_argc(void) {
 TEST test_sync_code_file_missing(void) {
   char *argv[] = {"notfound.h", "impl.c"};
   ASSERT_EQ(ENOENT, sync_code_main(2, argv));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -63,6 +68,7 @@ TEST test_sync_code_simple_struct_enum(void) {
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
   remove("impl30.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -79,6 +85,7 @@ TEST test_sync_code_empty_header(void) {
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
   remove("emptyimpl.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -95,6 +102,7 @@ TEST test_sync_code_no_struct_or_enum(void) {
   ASSERT_EQ(0, sync_code_main(2, argv));
   remove(filename);
   remove("noimpl.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +118,7 @@ TEST test_sync_code_impl_file_cannot_open(void) {
   ASSERT_EQ(0, write_to_file(filename, "struct X {int i;};\n"));
   ASSERT(sync_code_main(2, argv) != 0);
   remove(filename);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -139,6 +148,7 @@ TEST test_sync_code_too_many_defs(void) {
   sync_code_main(2, argv);
   remove(filename);
   remove("too_many.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -158,6 +168,7 @@ TEST test_sync_code_unterminated_defs(void) {
 
   remove(filename);
   remove("unterminated.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -192,6 +203,7 @@ TEST test_patch_header_basic(void) {
 
   free(content);
   remove(h_path);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -227,6 +239,7 @@ TEST test_patch_header_ptr_arg(void) {
 
   free(content);
   remove(h_path);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -261,6 +274,7 @@ TEST test_patch_header_ignore_others(void) {
 
   free(content);
   remove(h_path);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -283,6 +297,10 @@ TEST test_sync_oom(void) {
   g_cdd_fail_alloc = 0;
   if (rc_s != EIO)
     printf("FAILED test_sync_oom rc_s=%d\n", rc_s);
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, rc_s);
 
   extern int g_cdd_fprintf_fail;
@@ -294,6 +312,7 @@ TEST test_sync_oom(void) {
 
   remove("header.h");
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

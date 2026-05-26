@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_client_gui_gen.h
  * @brief Unit tests for client GUI generation.
@@ -51,6 +53,7 @@ TEST test_client_gui_gen_basic(void) {
 
   remove("src/test_gui_gui.c");
   remove("src/test_gui_gui.h");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -80,6 +83,7 @@ TEST test_client_gui_gen_with_server(void) {
   remove("src/test_gui2_gui.c");
   remove("src/test_gui2_gui.h");
   free(spec.servers);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -112,6 +116,7 @@ TEST test_client_gui_gen_errors(void) {
   config.filename_base = NULL;
   rc = openapi_client_gui_generate(&spec, &config);
   ASSERT_EQ(EINVAL, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }

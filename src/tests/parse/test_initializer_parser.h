@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_INITIALIZER_PARSER_H
 #define TEST_INITIALIZER_PARSER_H
 
@@ -55,6 +57,7 @@ TEST test_init_simple_positional(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -85,6 +88,7 @@ TEST test_init_designated_fields(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -115,6 +119,7 @@ TEST test_init_array_index(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -154,6 +159,7 @@ TEST test_init_nested(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -208,6 +214,7 @@ TEST test_init_mixed_expressions(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -232,6 +239,7 @@ TEST test_init_trailing_comma(void) {
 
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -258,6 +266,7 @@ TEST test_init_errors(void) {
   ASSERT_EQ(EINVAL, parse_initializer(tl, 0, tl->size, &list, NULL));
   init_list_free(&list);
   free_token_list(tl);
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_diff_generator.h
  * @brief Unit tests for CST diff generation.
@@ -125,6 +127,7 @@ TEST test_diff_generation_basic(void) {
 
   patch_list_free(&patch_list2);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

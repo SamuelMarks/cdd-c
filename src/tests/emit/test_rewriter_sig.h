@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_REWRITER_SIG_H
 #define TEST_REWRITER_SIG_H
 
@@ -56,6 +58,7 @@ TEST test_rewrite_void_ret(void) {
   ASSERT_EQ(0, test_rewrite("void f(void)", "int f(void)"));
   /* Space padding checks */
   ASSERT_EQ(0, test_rewrite("void  f ( void )", "int f ( void )"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -68,6 +71,7 @@ TEST test_rewrite_ptr_ret(void) {
   ASSERT_EQ(0, test_rewrite("char *f()", "int f(char * *out)"));
   /* preserving internal spaces */
   ASSERT_EQ(0, test_rewrite("char * f()", "int f(char * *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -78,6 +82,7 @@ TEST test_rewrite_ptr_ret(void) {
 TEST test_rewrite_struct_ret(void) {
   /* struct S f() -> int f(struct S *out) */
   ASSERT_EQ(0, test_rewrite("struct S f()", "int f(struct S *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -95,6 +100,7 @@ TEST test_rewrite_storage_class(void) {
 
   /* static inline void h() -> static inline int h() */
   ASSERT_EQ(0, test_rewrite("static inline void h()", "static inline int h()"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -109,6 +115,7 @@ TEST test_rewrite_c23_attributes(void) {
   /* [[maybe_unused]] int * f() -> [[maybe_unused]] int f(int * *out) */
   ASSERT_EQ(0, test_rewrite("[[maybe_unused]] int * f()",
                             "[[maybe_unused]] int f(int * *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -123,6 +130,7 @@ TEST test_rewrite_array_args(void) {
   /* int * sort(int a[10]) -> int sort(int a[10], int * *out) */
   ASSERT_EQ(0, test_rewrite("int * sort(int a[10])",
                             "int sort(int a[10], int * *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,6 +146,7 @@ TEST test_rewrite_function_pointer_args(void) {
   /* Complex nested parens in args */
   ASSERT_EQ(
       0, test_rewrite("void f(int (*g)(char *))", "int f(int (*g)(char *))"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -149,6 +158,7 @@ TEST test_rewrite_complex_type(void) {
   /* unsigned long long f() -> int f(unsigned long long *out) */
   ASSERT_EQ(0, test_rewrite("unsigned long long f()",
                             "int f(unsigned long long *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -159,6 +169,7 @@ TEST test_rewrite_complex_type(void) {
 TEST test_rewrite_with_const(void) {
   /* const char *f() -> int f(const char * *out) */
   ASSERT_EQ(0, test_rewrite("const char *f()", "int f(const char * *out)"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -171,6 +182,7 @@ TEST test_rewrite_invalid_input(void) {
   char *out = NULL;
   ASSERT_EQ(EINVAL, rewrite_signature(NULL, &out));
   ASSERT_EQ(EINVAL, rewrite_signature(&tmpl, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,6 +193,7 @@ TEST test_rewrite_invalid_input(void) {
 TEST test_rewrite_no_parens(void) {
   /* "int x;" is not a function */
   ASSERT_NEQ(0, test_rewrite("int x;", ""));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -193,6 +206,7 @@ TEST test_rewrite_no_parens(void) {
 TEST test_rewrite_kr_void_ret(void) {
   /* void f(a) int a; -> int f(a) int a; */
   ASSERT_EQ(0, test_rewrite("void f(a) int a;", "int f(a) int a;"));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -214,6 +228,7 @@ TEST test_rewrite_kr_ptr_ret(void) {
   const char *expected = "int f(a, out) int a; char * *out;";
   /* input has a space before int a; */
   ASSERT_EQ(0, test_rewrite("char *f(a) int a;", expected));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -228,6 +243,7 @@ TEST test_rewrite_kr_complex(void) {
   const char *expected = "int f(x, y, out) int x; double y; struct S * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -243,6 +259,7 @@ TEST test_rewrite_kr_empty_args(void) {
   const char *expected = "int f(out) int x; char * *out;";
 
   ASSERT_EQ(0, test_rewrite(input, expected));
+  g_fail_io_after = -1;
   PASS();
 }
 

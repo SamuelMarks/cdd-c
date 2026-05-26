@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_preprocessor_macros.h
  * @brief Unit tests for preprocessor macros parsing.
@@ -46,6 +48,7 @@ TEST test_pp_define_object_like(void) {
 
   pp_context_free(&ctx);
   remove(fname);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -74,6 +77,7 @@ TEST test_pp_define_function_like(void) {
 
   pp_context_free(&ctx);
   remove(fname);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -105,6 +109,7 @@ TEST test_pp_define_variadic_standard(void) {
 
   pp_context_free(&ctx);
   remove(fname);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -132,6 +137,7 @@ TEST test_pp_define_variadic_empty(void) {
 
   pp_context_free(&ctx);
   remove(fname);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -161,6 +167,7 @@ TEST test_pp_define_variadic_gcc(void) {
 
   pp_context_free(&ctx);
   remove(fname);
+  g_fail_io_after = -1;
   PASS();
 }
 

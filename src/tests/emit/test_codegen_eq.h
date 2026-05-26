@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_CODEGEN_EQ_H
 #define TEST_CODEGEN_EQ_H
 
@@ -83,6 +85,7 @@ TEST test_eq_primitive(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +113,7 @@ TEST test_eq_string(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -134,6 +138,7 @@ TEST test_eq_recursive_object(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -162,6 +167,7 @@ TEST test_eq_array_primitive(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -188,6 +194,7 @@ TEST test_eq_array_string(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -214,6 +221,7 @@ TEST test_eq_array_object(void) {
 
   free(code);
   struct_fields_free(&sf);
+  g_fail_io_after = -1;
   PASS();
 }
 

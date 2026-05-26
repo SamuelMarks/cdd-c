@@ -69,6 +69,7 @@ TEST test_write_union_to_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -104,6 +105,7 @@ TEST test_write_union_from_json_object(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -147,6 +149,7 @@ TEST test_write_union_from_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -179,6 +182,7 @@ TEST test_write_union_array_to_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -211,6 +215,7 @@ TEST test_write_union_array_from_json(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -243,6 +248,7 @@ TEST test_write_union_array_cleanup(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 /**
@@ -276,6 +282,7 @@ TEST test_write_union_cleanup_switch(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -306,6 +313,7 @@ TEST test_root_array_string_cleanup(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -336,6 +344,7 @@ TEST test_root_array_int_from_json(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -363,6 +372,7 @@ TEST test_root_array_obj_to_json(void) {
 
   free(content);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -396,6 +406,7 @@ TEST test_union_guards(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -437,33 +448,59 @@ TEST test_types_null_args(void) {
             write_root_array_from_json_func(tmp, "A", NULL, NULL, NULL));
 
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
 #ifdef _WIN32
-#define DEV_NULL "nul"
 #else
-#define DEV_NULL "/dev/null"
 #endif
 
 TEST test_types_io_fail(void) {
-  FILE *tmp = fopen(DEV_NULL, "r");
+  FILE *tmp = tmpfile();
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   struct StructFields sf;
   struct_fields_init(&sf);
   struct_fields_add(&sf, "string", "t", "s", 0, 0);
 
   ASSERT(tmp);
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_union_to_json_func(tmp, "U", &sf, NULL));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_union_from_json_func(tmp, "U", &sf, NULL));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_union_cleanup_func(tmp, "U", &sf, NULL));
 
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_root_array_to_json_func(tmp, "A", "string", NULL, NULL));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO,
             write_root_array_from_json_func(tmp, "A", "string", NULL, NULL));
+  g_fail_io_after = 0;
+  g_io_calls = 0;
+  g_fail_io_after = 0;
+  g_io_calls = 0;
   ASSERT_EQ(EIO, write_root_array_cleanup_func(tmp, "A", "string", NULL, NULL));
 
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -738,6 +775,7 @@ TEST test_types_exhaustive_io(void) {
 
   g_fail_io_after = -1;
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

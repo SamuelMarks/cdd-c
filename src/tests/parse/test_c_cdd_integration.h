@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_c_cdd_integration.h
  * @brief Integration tests for C CDD parsing.
@@ -81,6 +83,7 @@ TEST test_integration_full_pipeline(void) {
   free(final_output);
   allocation_site_list_free(&allocs);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -119,6 +122,7 @@ TEST test_integration_fix_file_io(void) {
   free(read_back);
   remove(in_file);
   remove(out_file);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -189,6 +193,7 @@ TEST test_integration_recursive_fix(void) {
   rmdir(root);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,6 +225,7 @@ TEST test_integration_fix_file_in_place(void) {
 
   free(read_back);
   remove(in_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -245,6 +251,7 @@ TEST test_integration_fix_dir_error_no_flag(void) {
   rmdir(root);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -357,6 +364,7 @@ TEST test_end_to_end_project_lifecycle(void) {
   free(src_c);
   free(project_root);
   free(sys_tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -412,6 +420,7 @@ TEST test_integration_schema2code_with_guards(void) {
   remove(schema_file);
   remove(header_file);
   remove(source_file);
+  g_fail_io_after = -1;
   PASS();
 }
 

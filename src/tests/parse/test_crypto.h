@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_crypto.h
  * @brief Unit tests for the Abstract Crypto Interface.
@@ -83,6 +85,7 @@ TEST test_sha256_empty_string(void) {
   ASSERT_EQ(0, crypto_sha256("", 0, digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
   ASSERT_STR_EQ(expected, hex);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -105,6 +108,7 @@ TEST test_sha256_known_string(void) {
   ASSERT_EQ(0, crypto_sha256(input, strlen(input), digest));
   bin2hex(digest, CRYPTO_SHA256_SIZE, hex);
   ASSERT_STR_EQ(expected, hex);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -137,6 +141,7 @@ TEST test_hmac_rfc4231_case1(void) {
   ASSERT_EQ(0, crypto_hmac_sha256(key, sizeof(key), data, strlen(data), mac));
   bin2hex(mac, CRYPTO_SHA256_SIZE, hex);
   ASSERT_STR_EQ(expected, hex);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -160,6 +165,7 @@ TEST test_hmac_rfc4231_case2(void) {
   ASSERT_EQ(0, crypto_hmac_sha256(key, strlen(key), data, strlen(data), mac));
   bin2hex(mac, CRYPTO_SHA256_SIZE, hex);
   ASSERT_STR_EQ(expected, hex);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -193,6 +199,7 @@ TEST test_hmac_empty_keys_or_data(void) {
   /* Valid empty key -> HMAC should run using 0-length key (e.g. key padded with
    * 0 usually) */
   ASSERT_EQ(0, crypto_hmac_sha256("", 0, data, strlen(data), mac));
+  g_fail_io_after = -1;
 
   PASS();
 }

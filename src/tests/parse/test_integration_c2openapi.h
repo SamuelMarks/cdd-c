@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_integration_c2openapi.h
  * @brief Integration tests for C to OpenAPI conversion.
@@ -243,6 +245,7 @@ TEST test_c2openapi_full_flow(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -358,6 +361,7 @@ TEST test_c2openapi_with_base_spec(void) {
   free(base_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -417,6 +421,7 @@ TEST test_c2openapi_with_self_uri(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -509,6 +514,7 @@ TEST test_c2openapi_global_meta_security_schemes(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -549,6 +555,7 @@ TEST test_c2o_cli_source_file_checks(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -627,6 +634,7 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -664,6 +672,7 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -709,6 +718,7 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -745,6 +755,7 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -783,6 +794,7 @@ TEST test_c2o_cli_server_variables(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -822,6 +834,7 @@ TEST test_c2o_cli_server_variables_validation(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -864,6 +877,7 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -921,6 +935,7 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -985,6 +1000,7 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   free(out_json);
   free(src_dir);
   free(tmp_dir);
+  g_fail_io_after = -1;
 
   PASS();
 }

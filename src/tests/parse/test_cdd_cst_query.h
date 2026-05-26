@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_query.h
  * @brief Unit tests for CST querying.
@@ -125,6 +127,7 @@ TEST test_cdd_cst_query_types(void) {
     free(dummy_call_node.children);
     free(dummy_child3.children);
   }
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -227,6 +230,7 @@ TEST test_cdd_cst_query_calls(void) {
     free(dummy_call_node.children);
     free(dummy_child3.children);
   }
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -346,6 +350,7 @@ TEST test_cdd_cst_query_extra(void) {
     free(dummy_call_node.children);
     free(dummy_child3.children);
   }
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -366,6 +371,7 @@ TEST test_query_postorder_fail(void) {
 
   cdd_cst_free_node_only(n1);
   cdd_cst_free_node_only(n2);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -509,6 +515,7 @@ TEST test_query_call_expr_coverage(void) {
   if (res.nodes)
     free(res.nodes);
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_form.h
  * @brief Unit tests for generating URL encoded form functions.
@@ -75,6 +77,7 @@ TEST test_form_generation_basic(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

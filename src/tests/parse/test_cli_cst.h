@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cli_cst.h
  * @brief Unit tests for CST CLI transformer routing.
@@ -37,6 +39,7 @@ TEST test_cli_cst_extern_c_audit(void) {
   ASSERT_EQ(1, rc);
 
   remove("test_cli_cst_file.h");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -58,6 +61,7 @@ TEST test_cli_cst_extern_c_fix(void) {
   ASSERT_EQ(0, rc);
 
   remove("test_cli_cst_file.h");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -79,6 +83,7 @@ TEST test_cli_cst_extern_c_dry_run(void) {
   ASSERT_EQ(0, rc);
 
   remove("test_cli_cst_file.h");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -111,6 +116,7 @@ TEST test_cli_cst_errors(void) {
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_gnu));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_percolate));
   ASSERT_EQ(0, cli_cst_transformer_main(2, argv_safe));
+  g_fail_io_after = -1;
 
   PASS();
 }

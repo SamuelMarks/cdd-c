@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_text_patcher.h
  * @brief Unit tests for the text patching engine.
@@ -49,6 +51,7 @@ TEST test_patch_init_free(void) {
   patch_list_free(&pl);
   ASSERT_EQ(0, pl.size);
   ASSERT(pl.patches == NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -84,6 +87,7 @@ TEST test_patch_basic_replacement(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -123,6 +127,7 @@ TEST test_patch_insertion(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -153,6 +158,7 @@ TEST test_patch_deletion(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -188,6 +194,7 @@ TEST test_patch_multiple_disjoint(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -232,6 +239,7 @@ TEST test_patch_overlap_behavior(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -260,6 +268,7 @@ TEST test_patch_append_end(void) {
   free(result);
   patch_list_free(&pl);
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -277,6 +286,7 @@ TEST test_patch_bounds(void) {
   ASSERT_EQ(EINVAL, patch_list_apply(&pl, NULL, NULL));
   patch_list_free(&pl);
   patch_list_free(NULL); /* Should not crash */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -315,6 +325,7 @@ TEST test_patcher_oom(void) {
   g_cdd_fail_alloc = 0;
 
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -374,6 +385,7 @@ TEST test_patcher_invalid(void) {
   patch_list_free(&pl3);
   patch_list_free(&pl2);
   free_token_list(tl_huge);
+  g_fail_io_after = -1;
 
   PASS();
 }

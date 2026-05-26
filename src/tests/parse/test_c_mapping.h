@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_c_mapping.h
  * @brief Unit tests for the C to OpenAPI Type Mapper.
@@ -60,6 +62,7 @@ TEST test_mapping_int(void) {
   c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct Item *", "ptr[]", &m));
   c_mapping_free(&m);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -83,6 +86,7 @@ TEST test_mapping_string(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("string", m.oa_type);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -107,6 +111,7 @@ TEST test_mapping_struct_ref(void) {
   ASSERT_EQ(OA_TYPE_OBJECT, m.kind);
   ASSERT_STR_EQ("Item", m.ref_name);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -125,6 +130,7 @@ TEST test_mapping_array(void) {
   /* The "type" field indicates item type */
   ASSERT_STR_EQ("integer", m.oa_type);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -141,6 +147,7 @@ TEST test_mapping_bool(void) {
   ASSERT_EQ(0, rc);
   ASSERT_STR_EQ("boolean", m.oa_type);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -156,6 +163,7 @@ TEST test_mapping_long(void) {
   ASSERT_STR_EQ("integer", m.oa_type);
   ASSERT_STR_EQ("int64", m.oa_format);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -172,6 +180,7 @@ TEST test_mapping_void_ptr(void) {
   ASSERT_STR_EQ("string", m.oa_type);
   ASSERT_STR_EQ("binary", m.oa_format);
   c_mapping_free(&m);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -333,6 +342,7 @@ TEST test_mapping_coverage(void) {
   c_mapping_init(&m);
   ASSERT_EQ(0, c_mapping_map_type("struct ", "x", &m));
   c_mapping_free(&m);
+  g_fail_io_after = -1;
 
   PASS();
 }

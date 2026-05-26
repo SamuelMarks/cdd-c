@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_trivia.h
  * @brief Unit tests for CST trivia operations.
@@ -76,6 +78,7 @@ TEST test_cdd_cst_trivia_detect(void) {
   ASSERT_EQ(0, config.use_tabs);
   ASSERT_EQ(2, config.indent_width); /* default if no space counts added */
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -97,6 +100,7 @@ TEST test_cdd_cst_trivia_detect_tabs(void) {
   ASSERT_EQ(1, config.use_tabs);
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -145,6 +149,7 @@ TEST test_cdd_cst_trivia_generate(void) {
   free((void *)t->next->start);
   free(t->next);
   free(t);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -178,6 +183,7 @@ TEST test_cdd_cst_trivia_oom(void) {
   int rc_tmp3 = cdd_cst_generate_indent_trivia(NULL, &config, 1, &out);
   ASSERT(rc_tmp3 != 0);
   g_cdd_cst_alloc_token_fail = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -212,6 +218,7 @@ TEST test_trivia_branches(void) {
   cdd_cst_detect_format_config(&tree, &config);
 
   free(lst.tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

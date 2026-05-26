@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_error_percolator.h
  * @brief Unit tests for error percolator transformer.
@@ -54,6 +56,7 @@ TEST test_cdd_transform_percolate_errors(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -90,6 +93,7 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -125,6 +129,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
   ASSERT_EQ(0, cdd_transform_percolate_errors(tree, &config));
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -191,6 +196,7 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
 
   g_err_perc_fail = 0;
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

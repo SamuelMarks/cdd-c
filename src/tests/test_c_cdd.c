@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #if defined(_MSC_VER)
 #if defined(_MSC_VER)
 #pragma warning(disable : 4005)
@@ -149,6 +151,7 @@ TEST test_cdd_helpers(void) {
   ASSERT_EQ(EXIT_FAILURE, write_to_file(NULL, NULL));
   ASSERT_EQ(EXIT_FAILURE,
             write_to_file("/invalid/path/that/cannot/exist/ever.txt", "abc"));
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_json_from_and_to.h
  * @brief Unit tests for JSON to_json and from_json mock functions.
@@ -37,6 +39,7 @@ TEST test_enum_tank_to_str_and_from_str(void) {
   rc = Tank_from_str("INVALID", &tank_val);
   ASSERT_EQ(0, rc);
   ASSERT_EQ(Tank_UNKNOWN, tank_val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -63,6 +66,7 @@ TEST test_HazE_to_json_and_from_json(void) {
 
   HazE_cleanup(haz_out);
   free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -89,6 +93,7 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
 
   FooE_cleanup(foo_out);
   free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -119,6 +124,7 @@ TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
 
   FooE_cleanup(foo_out);
   free(json_str);
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_STANDALONE_JSON_H
 #define TEST_STANDALONE_JSON_H
 
@@ -93,6 +95,7 @@ TEST test_standalone_json_gen(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

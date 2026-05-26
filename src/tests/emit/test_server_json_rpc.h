@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_server_json_rpc.h
  * @brief Unit tests for JSON RPC server functionality.
@@ -76,6 +78,7 @@ TEST test_server_json_rpc_bind_fail(void) {
 #else
   close(server_fd);
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -93,6 +96,7 @@ TEST test_server_json_rpc_listen_once(void) {
   /* Should break immediately because listen_flag is -1 */
   rc = server_json_rpc_main(argc, argv);
   ASSERT_EQ(0, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -114,6 +118,7 @@ TEST test_server_json_rpc_basic(void) {
      12345 is in use. We can just assert it doesn't crash. If bind succeeds it
      returns 0. If fails, it returns 1. */
   ASSERT(rc == 0 || rc == 1);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -132,6 +137,7 @@ TEST test_server_json_rpc_bad_port(void) {
 
   rc = server_json_rpc_main(argc, argv);
   ASSERT(rc == 0 || rc == 1);
+  g_fail_io_after = -1;
 
   PASS();
 }

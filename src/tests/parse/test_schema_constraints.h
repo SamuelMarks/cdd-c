@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_schema_constraints.h
  * @brief Unit tests for OpenAPI schema constraint enforcement.
@@ -175,6 +177,7 @@ TEST test_schema_constraints_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -280,6 +283,7 @@ TEST test_schema_annotations_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -359,6 +363,7 @@ TEST test_schema_allof_merge(void) {
 
   json_value_free(schema_val);
   json_value_free(root_val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -394,6 +399,7 @@ TEST test_schema_anyof_first_object(void) {
   }
 
   json_value_free(schema_val);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -428,6 +434,7 @@ TEST test_schema_oneof_first_object(void) {
   }
 
   json_value_free(schema_val);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -553,6 +560,7 @@ TEST test_schema_keyword_passthrough(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -630,6 +638,7 @@ TEST test_schema_allof_keyword_merge(void) {
   }
 
   json_value_free(schema_val);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -748,6 +757,7 @@ TEST test_schema_type_union_roundtrip(void) {
 
   struct_fields_free(&sf);
   json_value_free(val);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -794,6 +804,7 @@ TEST test_schema_constraints_cleanup_branch(void) {
     schema_constraints_cleanup(&sc_oom);
   }
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -804,6 +815,7 @@ TEST test_schema_constraints_cleanup_null_fields(void) {
 
   sc.additional_properties = calloc(1, sizeof(*sc.additional_properties));
   schema_constraints_cleanup(&sc);
+  g_fail_io_after = -1;
 
   PASS();
 }

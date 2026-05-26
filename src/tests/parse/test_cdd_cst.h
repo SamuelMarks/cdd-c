@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst.h
  * @brief Unit tests for CST parsing and emitting roundtrips.
@@ -50,6 +52,7 @@ TEST test_cdd_cst_roundtrip_basic(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -75,6 +78,7 @@ TEST test_cdd_cst_roundtrip_macros(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -119,6 +123,7 @@ TEST test_cdd_cst_asm_statement(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 

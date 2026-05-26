@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_schema_codegen.h
  * @brief Unit tests for schema to code generation.
@@ -119,6 +121,7 @@ TEST test_schema_codegen_circular_refs(void) {
   remove("circular_out.h");
 
   remove("circular_out.c");
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -215,6 +218,7 @@ TEST test_codegen_config_json_guards(void) {
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -271,6 +275,7 @@ TEST test_union_config_json_guards(void) {
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -326,6 +331,7 @@ TEST test_schema_codegen_union_output(void) {
   remove(filename);
   remove("union_out.h");
   remove("union_out.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -379,6 +385,7 @@ TEST test_schema_codegen_union_inline_variants(void) {
   remove(filename);
   remove("union_inline_out.h");
   remove("union_inline_out.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -427,6 +434,7 @@ TEST test_schema_codegen_enum_output(void) {
   remove(filename);
   remove("enum_out.h");
   remove("enum_out.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -502,6 +510,7 @@ TEST test_codegen_config_utils_guards(void) {
   struct_fields_free(&sf);
 
   fclose(tmp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -562,6 +571,7 @@ TEST test_schema_constraints_bounds(void) {
   sc.additional_properties->ref = (char *)malloc(2);
   strcpy(sc.additional_properties->ref, "r");
   schema_constraints_cleanup(&sc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -618,6 +628,7 @@ TEST test_schema_codegen_cli_exhaustive_io(void) {
   g_schema_fail_io_after = -1;
   remove("test_codegen_schema_io.json");
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -661,6 +672,7 @@ TEST test_schema_codegen_union_arrays(void) {
   remove("union_array_out.h");
   remove("union_array_out.c");
   remove("union_array_out_types.h");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -691,6 +703,7 @@ TEST test_schema_codegen_specific_structs(void) {
   remove(filename);
   remove("specific_out.h");
   remove("specific_out.c");
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -765,6 +778,7 @@ TEST test_schema_codegen_main_paths(void) {
   remove(filename);
   remove("main_out.h");
   remove("main_out.c");
+  g_fail_io_after = -1;
   PASS();
 }
 

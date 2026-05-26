@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_diff.h
  * @brief Unit tests for diff generation.
@@ -85,6 +87,7 @@ TEST test_patch_list_to_diff_basic(void) {
   free(diff_str);
   patch_list_free(&list);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -102,6 +105,7 @@ TEST test_patch_list_to_diff_empty(void) {
   free(diff_str);
   patch_list_free(&list);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

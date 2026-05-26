@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_client_body.h
  * @brief Unit tests for Client Body Logic Generator.
@@ -87,6 +89,7 @@ TEST test_body_basic_get(void) {
   ASSERT(strstr(code, "ApiError_from_json"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -117,6 +120,7 @@ TEST test_body_base_url_override(void) {
   ASSERT(strstr(code, "\"https://override.example.com\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -145,6 +149,7 @@ TEST test_body_options_verb(void) {
   ASSERT(strstr(code, "req.method = HTTP_OPTIONS;") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -173,6 +178,7 @@ TEST test_body_trace_verb(void) {
   ASSERT(strstr(code, "req.method = HTTP_TRACE;") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -201,6 +207,7 @@ TEST test_body_query_verb(void) {
   ASSERT(strstr(code, "req.method = HTTP_QUERY;") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -231,6 +238,7 @@ TEST test_body_additional_connect_method(void) {
   ASSERT(strstr(code, "req.method = HTTP_CONNECT;") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -271,6 +279,7 @@ TEST test_body_querystring_param(void) {
   ASSERT(strstr(code, "asprintf(&query_str") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -301,6 +310,7 @@ TEST test_body_inline_response_string(void) {
   ASSERT(strstr(code, "strdup(") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -332,6 +342,7 @@ TEST test_body_inline_response_array_number(void) {
   ASSERT(strstr(code, "json_array_get_number") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -364,6 +375,7 @@ TEST test_body_inline_request_body_string(void) {
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -395,6 +407,7 @@ TEST test_body_inline_request_body_string_json_params(void) {
   ASSERT(strstr(code, "Content-Type\", \"application/json\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -427,6 +440,7 @@ TEST test_body_inline_request_body_array(void) {
   ASSERT(strstr(code, "json_array_append_number") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -453,6 +467,7 @@ TEST test_body_textual_request_body_xml(void) {
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -479,6 +494,7 @@ TEST test_body_binary_request_body_pdf(void) {
   ASSERT(strstr(code, "Pet_to_json") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -522,6 +538,7 @@ TEST test_body_header_array_param(void) {
   ASSERT(strstr(code, "joined_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -567,6 +584,7 @@ TEST test_body_header_object_param(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -611,6 +629,7 @@ TEST test_body_header_json_param_ref(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -652,6 +671,7 @@ TEST test_body_header_number_param(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -693,6 +713,7 @@ TEST test_body_cookie_param(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -739,6 +760,7 @@ TEST test_body_cookie_param_number_array(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -785,6 +807,7 @@ TEST test_body_cookie_param_array_explode_false(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -828,6 +851,7 @@ TEST test_body_cookie_param_object_form(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -872,6 +896,7 @@ TEST test_body_cookie_param_string_allow_reserved(void) {
       NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -925,6 +950,7 @@ TEST test_body_security_query_api_key(void) {
   ASSERT(strstr(code, "url_query_add(&qp, \"api_key\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -977,6 +1003,7 @@ TEST test_body_security_cookie_api_key(void) {
   ASSERT(strstr(code, "session_id") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1027,6 +1054,7 @@ TEST test_body_form_urlencoded(void) {
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", req_body->age)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1074,6 +1102,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1122,6 +1151,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"pet\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1191,6 +1221,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1261,6 +1292,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1330,6 +1362,7 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1390,6 +1423,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   ASSERT(strstr(code, "for (i = 0; i < req_body->n_nums; ++i)") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1441,6 +1475,7 @@ TEST test_body_multipart_object_fields(void) {
                       "\"application/json\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1499,6 +1534,7 @@ TEST test_body_multipart_encoding_content_type(void) {
                       "\"text/plain; charset=utf-8\"") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1557,6 +1593,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   ASSERT(strstr(code, "image/jpeg") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1628,6 +1665,7 @@ TEST test_body_multipart_encoding_headers(void) {
   ASSERT(strstr(code, "title_hdr_Content_Type") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1658,6 +1696,7 @@ TEST test_body_response_range_success(void) {
   ASSERT(strstr(code, "Pet_from_json") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1688,6 +1727,7 @@ TEST test_body_default_response_success(void) {
   ASSERT(strstr(code, "Pet_from_json") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1719,6 +1759,7 @@ TEST test_body_text_plain_response_string(void) {
   ASSERT(strstr(code, "*out = tmp") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1750,6 +1791,7 @@ TEST test_body_text_plain_response_range(void) {
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1781,6 +1823,7 @@ TEST test_body_text_plain_response_default(void) {
   ASSERT(strstr(code, "memcpy(tmp, res->body") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1812,6 +1855,7 @@ TEST test_body_textual_response_xml(void) {
   ASSERT(strstr(code, "*out = tmp") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1842,6 +1886,7 @@ TEST test_body_binary_response_pdf(void) {
   ASSERT(strstr(code, "*out_len = res->body_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1893,6 +1938,7 @@ TEST test_client_body_verb_mapping(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1918,6 +1964,7 @@ TEST test_client_body_mapped_err_code(void) {
 
   free(op.responses);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1948,6 +1995,7 @@ TEST test_client_body_media_type_matching(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1978,6 +2026,7 @@ TEST test_client_body_find_media_type_not_found(void) {
 
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2028,6 +2077,7 @@ TEST test_client_body_find_encoding_not_found(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2094,6 +2144,7 @@ TEST test_client_body_array_items_statics(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2121,6 +2172,7 @@ TEST test_client_body_verb_enum_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2187,6 +2239,7 @@ TEST test_client_body_header_formatting_indirect(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2269,6 +2322,7 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2332,6 +2386,7 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2390,6 +2445,7 @@ TEST test_client_body_media_type_caps_indirect(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2448,6 +2504,7 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2509,6 +2566,7 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2572,6 +2630,7 @@ TEST test_client_body_write_inline_json_parse_indirect(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2637,6 +2696,7 @@ TEST test_client_body_write_inline_json_parse_types(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2703,6 +2763,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2756,6 +2817,7 @@ TEST test_client_body_form_object_style_form_explode(void) {
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2785,6 +2847,7 @@ TEST test_client_body_cookie_object_style_form_explode(void) {
 
   free(op.parameters);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2826,6 +2889,7 @@ TEST test_client_body_response_is_textual_string_indirect(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2856,6 +2920,7 @@ TEST test_client_body_response_is_textual_string_success(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2893,6 +2958,7 @@ TEST test_client_body_write_text_plain_success_indirect(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2921,6 +2987,7 @@ TEST test_client_body_write_binary_success_indirect_real(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2954,6 +3021,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -2994,6 +3062,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed4(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3052,6 +3121,7 @@ TEST test_client_body_write_inline_json_parse_types_indirect_string(void) {
 
   free(resp.content_media_types);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3093,6 +3163,7 @@ TEST test_client_body_write_joined_form_array(void) {
 
   free(op.parameters);
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -3130,6 +3201,7 @@ TEST test_client_body_write_text_plain_success_indirect_real_fixed3(void) {
   codegen_client_write_body(fp, &op, &spec, "/path", NULL);
 
   fclose(fp);
+  g_fail_io_after = -1;
   PASS();
 }
 

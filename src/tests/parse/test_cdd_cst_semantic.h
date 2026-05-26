@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_semantic.h
  * @brief Unit tests for CST semantic analysis.
@@ -82,6 +84,7 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_scope_env_free(env);
   cdd_cst_free_node_only(node);
   cdd_cst_scope_env_free(NULL); /* no-op */
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -97,6 +100,7 @@ TEST test_cdd_cst_semantic_basic(void) {
 
   cdd_cst_scope_env_free(env);
   /* no cdd_cst_tree_free for stack allocated zero init tree */
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -150,6 +154,7 @@ TEST test_cdd_cst_semantic_tree(void) {
   cdd_cst_free_node_only(root);
   free(tok_var);
   free(tok_type);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -207,6 +212,7 @@ TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_free_node_only(root);
   free(tok_other);
   free(tok_oom);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -289,6 +295,7 @@ TEST test_cdd_cst_semantic_oom(void) {
   free(tok_var);
   free(tok_type);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -301,6 +308,7 @@ TEST test_cdd_cst_semantic_extract_null(void) {
   /* ASSERT_EQ(ENOENT, extract_identifier(node, &name)); private method */
 
   cdd_cst_free_node_only(node);
+  g_fail_io_after = -1;
   PASS();
 }
 SUITE(cdd_cst_semantic_suite) {

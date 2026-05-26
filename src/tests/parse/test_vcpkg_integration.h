@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_vcpkg_integration.h
  * @brief Unit tests for Vcpkg Integration Generator.
@@ -47,6 +49,7 @@ TEST test_vcpkg_builder_basic(void) {
 
   free(json);
   vcpkg_builder_free(&builder);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -71,6 +74,7 @@ TEST test_vcpkg_builder_duplicate(void) {
   ASSERT_STR_EQ("pthreads", builder.deps[0].name);
 
   vcpkg_builder_free(&builder);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -94,6 +98,7 @@ TEST test_vcpkg_builder_errors(void) {
   ASSERT_EQ(EINVAL, vcpkg_builder_generate(&builder, NULL));
 
   vcpkg_builder_free(&builder);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +115,7 @@ TEST test_vcpkg_builder_extras(void) {
 
   free(json);
   vcpkg_builder_free(&builder);
+  g_fail_io_after = -1;
   PASS();
 }
 

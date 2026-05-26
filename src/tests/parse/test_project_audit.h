@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_project_audit.h
  * @brief Unit tests for project auditing.
@@ -32,6 +34,7 @@ TEST test_audit_stats_init(void) {
   ASSERT_EQ(0, stats.violations.size);
   ASSERT(stats.violations.items == NULL);
   audit_stats_free(&stats);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -79,6 +82,7 @@ TEST test_audit_single_file(void) {
   free(f_unchecked);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,6 +114,7 @@ TEST test_audit_ignored_files(void) {
   free(f_h);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -149,6 +154,7 @@ TEST test_audit_return_alloc(void) {
   free(f_ret);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -198,6 +204,7 @@ TEST test_audit_json_output(void) {
 
   free(json);
   audit_stats_free(&stats);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -211,6 +218,7 @@ TEST test_audit_stats_null(void) {
   ASSERT_EQ(EINVAL, audit_project("dummy", NULL));
   audit_print_json(NULL, &_test_json);
   ASSERT(_test_json == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -273,6 +281,7 @@ TEST test_audit_edge_cases(void) {
   free(f_bad_token);
   free(root);
   free(sys_tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -288,6 +297,7 @@ TEST test_audit_extras(void) {
   free(json);
 
   audit_stats_free(&stats);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -339,6 +349,7 @@ TEST test_audit_oom(void) {
   remove("test_audit_dir/test.c");
   remove("test_audit_dir");
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -366,6 +377,7 @@ TEST test_audit_capacity(void) {
 #endif
 
   audit_stats_free(&stats);
+  g_fail_io_after = -1;
   PASS();
 }
 

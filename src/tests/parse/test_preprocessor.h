@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_preprocessor.h
  * @brief Unit tests for the C preprocessor.
@@ -139,6 +141,7 @@ TEST test_pp_eval_arithmetic(void) {
     eval("5 % 2", NULL, &out);
     ASSERT_EQ(1, out);
   }
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -173,6 +176,7 @@ TEST test_pp_eval_logical(void) {
     eval("!1", NULL, &out);
     ASSERT_EQ(0, out);
   }
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -207,6 +211,7 @@ TEST test_pp_eval_comparison(void) {
     eval("1 <= 1", NULL, &out);
     ASSERT_EQ(1, out);
   }
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -231,6 +236,7 @@ TEST test_pp_eval_defined(void) {
     ASSERT_EQ(0, out);
   }
   pp_context_free(&ctx);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -247,6 +253,7 @@ TEST test_pp_eval_macros_as_values(void) {
   }
 
   pp_context_free(&ctx);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -284,6 +291,7 @@ TEST test_pp_has_include(void) {
   free(h);
   free(root);
   free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -329,6 +337,7 @@ TEST test_pp_embed_params_parsing(void) {
   free(dat);
   free(root);
   free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -366,6 +375,7 @@ TEST test_pp_ifdef_skip(void) {
   free(main_c);
   free(root);
   free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -405,6 +415,7 @@ TEST test_pp_if_else(void) {
   free(main_c);
   free(root);
   free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -438,6 +449,7 @@ TEST test_pp_nested_if(void) {
   free(main_c);
   free(root);
   free(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -481,6 +493,7 @@ TEST test_pp_include_next(void) {
   remove(sys_file);
   rmdir(test_dir);
   rmdir(sys_dir);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -536,6 +549,7 @@ TEST test_preprocessor_abort(void) {
   free(sys_dir);
   free(sys_file1);
   free(sys_file2);
+  g_fail_io_after = -1;
   PASS();
 }
 

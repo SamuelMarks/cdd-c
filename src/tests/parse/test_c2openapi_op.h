@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_c2openapi_op.h
  * @brief Unit tests for the Operation Builder.
@@ -415,6 +417,7 @@ TEST test_build_simple_get(void) {
   ASSERT_STR_EQ("integer", op.parameters[0].type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -452,6 +455,7 @@ TEST test_build_param_format_from_mapping(void) {
   ASSERT_STR_EQ("int64", op.parameters[0].schema.format);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -496,6 +500,7 @@ TEST test_build_param_format_override(void) {
 
   reset_op(&op);
   doc_metadata_free(&doc);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -539,6 +544,7 @@ TEST test_build_response_header_format(void) {
 
   reset_op(&op);
   doc_metadata_free(&doc);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -570,6 +576,7 @@ TEST test_build_default_response_when_missing(void) {
   ASSERT_STR_EQ("Success", op.responses[0].description);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -604,6 +611,7 @@ TEST test_build_operation_id_override(void) {
   ASSERT_STR_EQ("getUserById", op.operation_id);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -646,6 +654,7 @@ TEST test_build_param_content_type(void) {
   ASSERT_STR_EQ("application/json", op.parameters[0].content_type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -690,6 +699,7 @@ TEST test_build_param_example(void) {
   ASSERT_EQ(OA_EXAMPLE_LOC_OBJECT, op.parameters[0].example_location);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -730,6 +740,7 @@ TEST test_build_return_content_type(void) {
   ASSERT_STR_EQ("text/plain", op.responses[0].content_type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -778,6 +789,7 @@ TEST test_build_response_example(void) {
   ASSERT_EQ(OA_ANY_JSON, op.responses[0].content_media_types[0].example.type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -820,6 +832,7 @@ TEST test_build_post_with_body(void) {
   ASSERT_EQ(1, op.req_body_required);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -867,6 +880,7 @@ TEST test_build_params_explicit(void) {
   ASSERT_EQ(0, op.parameters[0].required);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -921,6 +935,7 @@ TEST test_build_param_style_flags(void) {
   ASSERT_EQ(1, op.parameters[0].allow_empty_value);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -966,6 +981,7 @@ TEST test_build_param_default_styles(void) {
   ASSERT_EQ(OA_STYLE_SIMPLE, op.parameters[1].style);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1009,6 +1025,7 @@ TEST test_build_reserved_header_param_ignored(void) {
   ASSERT_EQ(OA_PARAM_IN_PATH, op.parameters[0].in);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1058,6 +1075,7 @@ TEST test_build_with_tags_description_and_deprecated(void) {
   ASSERT_STR_EQ("External docs", op.external_docs.description);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1103,6 +1121,7 @@ TEST test_build_params_querystring(void) {
                 op.parameters[0].content_type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1143,6 +1162,7 @@ TEST test_build_params_querystring_json_struct(void) {
   ASSERT_STR_EQ("Query", op.parameters[0].schema.ref_name);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1177,6 +1197,7 @@ TEST test_build_custom_verb_additional(void) {
   ASSERT_STR_EQ("COPY", op.method);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1225,6 +1246,7 @@ TEST test_build_response_multi_content(void) {
           _ast_find_response_media_type_1));
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1281,6 +1303,7 @@ TEST test_build_response_headers(void) {
   ASSERT_EQ(42, (int)op.responses[0].headers[0].example.number);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1341,6 +1364,7 @@ TEST test_build_response_links(void) {
   ASSERT_STR_EQ("Primary server", op.responses[0].links[0].server->description);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1378,6 +1402,7 @@ TEST test_build_response_output_arg(void) {
   ASSERT_STR_EQ("Success", op.responses[0].description);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1466,6 +1491,7 @@ TEST test_build_op_security_servers_request_body(void) {
   ASSERT_STR_EQ("staging", op.servers[0].variables[0].enum_values[1]);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1512,6 +1538,7 @@ TEST test_build_op_param_deprecated(void) {
   ASSERT_EQ(1, op.parameters[0].deprecated);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1558,6 +1585,7 @@ TEST test_build_request_body_example(void) {
   ASSERT_EQ(OA_ANY_JSON, op.req_body_media_types[0].example.type);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1602,6 +1630,7 @@ TEST test_build_request_body_default_content_type(void) {
   ASSERT_STR_EQ("application/json", op.req_body_media_types[0].name);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -1647,6 +1676,7 @@ TEST test_build_op_request_body_multi_content(void) {
   ASSERT_STR_EQ("application/xml", op.req_body_media_types[1].name);
 
   reset_op(&op);
+  g_fail_io_after = -1;
   PASS();
 }
 

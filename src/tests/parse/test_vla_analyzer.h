@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_vla_analyzer.h
  * @brief Unit tests for VLA analyzer.
@@ -49,6 +51,7 @@ TEST test_scan_for_vlas_basic(void) {
 
   vla_site_list_free(&list);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -67,6 +70,7 @@ TEST test_scan_for_vlas_errors(void) {
   ASSERT_EQ(EINVAL, scan_for_vlas(tl, NULL));
 
   free_token_list(tl);
+  g_fail_io_after = -1;
   PASS();
 }
 

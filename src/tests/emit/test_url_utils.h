@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_url_utils.h
  * @brief Unit tests for URL encoding and query building.
@@ -26,6 +28,7 @@ TEST test_url_encode_simple(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -36,6 +39,7 @@ TEST test_url_encode_spaces(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello%20world", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -52,6 +56,7 @@ TEST test_url_encode_reserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -63,6 +68,7 @@ TEST test_url_encode_unreserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("a-b.c_d~1", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -76,6 +82,7 @@ TEST test_url_encode_allow_reserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -86,6 +93,7 @@ TEST test_url_encode_form_spaces(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("hello+world", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -97,6 +105,7 @@ TEST test_url_encode_form_reserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("%26%3D%2B", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -110,12 +119,14 @@ TEST test_url_encode_form_allow_reserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ(expected, res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_url_encode_null(void) {
   char *_ast_url_encode_8 = NULL;
   ASSERT((url_encode(NULL, &_ast_url_encode_8), _ast_url_encode_8) == NULL);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -138,6 +149,7 @@ TEST test_query_lifecycle(void) {
   url_query_free(&qp);
   ASSERT_EQ(0, qp.count);
   ASSERT(qp.params == NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -153,6 +165,7 @@ TEST test_query_build_empty(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -169,6 +182,7 @@ TEST test_query_build_single(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -187,6 +201,7 @@ TEST test_query_build_multiple(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -203,6 +218,7 @@ TEST test_query_build_form_single(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -220,6 +236,7 @@ TEST test_query_build_form_multiple(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -236,6 +253,7 @@ TEST test_query_build_form_preserves_encoded_value(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -256,6 +274,7 @@ TEST test_openapi_kv_join_form_comma(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("R,100,G,200", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -276,6 +295,7 @@ TEST test_openapi_kv_join_form_space(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("alpha%20a+b%20beta%20c", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -293,6 +313,7 @@ TEST test_openapi_kv_join_form_pipe_allow_reserved(void) {
   ASSERT(res != NULL);
   ASSERT_STR_EQ("path%7Ca/b", res);
   free(res);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -311,6 +332,7 @@ TEST test_query_build_preserves_encoded_value(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -327,6 +349,7 @@ TEST test_query_build_encoding_keys(void) {
 
   free(res);
   url_query_free(&qp);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -346,6 +369,7 @@ TEST test_query_null_safety(void) {
 
   url_query_free(NULL); /* Safe */
   url_query_free(&qp);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -373,6 +397,7 @@ TEST test_url_utils_write_query_json_param(void) {
 
   fclose(fp);
   remove("test_url_json.txt");
+  g_fail_io_after = -1;
 
   PASS();
 }

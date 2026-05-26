@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_scope.h
  * @brief Unit tests for CST scope and symbol table.
@@ -79,6 +81,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
   cdd_cst_scope_env_free(env);
   cdd_cst_scope_env_free(NULL); /* Test free NULL */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -135,6 +138,7 @@ TEST test_cdd_cst_scope_errors(void) {
   }
 
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -178,6 +182,7 @@ TEST test_cdd_cst_scope_tag(void) {
   ASSERT_EQ(CDD_CST_SYMBOL_STRUCT_TAG, sym->kind);
 
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -189,6 +194,7 @@ TEST test_cdd_cst_scope_tag(void) {
 TEST test_cdd_cst_scope_mem(void) {
   /* Test handled via alloc limits if injected, otherwise basic execution covers
    * paths. */
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -238,6 +244,7 @@ TEST test_cdd_cst_scope_oom(void) {
 
   g_cdd_scope_alloc_fail = 0;
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 #endif

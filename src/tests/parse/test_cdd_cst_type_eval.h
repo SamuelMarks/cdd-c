@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_type_eval.h
  * @brief Unit tests for CST type evaluation.
@@ -34,6 +36,7 @@ TEST test_cdd_cst_eval_primitive_type_basic(void) {
   /* unknown type */
   rc = cdd_cst_eval_primitive_type("unknown_type", CDD_CST_ABI_LP64, &info);
   ASSERT_EQ(ENOENT, rc);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -68,6 +71,7 @@ TEST test_cdd_cst_eval_sizeof_basic(void) {
 
   cdd_cst_tree_free(tree);
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -190,6 +194,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
 
   cdd_cst_tree_free(tree);
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -278,6 +283,7 @@ TEST test_cdd_cst_eval_primitive_extra(void) {
 
   ASSERT_EQ(EINVAL, cdd_cst_eval_primitive_type(NULL, CDD_CST_ABI_LP64, &info));
   ASSERT_EQ(EINVAL, cdd_cst_eval_primitive_type("int", CDD_CST_ABI_LP64, NULL));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -357,6 +363,7 @@ TEST test_type_eval_branches(void) {
 
   cdd_cst_free_node_only(dummy_child);
   cdd_cst_scope_env_free(env);
+  g_fail_io_after = -1;
   PASS();
 }
 

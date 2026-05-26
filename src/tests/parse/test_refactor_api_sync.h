@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_refactor_api_sync.h
  * @brief Unit tests for refactoring API sync logic.
@@ -61,6 +63,7 @@ TEST test_sync_signature_update(void) {
   free(content);
   openapi_spec_free(&spec);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -97,6 +100,7 @@ TEST test_sync_url_logic_update(void) {
   free(content);
   openapi_spec_free(&spec);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -136,6 +140,7 @@ TEST test_sync_query_update(void) {
   free(content);
   openapi_spec_free(&spec);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -174,6 +179,7 @@ TEST test_sync_header_update(void) {
   free(content);
   openapi_spec_free(&spec);
   remove(src_file);
+  g_fail_io_after = -1;
   PASS();
 }
 

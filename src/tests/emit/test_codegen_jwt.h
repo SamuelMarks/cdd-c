@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_jwt.h
  * @brief Unit tests for JWT parser generator.
@@ -71,6 +73,7 @@ TEST test_jwt_generation(void) {
   free(content);
   struct_fields_free(&sf);
   fclose(tmp);
+  g_fail_io_after = -1;
   PASS();
 }
 

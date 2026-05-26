@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_c2openapi_schema.h
  * @brief Unit tests for C to OpenAPI schema mapping.
@@ -58,6 +60,7 @@ TEST test_register_single_struct(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -86,6 +89,7 @@ TEST test_register_deduplication(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -128,6 +132,7 @@ TEST test_register_multiple_structs(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -143,6 +148,7 @@ TEST test_register_null_safety(void) {
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -181,6 +187,7 @@ TEST test_register_enum_schema(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -225,6 +232,7 @@ TEST test_register_type_union_copy(void) {
   /* struct_fields_free(sf) is handled by type_def_list_free! */
   types.items[0].name = NULL; /* prevent free */
   type_def_list_free(&types);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -298,6 +306,7 @@ TEST test_code2schema_utils(void) {
   g_cdd_cst_alloc_token_fail = 2;
   copy_string_array_code2schema(&dst2, &count2, src2, 1);
   g_cdd_cst_alloc_token_fail = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -327,6 +336,7 @@ TEST test_register_deduplication(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -369,6 +379,7 @@ TEST test_register_multiple_structs(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -384,6 +395,7 @@ TEST test_register_null_safety(void) {
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -422,6 +434,7 @@ TEST test_register_enum_schema(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -466,6 +479,7 @@ TEST test_register_type_union_copy(void) {
   /* struct_fields_free(sf) is handled by type_def_list_free! */
   types.items[0].name = NULL; /* prevent free */
   type_def_list_free(&types);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -547,6 +561,7 @@ TEST test_code2schema_utils(void) {
   }
   ASSERT_EQ(ENOMEM, rc_t2);
   g_cdd_cst_alloc_token_fail = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -576,6 +591,7 @@ TEST test_register_deduplication(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -618,6 +634,7 @@ TEST test_register_multiple_structs(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -633,6 +650,7 @@ TEST test_register_null_safety(void) {
 
   openapi_spec_free(&spec);
   type_def_list_free(&types);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -671,6 +689,7 @@ TEST test_register_enum_schema(void) {
   openapi_spec_free(&spec);
   type_def_list_free(&types);
   remove(header_file);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -715,6 +734,7 @@ TEST test_register_type_union_copy(void) {
   /* struct_fields_free(sf) is handled by type_def_list_free! */
   types.items[0].name = NULL; /* prevent free */
   type_def_list_free(&types);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -790,6 +810,7 @@ TEST test_code2schema_utils(void) {
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
   ASSERT_EQ(ENOMEM, rc_t1);
   g_cdd_cst_alloc_token_fail = 0;
+  g_fail_io_after = -1;
 
   PASS();
 }

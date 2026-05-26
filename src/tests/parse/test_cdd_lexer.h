@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 #ifndef TEST_CDD_LEXER_H
 #define TEST_CDD_LEXER_H
 
@@ -39,6 +41,7 @@ TEST test_cdd_lexer_basic(void) {
          NULL); /* The newline and indent before return */
 
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -53,6 +56,7 @@ TEST test_cdd_lexer_empty(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(0, list->size);
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -70,6 +74,7 @@ TEST test_cdd_lexer_trivia_only(void) {
   ASSERT_EQ(CDD_TOKEN_EOF, list->tokens[0].kind);
   ASSERT(list->tokens[0].leading_trivia != NULL);
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -81,6 +86,7 @@ TEST test_cdd_lexer_trivia_only(void) {
 TEST test_cdd_lexer_errors(void) {
   ASSERT_EQ(EINVAL, cdd_lexer_tokenize(az_span_create_from_str(""), NULL));
   cdd_lexer_free_token_list(NULL);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -102,6 +108,7 @@ TEST test_cdd_lexer_strings(void) {
   ASSERT_EQ(14,
             list->tokens[2].length); /* "line1\<newline>line2" -> 14 bytes */
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -117,6 +124,7 @@ TEST test_cdd_lexer_symbols(void) {
   ASSERT_EQ(0, rc);
   ASSERT_EQ(17, list->size);
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -143,6 +151,7 @@ TEST test_cdd_lexer_gnu_extensions(void) {
   ASSERT_EQ(CDD_TOKEN_KEYWORD___REAL__, list->tokens[6].kind);
   ASSERT_EQ(CDD_TOKEN_KEYWORD___IMAG__, list->tokens[7].kind);
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -166,6 +175,7 @@ TEST test_cdd_lexer_multiline_macro(void) {
   ASSERT_EQ(CDD_TOKEN_KEYWORD_INT, list->tokens[1].kind);
 
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -184,6 +194,7 @@ TEST test_cdd_lexer_include_next(void) {
   ASSERT_EQ(CDD_TOKEN_PREPROC_INCLUDE, list->tokens[0].kind);
 
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -237,6 +248,7 @@ TEST test_cdd_lexer_oom(void) {
   if (tl)
     cdd_lexer_free_token_list(tl);
   tl = NULL;
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -420,6 +432,7 @@ TEST test_lexer_branches(void) {
   rc = cdd_lexer_tokenize(az_span_create_from_str("int /*c1*/ /*c2*/ \n"),
                           &list);
   cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
 
   PASS();
 }

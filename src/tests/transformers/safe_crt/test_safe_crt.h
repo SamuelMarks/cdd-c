@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_safe_crt.h
  * @brief Unit tests for the Safe CRT transformer.
@@ -216,6 +218,7 @@ TEST test_cdd_transform_safe_crt(void) {
 
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -252,6 +255,7 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
   ASSERT_EQ(0, cdd_transform_safe_crt(tree, &config));
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -324,6 +328,7 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   cdd_cst_tree_free(tree2);
 
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_safe_crt.h
  * @brief Unit tests for Safe CRT transformations.
@@ -58,6 +60,7 @@ TEST test_safe_crt_strcpy(void) {
   free_cst_node_list(nodes);
   free(nodes);
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 

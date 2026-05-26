@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_codegen_client_sig.h
  * @brief Unit tests for C Client Signature Generation.
@@ -79,6 +81,7 @@ TEST test_sig_simple_get(void) {
                 "struct ApiError **api_error) {"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -94,6 +97,7 @@ TEST test_sig_verify_apierror(void) {
   ASSERT(strstr(code, ", struct ApiError **api_error)"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -115,6 +119,7 @@ TEST test_sig_grouped(void) {
   ASSERT(strstr(code, "int Pet_api_getById(struct HttpClient *ctx"));
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -136,6 +141,7 @@ TEST test_sig_success_range_response(void) {
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -157,6 +163,7 @@ TEST test_sig_default_response_success(void) {
   ASSERT(strstr(code, "struct Pet **out") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -178,6 +185,7 @@ TEST test_sig_inline_response_string(void) {
   ASSERT(strstr(code, "char **out") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -200,6 +208,7 @@ TEST test_sig_inline_response_array(void) {
   ASSERT(strstr(code, "int **out, size_t *out_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -217,6 +226,7 @@ TEST test_sig_inline_request_body_string(void) {
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -235,6 +245,7 @@ TEST test_sig_inline_request_body_array(void) {
   ASSERT(strstr(code, "const double *body, size_t body_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -277,6 +288,7 @@ TEST test_sig_multipart_encoding_headers(void) {
   ASSERT(strstr(code, "file_hdr_Content_Type") == NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -294,6 +306,7 @@ TEST test_sig_text_plain_request_body(void) {
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -310,6 +323,7 @@ TEST test_sig_textual_request_body_xml(void) {
   ASSERT(strstr(code, "const char *req_body") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -326,6 +340,7 @@ TEST test_sig_octet_stream_request_body(void) {
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -342,6 +357,7 @@ TEST test_sig_binary_request_body_pdf(void) {
   ASSERT(strstr(code, "const unsigned char *body, size_t body_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -362,6 +378,7 @@ TEST test_sig_octet_stream_response_body(void) {
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -382,6 +399,7 @@ TEST test_sig_binary_response_body_pdf(void) {
   ASSERT(strstr(code, "unsigned char **out, size_t *out_len") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -410,6 +428,7 @@ TEST test_sig_querystring_form_object(void) {
                 "*qs, size_t qs_len, struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -438,6 +457,7 @@ TEST test_sig_querystring_json_ref(void) {
                 "struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -465,6 +485,7 @@ TEST test_sig_querystring_json_primitive(void) {
                       "struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -494,6 +515,7 @@ TEST test_sig_querystring_json_array(void) {
                 "size_t qs_len, struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -523,6 +545,7 @@ TEST test_sig_querystring_json_array_object(void) {
                 "**qs, size_t qs_len, struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -550,6 +573,7 @@ TEST test_sig_querystring_raw_string(void) {
                       "struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -577,6 +601,7 @@ TEST test_sig_querystring_raw_integer(void) {
                       "struct ApiError **api_error) {") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -601,6 +626,7 @@ TEST test_sig_query_object_param_kv(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -625,6 +651,7 @@ TEST test_sig_path_object_param_kv(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -649,6 +676,7 @@ TEST test_sig_header_object_param_kv(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -673,6 +701,7 @@ TEST test_sig_cookie_object_param_kv(void) {
          NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -697,6 +726,7 @@ TEST test_sig_json_content_query_ref(void) {
   ASSERT(strstr(code, "const struct Filter *filter") != NULL);
 
   free(code);
+  g_fail_io_after = -1;
   PASS();
 }
 

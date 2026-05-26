@@ -38,6 +38,27 @@ static int check_io_helper_make(int rc) {
   } while (0)
 #endif
 
+#ifdef CDD_BUILD_TESTS
+#include <stdarg.h>
+extern int g_fail_io_after;
+extern int g_io_calls;
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
+static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
+  int ret;
+  va_list args;
+  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
+    return -1;
+  va_start(args, format);
+  ret = vfprintf(stream, format, args);
+  va_end(args);
+  return ret;
+}
+#define FPRINTF_HOOK cdd_fprintf_hook
+#else
+#define FPRINTF_HOOK fprintf
+#endif
+
 int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   size_t i;
 
@@ -45,71 +66,73 @@ int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
     return EINVAL;
 
   /* Header */
-  CHECK_IO(
-      fprintf(fp, "cmake_minimum_required(VERSION %s)\n",
-              config->min_cmake_version ? config->min_cmake_version : "3.10"));
-  CHECK_IO(fprintf(fp, "project(%s VERSION 0.0.1 LANGUAGES C)\n\n",
-                   config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
+                        config->min_cmake_version ? config->min_cmake_version
+                                                  : "3.10"));
+  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.1 LANGUAGES C)\n\n",
+                        config->project_name));
 
   /* Core Sources */
-  CHECK_IO(fprintf(fp, "set(SOURCES\n"));
-  CHECK_IO(fprintf(fp, "    \"%s.c\"\n",
-                   config->project_name)); /* Assumes lib matches proj */
-  CHECK_IO(fprintf(fp, "    \"str_utils.c\"\n"));
-  CHECK_IO(fprintf(fp, "    \"fs.c\"\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "set(SOURCES\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"%s.c\"\n",
+                        config->project_name)); /* Assumes lib matches proj */
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"str_utils.c\"\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    \"fs.c\"\n"));
 
   if (config->extra_sources) {
     for (i = 0; i < config->extra_source_count; ++i) {
       if (config->extra_sources[i]) {
-        CHECK_IO(fprintf(fp, "    \"%s\"\n", config->extra_sources[i]));
+        CHECK_IO(FPRINTF_HOOK(fp, "    \"%s\"\n", config->extra_sources[i]));
       }
     }
   }
-  CHECK_IO(fprintf(fp, ")\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, ")\n\n"));
 
   /* Platform Logic */
-  CHECK_IO(fprintf(fp, "if(WIN32)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
-  CHECK_IO(fprintf(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
-  CHECK_IO(fprintf(fp, "elseif(ANDROID)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
-  CHECK_IO(fprintf(fp, "elseif(APPLE)\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_apple.c\")\n"));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
-  CHECK_IO(fprintf(fp, "    find_package(CURL REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "    find_package(OpenSSL REQUIRED)\n"));
-  CHECK_IO(fprintf(fp, "endif()\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "if(WIN32)\n"));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_wincrypt.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    add_compile_definitions(USE_WINHTTP)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(ANDROID)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "elseif(APPLE)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_apple.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "else()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    list(APPEND SOURCES \"crypto_openssl.c\")\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    find_package(CURL REQUIRED)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "    find_package(OpenSSL REQUIRED)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n\n"));
 
   /* Dependencies (Common) */
-  CHECK_IO(fprintf(fp, "find_package(parson CONFIG REQUIRED)\n\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "find_package(parson CONFIG REQUIRED)\n\n"));
 
   /* Target Definition */
-  CHECK_IO(fprintf(fp, "add_library(%s ${SOURCES})\n", config->project_name));
+  CHECK_IO(
+      FPRINTF_HOOK(fp, "add_library(%s ${SOURCES})\n", config->project_name));
 
   /* Link Libraries */
-  CHECK_IO(fprintf(fp, "if(WIN32)\n"));
-  CHECK_IO(fprintf(fp,
-                   "    target_link_libraries(%s PRIVATE winhttp crypt32)\n",
-                   config->project_name));
-  CHECK_IO(fprintf(fp, "else()\n"));
-  CHECK_IO(fprintf(fp,
-                   "    target_link_libraries(%s PRIVATE CURL::libcurl "
-                   "OpenSSL::SSL OpenSSL::Crypto)\n",
-                   config->project_name));
-  CHECK_IO(fprintf(fp, "endif()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "if(WIN32)\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "    target_link_libraries(%s PRIVATE winhttp crypt32)\n",
+      config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "else()\n"));
+  CHECK_IO(FPRINTF_HOOK(fp,
+                        "    target_link_libraries(%s PRIVATE CURL::libcurl "
+                        "OpenSSL::SSL OpenSSL::Crypto)\n",
+                        config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "endif()\n"));
 
-  CHECK_IO(fprintf(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
-                   config->project_name));
+  CHECK_IO(FPRINTF_HOOK(fp, "target_link_libraries(%s PRIVATE parson)\n\n",
+                        config->project_name));
 
   /* Install Rules */
-  CHECK_IO(fprintf(fp, "include(GNUInstallDirs)\n"));
-  CHECK_IO(fprintf(fp, "install(TARGETS %s EXPORT %sTargets\n",
-                   config->project_name, config->project_name));
-  CHECK_IO(
-      fprintf(fp, "        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}\n"));
-  CHECK_IO(
-      fprintf(fp, "        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "include(GNUInstallDirs)\n"));
+  CHECK_IO(FPRINTF_HOOK(fp, "install(TARGETS %s EXPORT %sTargets\n",
+                        config->project_name, config->project_name));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})\n"));
 
   return 0;
 }

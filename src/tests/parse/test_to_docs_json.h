@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_to_docs_json.h
  * @brief Unit tests for converting CST to doc JSON.
@@ -118,6 +120,7 @@ TEST test_to_docs_json_basic(void) {
 
   remove(TEMP_SPEC_FILE);
   remove(TEMP_OUT_FILE);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -175,6 +178,7 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
 
   remove(TEMP_SPEC_FILE);
   remove(TEMP_OUT_FILE);
+  g_fail_io_after = -1;
   PASS();
 }
 

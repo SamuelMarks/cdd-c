@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cdd_cst_mutate.h
  * @brief Unit tests for CST mutation.
@@ -59,6 +61,7 @@ TEST test_cdd_cst_mutate_replace(void) {
   free(res.nodes);
   free(out);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -170,6 +173,7 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, detach_parent, NULL));
 
   /* we will leak node and node2... */
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -180,6 +184,7 @@ TEST test_mutate_utils(void) {
   ASSERT_EQ(EINVAL, find_child_index_mutate(NULL, NULL, &idx));
 
   ASSERT_EQ(EINVAL, find_first_token_mutate(NULL, &t));
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -271,6 +276,7 @@ TEST test_cst_splice_children(void) {
   }
 
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -309,6 +315,7 @@ TEST test_cst_find_node_for_token(void) {
 
   cdd_cst_free_node_only(child);
   cdd_cst_free_node_only(root);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -340,6 +347,7 @@ TEST test_cdd_cst_insert_node_after_success(void) {
   cdd_cst_free_node_only(child1);
   cdd_cst_free_node_only(child2);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -368,6 +376,7 @@ TEST test_cdd_cst_insert_node_before_success(void) {
   cdd_cst_free_node_only(child1);
   cdd_cst_free_node_only(child2);
   cdd_cst_tree_free(tree);
+  g_fail_io_after = -1;
 
   PASS();
 }

@@ -1,3 +1,5 @@
+extern int g_fail_io_after;
+extern int g_io_calls;
 /**
  * @file test_cst_parser.h
  * @brief Unit tests for CST parser.
@@ -70,6 +72,7 @@ TEST add_node_basic(void) {
 
   free_cst_node_list(&list);
   ASSERT_EQ(EINVAL, cst_list_add(NULL, CST_NODE_STRUCT, NULL, 0, 0, 0));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -113,6 +116,7 @@ TEST parse_tokens_basic(void) {
   ASSERT(copy_nodes.nodes == NULL);
 
   free_token_list(tokens);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -123,6 +127,7 @@ TEST parse_tokens_empty(void) {
   ASSERT_EQ(0, cst_nodes.size);
   ASSERT(cst_nodes.nodes == NULL);
   free_cst_node_list(&cst_nodes);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -131,6 +136,7 @@ TEST parse_tokens_null_args(void) {
   struct CstNodeList cst_nodes = {NULL, 0, 0};
   ASSERT_EQ(EINVAL, parse_tokens(NULL, &cst_nodes));
   ASSERT_EQ(EINVAL, parse_tokens(&tokens, NULL));
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -146,6 +152,7 @@ TEST parse_tokens_forward_declaration(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -161,6 +168,7 @@ TEST parse_tokens_anonymous_struct(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -185,6 +193,7 @@ TEST parse_tokens_struct_variable_declaration(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -202,6 +211,7 @@ TEST parse_simple_array_init(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -219,6 +229,7 @@ TEST parse_compound_literal(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -246,6 +257,7 @@ TEST parse_control_block_split(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -264,6 +276,7 @@ TEST parse_nested_compound_literal(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -280,6 +293,7 @@ TEST parse_return_compound(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -330,6 +344,7 @@ TEST parse_c11_generic(void) {
 
   free_token_list(tl);
   free_cst_node_list(&cst);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -353,6 +368,7 @@ TEST test_cst_find_first(void) {
   ASSERT_EQ(EINVAL, cst_find_first(&list, CST_NODE_STRUCT, NULL));
 
   free_cst_node_list(&list);
+  g_fail_io_after = -1;
   PASS();
 }
 
@@ -410,6 +426,7 @@ TEST test_cst_parser_extra(void) {
     g_cdd_cst_realloc_fail = 0;
   }
 #endif
+  g_fail_io_after = -1;
 
   PASS();
 }
@@ -440,12 +457,14 @@ TEST parse_tokens_oom(void) {
 
   free_token_list(tl);
 #endif
+  g_fail_io_after = -1;
   PASS();
 }
 
 TEST test_cst_branches(void) {
   struct CstNode *out_node_ptr = NULL;
   ASSERT_EQ(0, cst_find_first(NULL, 0, &out_node_ptr));
+  g_fail_io_after = -1;
   PASS();
 }
 
