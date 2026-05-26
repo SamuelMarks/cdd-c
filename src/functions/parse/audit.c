@@ -20,6 +20,9 @@
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+#include "c_cdd_export.h"
+
+C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
 
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)

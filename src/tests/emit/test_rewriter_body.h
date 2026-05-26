@@ -210,7 +210,6 @@ TEST test_rewriter_body_oom(void) {
   const char *input = "void f() { do_work(); }";
   char *output = NULL;
   struct RefactoredFunction funcs[] = {{"do_work", REF_VOID_TO_INT, NULL}};
-  int rc;
 
   struct TokenList *tl = NULL;
   struct AllocationSiteList sites = {0};

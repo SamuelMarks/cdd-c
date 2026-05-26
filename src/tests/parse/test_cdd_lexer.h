@@ -211,17 +211,17 @@ TEST test_cdd_lexer_oom(void) {
 
   /* Force token failures to trigger coverage */
   g_cdd_cst_alloc_token_fail = 2;
-  int rc_t1 = cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   /* ASSERT(rc_t1 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 3;
-  int rc_t2 = cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
+  (void)cdd_lexer_tokenize(az_span_create_from_str("int x;"), &tl);
   /* ASSERT(rc_t2 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 
   g_cdd_cst_alloc_token_fail = 1;
-  int rc_t3 = cdd_lexer_tokenize(az_span_create_from_str("/* comment */"), &tl);
+  (void)cdd_lexer_tokenize(az_span_create_from_str("/* comment */"), &tl);
   /* ASSERT(rc_t3 != 0); */
   g_cdd_cst_alloc_token_fail = 0;
 

@@ -317,7 +317,6 @@ TEST test_patcher_oom(void) {
 
   /* Test patch_list_apply OOM */
   g_cdd_fail_alloc = 1000;
-  char *res = NULL;
   struct TokenList tl2;
   memset(&tl2, 0, sizeof(tl2));
   /* ignore rc_oom since we modified tl2 instead of tl_huge! */
