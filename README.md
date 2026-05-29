@@ -23,7 +23,7 @@ The CLI—at a minimum—has:
 - `cdd-c from_openapi to_server -i spec.json`
 - `cdd-c to_openapi -f path/to/code`
 - `cdd-c to_docs_json --no-imports --no-wrapping -i spec.json`
-- `cdd-c serve_json_rpc --port 8080 --listen 0.0.0.0`
+- `cdd-c serve_json_rpc --port 8080 --listen 127.0.0.1`
 
 ## SDK Example
 

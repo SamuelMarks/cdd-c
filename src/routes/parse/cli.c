@@ -5102,7 +5102,7 @@ int c2openapi_cli_main(int argc, char **argv) {
  * @brief Executes the to docs json cli main operation.
  */
 int to_docs_json_cli_main(int argc, char **argv) {
-  const char *input_file = getenv("CDD_INPUT_FILE") ? getenv("CDD_INPUT_FILE") : getenv("INPUT_FILE");
+  const char *input_file = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   int no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
   int no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
   int i;

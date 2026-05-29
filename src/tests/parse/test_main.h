@@ -154,11 +154,11 @@ TEST test_main_from_openapi_cli_options(void) {
 
   /* Set ENV vars */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT_FILE=spec.json");
-  _putenv("CDD_OUT_DIR=test_out_dir_env");
+  _putenv("CDD_INPUT=spec.json");
+  _putenv("CDD_OUTPUT=test_out_dir_env");
 #else
-  setenv("CDD_INPUT_FILE", "spec.json", 1);
-  setenv("CDD_OUT_DIR", "test_out_dir_env", 1);
+  setenv("CDD_INPUT", "spec.json", 1);
+  setenv("CDD_OUTPUT", "test_out_dir_env", 1);
 #endif
 
   /* Create a dummy spec to test the execution */
@@ -175,11 +175,11 @@ TEST test_main_from_openapi_cli_options(void) {
 
   /* Unset ENV vars */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT_FILE=");
-  _putenv("CDD_OUT_DIR=");
+  _putenv("CDD_INPUT=");
+  _putenv("CDD_OUTPUT=");
 #else
-  unsetenv("CDD_INPUT_FILE");
-  unsetenv("CDD_OUT_DIR");
+  unsetenv("CDD_INPUT");
+  unsetenv("CDD_OUTPUT");
 #endif
   g_fail_io_after = -1;
 
@@ -209,11 +209,11 @@ TEST test_main_to_openapi_cli_options(void) {
 
   /* Set ENV vars */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT_DIR=indir3");
-  _putenv("CDD_OUT_FILE=outdir3");
+  _putenv("CDD_INPUT=indir3");
+  _putenv("CDD_OUTPUT=outdir3");
 #else
-  setenv("CDD_INPUT_DIR", "indir3", 1);
-  setenv("CDD_OUT_FILE", "outdir3", 1);
+  setenv("CDD_INPUT", "indir3", 1);
+  setenv("CDD_OUTPUT", "outdir3", 1);
 #endif
 
   /* still fails because it's not implemented, but we hit the env var branch */
@@ -221,11 +221,11 @@ TEST test_main_to_openapi_cli_options(void) {
 
   /* Unset ENV vars */
 #if defined(_WIN32)
-  _putenv("CDD_INPUT_DIR=");
-  _putenv("CDD_OUT_FILE=");
+  _putenv("CDD_INPUT=");
+  _putenv("CDD_OUTPUT=");
 #else
-  unsetenv("CDD_INPUT_DIR");
-  unsetenv("CDD_OUT_FILE");
+  unsetenv("CDD_INPUT");
+  unsetenv("CDD_OUTPUT");
 #endif
   g_fail_io_after = -1;
 

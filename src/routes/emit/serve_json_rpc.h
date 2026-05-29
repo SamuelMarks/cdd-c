@@ -11,7 +11,7 @@ extern "C" {
 #include "c_cdd_export.h"
 /* clang-format on */
 
-extern C_CDD_EXPORT int server_json_rpc_main(int argc, char **argv);
+extern C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

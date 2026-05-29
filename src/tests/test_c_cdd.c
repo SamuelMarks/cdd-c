@@ -142,7 +142,7 @@ static FILE* cdd_test_tmpfile(void) {
 #include "emit/test_openapi_writer.h"
 #include "emit/test_operation.h"
 #include "emit/test_server_gen.h"
-#include "emit/test_server_json_rpc.h"
+#include "emit/test_serve_json_rpc.h"
 /* #include "parse/test_c2openapi_op.h" */
 /* #include "parse/test_c2openapi_schema.h" */
 #include "parse/test_c_mapping.h"
@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(client_gui_gen_suite);
   RUN_SUITE(macro_overlay_suite);
   RUN_SUITE(server_gen_suite);
-  RUN_SUITE(server_json_rpc_suite);
+  RUN_SUITE(serve_json_rpc_suite);
   RUN_SUITE(cli_cst_suite);
   RUN_SUITE(cdd_cst_factory_suite);
 

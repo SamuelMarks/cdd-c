@@ -222,8 +222,8 @@
 - [x] `src/routes/emit/security.h`
 - [x] `src/routes/emit/server_gen.c`
 - [x] `src/routes/emit/server_gen.h`
-- [x] `src/routes/emit/server_json_rpc.c`
-- [x] `src/routes/emit/server_json_rpc.h`
+- [x] `src/routes/emit/serve_json_rpc.c`
+- [x] `src/routes/emit/serve_json_rpc.h`
 - [x] `src/routes/emit/url.c`
 - [x] `src/routes/emit/url.h`
 - [x] `src/routes/parse/cli.c`
@@ -276,7 +276,7 @@
 - [x] `src/tests/emit/test_schema2tests.h`
 - [x] `src/tests/emit/test_schema_codegen.h`
 - [x] `src/tests/emit/test_server_gen.h`
-- [x] `src/tests/emit/test_server_json_rpc.h`
+- [x] `src/tests/emit/test_serve_json_rpc.h`
 - [x] `src/tests/emit/test_sync_code.h`
 - [x] `src/tests/emit/test_text_patcher.h`
 - [x] `src/tests/emit/test_url_utils.h`

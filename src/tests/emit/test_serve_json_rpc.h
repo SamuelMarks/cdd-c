@@ -1,7 +1,7 @@
 extern int g_fail_io_after;
 extern int g_io_calls;
 /**
- * @file test_server_json_rpc.h
+ * @file test_serve_json_rpc.h
  * @brief Unit tests for JSON RPC server functionality.
  */
 
@@ -17,7 +17,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "routes/emit/server_json_rpc.h"
+#include "routes/emit/serve_json_rpc.h"
 
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -43,14 +43,14 @@ extern "C" {
  *
  * @return The result of the test.
  */
-TEST test_server_json_rpc_bind_fail(void) {
+TEST test_serve_json_rpc_bind_fail(void) {
 #if defined(_WIN32)
   SOCKET server_fd;
 #else
   int server_fd;
 #endif
   struct sockaddr_in addr;
-  char *argv[] = {"server_json_rpc_main", "--port", "12346"};
+  char *argv[] = {"serve_json_rpc_main", "--port", "12346"};
   int argc = 3;
   int rc;
 
@@ -70,7 +70,7 @@ TEST test_server_json_rpc_bind_fail(void) {
   listen(server_fd, 1);
 
   /* It should fail to bind or listen */
-  rc = server_json_rpc_main(argc, argv);
+  rc = serve_json_rpc_main(argc, argv);
   ASSERT_EQ(1, rc);
 
 #if defined(_WIN32)
@@ -88,13 +88,13 @@ TEST test_server_json_rpc_bind_fail(void) {
  *
  * @return The result of the test.
  */
-TEST test_server_json_rpc_listen_once(void) {
-  char *argv[] = {"server_json_rpc_main", "--port", "12347", "--listen", "255"};
+TEST test_serve_json_rpc_listen_once(void) {
+  char *argv[] = {"serve_json_rpc_main", "--port", "12347", "--listen", "255"};
   int argc = 5;
   int rc;
 
   /* Should break immediately because listen_flag is -1 */
-  rc = server_json_rpc_main(argc, argv);
+  rc = serve_json_rpc_main(argc, argv);
   ASSERT_EQ(0, rc);
   g_fail_io_after = -1;
 
@@ -106,14 +106,14 @@ TEST test_server_json_rpc_listen_once(void) {
  *
  * @return The result of the test.
  */
-TEST test_server_json_rpc_basic(void) {
-  char *argv[] = {"server_json_rpc_main", "--port", "12345"};
+TEST test_serve_json_rpc_basic(void) {
+  char *argv[] = {"serve_json_rpc_main", "--port", "12345"};
   int argc = 3;
   int rc;
 
   /* Since we do not pass --listen, it should bind, listen, and immediately exit
    * the loop returning 0 */
-  rc = server_json_rpc_main(argc, argv);
+  rc = serve_json_rpc_main(argc, argv);
   /* Note: Depending on parallel testing or permission, bind might fail if port
      12345 is in use. We can just assert it doesn't crash. If bind succeeds it
      returns 0. If fails, it returns 1. */
@@ -128,14 +128,14 @@ TEST test_server_json_rpc_basic(void) {
  *
  * @return The result of the test.
  */
-TEST test_server_json_rpc_bad_port(void) {
+TEST test_serve_json_rpc_bad_port(void) {
   /* Try to bind to port 80 or something privileged or duplicate to force bind
      error if we want? Actually we can just run it without args. */
-  char *argv[] = {"server_json_rpc_main"};
+  char *argv[] = {"serve_json_rpc_main"};
   int argc = 1;
   int rc;
 
-  rc = server_json_rpc_main(argc, argv);
+  rc = serve_json_rpc_main(argc, argv);
   ASSERT(rc == 0 || rc == 1);
   g_fail_io_after = -1;
 
@@ -145,11 +145,11 @@ TEST test_server_json_rpc_bad_port(void) {
 /**
  * @brief JSON RPC Server test suite.
  */
-SUITE(server_json_rpc_suite) {
-  RUN_TEST(test_server_json_rpc_basic);
-  RUN_TEST(test_server_json_rpc_bad_port);
-  RUN_TEST(test_server_json_rpc_bind_fail);
-  RUN_TEST(test_server_json_rpc_listen_once);
+SUITE(serve_json_rpc_suite) {
+  RUN_TEST(test_serve_json_rpc_basic);
+  RUN_TEST(test_serve_json_rpc_bad_port);
+  RUN_TEST(test_serve_json_rpc_bind_fail);
+  RUN_TEST(test_serve_json_rpc_listen_once);
 }
 
 #ifdef __cplusplus

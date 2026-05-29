@@ -68,7 +68,7 @@
 - [ ] routes/emit/operation.c 32.34% 25.60% 65.62%
 - [ ] routes/emit/security.c 85.34% 58.41% 100.00%
 - [ ] routes/emit/server_gen.c 87.35% 67.35% 100.00%
-- [ ] routes/emit/server_json_rpc.c 74.42% 61.54% 100.00%
+- [ ] routes/emit/serve_json_rpc.c 74.42% 61.54% 100.00%
 - [ ] routes/emit/url.c 72.52% 41.70% 100.00%
 - [ ] routes/parse/cli.c 6.99% 4.56% 6.06%
 - [ ] routes/parse/cli_cst.c 84.35% 83.33% 100.00%
@@ -112,7 +112,7 @@
 - [ ] tests/emit/test_schema2tests.h 0.00% 0.00% 0.00%
 - [ ] tests/emit/test_schema_codegen.h 0.00% 0.00% 0.00%
 - [ ] tests/emit/test_server_gen.h 0.00% 0.00% 0.00%
-- [ ] tests/emit/test_server_json_rpc.h 0.00% 0.00% 0.00%
+- [ ] tests/emit/test_serve_json_rpc.h 0.00% 0.00% 0.00%
 - [ ] tests/emit/test_standalone_json.h 0.00% 0.00% 0.00%
 - [ ] tests/emit/test_sync_code.h 0.00% 0.00% 0.00%
 - [ ] tests/emit/test_text_patcher.h 0.00% 0.00% 0.00%

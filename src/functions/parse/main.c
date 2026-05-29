@@ -30,7 +30,7 @@
 #include "routes/emit/client_gui_gen.h"
 #include "routes/emit/client_gen.h"
 #include "routes/emit/server_gen.h"
-#include "routes/emit/server_json_rpc.h"
+#include "routes/emit/serve_json_rpc.h"
 #include "routes/parse/cli.h" /* New entry */
 #include "tests/emit/schema2tests.h"
 
@@ -124,19 +124,31 @@ static int handle_audit(int argc, char **argv) {
  * @param[in] prog_name The program executable name (usually argv[0])
  */
 static void print_help(const char *prog_name) {
-  printf("Usage: %s <command> [args]\n\n", prog_name);
+  printf("Usage: %s [OPTIONS] <COMMAND>\n\n", prog_name);
   puts("Commands:");
-  puts("  from_openapi to_sdk -i <spec.json> [-o <dir>]");
-  puts("  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]");
-  puts("  from_openapi to_sdk_cli -i <spec.json> [-o <dir>]");
-  puts("  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]");
-  puts("  from_openapi to_server -i <spec.json> [-o <dir>]");
-  puts("  from_openapi to_server --input-dir <specs_dir> [-o <dir>]");
-  puts("      Generate C SDK, Server, and optionally CLI from OpenAPI spec.");
+  puts("  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] "
+       "[--no-installable-package] [--tests]");
+  puts("  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>] "
+       "[--no-github-actions] [--no-installable-package] [--tests]");
+  puts("  from_openapi to_sdk_cli -i <spec.json> [-o <dir>] "
+       "[--no-github-actions] [--no-installable-package] [--tests]");
+  puts("  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>] "
+       "[--no-github-actions] [--no-installable-package] [--tests]");
+  puts("  from_openapi to_server -i <spec.json> [-o <dir>] "
+       "[--no-github-actions] [--no-installable-package] [--tests]");
+  puts("  from_openapi to_server --input-dir <specs_dir> [-o <dir>] "
+       "[--no-github-actions] [--no-installable-package] [--tests]");
+  puts("      Generate code from an OpenAPI specification.");
   puts("  to_openapi -i <dir> [-o <out.json>]");
-  puts("      Generate OpenAPI spec from C source code.");
-  puts("  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>");
-  puts("      Generate JSON code examples for doc sites.");
+  puts("      Generate an OpenAPI specification from source code.");
+  puts("  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json> "
+       "[-o <docs.json>]");
+  puts("      Generate JSON documentation with code snippets for an OpenAPI "
+       "specification.");
+  puts("  serve_json_rpc [-p|--port <int>] [-l|--listen <address>]");
+  puts("      Expose CLI interface as a JSON-RPC server.");
+  puts("");
+  puts("Language-Specific Commands:");
   puts("  audit <directory>");
   puts("      Scan directory for memory safety issues.");
   puts("  c2openapi <dir> <out.json>");
@@ -162,7 +174,7 @@ static void print_help(const char *prog_name) {
  * @param[in] argv Argument values for the command execution
  * @return EXIT_SUCCESS if code generation completes without error
  */
-static int handle_from_openapi(int argc, char **argv) {
+int from_openapi_cli_main(int argc, char **argv) {
   const char *input_file = NULL;
   const char *input_dir = NULL;
   const char *out_dir = NULL;
@@ -175,11 +187,10 @@ static int handle_from_openapi(int argc, char **argv) {
   int rc = 0;
   JSON_Value *root;
 
-  input_file = getenv("CDD_INPUT_FILE") ? getenv("CDD_INPUT_FILE")
-                                        : getenv("INPUT_FILE");
+  input_file = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   input_dir =
       getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
-  out_dir = getenv("CDD_OUT_DIR") ? getenv("CDD_OUT_DIR") : getenv("OUT_DIR");
+  out_dir = getenv("CDD_OUTPUT") ? getenv("CDD_OUTPUT") : getenv("OUT_DIR");
 
   if (argc > 1) {
     if (strcmp(argv[1], "to_sdk") == 0) {
@@ -202,26 +213,33 @@ static int handle_from_openapi(int argc, char **argv) {
       puts("Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]");
       puts("");
       puts("Commands:");
-      puts("  to_sdk         Generate C SDK from OpenAPI spec");
-      puts("  to_sdk_cli     Generate C SDK and CLI from OpenAPI spec");
-      puts("  to_server      Generate C Server from OpenAPI spec");
+      puts("  to_sdk         Generate a Client SDK from an OpenAPI "
+           "specification.");
+      puts("  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI "
+           "specification.");
+      puts("  to_server      Generate a Server stub from an OpenAPI "
+           "specification.");
       puts("");
       puts("Options:");
-      puts("  -i <spec.json>            Input OpenAPI spec file");
+      puts("  -i, --input <spec.json>   Input OpenAPI spec file");
       puts("  --input-dir <specs_dir>   Input directory containing OpenAPI "
            "specs");
-      puts("  -o <dir>                  Output directory");
+      puts("  -o, --output <dir>        Output directory");
       puts("  --no-github-actions       Do not generate GitHub Actions CI "
            "workflow");
       puts("  --no-installable-package  Do not generate build system files "
            "(e.g. CMakeLists.txt)");
-      puts("  --tests  Generate composable tests and mocks");
+      puts("  --tests                   Generate composable tests and mocks");
       return EXIT_SUCCESS;
-    } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-i") == 0 ||
+                strcmp(argv[i], "--input") == 0) &&
+               i + 1 < argc) {
       input_file = argv[++i];
     } else if (strcmp(argv[i], "--input-dir") == 0 && i + 1 < argc) {
       input_dir = argv[++i];
-    } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-o") == 0 ||
+                strcmp(argv[i], "--output") == 0) &&
+               i + 1 < argc) {
       out_dir = argv[++i];
     } else if (strcmp(argv[i], "--no-github-actions") == 0) {
       config.no_github_actions = 1;
@@ -233,7 +251,8 @@ static int handle_from_openapi(int argc, char **argv) {
   }
 
   if (!input_file && !input_dir) {
-    fprintf(stderr, "Error: -i <spec.json> or --input-dir <dir> required\n");
+    fprintf(stderr,
+            "Error: -i|--input <spec.json> or --input-dir <dir> required\n");
     return EXIT_FAILURE;
   }
 
@@ -299,12 +318,12 @@ static int handle_from_openapi(int argc, char **argv) {
  * options
  * @return EXIT_SUCCESS if parsing and serialization succeed
  */
-static int handle_to_openapi(int argc, char **argv) {
+int to_openapi_cli_main(int argc, char **argv) {
   const char *input_dir =
-      getenv("CDD_INPUT_DIR") ? getenv("CDD_INPUT_DIR") : getenv("INPUT_DIR");
+      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_DIR");
   const char *out_file =
-      getenv("CDD_OUT_FILE")
-          ? getenv("CDD_OUT_FILE")
+      getenv("CDD_OUTPUT")
+          ? getenv("CDD_OUTPUT")
           : (getenv("OUT_FILE") ? getenv("OUT_FILE") : "openapi.json");
   char *c2_argv[3];
   int i;
@@ -415,9 +434,9 @@ int cdd_main(int argc, char **argv) {
       return EXIT_FAILURE;
     rc = code2schema_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "from_openapi") == 0) {
-    rc = handle_from_openapi(argc - 1, argv + 1);
+    rc = from_openapi_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "to_openapi") == 0) {
-    rc = handle_to_openapi(argc - 1, argv + 1);
+    rc = to_openapi_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "to_docs_json") == 0) {
     rc = to_docs_json_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "generate_build_system") == 0) {
@@ -425,14 +444,14 @@ int cdd_main(int argc, char **argv) {
   } else if (strcmp(cmd, "schema2code") == 0) {
     rc = schema2code_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "serve_json_rpc") == 0) {
-    rc = server_json_rpc_main(argc - 1, argv + 1);
+    rc = serve_json_rpc_main(argc - 1, argv + 1);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {
       /* Keep previous behavior stub */
       return EXIT_FAILURE;
     }
-    fprintf(stderr, "Unknown command: %s\n", cmd);
+    fprintf(stderr, "Error: Unknown or incomplete command: %s\n", cmd);
     return EXIT_FAILURE;
   }
 
