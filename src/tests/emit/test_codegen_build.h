@@ -118,7 +118,7 @@ TEST test_cbuild_unsupported(void) {
   config.project_name = "PetStore";
   config.target_name = "petstore_lib";
 
-#ifdef ENOTSUP
+#if defined(ENOTSUP) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
   ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MESON, tmp, &config));
   ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_MAKEFILE, tmp, &config));
   ASSERT_EQ(ENOTSUP, codegen_build_generate(BUILD_SYS_UNKNOWN, tmp, &config));

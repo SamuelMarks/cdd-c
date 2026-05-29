@@ -55,8 +55,10 @@ TEST test_parse_hex_int(void) {
   ASSERT_EQ(0, parse_numeric_literal("0X1A", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1e-5", &nv));
   ASSERT_EQ(0, parse_numeric_literal("1E+5", &nv));
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
   ASSERT_EQ(0, parse_numeric_literal("0x1p-5", &nv));
   ASSERT_EQ(0, parse_numeric_literal("0X1P+5", &nv));
+#endif
   ASSERT_EQ(EINVAL, parse_numeric_literal("1e*", &nv));
 
   ASSERT_EQ(EINVAL, parse_numeric_literal("e5", &nv));
@@ -279,7 +281,9 @@ TEST test_parse_errors(void) {
   ASSERT_EQ(EINVAL, parse_numeric_literal("1", NULL));
   ASSERT_EQ(EINVAL, parse_numeric_literal("   ", &nv));
   ASSERT_EQ(EINVAL, parse_numeric_literal("1llL", &nv));
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
   ASSERT_EQ(0, parse_numeric_literal("0x1.0p10", &nv));
+#endif
   ASSERT_EQ(0, parse_numeric_literal("1e-1", &nv));
   ASSERT_EQ(EINVAL, parse_numeric_literal("1.0dfx", &nv));
   ASSERT_EQ(EINVAL, parse_numeric_literal("1.0ddx", &nv));

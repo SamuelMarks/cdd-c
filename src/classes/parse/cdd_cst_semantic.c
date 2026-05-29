@@ -21,7 +21,16 @@ static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {
       if (node->children[i].kind == CDD_CST_CHILD_TOKEN) {
         cdd_token_t *tok = node->children[i].val.token;
         if (tok->kind == CDD_TOKEN_IDENTIFIER) {
-          char *name = (char *)malloc(tok->length + 1);
+          char *name = NULL;
+#ifdef CDD_BUILD_TESTS
+          if (g_cdd_semantic_oom_extract == 5) {
+            name = NULL;
+          } else {
+#endif
+            name = (char *)malloc(tok->length + 1);
+#ifdef CDD_BUILD_TESTS
+          }
+#endif
           if (!name) {
             C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
             return ENOMEM;

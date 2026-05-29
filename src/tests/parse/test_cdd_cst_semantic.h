@@ -17,6 +17,12 @@ extern int g_io_calls;
 #include "../../classes/parse/cdd_cst_builder.h"
 /* clang-format on */
 
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_semantic_oom_extract;
+extern int g_cdd_semantic_oom_scope;
+extern int g_cdd_semantic_oom_scope2;
+#endif
+
 TEST test_cdd_cst_semantic_scope_basic(void) {
   cdd_cst_scope_env_t *env = NULL;
   cdd_cst_node_t *node = NULL;
@@ -181,7 +187,11 @@ TEST test_cdd_cst_semantic_errors(void) {
 
   /* Node with child token that IS an identifier but causes OOM */
   cdd_cst_create_token_len(&tree, CDD_TOKEN_IDENTIFIER, "huge", 4, &tok_oom);
+#ifdef CDD_BUILD_TESTS
+  g_cdd_semantic_oom_extract = 5;
+#else
   tok_oom->length = (size_t)-2; /* malloc(SIZE_MAX) will fail */
+#endif
   cdd_cst_append_child_token(id_node, tok_oom);
 
   cdd_cst_append_child_node(decl, id_node);
@@ -212,16 +222,13 @@ TEST test_cdd_cst_semantic_errors(void) {
   cdd_cst_free_node_only(root);
   free(tok_other);
   free(tok_oom);
+#ifdef CDD_BUILD_TESTS
+  g_cdd_semantic_oom_extract = 0;
+#endif
   g_fail_io_after = -1;
 
   PASS();
 }
-
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_semantic_oom_extract;
-extern int g_cdd_semantic_oom_scope;
-extern int g_cdd_semantic_oom_scope2;
-#endif
 
 TEST test_cdd_cst_semantic_oom(void) {
 #ifdef CDD_BUILD_TESTS
@@ -298,6 +305,12 @@ TEST test_cdd_cst_semantic_oom(void) {
   g_fail_io_after = -1;
   PASS();
 }
+
+#ifdef CDD_BUILD_TESTS
+extern int g_cdd_semantic_oom_extract;
+extern int g_cdd_semantic_oom_scope;
+extern int g_cdd_semantic_oom_scope2;
+#endif
 
 TEST test_cdd_cst_semantic_extract_null(void) {
   /* Test branch 12 in extract_identifier */
