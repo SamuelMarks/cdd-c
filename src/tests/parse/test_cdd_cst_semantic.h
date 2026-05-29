@@ -9,6 +9,10 @@ extern int g_io_calls;
 #ifndef TEST_CDD_CST_SEMANTIC_H
 #define TEST_CDD_CST_SEMANTIC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <greatest.h>
 #include "../../classes/parse/cdd_cst_semantic.h"
 #include "../../classes/parse/cdd_cst_scope.h"
@@ -334,5 +338,9 @@ SUITE(cdd_cst_semantic_suite) {
   RUN_TEST(test_cdd_cst_semantic_oom);
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !TEST_CDD_CST_SEMANTIC_H */

@@ -2,7 +2,7 @@
  * @file cli_cst.c
  * @brief Implementation of CLI CST parsing.
  */
-
+/* clang-format off */
 #include "routes/parse/cli_cst.h"
 #include "c_cdd/log.h"
 #include "c_str_span.h"
@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+/* clang-format on */
 static int process_file(const char *filepath,
                         int (*transform_fn)(cdd_cst_tree_t *,
                                             const cdd_transform_config_t *),

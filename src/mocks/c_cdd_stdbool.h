@@ -7,8 +7,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+/* clang-format off */
 #include <stddef.h>
+/* clang-format on */
 typedef size_t _c_cdd_bool;
 
 #ifdef bool

@@ -1,12 +1,12 @@
 #ifndef GEN_DEF_H
 #define GEN_DEF_H
-
+/* clang-format off */
 #include "gen_def_models.h"
 #include "url_utils.h"
 #include <c_abstract_http/http_types.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+/* clang-format on */
 #ifdef __cplusplus
 extern "C" {
 #endif

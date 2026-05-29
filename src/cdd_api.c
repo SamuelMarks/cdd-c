@@ -1,10 +1,11 @@
+/* clang-format off */
 #include "cdd_api.h"
 #include "routes/emit/serve_json_rpc.h"
 #include "routes/parse/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+/* clang-format on */
 #define MAX_ARGS 32
 
 int cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {

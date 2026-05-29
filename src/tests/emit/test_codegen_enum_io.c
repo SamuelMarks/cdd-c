@@ -1,6 +1,7 @@
+/* clang-format off */
 #include <stdio.h>
 #include <string.h>
-
+/* clang-format on */
 int main() {
   FILE *f = fopen("test.txt", "w");
   fclose(f);

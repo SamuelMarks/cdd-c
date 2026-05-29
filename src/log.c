@@ -1,7 +1,8 @@
+/* clang-format off */
 #include "c_cdd/log.h"
 #include <stdarg.h>
 #include <stdio.h>
-
+/* clang-format on */
 void c_cdd_log_debug(const char *fmt, ...) {
 #ifdef DEBUG
   va_list args;

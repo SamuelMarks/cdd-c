@@ -1,5 +1,6 @@
+/* clang-format off */
 #include <stdlib.h>
-
+/* clang-format on */
 extern int g_cdd_fail_alloc;
 
 /* Mmm, we shouldn't define this here, we can't easily mock malloc since other

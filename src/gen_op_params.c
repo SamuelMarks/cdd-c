@@ -1,3 +1,4 @@
+/* clang-format off */
 #include "url_utils.h"
 #include <parson.h>
 #include <stdio.h>
@@ -14,7 +15,7 @@
 #endif
 
 #include "gen_op_params.h"
-
+/* clang-format on */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
 #endif

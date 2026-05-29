@@ -1,8 +1,9 @@
+/* clang-format off */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/resource.h>
-
+/* clang-format on */
 int main() {
   struct rlimit rl;
   if (getrlimit(RLIMIT_AS, &rl) != 0) {

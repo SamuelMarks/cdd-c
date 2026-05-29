@@ -6,10 +6,10 @@ extern int g_io_calls;
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
+/* clang-format off */
 #include "functions/parse/macro_overlay.h"
 #include <greatest.h>
-
+/* clang-format on */
 TEST test_macro_overlay_basic(void) {
   struct MacroOverlayList list;
   struct CstNodeList cst;

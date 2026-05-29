@@ -1,13 +1,13 @@
 extern int g_fail_io_after;
 extern int g_io_calls;
 /* Auto-generated greatest.h test stub for server endpoints */
-
+/* clang-format off */
 #include <c_rest_request.h>
 #include <c_rest_response.h>
 #include <greatest.h>
 #include <stdlib.h>
 #include <string.h>
-
+/* clang-format on */
 TEST test_server_handle_doGet(void) {
   /* TODO: Implement test for doGet */
   struct c_rest_request req;

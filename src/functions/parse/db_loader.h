@@ -1,4 +1,6 @@
+/* clang-format off */
 #include "c_cdd_export.h"
+/* clang-format on */
 #ifndef C_CDD_DB_LOADER_H
 #define C_CDD_DB_LOADER_H
 

@@ -11,12 +11,12 @@ extern int g_io_calls;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+/* clang-format off */
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_scope.h"
 #include "classes/parse/cdd_cst_type_eval.h"
 #include <greatest.h>
-
+/* clang-format on */
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;

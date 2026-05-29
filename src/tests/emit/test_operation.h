@@ -8,10 +8,14 @@ extern int g_io_calls;
 #ifndef TEST_OPERATION_H
 #define TEST_OPERATION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+/* clang-format off */
 #include "greatest.h"
 
 #include "routes/emit/operation.h"
-
+/* clang-format on */
 TEST test_operation_is_reserved_header_name(void) {
   ASSERT_EQ(0, is_reserved_header_name(NULL));
   ASSERT_EQ(0, is_reserved_header_name(""));
@@ -656,5 +660,9 @@ SUITE(operation_suite) {
   RUN_TEST(test_operation_is_struct_pointer);
   RUN_TEST(test_operation_doc_style_to_openapi);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TEST_OPERATION_H */
