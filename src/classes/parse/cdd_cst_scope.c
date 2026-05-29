@@ -8,8 +8,9 @@ extern int g_cdd_scope_alloc_fail;
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
-
-int g_cdd_scope_alloc_fail = 0;
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_scope_alloc_fail = 0;
+#endif
 
 int cdd_cst_scope_env_init(cdd_cst_scope_env_t **out_env) {
   cdd_cst_scope_env_t *env;

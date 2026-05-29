@@ -5,7 +5,7 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
-int g_cdd_cfg_alloc_fail = 0;
+C_CDD_EXPORT int g_cdd_cfg_alloc_fail = 0;
 #endif
 
 static int alloc_block(cdd_cst_cfg_t *cfg, enum cdd_cst_cfg_block_kind_t kind,

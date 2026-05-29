@@ -22,7 +22,7 @@
 #include "functions/parse/str.h"
 
 #ifdef CDD_BUILD_TESTS
-int g_cdd_strdup_fail = 0;
+C_CDD_EXPORT int g_cdd_strdup_fail = 0;
 #endif
 /* clang-format on */
 

@@ -30,8 +30,8 @@
 
 #ifdef CDD_BUILD_TESTS
 #include <stdarg.h>
-int g_fail_io_after = -1;
-int g_io_calls = 0;
+C_CDD_EXPORT int g_fail_io_after = -1;
+C_CDD_EXPORT int g_io_calls = 0;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));

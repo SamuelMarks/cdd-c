@@ -7,8 +7,10 @@ extern int g_cdd_query_err_fail;
 #include <stdlib.h>
 #include <string.h>
 
-int g_cdd_query_err_fail = 0;
-int g_cdd_query_realloc_fail = 0;
+#ifdef CDD_BUILD_TESTS
+C_CDD_EXPORT int g_cdd_query_err_fail = 0;
+C_CDD_EXPORT int g_cdd_query_realloc_fail = 0;
+#endif
 #include "c_cdd/log.h"
 /* clang-format on */
 

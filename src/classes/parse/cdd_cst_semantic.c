@@ -6,9 +6,9 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
-int g_cdd_semantic_oom_extract = 0;
-int g_cdd_semantic_oom_scope = 0;
-int g_cdd_semantic_oom_scope2 = 0;
+C_CDD_EXPORT int g_cdd_semantic_oom_extract = 0;
+C_CDD_EXPORT int g_cdd_semantic_oom_scope = 0;
+C_CDD_EXPORT int g_cdd_semantic_oom_scope2 = 0;
 #endif
 
 static int extract_identifier(cdd_cst_node_t *node, const char **out_name) {

@@ -13,9 +13,9 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 #ifdef CDD_BUILD_TESTS
-int g_cdd_cst_alloc_token_fail = 0;
-int g_cdd_cst_realloc_fail = 0;
-int g_cdd_cst_alloc_node_fail = 0;
+C_CDD_EXPORT int g_cdd_cst_alloc_token_fail = 0;
+C_CDD_EXPORT int g_cdd_cst_realloc_fail = 0;
+C_CDD_EXPORT int g_cdd_cst_alloc_node_fail = 0;
 #endif
 
 int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
