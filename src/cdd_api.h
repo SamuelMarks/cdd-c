@@ -7,20 +7,6 @@ extern "C" {
 
 /* clang-format off */
 #include "c_cdd_export.h"
-#if defined(_MSC_VER) && _MSC_VER < 1800
-/* stdbool.h is not available before MSVC 2013 */
-#ifndef _STDBOOL_H
-#define _STDBOOL_H
-#ifndef __cplusplus
-#define bool unsigned char
-#define true 1
-#define false 0
-#endif
-#define __bool_true_false_are_defined 1
-#endif
-#else
-#include <stdbool.h>
-#endif
 /* clang-format on */
 
 /**
@@ -30,9 +16,9 @@ typedef struct {
   const char *input;
   const char *input_dir;
   const char *output;
-  bool no_github_actions;
-  bool no_installable_package;
-  bool tests;
+  int no_github_actions;
+  int no_installable_package;
+  int tests;
   const char *subcommand; /* "to_sdk", "to_sdk_cli", "to_server" */
 } cdd_from_openapi_config_t;
 
@@ -50,8 +36,8 @@ typedef struct {
 typedef struct {
   const char *input;
   const char *output;
-  bool no_imports;
-  bool no_wrapping;
+  int no_imports;
+  int no_wrapping;
 } cdd_docs_json_config_t;
 
 /**
