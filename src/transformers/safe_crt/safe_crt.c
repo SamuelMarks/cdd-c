@@ -1006,13 +1006,15 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
                 }
                 if (start < end && *start == '*') {
                   start++;
-                  while (start < end && !isalpha(*start) && *start != '[')
+                  while (start < end && !isalpha((unsigned char)*start) &&
+                         *start != '[')
                     start++;
                   if (start < end)
                     start++;
                   continue;
                 }
-                while (start < end && !isalpha(*start) && *start != '[')
+                while (start < end && !isalpha((unsigned char)*start) &&
+                       *start != '[')
                   start++;
                 if (start < end) {
                   if (*start == 's' || *start == 'S' || *start == 'c' ||

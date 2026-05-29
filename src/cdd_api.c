@@ -1,6 +1,6 @@
 #include "cdd_api.h"
-#include "routes/parse/cli.h"
 #include "routes/emit/serve_json_rpc.h"
+#include "routes/parse/cli.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

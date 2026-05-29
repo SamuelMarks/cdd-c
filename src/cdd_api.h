@@ -5,8 +5,10 @@
 extern "C" {
 #endif
 
-#include <stdbool.h>
 #include "c_cdd_export.h"
+/* clang-format off */
+#include <stdbool.h>
+/* clang-format on */
 
 /**
  * @brief Configuration for from_openapi command.

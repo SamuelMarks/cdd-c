@@ -308,7 +308,7 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           id_start++;
         }
         if (id_start < len &&
-            (isalpha(base[id_start]) || base[id_start] == '_')) {
+            (isalpha((unsigned char)base[id_start]) || base[id_start] == '_')) {
           size_t id_end = id_start;
           size_t id_len;
           while (id_end < len && (isalnum(base[id_end]) || base[id_end] == '_'))
