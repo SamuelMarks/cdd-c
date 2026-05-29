@@ -12,31 +12,6 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-#ifdef CDD_BUILD_TESTS
-#include <stdarg.h>
-extern int g_fail_io_after;
-extern int g_io_calls;
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 2, 3)));
-#else
-    ;
-#endif
-static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
-  va_list args;
-  int rc;
-  if (g_fail_io_after >= 0 && ++g_io_calls > g_fail_io_after)
-    return -1;
-  va_start(args, format);
-  rc = vfprintf(stream, format, args);
-  va_end(args);
-  return rc;
-}
-#define FPRINTF_HOOK cdd_fprintf_hook
-#else
-#define FPRINTF_HOOK fprintf
-#endif
-
 int schema_constraints_init(struct SchemaConstraints *sc) {
   if (!sc)
     return EINVAL;

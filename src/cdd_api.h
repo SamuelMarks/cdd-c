@@ -5,9 +5,22 @@
 extern "C" {
 #endif
 
-#include "c_cdd_export.h"
 /* clang-format off */
+#include "c_cdd_export.h"
+#if defined(_MSC_VER) && _MSC_VER < 1800
+/* stdbool.h is not available before MSVC 2013 */
+#ifndef _STDBOOL_H
+#define _STDBOOL_H
+#ifndef __cplusplus
+#define bool unsigned char
+#define true 1
+#define false 0
+#endif
+#define __bool_true_false_are_defined 1
+#endif
+#else
 #include <stdbool.h>
+#endif
 /* clang-format on */
 
 /**
