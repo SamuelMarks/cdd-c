@@ -372,7 +372,6 @@ generated_*.h
 fix_sql.c
 more_builtins.c
 builtins.c
-bin_cdd.c
 
 # Project-specific generated directories that shouldn't be tracked
 c2o_test_err_*/

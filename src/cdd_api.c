@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+#ifdef CDD_BUILD_TESTS
+int g_cdd_fail_alloc = 0;
+int g_cdd_fprintf_fail = 0;
+int g_cdd_mock_dlopen_success = 0;
+#endif
+
 #define MAX_ARGS 32
 
 int cdd_generate_from_openapi(const cdd_from_openapi_config_t *config) {
