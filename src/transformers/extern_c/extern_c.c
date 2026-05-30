@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd_export.h"
 /* clang-format on */
 
 /**
@@ -27,8 +28,8 @@
  * @return 0 on success, or an error code.
  */
 #ifdef CDD_BUILD_TESTS
-int g_extern_c_top_node_fail = 0;
-int g_extern_c_bot_node_fail = 0;
+C_CDD_EXPORT int g_extern_c_top_node_fail = 0;
+C_CDD_EXPORT int g_extern_c_bot_node_fail = 0;
 #endif
 
 int cdd_transform_extern_c(cdd_cst_tree_t *tree,

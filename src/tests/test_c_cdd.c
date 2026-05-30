@@ -1,5 +1,3 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
 #if defined(_MSC_VER)
 #if defined(_MSC_VER)
 #pragma warning(disable : 4005)
@@ -17,6 +15,7 @@ extern int g_io_calls;
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 
 #ifndef ENOTSUP
@@ -27,6 +26,8 @@ extern int g_io_calls;
 #include <time.h>
 
 #include <greatest.h>
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 
 static char g_cdd_test_tmp_buf[65536][64];
 

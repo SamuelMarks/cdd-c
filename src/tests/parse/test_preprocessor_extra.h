@@ -1,5 +1,6 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+#include "c_cdd_export.h"
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 static int abort_cb(const struct IncludeInfo *info, void *user_data) {
   struct TestPPCtx *ctx = (struct TestPPCtx *)user_data;
   ctx->count++;

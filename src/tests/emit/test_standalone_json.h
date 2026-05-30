@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_STANDALONE_JSON_H
 #define TEST_STANDALONE_JSON_H
 
@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h"
 #include <greatest.h>

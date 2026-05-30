@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -509,8 +510,8 @@ TEST test_types_io_fail(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #endif
 
 TEST test_types_exhaustive_io(void) {

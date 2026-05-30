@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_arrays_object.c
  * @brief Unit tests for Object Arrays generation and parsing.
@@ -11,6 +11,7 @@ extern int g_io_calls;
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

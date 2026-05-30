@@ -1,7 +1,7 @@
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #endif
 #ifndef TEST_CODEGEN_ENUM_H
 #define TEST_CODEGEN_ENUM_H
@@ -11,6 +11,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "classes/emit/enum.h"
 #include <greatest.h>
 #include <stdio.h>
@@ -114,9 +115,9 @@ TEST test_enum_generation(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_enum_members_init_fail;
-extern int g_enum_members_add_fail;
-extern int g_enum_members_add_strdup_fail;
+extern C_CDD_EXPORT int g_enum_members_init_fail;
+extern C_CDD_EXPORT int g_enum_members_add_fail;
+extern C_CDD_EXPORT int g_enum_members_add_strdup_fail;
 #endif
 
 TEST test_enum_generation_oom(void) {

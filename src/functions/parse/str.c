@@ -162,7 +162,7 @@ void c_cdd_str_trim_trailing_whitespace(char *str) {
  * @brief Executes the c cdd destringize operation.
  */
 #ifdef CDD_BUILD_TESTS
-int g_str_unquote_malloc_fail = 0;
+C_CDD_EXPORT int g_str_unquote_malloc_fail = 0;
 #endif
 
 int c_cdd_destringize(const char *quoted, char **out_s) {

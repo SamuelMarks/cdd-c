@@ -16,6 +16,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
+#include "c_cdd_export.h"
 #include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
@@ -61,9 +62,9 @@ static const char *kStrDupFunc = "strdup";
 #endif
 
 #ifdef CDD_BUILD_TESTS
-int g_enum_members_init_fail = 0;
-int g_enum_members_add_fail = 0;
-int g_enum_members_add_strdup_fail = 0;
+C_CDD_EXPORT int g_enum_members_init_fail = 0;
+C_CDD_EXPORT int g_enum_members_add_fail = 0;
+C_CDD_EXPORT int g_enum_members_add_strdup_fail = 0;
 #endif
 
 int enum_members_init(struct EnumMembers *em) {

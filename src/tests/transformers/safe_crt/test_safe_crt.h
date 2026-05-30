@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_safe_crt.h
  * @brief Unit tests for the Safe CRT transformer.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -262,8 +263,8 @@ TEST test_cdd_transform_safe_crt_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_safe_crt_malloc_fail;
-extern int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_safe_crt_malloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 #endif
 
 TEST test_cdd_transform_safe_crt_oom(void) {

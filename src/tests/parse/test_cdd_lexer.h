@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_CDD_LEXER_H
 #define TEST_CDD_LEXER_H
 
@@ -8,6 +8,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include "classes/parse/cdd_lexer.h"
@@ -204,7 +205,7 @@ TEST test_cdd_lexer_include_next(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 TEST test_cdd_lexer_oom(void) {
   cdd_token_list_t *tl = NULL;

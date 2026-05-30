@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_type_eval.h
  * @brief Unit tests for CST type evaluation.
@@ -12,6 +12,7 @@ extern int g_io_calls;
 extern "C" {
 #endif
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_scope.h"
 #include "classes/parse/cdd_cst_type_eval.h"

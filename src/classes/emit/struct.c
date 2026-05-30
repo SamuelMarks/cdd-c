@@ -31,6 +31,7 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 #ifdef CDD_BUILD_TESTS
+#include "c_cdd_export.h"
 #include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
@@ -96,7 +97,7 @@ int get_type_from_ref(const char *ref, char **_out_val) {
 }
 
 #ifdef CDD_BUILD_TESTS
-int g_struct_fields_init_fail = 0;
+C_CDD_EXPORT int g_struct_fields_init_fail = 0;
 #endif
 
 /**
@@ -204,7 +205,7 @@ void struct_fields_free(struct StructFields *sf) {
 }
 
 #ifdef CDD_BUILD_TESTS
-int g_struct_fields_add_fail = 0;
+C_CDD_EXPORT int g_struct_fields_add_fail = 0;
 #endif
 
 /**

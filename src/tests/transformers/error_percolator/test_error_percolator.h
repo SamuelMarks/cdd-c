@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_error_percolator.h
  * @brief Unit tests for error percolator transformer.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -134,7 +135,7 @@ TEST test_cdd_transform_percolate_errors_edge_cases(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_err_perc_fail;
+extern C_CDD_EXPORT int g_err_perc_fail;
 #endif
 
 TEST test_cdd_transform_percolate_errors_bld_fail(void) {

@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_code2schema.h
  * @brief Unit tests for code to schema conversion.
@@ -24,6 +24,7 @@ typedef signed __int64 int64_t;
 typedef unsigned __int64 uint64_t;
 #else
 /* clang-format off */
+#include "c_cdd_export.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1800
 #include <stdint.h>
 #endif

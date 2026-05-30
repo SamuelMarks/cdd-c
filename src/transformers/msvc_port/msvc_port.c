@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd_export.h"
 /* clang-format on */
 
 /**
@@ -71,7 +72,7 @@ static void replace_msvc_identifiers(cdd_cst_tree_t *tree,
  * @return 0 on success, or an error code on failure.
  */
 #ifdef CDD_BUILD_TESTS
-int g_msvc_port_bld_fail = 0;
+C_CDD_EXPORT int g_msvc_port_bld_fail = 0;
 #endif
 
 int cdd_transform_msvc(cdd_cst_tree_t *tree,

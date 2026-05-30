@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_INT128_H
 #define TEST_INT128_H
 
@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "c_cdd/int128.h"
 #include "c_cdd/int128_math.h"
 #include <greatest.h>

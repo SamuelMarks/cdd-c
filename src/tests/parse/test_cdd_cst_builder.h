@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_builder.h
  * @brief Unit tests for the CST builder.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -490,8 +491,8 @@ TEST test_cdd_cst_builder_errors_extra(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 #endif
 
 TEST test_cdd_cst_builder_oom(void) {
@@ -573,8 +574,8 @@ TEST test_cdd_cst_builder_oom(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_cst_realloc_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 #endif
 
 TEST test_cdd_cst_builder_punct_all(void) {

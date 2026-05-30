@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_cfg.h
  * @brief Unit tests for CST Control Flow Graph generator.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "classes/parse/cdd_cst_cfg.h"
 #include "classes/parse/cdd_cst_parser.h"
 #include <greatest.h>
@@ -64,7 +65,7 @@ TEST test_cdd_cst_cfg_basic(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cfg_alloc_fail;
+extern C_CDD_EXPORT int g_cdd_cfg_alloc_fail;
 #endif
 
 TEST test_cdd_cst_cfg_oom(void) {

@@ -16,6 +16,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -371,10 +372,10 @@ TEST test_struct_io_errors(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_fail_io_after;
-extern int g_io_calls;
-extern int g_struct_fields_init_fail;
-extern int g_struct_fields_add_fail;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
+extern C_CDD_EXPORT int g_struct_fields_init_fail;
+extern C_CDD_EXPORT int g_struct_fields_add_fail;
 #endif
 
 TEST test_struct_exhaustive_io(void) {

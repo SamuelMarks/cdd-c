@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_DB_LOADER_H
 #define TEST_DB_LOADER_H
 
@@ -8,6 +8,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "functions/parse/db_loader.h"
 #include <greatest.h>
 #if !defined(_WIN32)

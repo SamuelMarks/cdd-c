@@ -1,5 +1,6 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+#include "c_cdd_export.h"
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 TEST test_cdd_cst_builder_all_errors(void) {
   cdd_cst_builder_t b;
   b.error_state = EINVAL;

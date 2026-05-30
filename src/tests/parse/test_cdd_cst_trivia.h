@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_trivia.h
  * @brief Unit tests for CST trivia operations.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -159,7 +160,7 @@ TEST test_cdd_cst_trivia_generate(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
 TEST test_cdd_cst_trivia_oom(void) {
   cdd_cst_format_config_t config = {0};

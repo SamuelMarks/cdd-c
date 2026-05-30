@@ -1,11 +1,12 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_semantic.h
  * @brief Unit tests for CST semantic analysis.
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #ifndef TEST_CDD_CST_SEMANTIC_H
 #define TEST_CDD_CST_SEMANTIC_H
 
@@ -22,9 +23,9 @@ extern "C" {
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_semantic_oom_extract;
-extern int g_cdd_semantic_oom_scope;
-extern int g_cdd_semantic_oom_scope2;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_extract;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_scope2;
 #endif
 
 TEST test_cdd_cst_semantic_scope_basic(void) {
@@ -311,9 +312,9 @@ TEST test_cdd_cst_semantic_oom(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_semantic_oom_extract;
-extern int g_cdd_semantic_oom_scope;
-extern int g_cdd_semantic_oom_scope2;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_extract;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_scope;
+extern C_CDD_EXPORT int g_cdd_semantic_oom_scope2;
 #endif
 
 TEST test_cdd_cst_semantic_extract_null(void) {

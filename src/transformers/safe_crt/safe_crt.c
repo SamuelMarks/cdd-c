@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "c_cdd/log.h"
+#include "c_cdd_export.h"
 /* clang-format on */
 
 typedef struct safe_crt_arena_t safe_crt_arena_t;
@@ -34,7 +35,7 @@ struct safe_crt_arena_t {
 static safe_crt_arena_t *global_arena = NULL;
 static cdd_cst_tree_t *current_tree = NULL;
 #ifdef CDD_BUILD_TESTS
-int g_safe_crt_malloc_fail = 0;
+C_CDD_EXPORT int g_safe_crt_malloc_fail = 0;
 #endif
 
 static void arena_free_all(void) {

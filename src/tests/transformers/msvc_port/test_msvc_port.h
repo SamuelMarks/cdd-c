@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_msvc_port.h
  * @brief Unit tests for MSVC port transformer.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <string.h>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ TEST test_cdd_transform_msvc(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_msvc_port_bld_fail;
+extern C_CDD_EXPORT int g_msvc_port_bld_fail;
 #endif
 
 TEST test_cdd_transform_msvc_builder_fails(void) {

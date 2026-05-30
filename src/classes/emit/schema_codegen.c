@@ -41,8 +41,8 @@
 
 #ifdef CDD_BUILD_TESTS
 #include <stdarg.h>
-int g_schema_fail_io_after = -1;
-int g_schema_io_calls = 0;
+C_CDD_EXPORT int g_schema_fail_io_after = -1;
+C_CDD_EXPORT int g_schema_io_calls = 0;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)
 #if defined(__GNUC__) || defined(__clang__)
     __attribute__((format(printf, 2, 3)));
@@ -105,9 +105,9 @@ static int print_header_guard_end(FILE *hfile, const char *basename) {
 /**
  * @brief Generates header.
  */
-int generate_header(const char *prefix, const char *basename,
-                    JSON_Object *schemas_obj,
-                    const struct CodegenConfig *config) {
+C_CDD_EXPORT int generate_header(const char *prefix, const char *basename,
+                                 JSON_Object *schemas_obj,
+                                 const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;
@@ -237,9 +237,9 @@ int generate_header(const char *prefix, const char *basename,
 /**
  * @brief Generates source.
  */
-int generate_source(const char *prefix, const char *basename,
-                    JSON_Object *schemas_obj,
-                    const struct CodegenConfig *config) {
+C_CDD_EXPORT int generate_source(const char *prefix, const char *basename,
+                                 JSON_Object *schemas_obj,
+                                 const struct CodegenConfig *config) {
   char fname[256];
   FILE *fp;
   size_t i;

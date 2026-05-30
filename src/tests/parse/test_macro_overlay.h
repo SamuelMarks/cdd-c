@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 #ifndef TEST_MACRO_OVERLAY_H
 #define TEST_MACRO_OVERLAY_H
 
@@ -7,6 +7,7 @@ extern int g_io_calls;
 extern "C" {
 #endif /* __cplusplus */
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "functions/parse/macro_overlay.h"
 #include <greatest.h>
 /* clang-format on */

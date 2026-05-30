@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "c_cdd_export.h"
 /* clang-format on */
 
 static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
@@ -239,7 +240,7 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
 }
 
 #ifdef CDD_BUILD_TESTS
-int g_err_perc_fail = 0;
+C_CDD_EXPORT int g_err_perc_fail = 0;
 #endif
 
 int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,

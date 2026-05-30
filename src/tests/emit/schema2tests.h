@@ -12,6 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <c_cdd_export.h>
 /* clang-format on */
 

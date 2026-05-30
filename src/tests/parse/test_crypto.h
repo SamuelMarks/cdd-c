@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_crypto.h
  * @brief Unit tests for the Abstract Crypto Interface.
@@ -19,6 +19,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <greatest.h>
 #include <stdio.h>

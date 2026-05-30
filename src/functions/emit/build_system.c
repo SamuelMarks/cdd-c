@@ -58,8 +58,7 @@ static int write_cmake_content(FILE *fp, const char *project_name,
                                int has_tests) {
   /* Standard Settings */
   CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD 90)\n"));
-  CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n"));
-  CHECK_IO(fprintf(fp, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n\n"));
+  CHECK_IO(fprintf(fp, "set(CMAKE_C_STANDARD_REQUIRED ON)\n\n"));
 
   /* Source Globbing (Simplification for generated projects) */
   CHECK_IO(

@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_schema_codegen.h
  * @brief Unit tests for schema to code generation.
@@ -15,6 +15,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 
 #include "classes/emit/schema_codegen.h"
@@ -520,7 +521,7 @@ TEST test_codegen_config_utils_guards(void) {
  * @return TEST
  */
 #ifdef CDD_BUILD_TESTS
-extern int g_schema_strdup_fail;
+extern C_CDD_EXPORT int g_schema_strdup_fail;
 #endif
 
 TEST test_schema_constraints_bounds(void) {
@@ -580,8 +581,8 @@ TEST test_schema_constraints_bounds(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_schema_fail_io_after;
-extern int g_schema_io_calls;
+extern C_CDD_EXPORT int g_schema_fail_io_after;
+extern C_CDD_EXPORT int g_schema_io_calls;
 #endif
 
 TEST test_schema_codegen_cli_exhaustive_io(void) {
@@ -709,7 +710,7 @@ TEST test_schema_codegen_specific_structs(void) {
 }
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_fail_alloc;
 #endif
 
 TEST test_schema_codegen_main_paths(void) {

@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_integration_c2openapi.h
  * @brief Integration tests for C to OpenAPI conversion.
@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <parson.h>
 #include <stdio.h>

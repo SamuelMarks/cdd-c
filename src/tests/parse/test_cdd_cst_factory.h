@@ -1,5 +1,5 @@
-extern int g_fail_io_after;
-extern int g_io_calls;
+extern C_CDD_EXPORT int g_fail_io_after;
+extern C_CDD_EXPORT int g_io_calls;
 /**
  * @file test_cdd_cst_factory.h
  * @brief Unit tests for the CST factory.
@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,8 +206,8 @@ TEST test_cst_parse_format(void) {
  */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_cst_alloc_token_fail;
-extern int g_cdd_cst_alloc_node_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
+extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
 
 TEST test_cdd_cst_parse_format_oom(void) {
   cdd_cst_tree_t *tree = NULL;
