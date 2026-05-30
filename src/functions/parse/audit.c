@@ -78,7 +78,7 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
     struct AuditViolation *new_items;
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc_audit;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
       if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
         new_items = NULL;
       else
@@ -98,7 +98,7 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].file_path = NULL;
     else
@@ -111,7 +111,7 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
   list->items[list->size].col = col;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].variable_name = NULL;
     else
@@ -123,7 +123,7 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
 #endif
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].allocator_name = NULL;
     else
@@ -323,7 +323,7 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
   size_t i;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       root_val = NULL;
     else

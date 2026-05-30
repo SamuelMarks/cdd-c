@@ -742,7 +742,7 @@ TEST test_doc_oom_and_edges(void) {
   const char *comment = "/**\n * @route GET /users/{id}   \n */";
   const char *comment2 = "/**\n * @summary some text   \n */";
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int rc_oom;
 #endif
 
@@ -788,7 +788,7 @@ TEST test_doc_oom_and_edges(void) {
   doc_metadata_free(&meta);
 
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int i;
     for (i = 1; i < 100; i++) {
       doc_metadata_init(&meta);

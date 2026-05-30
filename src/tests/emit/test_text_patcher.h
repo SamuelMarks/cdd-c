@@ -297,7 +297,7 @@ TEST test_patcher_oom(void) {
   {
     int i;
     struct TokenList tl2;
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 1000;
     ASSERT_EQ(ENOMEM, patch_list_init(&list));
     g_cdd_fail_alloc = 0;
@@ -338,7 +338,7 @@ TEST test_patcher_invalid(void) {
   struct PatchList pl3;
   struct TokenList tl_empty;
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
 #endif
 
   ASSERT_EQ(EINVAL, patch_list_add(NULL, 0, 1, strdup("a")));

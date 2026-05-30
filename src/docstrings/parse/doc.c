@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -68,7 +69,7 @@ static int extract_word(const char *str, const char *end, const char **next_out,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       res = NULL;
     else
@@ -116,7 +117,7 @@ static int extract_rest(const char *str, const char *end, char **_out_val) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       res = NULL;
     else

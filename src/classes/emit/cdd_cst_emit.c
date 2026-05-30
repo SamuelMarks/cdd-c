@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "cdd_cst_emit.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -145,7 +146,7 @@ int cdd_cst_emit(cdd_cst_tree_t *tree, char **out_str) {
     /* Empty file */
 
 #ifdef CDD_BUILD_TESTS
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     ctx.buf = (char *)(g_cdd_fail_alloc ? NULL : malloc(1));
 #else
     ctx.buf = (char *)malloc(1);

@@ -30,7 +30,7 @@ TEST test_cmake_modifier_basic(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int i;
   int rc;
   (void)f;
@@ -74,7 +74,7 @@ TEST test_cmake_modifier_global(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int i;
   int rc;
   (void)f;
@@ -125,7 +125,7 @@ TEST test_cmake_parser_oom(void) {
   char *diff_str = NULL;
   FILE *f;
   FILE *f2;
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int i;
   int rc;
   (void)f;

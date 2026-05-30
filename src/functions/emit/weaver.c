@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       ifdef_str = NULL;
     else
@@ -73,7 +74,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         endif_str = NULL;
       else
@@ -96,7 +97,7 @@ int weaver_wrap_ifdef(struct PatchList *patches, const struct TokenList *tokens,
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         endif_str = NULL;
       else
@@ -194,7 +195,7 @@ int weaver_inject_msvc_headers(struct PatchList *patches,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str = NULL;
     else
@@ -292,7 +293,7 @@ int weaver_vla_to_alloca(struct PatchList *patches,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str = NULL;
     else

@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ static int my_strdup(const char *s, char **out_val) {
   len = strlen(s) + 1;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
@@ -73,7 +74,7 @@ int cmake_modifier_add_compile_opt(struct CMakeModifier *mod, const char *opt) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       mod->compile_opts = NULL;
     else
@@ -106,7 +107,7 @@ int cmake_modifier_add_link_lib(struct CMakeModifier *mod, const char *lib) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       mod->link_libs = NULL;
     else
@@ -191,7 +192,7 @@ static int read_file_to_string(const char *filename, size_t *out_len,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       buf = NULL;
     else
@@ -252,7 +253,7 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       diff = NULL;
     else
@@ -276,7 +277,7 @@ int cmake_modifier_apply_diff(const struct CMakeModifier *mod,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       str_buf = NULL;
     else

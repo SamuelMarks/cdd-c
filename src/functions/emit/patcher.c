@@ -9,6 +9,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +29,7 @@ int patch_list_init(struct PatchList *list) {
   list->capacity = 8;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc == 1000)
       list->patches = NULL;
     else
@@ -81,7 +82,7 @@ int patch_list_add(struct PatchList *list, const size_t start_idx,
     struct Patch *new_arr;
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc == 2000)
         new_arr = NULL;
       else
@@ -170,7 +171,7 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
         out_cap = out_cap * 2 + text_len;
 #ifdef CDD_BUILD_TESTS
         {
-          extern int g_cdd_fail_alloc;
+          extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc == 3000)
             tmp = NULL;
           else
@@ -217,7 +218,7 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
         out_cap = out_cap * 2 + tok_len; /* Ensure growth */
 #ifdef CDD_BUILD_TESTS
         {
-          extern int g_cdd_fail_alloc;
+          extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc == 3000)
             tmp = NULL;
           else
@@ -253,7 +254,7 @@ int patch_list_apply(struct PatchList *list, const struct TokenList *tokens,
         out_cap = out_cap * 2 + text_len;
 #ifdef CDD_BUILD_TESTS
         {
-          extern int g_cdd_fail_alloc;
+          extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc == 3000)
             tmp = NULL;
           else

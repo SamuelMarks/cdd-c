@@ -9,6 +9,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,7 @@
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_fail_alloc;
+extern C_CDD_EXPORT int g_cdd_fail_alloc;
 #endif
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -30,7 +31,7 @@ extern int g_cdd_fail_alloc;
 
 /* Helper macro for I/O checking */
 #ifdef CDD_BUILD_TESTS
-extern int g_cdd_fprintf_fail;
+extern C_CDD_EXPORT int g_cdd_fprintf_fail;
 static int check_io_helper2(int rc) {
   if (g_cdd_fprintf_fail && --g_cdd_fprintf_fail == 0)
     return -1;
@@ -342,7 +343,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc == 3333) {
       errno = ENOMEM;
       fclose(fp);
@@ -387,7 +388,7 @@ int generate_cmake_project(const char *output_path, const char *project_name,
     fp = fopen(src_cmake, "w");
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc == 4444) {
         errno = 0;
         fclose(fp);

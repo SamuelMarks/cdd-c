@@ -386,8 +386,8 @@ TEST test_cst_parser_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_node_fail;
-    extern int g_cdd_cst_realloc_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
 
     g_cdd_cst_alloc_node_fail = 1;
     tree = NULL;
@@ -437,7 +437,7 @@ TEST parse_tokens_oom(void) {
   {
     struct TokenList *tl = NULL;
     struct CstNodeList cst_nodes;
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int i;
     int rc;
 

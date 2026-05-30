@@ -293,7 +293,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       int rc_wattr;
       g_cdd_fail_alloc = 2001;
       rc_wattr = weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
@@ -350,7 +350,7 @@ TEST test_weaver_oom(void) {
   struct TokenList *tl = NULL;
   const char *src = "int a;";
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
   int r1, r2, r3, r6, r8;
 #endif
 

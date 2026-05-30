@@ -18,6 +18,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,7 +83,7 @@ int cst_list_add(struct CstNodeList *list, enum CstNodeKind kind,
     const size_t new_cap = (list->capacity == 0) ? 64 : list->capacity * 2;
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         new_arr = NULL;
       else

@@ -6,6 +6,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = NULL;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
@@ -35,7 +36,7 @@ static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 #else
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       d = NULL;
     else
@@ -115,7 +116,7 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
         brace_cap = brace_cap == 0 ? 16 : brace_cap * 2;
 #ifdef CDD_BUILD_TESTS
         {
-          extern int g_cdd_fail_alloc;
+          extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
             brace_stack = NULL;
           else

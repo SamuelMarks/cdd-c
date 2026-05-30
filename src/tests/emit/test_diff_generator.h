@@ -79,7 +79,7 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     g_cdd_fail_alloc = 5555;
     ASSERT_EQ(ENOMEM,
               patch_list_generate_diff(tokens, &patch_list, "file.c", &diff2));
@@ -100,7 +100,7 @@ TEST test_diff_generation_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
     /* Trigger realloc failure */
     diff3 = NULL;

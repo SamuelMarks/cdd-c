@@ -221,7 +221,7 @@ TEST test_rewriter_body_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int rc_oom_rb1;
     g_cdd_fail_alloc = 1;
     rc_oom_rb1 = rewrite_body(tl, &sites, funcs, 1, NULL, &output);

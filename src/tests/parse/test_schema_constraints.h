@@ -796,7 +796,7 @@ TEST test_schema_constraints_cleanup_branch(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_schema_strdup_fail;
+    extern C_CDD_EXPORT int g_schema_strdup_fail;
     struct SchemaConstraints sc_oom;
     schema_constraints_init(&sc_oom);
     g_schema_strdup_fail = 1;

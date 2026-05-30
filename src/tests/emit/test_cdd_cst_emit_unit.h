@@ -241,7 +241,7 @@ TEST test_cdd_cst_emit_oom_multi(void) {
 TEST test_cdd_cst_emit_empty_oom(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
-  extern int g_cdd_fail_alloc;
+  extern C_CDD_EXPORT int g_cdd_fail_alloc;
 
   g_cdd_fail_alloc = 1;
   ASSERT_EQ(ENOMEM, cdd_cst_emit(&tree, &out));

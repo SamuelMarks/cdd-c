@@ -36,7 +36,7 @@ int c_cdd_strdup(const char *s, char **out_s) {
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_strdup_fail;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
     if (g_cdd_strdup_fail && --g_cdd_strdup_fail == 0) {
       *out_s = NULL;
       return 12;

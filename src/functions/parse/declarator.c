@@ -12,6 +12,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -49,7 +50,7 @@ static int join_tokens_range(const struct TokenList *tokens, size_t start,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       buf = NULL;
     else
@@ -224,7 +225,7 @@ static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
   struct DeclType *t = NULL;
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       t = NULL;
     else
@@ -233,7 +234,7 @@ static int create_node(enum DeclTypeKind kind, struct DeclType **_out_val) {
 #else
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
       t = NULL;
     else

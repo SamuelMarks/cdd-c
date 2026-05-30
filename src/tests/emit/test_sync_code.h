@@ -284,8 +284,8 @@ TEST test_sync_oom(void) {
   {
     const char *argv[] = {"header.h", "impl.c"};
     FILE *f;
-    extern int g_cdd_fail_alloc;
-    extern int g_cdd_fprintf_fail;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fprintf_fail;
     int rc_s;
     int rc_s2;
 

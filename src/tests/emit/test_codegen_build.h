@@ -137,7 +137,7 @@ TEST test_cbuild_unsupported(void) {
 TEST test_build_system_oom(void) {
   /* Using generate_cmake_project directly */
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fprintf_fail;
+  extern C_CDD_EXPORT int g_cdd_fprintf_fail;
   int i;
   int rc;
   for (i = 1; i < 200; i++) {
@@ -157,7 +157,7 @@ TEST test_build_system_oom(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     int rc_fp2;
     int rc_fp;
     g_cdd_fail_alloc = 1111;

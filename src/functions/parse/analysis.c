@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -125,7 +126,7 @@ static int get_assigned_var(const struct TokenList *tokens, size_t assign_idx,
     char *name = NULL;
 #ifdef CDD_BUILD_TESTS
     {
-      extern int g_cdd_fail_alloc;
+      extern C_CDD_EXPORT int g_cdd_fail_alloc;
       if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
         name = NULL;
       else

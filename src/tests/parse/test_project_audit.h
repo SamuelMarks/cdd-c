@@ -309,7 +309,7 @@ TEST test_audit_oom(void) {
 #ifdef CDD_BUILD_TESTS
   {
     FILE *f;
-    extern int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
     int i;
     int rc;
     char *json;

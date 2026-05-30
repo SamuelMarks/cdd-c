@@ -5,6 +5,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,7 +162,7 @@ int rewrite_body(const struct TokenList *tokens,
   /* 1. Initialize Patcher */
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc == 1)
       return ENOMEM;
   }

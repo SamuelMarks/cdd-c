@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include "classes/emit/schema.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -24,7 +25,7 @@ int schema_constraints_init(struct SchemaConstraints *sc) {
 }
 
 #ifdef CDD_BUILD_TESTS
-int g_schema_strdup_fail = 0;
+C_CDD_EXPORT int g_schema_strdup_fail = 0;
 #endif
 
 int schema_constraints_add_required(struct SchemaConstraints *sc,

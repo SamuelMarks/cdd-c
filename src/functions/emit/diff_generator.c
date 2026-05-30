@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_fail_alloc;
+    extern C_CDD_EXPORT int g_cdd_fail_alloc;
     if (g_cdd_fail_alloc == 5555)
       diff_buf = NULL;
     else
@@ -78,7 +79,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
           diff_cap *= 2;
           {
 #ifdef CDD_BUILD_TESTS
-            extern int g_cdd_fail_alloc;
+            extern C_CDD_EXPORT int g_cdd_fail_alloc;
             char *new_buf;
             if (g_cdd_fail_alloc == 6666)
               new_buf = NULL;
@@ -108,7 +109,7 @@ int patch_list_generate_diff(const struct TokenList *tokens,
       diff_cap = diff_cap * 2 + strlen(p->text);
       {
 #ifdef CDD_BUILD_TESTS
-        extern int g_cdd_fail_alloc;
+        extern C_CDD_EXPORT int g_cdd_fail_alloc;
         char *new_buf;
         if (g_cdd_fail_alloc == 7777)
           new_buf = NULL;
