@@ -327,14 +327,17 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     # curl
     if (BUILD_TESTING OR C_CDD_BUILD_TESTS)
     if (C_CDD_USE_LIBCURL)
-        FetchContent_Declare(
-            curl
-            GIT_REPOSITORY https://github.com/curl/curl.git
-            GIT_TAG curl-8_4_0
-        )
-        set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
-                set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
-        FetchContent_MakeAvailable(curl)
+        find_package(CURL QUIET)
+        if (NOT CURL_FOUND AND NOT TARGET CURL::libcurl)
+            FetchContent_Declare(
+                curl
+                GIT_REPOSITORY https://github.com/curl/curl.git
+                GIT_TAG curl-8_4_0
+            )
+            set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
+            set(CURL_DISABLE_TESTS ON CACHE BOOL "" FORCE)
+            FetchContent_MakeAvailable(curl)
+        endif()
     endif ()
     endif ()
 
