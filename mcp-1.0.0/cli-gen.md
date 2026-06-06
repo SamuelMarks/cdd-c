@@ -152,7 +152,7 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | EmbeddedResource (`annotations`) (`priority`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | EmbeddedResource (`resource`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | EmbeddedResource (`type`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **EmptyResult** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **EmptyResult** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **GetPromptRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | GetPromptRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | GetPromptRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
