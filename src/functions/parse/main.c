@@ -147,6 +147,8 @@ static void print_help(const char *prog_name) {
        "specification.");
   puts("  serve_json_rpc [-p|--port <int>] [-l|--listen <address>]");
   puts("      Expose CLI interface as a JSON-RPC server.");
+  puts("  mcp");
+  puts("      Expose CLI interface as an MCP server via stdio.");
   puts("");
   puts("Language-Specific Commands:");
   puts("  audit <directory>");
@@ -445,6 +447,12 @@ int cdd_main(int argc, char **argv) {
     rc = schema2code_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "serve_json_rpc") == 0) {
     rc = serve_json_rpc_main(argc - 1, argv + 1);
+  } else if (strcmp(cmd, "mcp") == 0) {
+    /* Expose Generator via MCP stdio */
+    /* Register Tools: cdd_generate (Code Scaffold), cdd_inspect (Schema
+     * Inspection), cdd_sync (Bidirectional Sync) */
+    printf("Starting MCP server for cdd generator via stdio...\n");
+    rc = serve_mcp_stdio_main(argc - 1, argv + 1);
   } else {
     /* Fallback for other commands */
     if (strcmp(cmd, "openapi2client") == 0) {

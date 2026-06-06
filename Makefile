@@ -32,13 +32,13 @@ build_docs:
 
 build:
 	mkdir -p build_cmake
-	cd build_cmake && cmake .. && cmake --build . --config Release
+	cd build_cmake && cmake -S .. -B . && cmake --build . --config Release
 	mkdir -p $(BIN_DIR)
 	cp build_cmake/bin/cdd-c $(BIN_DIR)/ || cp build_cmake/bin/Release/cdd-c.exe $(BIN_DIR)/ || echo "Ensure cdd-c is built."
 
 test:
 	mkdir -p build_cmake
-	cd build_cmake && cmake .. && cmake --build . && ctest --output-on-failure
+	cd build_cmake && cmake -S .. -B . && cmake --build . && ctest --output-on-failure
 
 run: build
 	$(CLI_BIN) $(ARGS)
@@ -58,13 +58,13 @@ build_wasm:
 	fi
 	@sed -i.bak 's/VERSION 3.4.0/VERSION 3.11/g' wasi-sdk/share/cmake/wasi-sdk.cmake || true
 	rm -rf build_wasm && mkdir -p build_wasm
-	cd build_wasm && cmake .. -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
+	cd build_wasm && cmake -S .. -B . -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
 		-DCMAKE_C_FLAGS="-DCFS_OS_DOS=1 -include sys/types.h -include unistd.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
 		-DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
 		-DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_MULTI_THREADED=OFF -DENABLE_THREADED_RESOLVER=OFF -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON -DC_ABSTRACT_HTTP_USE_RAW_SOCKETS=ON \
 		-DBUILD_TESTING=OFF -DFETCHCONTENT_UPDATES_DISCONNECTED=ON -DC_CDD_BUILD_TESTS=OFF -DC_ABSTRACT_HTTP_BUILD_TESTING=OFF -DC_ORM_BUILD_TESTING=OFF -DC_FS_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release || true
 	sed -i.bak 's/STREQUAL "DOS"/STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL "DOS"/g' build_wasm/_deps/c_rest_framework-src/CMakeLists.txt || true
-	cd build_wasm && cmake .. -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
+	cd build_wasm && cmake -S .. -B . -DCMAKE_TOOLCHAIN_FILE=../wasi-sdk/share/cmake/wasi-sdk.cmake \
 		-DCMAKE_C_FLAGS="-DCFS_OS_DOS=1 -include sys/types.h -include unistd.h -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS" \
 		-DCMAKE_EXE_LINKER_FLAGS="-lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-process-clocks" \
 		-DC_CDD_USE_LIBCURL=OFF -DHTTP_ONLY=ON -DC_CDD_MULTI_THREADED=OFF -DENABLE_THREADED_RESOLVER=OFF -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON -DC_ABSTRACT_HTTP_USE_RAW_SOCKETS=ON \

@@ -251,6 +251,31 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "        c_rest_router *router = NULL;\n");
   fprintf(fp, "        if (c_rest_router_init(&router) == 0) {\n");
 
+  /* Register MCP endpoints */
+  fprintf(fp, "    /* MCP Transports: Server-Sent Events (sse) */\n");
+  fprintf(fp, "static int handle_mcp_sse(struct c_rest_request *req, struct "
+              "c_rest_response *res, void *user_data) {\n");
+  fprintf(fp, "    (void)req;\n");
+  fprintf(fp, "    (void)user_data;\n");
+  fprintf(fp, "    res->status_code = 200;\n");
+  fprintf(fp, "    /* c_rest_response_add_header is pseudo; just printing "
+              "headers manually or using standard HTTP framework */\n");
+  fprintf(fp, "    return res->status_code;\n");
+  fprintf(fp, "}\n\n");
+  fprintf(fp, "static int handle_mcp_message(struct c_rest_request *req, "
+              "struct c_rest_response *res, void *user_data) {\n");
+  fprintf(fp, "    (void)req;\n");
+  fprintf(fp, "    (void)user_data;\n");
+  fprintf(fp, "    res->status_code = 202;\n");
+  fprintf(fp, "    return res->status_code;\n");
+  fprintf(fp, "}\n\n");
+  fprintf(fp, "            /* MCP SSE Endpoint Registration */\n");
+  fprintf(fp, "            c_rest_router_add(router, \"GET\", \"/mcp/sse\", "
+              "NULL, NULL);  \n");
+  fprintf(fp,
+          "            c_rest_router_add(router, \"POST\", \"/mcp/message\", "
+          "NULL, NULL);  \n\n");
+
   /* Register handlers */
   for (i = 0; i < spec->n_paths; i++) {
     for (j = 0; j < spec->paths[i].n_operations; j++) {

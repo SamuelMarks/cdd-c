@@ -144,13 +144,91 @@ TEST test_serve_json_rpc_bad_port(void) {
 }
 
 /**
+ * @brief Tests MCP stdio main.
+ */
+TEST test_serve_mcp_stdio_main(void) {
+  char *argv[] = {"serve_mcp_stdio_main"};
+  int argc = 1;
+  int rc;
+
+  /* Create a temporary file and redirect stdin to it */
+  FILE *tmp = tmpfile();
+  if (tmp) {
+    int old_stdin = dup(fileno(stdin));
+    int old_stdout = dup(fileno(stdout));
+    FILE *devnull = fopen("/dev/null", "w");
+
+    /* Write test inputs to cover handle_stdio_request branches */
+    fprintf(tmp, "invalid json\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\"}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"version\",\"id\":1}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"id\":2}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/progress\"}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/message\"}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"logging/setLevel\",\"id\":3}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":4}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/list\",\"id\":5}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"resources/list\",\"id\":6}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"resources/read\",\"id\":7}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"prompts/list\",\"id\":8}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"prompts/get\",\"id\":9}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"unknown\",\"id\":10}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"id\":11}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"to_openapi\",\"id\":12}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"to_docs_json\",\"id\":13}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_invalid\","
+                 "\"id\":14}\n");
+    fprintf(
+        tmp,
+        "{\"jsonrpc\":\"2.0\",\"method\":\"from_openapi_to_sdk\",\"id\":15}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"cdd_inspect\"},\"id\":16}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/"
+                 "call\",\"params\":{\"name\":\"cdd_sync\"},\"id\":17}\n");
+
+    rewind(tmp);
+
+    dup2(fileno(tmp), fileno(stdin));
+    if (devnull)
+      dup2(fileno(devnull), fileno(stdout));
+
+    rc = serve_mcp_stdio_main(argc, argv);
+
+    dup2(old_stdin, fileno(stdin));
+    dup2(old_stdout, fileno(stdout));
+    close(old_stdin);
+    close(old_stdout);
+    fclose(tmp);
+    if (devnull)
+      fclose(devnull);
+    ASSERT_EQ(0, rc);
+  } else {
+    rc = serve_mcp_stdio_main(argc, argv);
+    ASSERT_EQ(0, rc);
+  }
+
+  PASS();
+}
+
+/**
  * @brief JSON RPC Server test suite.
  */
+
 SUITE(serve_json_rpc_suite) {
   RUN_TEST(test_serve_json_rpc_basic);
   RUN_TEST(test_serve_json_rpc_bad_port);
   RUN_TEST(test_serve_json_rpc_bind_fail);
   RUN_TEST(test_serve_json_rpc_listen_once);
+  RUN_TEST(test_serve_mcp_stdio_main);
 }
 
 #ifdef __cplusplus

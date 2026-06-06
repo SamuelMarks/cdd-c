@@ -12,6 +12,7 @@ extern "C" {
 /* clang-format on */
 
 extern C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv);
+extern C_CDD_EXPORT int serve_mcp_stdio_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

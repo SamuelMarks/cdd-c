@@ -1,3 +1,4 @@
+cov_final.txt
 patch_*
 vcpkg
 *build*/

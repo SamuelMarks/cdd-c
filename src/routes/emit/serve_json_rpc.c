@@ -97,6 +97,113 @@ static void handle_request(cdd_socket_t client_fd) {
   if (strcmp(method, "version") == 0) {
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.1\",\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "initialize") == 0) {
+    /* MCP Initialize Handshake Sequence */
+    const char *resp;
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    if (params) {
+        JSON_Object *clientInfo = json_object_get_object(params, "clientInfo");
+        JSON_Object *capabilities = json_object_get_object(params, "capabilities");
+        (void)clientInfo; /* Unused but mapped */
+        (void)capabilities; /* Unused but mapped */
+    }
+    resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.1\"}},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "notifications/initialized") == 0) {
+    /* MCP Initialized Acknowledgment (Fire and forget) */
+    /* No response needed for notification */
+  } else if (strcmp(method, "notifications/progress") == 0) {
+    /* MCP Progress Tracking */
+    /* Handled as fire and forget for now */
+  } else if (strcmp(method, "notifications/message") == 0) {
+    /* MCP Logging Message */
+    /* Handled as fire and forget for now */
+  } else if (strcmp(method, "logging/setLevel") == 0) {
+    /* MCP SetLevelRequest */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "ping") == 0) {
+    /* MCP Liveness ping */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "tools/list") == 0) {
+    /* MCP Tool Listing */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\",\"inputSchema\":{\"type\":\"object\"}}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "resources/list") == 0) {
+    /* MCP Resource Listing */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "roots/list") == 0) {
+      const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
+      send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "resources/read") == 0) {
+    /* MCP Resource Read */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "prompts/list") == 0) {
+    /* MCP Prompt Listing */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "prompts/get") == 0) {
+    /* MCP Prompt Get */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "tools/call") == 0) {
+    /* MCP CallToolRequest */
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    const char *name = params ? json_object_get_string(params, "name") : NULL;
+    JSON_Object *arguments = params ? json_object_get_object(params, "arguments") : NULL;
+
+    if (!name || !arguments) {
+        send_rpc_error(client_fd, -32602, "Invalid params for tools/call");
+    } else if (strcmp(name, "to_openapi") == 0) {
+        const char *input = json_object_get_string(arguments, "input");
+        const char *output = json_object_get_string(arguments, "output");
+        if (!input || !output) {
+            send_rpc_error(client_fd, -32602, "Invalid arguments for to_openapi");
+        } else {
+            char *argv[5];
+            const char *resp;
+            argv[0] = "to_openapi";
+            argv[1] = "-i";
+            argv[2] = (char *)input;
+            argv[3] = "-o";
+            argv[4] = (char *)output;
+            to_openapi_cli_main(5, argv);
+            /* Return CallToolResult */
+            resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":null}";
+            send(client_fd, resp, (int)strlen(resp), 0);
+        }
+    } else if (strcmp(name, "to_docs_json") == 0) {
+        const char *input = json_object_get_string(arguments, "input");
+        const char *output = json_object_get_string(arguments, "output");
+        if (!input) {
+            send_rpc_error(client_fd, -32602, "Invalid arguments for to_docs_json");
+        } else {
+            char *argv[10];
+            int argc_call = 0;
+            const char *resp;
+            argv[argc_call++] = "to_docs_json";
+            argv[argc_call++] = "-i";
+            argv[argc_call++] = (char *)input;
+            if (output) {
+                argv[argc_call++] = "-o";
+                argv[argc_call++] = (char *)output;
+            }
+            if (json_object_get_boolean(arguments, "no_imports")) {
+                argv[argc_call++] = "--no-imports";
+            }
+            if (json_object_get_boolean(arguments, "no_wrapping")) {
+                argv[argc_call++] = "--no-wrapping";
+            }
+            to_docs_json_cli_main(argc_call, argv);
+            resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":null}";
+            send(client_fd, resp, (int)strlen(resp), 0);
+        }
+    } else {
+        send_rpc_error(client_fd, -32601, "Tool not found");
+    }
   } else if (strcmp(method, "to_openapi") == 0) {
     JSON_Object *params = json_object_get_object(root_obj, "params");
     const char *input = params ? json_object_get_string(params, "input") : NULL;
@@ -186,6 +293,168 @@ static void handle_request(cdd_socket_t client_fd) {
     send_rpc_success(client_fd);
   } else {
     send_rpc_error(client_fd, -32601, "Method not found");
+  }
+
+  json_value_free(root_val);
+}
+
+
+/**
+ * @brief Helper to respond with JSON-RPC error over stdio.
+ *
+ * @param id_val The JSON-RPC request ID.
+ * @param code The JSON-RPC error code.
+ * @param msg The JSON-RPC error message.
+ */
+static void send_stdio_rpc_error(JSON_Value *id_val, int code, const char *msg) {
+  char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+  printf("{\"jsonrpc\":\"2.0\",\"error\":{\"code\":%d,\"message\":\"%s\"},\"id\":%s}\n",
+         code, msg, id_str ? id_str : "null");
+  if (id_str) json_free_serialized_string(id_str);
+  fflush(stdout);
+}
+
+/**
+ * @brief Handles an MCP stdio request.
+ *
+ * @param body The JSON-RPC request body string.
+ */
+static void handle_stdio_request(const char *body) {
+  JSON_Value *root_val;
+  JSON_Object *root_obj;
+  const char *method;
+  JSON_Value *id_val;
+
+  root_val = json_parse_string(body);
+  if (!root_val) {
+    send_stdio_rpc_error(NULL, -32700, "Parse error");
+    return;
+  }
+
+  root_obj = json_value_get_object(root_val);
+  method = json_object_get_string(root_obj, "method");
+  id_val = json_object_get_value(root_obj, "id");
+
+  if (!method) {
+    send_stdio_rpc_error(id_val, -32600, "Invalid Request");
+    json_value_free(root_val);
+    return;
+  }
+
+  if (strcmp(method, "version") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":\"0.0.1\",\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "initialize") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.1\"}},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "notifications/initialized") == 0) {
+  } else if (strcmp(method, "notifications/progress") == 0) {
+    /* MCP Progress Tracking */
+  } else if (strcmp(method, "notifications/message") == 0) {
+    /* MCP Logging Message */
+  } else if (strcmp(method, "notifications/cancelled") == 0) {
+    /* MCP Request Cancellation */
+  } else if (strcmp(method, "logging/setLevel") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "ping") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "tools/list") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"tools\":[{\"name\":\"to_openapi\",\"description\":\"Generate OpenAPI spec from code\",\"inputSchema\":{\"type\":\"object\"}},{\"name\":\"to_docs_json\",\"description\":\"Generate JSON docs\",\"inputSchema\":{\"type\":\"object\"}}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "resources/list") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "roots/list") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "resources/read") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "prompts/list") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "prompts/get") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "tools/call") == 0) {
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    const char *name = params ? json_object_get_string(params, "name") : NULL;
+    JSON_Object *arguments = params ? json_object_get_object(params, "arguments") : NULL;
+
+    if (!name || !arguments) {
+        send_stdio_rpc_error(id_val, -32602, "Invalid params for tools/call");
+    } else if (strcmp(name, "to_openapi") == 0) {
+        const char *input = json_object_get_string(arguments, "input");
+        const char *output = json_object_get_string(arguments, "output");
+        if (!input || !output) {
+            send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_openapi");
+        } else {
+            char *argv[5];
+            char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+            argv[0] = "to_openapi";
+            argv[1] = "-i";
+            argv[2] = (char *)input;
+            argv[3] = "-o";
+            argv[4] = (char *)output;
+            to_openapi_cli_main(5, argv);
+            printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"OpenAPI generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
+            if (id_str) json_free_serialized_string(id_str);
+            fflush(stdout);
+        }
+    } else if (strcmp(name, "to_docs_json") == 0) {
+        const char *input = json_object_get_string(arguments, "input");
+        const char *output = json_object_get_string(arguments, "output");
+        if (!input) {
+            send_stdio_rpc_error(id_val, -32602, "Invalid arguments for to_docs_json");
+        } else {
+            char *argv[10];
+            int argc_call = 0;
+            char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+            argv[argc_call++] = "to_docs_json";
+            argv[argc_call++] = "-i";
+            argv[argc_call++] = (char *)input;
+            if (output) {
+                argv[argc_call++] = "-o";
+                argv[argc_call++] = (char *)output;
+            }
+            if (json_object_get_boolean(arguments, "no_imports")) {
+                argv[argc_call++] = "--no-imports";
+            }
+            if (json_object_get_boolean(arguments, "no_wrapping")) {
+                argv[argc_call++] = "--no-wrapping";
+            }
+            to_docs_json_cli_main(argc_call, argv);
+            printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Docs generation successful\"}],\"isError\":false},\"id\":%s}\n", id_str ? id_str : "null");
+            if (id_str) json_free_serialized_string(id_str);
+            fflush(stdout);
+        }
+    } else {
+        send_stdio_rpc_error(id_val, -32601, "Tool not found");
+    }
+  } else {
+    send_stdio_rpc_error(id_val, -32601, "Method not found");
   }
 
   json_value_free(root_val);
@@ -285,10 +554,30 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
 #endif
 }
 
+
+/**
+ * @brief Executes the MCP stdio main operation.
+ */
+C_CDD_EXPORT int serve_mcp_stdio_main(int argc, char **argv) {
+  char buffer[65536];
+  (void)argc;
+  (void)argv;
+
+  while (fgets(buffer, sizeof(buffer), stdin)) {
+    handle_stdio_request(buffer);
+  }
+  return 0;
+}
+
 #else
 #include "serve_json_rpc.h"
 /* clang-format on */
 int serve_json_rpc_main(int argc, char **argv) {
+  (void)argc;
+  (void)argv;
+  return -1;
+}
+int serve_mcp_stdio_main(int argc, char **argv) {
   (void)argc;
   (void)argv;
   return -1;

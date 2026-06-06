@@ -62,6 +62,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
+  fprintf(fp, "#include <parson.h>\n");
   {
     char *base = NULL;
     get_basename(config->filename_base, &base);
@@ -118,6 +119,8 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
               "8080)\\n\");\n");
   fprintf(fp, "  printf(\"  --threads <int>            Number of threads "
               "(default 4)\\n\\n\");\n");
+  fprintf(fp, "  printf(\"  %%-20s %%s\\n\", \"mcp\", \"Start the Model "
+              "Context Protocol (MCP) server\");\n");
   fprintf(fp, "  printf(\"Commands:\\n\");\n");
 
   /* Print commands */
@@ -192,6 +195,138 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "  (void)key_path;\n");
   fprintf(fp, "  (void)port;\n");
   fprintf(fp, "  (void)threads;\n\n");
+
+  /* MCP Subcommand handling */
+  fprintf(fp, "  if (strcmp(argv[cmd_idx], \"mcp\") == 0) {\n");
+  fprintf(fp, "    char buffer[65536];\n");
+  fprintf(fp, "    while (fgets(buffer, sizeof(buffer), stdin)) {\n");
+  fprintf(fp, "      JSON_Value *req_val = json_parse_string(buffer);\n");
+  fprintf(fp, "      if (!req_val) continue;\n");
+  fprintf(fp, "      JSON_Object *req_obj = json_value_get_object(req_val);\n");
+  fprintf(fp, "      const char *method = json_object_get_string(req_obj, "
+              "\"method\");\n");
+  fprintf(
+      fp,
+      "      JSON_Value *id_val = json_object_get_value(req_obj, \"id\");\n");
+  fprintf(fp, "      if (method) {\n");
+  fprintf(fp, "        if (strcmp(method, \"initialize\") == 0) {\n");
+  fprintf(fp,
+          "          printf(\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"id\\\":\");\n");
+  fprintf(fp, "          if (id_val) {\n");
+  fprintf(fp,
+          "             char *id_str = json_serialize_to_string(id_val);\n");
+  fprintf(fp, "             printf(\"%%s\", id_str);\n");
+  fprintf(fp, "             json_free_serialized_string(id_str);\n");
+  fprintf(fp, "          } else { printf(\"null\"); }\n");
+  fprintf(fp,
+          "          "
+          "printf(\",\\\"result\\\":{\\\"protocolVersion\\\":\\\"2024-11-"
+          "05\\\",\\\"capabilities\\\":{\\\"tools\\\":{}},\\\"serverInfo\\\":{"
+          "\\\"name\\\":\\\"cli\\\",\\\"version\\\":\\\"1.0\\\"}}}\\n\");\n");
+  fprintf(fp, "          fflush(stdout);\n");
+  fprintf(fp, "        } else if (strcmp(method, \"tools/list\") == 0) {\n");
+  fprintf(fp, "          JSON_Value *tools_val = %smcp_get_tools();\n",
+          config->func_prefix ? config->func_prefix : "");
+  fprintf(fp,
+          "          char *tools_str = json_serialize_to_string(tools_val);\n");
+  fprintf(fp,
+          "          printf(\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"id\\\":\");\n");
+  fprintf(fp, "          if (id_val) {\n");
+  fprintf(fp,
+          "             char *id_str = json_serialize_to_string(id_val);\n");
+  fprintf(fp, "             printf(\"%%s\", id_str);\n");
+  fprintf(fp, "             json_free_serialized_string(id_str);\n");
+  fprintf(fp, "          } else { printf(\"null\"); }\n");
+  fprintf(fp, "          printf(\",\\\"result\\\":{\\\"tools\\\":%%s}}\\n\", "
+              "tools_str);\n");
+  fprintf(fp, "          json_free_serialized_string(tools_str);\n");
+  fprintf(fp, "          json_value_free(tools_val);\n");
+  fprintf(fp, "          fflush(stdout);\n");
+  fprintf(fp, "        } else if (strcmp(method, \"tools/call\") == 0) {\n");
+  fprintf(fp, "          JSON_Object *params = json_object_get_object(req_obj, "
+              "\"params\");\n");
+  fprintf(fp, "          const char *name = json_object_get_string(params, "
+              "\"name\");\n");
+  fprintf(fp, "          char *args_str = "
+              "json_serialize_to_string(json_object_get_value(params, "
+              "\"arguments\"));\n");
+  fprintf(fp, "          char *out_result = NULL;\n");
+  fprintf(
+      fp,
+      "          int rc = %smcp_execute_tool(name, args_str, &out_result);\n",
+      config->func_prefix ? config->func_prefix : "");
+  fprintf(fp,
+          "          if (args_str) json_free_serialized_string(args_str);\n");
+  fprintf(fp,
+          "          printf(\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"id\\\":\");\n");
+  fprintf(fp, "          if (id_val) {\n");
+  fprintf(fp,
+          "             char *id_str = json_serialize_to_string(id_val);\n");
+  fprintf(fp, "             printf(\"%%s\", id_str);\n");
+  fprintf(fp, "             json_free_serialized_string(id_str);\n");
+  fprintf(fp, "          } else { printf(\"null\"); }\n");
+  fprintf(fp, "          if (rc == 0) {\n");
+  fprintf(fp, "            "
+              "printf(\",\\\"result\\\":{\\\"content\\\":[{\\\"type\\\":"
+              "\\\"text\\\",\\\"text\\\":\\\"%%s\\\"}]}}\\n\", out_result ? "
+              "out_result : \"Success\");\n");
+  fprintf(fp, "          } else {\n");
+  fprintf(fp, "            "
+              "printf(\",\\\"result\\\":{\\\"isError\\\":true,\\\"content\\\":["
+              "{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"%%s\\\"}]}}\\n\", "
+              "out_result ? out_result : \"Error executing tool\");\n");
+  fprintf(fp, "          }\n");
+  fprintf(fp, "          if (out_result) free(out_result);\n");
+  fprintf(fp, "          fflush(stdout);\n");
+  fprintf(fp,
+          "        } else if (strcmp(method, \"resources/list\") == 0) {\n");
+  fprintf(fp, "          JSON_Value *res_val = %smcp_get_resources();\n",
+          config->func_prefix ? config->func_prefix : "");
+  fprintf(fp, "          char *res_str = json_serialize_to_string(res_val);\n");
+  fprintf(fp,
+          "          printf(\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"id\\\":\");\n");
+  fprintf(fp, "          if (id_val) {\n");
+  fprintf(fp,
+          "             char *id_str = json_serialize_to_string(id_val);\n");
+  fprintf(fp, "             printf(\"%%s\", id_str);\n");
+  fprintf(fp, "             json_free_serialized_string(id_str);\n");
+  fprintf(fp, "          } else { printf(\"null\"); }\n");
+  fprintf(fp,
+          "          printf(\",\\\"result\\\":{\\\"resources\\\":%%s}}\\n\", "
+          "res_str);\n");
+  fprintf(fp, "          json_free_serialized_string(res_str);\n");
+  fprintf(fp, "          json_value_free(res_val);\n");
+  fprintf(fp, "          fflush(stdout);\n");
+  fprintf(fp,
+          "        } else if (strcmp(method, \"resources/read\") == 0) {\n");
+  fprintf(fp, "          JSON_Object *params = json_object_get_object(req_obj, "
+              "\"params\");\n");
+  fprintf(
+      fp,
+      "          const char *uri = json_object_get_string(params, \"uri\");\n");
+  fprintf(fp, "          JSON_Value *res_val = %smcp_read_resource(uri);\n",
+          config->func_prefix ? config->func_prefix : "");
+  fprintf(fp, "          char *res_str = json_serialize_to_string(res_val);\n");
+  fprintf(fp,
+          "          printf(\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"id\\\":\");\n");
+  fprintf(fp, "          if (id_val) {\n");
+  fprintf(fp,
+          "             char *id_str = json_serialize_to_string(id_val);\n");
+  fprintf(fp, "             printf(\"%%s\", id_str);\n");
+  fprintf(fp, "             json_free_serialized_string(id_str);\n");
+  fprintf(fp, "          } else { printf(\"null\"); }\n");
+  fprintf(fp,
+          "          printf(\",\\\"result\\\":{\\\"contents\\\":%%s}}\\n\", "
+          "res_str);\n");
+  fprintf(fp, "          json_free_serialized_string(res_str);\n");
+  fprintf(fp, "          json_value_free(res_val);\n");
+  fprintf(fp, "          fflush(stdout);\n");
+  fprintf(fp, "        }\n");
+  fprintf(fp, "      }\n");
+  fprintf(fp, "      json_value_free(req_val);\n");
+  fprintf(fp, "    }\n");
+  fprintf(fp, "    return 0;\n");
+  fprintf(fp, "  }\n\n");
 
   /* Check Webhooks, External Docs, JSON Schema Dialect */
   if (spec->n_webhooks > 0) {

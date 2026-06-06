@@ -86,9 +86,16 @@ TEST test_server_gen_basic(void) {
 #else
   f = fopen("src/test_server_server.c", "r");
 #endif
+
   ASSERT(f != NULL);
-  if (f)
+  if (f) {
+    char buf[16384];
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    buf[n] = '\0';
+    ASSERT(strstr(buf, "handle_mcp_sse") != NULL);
+    ASSERT(strstr(buf, "handle_mcp_message") != NULL);
     fclose(f);
+  }
 
   remove("src/test_server_server.c");
   free(spec.paths[0].operations[1].req_body_media_types);

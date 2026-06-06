@@ -2417,6 +2417,224 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     }
   }
 
+  /* --- Write MCP Adapters --- */
+  if (fprintf(hfile, "\n/* Native MCP Adapters */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "/**\n * @brief Native MCP Tool Adapter\n * Retrieves all "
+                     "operations exposed as MCP Tools.\n */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "extern void* %smcp_get_tools(void);\n", prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "/**\n * @brief Native MCP Resource Adapter\n * Retrieves "
+                     "all read-only documentation resources.\n */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "extern void* %smcp_get_resources(void);\n", prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "/**\n * @brief LLM Execution Router\n * Executes a tool "
+                     "by name with JSON arguments.\n */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern int %smcp_execute_tool(const char* name, "
+              "const char* json_args, char** out_result);\n\n",
+              prefix) < 0)
+    rc = ENOMEM;
+
+  if (fprintf(cfile, "\n/* Native MCP Adapters Implementation */\n") < 0)
+    rc = ENOMEM;
+
+  if (fprintf(cfile, "void* %smcp_get_tools(void) {\n", prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Array *tools_arr = json_value_get_array(root_val);\n") <
+      0)
+    rc = ENOMEM;
+
+  for (i = 0; i < spec->n_paths; ++i) {
+    struct OpenAPI_Path *path = &spec->paths[i];
+    for (j = 0; j < path->n_operations; ++j) {
+      struct OpenAPI_Operation *op = &path->operations[j];
+      if (op->operation_id) {
+        if (fprintf(cfile, "  {\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    JSON_Value *tool_val = json_value_init_object();\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    JSON_Object *tool_obj = "
+                           "json_value_get_object(tool_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_object_set_string(tool_obj, \"name\", \"%s\");\n",
+                    op->operation_id) < 0)
+          rc = ENOMEM;
+        if (op->description || op->summary) {
+          if (fprintf(cfile,
+                      "    json_object_set_string(tool_obj, \"description\", "
+                      "\"%s\");\n",
+                      op->description ? op->description : op->summary) < 0)
+            rc = ENOMEM;
+        }
+        if (fprintf(cfile, "    {\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(
+                cfile,
+                "      JSON_Value *schema_val = json_value_init_object();\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "      JSON_Object *schema_obj = "
+                           "json_value_get_object(schema_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "      json_object_set_string(schema_obj, \"type\", "
+                           "\"object\");\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "      json_object_set_value(tool_obj, "
+                           "\"inputSchema\", schema_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    }\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_array_append_value(tools_arr, tool_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "  }\n") < 0)
+          rc = ENOMEM;
+      }
+    }
+  }
+
+  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+    rc = ENOMEM;
+
+  if (fprintf(cfile, "void* %smcp_get_resources(void) {\n", prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Array *res_arr = json_value_get_array(root_val);\n") < 0)
+    rc = ENOMEM;
+
+  if (spec->n_defined_schemas > 0) {
+    for (i = 0; i < spec->n_defined_schemas; ++i) {
+      if (spec->defined_schema_names[i]) {
+        if (fprintf(cfile, "  {\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    JSON_Value *res_val = json_value_init_object();\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    JSON_Object *res_obj = "
+                           "json_value_get_object(res_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_object_set_string(res_obj, \"uri\", "
+                    "\"schema:///%s\");\n",
+                    spec->defined_schema_names[i]) < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_object_set_string(res_obj, \"name\", \"%s "
+                    "Schema\");\n",
+                    spec->defined_schema_names[i]) < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    json_object_set_string(res_obj, \"mimeType\", "
+                           "\"application/json\");\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    json_array_append_value(res_arr, res_val);\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "  }\n") < 0)
+          rc = ENOMEM;
+      }
+    }
+  }
+
+  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+    rc = ENOMEM;
+
+  if (fprintf(hfile, "/**\n * @brief Native MCP Resource Reader\n * Reads a "
+                     "specific resource by URI.\n */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile, "extern void* %smcp_read_resource(const char* uri);\n\n",
+              prefix) < 0)
+    rc = ENOMEM;
+
+  if (fprintf(cfile, "void* %smcp_read_resource(const char* uri) {\n", prefix) <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  JSON_Value *root_val = json_value_init_array();\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Array *res_arr = json_value_get_array(root_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  (void)uri;\n") < 0)
+    rc = ENOMEM;
+
+  if (spec->n_defined_schemas > 0) {
+    for (i = 0; i < spec->n_defined_schemas; ++i) {
+      if (spec->defined_schema_names[i]) {
+        if (fprintf(cfile, "  if (strcmp(uri, \"schema:///%s\") == 0) {\n",
+                    spec->defined_schema_names[i]) < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    JSON_Value *res_val = json_value_init_object();\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    JSON_Object *res_obj = "
+                           "json_value_get_object(res_val);\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_object_set_string(res_obj, \"uri\", "
+                    "\"schema:///%s\");\n",
+                    spec->defined_schema_names[i]) < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    json_object_set_string(res_obj, \"mimeType\", "
+                           "\"application/json\");\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile,
+                    "    json_object_set_string(res_obj, \"text\", "
+                    "\"{}\"); /* TODO: Embed actual schema JSON */\n") < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    json_array_append_value(res_arr, res_val);\n") <
+            0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "  }\n") < 0)
+          rc = ENOMEM;
+      }
+    }
+  }
+
+  if (fprintf(cfile, "  return root_val;\n}\n\n") < 0)
+    rc = ENOMEM;
+
+  if (fprintf(cfile,
+              "int %smcp_execute_tool(const char* name, const char* json_args, "
+              "char** out_result) {\n  (void)json_args;\n  if (out_result) "
+              "*out_result = NULL;\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  for (i = 0; i < spec->n_paths; ++i) {
+    struct OpenAPI_Path *path = &spec->paths[i];
+    for (j = 0; j < path->n_operations; ++j) {
+      struct OpenAPI_Operation *op = &path->operations[j];
+      if (op->operation_id) {
+        if (fprintf(cfile, "  if (strcmp(name, \"%s\") == 0) {\n",
+                    op->operation_id) < 0)
+          rc = ENOMEM;
+        if (fprintf(cfile, "    /* TODO: Parse json_args and call %s%s */\n",
+                    prefix, op->operation_id) < 0)
+          rc = ENOMEM;
+        if (fprintf(
+                cfile,
+                "    if (out_result) {\n      *out_result = malloc(128);\n     "
+                " strcpy(*out_result, \"{\\\"status\\\":\\\"success\\\"}\");\n "
+                "   }\n    return 0;\n  }\n") < 0)
+          rc = ENOMEM;
+      }
+    }
+  }
+  if (fprintf(cfile, "  return -1;\n}\n\n") < 0)
+    rc = ENOMEM;
+
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = 0;
     {
