@@ -301,12 +301,12 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | PromptListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | PromptListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | PromptListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| **PromptMessage** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptMessage (`content`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptMessage (`role`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **PromptReference** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptReference (`name`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptReference (`type`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **PromptMessage** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptMessage (`content`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptMessage (`role`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **PromptReference** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptReference (`name`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptReference (`type`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ReadResourceRequest** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceRequest (`method`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceRequest (`params`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -339,21 +339,21 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | **ResourceReference** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ResourceReference (`type`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ResourceReference (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ResourceTemplate** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) (`audience`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) (`priority`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`description`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`mimeType`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`name`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`uriTemplate`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ResourceUpdatedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`params`) (`uri`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ResourceTemplate** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) (`audience`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) (`priority`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`description`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`name`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`uriTemplate`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ResourceUpdatedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`params`) (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Result** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | Result (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| **Role** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **Role** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Root** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Root (`name`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Root (`uri`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -361,9 +361,9 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | RootsListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | RootsListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | RootsListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| **SamplingMessage** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SamplingMessage (`content`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SamplingMessage (`role`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **SamplingMessage** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SamplingMessage (`content`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SamplingMessage (`role`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ServerCapabilities** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ServerCapabilities (`experimental`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ServerCapabilities (`logging`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
