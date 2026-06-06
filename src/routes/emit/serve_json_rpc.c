@@ -139,11 +139,29 @@ static void handle_request(cdd_socket_t client_fd) {
       send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/read") == 0) {
     /* MCP Resource Read */
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"}]},\"id\":null}";
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "tools/read_image") == 0) {
+    /* MCP ImageContent example endpoint */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\",\"mimeType\":\"image/png\",\"annotations\":{\"audience\":[\"user\"],\"priority\":1.0}}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "prompts/list") == 0) {
     /* MCP Prompt Listing */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "sampling/createMessage") == 0) {
+    /* MCP CreateMessageRequest */
+    JSON_Object *params = json_object_get_object(root_obj, "params");
+    JSON_Array *messages = params ? json_object_get_array(params, "messages") : NULL;
+    int maxTokens = params ? (int)json_object_get_number(params, "maxTokens") : 0;
+    const char *includeContext = params ? json_object_get_string(params, "includeContext") : NULL;
+    JSON_Object *metadata = params ? json_object_get_object(params, "metadata") : NULL;
+    JSON_Object *modelPreferences = params ? json_object_get_object(params, "modelPreferences") : NULL;
+    JSON_Array *stopSequences = params ? json_object_get_array(params, "stopSequences") : NULL;
+    const char *systemPrompt = params ? json_object_get_string(params, "systemPrompt") : NULL;
+    double temperature = params && json_object_has_value_of_type(params, "temperature", JSONNumber) ? json_object_get_number(params, "temperature") : 0.0;
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"},\"id\":null}";
+    (void)messages; (void)maxTokens; (void)includeContext; (void)metadata; (void)modelPreferences; (void)stopSequences; (void)systemPrompt; (void)temperature;
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "prompts/get") == 0) {
     /* MCP Prompt Get */
@@ -385,7 +403,12 @@ static void handle_stdio_request(const char *body) {
     fflush(stdout);
   } else if (strcmp(method, "resources/read") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
-    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "tools/read_image") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"content\":[{\"type\":\"image\",\"data\":\"iVBORw0KGgo=\",\"mimeType\":\"image/png\",\"annotations\":{\"audience\":[\"user\"],\"priority\":1.0}}]},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
   } else if (strcmp(method, "prompts/list") == 0) {

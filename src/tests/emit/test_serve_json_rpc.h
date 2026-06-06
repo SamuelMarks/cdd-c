@@ -180,6 +180,32 @@ TEST test_serve_mcp_stdio_main(void) {
     fprintf(tmp,
             "{\"jsonrpc\":\"2.0\",\"method\":\"prompts/list\",\"id\":8}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"prompts/get\",\"id\":9}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"roots/list\",\"id\":18}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"resources/templates/"
+                 "list\",\"id\":19}\n");
+    fprintf(
+        tmp,
+        "{\"jsonrpc\":\"2.0\",\"method\":\"completion/complete\",\"id\":20}\n");
+    fprintf(
+        tmp,
+        "{\"jsonrpc\":\"2.0\",\"method\":\"resources/subscribe\",\"id\":21}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"resources/"
+                 "unsubscribe\",\"id\":22}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/roots/"
+                 "list_changed\"}\n");
+    fprintf(tmp,
+            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/cancelled\"}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"sampling/"
+                 "createMessage\",\"params\":{\"messages\":[]},\"id\":23}\n");
+    fprintf(
+        tmp,
+        "{\"jsonrpc\":\"2.0\",\"method\":\"tools/read_image\",\"id\":24}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/resources/"
+                 "list_changed\"}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/tools/"
+                 "list_changed\"}\n");
+    fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/prompts/"
+                 "list_changed\"}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"unknown\",\"id\":10}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"id\":11}\n");
     fprintf(tmp, "{\"jsonrpc\":\"2.0\",\"method\":\"to_openapi\",\"id\":12}\n");
