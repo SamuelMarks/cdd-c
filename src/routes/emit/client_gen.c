@@ -2418,6 +2418,71 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   }
 
   /* --- Write MCP Adapters --- */
+  if (fprintf(hfile, "\n/* MCP Client (From) API */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_list_tools(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_call_tool(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern char* %smcp_client_ping(void* params, int req_id);\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_initialize(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern char* %smcp_client_list_resources(void* params, int "
+              "req_id);\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern char* %smcp_client_read_resource(void* params, int "
+              "req_id);\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_list_prompts(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_get_prompt(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern char* %smcp_client_complete(void* params, int req_id);\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_subscribe(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_unsubscribe(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          hfile,
+          "extern char* %smcp_client_set_level(void* params, int req_id);\n",
+          prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(hfile,
+              "extern char* %smcp_client_create_message(void* params, int "
+              "req_id);\n",
+              prefix) < 0)
+    rc = ENOMEM;
   if (fprintf(hfile, "\n/* Native MCP Adapters */\n") < 0)
     rc = ENOMEM;
   if (fprintf(hfile, "/**\n * @brief Native MCP Tool Adapter\n * Retrieves all "
@@ -2635,6 +2700,341 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (fprintf(cfile, "  return -1;\n}\n\n") < 0)
     rc = ENOMEM;
 
+  if (fprintf(cfile, "\n/* MCP Client (From) Implementation */\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_list_tools(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          cfile,
+          "  json_object_set_string(req_obj, \"method\", \"tools/list\");\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_call_tool(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          cfile,
+          "  json_object_set_string(req_obj, \"method\", \"tools/call\");\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_ping(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"method\", \"ping\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_initialize(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          cfile,
+          "  json_object_set_string(req_obj, \"method\", \"initialize\");\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_list_resources(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"resources/list\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_read_resource(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"resources/read\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_list_prompts(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"prompts/list\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_get_prompt(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(
+          cfile,
+          "  json_object_set_string(req_obj, \"method\", \"prompts/get\");\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_complete(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"completion/complete\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_subscribe(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"resources/subscribe\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_unsubscribe(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"resources/unsubscribe\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_set_level(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"logging/setLevel\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "char* %smcp_client_create_message(void* params, "
+              "int req_id) {\n",
+              prefix) < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  JSON_Value *req_val = json_value_init_object();\n  "
+              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_string(req_obj, \"method\", "
+                     "\"sampling/createMessage\");\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  json_object_set_number(req_obj, \"id\", req_id);\n") <
+      0)
+    rc = ENOMEM;
+  if (fprintf(cfile,
+              "  if (params) { json_object_set_value(req_obj, \"params\", "
+              "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
+    rc = ENOMEM;
+  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+                     "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
+    rc = ENOMEM;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
     rc = 0;
     {
