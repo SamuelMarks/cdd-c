@@ -135,11 +135,24 @@ static void handle_request(cdd_socket_t client_fd) {
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resources\":[{\"uri\":\"file:///openapi.json\",\"name\":\"OpenAPI Spec\",\"mimeType\":\"application/json\"}]},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "roots/list") == 0) {
-      const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
-      send(client_fd, resp, (int)strlen(resp), 0);
+    /* MCP Root Listing */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "resources/templates/list") == 0) {
+    /* MCP Resource Templates Listing */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"resourceTemplates\":[]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "resources/read") == 0) {
     /* MCP Resource Read */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "resources/subscribe") == 0) {
+    /* MCP Subscribe Request */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "resources/unsubscribe") == 0) {
+    /* MCP Unsubscribe Request */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "tools/read_image") == 0) {
     /* MCP ImageContent example endpoint */
@@ -166,6 +179,10 @@ static void handle_request(cdd_socket_t client_fd) {
   } else if (strcmp(method, "prompts/get") == 0) {
     /* MCP Prompt Get */
     const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":null}";
+    send(client_fd, resp, (int)strlen(resp), 0);
+  } else if (strcmp(method, "completion/complete") == 0) {
+    /* MCP Complete Request */
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"completion\":{\"values\":[\"example\"],\"hasMore\":false,\"total\":1}},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "tools/call") == 0) {
     /* MCP CallToolRequest */
@@ -376,6 +393,14 @@ static void handle_stdio_request(const char *body) {
     /* MCP Logging Message */
   } else if (strcmp(method, "notifications/cancelled") == 0) {
     /* MCP Request Cancellation */
+  } else if (strcmp(method, "notifications/roots/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/resources/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/tools/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/prompts/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/roots/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/resources/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/tools/list_changed") == 0) {
+  } else if (strcmp(method, "notifications/prompts/list_changed") == 0) {
   } else if (strcmp(method, "logging/setLevel") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
     printf("{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":%s}\n", id_str ? id_str : "null");
@@ -401,9 +426,24 @@ static void handle_stdio_request(const char *body) {
     printf("{\"jsonrpc\":\"2.0\",\"result\":{\"roots\":[{\"uri\":\"file:///\",\"name\":\"workspace\"}]},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
+  } else if (strcmp(method, "resources/templates/list") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"resourceTemplates\":[]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
   } else if (strcmp(method, "resources/read") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
     printf("{\"jsonrpc\":\"2.0\",\"result\":{\"contents\":[{\"uri\":\"file:///openapi.json\",\"mimeType\":\"application/json\",\"text\":\"{}\"},{\"uri\":\"file:///image.png\",\"mimeType\":\"image/png\",\"blob\":\"iVBORw0KGgo=\"}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "resources/subscribe") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "resources/unsubscribe") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
   } else if (strcmp(method, "tools/read_image") == 0) {
@@ -416,9 +456,19 @@ static void handle_stdio_request(const char *body) {
     printf("{\"jsonrpc\":\"2.0\",\"result\":{\"prompts\":[{\"name\":\"generate_sdk\",\"description\":\"Generate SDK prompt\",\"arguments\":[{\"name\":\"language\",\"description\":\"Target language\",\"required\":true}]}]},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
+  } else if (strcmp(method, "sampling/createMessage") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"role\":\"assistant\",\"content\":{\"type\":\"text\",\"text\":\"Sampled message\"},\"model\":\"test-model\",\"stopReason\":\"endSeq\"},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
   } else if (strcmp(method, "prompts/get") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
     printf("{\"jsonrpc\":\"2.0\",\"result\":{\"description\":\"Generate SDK\",\"messages\":[{\"role\":\"user\",\"content\":{\"type\":\"text\",\"text\":\"Generate SDK\"}}]},\"id\":%s}\n", id_str ? id_str : "null");
+    if (id_str) json_free_serialized_string(id_str);
+    fflush(stdout);
+  } else if (strcmp(method, "completion/complete") == 0) {
+    char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"completion\":{\"values\":[\"example\"],\"hasMore\":false,\"total\":1}},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
   } else if (strcmp(method, "tools/call") == 0) {

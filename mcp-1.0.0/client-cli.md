@@ -115,36 +115,36 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | **ClientNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ClientRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ClientResult** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **CompleteRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`params`) (`argument`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`params`) (`argument`) (`name`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`params`) (`argument`) (`value`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteRequest (`params`) (`ref`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **CompleteResult** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteResult (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteResult (`completion`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteResult (`completion`) (`hasMore`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteResult (`completion`) (`total`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CompleteResult (`completion`) (`values`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **CreateMessageRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`includeContext`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`maxTokens`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`messages`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`metadata`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`modelPreferences`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`stopSequences`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`systemPrompt`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageRequest (`params`) (`temperature`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **CreateMessageResult** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageResult (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageResult (`content`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageResult (`model`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageResult (`role`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| CreateMessageResult (`stopReason`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **CompleteRequest** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`params`) (`argument`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`params`) (`argument`) (`name`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`params`) (`argument`) (`value`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteRequest (`params`) (`ref`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **CompleteResult** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteResult (`completion`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteResult (`completion`) (`hasMore`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteResult (`completion`) (`total`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CompleteResult (`completion`) (`values`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **CreateMessageRequest** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`includeContext`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`maxTokens`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`messages`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`metadata`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`modelPreferences`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`stopSequences`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`systemPrompt`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageRequest (`params`) (`temperature`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **CreateMessageResult** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageResult (`content`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageResult (`model`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageResult (`role`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| CreateMessageResult (`stopReason`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Cursor** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | **EmbeddedResource** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | EmbeddedResource (`annotations`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -220,14 +220,14 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | ListPromptsResult (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ListPromptsResult (`nextCursor`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ListPromptsResult (`prompts`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ListResourceTemplatesRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesRequest (`params`) (`cursor`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ListResourceTemplatesResult** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesResult (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesResult (`nextCursor`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ListResourceTemplatesResult (`resourceTemplates`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ListResourceTemplatesRequest** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesRequest (`params`) (`cursor`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ListResourceTemplatesResult** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesResult (`nextCursor`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ListResourceTemplatesResult (`resourceTemplates`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ListResourcesRequest** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ListResourcesRequest (`method`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ListResourcesRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -297,75 +297,75 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | PromptArgument (`description`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | PromptArgument (`name`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | PromptArgument (`required`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **PromptListChangedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptListChangedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptListChangedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptListChangedNotification (`params`) (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **PromptMessage** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptMessage (`content`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptMessage (`role`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **PromptReference** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptReference (`name`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| PromptReference (`type`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **PromptListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **PromptMessage** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptMessage (`content`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptMessage (`role`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **PromptReference** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptReference (`name`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| PromptReference (`type`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ReadResourceRequest** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceRequest (`method`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceRequest (`params`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceRequest (`params`) (`uri`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ReadResourceResult** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ReadResourceResult (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| ReadResourceResult (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ReadResourceResult (`contents`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **Request** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Request (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Request (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Request (`params`) (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Request (`params`) (`_meta`) (`progressToken`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **RequestId** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **Request** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Request (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Request (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Request (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Request (`params`) (`_meta`) (`progressToken`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **RequestId** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Resource** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Resource (`annotations`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Resource (`annotations`) (`audience`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Resource (`annotations`) (`priority`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Resource (`description`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| Resource (`annotations`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Resource (`annotations`) (`audience`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Resource (`annotations`) (`priority`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| Resource (`description`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | Resource (`mimeType`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Resource (`name`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| Resource (`size`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| Resource (`size`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | Resource (`uri`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ResourceContents** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ResourceContents (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ResourceContents (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ResourceListChangedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceListChangedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceListChangedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceListChangedNotification (`params`) (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ResourceListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ResourceReference** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceReference (`type`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceReference (`uri`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ResourceTemplate** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) (`audience`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`annotations`) (`priority`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`description`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`mimeType`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`name`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceTemplate (`uriTemplate`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ResourceUpdatedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ResourceUpdatedNotification (`params`) (`uri`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceReference (`type`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceReference (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ResourceTemplate** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) (`audience`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`annotations`) (`priority`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`description`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`mimeType`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`name`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceTemplate (`uriTemplate`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ResourceUpdatedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ResourceUpdatedNotification (`params`) (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Result** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
-| Result (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| Result (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Role** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **Root** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Root (`name`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Root (`uri`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **RootsListChangedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| RootsListChangedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| RootsListChangedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| RootsListChangedNotification (`params`) (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **SamplingMessage** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SamplingMessage (`content`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SamplingMessage (`role`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **RootsListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| RootsListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| RootsListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| RootsListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **SamplingMessage** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SamplingMessage (`content`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SamplingMessage (`role`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **ServerCapabilities** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ServerCapabilities (`experimental`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| ServerCapabilities (`experimental`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ServerCapabilities (`logging`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | ServerCapabilities (`prompts`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | ServerCapabilities (`prompts`) (`listChanged`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -381,10 +381,10 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | SetLevelRequest (`method`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | SetLevelRequest (`params`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | SetLevelRequest (`params`) (`level`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **SubscribeRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SubscribeRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SubscribeRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| SubscribeRequest (`params`) (`uri`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **SubscribeRequest** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SubscribeRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SubscribeRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| SubscribeRequest (`params`) (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
 | **TextContent** | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | TextContent (`annotations`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | TextContent (`annotations`) (`audience`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
@@ -402,11 +402,11 @@ Exposing the `cdd` bidirectional code generator itself to MCP allows AI models t
 | Tool (`inputSchema`) (`required`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Tool (`inputSchema`) (`type`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
 | Tool (`name`) | `[x]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **ToolListChangedNotification** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ToolListChangedNotification (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ToolListChangedNotification (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| ToolListChangedNotification (`params`) (`_meta`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| **UnsubscribeRequest** | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| UnsubscribeRequest (`method`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| UnsubscribeRequest (`params`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
-| UnsubscribeRequest (`params`) (`uri`) | `[ ]` , `[ ]` | `[x]` , `[ ]` | `[ ]` , `[ ]` | |
+| **ToolListChangedNotification** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ToolListChangedNotification (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ToolListChangedNotification (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| ToolListChangedNotification (`params`) (`_meta`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| **UnsubscribeRequest** | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| UnsubscribeRequest (`method`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| UnsubscribeRequest (`params`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
+| UnsubscribeRequest (`params`) (`uri`) | `[x]` , `[ ]` | `[ ]` , `[ ]` | `[ ]` , `[ ]` | |
