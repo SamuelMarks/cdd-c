@@ -23,6 +23,7 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/parse/sync.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int load_spec(const char *json, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json);
@@ -196,3 +197,5 @@ SUITE(api_sync_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_REFACTOR_API_SYNC_H */
+
+/* LCOV_EXCL_STOP */

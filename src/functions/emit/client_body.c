@@ -24,6 +24,7 @@
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -3707,3 +3708,5 @@ int codegen_client_write_body(FILE *fp, const struct OpenAPI_Operation *op,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

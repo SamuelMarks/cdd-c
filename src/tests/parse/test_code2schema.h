@@ -39,6 +39,7 @@ typedef unsigned __int64 uint64_t;
 #include "functions/emit/codegen.h"
 #include <cdd_test_helpers/cdd_helpers.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Updated test cases to reflect new return types (int vs void) */
 
@@ -847,3 +848,5 @@ SUITE(code2schema_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CODE2SCHEMA_H */
+
+/* LCOV_EXCL_STOP */

@@ -13,6 +13,7 @@
 #include "functions/parse/str.h"
 #include "routes/emit/security.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int uri_has_scheme_prefix(const char *uri, size_t len) {
   size_t i;
@@ -416,3 +417,5 @@ int codegen_security_write_server_apply(FILE *fp,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

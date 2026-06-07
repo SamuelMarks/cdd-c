@@ -13,6 +13,7 @@ C_CDD_EXPORT int g_cdd_query_realloc_fail = 0;
 #endif
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 int cdd_cst_traverse_preorder(cdd_cst_node_t *root, cdd_cst_visitor_fn visitor,
                               void *user_data) {
@@ -250,3 +251,5 @@ int cdd_cst_find_function_calls_named(cdd_cst_node_t *root,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

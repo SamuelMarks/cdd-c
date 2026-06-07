@@ -18,6 +18,22 @@
 #include <stdlib.h>
 #include <ctype.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
+
+/** @brief MAX_LOCAL_LABELS */
+#define MAX_LOCAL_LABELS 256
+/** @brief MAX_VLAS */
+#define MAX_VLAS 256
+/** @brief MAX_CLEANUPS */
+#define MAX_CLEANUPS 256
+
+#ifdef _MSC_VER
+/** @brief ULL_HEX_FMT */
+#define ULL_HEX_FMT "%I64x"
+#else
+/** @brief ULL_HEX_FMT */
+#define ULL_HEX_FMT "%llx"
+#endif
 
 static const char *pool_string_safe(cdd_cst_tree_t *tree, const char *str) {
   char *dup;
@@ -162,7 +178,6 @@ struct magic_ctx {
   /** @brief field */
   const uint8_t *func_name;
   /** @brief field */
-  /** @brief field */
   size_t func_len;
 };
 
@@ -206,15 +221,11 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
 /** @brief Struct definition */
 struct tramp_ctx {
   /** @brief field */
-  /** @brief field */
   const uint8_t *name;
-  /** @brief field */
   /** @brief field */
   size_t length;
   /** @brief field */
-  /** @brief field */
   int is_tramp;
-  /** @brief field */
   /** @brief field */
   cdd_cst_node_t *func_node;
 };
@@ -1094,9 +1105,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               {
                 char tb2[128];
 #if defined(_MSC_VER)
-#define ULL_HEX_FMT "%I64x"
+                /** @brief ULL_HEX_FMT */
+
 #else
-#define ULL_HEX_FMT "%llx"
+
 #endif
                 snprintf(tb2, 128, "0x" ULL_HEX_FMT "ULL",
                          (unsigned long long)high);
@@ -2115,51 +2127,37 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
   /* Unroll statement expressions, VLAs, and __label__s */
   {
-#define MAX_LOCAL_LABELS 256
-#define MAX_VLAS 256
-#define MAX_CLEANUPS 256
+
     /** @brief Struct definition */
     typedef struct {
       /** @brief field */
-      /** @brief field */
       const uint8_t *name;
-      /** @brief field */
       /** @brief field */
       size_t length;
       /** @brief field */
-      /** @brief field */
       char rename[64];
-      /** @brief field */
       /** @brief field */
       int depth;
     } local_label_t;
     /** @brief Struct definition */
     typedef struct {
       /** @brief field */
-      /** @brief field */
       const uint8_t *name;
       /** @brief field */
-      /** @brief field */
       size_t length;
-      /** @brief field */
       /** @brief field */
       int depth;
     } vla_t;
     /** @brief Struct definition */
     typedef struct {
       /** @brief field */
-      /** @brief field */
       const uint8_t *var_name;
-      /** @brief field */
       /** @brief field */
       size_t var_length;
       /** @brief field */
-      /** @brief field */
       const uint8_t *func_name;
       /** @brief field */
-      /** @brief field */
       size_t func_length;
-      /** @brief field */
       /** @brief field */
       int depth;
     } cleanup_t;
@@ -3530,3 +3528,5 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

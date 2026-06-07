@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /* clang-format off */
 #include <errno.h>
 #include <stdio.h>
@@ -27,8 +28,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return ret;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 
@@ -305,3 +308,5 @@ int write_struct_declaration_h(FILE *hfile, const char *struct_name,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

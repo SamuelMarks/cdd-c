@@ -10,6 +10,7 @@
 
 #include "cdd_helpers.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Logs a precondition failure to stderr.
@@ -65,3 +66,5 @@ int write_to_file(const char *const filename, const char *const contents) {
 
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

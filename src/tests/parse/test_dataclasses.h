@@ -27,6 +27,7 @@ extern "C" {
 
 #include "cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /*
  * Mocks for strict recursive testing (Linked List).
@@ -856,3 +857,5 @@ SUITE(dataclasses_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_DATACLASSES_H */
+
+/* LCOV_EXCL_STOP */

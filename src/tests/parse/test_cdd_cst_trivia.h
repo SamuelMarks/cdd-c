@@ -20,6 +20,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_trivia.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests basic whitespace trivia detection.
@@ -239,3 +240,5 @@ SUITE(cdd_cst_trivia_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_TRIVIA_H */
+
+/* LCOV_EXCL_STOP */

@@ -43,7 +43,7 @@ struct CodegenJsonConfig {
  *
  * Generates serialization logic:
  * `@brief Converts the struct to a JSON string.`
- * int Struct_to_json(const struct Struct *obj, char **out);`
+ * `int Struct_to_json(const struct Struct *obj, char **out);`
  *
  * @param[in] fp Output stream.
  * @param[in] struct_name Name of the struct.
@@ -61,7 +61,7 @@ write_struct_to_json_func(FILE *fp, const char *struct_name,
  *
  * Generates the top-level string parser wrapper:
  * `@brief Converts the struct to a JSON string.`
- * int Struct_from_json(const char *json, struct Struct **out);`
+ * `int Struct_from_json(const char *json, struct Struct **out);`
  *
  * @param[in] fp Output stream.
  * @param[in] struct_name Name of the struct.
@@ -77,7 +77,7 @@ write_struct_from_json_func(FILE *fp, const char *struct_name,
  *
  * Generates the recursive parser that reads from a `JSON_Object`:
  * `@brief Converts the struct to a JSON string.`
- * int Struct_from_jsonObject(const JSON_Object *obj, struct Struct **out);`
+ * `int Struct_from_jsonObject(const JSON_Object *obj, struct Struct **out);`
  * Includes validation logic (min/max/regex) if constraints are present in
  * fields.
  *

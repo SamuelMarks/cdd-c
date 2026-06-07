@@ -1,5 +1,5 @@
 /**
- * @file url.h
+ * @file url_utils.h
  * @brief Utilities for URL encoding and Query String construction.
  *
  * Provides functionality to:

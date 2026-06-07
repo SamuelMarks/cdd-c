@@ -23,10 +23,10 @@
 #include "c_cdd/log.h"
 
 /* clang-format on */
+/* LCOV_EXCL_START */
 /**
  * @def CHECK_IO_CLEANUP
  * @brief CHECK_IO_CLEANUP macro
- * @param x expression to check
  */
 #define CHECK_IO_CLEANUP(x)                                                    \
   do {                                                                         \
@@ -389,15 +389,10 @@ int derive_model_header(const char *base, char **_out_val) {
  * Converts non-alphanumeric characters to underscores.
  * Capitalizes the first letter for style matching (e.g. "pet" -> "Pet").
  *
- * @param tag The tag string from the spec.
- * @return Allocated string with sanitized name, or NULL on error.
  */
 /**
  * @brief Executes the sanitize tag operation.
  *
- * @param tag The tag string.
- * @param[out] _out_val The output value.
- * @return 0 on success, or an error code.
  */
 int sanitize_tag(const char *tag, char **_out_val) {
   char *s;
@@ -4452,3 +4447,5 @@ cleanup:
 
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

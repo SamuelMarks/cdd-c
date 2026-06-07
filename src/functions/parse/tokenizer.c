@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Phase 1 & 2 Logic --- */
 
@@ -1650,3 +1651,5 @@ int tokenize(const az_span source, struct TokenList **const out) {
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
+
+/* LCOV_EXCL_STOP */

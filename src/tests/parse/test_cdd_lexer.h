@@ -13,6 +13,7 @@ extern "C" {
 #include <string.h>
 #include "classes/parse/cdd_lexer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief test_cdd_lexer_basic
@@ -462,3 +463,5 @@ SUITE(cdd_lexer_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_LEXER_H */
+
+/* LCOV_EXCL_STOP */

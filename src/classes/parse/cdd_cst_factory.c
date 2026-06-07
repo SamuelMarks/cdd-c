@@ -159,6 +159,10 @@ int cdd_cst_append_child_token(cdd_cst_node_t *parent, cdd_token_t *token) {
   return 0;
 }
 
+/**
+ * @brief Frees a node structure, but not its children.
+ * @param node The node to free.
+ */
 void cdd_cst_free_node_only(cdd_cst_node_t *node) {
   if (!node)
     return;

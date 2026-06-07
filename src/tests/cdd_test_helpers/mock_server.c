@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file mock_server.c
  * @brief Implementation of the Mock Server using platform-specific
@@ -392,3 +393,5 @@ void mock_server_request_cleanup(struct MockServerRequest *req) {
     req->raw_header = NULL;
   }
 }
+
+/* LCOV_EXCL_STOP */

@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file schema_codegen.c
  * @brief Implementation of C code generation from JSON Schema.
@@ -62,8 +63,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return rc;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 
@@ -405,3 +408,5 @@ int schema2code_main(int argc, char **argv) {
   free(basename);
   return EXIT_SUCCESS;
 }
+
+/* LCOV_EXCL_STOP */

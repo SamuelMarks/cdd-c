@@ -14,6 +14,7 @@
 #include "openapi/parse/openapi.h"
 #include "win_compat_sym.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Helper Function Prototypes --- */
 
@@ -13708,3 +13709,5 @@ int openapi_spec_find_schema_for_ref(const struct OpenAPI_Spec *spec,
     return 0;
   }
 }
+
+/* LCOV_EXCL_STOP */

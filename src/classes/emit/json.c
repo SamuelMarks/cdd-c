@@ -48,8 +48,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return ret;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 
@@ -238,13 +240,7 @@ int write_struct_from_json_func(FILE *fp, const char *struct_name,
 }
 
 /**
- * @brief Generates C code for write struct from jsonObject func.
- */
-/**
  * @brief Generates C code for write struct array from json func.
- * @param fp The file pointer to write to.
- * @param struct_name The name of the struct.
- * @param config The code generation configuration.
  * @return 0 on success, or an error code.
  */
 int write_struct_array_from_json_func(FILE *fp, const char *struct_name,
@@ -302,6 +298,11 @@ int write_struct_array_from_json_func(FILE *fp, const char *struct_name,
   return 0;
 }
 
+/**
+ * @brief Generate `_from_jsonObject` implementation (Core Logic).
+ *
+ * @return 0 on success.
+ */
 int write_struct_from_jsonObject_func(FILE *fp, const char *struct_name,
                                       const struct StructFields *sf,
                                       const struct CodegenJsonConfig *config) {

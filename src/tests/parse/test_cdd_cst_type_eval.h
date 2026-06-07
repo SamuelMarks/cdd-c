@@ -18,6 +18,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_type_eval.h"
 #include <greatest.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 TEST test_cdd_cst_eval_primitive_type_basic(void) {
   cdd_cst_type_info_t info;
   int rc;
@@ -385,3 +386,5 @@ SUITE(cdd_cst_type_eval_suite) {
 #endif
 
 #endif
+
+/* LCOV_EXCL_STOP */

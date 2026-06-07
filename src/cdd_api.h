@@ -13,12 +13,19 @@ extern "C" {
  * @brief Configuration for from_openapi command.
  */
 typedef struct {
+  /** @brief input */
   const char *input;
+  /** @brief input_dir */
   const char *input_dir;
+  /** @brief output */
   const char *output;
+  /** @brief no_github_actions */
   int no_github_actions;
+  /** @brief no_installable_package */
   int no_installable_package;
+  /** @brief tests */
   int tests;
+  /** @brief subcommand */
   const char *subcommand; /* "to_sdk", "to_sdk_cli", "to_server" */
 } cdd_from_openapi_config_t;
 
@@ -26,26 +33,37 @@ typedef struct {
  * @brief Configuration for to_openapi command.
  */
 typedef struct {
+  /** @brief input */
   const char *input;
+  /** @brief output */
   const char *output;
+  /** @brief cdd_to_openapi_config_t */
 } cdd_to_openapi_config_t;
 
 /**
  * @brief Configuration for to_docs_json command.
  */
 typedef struct {
+  /** @brief input */
   const char *input;
+  /** @brief output */
   const char *output;
+  /** @brief no_imports */
   int no_imports;
+  /** @brief no_wrapping */
   int no_wrapping;
+  /** @brief cdd_docs_json_config_t */
 } cdd_docs_json_config_t;
 
 /**
  * @brief Configuration for serve_json_rpc command.
  */
 typedef struct {
+  /** @brief port */
   int port;
+  /** @brief listen_host */
   const char *listen_host;
+  /** @brief cdd_serve_json_rpc_config_t */
 } cdd_serve_json_rpc_config_t;
 
 /**

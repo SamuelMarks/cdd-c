@@ -74,6 +74,7 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 - **Compilation**:
     - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
     - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
+- **Model Context Protocol (MCP)**: Run `cdd-c serve_json_rpc` to expose an MCP-compliant server via stdio or HTTP, allowing LLMs to seamlessly interface with your C codebase, understand types, and interact with the compiler.
 - **AST-Driven & Safe**: Employs static analysis instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
 - **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
 

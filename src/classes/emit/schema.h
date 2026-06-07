@@ -19,8 +19,11 @@ extern "C" {
  * @brief Schema type wrapper.
  */
 struct SchemaType {
+  /** @brief name */
   char *name;
+  /** @brief type */
   char *type;
+  /** @brief ref */
   char *ref;
 };
 
@@ -28,10 +31,15 @@ struct SchemaType {
  * @brief Represents schema validation constraints.
  */
 struct SchemaConstraints {
+  /** @brief required */
   char **required;
+  /** @brief required_count */
   size_t required_count;
+  /** @brief required_capacity */
   size_t required_capacity;
+  /** @brief has_additional_properties */
   int has_additional_properties;
+  /** @brief additional_properties */
   struct SchemaType *additional_properties;
 };
 

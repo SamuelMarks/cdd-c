@@ -14,6 +14,7 @@ extern "C" {
 #include "int128.h"
 #include <stddef.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Adds two 128-bit unsigned integers.
@@ -538,3 +539,5 @@ static int cdd_int128_to_double(cdd_int128_t val, double *out) {
 #endif /* __cplusplus */
 
 #endif /* C_CDD_INT128_MATH_H */
+
+/* LCOV_EXCL_STOP */

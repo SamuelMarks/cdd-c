@@ -22,6 +22,7 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/emit/security.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper to capture output */
 static int gen_sec_code(const struct OpenAPI_Spec *spec,
@@ -457,3 +458,5 @@ SUITE(codegen_security_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_SECURITY_H */
+
+/* LCOV_EXCL_STOP */

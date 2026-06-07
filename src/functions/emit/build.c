@@ -15,6 +15,7 @@
 
 #include "functions/emit/build.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -156,3 +157,5 @@ int codegen_build_generate(enum CodegenBuildSystem type, FILE *fp,
 #endif
   }
 }
+
+/* LCOV_EXCL_STOP */

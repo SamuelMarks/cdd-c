@@ -14,7 +14,8 @@ extern "C" {
 /**
  * @brief Allocates a new empty node of the given kind.
  * @param kind The node kind.
- * @return The new node, or NULL on memory error.
+ * @param out_node The new node.
+ * @return 0 on success.
  */
 C_CDD_EXPORT int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
                                     cdd_cst_node_t **out_node);
@@ -25,7 +26,8 @@ C_CDD_EXPORT int cdd_cst_alloc_node(enum cdd_cst_node_kind_t kind,
  * @param tree The CST tree.
  * @param kind The token kind.
  * @param text The literal string text.
- * @return The new token, or NULL on error.
+ * @param out_token The new token.
+ * @return 0 on success.
  */
 C_CDD_EXPORT int cdd_cst_create_token(cdd_cst_tree_t *tree,
                                       enum cdd_token_kind_t kind,
@@ -38,7 +40,8 @@ C_CDD_EXPORT int cdd_cst_create_token(cdd_cst_tree_t *tree,
  * @param kind The token kind.
  * @param text The text buffer.
  * @param length The text length.
- * @return The new token, or NULL on error.
+ * @param out_token The new token.
+ * @return 0 on success.
  */
 C_CDD_EXPORT int cdd_cst_create_token_len(cdd_cst_tree_t *tree,
                                           enum cdd_token_kind_t kind,

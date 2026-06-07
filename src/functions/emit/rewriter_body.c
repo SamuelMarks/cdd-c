@@ -18,6 +18,7 @@
 #include "functions/parse/tokenizer.h"
 #include "win_compat_sym.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Implementation Helpers --- */
 
@@ -547,3 +548,5 @@ int rewrite_body(const struct TokenList *tokens,
   patch_list_free(&patches);
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

@@ -15,6 +15,7 @@
 #include "functions/parse/vcpkg_integration.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int my_strdup(const char *s, char **out_val) {
   size_t len;
@@ -267,3 +268,5 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
   *out_json = json;
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

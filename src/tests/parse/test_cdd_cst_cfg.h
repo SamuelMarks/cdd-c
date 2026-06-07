@@ -18,6 +18,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include <greatest.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests basic functionality of the CFG generator.
@@ -300,3 +301,5 @@ SUITE(cdd_cst_cfg_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_CFG_H */
+
+/* LCOV_EXCL_STOP */

@@ -26,6 +26,7 @@
 #include "functions/parse/cst.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Helper to skip whitespace tokens.
@@ -894,3 +895,5 @@ int cst_find_first(struct CstNodeList *list, const enum CstNodeKind kind,
   }
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

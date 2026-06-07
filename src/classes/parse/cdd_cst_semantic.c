@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_semantic_oom_extract = 0;
 C_CDD_EXPORT int g_cdd_semantic_oom_scope = 0;
@@ -168,3 +169,5 @@ int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   *out_env = env;
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

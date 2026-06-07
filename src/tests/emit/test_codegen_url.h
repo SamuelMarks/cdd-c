@@ -22,6 +22,7 @@ extern "C" {
 #include "openapi/parse/openapi.h"
 #include "routes/emit/url.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int gen_url_code(const char *tmpl,
                         const struct OpenAPI_Parameter *params, size_t n_params,
@@ -1072,3 +1073,5 @@ SUITE(codegen_url_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_URL_H */
+
+/* LCOV_EXCL_STOP */

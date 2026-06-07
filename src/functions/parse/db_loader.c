@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Internal function to check if a dynamic library can be loaded.
@@ -98,3 +99,5 @@ int check_sqlite3_available(int *out_avail) {
 int check_mysql_available(int *out_avail) {
   return check_lib("libmysql.dll", "libmysqlclient.so", out_avail);
 }
+
+/* LCOV_EXCL_STOP */

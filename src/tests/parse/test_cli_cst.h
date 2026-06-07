@@ -21,6 +21,7 @@ extern "C" {
 #include "functions/parse/fs.h"
 #include "cdd_test_helpers/cdd_helpers.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests extern C transformer in audit mode via CLI.
@@ -137,3 +138,5 @@ SUITE(cli_cst_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CLI_CST_H */
+
+/* LCOV_EXCL_STOP */

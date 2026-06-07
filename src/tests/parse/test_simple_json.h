@@ -16,6 +16,7 @@ extern "C" {
 #include "../mocks/emit/simple.h"
 #include "../mocks/emit/simple_json.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests basic null handling of cleanup.
@@ -100,3 +101,5 @@ SUITE(simple_mocks_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_SIMPLE_JSON_H */
+
+/* LCOV_EXCL_STOP */

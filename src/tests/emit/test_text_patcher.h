@@ -22,6 +22,7 @@ extern "C" {
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper to setup a token list from a string */
 static int setup_patch_tokens(const char *code, struct TokenList **_out_val) {
@@ -411,3 +412,5 @@ SUITE(text_patcher_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_TEXT_PATCHER_H */
+
+/* LCOV_EXCL_STOP */

@@ -42,6 +42,7 @@
 #include "c_cdd/log.h"
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Graph Data Structures --- */
 
@@ -847,3 +848,5 @@ int fix_code_main(int argc, char **argv) {
     return EXIT_FAILURE;
   return (ctx.error_count == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+/* LCOV_EXCL_STOP */

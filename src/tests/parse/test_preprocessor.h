@@ -25,6 +25,7 @@ extern "C" {
 #include "functions/parse/preprocessor.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #define PATH_SEP_CHAR '\\'
@@ -577,3 +578,5 @@ SUITE(preprocessor_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_PREPROCESSOR_H */
+
+/* LCOV_EXCL_STOP */

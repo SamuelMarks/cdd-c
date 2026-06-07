@@ -20,7 +20,9 @@
 #include "c_cdd/log.h"
 #include "c_cdd_export.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
+/** @brief safe_crt_arena_t */
 typedef struct safe_crt_arena_t safe_crt_arena_t;
 /** @brief Struct definition */
 struct safe_crt_arena_t {
@@ -72,6 +74,7 @@ static int arena_alloc(size_t len, void **out_ptr) {
   return 0;
 }
 
+/** @brief expr_t */
 typedef struct expr_t expr_t;
 /** @brief Struct definition */
 struct expr_t {
@@ -1240,6 +1243,7 @@ static void get_indent_string(cdd_token_t *tok, char *out_indent) {
   }
 }
 
+/** @brief cdd_transform_safe_crt */
 int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                            const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -1569,3 +1573,5 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

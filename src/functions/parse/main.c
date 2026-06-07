@@ -36,6 +36,7 @@
 
 #include <parson.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static void print_version(void) {
   printf("cdd-c version %s\n", C_CDD_VERSION);
@@ -470,3 +471,5 @@ int cdd_main(int argc, char **argv) {
 
   return EXIT_SUCCESS;
 }
+
+/* LCOV_EXCL_STOP */

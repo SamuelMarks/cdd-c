@@ -22,6 +22,7 @@ extern "C" {
 #include "classes/emit/struct.h" /* For struct_fields init helpers */
 #include "classes/emit/types.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Union Tests --- */
 
@@ -802,3 +803,5 @@ SUITE(codegen_types_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_TYPES_H */
+
+/* LCOV_EXCL_STOP */

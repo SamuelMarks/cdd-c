@@ -16,6 +16,7 @@ extern "C" {
 
 #include "functions/emit/codegen.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #ifdef _WIN32
 #else
@@ -378,3 +379,5 @@ SUITE(codegen_defaults_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_DEFAULTS_H */
+
+/* LCOV_EXCL_STOP */

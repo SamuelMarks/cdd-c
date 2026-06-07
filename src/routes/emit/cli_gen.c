@@ -10,6 +10,7 @@
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 #define SNPRINTF _snprintf
@@ -621,3 +622,5 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

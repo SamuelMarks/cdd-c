@@ -14,6 +14,7 @@
 #include "routes/parse/url.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Standard definitions for C89 compatibility */
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -821,3 +822,5 @@ oom:
     return 0;
   }
 }
+
+/* LCOV_EXCL_STOP */

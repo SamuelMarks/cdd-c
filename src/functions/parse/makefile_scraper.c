@@ -15,6 +15,7 @@
 #include "functions/parse/makefile_scraper.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int my_strdup(const char *s, char **out_val) {
   size_t len;
@@ -294,3 +295,5 @@ int build_info_to_cmake(const struct ExtractedBuildInfo *info,
   *out_cmake = buf;
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

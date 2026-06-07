@@ -21,8 +21,10 @@ static size_t cdd_fwrite_hook(const void *ptr, size_t size, size_t nmemb,
     return 0;
   return fwrite(ptr, size, nmemb, stream);
 }
+/** @brief FWRITE_HOOK macro */
 #define FWRITE_HOOK cdd_fwrite_hook
 #else
+/** @brief FWRITE_HOOK macro */
 #define FWRITE_HOOK fwrite
 #endif
 

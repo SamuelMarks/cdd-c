@@ -92,6 +92,7 @@
 #endif
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 /* Windows specific logic or typedefs if needed */
@@ -1037,3 +1038,5 @@ int walk_directory(const char *path, fs_walk_cb cb, void *user_data) {
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

@@ -58,8 +58,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return ret;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 
@@ -73,7 +75,7 @@ int codegen_make_generate(FILE *fp, const struct MakeConfig *config) {
   CHECK_IO(FPRINTF_HOOK(fp, "cmake_minimum_required(VERSION %s)\n",
                         config->min_cmake_version ? config->min_cmake_version
                                                   : "3.10"));
-  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.1 LANGUAGES C)\n\n",
+  CHECK_IO(FPRINTF_HOOK(fp, "project(%s VERSION 0.0.2 LANGUAGES C)\n\n",
                         config->project_name));
 
   /* Core Sources */

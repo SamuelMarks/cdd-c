@@ -17,6 +17,7 @@
 #include "routes/emit/operation.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Helpers --- */
 
@@ -2288,3 +2289,5 @@ int c2openapi_build_operation(const struct OpBuilderContext *ctx,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

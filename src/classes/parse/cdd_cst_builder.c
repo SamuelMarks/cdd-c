@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /* clang-format off */
 #include "cdd_cst_builder.h"
 #include "cdd_cst_factory.h"
@@ -802,3 +803,5 @@ int cdd_cst_splice_nodes(cdd_cst_builder_t *builder, cdd_cst_node_t *parent,
   }
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

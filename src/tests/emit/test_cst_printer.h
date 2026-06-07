@@ -22,6 +22,7 @@ extern "C" {
 #include "functions/emit/cst_printer.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests exact CST printing.
@@ -95,3 +96,5 @@ SUITE(cst_printer_suite) { RUN_TEST(test_cst_print_exact); }
 #endif /* __cplusplus */
 
 #endif /* TEST_CST_PRINTER_H */
+
+/* LCOV_EXCL_STOP */

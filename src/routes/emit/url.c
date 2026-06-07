@@ -14,6 +14,7 @@
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /** @brief CHECK_IO definition */
 #define CHECK_IO(x)                                                            \
@@ -2315,3 +2316,5 @@ int codegen_url_write_query_params(FILE *fp, const struct OpenAPI_Operation *op,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

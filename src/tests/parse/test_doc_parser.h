@@ -30,6 +30,7 @@ extern "C" {
 
 #include "docstrings/parse/doc.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Test Helpers --- */
 
@@ -845,3 +846,5 @@ SUITE(doc_parser_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_DOC_PARSER_H */
+
+/* LCOV_EXCL_STOP */

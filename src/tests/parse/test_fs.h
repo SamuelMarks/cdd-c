@@ -28,6 +28,7 @@ extern "C" {
 #include <sys/stat.h>
 #endif /* !_MSC_VER */
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 TEST test_get_basename(void) {
   char *res = NULL;
@@ -389,3 +390,5 @@ SUITE(fs_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_FS_H */
+
+/* LCOV_EXCL_STOP */

@@ -30,6 +30,7 @@ extern "C" {
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Test the tokenization, analysis, and rewriting pipeline on a single
@@ -442,3 +443,5 @@ SUITE(integration_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_C_CDD_INTEGRATION_H */
+
+/* LCOV_EXCL_STOP */

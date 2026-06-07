@@ -28,6 +28,7 @@ extern "C" {
 
 #include "functions/parse/crypto_types.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helpers */
 
@@ -221,3 +222,5 @@ SUITE(crypto_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CRYPTO_H */
+
+/* LCOV_EXCL_STOP */

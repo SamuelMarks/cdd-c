@@ -69,7 +69,6 @@ struct OpenAPI_KV {
 };
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Join object-style key/value pairs into a form-encoded value string.
  *
  * Produces a single string suitable for use as the value of a form-style
@@ -77,13 +76,8 @@ struct OpenAPI_KV {
  * Keys and values are percent-encoded using form rules; the delimiter is
  * inserted as-is between tokens.
  *
- * @param[in] kvs The key/value array.
- * @param[in] n Number of entries in kvs.
- * @param[in] delim Delimiter string to insert between tokens (e.g., ",",
  *                  "%20", "%7C").
- * @param[in] allow_reserved If non-zero, preserve reserved characters in
  *                           values (except form delimiters).
- * @return Newly allocated string containing the joined value, or NULL on
  * allocation failure.
  */
 extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
@@ -92,49 +86,39 @@ extern C_CDD_EXPORT int openapi_kv_join_form(const struct OpenAPI_KV *kvs,
                                              char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for use in a URL.
  *
  * Conforms to RFC 3986. Encodes all characters except:
  * ALPHA, DIGIT, "-", ".", "_", "~".
  * Spaces are encoded as "%20".
  *
- * @param[in] str The null-terminated string to encode.
- * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
 extern C_CDD_EXPORT int url_encode(const char *str, char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string while allowing reserved characters.
  *
  * Encodes all characters except RFC 3986 unreserved and reserved sets.
  * Preserves existing percent-encoded triples ("%HH") verbatim.
  * Spaces are encoded as "%20".
  *
- * @param[in] str The null-terminated string to encode.
- * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
 extern C_CDD_EXPORT int url_encode_allow_reserved(const char *str,
                                                   char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded.
  *
  * Encodes all characters except: ALPHA, DIGIT, "-", ".", "_", "*".
  * Spaces are encoded as "+".
  *
- * @param[in] str The null-terminated string to encode.
- * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
 extern C_CDD_EXPORT int url_encode_form(const char *str, char **_out_val);
 
 /**
- * @param[out] _out_val Pointer to store the result
  * @brief Percent-encode a string for application/x-www-form-urlencoded while
  * allowing reserved characters (except delimiters).
  *
@@ -142,8 +126,6 @@ extern C_CDD_EXPORT int url_encode_form(const char *str, char **_out_val);
  * always encoded to avoid breaking form key/value delimiters. Spaces are
  * encoded as "+" and existing percent-encoded triples are preserved.
  *
- * @param[in] str The null-terminated string to encode.
- * @return A newly allocated string containing the encoded result, or NULL on
  * error/allocation failure.
  */
 extern C_CDD_EXPORT /**
@@ -156,8 +138,6 @@ extern C_CDD_EXPORT /**
 /**
  * @brief Initialize a query parameters container.
  *
- * @param[out] qp The structure to initialize.
- * @return 0 on success, EINVAL if qp is NULL.
  */
 extern C_CDD_EXPORT int url_query_init(struct UrlQueryParams *qp);
 
@@ -165,17 +145,12 @@ extern C_CDD_EXPORT int url_query_init(struct UrlQueryParams *qp);
  * @brief Free resources associated with a query parameters container.
  * Frees all key/value strings and the internal array.
  *
- * @param[in] qp The structure to free. Safe to pass NULL.
  */
 extern C_CDD_EXPORT void url_query_free(struct UrlQueryParams *qp);
 
 /**
  * @brief Add a key-value pair to the query container.
  *
- * @param[in] qp The container.
- * @param[in] key The parameter key (will be copied).
- * @param[in] value The parameter value (will be copied).
- * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
 extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
                                       const char *key, const char *value);
@@ -187,10 +162,6 @@ extern C_CDD_EXPORT int url_query_add(struct UrlQueryParams *qp,
  * url_query_build(). Use this for OpenAPI styles that require reserved
  * delimiters (e.g. comma for form-style explode=false).
  *
- * @param[in] qp The container.
- * @param[in] key The parameter key (will be copied and encoded on build).
- * @param[in] value The parameter value (already encoded, will be copied).
- * @return 0 on success, ENOMEM on allocation failure, EINVAL on invalid args.
  */
 extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
                                               const char *key,
@@ -203,10 +174,7 @@ extern C_CDD_EXPORT int url_query_add_encoded(struct UrlQueryParams *qp,
  * with '&'.
  * Example output: "?q=hello%20world&page=1"
  *
- * @param[in] qp The container describing the parameters.
- * @param[out] out_str Pointer to a char* where the result will be allocated.
  *                     If count is 0, allocates an empty string "".
- * @return 0 on success, ENOMEM on allocation failure.
  */
 extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
                                         char **out_str);
@@ -216,10 +184,7 @@ extern C_CDD_EXPORT int url_query_build(const struct UrlQueryParams *qp,
  *
  * Uses form encoding (space -> "+") and does not prefix with '?'.
  *
- * @param[in] qp The container describing the parameters.
- * @param[out] out_str Pointer to a char* where the result will be allocated.
  *                     If count is 0, allocates an empty string "".
- * @return 0 on success, ENOMEM on allocation failure.
  */
 extern C_CDD_EXPORT int url_query_build_form(const struct UrlQueryParams *qp,
                                              char **out_str);

@@ -22,6 +22,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_factory.h"
 #include "classes/parse/cdd_cst_parser.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests node allocation.
@@ -291,3 +292,5 @@ SUITE(cdd_cst_factory_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_FACTORY_H */
+
+/* LCOV_EXCL_STOP */

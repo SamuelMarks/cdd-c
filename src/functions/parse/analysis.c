@@ -16,6 +16,7 @@
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static const struct AllocatorSpec ALLOCATOR_SPECS[] = {
     {"malloc", ALLOC_STYLE_RETURN_PTR, CHECK_PTR_NULL, 0},
@@ -385,3 +386,5 @@ int find_allocations(const struct TokenList *tokens,
   }
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

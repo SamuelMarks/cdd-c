@@ -22,6 +22,7 @@ extern "C" {
 #include "functions/emit/client_sig.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int gen_sig(const struct OpenAPI_Operation *op,
                    const struct CodegenSigConfig *cfg, char **_out_val) {
@@ -767,3 +768,5 @@ SUITE(client_sig_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_CLIENT_SIG_H */
+
+/* LCOV_EXCL_STOP */

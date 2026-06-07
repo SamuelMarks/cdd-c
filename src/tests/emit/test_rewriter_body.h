@@ -17,6 +17,7 @@ extern "C" {
 #include "functions/parse/analysis.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int run_body_rewrite(const char *code,
                             const struct RefactoredFunction *funcs,
@@ -280,3 +281,5 @@ SUITE(rewriter_body_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_REWRITER_BODY_H */
+
+/* LCOV_EXCL_STOP */

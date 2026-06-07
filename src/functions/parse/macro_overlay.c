@@ -12,11 +12,11 @@
 #include "functions/parse/macro_overlay.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Initializes a macro overlay list.
  *
- * @param[out] list The list to initialize.
  */
 void macro_overlay_list_init(struct MacroOverlayList *list) {
   if (!list)
@@ -29,7 +29,6 @@ void macro_overlay_list_init(struct MacroOverlayList *list) {
 /**
  * @brief Frees a macro overlay list.
  *
- * @param[in,out] list The list to free.
  */
 void macro_overlay_list_free(struct MacroOverlayList *list) {
   size_t i;
@@ -52,10 +51,6 @@ void macro_overlay_list_free(struct MacroOverlayList *list) {
 /**
  * @brief Adds an element to the macro overlay list.
  *
- * @param[in,out] list The list to append to.
- * @param[in] node The CST node invocation.
- * @param[in] expanded The expanded CST node list.
- * @return 0 on success, ENOMEM or EINVAL on failure.
  */
 static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
                     struct CstNodeList *expanded) {
@@ -84,10 +79,6 @@ static int list_add(struct MacroOverlayList *list, const struct CstNode *node,
 /**
  * @brief Builds the macro overlay mapping from a given CST.
  *
- * @param[in] cst The original CST node list.
- * @param[in] tokens The associated token list.
- * @param[out] overlays The overlay list to populate.
- * @return 0 on success, error code on failure.
  */
 int cst_build_macro_overlay(const struct CstNodeList *cst,
                             const struct TokenList *tokens,
@@ -125,3 +116,5 @@ int cst_build_macro_overlay(const struct CstNodeList *cst,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

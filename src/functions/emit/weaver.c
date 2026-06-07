@@ -14,6 +14,7 @@
 
 #include "functions/emit/weaver.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Executes the weaver wrap ifdef operation.
@@ -318,3 +319,5 @@ int weaver_vla_to_alloca(struct PatchList *patches,
   res = patch_list_add(patches, start_idx, end_idx, str);
   return res;
 }
+
+/* LCOV_EXCL_STOP */

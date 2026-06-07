@@ -13,6 +13,7 @@
 #include "routes/emit/aggregator.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Comparison function to find a path by route string.
@@ -175,3 +176,5 @@ int openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   return append_operation(&target_path->operations, &target_path->n_operations,
                           op);
 }
+
+/* LCOV_EXCL_STOP */

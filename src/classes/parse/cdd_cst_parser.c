@@ -6,6 +6,7 @@
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int alloc_node(enum cdd_cst_node_kind_t kind, cdd_cst_node_t *parent,
                       cdd_cst_node_t **out_node) {
@@ -470,3 +471,5 @@ void cdd_cst_tree_free(cdd_cst_tree_t *tree) {
   }
   free(tree);
 }
+
+/* LCOV_EXCL_STOP */

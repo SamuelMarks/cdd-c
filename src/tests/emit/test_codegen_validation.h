@@ -21,6 +21,7 @@ extern "C" {
 
 #include "functions/emit/codegen.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper: generate code and return as buffer */
 static int gen_parse_code(const char *name, struct StructFields *sf,
@@ -386,3 +387,5 @@ SUITE(codegen_validation_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_VALIDATION_H */
+
+/* LCOV_EXCL_STOP */

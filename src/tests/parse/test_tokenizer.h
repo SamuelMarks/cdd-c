@@ -22,6 +22,7 @@ extern "C" {
 
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int token_to_cstr(char *buf, size_t buf_len, const struct Token *tok,
                          char **_out_val) {
@@ -231,3 +232,5 @@ SUITE(tokenizer_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_TOKENIZER_H */
+
+/* LCOV_EXCL_STOP */

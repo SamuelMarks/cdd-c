@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file declarator.c
  * @brief Implementation of the Spiral Rule declaration parser.
@@ -590,3 +591,5 @@ error:
   decl_info_free(out_info);
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

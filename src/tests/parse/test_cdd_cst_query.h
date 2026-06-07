@@ -20,6 +20,7 @@ extern "C" {
 #include "classes/parse/cdd_cst_parser.h"
 #include "classes/parse/cdd_cst_query.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int dummy_visitor(cdd_cst_node_t *node, void *user_data) {
   int *count = (int *)user_data;
@@ -536,3 +537,5 @@ SUITE(cdd_cst_query_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CDD_CST_QUERY_H */
+
+/* LCOV_EXCL_STOP */

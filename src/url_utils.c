@@ -1,5 +1,5 @@
 /**
- * @file url.c
+ * @file url_utils.c
  * @brief Implementation of RFC 3986 URL encoding and Query serialization.
  *
  * @author Samuel Marks

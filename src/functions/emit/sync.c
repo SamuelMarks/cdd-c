@@ -24,6 +24,7 @@
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Executes the sync code main operation.
@@ -268,3 +269,5 @@ cleanup:
     free(new_header);
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

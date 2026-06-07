@@ -11,6 +11,7 @@
 #include <string.h>
 #include "functions/parse/fs.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER)
 /** @brief SNPRINTF macro for MSVC */
@@ -23,9 +24,6 @@
 /**
  * @brief Generates client GUI bindings based on OpenAPI specs.
  *
- * @param[in] spec The OpenAPI specification data.
- * @param[in] config The generator configuration.
- * @return 0 on success, error code on failure.
  */
 int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
                                 const struct OpenApiClientConfig *config) {
@@ -197,3 +195,5 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

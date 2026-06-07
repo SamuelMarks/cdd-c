@@ -13,6 +13,7 @@
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 #define CHECK_IO(x)                                                            \
   if ((x) < 0) {                                                               \
@@ -181,3 +182,5 @@ int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

@@ -27,6 +27,7 @@ extern "C" {
 #include "classes/emit/struct.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static int load_spec_str(const char *json_str, struct OpenAPI_Spec *spec) {
   JSON_Value *dyn = json_parse_string(json_str);
@@ -4511,3 +4512,5 @@ SUITE(openapi_loader_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_LOADER_H */
+
+/* LCOV_EXCL_STOP */

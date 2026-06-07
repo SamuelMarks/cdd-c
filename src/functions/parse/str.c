@@ -233,10 +233,6 @@ int c_cdd_destringize(const char *quoted, char **out_s) {
 /**
  * @brief Executes the c cdd stricmp operation.
  *
- * @param a First string.
- * @param b Second string.
- * @param[out] out_diff The difference between the strings.
- * @return 0 on success, or an error code.
  */
 int c_cdd_stricmp(const char *a, const char *b, int *out_diff) {
   int diff;

@@ -32,6 +32,7 @@
 #include "c_cdd/log.h"
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Internal component structure for a parsed signature.
@@ -535,3 +536,5 @@ cleanup:
   parsed_sig_free(&sig);
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

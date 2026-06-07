@@ -16,6 +16,7 @@ extern "C" {
 
 #include "functions/emit/codegen.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper to generate code and return as string buffer */
 static int generate_eq_code(const char *struct_name, struct StructFields *sf,
@@ -243,3 +244,5 @@ SUITE(codegen_eq_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_CODEGEN_EQ_H */
+
+/* LCOV_EXCL_STOP */

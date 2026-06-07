@@ -51,8 +51,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return ret;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 

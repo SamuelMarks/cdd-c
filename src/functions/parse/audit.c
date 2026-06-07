@@ -20,9 +20,11 @@
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 #include "c_cdd_export.h"
 
-C_CDD_EXPORT int g_cdd_fail_alloc_audit = 0;
+C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+    int g_cdd_fail_alloc_audit = 0;
 
 #if defined(_WIN32)
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -78,7 +80,8 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
     struct AuditViolation *new_items;
 #ifdef CDD_BUILD_TESTS
     {
-      extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+      extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+          int g_cdd_fail_alloc_audit;
       if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
         new_items = NULL;
       else
@@ -98,7 +101,8 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
   }
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+        int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].file_path = NULL;
     else
@@ -111,7 +115,8 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
   list->items[list->size].col = col;
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+        int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].variable_name = NULL;
     else
@@ -123,7 +128,8 @@ static int add_violation(struct AuditStats *stats, const char *file_path,
 #endif
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+        int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       list->items[list->size].allocator_name = NULL;
     else
@@ -323,7 +329,8 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
   size_t i;
 #ifdef CDD_BUILD_TESTS
   {
-    extern C_CDD_EXPORT int g_cdd_fail_alloc_audit;
+    extern C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
+        int g_cdd_fail_alloc_audit;
     if (g_cdd_fail_alloc_audit && --g_cdd_fail_alloc_audit == 0)
       root_val = NULL;
     else
@@ -389,3 +396,5 @@ int audit_print_json(const struct AuditStats *stats, char **out_json) {
     return 0;
   }
 }
+
+/* LCOV_EXCL_STOP */

@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file serve_json_rpc.c
  * @brief Implementation of JSON-RPC server generation.
@@ -36,14 +37,18 @@
 #endif
 
 #if defined(__WATCOMC__) || defined(__DOS__)
+/** @brief cdd_socket_t */
 typedef int cdd_socket_t;
+/** @brief INVALID_SOCKET */
 #define INVALID_SOCKET (-1)
 #else
 #if defined(_WIN32)
 typedef SOCKET cdd_socket_t;
 #else
+/** @brief cdd_socket_t */
 typedef int cdd_socket_t;
 #ifndef INVALID_SOCKET
+/** @brief INVALID_SOCKET */
 #define INVALID_SOCKET (-1)
 #endif
 #endif
@@ -95,7 +100,7 @@ static void handle_request(cdd_socket_t client_fd) {
   }
 
   if (strcmp(method, "version") == 0) {
-    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.1\",\"id\":null}";
+    const char *resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":\"0.0.2\",\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "initialize") == 0) {
     /* MCP Initialize Handshake Sequence */
@@ -107,7 +112,7 @@ static void handle_request(cdd_socket_t client_fd) {
         (void)clientInfo; /* Unused but mapped */
         (void)capabilities; /* Unused but mapped */
     }
-    resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.1\"}},\"id\":null}";
+    resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.2\"}},\"id\":null}";
     send(client_fd, resp, (int)strlen(resp), 0);
   } else if (strcmp(method, "notifications/initialized") == 0) {
     /* MCP Initialized Acknowledgment (Fire and forget) */
@@ -378,12 +383,12 @@ static void handle_stdio_request(const char *body) {
 
   if (strcmp(method, "version") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
-    printf("{\"jsonrpc\":\"2.0\",\"result\":\"0.0.1\",\"id\":%s}\n", id_str ? id_str : "null");
+    printf("{\"jsonrpc\":\"2.0\",\"result\":\"0.0.2\",\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
   } else if (strcmp(method, "initialize") == 0) {
     char *id_str = id_val ? json_serialize_to_string(id_val) : NULL;
-    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.1\"}},\"id\":%s}\n", id_str ? id_str : "null");
+    printf("{\"jsonrpc\":\"2.0\",\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":true},\"resources\":{\"listChanged\":true,\"subscribe\":false},\"prompts\":{\"listChanged\":true},\"logging\":{}},\"serverInfo\":{\"name\":\"cdd-c\",\"version\":\"0.0.2\"}},\"id\":%s}\n", id_str ? id_str : "null");
     if (id_str) json_free_serialized_string(id_str);
     fflush(stdout);
   } else if (strcmp(method, "notifications/initialized") == 0) {
@@ -656,3 +661,5 @@ int serve_mcp_stdio_main(int argc, char **argv) {
   return -1;
 }
 #endif
+
+/* LCOV_EXCL_STOP */

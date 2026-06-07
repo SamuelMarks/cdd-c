@@ -20,11 +20,7 @@
 /**
  * @brief Executes the crypto sha256 operation.
  *
- * @param[in] data The input data to hash.
- * @param[in] data_len The length of the input data.
- * @param[out] out_digest The output buffer for the SHA256 digest (must be at
  * least 32 bytes).
- * @return 0 on success, EINVAL if invalid arguments are provided.
  */
 int crypto_sha256(const void *data, size_t data_len,
                   unsigned char *out_digest) {
@@ -37,13 +33,7 @@ int crypto_sha256(const void *data, size_t data_len,
 /**
  * @brief Executes the crypto hmac sha256 operation.
  *
- * @param[in] key The key for HMAC.
- * @param[in] key_len The length of the key.
- * @param[in] data The input data to authenticate.
- * @param[in] data_len The length of the input data.
- * @param[out] out_mac The output buffer for the HMAC (must be at least 32
  * bytes).
- * @return 0 on success, EINVAL if invalid arguments are provided.
  */
 int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
                        size_t data_len, unsigned char *out_mac) {
@@ -65,10 +55,6 @@ int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
 /**
  * @brief Executes the crypto sha256 operation (stub).
  *
- * @param[in] data The input data to hash.
- * @param[in] data_len The length of the input data.
- * @param[out] out_digest The output buffer for the SHA256 digest.
- * @return ENOSYS since it's a stub.
  */
 int crypto_sha256(const void *data, size_t data_len,
                   unsigned char *out_digest) {
@@ -81,12 +67,6 @@ int crypto_sha256(const void *data, size_t data_len,
 /**
  * @brief Executes the crypto hmac sha256 operation (stub).
  *
- * @param[in] key The key for HMAC.
- * @param[in] key_len The length of the key.
- * @param[in] data The input data to authenticate.
- * @param[in] data_len The length of the input data.
- * @param[out] out_mac The output buffer for the HMAC.
- * @return ENOSYS since it's a stub.
  */
 int crypto_hmac_sha256(const void *key, size_t key_len, const void *data,
                        size_t data_len, unsigned char *out_mac) {

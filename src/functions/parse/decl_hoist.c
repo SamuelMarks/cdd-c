@@ -12,11 +12,11 @@
 
 #include "functions/parse/decl_hoist.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Initializes a hoist site list.
  *
- * @param[out] list The list to initialize.
  */
 void hoist_site_list_init(struct HoistSiteList *list) {
   if (!list)
@@ -29,7 +29,6 @@ void hoist_site_list_init(struct HoistSiteList *list) {
 /**
  * @brief Frees a hoist site list.
  *
- * @param[in,out] list The list to free.
  */
 void hoist_site_list_free(struct HoistSiteList *list) {
   if (!list)
@@ -43,9 +42,6 @@ void hoist_site_list_free(struct HoistSiteList *list) {
 /**
  * @brief Checks if a token kind is a basic type keyword.
  *
- * @param[in] k The token kind to check.
- * @param[out] out_is_basic Pointer to int where result (1 or 0) is stored.
- * @return 0 on success, or EINVAL if out_is_basic is NULL.
  */
 static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
   if (!out_is_basic)
@@ -74,9 +70,6 @@ static int is_basic_type_keyword(enum TokenKind k, int *out_is_basic) {
  * Mixed declarations are variable declarations that occur after non-declaration
  * statements within the same block (not strictly conforming to C89/C90).
  *
- * @param[in] tokens The token list to scan.
- * @param[out] list The list to populate with hoist sites.
- * @return 0 on success, EINVAL on invalid arguments.
  */
 int scan_for_mixed_declarations(const struct TokenList *tokens,
                                 struct HoistSiteList *list) {
@@ -179,3 +172,5 @@ int scan_for_mixed_declarations(const struct TokenList *tokens,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

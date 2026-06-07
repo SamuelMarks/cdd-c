@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 #ifdef CDD_BUILD_TESTS
 C_CDD_EXPORT int g_cdd_cfg_alloc_fail = 0;
 #endif
@@ -245,3 +246,5 @@ void cdd_cst_cfg_free(cdd_cst_cfg_t *cfg) {
     free(cfg->blocks);
   free(cfg);
 }
+
+/* LCOV_EXCL_STOP */

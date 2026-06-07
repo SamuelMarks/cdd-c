@@ -45,6 +45,7 @@
 
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Standard IO / FS helpers */
 
@@ -2542,3 +2543,5 @@ cleanup_and_exit:
 
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

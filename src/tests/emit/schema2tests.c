@@ -30,6 +30,7 @@
 #include <errno.h>
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper macros for error checking */
 #define CHECK_RC(x)                                                            \
@@ -521,3 +522,5 @@ int jsonschema2tests_main(int argc, char **argv) {
     return 0;
   }
 }
+
+/* LCOV_EXCL_STOP */

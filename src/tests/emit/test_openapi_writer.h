@@ -23,6 +23,7 @@ extern "C" {
 #include "openapi/emit/openapi.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Helpers --- */
 
@@ -5009,3 +5010,5 @@ SUITE(openapi_writer_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPENAPI_WRITER_H */
+
+/* LCOV_EXCL_STOP */

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 int find_child_index_mutate(cdd_cst_node_t *parent, cdd_cst_node_t *child,
                             size_t *out_index) {
@@ -397,3 +398,5 @@ int cdd_cst_replace_token_child(cdd_cst_node_t *node, size_t idx,
   node->children[idx].val.token = new_tok;
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

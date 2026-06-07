@@ -25,6 +25,7 @@ extern "C" {
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 TEST parsing_test(const char *const test_name, const az_span source,
                   const size_t expected_structs, const size_t expected_enums,
@@ -201,3 +202,5 @@ SUITE(parsing_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_PARSING_H */
+
+/* LCOV_EXCL_STOP */

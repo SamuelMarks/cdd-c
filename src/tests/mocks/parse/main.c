@@ -16,6 +16,7 @@
 
 #include "../emit/simple_json.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static const char *const haz_e_mock0 =
     "{\"bzr\": \"some_bzr\",\"tank\": \"SMALL\"}";
@@ -66,3 +67,5 @@ int main(void) {
 
   return EXIT_SUCCESS;
 }
+
+/* LCOV_EXCL_STOP */

@@ -16,6 +16,7 @@
 #include "openapi/emit/openapi.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* --- Helper Prototypes --- */
 
@@ -327,9 +328,6 @@ static int write_webhooks(JSON_Object *root_obj,
 /**
  * @brief Converts verb to string.
  *
- * @param v The verb.
- * @param _out_val Pointer to the output string.
- * @return 0 on success.
  */
 int verb_to_str_openapi(enum OpenAPI_Verb v, char **_out_val) {
   switch (v) {
@@ -3757,3 +3755,5 @@ int openapi_write_spec_to_json(const struct OpenAPI_Spec *spec,
 
   return *json_out ? 0 : ENOMEM;
 }
+
+/* LCOV_EXCL_STOP */

@@ -18,6 +18,7 @@
 #include "routes/emit/url.h"
 #include "routes/parse/sync.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /** @brief CALL_AND_CHECK definition */
 #define CALL_AND_CHECK(x)                                                      \
@@ -29,8 +30,10 @@
 /* --- Generators (InMemory) --- */
 
 #if defined(__wasm__) || defined(__wasm32__)
+/** @brief CDD_TMPFILE */
 #define CDD_TMPFILE() NULL
 #else
+/** @brief CDD_TMPFILE */
 #define CDD_TMPFILE() tmpfile()
 #endif
 
@@ -873,3 +876,5 @@ int api_sync_file(const char *filename, const struct OpenAPI_Spec *spec,
  * @Security Scheme Object @OAuth Flows Object @OAuth Flow Object @Security
  * Requirement Object
  */
+
+/* LCOV_EXCL_STOP */

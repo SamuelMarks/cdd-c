@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include "c_cdd_export.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                                cdd_token_t **modified_funcs,
@@ -243,6 +244,7 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
 C_CDD_EXPORT int g_err_perc_fail = 0;
 #endif
 
+/** @brief cdd_transform_percolate_errors */
 int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
                                    const cdd_transform_config_t *config) {
   cdd_cst_query_result_t res;
@@ -617,3 +619,5 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

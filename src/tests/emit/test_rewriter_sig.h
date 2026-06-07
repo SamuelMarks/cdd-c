@@ -16,6 +16,7 @@ extern "C" {
 #include "functions/emit/rewriter_sig.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Helper to run rewrite_signature on a string input and verify against
@@ -292,3 +293,5 @@ SUITE(rewriter_sig_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_REWRITER_SIG_H */
+
+/* LCOV_EXCL_STOP */

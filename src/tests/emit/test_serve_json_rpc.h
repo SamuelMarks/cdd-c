@@ -38,6 +38,7 @@ extern "C" {
 #endif
 #endif
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests binding failure scenario for the JSON RPC server.
@@ -262,3 +263,5 @@ SUITE(serve_json_rpc_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_SERVER_JSON_RPC_H */
+
+/* LCOV_EXCL_STOP */

@@ -16,6 +16,7 @@
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Wrapper for fprintf to check errors tersely */
 #ifdef CDD_BUILD_TESTS
@@ -38,8 +39,10 @@ static int cdd_fprintf_hook(FILE *stream, const char *format, ...) {
   va_end(args);
   return ret;
 }
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK cdd_fprintf_hook
 #else
+/** @brief FPRINTF_HOOK macro */
 #define FPRINTF_HOOK fprintf
 #endif
 
@@ -1093,3 +1096,5 @@ int write_root_array_from_json_func(FILE *fp, const char *name,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

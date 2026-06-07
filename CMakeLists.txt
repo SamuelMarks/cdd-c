@@ -1,7 +1,7 @@
 message(STATUS "RUNNING cdd-c CMakeLists.txt")
 
 cmake_minimum_required(VERSION 3.11)
-project(c_cdd VERSION 0.0.1 LANGUAGES C)
+project(c_cdd VERSION 0.0.2 LANGUAGES C)
 
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)

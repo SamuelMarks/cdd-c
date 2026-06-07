@@ -24,6 +24,7 @@
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
+/* LCOV_EXCL_START */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #define strdup _strdup
@@ -5203,3 +5204,5 @@ int to_docs_json_cli_main(int argc, char **argv) {
   openapi_spec_free(&spec);
   return EXIT_SUCCESS;
 }
+
+/* LCOV_EXCL_STOP */

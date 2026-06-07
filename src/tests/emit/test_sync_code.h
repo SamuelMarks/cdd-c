@@ -15,6 +15,7 @@ extern "C" {
 #include <greatest.h>
 #include <stdio.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief test_sync_code_wrong_args
@@ -346,3 +347,5 @@ SUITE(sync_code_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_SYNC_CODE_H */
+
+/* LCOV_EXCL_STOP */

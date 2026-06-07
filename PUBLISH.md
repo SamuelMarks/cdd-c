@@ -11,7 +11,7 @@ To publish to a `vcpkg` registry, update `vcpkg.json` and push it to your regist
 ```json
 {
   "name": "cdd-c",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Code-Driven Development compiler for OpenAPI and C",
   "homepage": "https://github.com/offscale/cdd-c"
 }
@@ -23,7 +23,7 @@ To publish to `ConanCenter`, create a `conanfile.py` and run:
 
 ```bash
 conan create .
-conan upload cdd-c/0.0.1 -r my-remote
+conan upload cdd-c/0.0.2 -r my-remote
 ```
 
 ## Publishing the Docs

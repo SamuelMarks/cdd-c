@@ -17,6 +17,7 @@ extern "C" {
 #include "routes/emit/cli_gen.h"
 #include "routes/emit/client_gen.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief test_cli_gen_basic
@@ -171,3 +172,5 @@ SUITE(cli_gen_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CLI_GEN_H */
+
+/* LCOV_EXCL_STOP */

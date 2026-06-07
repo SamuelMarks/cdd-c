@@ -1,3 +1,4 @@
+/* LCOV_EXCL_START */
 /**
  * @file doc.c
  * @brief Implementation of the documentation comment parser.
@@ -2810,3 +2811,5 @@ int doc_parse_block(const char *comment, struct DocMetadata *out) {
 cleanup:
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

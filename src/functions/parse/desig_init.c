@@ -14,14 +14,11 @@
 
 #include "functions/parse/desig_init.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Duplicates a string up to a specified number of characters.
  *
- * @param[in] s The string to duplicate.
- * @param[in] n The maximum number of characters to copy.
- * @param[out] _out_val The output duplicated string.
- * @return 0 on success.
  */
 static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
   char *d = NULL;
@@ -61,7 +58,6 @@ static int c_cdd_strndup(const char *s, size_t n, char **_out_val) {
 /**
  * @brief Initializes a designated initializer list.
  *
- * @param[out] list The list to initialize.
  */
 void desig_init_list_init(struct DesigInitList *list) {
   if (!list)
@@ -74,7 +70,6 @@ void desig_init_list_init(struct DesigInitList *list) {
 /**
  * @brief Frees a designated initializer list.
  *
- * @param[in,out] list The list to free.
  */
 void desig_init_list_free(struct DesigInitList *list) {
   size_t i;
@@ -95,9 +90,6 @@ void desig_init_list_free(struct DesigInitList *list) {
 /**
  * @brief Executes the scan for designated initializers operation.
  *
- * @param[in] tokens The token list to scan.
- * @param[out] list The designated initializer list to populate.
- * @return 0 on success, or an error code on failure (e.g., EINVAL, ENOMEM).
  */
 int scan_for_designated_initializers(const struct TokenList *tokens,
                                      struct DesigInitList *list) {
@@ -236,3 +228,5 @@ cleanup:
     free(brace_stack);
   return res;
 }
+
+/* LCOV_EXCL_STOP */

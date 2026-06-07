@@ -23,6 +23,7 @@ extern "C" {
 #include "functions/parse/cst.h"
 #include "functions/parse/tokenizer.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /* Helper to create a fake token list for testing */
 static void make_simple_token_list(struct TokenList *tl) {
@@ -500,3 +501,5 @@ SUITE(cst_parser_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CST_PARSER_H */
+
+/* LCOV_EXCL_STOP */

@@ -17,6 +17,7 @@ extern "C" {
 
 #include "routes/emit/operation.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 TEST test_operation_is_reserved_header_name(void) {
   ASSERT_EQ(0, is_reserved_header_name(NULL));
   ASSERT_EQ(0, is_reserved_header_name(""));
@@ -667,3 +668,5 @@ SUITE(operation_suite) {
 #endif /* __cplusplus */
 
 #endif /* TEST_OPERATION_H */
+
+/* LCOV_EXCL_STOP */

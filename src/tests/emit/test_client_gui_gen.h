@@ -23,6 +23,7 @@ extern "C" {
 #include "routes/emit/client_gui_gen.h"
 #include "routes/emit/client_gen.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /**
  * @brief Tests basic functionality of client GUI generation.
@@ -136,3 +137,5 @@ SUITE(client_gui_gen_suite) {
 #endif /* __cplusplus */
 
 #endif /* !TEST_CLIENT_GUI_GEN_H */
+
+/* LCOV_EXCL_STOP */

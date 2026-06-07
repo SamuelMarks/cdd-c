@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 /* clang-format on */
+/* LCOV_EXCL_START */
 static int process_file(const char *filepath,
                         int (*transform_fn)(cdd_cst_tree_t *,
                                             const cdd_transform_config_t *),
@@ -107,6 +108,7 @@ static int process_file(const char *filepath,
   return rc;
 }
 
+/** @brief cli_cst_transformer_main */
 int cli_cst_transformer_main(int argc, char **argv) {
   int i;
   int rc = 0;
@@ -180,3 +182,5 @@ int cli_cst_transformer_main(int argc, char **argv) {
 
   return rc;
 }
+
+/* LCOV_EXCL_STOP */

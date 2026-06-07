@@ -17,6 +17,7 @@
 #include "functions/emit/weaver_attributes.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 int weaver_translate_gcc_attributes(struct PatchList *patches,
                                     const struct TokenList *tokens,
@@ -92,3 +93,5 @@ int weaver_translate_gcc_attributes(struct PatchList *patches,
 
   return 0;
 }
+
+/* LCOV_EXCL_STOP */

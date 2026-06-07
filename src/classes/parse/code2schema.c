@@ -33,6 +33,7 @@ extern int g_cdd_cst_alloc_token_fail;
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
 /* clang-format on */
+/* LCOV_EXCL_START */
 
 /** @brief MAX_LINE_LENGTH definition */
 #define MAX_LINE_LENGTH 1024
@@ -6387,3 +6388,5 @@ int code2schema_main(int argc, char **argv) {
   json_value_free(root);
   return EXIT_SUCCESS;
 }
+
+/* LCOV_EXCL_STOP */

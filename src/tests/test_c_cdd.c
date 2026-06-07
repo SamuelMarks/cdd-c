@@ -44,6 +44,7 @@ static FILE* cdd_test_tmpfile(void) {
 #define tmpfile() cdd_test_tmpfile()
 
 #include "c_cdd/test_int128.h"
+#include "test_cdd_api.h"
 #include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_codegen_build.h"
 #include "emit/test_codegen_client_body.h"
@@ -157,6 +158,7 @@ static FILE* cdd_test_tmpfile(void) {
 #include "parse/test_cdd_cst_factory.h"
 
 #include "c_cdd/test_int128.h"
+#include "test_cdd_api.h"
 /* clang-format on */
 
 GREATEST_MAIN_DEFS();
@@ -288,6 +290,7 @@ int main(int argc, char **argv) {
 
   RUN_SUITE(cdd_cst_builder_suite);
   RUN_SUITE(c_cdd_int128_suite);
+  RUN_SUITE(cdd_api_suite);
 
   GREATEST_MAIN_END();
 }
