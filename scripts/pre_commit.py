@@ -79,6 +79,17 @@ def main():
         print("=== Updating Shields ===")
         run_cmd([sys.executable, "scripts/update_badges.py"])
 
+        # Docker setup for petstore servers
+        print("=== Starting Petstore Docker Containers ===")
+        # We use swaggerapi/petstore for both, configuring the base path to match the respective specs
+        run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
+        run_cmd(["docker", "run", "-d", "--name", "petstore_sw2_test", "-e", "SWAGGER_HOST=http://localhost:8092", "-e", "SWAGGER_BASE_PATH=/v2", "-p", "8092:8080", "swaggerapi/petstore"], check=False)
+        run_cmd(["docker", "run", "-d", "--name", "petstore_oas3_test", "-e", "SWAGGER_HOST=http://localhost:8093", "-e", "SWAGGER_BASE_PATH=/api/v3", "-p", "8093:8080", "swaggerapi/petstore"], check=False)
+
+        import time
+        print("Waiting for Petstore containers to start...")
+        time.sleep(15)
+
         # Test OpenAPI generation
         script_dir = os.path.dirname(os.path.abspath(__file__))
         repo_root = os.path.dirname(script_dir)
@@ -96,7 +107,9 @@ def main():
             run_cmd([cdd_c_bin, "from_openapi", "to_sdk", "-i", spec_oas3, "-o", "test_out_oas3", "--tests"])
             run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON", "-DFETCHCONTENT_SOURCE_DIR_CDD_C=.."], cwd="test_out_oas3")
             run_cmd(["cmake", "--build", "."], cwd="test_out_oas3")
-            result = subprocess.run(["ctest", "--output-on-failure"], cwd="test_out_oas3")
+            env_oas3 = os.environ.copy()
+            env_oas3["BASE_URL"] = "http://localhost:8093"
+            result = run_cmd(["ctest", "--output-on-failure"], cwd="test_out_oas3", env=env_oas3, check=False)
             if result.returncode != 0:
                  print("Warning: CTest failed for OAS3. Continuing...")
         else:
@@ -113,11 +126,16 @@ def main():
             run_cmd([cdd_c_bin, "from_openapi", "to_sdk", "-i", spec_sw2, "-o", "test_out_sw2", "--tests"])
             run_cmd(["cmake", ".", "-DFETCHCONTENT_UPDATES_DISCONNECTED=ON", "-DFETCHCONTENT_SOURCE_DIR_CDD_C=.."], cwd="test_out_sw2")
             run_cmd(["cmake", "--build", "."], cwd="test_out_sw2")
-            result = subprocess.run(["ctest", "--output-on-failure"], cwd="test_out_sw2")
+            env_sw2 = os.environ.copy()
+            env_sw2["BASE_URL"] = "http://localhost:8092"
+            result = run_cmd(["ctest", "--output-on-failure"], cwd="test_out_sw2", env=env_sw2, check=False)
             if result.returncode != 0:
                  print("Warning: CTest failed for Swagger 2.0. Continuing...")
         else:
              print(f"Warning: Spec {spec_sw2} or binary {cdd_c_bin} not found. Skipping Swagger 2 test.")
+
+        print("=== Tearing down Petstore Docker Containers ===")
+        run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
 
     else:
         print(f"Unknown job: {job}")

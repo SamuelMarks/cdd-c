@@ -365,6 +365,10 @@ int generate_cmake_project(const char *output_path, const char *project_name,
   /* Write Root CMakeLists.txt */
   fprintf(fp, "cmake_minimum_required(VERSION 3.10)\n\n");
   fprintf(fp, "project(%s C)\n\n", project_name);
+  fprintf(fp, "include(CTest)\n");
+  fprintf(fp, "if(BUILD_TESTING)\n");
+  fprintf(fp, "  enable_testing()\n");
+  fprintf(fp, "endif()\n\n");
   fprintf(fp, "add_subdirectory(src)\n");
   fclose(fp);
 
