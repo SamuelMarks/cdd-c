@@ -94,7 +94,7 @@ static int emit_ocaml_ml(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "  let %s = %s\n", var->name, var->value);
         } else {
-          fprintf(f, "  let %s = " CDD_PRIz "\n", var->name, j);
+          fprintf(f, "  let %s = %" CDD_PRIz "\n", var->name, j);
         }
       }
       fprintf(f, "end\n\n");

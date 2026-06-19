@@ -18,20 +18,27 @@ extern "C" {
  */
 
 #if defined(_MSC_VER)
-#define CDD_PRId64 "%I64d"
-#define CDD_PRIu64 "%I64u"
-#define CDD_PRIx64 "%I64x"
-#if _MSC_VER < 1900
-/* Older MSVC does not strictly support %zu for size_t. It uses %Iu */
-#define CDD_PRIz "%Iu"
+#define CDD_PRId64 "I64d"
+#define CDD_PRIu64 "I64u"
+#define CDD_PRIx64 "I64x"
+#if defined(_WIN64)
+#define CDD_PRIz "I64u"
 #else
-#define CDD_PRIz "%zu"
+#define CDD_PRIz "u"
 #endif
 #else
-#define CDD_PRId64 "%lld"
-#define CDD_PRIu64 "%llu"
-#define CDD_PRIx64 "%llx"
-#define CDD_PRIz "%zu"
+#define CDD_PRId64 "lld"
+#define CDD_PRIu64 "llu"
+#define CDD_PRIx64 "llx"
+#if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
+#if defined(_WIN32) /* MinGW64 */
+#define CDD_PRIz "llu"
+#else
+#define CDD_PRIz "lu"
+#endif
+#else
+#define CDD_PRIz "u"
+#endif
 #endif
 
 #ifdef __cplusplus

@@ -112,7 +112,7 @@ static int emit_odin_file(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "    %s = %s,\n", var->name, var->value);
         } else {
-          fprintf(f, "    %s = " CDD_PRIz ",\n", var->name, j);
+          fprintf(f, "    %s = %" CDD_PRIz ",\n", var->name, j);
         }
       }
       fprintf(f, "}\n\n");

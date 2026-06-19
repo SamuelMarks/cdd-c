@@ -151,8 +151,8 @@ static int emit_napi_c(cdd_ffi_ir_t *ir,
       }
 
       if (node->fields_count > 0) {
-        fprintf(f, "  size_t argc = " CDD_PRIz ";\n", node->fields_count);
-        fprintf(f, "  napi_value argv[" CDD_PRIz "];\n", node->fields_count);
+        fprintf(f, "  size_t argc = %" CDD_PRIz ";\n", node->fields_count);
+        fprintf(f, "  napi_value argv[%" CDD_PRIz "];\n", node->fields_count);
         fprintf(f, "  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, "
                    "NULL, NULL));\n");
       } else {
@@ -161,7 +161,7 @@ static int emit_napi_c(cdd_ffi_ir_t *ir,
       }
 
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(f, "  /* Mapping argument " CDD_PRIz ": %s */\n", j,
+        fprintf(f, "  /* Mapping argument %" CDD_PRIz ": %s */\n", j,
                 node->fields[j].name ? node->fields[j].name : "arg");
         /* In a full implementation we'd check type.kind and map to
          * napi_get_value_int32 etc */

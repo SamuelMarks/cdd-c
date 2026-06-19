@@ -555,9 +555,9 @@ extract_single_file_exports(cdd_ffi_ir_t *ir, const char *filename,
                 if (eval_res.type == MACRO_EVAL_TYPE_INT) {
                   char buf[64];
 #if defined(_MSC_VER)
-                  sprintf_s(buf, sizeof(buf), CDD_PRId64, eval_res.int_val);
+                  sprintf_s(buf, sizeof(buf), "%" CDD_PRId64, eval_res.int_val);
 #else
-                  sprintf(buf, CDD_PRId64, eval_res.int_val);
+                  sprintf(buf, "%" CDD_PRId64, eval_res.int_val);
 #endif
                   node->evaluated_value = strdup(buf);
                 } else if (eval_res.type == MACRO_EVAL_TYPE_FLOAT) {

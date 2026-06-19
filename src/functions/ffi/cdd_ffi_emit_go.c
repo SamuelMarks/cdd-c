@@ -152,7 +152,7 @@ static int emit_go_file(cdd_ffi_ir_t *ir,
         if (var->value) {
           fprintf(f, "    %s %s = %s\n", var->name, node->name, var->value);
         } else {
-          fprintf(f, "    %s %s = " CDD_PRIz "\n", var->name, node->name, j);
+          fprintf(f, "    %s %s = %" CDD_PRIz "\n", var->name, node->name, j);
         }
       }
       fprintf(f, ")\n\n");
