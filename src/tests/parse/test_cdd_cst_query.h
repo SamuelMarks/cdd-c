@@ -385,6 +385,7 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_node_t id_node = {0};
   cdd_cst_child_t id_child = {0};
   cdd_token_t tok2 = {0};
+  cdd_cst_node_t dummy_empty_node = {0};
 #ifdef CDD_BUILD_TESTS
   extern C_CDD_EXPORT int g_cdd_query_err_fail;
 #endif
@@ -465,6 +466,7 @@ TEST test_query_call_expr_coverage(void) {
   memset(&res, 0, sizeof(res));
 
   id_child.kind = CDD_CST_CHILD_NODE;
+  id_child.val.node = &dummy_empty_node;
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
   if (res.nodes)
@@ -481,6 +483,7 @@ TEST test_query_call_expr_coverage(void) {
   id_node.kind = CDD_CST_EXPRESSION;
   id_node.num_children = 1;
   id_child.kind = CDD_CST_CHILD_TOKEN;
+  id_child.val.token = &tok;
   tok.kind = CDD_TOKEN_IDENTIFIER;
   cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
   ASSERT_EQ(0, res.size);
@@ -491,8 +494,13 @@ TEST test_query_call_expr_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   id_node.kind = CDD_CST_IDENTIFIER;
   g_cdd_query_err_fail = 1;
-  ASSERT_EQ(ENOMEM,
-            cdd_cst_find_function_calls_named(&dummy_call, "foo", &res));
+  {
+    int rc_res = cdd_cst_find_function_calls_named(&dummy_call, "foo", &res);
+    printf(
+        "DEBUG: cdd_cst_find_function_calls_named returned %d (ENOMEM is %d)\n",
+        rc_res, ENOMEM);
+    ASSERT_EQ(ENOMEM, rc_res);
+  }
   g_cdd_query_err_fail = 0;
   if (res.nodes)
     free(res.nodes);

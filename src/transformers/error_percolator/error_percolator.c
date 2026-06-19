@@ -96,20 +96,19 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                 cdd_cst_node_t *temp =
                     (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
                 if (temp) {
-                  char id_buf[256];
-                  char *dup_id = NULL;
+                  char *dup_id = (char *)calloc(1, 256);
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
-                  CDD_SNPRINTF(id_buf, sizeof(id_buf), "out_%.*s",
-                               (int)tok->length, tok->start);
+                  if (dup_id) {
+                    CDD_SNPRINTF(dup_id, 256, "out_%.*s", (int)tok->length,
+                                 tok->start);
+                  }
 
                   {
-                    size_t c_len = strlen(id_buf);
+                    size_t c_len = dup_id ? strlen(dup_id) : 0;
                     cdd_token_t *t_dummy = NULL;
-                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, id_buf,
+                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, dup_id,
                                              c_len, &t_dummy);
-                    if (t_dummy)
-                      dup_id = (char *)t_dummy->start;
                   }
 
                   cdd_cst_bld_ident(&bld, "void");
@@ -153,21 +152,20 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                 cdd_cst_node_t *temp =
                     (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
                 if (temp) {
-                  char id_buf[256];
-                  char *dup_id = NULL;
+                  char *dup_id = (char *)calloc(1, 256);
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
-                  CDD_SNPRINTF(id_buf, sizeof(id_buf), "out_%.*s",
-                               (int)modified_funcs[m]->length,
-                               modified_funcs[m]->start);
+                  if (dup_id) {
+                    CDD_SNPRINTF(dup_id, 256, "out_%.*s",
+                                 (int)modified_funcs[m]->length,
+                                 modified_funcs[m]->start);
+                  }
 
                   {
-                    size_t c_len = strlen(id_buf);
+                    size_t c_len = dup_id ? strlen(dup_id) : 0;
                     cdd_token_t *t_dummy = NULL;
-                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, id_buf,
+                    cdd_cst_create_token_len(tree, CDD_TOKEN_IDENTIFIER, dup_id,
                                              c_len, &t_dummy);
-                    if (t_dummy)
-                      dup_id = (char *)t_dummy->start;
                   }
 
                   if (!(prev_rparen_tok &&

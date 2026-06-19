@@ -2755,9 +2755,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2774,7 +2774,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2782,9 +2782,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2801,7 +2801,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2809,9 +2809,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2826,7 +2826,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2834,9 +2834,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2853,7 +2853,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2861,9 +2861,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2878,7 +2878,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2886,9 +2886,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2903,7 +2903,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2911,9 +2911,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2928,7 +2928,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2936,9 +2936,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2955,7 +2955,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2963,9 +2963,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -2980,7 +2980,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -2988,9 +2988,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -3005,7 +3005,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -3013,9 +3013,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -3030,7 +3030,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -3038,9 +3038,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -3055,7 +3055,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
@@ -3063,9 +3063,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "int req_id) {\n",
               prefix) < 0)
     rc = ENOMEM;
-  if (fprintf(cfile,
-              "  JSON_Value *req_val = json_value_init_object();\n  "
-              "JSON_Object *req_obj = json_value_get_object(req_val);\n") < 0)
+  if (fprintf(cfile, "  JSON_Value *req_val = json_value_init_object();\n  "
+                     "JSON_Object *req_obj = json_value_get_object(req_val);\n "
+                     " char *ret;\n") < 0)
     rc = ENOMEM;
   if (fprintf(cfile,
               "  json_object_set_string(req_obj, \"jsonrpc\", \"2.0\");\n") < 0)
@@ -3080,7 +3080,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
               "  if (params) { json_object_set_value(req_obj, \"params\", "
               "json_value_deep_copy((JSON_Value*)params)); }\n") < 0)
     rc = ENOMEM;
-  if (fprintf(cfile, "  char *ret = json_serialize_to_string(req_val);\n  "
+  if (fprintf(cfile, "  ret = json_serialize_to_string(req_val);\n  "
                      "json_value_free(req_val);\n  return ret;\n}\n\n") < 0)
     rc = ENOMEM;
   if (fprintf(hfile, "#ifdef __cplusplus\n}\n#endif\n") < 0) {
@@ -4260,8 +4260,10 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
     tfp = fopen(tfile, "w");
     if (tfp) {
-      fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
-                   "<string.h>\n#include \"generated_client_models.h\"\n");
+      fprintf(tfp,
+              "#include <stdio.h>\n#include <stdlib.h>\n#include "
+              "<string.h>\n#include \"generated_client_models.h\"\n#include "
+              "\"c_cdd/safe_crt.h\"\n");
       fprintf(tfp, "#if defined(__APPLE__)\n#include "
                    "<c_abstract_http/http_apple.h>\n#define "
                    "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "

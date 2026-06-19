@@ -2520,7 +2520,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_token_t *new_tok = NULL;
             cdd_cst_create_token_len(
                 tree, t->kind,
-                "/* warning: goto cross-scope cleanups unsupported */ goto", 59,
+                "/* warning: goto cross-scope cleanups unsupported */ goto", 57,
                 &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
@@ -2540,7 +2540,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_token_t *new_tok = NULL;
             cdd_cst_create_token_len(
                 tree, t->kind,
-                "/* warning: goto crossing VLA scopes unsupported */ goto", 58,
+                "/* warning: goto crossing VLA scopes unsupported */ goto", 56,
                 &new_tok);
             if (new_tok) {
               new_tok->leading_trivia = t->leading_trivia;
@@ -3342,7 +3342,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
             } else if (is_range_init && start_val <= end_val) {
               char *heap_buf;
-              size_t alloc_sz = (end_val - start_val + 2) * 32;
+              size_t alloc_sz = 0;
               char *p;
               int v;
               /* Extract the assigned value */
@@ -3355,6 +3355,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
 
               if (assign_val) {
+                alloc_sz =
+                    (end_val - start_val + 2) * (32 + assign_val->length) + 1;
                 heap_buf = (char *)malloc(alloc_sz);
                 if (heap_buf) {
                   p = heap_buf;
@@ -3371,6 +3373,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       p += 2;
                     }
                   }
+                  *p = '\0';
 
                   tree->base_tokens->tokens[is_range_idx].start =
                       (const uint8_t *)heap_buf;

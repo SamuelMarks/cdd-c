@@ -119,6 +119,9 @@ set_target_properties(
 target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}" parson::parson)
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
+if (C_CDD_USE_ASAN)
+    set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
+endif()
 
 # ... (Previous Mock targets remain unchanged) ...
 add_subdirectory("mocks")
@@ -134,6 +137,9 @@ target_include_directories("${EXEC_NAME}" PRIVATE "$<BUILD_INTERFACE:${DOWNLOAD_
 set_target_properties("${EXEC_NAME}" PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries("${EXEC_NAME}" PUBLIC "simple_mocks")
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
+if (C_CDD_USE_ASAN)
+    set_tests_properties("${EXEC_NAME}" PROPERTIES ENVIRONMENT "ASAN_OPTIONS=allocator_may_return_null=1")
+endif()
 
 
 
