@@ -66,6 +66,12 @@ C_CDD_EXPORT int cdd_cst_append_child_node(cdd_cst_node_t *parent,
 C_CDD_EXPORT int cdd_cst_append_child_token(cdd_cst_node_t *parent,
                                             cdd_token_t *token);
 
+/**
+ * @brief Recursively frees a node and all of its descendant nodes.
+ * @param node The node to free.
+ */
+C_CDD_EXPORT void cdd_cst_free_node(cdd_cst_node_t *node);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

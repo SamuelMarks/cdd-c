@@ -138,6 +138,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
 
               if (!cdd_cst_builder_has_error(&bld)) {
                 cdd_cst_replace_node(tree, dir, wrap_node);
+                cdd_cst_free_node(dir);
               } else {
                 free(wrap_node->children);
                 free(wrap_node);

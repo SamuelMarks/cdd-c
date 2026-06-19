@@ -1055,6 +1055,7 @@ TEST test_body_form_urlencoded(void) {
   ASSERT(strstr(code, "sprintf(num_buf, \"%d\", req_body->age)") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1103,6 +1104,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   ASSERT(strstr(code, "url_query_add(&form_qp, \"name\"") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1152,6 +1154,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
   ASSERT(strstr(code, "url_query_add_encoded(&form_qp, \"pet\"") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1222,6 +1225,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1293,6 +1297,7 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1363,6 +1368,7 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   ASSERT(strstr(code, "Filter_to_json") == NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1424,6 +1430,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
   ASSERT(strstr(code, "for (i = 0; i < req_body->n_nums; ++i)") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1476,6 +1483,7 @@ TEST test_body_multipart_object_fields(void) {
                       "\"application/json\"") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1535,6 +1543,7 @@ TEST test_body_multipart_encoding_content_type(void) {
                       "\"text/plain; charset=utf-8\"") != NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1594,6 +1603,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   ASSERT(strstr(code, "image/jpeg") == NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -1666,6 +1676,7 @@ TEST test_body_multipart_encoding_headers(void) {
   ASSERT(strstr(code, "title_hdr_Content_Type") == NULL);
 
   free(code);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

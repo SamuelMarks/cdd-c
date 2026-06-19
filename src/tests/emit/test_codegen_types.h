@@ -777,6 +777,7 @@ TEST test_types_exhaustive_io(void) {
 
   g_fail_io_after = -1;
 #endif
+  struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

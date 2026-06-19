@@ -170,3 +170,15 @@ void cdd_cst_free_node_only(cdd_cst_node_t *node) {
     free(node->children);
   free(node);
 }
+
+void cdd_cst_free_node(cdd_cst_node_t *node) {
+  size_t i;
+  if (!node)
+    return;
+  for (i = 0; i < node->num_children; i++) {
+    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_cst_free_node(node->children[i].val.node);
+    }
+  }
+  cdd_cst_free_node_only(node);
+}

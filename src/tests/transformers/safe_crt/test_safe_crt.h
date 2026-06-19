@@ -298,6 +298,7 @@ TEST test_cdd_transform_safe_crt_oom(void) {
   g_safe_crt_malloc_fail = 2;
   cdd_transform_safe_crt(tree, &config);
   g_safe_crt_malloc_fail = 0;
+  cdd_cst_tree_free(tree);
   tree = NULL;
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
   g_safe_crt_malloc_fail = 6;

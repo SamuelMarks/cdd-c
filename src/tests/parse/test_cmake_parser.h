@@ -202,6 +202,8 @@ TEST test_cmake_parser_oom(void) {
   ASSERT_EQ(
       0, cmake_modifier_init(&mod, "test_cmake_dir/non_existent.txt", "test"));
   ASSERT_EQ(0, cmake_modifier_apply_diff(&mod, &diff_str));
+  if (diff_str)
+    free(diff_str);
   cmake_modifier_free(&mod);
 
   remove("test_cmake_dir/CMakeLists2.txt");

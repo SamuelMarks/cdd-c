@@ -63,6 +63,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
       cdd_cst_bld_snippet(&bld, "\"hello\"");
 
       cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+      cdd_cst_free_node(call_node);
 
       cdd_cst_builder_free(&bld);
     }
@@ -85,6 +86,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
           cdd_cst_bld_snippet(&bld, "\"hello\"");
 
           cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+      cdd_cst_free_node(call_node);
 
           cdd_cst_builder_free(&bld);
         }
@@ -110,6 +112,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
           cdd_cst_bld_snippet(&bld, "42");
 
           cdd_cst_replace_node_preserve_trivia(&bld, call_node, replacement);
+      cdd_cst_free_node(call_node);
 
           cdd_cst_builder_free(&bld);
         }

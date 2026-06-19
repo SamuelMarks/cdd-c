@@ -283,6 +283,7 @@ TEST test_write_enum_declaration_h_io_fail(void) {
   printf("RC WAS %d\n", rc);
   ASSERT_EQ(EIO, rc);
   fclose(tmp);
+  struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -305,6 +306,7 @@ TEST test_write_struct_declaration_h_io_fail(void) {
   g_io_calls = 0;
   ASSERT_EQ(EIO, write_struct_declaration_h(tmp, "S", &sf, &cfg));
   fclose(tmp);
+  struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }
@@ -329,6 +331,7 @@ TEST test_write_union_declaration_h_io_fail(void) {
   printf("RC WAS %d\n", rc);
   ASSERT_EQ(EIO, rc);
   fclose(tmp);
+  struct_fields_free(&sf);
   g_fail_io_after = -1;
   PASS();
 }

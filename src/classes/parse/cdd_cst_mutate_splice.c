@@ -12,6 +12,7 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
+
 /**
  * @brief Splice children of a node.
  * @param tree The syntax tree.
@@ -69,13 +70,19 @@ int cdd_cst_splice_children(cdd_cst_tree_t *tree, cdd_cst_node_t **node_ptr,
     }
   }
 
+  for (i = start_idx; i < start_idx + consume_count; i++) {
+    if (node->children[i].kind == CDD_CST_CHILD_NODE) {
+      cdd_cst_free_node(node->children[i].val.node);
+    }
+  }
+
   if (node == tree->root) {
-    cdd_cst_free_node_only(node);
     tree->root = new_node;
     rc = 0;
   } else {
     rc = cdd_cst_replace_node(tree, node, new_node);
   }
+  cdd_cst_free_node_only(node);
   *node_ptr = new_node;
   return rc;
 }

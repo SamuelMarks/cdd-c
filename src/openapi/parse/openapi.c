@@ -11345,6 +11345,7 @@ static int parse_content_object(const JSON_Object *content,
   if (count == 0)
     return 0;
 
+  *out_count = count;
   *out = (struct OpenAPI_MediaType *)calloc(count,
                                             sizeof(struct OpenAPI_MediaType));
   /* LCOV_EXCL_START */
@@ -13538,6 +13539,7 @@ static int parse_paths_object(const JSON_Object *paths_obj,
 
       /* LCOV_EXCL_START */
 
+      curr_path->n_operations = n_ops_in_obj;
       if (!curr_path->operations) {
         return ENOMEM;
       }

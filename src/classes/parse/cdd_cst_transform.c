@@ -155,6 +155,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
                   rc = cdd_cst_replace_node(tree, dir, cloned);
+                  if (rc == 0) cdd_cst_free_node(dir);
                   if (rc != 0) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
@@ -179,6 +180,7 @@ int cdd_transform_msvc(cdd_cst_tree_t *tree,
                     tree, wrap_tree->root->children[0].val.node, &cloned);
                 if (rc == 0) {
                   rc = cdd_cst_replace_node(tree, dir, cloned);
+                  if (rc == 0) cdd_cst_free_node(dir);
                   if (rc != 0) {
                     /* Handle error */
                     fprintf(stderr, "Error replacing node: %d\n", rc);
