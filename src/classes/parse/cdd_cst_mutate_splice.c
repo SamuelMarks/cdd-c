@@ -12,7 +12,6 @@
 #include "c_cdd/log.h"
 /* clang-format on */
 
-
 /**
  * @brief Splice children of a node.
  * @param tree The syntax tree.

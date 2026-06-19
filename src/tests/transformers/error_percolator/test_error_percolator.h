@@ -46,9 +46,12 @@ TEST test_cdd_transform_percolate_errors(void) {
   rc = cdd_cst_emit(tree, &out);
   ASSERT_EQ(0, rc);
 
+  fprintf(stderr, "OUT WAS:\n%s\n", out);
   ASSERT(strstr(out, "int foo(void **out_result)") != NULL);
   ASSERT(strstr(out, "if (!ptr) { return ENOMEM; }") != NULL);
   ASSERT(strstr(out, "rc = 0; goto cleanup;") != NULL);
+  printf("OUT WAS:\n%s\n", out);
+  fprintf(stderr, "OUT FOR FOO:\n%s\n", out);
   ASSERT(strstr(out, "cleanup:") != NULL);
   ASSERT(strstr(out, "return rc;") != NULL);
   ASSERT(strstr(out, "int bar(int a, void **out_result)") != NULL);
@@ -89,6 +92,8 @@ TEST test_cdd_transform_percolate_errors_complex(void) {
   ASSERT(strstr(out, "if (!p1) { return ENOMEM; }") != NULL);
   ASSERT(strstr(out, "if (!p2) { rc = ENOMEM; goto cleanup; }") != NULL);
   ASSERT(strstr(out, "rc = 0; goto cleanup;") != NULL);
+  printf("OUT WAS:\n%s\n", out);
+  fprintf(stderr, "OUT FOR FOO:\n%s\n", out);
   ASSERT(strstr(out, "cleanup:") != NULL);
   ASSERT(strstr(out, "return rc;") != NULL);
 

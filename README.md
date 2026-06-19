@@ -236,7 +236,7 @@ Usage: cdd-c bind [OPTIONS]
 Options:
   -i, --input <file|dir>    Input C header/source or directory
   -o, --output-dir <dir>    Output directory for bindings
-  -l, --lang <langs>        Comma-separated list of languages (e.g., python,rust)
+  -l, --lang <langs>        Comma-separated list of languages or '*' (e.g., python,rust)
   -n, --lib-name <name>     Name of the shared library (e.g., sqlite3)
   -m, --module-name <name>  Name of the generated namespace/module
   --skip-static             Skip static inline functions

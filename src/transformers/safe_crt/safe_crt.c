@@ -412,13 +412,16 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   return 0;
 }
 
-static int clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok, cdd_token_t **out_token) {
+static int clone_token(cdd_cst_tree_t *tree, cdd_token_t *tok,
+                       cdd_token_t **out_token) {
   cdd_token_t *ct = NULL;
   if (!tok || !out_token)
     return EINVAL;
   *out_token = NULL;
-  cdd_cst_create_token_len(tree, tok->kind, (const char *)tok->start, tok->length, &ct);
-  if (!ct) return ENOMEM;
+  cdd_cst_create_token_len(tree, tok->kind, (const char *)tok->start,
+                           tok->length, &ct);
+  if (!ct)
+    return ENOMEM;
   clone_trivia(tok->leading_trivia, &ct->leading_trivia);
   clone_trivia(tok->trailing_trivia, &ct->trailing_trivia);
   *out_token = ct;
@@ -1560,8 +1563,6 @@ int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
         cdd_cst_builder_free(&msc_bld);
         cdd_cst_builder_free(&else_bld);
         cdd_cst_builder_free(&bld);
-
-
 
         if (replaced_any) {
           break;

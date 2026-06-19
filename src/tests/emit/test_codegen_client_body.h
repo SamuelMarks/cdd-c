@@ -1034,7 +1034,7 @@ TEST test_body_form_urlencoded(void) {
                     NULL);
   struct_fields_add(&spec.defined_schemas[0], "age", "integer", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1084,7 +1084,7 @@ TEST test_body_form_urlencoded_with_params(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "name", "string", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1135,7 +1135,7 @@ TEST test_body_form_urlencoded_object_fields(void) {
                     NULL);
   struct_fields_add(&spec.defined_schemas[0], "pets", "array", "Pet", NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1187,14 +1187,14 @@ TEST test_body_form_urlencoded_object_style_form_explode_true(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
                     NULL, NULL);
-  spec.defined_schema_names[0] = "FormData";
+  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
   struct_fields_init(&spec.defined_schemas[1]);
   struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
                     NULL);
   struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[1] = "Filter";
+  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -1258,14 +1258,14 @@ TEST test_body_form_urlencoded_object_style_form_explode_false(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
                     NULL, NULL);
-  spec.defined_schema_names[0] = "FormData";
+  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
   struct_fields_init(&spec.defined_schemas[1]);
   struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
                     NULL);
   struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[1] = "Filter";
+  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -1330,14 +1330,14 @@ TEST test_body_form_urlencoded_object_style_deep_object(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "filter", "object", "Filter",
                     NULL, NULL);
-  spec.defined_schema_names[0] = "FormData";
+  c_cdd_strdup("FormData", &spec.defined_schema_names[0]);
 
   struct_fields_init(&spec.defined_schemas[1]);
   struct_fields_add(&spec.defined_schemas[1], "color", "string", NULL, NULL,
                     NULL);
   struct_fields_add(&spec.defined_schemas[1], "limit", "integer", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[1] = "Filter";
+  c_cdd_strdup("Filter", &spec.defined_schema_names[1]);
 
   spec.n_defined_schemas = 2;
 
@@ -1407,7 +1407,7 @@ TEST test_body_multipart_primitives_and_arrays(void) {
                     NULL);
   struct_fields_add(&spec.defined_schemas[0], "nums", "array", "integer", NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1461,7 +1461,7 @@ TEST test_body_multipart_object_fields(void) {
                     NULL);
   struct_fields_add(&spec.defined_schemas[0], "pets", "array", "Pet", NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1516,7 +1516,7 @@ TEST test_body_multipart_encoding_content_type(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1576,7 +1576,7 @@ TEST test_body_multipart_encoding_content_type_list(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "file", "string", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -1638,7 +1638,7 @@ TEST test_body_multipart_encoding_headers(void) {
   struct_fields_init(&spec.defined_schemas[0]);
   struct_fields_add(&spec.defined_schemas[0], "title", "string", NULL, NULL,
                     NULL);
-  spec.defined_schema_names[0] = schema_name;
+  c_cdd_strdup(schema_name, &spec.defined_schema_names[0]);
   spec.n_defined_schemas = 1;
 
   op.verb = OA_VERB_POST;
@@ -2074,7 +2074,7 @@ TEST test_client_body_find_encoding_not_found(void) {
   /* Setup the global Spec schema definitions */
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchema";
+  c_cdd_strdup("MockSchema", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2115,7 +2115,7 @@ TEST test_client_body_array_items_statics(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchema2";
+  c_cdd_strdup("MockSchema2", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 5;
@@ -2207,7 +2207,7 @@ TEST test_client_body_header_formatting_indirect(void) {
   /* Set up global schemas to bypass properties missing error */
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaHdr";
+  c_cdd_strdup("MockSchemaHdr", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2272,7 +2272,7 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaTxtBin";
+  c_cdd_strdup("MockSchemaTxtBin", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2356,7 +2356,7 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaMissing";
+  c_cdd_strdup("MockSchemaMissing", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2419,7 +2419,7 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaCaps";
+  c_cdd_strdup("MockSchemaCaps", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2478,7 +2478,7 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaPrefixCaps";
+  c_cdd_strdup("MockSchemaPrefixCaps", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2537,7 +2537,7 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaShort";
+  c_cdd_strdup("MockSchemaShort", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;
@@ -2795,7 +2795,7 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   spec.n_defined_schemas = 1;
   spec.defined_schema_names = calloc(1, sizeof(char *));
-  spec.defined_schema_names[0] = "MockSchemaFormObj";
+  c_cdd_strdup("MockSchemaFormObj", &spec.defined_schema_names[0]);
 
   spec.defined_schemas = calloc(1, sizeof(struct StructFields));
   spec.defined_schemas[0].size = 1;

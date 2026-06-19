@@ -366,7 +366,10 @@ TEST test_patcher_invalid(void) {
 
   res_huge = NULL;
   ASSERT_EQ(0, patch_list_apply(&pl3, tl_huge, &res_huge));
-  if (res_huge) { free(res_huge); res_huge = NULL; }
+  if (res_huge) {
+    free(res_huge);
+    res_huge = NULL;
+  }
 
 #ifdef CDD_BUILD_TESTS
   res_huge = NULL;

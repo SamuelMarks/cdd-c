@@ -164,7 +164,8 @@ static int emit_java_file(cdd_ffi_ir_t *ir,
           fprintf(f, "            public static final int %s = %s;\n",
                   var->name, var->value);
         } else {
-          fprintf(f, "            public static final int %s = %" CDD_PRIz ";\n",
+          fprintf(f,
+                  "            public static final int %s = %" CDD_PRIz ";\n",
                   var->name, j);
         }
       }

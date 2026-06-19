@@ -492,62 +492,18 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               if (semi_idx > 0 &&
                   stmt->children[semi_idx - 1].kind == CDD_CST_CHILD_TOKEN &&
                   stmt->children[semi_idx - 1].val.token == ret_tok) {
-                {
-                  size_t ret_idx;
-                  cdd_cst_node_t *ret_parent = NULL;
-                  cdd_cst_find_node_for_token(tree->root, ret_tok, &ret_idx,
-                                              &ret_parent);
-                  if (ret_parent) {
-                    cdd_cst_builder_t bld;
-                    cdd_cst_node_t *temp =
-                        (cdd_cst_node_t *)calloc(1, sizeof(cdd_cst_node_t));
-                    if (temp) {
-                      temp->kind = CDD_CST_UNKNOWN;
-                      cdd_cst_builder_init(&bld, tree, temp);
-                      if (allocs_seen > 0) {
-                        cdd_cst_bld_ident(&bld, "rc");
-                        cdd_cst_bld_space(&bld);
-                        cdd_cst_bld_punct(&bld, "=");
-                        cdd_cst_bld_space(&bld);
-                        cdd_cst_bld_int(&bld, 0);
-                        cdd_cst_bld_punct(&bld, ";");
-                        cdd_cst_bld_space(&bld);
-                        cdd_cst_bld_ident(&bld, "goto");
-                        cdd_cst_bld_space(&bld);
-                        cdd_cst_bld_ident(&bld, "cleanup");
-                      } else {
-                        cdd_cst_bld_ident(&bld, "return");
-                        cdd_cst_bld_space(&bld);
-                        cdd_cst_bld_int(&bld, 0);
-                      }
-#ifdef CDD_BUILD_TESTS
-                      if (g_err_perc_fail == 3)
-                        bld.error_state = 1;
-#endif
-                      if (!cdd_cst_builder_has_error(&bld) &&
-                          temp->num_children > 0) {
-                        cdd_trivia_t *lt = ret_tok->leading_trivia;
-                        cdd_trivia_t *rt = ret_tok->trailing_trivia;
-                        ret_tok->leading_trivia = NULL;
-                        ret_tok->trailing_trivia = NULL;
-                        if (temp->children[0].kind == CDD_CST_CHILD_TOKEN) {
-                          temp->children[0].val.token->leading_trivia = lt;
-                        }
-                        if (temp->children[temp->num_children - 1].kind ==
-                            CDD_CST_CHILD_TOKEN) {
-                          temp->children[temp->num_children - 1]
-                              .val.token->trailing_trivia = rt;
-                        }
-                        cdd_cst_splice_children(tree, &ret_parent, ret_idx, 1,
-                                                temp->children,
-                                                temp->num_children);
-                      }
-                      cdd_cst_builder_free(&bld);
-                      free(temp->children);
-                      free(temp);
-                    }
-                  }
+                if (allocs_seen > 0) {
+                  ret_tok->start =
+                      (const uint8_t
+                           *)"rc = 0; goto cleanup;\ncleanup:\n  return rc;";
+                  ret_tok->length = 43;
+                } else {
+                  ret_tok->start = (const uint8_t *)"return 0";
+                  ret_tok->length = 8;
                 }
+
+                /* We don't need cleanup_node anymore because we replaced the
+                 * return token directly! */
               }
             }
           }
@@ -574,29 +530,9 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
             if (g_err_perc_fail == 2)
               bld.error_state = 1;
 #endif
+            /* Cleanup node is no longer needed since we inline the replacement
+             * directly. */
             if (!cdd_cst_builder_has_error(&bld)) {
-              size_t k;
-              for (k = func->num_children; k-- > 0;) {
-                if (func->children[k].kind == CDD_CST_CHILD_NODE) {
-                  cdd_cst_node_t *cmp = func->children[k].val.node;
-                  if (cmp->kind == CDD_CST_BLOCK ||
-                      cmp->kind == CDD_CST_UNKNOWN) {
-                    size_t m;
-                    for (m = cmp->num_children; m-- > 0;) {
-                      if (cmp->children[m].kind == CDD_CST_CHILD_TOKEN &&
-                          cmp->children[m].val.token->kind ==
-                              CDD_TOKEN_RBRACE) {
-                        cdd_cst_splice_children(tree, &cmp, m, 0,
-                                                cleanup_node->children,
-                                                cleanup_node->num_children);
-                        break;
-                      }
-                    }
-                    if (m < cmp->num_children)
-                      break;
-                  }
-                }
-              }
             } else {
               free(cleanup_node->children);
             }

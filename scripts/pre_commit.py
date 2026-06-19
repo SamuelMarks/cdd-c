@@ -108,9 +108,31 @@ def main():
         # Test OpenAPI generation
         script_dir = os.path.dirname(os.path.abspath(__file__))
         repo_root = os.path.dirname(script_dir)
-        parent_dir = os.path.dirname(repo_root)
 
-        spec_oas3 = os.path.join(parent_dir, "petstore_oas3.json")
+        spec_oas3 = os.path.join(repo_root, "petstore_oas3.json")
+        spec_sw2 = os.path.join(repo_root, "petstore.json")
+
+        import urllib.request
+        import urllib.error
+
+        if has_docker:
+            try:
+                print("Fetching Swagger 2.0 spec from container...")
+                urllib.request.urlretrieve("http://localhost:8092/v2/swagger.json", spec_sw2)
+            except Exception as e:
+                print(f"Warning: Failed to fetch Swagger 2.0 spec: {e}")
+
+            try:
+                print("Fetching OAS3 spec from container...")
+                # Note: both containers are using swaggerapi/petstore image which might default to swagger.json,
+                # but we'll try to fetch whatever is served at the base path or fall back to swagger.json
+                try:
+                    urllib.request.urlretrieve("http://localhost:8093/api/v3/openapi.json", spec_oas3)
+                except urllib.error.URLError:
+                    urllib.request.urlretrieve("http://localhost:8093/api/v3/swagger.json", spec_oas3)
+            except Exception as e:
+                print(f"Warning: Failed to fetch OAS3 spec: {e}")
+
         cdd_c_bin = os.path.join("bin", "cdd-c.exe") if os.name == "nt" else os.path.join("bin", "cdd-c")
 
         if os.path.exists(spec_oas3) and os.path.exists(cdd_c_bin):
@@ -129,8 +151,6 @@ def main():
                  print("Warning: CTest failed for OAS3. Continuing...")
         else:
              print(f"Warning: Spec {spec_oas3} or binary {cdd_c_bin} not found. Skipping OAS3 test.")
-
-        spec_sw2 = os.path.join(parent_dir, "petstore.json")
 
         if os.path.exists(spec_sw2) and os.path.exists(cdd_c_bin):
             print("=== Swagger 2.0 Petstore Test ===")

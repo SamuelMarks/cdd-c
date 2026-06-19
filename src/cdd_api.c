@@ -210,7 +210,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   /* Dispatch to Emitters */
   if (config->target_langs) {
     if (strstr(config->target_langs, "python") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_python(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -219,7 +220,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "rust") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_rust(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -228,7 +230,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "csharp") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_csharp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -237,7 +240,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "typescript") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_typescript(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -246,7 +250,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "napi") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_napi(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -255,7 +260,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "java") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_java(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -264,7 +270,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "cpp") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_cpp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -273,7 +280,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "go") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_go(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -282,7 +290,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "swift") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_swift(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -291,7 +300,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "dart") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_dart(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -300,7 +310,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "ruby") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ruby(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -309,7 +320,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "kotlin") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_kotlin(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -318,7 +330,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "php") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_php(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -327,7 +340,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "lua") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_lua(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -336,7 +350,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "zig") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_zig(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -345,7 +360,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "odin") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_odin(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -354,7 +370,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "julia") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_julia(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -363,7 +380,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "r") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_r(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -372,7 +390,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "matlab") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_matlab(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -381,7 +400,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "haskell") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_haskell(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -390,7 +410,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "ocaml") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ocaml(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -399,7 +420,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "elixir") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_elixir(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -408,7 +430,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "erlang") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_erlang(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -417,7 +440,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "common_lisp") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_common_lisp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -426,7 +450,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "racket") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_racket(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -435,7 +460,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "scheme") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scheme(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -444,7 +470,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "scala") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_scala(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -453,7 +480,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "fsharp") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fsharp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -462,7 +490,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "clojure") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_clojure(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -471,7 +500,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "groovy") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_groovy(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -481,7 +511,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
     }
     if (strstr(config->target_langs, "webassembly") ||
         strcmp(config->target_langs, "wasm") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_webassembly(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -490,7 +521,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "nim") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_nim(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -499,7 +531,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "vlang") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_vlang(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -508,7 +541,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "dlang") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_d(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -517,7 +551,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "perl") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_perl(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -526,7 +561,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "tcl") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_tcl(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -535,7 +571,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "fortran") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_fortran(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -545,7 +582,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
     }
     if (strstr(config->target_langs, "delphi") ||
         strcmp(config->target_langs, "pascal") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_delphi(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -554,7 +592,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "ada") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_ada(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -564,7 +603,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
     }
     if (strstr(config->target_langs, "objc") ||
         strcmp(config->target_langs, "objective-c") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_objc(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
@@ -573,7 +613,8 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "crystal") ||
-        strcmp(config->target_langs, "all") == 0) {
+        strcmp(config->target_langs, "all") == 0 ||
+        strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_crystal(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);

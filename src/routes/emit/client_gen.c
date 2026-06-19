@@ -4268,7 +4268,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                    "<c_abstract_http/http_apple.h>\n#define "
                    "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "
                    "C_ABSTRACT_HTTP_SEND http_apple_send\n#else\n#include "
-                   " < c_abstract_http / http_curl.h>\n #define "
+                   "<c_abstract_http/http_curl.h>\n#define "
                    "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
                    "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
       fprintf(tfp, "int main(void) {\n  struct HttpClient client;\n  "
