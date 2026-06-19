@@ -29,6 +29,16 @@ TEST test_cli_gen_basic(void) {
   int rc;
   FILE *f;
 
+  struct OpenAPI_Response resp = {0};
+  struct OpenAPI_Parameter param = {0};
+  struct OpenAPI_Link link = {0};
+  struct OpenAPI_Header header = {0};
+  struct OpenAPI_SecurityRequirement sec = {0};
+  struct OpenAPI_SecurityRequirementSet sec_set = {0};
+  struct OpenAPI_SecurityScheme scheme = {0};
+  struct OpenAPI_OAuthFlow flow = {0};
+  struct OpenAPI_Callback cb = {0};
+
   memset(&spec, 0, sizeof(spec));
   spec.n_paths = 1;
   spec.paths = (struct OpenAPI_Path *)calloc(1, sizeof(struct OpenAPI_Path));
@@ -37,6 +47,54 @@ TEST test_cli_gen_basic(void) {
       (struct OpenAPI_Operation *)calloc(1, sizeof(struct OpenAPI_Operation));
   spec.paths[0].operations[0].operation_id = "doSomething";
   spec.paths[0].operations[0].summary = "Does a thing";
+
+  /* Add parameters with examples */
+  param.name = "query_param";
+  param.example_set = 1;
+  spec.paths[0].operations[0].parameters = &param;
+  spec.paths[0].operations[0].n_parameters = 1;
+
+  /* Add requestBody */
+  spec.paths[0].operations[0].req_body_required_set = 1;
+  spec.paths[0].operations[0].req_body_required = 1;
+  spec.paths[0].operations[0].req_body.content_schema =
+      (struct OpenAPI_SchemaRef *)calloc(1, sizeof(struct OpenAPI_SchemaRef));
+
+  spec.paths[0].operations[0].deprecated = 1;
+
+  /* Add responses with links and headers */
+  resp.code = "200";
+  link.operation_ref = "opRef";
+  resp.links = &link;
+  resp.n_links = 1;
+  header.name = "X-Header";
+  resp.headers = &header;
+  resp.n_headers = 1;
+  spec.paths[0].operations[0].responses = &resp;
+  spec.paths[0].operations[0].n_responses = 1;
+
+  /* Add externalDocs */
+  spec.paths[0].operations[0].external_docs.url = "http://doc";
+
+  /* Add callbacks */
+  cb.name = "myCb";
+  spec.paths[0].operations[0].callbacks = &cb;
+  spec.paths[0].operations[0].n_callbacks = 1;
+
+  /* Add security schemes and requirements */
+  sec.n_scopes = 0;
+  sec_set.requirements = &sec;
+  sec_set.n_requirements = 1;
+  spec.paths[0].operations[0].security = &sec_set;
+  spec.paths[0].operations[0].n_security = 1;
+  spec.paths[0].operations[0].security_set = 1;
+
+  flow.type = OA_OAUTH_FLOW_IMPLICIT;
+  flow.authorization_url = "url";
+  scheme.flows = &flow;
+  scheme.n_flows = 1;
+  spec.security_schemes = &scheme;
+  spec.n_security_schemes = 1;
 
   memset(&config, 0, sizeof(config));
   config.filename_base = "test_cli";
@@ -58,7 +116,7 @@ TEST test_cli_gen_basic(void) {
     fclose(f);
 
   remove("src/test_cli_cli.c");
-  free(spec.paths[0].operations[0].parameters);
+  free(spec.paths[0].operations[0].req_body.content_schema);
   free(spec.paths[0].operations);
   free(spec.paths);
   g_fail_io_after = -1;

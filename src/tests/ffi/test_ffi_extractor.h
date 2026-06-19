@@ -551,7 +551,8 @@ TEST test_ffi_ir_toposort_basic(void) {
 }
 
 TEST test_ffi_ir_extract_array_out(void) {
-  const char *content = "#define _Out_writes_(x)\nvoid get_items(_Out_writes_(len) char* buf, int len) {}\n";
+  const char *content = "#define _Out_writes_(x)\nvoid "
+                        "get_items(_Out_writes_(len) char* buf, int len) {}\n";
   cdd_ffi_ir_t *ir = NULL;
   cdd_generate_bindings_config_t config = {0};
   int rc;
@@ -561,11 +562,12 @@ TEST test_ffi_ir_extract_array_out(void) {
   rc = cdd_ffi_ir_extract_exports("test_array.c", content, &config, &ir);
   ASSERT_EQ(0, rc);
   {
-      size_t i;
-      printf("test_ffi_ir_extract_array_out IR nodes count: %lu\n", (unsigned long)ir->nodes_count);
-      for(i=0; i<ir->nodes_count; i++) {
-          printf("Node %lu: %s\n", (unsigned long)i, ir->nodes[i].name);
-      }
+    size_t i;
+    printf("test_ffi_ir_extract_array_out IR nodes count: %lu\n",
+           (unsigned long)ir->nodes_count);
+    for (i = 0; i < ir->nodes_count; i++) {
+      printf("Node %lu: %s\n", (unsigned long)i, ir->nodes[i].name);
+    }
   }
   ASSERT_EQ(1, ir->nodes_count);
   ASSERT_EQ(CDD_FFI_NODE_FUNCTION, ir->nodes[0].kind);

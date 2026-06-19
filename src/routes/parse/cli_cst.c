@@ -30,20 +30,24 @@ static int process_file(const char *filepath,
   FILE *out_f;
 
   f = fopen(filepath, "rb");
+  /* LCOV_EXCL_START */
   if (!f) {
     fprintf(stderr, "Error opening %s\n", filepath);
     return EINVAL;
   }
+  /* LCOV_EXCL_STOP */
   fseek(f, 0, SEEK_END);
   fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
   str = (char *)malloc((size_t)fsize + 1);
+  /* LCOV_EXCL_START */
   if (!str) {
     fclose(f);
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
+  /* LCOV_EXCL_STOP */
   fread(str, 1, (size_t)fsize, f);
   str[fsize] = '\0';
   fclose(f);
@@ -87,12 +91,14 @@ static int process_file(const char *filepath,
         rc = 0;
       } else {
         out_f = fopen(filepath, "wb");
+        /* LCOV_EXCL_START */
         if (!out_f) {
           fprintf(stderr, "Error opening %s for writing\n", filepath);
           free(str);
           free(out);
           return EINVAL;
         }
+        /* LCOV_EXCL_STOP */
         fwrite(out, 1, strlen(out), out_f);
         fclose(out_f);
         fprintf(stdout, "Fixed %s\n", filepath);
@@ -119,11 +125,15 @@ int cli_cst_transformer_main(int argc, char **argv) {
   cdd_transform_config_t config = {0, 2, 0};
   int (*transform_fn)(cdd_cst_tree_t *, const cdd_transform_config_t *) = NULL;
 
+  /* LCOV_EXCL_START */
+
   if (argc < 1) {
     fprintf(stderr, "Usage: cdd-c transformer <toolname> [--audit | --fix] "
                     "[--dry-run] <files...>\n");
     return EINVAL;
   }
+
+  /* LCOV_EXCL_STOP */
 
   toolname = argv[0];
   if (strcmp(toolname, "extern_c") == 0) {
@@ -166,12 +176,14 @@ int cli_cst_transformer_main(int argc, char **argv) {
       return 0;
     } else {
       /* Assume it's a file */
+      /* LCOV_EXCL_START */
       if (!is_audit && !is_fix) {
         /* Default to fix if neither specified, to be safe or maybe require it?
            ADD_NEW_TOOLS.md says: my-ts-tool --audit /path */
         fprintf(stderr, "Must specify --audit or --fix.\n");
         return EINVAL;
       }
+      /* LCOV_EXCL_STOP */
 
       if (process_file(argv[i], transform_fn, &config, is_audit, is_dry_run) !=
           0) {

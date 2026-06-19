@@ -10,7 +10,16 @@ for key in ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"]:
 
 def run_cmd(cmd, cwd=None, env=None, check=True):
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=cwd, env=env)
+    try:
+        result = subprocess.run(cmd, cwd=cwd, env=env)
+    except FileNotFoundError:
+        print(f"Command not found: {cmd[0]}")
+        if check:
+            sys.exit(1)
+        else:
+            class DummyResult:
+                returncode = 127
+            return DummyResult()
     if check and result.returncode != 0:
         print(f"Command failed with exit code {result.returncode}: {' '.join(cmd)}")
         sys.exit(result.returncode)
@@ -79,16 +88,22 @@ def main():
         print("=== Updating Shields ===")
         run_cmd([sys.executable, "scripts/update_badges.py"])
 
-        # Docker setup for petstore servers
-        print("=== Starting Petstore Docker Containers ===")
-        # We use swaggerapi/petstore for both, configuring the base path to match the respective specs
-        run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
-        run_cmd(["docker", "run", "-d", "--name", "petstore_sw2_test", "-e", "SWAGGER_HOST=http://localhost:8092", "-e", "SWAGGER_BASE_PATH=/v2", "-p", "8092:8080", "swaggerapi/petstore"], check=False)
-        run_cmd(["docker", "run", "-d", "--name", "petstore_oas3_test", "-e", "SWAGGER_HOST=http://localhost:8093", "-e", "SWAGGER_BASE_PATH=/api/v3", "-p", "8093:8080", "swaggerapi/petstore"], check=False)
+        import shutil
+        has_docker = shutil.which("docker") is not None
 
-        import time
-        print("Waiting for Petstore containers to start...")
-        time.sleep(15)
+        if has_docker:
+            # Docker setup for petstore servers
+            print("=== Starting Petstore Docker Containers ===")
+            # We use swaggerapi/petstore for both, configuring the base path to match the respective specs
+            run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
+            run_cmd(["docker", "run", "-d", "--name", "petstore_sw2_test", "-e", "SWAGGER_HOST=http://localhost:8092", "-e", "SWAGGER_BASE_PATH=/v2", "-p", "8092:8080", "swaggerapi/petstore"], check=False)
+            run_cmd(["docker", "run", "-d", "--name", "petstore_oas3_test", "-e", "SWAGGER_HOST=http://localhost:8093", "-e", "SWAGGER_BASE_PATH=/api/v3", "-p", "8093:8080", "swaggerapi/petstore"], check=False)
+
+            import time
+            print("Waiting for Petstore containers to start...")
+            time.sleep(15)
+        else:
+            print("=== Docker not found. Skipping Petstore Docker Containers setup ===")
 
         # Test OpenAPI generation
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -134,8 +149,9 @@ def main():
         else:
              print(f"Warning: Spec {spec_sw2} or binary {cdd_c_bin} not found. Skipping Swagger 2 test.")
 
-        print("=== Tearing down Petstore Docker Containers ===")
-        run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
+        if has_docker:
+            print("=== Tearing down Petstore Docker Containers ===")
+            run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
 
     else:
         print(f"Unknown job: {job}")

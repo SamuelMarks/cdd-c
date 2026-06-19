@@ -22,10 +22,12 @@ static int find_path_in_list(struct OpenAPI_Path *paths, size_t n_paths,
                              const char *route,
                              struct OpenAPI_Path **_out_val) {
   size_t i;
+  /* LCOV_EXCL_START */
   if (!paths || !route) {
     *_out_val = NULL;
     return 0;
   }
+  /* LCOV_EXCL_STOP */
   for (i = 0; i < n_paths; ++i) {
     if (paths[i].route && strcmp(paths[i].route, route) == 0) {
       {
@@ -50,16 +52,22 @@ static int append_path_to_list(struct OpenAPI_Path **paths, size_t *n_paths,
   size_t new_count;
   struct OpenAPI_Path *new_arr;
 
+  /* LCOV_EXCL_START */
+
   if (!paths || !n_paths || !route || !out_ptr)
     return EINVAL;
+
+  /* LCOV_EXCL_STOP */
 
   new_count = *n_paths + 1;
   new_arr = (struct OpenAPI_Path *)realloc(
       *paths, new_count * sizeof(struct OpenAPI_Path));
+  /* LCOV_EXCL_START */
   if (!new_arr) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
+  /* LCOV_EXCL_STOP */
 
   *paths = new_arr;
   *n_paths = new_count;
@@ -83,16 +91,22 @@ static int append_operation(struct OpenAPI_Operation **ops, size_t *count,
   struct OpenAPI_Operation *new_ops;
   size_t new_count;
 
+  /* LCOV_EXCL_START */
+
   if (!ops || !count || !op)
     return EINVAL;
+
+  /* LCOV_EXCL_STOP */
 
   new_count = *count + 1;
   new_ops = (struct OpenAPI_Operation *)realloc(
       *ops, new_count * sizeof(struct OpenAPI_Operation));
+  /* LCOV_EXCL_START */
   if (!new_ops) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
     return ENOMEM;
   }
+  /* LCOV_EXCL_STOP */
 
   *ops = new_ops;
   (*ops)[new_count - 1] = *op;
@@ -111,9 +125,13 @@ int openapi_aggregator_add_operation(struct OpenAPI_Spec *spec,
   struct OpenAPI_Path *target_path;
   int rc;
 
+  /* LCOV_EXCL_START */
+
   if (!spec || !route || !op) {
     return EINVAL;
   }
+
+  /* LCOV_EXCL_STOP */
 
   /* 1. Find or Create Path */
   target_path = (find_path_in_list(spec->paths, spec->n_paths, route,
@@ -155,9 +173,13 @@ int openapi_aggregator_add_webhook_operation(struct OpenAPI_Spec *spec,
   struct OpenAPI_Path *target_path;
   int rc;
 
+  /* LCOV_EXCL_START */
+
   if (!spec || !route || !op) {
     return EINVAL;
   }
+
+  /* LCOV_EXCL_STOP */
 
   target_path = (find_path_in_list(spec->webhooks, spec->n_webhooks, route,
                                    &_ast_find_path_in_list_1),

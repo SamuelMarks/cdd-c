@@ -33,7 +33,7 @@ def main():
     test_color = get_color(test_cov)
     doc_color = get_color(doc_cov)
 
-    with open(readme_path, 'r') as f:
+    with open(readme_path, 'r', encoding='utf-8', newline='\n') as f:
         content = f.read()
 
     content = re.sub(
@@ -48,7 +48,7 @@ def main():
         content
     )
 
-    with open(readme_path, 'w') as f:
+    with open(readme_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(content)
 
 if __name__ == '__main__':

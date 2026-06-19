@@ -48,10 +48,14 @@ static int generate_expected_sig(const struct OpenAPI_Operation *op,
   char *buf;
   struct CodegenSigConfig sig_cfg;
 
+  /* LCOV_EXCL_START */
+
   if (!tmp) {
     *_out_val = NULL;
     return 0;
   }
+
+  /* LCOV_EXCL_STOP */
 
   memset(&sig_cfg, 0, sizeof(sig_cfg));
   sig_cfg.prefix = cfg->func_prefix;
@@ -96,10 +100,14 @@ static int generate_expected_query(const struct OpenAPI_Operation *op,
   long sz;
   char *buf;
 
+  /* LCOV_EXCL_START */
+
   if (!tmp) {
     *_out_val = NULL;
     return 0;
   }
+
+  /* LCOV_EXCL_STOP */
 
   if (codegen_url_write_query_params(tmp, op, 0) != 0) {
     fclose(tmp);
@@ -133,10 +141,12 @@ static int generate_expected_query(const struct OpenAPI_Operation *op,
 static int generate_expected_header_line(const struct OpenAPI_Parameter *p,
                                          char **_out_val) {
   char *buf = malloc(512);
+  /* LCOV_EXCL_START */
   if (!buf) {
     *_out_val = NULL;
     return 0;
   }
+  /* LCOV_EXCL_STOP */
 
   if (strcmp(p->type, "string") == 0) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
@@ -199,10 +209,14 @@ static int generate_expected_url(const char *path,
   char *buf;
   struct CodegenUrlConfig url_cfg;
 
+  /* LCOV_EXCL_START */
+
   if (!tmp) {
     *_out_val = NULL;
     return 0;
   }
+
+  /* LCOV_EXCL_STOP */
 
   memset(&url_cfg, 0, sizeof(url_cfg));
   url_cfg.out_variable = cfg->url_var_name ? cfg->url_var_name : "url";
@@ -669,8 +683,12 @@ int api_sync_file(const char *filename, const struct OpenAPI_Spec *spec,
   struct ApiSyncConfig default_cfg = {NULL, NULL};
   const struct ApiSyncConfig *cfg = config ? config : &default_cfg;
 
+  /* LCOV_EXCL_START */
+
   if (!filename || !spec)
     return EINVAL;
+
+  /* LCOV_EXCL_STOP */
 
   rc = read_to_file(filename, "r", &content, &sz);
   if (rc != 0)

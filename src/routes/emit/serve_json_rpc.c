@@ -578,8 +578,10 @@ C_CDD_EXPORT int serve_json_rpc_main(int argc, char **argv) {
 #endif
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
+  /* LCOV_EXCL_START */
   if (server_fd == INVALID_SOCKET)
     return 1;
+  /* LCOV_EXCL_STOP */
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;

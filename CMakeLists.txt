@@ -18,11 +18,11 @@ if(MSVC)
   if(CDD_USE_STATIC_CRT)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   endif()
-  
+
   if(CDD_USE_UNICODE)
     add_compile_definitions(UNICODE _UNICODE)
   endif()
-  
+
   if(CDD_MSVC_RTC_1)
     add_compile_options(/RTC1)
   elseif(CDD_MSVC_RTC_S AND CDD_MSVC_RTC_U)
@@ -523,6 +523,3 @@ if (DOXYGEN_FOUND)
     )
 endif()
 message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
-
-
-
