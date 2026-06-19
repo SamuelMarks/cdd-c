@@ -80,6 +80,9 @@ static FILE* cdd_test_tmpfile(void) {
 #include "parse/test_analysis.h"
 #include "parse/test_c_cdd_integration.h"
 #include "parse/test_c_inspector_types.h"
+#include "ffi/test_ffi_extractor.h"
+#include "ffi/test_ffi_e2e.h"
+#include "ffi/test_ffi_variadic.h"
 #include "parse/test_code2schema.h"
 #include "parse/test_crypto.h"
 #include "parse/test_cst_parser.h"
@@ -93,7 +96,8 @@ static FILE* cdd_test_tmpfile(void) {
 #include "transformers/gnu_standardizer/test_gnu_standardizer.h"
 #include "transformers/error_percolator/test_error_percolator.h"
 #include "transformers/safe_crt/test_safe_crt.h"
-#include "emit/test_cst_printer.h"
+#include "transformers/macros/test_macros.h"
+#include "emit/test_cdd_cst_emit_unit.h"
 #include "emit/test_diff_generator.h"
 
 
@@ -174,6 +178,45 @@ TEST test_cdd_helpers(void) {
 
 SUITE(cdd_helpers_suite) { RUN_TEST(test_cdd_helpers); }
 
+SUITE(ffi_extractor_suite) {
+  RUN_TEST(test_ffi_e2e_complex_codebase);
+  RUN_TEST(test_ffi_ir_extract_exports_basic);
+  RUN_TEST(test_ffi_ir_extract_macros);
+  RUN_TEST(test_ffi_ir_extract_templates);
+  RUN_TEST(test_ffi_ir_extract_includes);
+  RUN_TEST(test_ffi_ir_extract_stl_types);
+  RUN_TEST(test_ffi_ir_extract_error_paths);
+  RUN_TEST(test_ffi_ir_extract_array_out);
+  RUN_TEST(test_ffi_ir_extract_inheritance_casting);
+  RUN_TEST(test_ffi_ir_extract_trampoline);
+  RUN_TEST(test_ffi_ir_extract_exports_oom);
+  RUN_TEST(test_ffi_ir_free_robustness);
+  RUN_TEST(test_ffi_ir_toposort_basic);
+  RUN_TEST(test_ffi_ir_toposort_oom);
+  RUN_TEST(test_ffi_ir_emit_python);
+  RUN_TEST(test_cdd_ffi_mangle_cpp_name);
+  RUN_TEST(test_ffi_ir_emit_rust);
+  RUN_TEST(test_ffi_ir_emit_csharp);
+  RUN_TEST(test_ffi_ir_emit_typescript);
+  RUN_TEST(test_ffi_ir_emit_napi);
+  RUN_TEST(test_ffi_ir_emit_java);
+  RUN_TEST(test_ffi_ir_emit_cpp);
+  RUN_TEST(test_ffi_ir_emit_go);
+  RUN_TEST(test_ffi_ir_emit_swift);
+  RUN_TEST(test_ffi_ir_emit_dart);
+  RUN_TEST(test_ffi_ir_emit_ruby);
+  RUN_TEST(test_ffi_ir_emit_kotlin);
+  RUN_TEST(test_ffi_ir_emit_php);
+  RUN_TEST(test_ffi_ir_emit_lua);
+  RUN_TEST(test_ffi_ir_emit_zig);
+  RUN_TEST(test_ffi_ir_emit_odin);
+  RUN_TEST(test_ffi_ir_emit_julia);
+  RUN_TEST(test_ffi_ir_emit_r);
+  RUN_TEST(test_ffi_ir_emit_matlab);
+  RUN_TEST(test_ffi_ir_emit_haskell);
+  RUN_TEST(test_ffi_ir_emit_ocaml);
+}
+
 int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   srand((unsigned int)time(NULL));
@@ -212,6 +255,7 @@ int main(int argc, char **argv) {
   RUN_SUITE(transformer_gnu_standardizer_suite);
   RUN_SUITE(transformer_error_percolator_suite);
   RUN_SUITE(transformer_safe_crt_suite);
+  RUN_SUITE(transformer_macros_suite);
   RUN_SUITE(crypto_suite);
   RUN_SUITE(dataclasses_suite);
   RUN_SUITE(declarator_parser_suite);
@@ -254,7 +298,6 @@ int main(int argc, char **argv) {
   RUN_SUITE(sync_code_suite);
   RUN_SUITE(weaver_suite);
   RUN_SUITE(text_patcher_suite);
-  RUN_SUITE(cst_printer_suite);
   RUN_SUITE(diff_generator_suite);
   RUN_SUITE(tokenizer_suite);
   RUN_SUITE(tokenizer_trigraphs_suite);
@@ -287,6 +330,8 @@ int main(int argc, char **argv) {
   RUN_SUITE(serve_json_rpc_suite);
   RUN_SUITE(cli_cst_suite);
   RUN_SUITE(cdd_cst_factory_suite);
+  RUN_SUITE(ffi_extractor_suite);
+  RUN_SUITE(ffi_variadic_suite);
 
   RUN_SUITE(cdd_cst_builder_suite);
   RUN_SUITE(c_cdd_int128_suite);

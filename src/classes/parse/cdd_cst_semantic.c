@@ -82,6 +82,11 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
     if (rc != 0)
       return rc;
     break;
+  case CDD_CST_NAMESPACE_DECLARATION:
+    rc = cdd_cst_scope_enter(env, CDD_CST_SCOPE_NAMESPACE);
+    if (rc != 0)
+      return rc;
+    break;
   case CDD_CST_DECLARATION: {
     const char *name = NULL;
     /* Very simplified extraction of identifier */
@@ -125,6 +130,7 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
   switch (node->kind) {
   case CDD_CST_BLOCK:
   case CDD_CST_FUNCTION_DEFINITION:
+  case CDD_CST_NAMESPACE_DECLARATION:
     rc = cdd_cst_scope_leave(env);
 #ifdef CDD_BUILD_TESTS
     if (g_cdd_semantic_oom_extract == 2)

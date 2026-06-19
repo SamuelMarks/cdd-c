@@ -73,7 +73,8 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 
 - **Compilation**:
     - **OpenAPI → `C`**: Generate idiomatic native models, network routes, client SDKs, and boilerplate directly from OpenAPI (`.json` / `.yaml`) specifications.
-    - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.
+    - **`C` → OpenAPI**: Statically parse existing `C` source code and emit compliant OpenAPI specifications.   
+- **Universal FFI Bindings**: Using the `bind` command, leverage a normalized Intermediate Representation (IR) to statically analyze C code and generate native bindings for 40+ languages (Python, Rust, C#, etc.) without writing manual SWIG rules.
 - **Model Context Protocol (MCP)**: Run `cdd-c serve_json_rpc` to expose an MCP-compliant server via stdio or HTTP, allowing LLMs to seamlessly interface with your C codebase, understand types, and interact with the compiler.
 - **AST-Driven & Safe**: Employs static analysis instead of unsafe dynamic execution or reflection, allowing it to safely parse and emit code even for incomplete or un-compilable project states.
 - **Seamless Sync**: Keep your docs, tests, database, clients, and routing in perfect harmony. Update your code, and generate the docs; or update the docs, and generate the code.
@@ -90,83 +91,228 @@ The `cdd-c` compiler leverages a unified architecture to support various facets 
 
 ## CLI Options
 
-Usage: `cdd-c <command> [args]`
+```text
+Usage: cdd-c [OPTIONS] <COMMAND>
+
+Commands:
+  from_openapi to_sdk -i <spec.json> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+  from_openapi to_sdk --input-dir <specs_dir> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+  from_openapi to_sdk_cli -i <spec.json> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+  from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+  from_openapi to_server -i <spec.json> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+  from_openapi to_server --input-dir <specs_dir> [-o <dir>] [--no-github-actions] [--no-installable-package] [--tests]
+      Generate code from an OpenAPI specification.
+  to_openapi -i <dir> [-o <out.json>]
+      Generate an OpenAPI specification from source code.
+  to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json> [-o <docs.json>]
+      Generate JSON documentation with code snippets for an OpenAPI specification.
+  bind [OPTIONS]
+      Generate SWIG-like FFI bindings for 40 languages.
+  serve_json_rpc [-p|--port <int>] [-l|--listen <address>]
+      Expose CLI interface as a JSON-RPC server.
+  mcp
+      Expose CLI interface as an MCP server via stdio.
+
+Language-Specific Commands:
+  audit <directory>
+      Scan directory for memory safety issues.
+  c2openapi <dir> <out.json>
+      Generate OpenAPI spec from C source code.
+  transformer <toolname> [--audit|--fix] [--dry-run] <files...>
+      Run syntax tree transformations.
+  code2schema <header.h> <schema.json>
+      Convert C header to JSON Schema.
+  generate_build_system <type> <out_dir> <name> [test_file]
+      Generate build system files.
+  schema2code <schema.json> <out_dir>
+      Generate C code from JSON schema.
+```
 
 ### `from_openapi`
 
 Generate C SDK, Server, and optionally CLI from OpenAPI spec.
 
-```shell
-cdd-c from_openapi to_sdk -i <spec.json> [-o <dir>]
-cdd-c from_openapi to_sdk --input-dir <specs_dir> [-o <dir>]
-cdd-c from_openapi to_sdk_cli -i <spec.json> [-o <dir>]
-cdd-c from_openapi to_sdk_cli --input-dir <specs_dir> [-o <dir>]
-cdd-c from_openapi to_server -i <spec.json> [-o <dir>]
-cdd-c from_openapi to_server --input-dir <specs_dir> [-o <dir>]
+```text
+Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+
+Commands:
+  to_sdk         Generate a Client SDK from an OpenAPI specification.
+  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
+  to_server      Generate a Server stub from an OpenAPI specification.
+
+Options:
+  -i, --input <spec.json>   Input OpenAPI spec file
+  --input-dir <specs_dir>   Input directory containing OpenAPI specs
+  -o, --output <dir>        Output directory
+  --no-github-actions       Do not generate GitHub Actions CI workflow
+  --no-installable-package  Do not generate build system files (e.g. CMakeLists.txt)
+  --tests                   Generate composable tests and mocks
+```
+
+#### `from_openapi to_sdk`
+
+```text
+Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+
+Commands:
+  to_sdk         Generate a Client SDK from an OpenAPI specification.
+  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
+  to_server      Generate a Server stub from an OpenAPI specification.
+
+Options:
+  -i, --input <spec.json>   Input OpenAPI spec file
+  --input-dir <specs_dir>   Input directory containing OpenAPI specs
+  -o, --output <dir>        Output directory
+  --no-github-actions       Do not generate GitHub Actions CI workflow
+  --no-installable-package  Do not generate build system files (e.g. CMakeLists.txt)
+  --tests                   Generate composable tests and mocks
+```
+
+#### `from_openapi to_sdk_cli`
+
+```text
+Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+
+Commands:
+  to_sdk         Generate a Client SDK from an OpenAPI specification.
+  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
+  to_server      Generate a Server stub from an OpenAPI specification.
+
+Options:
+  -i, --input <spec.json>   Input OpenAPI spec file
+  --input-dir <specs_dir>   Input directory containing OpenAPI specs
+  -o, --output <dir>        Output directory
+  --no-github-actions       Do not generate GitHub Actions CI workflow
+  --no-installable-package  Do not generate build system files (e.g. CMakeLists.txt)
+  --tests                   Generate composable tests and mocks
+```
+
+#### `from_openapi to_server`
+
+```text
+Usage: cdd-c from_openapi [to_sdk|to_sdk_cli|to_server] [args]
+
+Commands:
+  to_sdk         Generate a Client SDK from an OpenAPI specification.
+  to_sdk_cli     Generate a Client SDK CLI from an OpenAPI specification.
+  to_server      Generate a Server stub from an OpenAPI specification.
+
+Options:
+  -i, --input <spec.json>   Input OpenAPI spec file
+  --input-dir <specs_dir>   Input directory containing OpenAPI specs
+  -o, --output <dir>        Output directory
+  --no-github-actions       Do not generate GitHub Actions CI workflow
+  --no-installable-package  Do not generate build system files (e.g. CMakeLists.txt)
+  --tests                   Generate composable tests and mocks
 ```
 
 ### `to_openapi`
 
 Generate OpenAPI spec from C source code.
 
-```shell
-cdd-c to_openapi -i <dir> [-o <out.json>]
+```text
+Usage: cdd-c to_openapi [args]
+
+Options:
+  -i, --input <dir>       Input directory containing C source code
+  -o, --output <out.json> Output OpenAPI spec file (default: openapi.json)
 ```
 
 ### `to_docs_json`
 
 Generate JSON code examples for doc sites.
 
-```shell
-cdd-c to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json>
+```text
+Usage: cdd-c to_docs_json [--no-imports] [--no-wrapping] -i|--input <spec.json> [-o <docs.json>]
+```
+
+### `bind`
+
+Generate SWIG-like FFI bindings for 40 languages.
+
+```text
+Usage: cdd-c bind [OPTIONS]
+
+Options:
+  -i, --input <file|dir>    Input C header/source or directory
+  -o, --output-dir <dir>    Output directory for bindings
+  -l, --lang <langs>        Comma-separated list of languages (e.g., python,rust)
+  -n, --lib-name <name>     Name of the shared library (e.g., sqlite3)
+  -m, --module-name <name>  Name of the generated namespace/module
+  --skip-static             Skip static inline functions
+  --opaque-pointers         Treat unknown structs as void* (opaque)
+  --generate-tests          Generate basic sanity-check tests
+  -h, --help                Show this help message
+```
+
+### `serve_json_rpc`
+
+Expose CLI interface as a JSON-RPC server.
+
+```text
+Usage: cdd-c serve_json_rpc [-p|--port <int>] [-l|--listen <address>]
+```
+
+### `mcp`
+
+Expose CLI interface as an MCP server via stdio.
+
+```text
+Usage: cdd-c mcp
 ```
 
 ### `audit`
 
 Scan directory for memory safety issues.
 
-```shell
-cdd-c audit <directory>
+```text
+Usage: cdd-c audit <directory>
 ```
 
 ### `c2openapi`
 
 Generate OpenAPI spec from C source code.
 
-```shell
-cdd-c c2openapi <dir> <out.json>
+```text
+Usage: c2openapi [--base <openapi.json>] [--self <uri>] [--dialect <uri>] <src_dir> <out.json>
 ```
 
 ### `transformer`
 
 Run syntax tree transformations.
 
-```shell
-cdd-c transformer <toolname> [--audit|--fix] [--dry-run] <files...>
+```text
+Usage: cdd-c transformer <toolname> [--audit | --fix] [--dry-run] <files...>
+Tools:
+  extern_c
+  msvc_port
+  gnu_standardizer
+  error_percolator
+  safe_crt
 ```
 
 ### `code2schema`
 
 Convert C header to JSON Schema.
 
-```shell
-cdd-c code2schema <header.h> <schema.json>
+```text
+Usage: cdd-c code2schema <header.h> <schema.json>
 ```
 
 ### `generate_build_system`
 
 Generate build system files.
 
-```shell
-cdd-c generate_build_system <type> <out_dir> <name> [test_file]
+```text
+Usage: generate_build_system <type> <out_dir> <name> [test]
 ```
 
 ### `schema2code`
 
 Generate C code from JSON schema.
 
-```shell
-cdd-c schema2code <schema.json> <out_dir>
+```text
+Usage: cdd-c schema2code <schema.json> <out_dir> [--guard-enum=...] [--guard-json=...] [--guard-utils=...]
 ```
 
 ## Extensive Features & Functionality
@@ -187,6 +333,9 @@ Unlike standard preprocessors or regex-based refactoring tools, `cdd-c` uses a c
 ### 3. Built-in Security & Auditing
 - **Memory Safety Audits:** Utilize the built-in `audit` command to run static analysis directly over your C directories. Detect dangerous CRT functions (`strcpy`, `sprintf`), dangling pointer risks, and missing initializations before they hit production.
 - **Safe CRT Transformation:** Automatically enforce safety by running the `safe_crt` transformer, which intelligently rewrites legacy string and memory operations to use bounds-checked equivalents (e.g., `strcpy_s`, `sprintf_s`).
+
+### 4. Universal FFI Bindings
+`cdd-c` features a universal Foreign Function Interface (FFI) Intermediate Representation (IR). Instead of writing manual SWIG bindings or using fragile regex replacements, the `cdd-c bind` command statically analyzes your C codebase and generates seamless native bindings for over 40 languages. It intelligently maps complex C concepts like structs, enums, variadic formats, function pointers, and opaque pointers into idiomatic equivalents in the target language.
 
 ---
 

@@ -22,7 +22,57 @@ extern "C" {
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
 #include "functions/parse/preprocessor.h"
+#include "functions/parse/macro_evaluator.h"
 /* clang-format on */
+
+/**
+ * @brief Tests basic evaluation of arithmetic and logical macro expressions.
+ *
+ * @return The result of the test.
+ */
+TEST test_macro_evaluator_basic(void) {
+  struct PreprocessorContext ctx;
+  cdd_macro_eval_result_t res;
+  int rc;
+
+  pp_context_init(&ctx);
+
+  /* Test 1: Simple addition */
+  rc = cdd_macro_evaluate(&ctx, "1 + 2 * 3", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(7, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Test 2: Bitwise and shifts */
+  rc = cdd_macro_evaluate(&ctx, "(1 << 3) | 2", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(10, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Test 3: Logical operations */
+  rc = cdd_macro_evaluate(&ctx, "1 && (0 || !0)", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(1, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  /* Test 4: Macro referencing another macro */
+  write_to_file("test_eval_macros.h", "#define A 10\n#define B (A + 5)\n");
+  rc = pp_scan_defines(&ctx, "test_eval_macros.h");
+  ASSERT_EQ(0, rc);
+  rc = cdd_macro_evaluate(&ctx, "B * 2", &res);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(MACRO_EVAL_TYPE_INT, res.type);
+  ASSERT_EQ(30, res.int_val);
+  cdd_macro_eval_result_free(&res);
+
+  pp_context_free(&ctx);
+  remove("test_eval_macros.h");
+  g_fail_io_after = -1;
+  PASS();
+}
 
 /**
  * @brief Tests parsing of object-like macros.
@@ -176,6 +226,7 @@ TEST test_pp_define_variadic_gcc(void) {
  * @brief Preprocessor macros test suite.
  */
 SUITE(preprocessor_macros_suite) {
+  RUN_TEST(test_macro_evaluator_basic);
   RUN_TEST(test_pp_define_object_like);
   RUN_TEST(test_pp_define_function_like);
   RUN_TEST(test_pp_define_variadic_standard);

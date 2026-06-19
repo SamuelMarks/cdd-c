@@ -532,6 +532,7 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
             tokens->tokens[name_idx].kind == TOKEN_IDENTIFIER) {
 
           struct MacroDef def;
+          size_t val_start_idx = name_idx + 1;
 
           memset(&def, 0, sizeof(def));
 
@@ -620,6 +621,7 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
                   curr++; /* Error recovery */
                 }
               }
+              val_start_idx = curr;
             }
 
           } else {
@@ -627,6 +629,60 @@ int pp_scan_defines(struct PreprocessorContext *ctx, const char *filename) {
             /* Object-like */
 
             def.is_function_like = 0;
+          }
+
+          {
+            size_t val_end_idx = val_start_idx;
+            while (val_end_idx < tokens->size) {
+              if (tokens->tokens[val_end_idx].kind == TOKEN_WHITESPACE) {
+                size_t idx;
+                int has_nl = 0;
+                for (idx = 0; idx < tokens->tokens[val_end_idx].length; idx++) {
+                  if (tokens->tokens[val_end_idx].start[idx] == '\n') {
+                    has_nl = 1;
+                    break;
+                  }
+                }
+                if (has_nl)
+                  break;
+              }
+              val_end_idx++;
+            }
+            if (val_end_idx > val_start_idx) {
+              size_t val_start_byte =
+                  (size_t)(tokens->tokens[val_start_idx].start -
+                           (const uint8_t *)content);
+              size_t val_end_byte =
+                  (size_t)(tokens->tokens[val_end_idx - 1].start -
+                           (const uint8_t *)content) +
+                  tokens->tokens[val_end_idx - 1].length;
+              size_t val_len = val_end_byte - val_start_byte;
+              if (val_len > 0) {
+                char *v = (char *)malloc(val_len + 1);
+                if (v) {
+                  size_t k = 0;
+                  memcpy(v, content + val_start_byte, val_len);
+                  v[val_len] = '\0';
+                  while (val_len > 0 &&
+                         (v[val_len - 1] == ' ' || v[val_len - 1] == '\t' ||
+                          v[val_len - 1] == '\r')) {
+                    v[--val_len] = '\0';
+                  }
+                  while (k < val_len && (v[k] == ' ' || v[k] == '\t'))
+                    k++;
+                  if (k > 0 && k < val_len) {
+                    memmove(v, v + k, val_len - k + 1);
+                  } else if (k == val_len) {
+                    v[0] = '\0';
+                  }
+                  if (strlen(v) > 0) {
+                    def.value = v;
+                  } else {
+                    free(v);
+                  }
+                }
+              }
+            }
           }
 
           add_macro_internal(ctx, &def);

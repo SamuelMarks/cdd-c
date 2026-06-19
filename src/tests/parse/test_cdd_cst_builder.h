@@ -657,7 +657,7 @@ TEST test_cdd_cst_builder_punct_all(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_token_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
     /* pool_string_safe OOM */
     g_cdd_cst_alloc_token_fail = 1;
     ASSERT_EQ(ENOMEM, cdd_cst_bld_ident(&b, "a"));

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -958,7 +959,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       arr_clean[ac++] = arr[m];
                     }
                   }
-                  snprintf(
+                  CDD_SNPRINTF(
                       typedef_buf, sizeof(typedef_buf),
                       "typedef %s__cdd_typeof_arr_%d%s; __cdd_typeof_arr_%d ",
                       base, typeof_arr_idx, arr_clean, typeof_arr_idx);
@@ -972,7 +973,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_bld_ident(&bld, pool_string_safe(tree, base));
                     {
                       char tb2[128];
-                      snprintf(tb2, 128, "__cdd_typeof_arr_%d", typeof_arr_idx);
+                      CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
+                                   typeof_arr_idx);
                       cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
                     }
                     cdd_cst_bld_snippet(&bld, arr_clean);
@@ -980,7 +982,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_cst_bld_space(&bld);
                     {
                       char tb2[128];
-                      snprintf(tb2, 128, "__cdd_typeof_arr_%d", typeof_arr_idx);
+                      CDD_SNPRINTF(tb2, 128, "__cdd_typeof_arr_%d",
+                                   typeof_arr_idx);
                       cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
                     }
                     cdd_cst_bld_space(&bld);
@@ -1110,16 +1113,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 #else
 
 #endif
-                snprintf(tb2, 128, "0x" ULL_HEX_FMT "ULL",
-                         (unsigned long long)high);
+                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                             (unsigned long long)high);
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
               cdd_cst_bld_punct(&bld, ",");
               cdd_cst_bld_space(&bld);
               {
                 char tb2[128];
-                snprintf(tb2, 128, "0x" ULL_HEX_FMT "ULL",
-                         (unsigned long long)low);
+                CDD_SNPRINTF(tb2, 128, "0x" ULL_HEX_FMT "ULL",
+                             (unsigned long long)low);
 #undef ULL_HEX_FMT
                 cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
               }
@@ -1741,7 +1744,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_bld_space(&bld);
             {
               char tb2[128];
-              snprintf(tb2, 128, "_cdd_anon_%d", anon_counter++);
+              CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
               cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
             }
             if (!cdd_cst_builder_has_error(&bld))
@@ -1787,7 +1790,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             cdd_cst_bld_space(&bld);
             {
               char tb2[128];
-              snprintf(tb2, 128, "_cdd_anon_%d", anon_counter++);
+              CDD_SNPRINTF(tb2, 128, "_cdd_anon_%d", anon_counter++);
               cdd_cst_bld_ident(&bld, pool_string_safe(tree, tb2));
             }
             if (!cdd_cst_builder_has_error(&bld))
@@ -1967,9 +1970,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
     } else if (tok->kind == CDD_TOKEN_OTHER && tok->length == 1 &&
                tok->start[0] == '?') {
       if (i + 1 < tree->base_tokens->size &&
-          tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_OTHER &&
-          tree->base_tokens->tokens[i + 1].length == 1 &&
-          tree->base_tokens->tokens[i + 1].start[0] == ':') {
+          (tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_COLON ||
+           (tree->base_tokens->tokens[i + 1].kind == CDD_TOKEN_OTHER &&
+            tree->base_tokens->tokens[i + 1].length == 1 &&
+            tree->base_tokens->tokens[i + 1].start[0] == ':'))) {
         /* `x ? : y` -> `x ? x : y` */
         size_t k;
         size_t lhs_start = i;
@@ -2699,17 +2703,18 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_KEYWORD_GOTO) {
           is_label_ref = 1;
         } else if (i > 1 &&
-                   tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_OTHER &&
-                   tree->base_tokens->tokens[i - 1].length == 1 &&
-                   tree->base_tokens->tokens[i - 1].start[0] == '&' &&
-                   tree->base_tokens->tokens[i - 2].kind == CDD_TOKEN_OTHER &&
-                   tree->base_tokens->tokens[i - 2].length == 1 &&
-                   tree->base_tokens->tokens[i - 2].start[0] == '&') {
+                   (tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_OTHER &&
+                    tree->base_tokens->tokens[i - 1].length == 1 &&
+                    tree->base_tokens->tokens[i - 1].start[0] == '&') &&
+                   (tree->base_tokens->tokens[i - 2].kind == CDD_TOKEN_OTHER &&
+                    tree->base_tokens->tokens[i - 2].length == 1 &&
+                    tree->base_tokens->tokens[i - 2].start[0] == '&')) {
           is_label_ref = 1;
         } else if (i + 1 < tree->base_tokens->size) {
           cdd_token_t *nt = &tree->base_tokens->tokens[i + 1];
-          if (nt->kind == CDD_TOKEN_OTHER && nt->length == 1 &&
-              nt->start[0] == ':') {
+          if (nt->kind == CDD_TOKEN_COLON ||
+              (nt->kind == CDD_TOKEN_OTHER && nt->length == 1 &&
+               nt->start[0] == ':')) {
             is_label_ref = 1;
           }
         }
@@ -3155,9 +3160,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
           }
         }
 
-        if (i > 0 && tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_OTHER &&
-            tree->base_tokens->tokens[i - 1].length == 1 &&
-            tree->base_tokens->tokens[i - 1].start[0] == ':') {
+        if (i > 0 &&
+            (tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_COLON ||
+             (tree->base_tokens->tokens[i - 1].kind == CDD_TOKEN_OTHER &&
+              tree->base_tokens->tokens[i - 1].length == 1 &&
+              tree->base_tokens->tokens[i - 1].start[0] == ':'))) {
           /* Empty block following a case or default label */
           tree->base_tokens->tokens[i].start = (const uint8_t *)";";
           tree->base_tokens->tokens[i].length = 1;

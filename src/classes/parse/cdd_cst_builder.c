@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include "c_cdd/log.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 static const char *pool_string(cdd_cst_tree_t *tree, const char *str);
 static int get_last_token(cdd_cst_node_t *node, cdd_token_t **out_tok);
@@ -123,7 +124,7 @@ int cdd_cst_bld_int(cdd_cst_builder_t *builder, int value) {
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "%d", value);
 #else
-  snprintf(buf, sizeof(buf), "%d", value);
+  CDD_SNPRINTF(buf, sizeof(buf), "%d", value);
 #endif
   pooled = pool_string(builder->tree, buf);
   if (!pooled) {
@@ -191,7 +192,7 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
 #if defined(_MSC_VER) && _MSC_VER >= 1400
       sprintf_s(buf, sizeof(buf), "<%s>", path);
 #else
-      snprintf(buf, sizeof(buf), "<%s>", path);
+      CDD_SNPRINTF(buf, sizeof(buf), "<%s>", path);
 #endif
       {
         const char *pooled = pool_string(builder->tree, buf);
@@ -206,7 +207,7 @@ int cdd_cst_bld_include(cdd_cst_builder_t *builder, const char *path,
 #if defined(_MSC_VER) && _MSC_VER >= 1400
       sprintf_s(buf, sizeof(buf), "\"%s\"", path);
 #else
-      snprintf(buf, sizeof(buf), "\"%s\"", path);
+      CDD_SNPRINTF(buf, sizeof(buf), "\"%s\"", path);
 #endif
       {
         const char *pooled = pool_string(builder->tree, buf);
@@ -595,7 +596,7 @@ int cdd_cst_bld_block_comment(cdd_cst_builder_t *builder, const char *text) {
 #if defined(_MSC_VER) && _MSC_VER >= 1400
   sprintf_s(buf, sizeof(buf), "/* %s */", text);
 #else
-  snprintf(buf, sizeof(buf), "/* %s */", text);
+  CDD_SNPRINTF(buf, sizeof(buf), "/* %s */", text);
 #endif
 
   create_trivia(builder->tree, buf, &trivia);

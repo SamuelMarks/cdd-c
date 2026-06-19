@@ -16,6 +16,7 @@
 #include "functions/emit/client_sig.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -572,7 +573,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
   if (!field || !header)
     return;
   sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
-  snprintf(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
+  CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
 }
 
 /**

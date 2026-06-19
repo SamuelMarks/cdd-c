@@ -298,7 +298,7 @@ TEST test_code2schema_utils(void) {
   size_t count2;
   char *src2[] = {"a"};
 
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
   g_cdd_cst_alloc_token_fail = 1;
   copy_string_array_code2schema(&dst2, &count2, src2, 1);
@@ -545,7 +545,7 @@ TEST test_code2schema_utils(void) {
   size_t count2;
   char *src2[] = {"a"};
 
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
   g_cdd_cst_alloc_token_fail = 1;
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);
@@ -800,7 +800,7 @@ TEST test_code2schema_utils(void) {
   size_t count2;
   char *src2[] = {"a"};
 
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
 
   g_cdd_cst_alloc_token_fail = 1;
   int rc_t1 = copy_string_array_code2schema(&dst2, &count2, src2, 1);

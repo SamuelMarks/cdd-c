@@ -103,6 +103,40 @@ static enum cdd_token_kind_t classify_identifier(const uint8_t *start,
     return CDD_TOKEN_KEYWORD_RETURN;
   if (len == 4 && memcmp(start, "goto", 4) == 0)
     return CDD_TOKEN_KEYWORD_GOTO;
+  if (len == 5 && memcmp(start, "class", 5) == 0)
+    return CDD_TOKEN_KEYWORD_CLASS;
+  if (len == 6 && memcmp(start, "public", 6) == 0)
+    return CDD_TOKEN_KEYWORD_PUBLIC;
+  if (len == 7 && memcmp(start, "private", 7) == 0)
+    return CDD_TOKEN_KEYWORD_PRIVATE;
+  if (len == 9 && memcmp(start, "protected", 9) == 0)
+    return CDD_TOKEN_KEYWORD_PROTECTED;
+  if (len == 7 && memcmp(start, "virtual", 7) == 0)
+    return CDD_TOKEN_KEYWORD_VIRTUAL;
+  if (len == 8 && memcmp(start, "template", 8) == 0)
+    return CDD_TOKEN_KEYWORD_TEMPLATE;
+  if (len == 8 && memcmp(start, "typename", 8) == 0)
+    return CDD_TOKEN_KEYWORD_TYPENAME;
+  if (len == 3 && memcmp(start, "new", 3) == 0)
+    return CDD_TOKEN_KEYWORD_NEW;
+  if (len == 6 && memcmp(start, "delete", 6) == 0)
+    return CDD_TOKEN_KEYWORD_DELETE;
+  if (len == 9 && memcmp(start, "namespace", 9) == 0)
+    return CDD_TOKEN_KEYWORD_NAMESPACE;
+  if (len == 5 && memcmp(start, "using", 5) == 0)
+    return CDD_TOKEN_KEYWORD_USING;
+  if (len == 9 && memcmp(start, "constexpr", 9) == 0)
+    return CDD_TOKEN_KEYWORD_CONSTEXPR;
+  if (len == 8 && memcmp(start, "operator", 8) == 0)
+    return CDD_TOKEN_KEYWORD_OPERATOR;
+  if (len == 3 && memcmp(start, "try", 3) == 0)
+    return CDD_TOKEN_KEYWORD_TRY;
+  if (len == 5 && memcmp(start, "catch", 5) == 0)
+    return CDD_TOKEN_KEYWORD_CATCH;
+  if (len == 5 && memcmp(start, "throw", 5) == 0)
+    return CDD_TOKEN_KEYWORD_THROW;
+  if (len == 8 && memcmp(start, "noexcept", 8) == 0)
+    return CDD_TOKEN_KEYWORD_NOEXCEPT;
   return CDD_TOKEN_IDENTIFIER;
 }
 
@@ -430,6 +464,18 @@ int cdd_lexer_tokenize(az_span source, cdd_token_list_t **out_list) {
           } else {
             tok->kind = CDD_TOKEN_OTHER;
           }
+          break;
+        case ':':
+          tok->kind = CDD_TOKEN_COLON;
+          break;
+        case '<':
+          tok->kind = CDD_TOKEN_LT;
+          break;
+        case '>':
+          tok->kind = CDD_TOKEN_GT;
+          break;
+        case '~':
+          tok->kind = CDD_TOKEN_TILDE;
           break;
         default:
           tok->kind = CDD_TOKEN_OTHER;

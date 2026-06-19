@@ -202,6 +202,45 @@ TEST test_cdd_lexer_include_next(void) {
 }
 
 /**
+ * @brief test_cdd_lexer_cpp_keywords
+ * @return TEST
+ */
+TEST test_cdd_lexer_cpp_keywords(void) {
+  cdd_token_list_t *list = NULL;
+  int rc = cdd_lexer_tokenize(
+      az_span_create_from_str(
+          "class public private protected virtual template "
+          "typename new delete namespace using constexpr < > "
+          "try catch throw noexcept operator"),
+      &list);
+  ASSERT_EQ(0, rc);
+  ASSERT_EQ(19, list->size);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_CLASS, list->tokens[0].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_PUBLIC, list->tokens[1].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_PRIVATE, list->tokens[2].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_PROTECTED, list->tokens[3].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_VIRTUAL, list->tokens[4].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_TEMPLATE, list->tokens[5].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_TYPENAME, list->tokens[6].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_NEW, list->tokens[7].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_DELETE, list->tokens[8].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_NAMESPACE, list->tokens[9].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_USING, list->tokens[10].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_CONSTEXPR, list->tokens[11].kind);
+  ASSERT_EQ(CDD_TOKEN_LT, list->tokens[12].kind);
+  ASSERT_EQ(CDD_TOKEN_GT, list->tokens[13].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_TRY, list->tokens[14].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_CATCH, list->tokens[15].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_THROW, list->tokens[16].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_NOEXCEPT, list->tokens[17].kind);
+  ASSERT_EQ(CDD_TOKEN_KEYWORD_OPERATOR, list->tokens[18].kind);
+  cdd_lexer_free_token_list(list);
+  g_fail_io_after = -1;
+
+  PASS();
+}
+
+/**
  * @brief cdd_lexer_suite
  */
 
@@ -453,6 +492,7 @@ SUITE(cdd_lexer_suite) {
   RUN_TEST(test_cdd_lexer_gnu_extensions);
   RUN_TEST(test_cdd_lexer_multiline_macro);
   RUN_TEST(test_cdd_lexer_include_next);
+  RUN_TEST(test_cdd_lexer_cpp_keywords);
 #ifdef CDD_BUILD_TESTS
   RUN_TEST(test_cdd_lexer_oom);
 #endif

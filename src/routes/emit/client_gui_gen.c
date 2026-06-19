@@ -1,3 +1,4 @@
+#include "c_cdd/safe_crt.h"
 /**
  * @file client_gui_gen.c
  * @brief Implementation of OAuth2 client GUI generation.
@@ -44,10 +45,10 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
     get_basename(config->filename_base, &base_name);
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
-    SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
-             base_name ? base_name : "generated_client");
-    SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
-             base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path_h, sizeof(path_h), "%s/%s_gui.h", src_dir,
+                 base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path_c, sizeof(path_c), "%s/%s_gui.c", src_dir,
+                 base_name ? base_name : "generated_client");
     free(src_dir);
     if (dir_name)
       free(dir_name);
@@ -119,7 +120,7 @@ int openapi_client_gui_generate(const struct OpenAPI_Spec *spec,
   fprintf(
       fp_c,
       "/* Expected imports from c-abstract-http and c-orm definitions */\n");
-  fprintf(fp_c, "#include <c_abstract_http/http_types.h>\n");
+  fprintf(fp_c, "#include <c_abstract_http/http_types.h>\n ");
   fprintf(fp_c, "extern int cdd_c_parse_oauth2_token(const char *json, struct "
                 "OAuth2TokenResponse **const out);\n\n");
 

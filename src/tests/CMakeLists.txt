@@ -116,7 +116,7 @@ set_target_properties(
         LINKER_LANGUAGE
         C
 )
-target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}")
+target_link_libraries("${EXEC_NAME}" PUBLIC "${LIBRARY_NAME}" "${PROJECT_NAME}" parson::parson)
 
 add_test(NAME "${EXEC_NAME}" COMMAND "${EXEC_NAME}")
 

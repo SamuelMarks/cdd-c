@@ -239,7 +239,7 @@ TEST test_mapping_coverage(void) {
 #ifdef CDD_BUILD_TESTS
   {
     /* Simulate OOMs */
-    extern int g_cdd_strdup_fail;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
     int rc_oom;
     int i;
     g_cdd_strdup_fail = 1;
@@ -298,7 +298,7 @@ TEST test_mapping_coverage(void) {
   /* Simulate strdup OOM inside mapping */
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_strdup_fail;
+    extern C_CDD_EXPORT int g_cdd_strdup_fail;
 
     g_cdd_strdup_fail = 1;
     ASSERT_EQ(ENOMEM, c_mapping_map_type("enum MyEnum", "x", &m));

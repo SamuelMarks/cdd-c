@@ -70,6 +70,8 @@ struct TypeDefList {
 struct FuncSignature {
   char *name; /**< Function name (e.g., "my_func") */
   char *sig;  /**< Full signature string (e.g., "int my_func(int x)") */
+  char *doc; /**< Optional docstring / Doxygen comment preceding the function */
+  int is_variadic; /**< True if the function takes variable arguments (...) */
 };
 
 /**

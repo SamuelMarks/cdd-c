@@ -164,6 +164,9 @@ int cdd_cst_replace_node(cdd_cst_tree_t *tree, cdd_cst_node_t *old_node,
 
   parent->children[idx].val.node = new_node;
   new_node->parent = parent;
+
+  old_node->parent = NULL;
+
   /* Note: old_node is NOT freed here. Caller's responsibility if they want to
    * discard it. */
 

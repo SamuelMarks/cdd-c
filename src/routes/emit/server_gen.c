@@ -1,3 +1,4 @@
+#include "c_cdd/safe_crt.h"
 /**
  * @file server_gen.c
  * @brief Implementation of server code generation.
@@ -38,8 +39,8 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
     get_basename(config->filename_base, &base_name);
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
-    SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
-             base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path, sizeof(path), "%s/%s_server.c", src_dir,
+                 base_name ? base_name : "generated_client");
     free(src_dir);
     if (dir_name)
       free(dir_name);
@@ -325,8 +326,8 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
   {
     char test_path[1024];
     FILE *fp_test = NULL;
-    SNPRINTF(test_path, sizeof(test_path), "test_%s_server.c",
-             config->filename_base);
+    CDD_SNPRINTF(test_path, sizeof(test_path), "test_%s_server.c",
+                 config->filename_base);
 #if defined(_MSC_VER)
     if (fopen_s(&fp_test, test_path, "w") != 0)
       fp_test = NULL;
@@ -345,7 +346,7 @@ int openapi_server_generate(const struct OpenAPI_Spec *spec,
       fprintf(fp_test, "#include <string.h>\n");
       fprintf(fp_test, "#include <greatest.h>\n");
       fprintf(fp_test, "#include <c_rest_request.h>\n");
-      fprintf(fp_test, "#include <c_rest_response.h>\n\n");
+      fprintf(fp_test, "#include <c_rest_response.h>\n\n ");
 
       for (i = 0; i < spec->n_paths; i++) {
         for (j = 0; j < spec->paths[i].n_operations; j++) {

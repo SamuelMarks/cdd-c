@@ -4,6 +4,7 @@
  */
 
 /* clang-format off */
+/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -24,6 +25,8 @@
 #include "routes/emit/aggregator.h"
 #include "routes/emit/operation.h" /* For OpBuilder and C2OpenAPI_ParsedSig */
 #include "routes/parse/cli.h"
+#include "../../cdd_api.h"
+/* clang-format on */
 /* LCOV_EXCL_START */
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -32,8 +35,7 @@
 
 /* --- Helpers --- */
 
-static int
-    is_source_file(const char *path) {
+static int is_source_file(const char *path) {
   const char *ext = strrchr(path, '.');
   if (!ext)
     return 0;
@@ -43,8 +45,7 @@ static int
 /**
  * @brief Executes the spec has tag operation.
  */
-static int
-    spec_has_tag(const struct OpenAPI_Spec *spec, const char *name) {
+static int spec_has_tag(const struct OpenAPI_Spec *spec, const char *name) {
   size_t i;
   for (i = 0; i < spec->n_tags; ++i) {
     if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0)
@@ -239,8 +240,7 @@ static int
 /**
  * @brief Executes the spec add tag operation.
  */
-static int
-    spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
+static int spec_add_tag(struct OpenAPI_Spec *spec, const char *name) {
   char *_ast_strdup_0 = NULL;
   struct OpenAPI_Tag *new_tags;
   struct OpenAPI_Tag *tag;
@@ -447,9 +447,8 @@ static int
 /**
  * @brief Executes the spec find tag operation.
  */
-static int
-    spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
-                  struct OpenAPI_Tag **_out_val) {
+static int spec_find_tag(struct OpenAPI_Spec *spec, const char *name,
+                         struct OpenAPI_Tag **_out_val) {
   size_t i;
   for (i = 0; i < spec->n_tags; ++i) {
     if (spec->tags[i].name && strcmp(spec->tags[i].name, name) == 0) {
@@ -464,9 +463,8 @@ static int
 /**
  * @brief Executes the map doc security type operation.
  */
-static int
-    map_doc_security_type(enum DocSecurityType type,
-                          enum OpenAPI_SecurityType *_out_val) {
+static int map_doc_security_type(enum DocSecurityType type,
+                                 enum OpenAPI_SecurityType *_out_val) {
   switch (type) {
   case DOC_SEC_APIKEY: {
     *_out_val = OA_SEC_APIKEY;
@@ -499,9 +497,8 @@ static int
 /**
  * @brief Executes the map doc security in operation.
  */
-static int
-    map_doc_security_in(enum DocSecurityIn in,
-                        enum OpenAPI_SecurityIn *_out_val) {
+static int map_doc_security_in(enum DocSecurityIn in,
+                               enum OpenAPI_SecurityIn *_out_val) {
   switch (in) {
   case DOC_SEC_IN_QUERY: {
     *_out_val = OA_SEC_IN_QUERY;
@@ -526,9 +523,8 @@ static int
 /**
  * @brief Executes the map doc flow type operation.
  */
-static int
-    map_doc_flow_type(enum DocOAuthFlowType type,
-                      enum OpenAPI_OAuthFlowType *_out_val) {
+static int map_doc_flow_type(enum DocOAuthFlowType type,
+                             enum OpenAPI_OAuthFlowType *_out_val) {
   switch (type) {
   case DOC_OAUTH_FLOW_IMPLICIT: {
     *_out_val = OA_OAUTH_FLOW_IMPLICIT;
@@ -561,9 +557,9 @@ static int
 /**
  * @brief Executes the spec find security scheme operation.
  */
-static int
-    spec_find_security_scheme(struct OpenAPI_Spec *spec, const char *name,
-                              struct OpenAPI_SecurityScheme **_out_val) {
+static int spec_find_security_scheme(struct OpenAPI_Spec *spec,
+                                     const char *name,
+                                     struct OpenAPI_SecurityScheme **_out_val) {
   size_t i;
   for (i = 0; i < spec->n_security_schemes; ++i) {
     if (spec->security_schemes[i].name &&
@@ -581,8 +577,7 @@ static int
 /**
  * @brief Adds or sets str if missing.
  */
-static int
-    set_str_if_missing(char **dst, const char *src) {
+static int set_str_if_missing(char **dst, const char *src) {
   char *_ast_strdup_1 = NULL;
   if (!src || !*src)
     return 0;
@@ -783,8 +778,7 @@ static int
 /**
  * @brief Frees the memory associated with openapi server variables.
  */
-static void
-    free_openapi_server_variables(struct OpenAPI_Server *srv) {
+static void free_openapi_server_variables(struct OpenAPI_Server *srv) {
   size_t i;
   for (i = 0; i < srv->n_variables; ++i) {
     size_t e;
@@ -810,9 +804,8 @@ static void
 /**
  * @brief Creates a deep copy of doc server variables.
  */
-static int
-    copy_doc_server_variables(struct OpenAPI_Server *dst,
-                              const struct DocServer *src) {
+static int copy_doc_server_variables(struct OpenAPI_Server *dst,
+                                     const struct DocServer *src) {
   char *_ast_strdup_2 = NULL;
   char *_ast_strdup_3 = NULL;
   char *_ast_strdup_4 = NULL;
@@ -1066,9 +1059,8 @@ static int
 /**
  * @brief Merges scopes.
  */
-static int
-    merge_scopes(struct OpenAPI_OAuthFlow *dst,
-                 const struct DocOAuthFlow *src) {
+static int merge_scopes(struct OpenAPI_OAuthFlow *dst,
+                        const struct DocOAuthFlow *src) {
   char *_ast_strdup_7 = NULL;
   char *_ast_strdup_8 = NULL;
   size_t i;
@@ -1292,10 +1284,9 @@ static int
 /**
  * @brief Retrieves the oauth flow.
  */
-static int
-    find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
-                    enum OpenAPI_OAuthFlowType type,
-                    struct OpenAPI_OAuthFlow **_out_val) {
+static int find_oauth_flow(struct OpenAPI_SecurityScheme *scheme,
+                           enum OpenAPI_OAuthFlowType type,
+                           struct OpenAPI_OAuthFlow **_out_val) {
   size_t i;
   if (!scheme || !scheme->flows) {
     *_out_val = NULL;
@@ -1316,9 +1307,8 @@ static int
 /**
  * @brief Merges oauth flow.
  */
-static int
-    merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
-                     const struct DocOAuthFlow *src) {
+static int merge_oauth_flow(struct OpenAPI_OAuthFlow *dst,
+                            const struct DocOAuthFlow *src) {
   int rc;
   rc = set_str_if_missing(&dst->authorization_url, src->authorization_url);
   if (rc != 0)
@@ -1339,8 +1329,7 @@ static int
 /**
  * @brief Executes the validate doc oauth flow operation.
  */
-static int
-    validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
+static int validate_doc_oauth_flow(const struct DocOAuthFlow *flow) {
   if (!flow)
     return EINVAL;
   if (flow->type == DOC_OAUTH_FLOW_UNSET)
@@ -1558,9 +1547,8 @@ static int
 /**
  * @brief Adds or sets oauth flows.
  */
-static int
-    add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
-                    const struct DocSecurityScheme *doc) {
+static int add_oauth_flows(struct OpenAPI_SecurityScheme *scheme,
+                           const struct DocSecurityScheme *doc) {
   enum OpenAPI_OAuthFlowType _ast_map_doc_flow_type_0;
   struct OpenAPI_OAuthFlow *_ast_find_oauth_flow_1;
   char *_ast_strdup_9 = NULL;
@@ -1832,9 +1820,8 @@ static int
 /**
  * @brief Executes the spec add security scheme operation.
  */
-static int
-    spec_add_security_scheme(struct OpenAPI_Spec *spec,
-                             const struct DocSecurityScheme *doc) {
+static int spec_add_security_scheme(struct OpenAPI_Spec *spec,
+                                    const struct DocSecurityScheme *doc) {
   enum OpenAPI_SecurityType _ast_map_doc_security_type_2;
   struct OpenAPI_SecurityScheme *_ast_spec_find_security_scheme_3;
   enum OpenAPI_SecurityIn _ast_map_doc_security_in_4;
@@ -2143,9 +2130,8 @@ static int
 /**
  * @brief Applies doc security schemes.
  */
-static int
-    apply_doc_security_schemes(struct OpenAPI_Spec *spec,
-                               const struct DocMetadata *meta) {
+static int apply_doc_security_schemes(struct OpenAPI_Spec *spec,
+                                      const struct DocMetadata *meta) {
   size_t i;
   if (!spec || !meta || meta->n_security_schemes == 0)
     return 0;
@@ -2343,9 +2329,8 @@ static int
 /**
  * @brief Executes the append root security operation.
  */
-static int
-    append_root_security(struct OpenAPI_Spec *spec,
-                         const struct DocMetadata *meta) {
+static int append_root_security(struct OpenAPI_Spec *spec,
+                                const struct DocMetadata *meta) {
   char *_ast_strdup_16 = NULL;
   char *_ast_strdup_17 = NULL;
   size_t i;
@@ -2584,9 +2569,8 @@ static int
 /**
  * @brief Executes the append root servers operation.
  */
-static int
-    append_root_servers(struct OpenAPI_Spec *spec,
-                        const struct DocMetadata *meta) {
+static int append_root_servers(struct OpenAPI_Spec *spec,
+                               const struct DocMetadata *meta) {
   char *_ast_strdup_18 = NULL;
   char *_ast_strdup_19 = NULL;
   char *_ast_strdup_20 = NULL;
@@ -2817,9 +2801,8 @@ static int
 /**
  * @brief Applies doc global meta.
  */
-static int
-    apply_doc_global_meta(struct OpenAPI_Spec *spec,
-                          const struct DocMetadata *meta) {
+static int apply_doc_global_meta(struct OpenAPI_Spec *spec,
+                                 const struct DocMetadata *meta) {
   char *_ast_strdup_21 = NULL;
   char *_ast_strdup_22 = NULL;
   char *_ast_strdup_23 = NULL;
@@ -3121,9 +3104,8 @@ static int
 /**
  * @brief Executes the spec apply tag meta operation.
  */
-static int
-    spec_apply_tag_meta(struct OpenAPI_Spec *spec,
-                        const struct DocTagMeta *meta) {
+static int spec_apply_tag_meta(struct OpenAPI_Spec *spec,
+                               const struct DocTagMeta *meta) {
   struct OpenAPI_Tag *_ast_spec_find_tag_5;
   char *_ast_strdup_24 = NULL;
   char *_ast_strdup_25 = NULL;
@@ -3369,9 +3351,8 @@ static int
 /**
  * @brief Applies doc tag meta.
  */
-static int
-    apply_doc_tag_meta(struct OpenAPI_Spec *spec,
-                       const struct DocMetadata *meta) {
+static int apply_doc_tag_meta(struct OpenAPI_Spec *spec,
+                              const struct DocMetadata *meta) {
   size_t i;
   int rc = 0;
   if (!spec || !meta || !meta->tag_meta || meta->n_tag_meta == 0)
@@ -3570,9 +3551,8 @@ static int
 /**
  * @brief Collects tags from op.
  */
-static int
-    collect_tags_from_op(struct OpenAPI_Spec *spec,
-                         const struct OpenAPI_Operation *op) {
+static int collect_tags_from_op(struct OpenAPI_Spec *spec,
+                                const struct OpenAPI_Operation *op) {
   size_t i;
   if (!spec || !op || !op->tags)
     return 0;
@@ -3770,9 +3750,9 @@ static int
 /**
  * @brief Collects tags from paths.
  */
-static int
-    collect_tags_from_paths(struct OpenAPI_Spec *spec,
-                            const struct OpenAPI_Path *paths, size_t n_paths) {
+static int collect_tags_from_paths(struct OpenAPI_Spec *spec,
+                                   const struct OpenAPI_Path *paths,
+                                   size_t n_paths) {
   size_t i;
   if (!spec || !paths)
     return 0;
@@ -3979,8 +3959,7 @@ static int
 /**
  * @brief Collects spec tags.
  */
-static int
-    collect_spec_tags(struct OpenAPI_Spec *spec) {
+static int collect_spec_tags(struct OpenAPI_Spec *spec) {
   int rc;
   if (!spec)
     return EINVAL;
@@ -4180,9 +4159,8 @@ static int
  * @brief Simple signature parser to split "int foo(int x, char *y)"
  * Populates `out`. Caller must free internals.
  */
-static int
-    parse_c_signature_string(const char *sig_str,
-                             struct C2OpenAPI_ParsedSig *out) {
+static int parse_c_signature_string(const char *sig_str,
+                                    struct C2OpenAPI_ParsedSig *out) {
   size_t _ast_token_find_next_6 = 0;
   struct TokenList *tl = NULL;
   size_t i;
@@ -4368,8 +4346,7 @@ cleanup:
 /**
  * @brief Frees the memory associated with parsed sig.
  */
-static void
-    free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
+static void free_parsed_sig(struct C2OpenAPI_ParsedSig *sig) {
   size_t i;
   if (sig->name)
     free(sig->name);
@@ -4388,8 +4365,7 @@ static void
 /**
  * @brief Executes the process file operation.
  */
-static int
-    process_file(const char *path, struct OpenAPI_Spec *spec) {
+static int process_file(const char *path, struct OpenAPI_Spec *spec) {
   char *content = NULL;
   size_t sz = 0;
   struct TokenList *tokens = NULL;
@@ -4749,8 +4725,7 @@ static int
 /**
  * @brief Executes the walker cb operation.
  */
-static int
-    walker_cb(const char *path, void *user_data) {
+static int walker_cb(const char *path, void *user_data) {
   struct OpenAPI_Spec *spec = (struct OpenAPI_Spec *)user_data;
   if (!is_source_file(path))
     return 0;
@@ -4945,8 +4920,7 @@ static int
 /**
  * @brief Executes the load base spec operation.
  */
-static int
-    load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
+static int load_base_spec(const char *path, struct OpenAPI_Spec *spec) {
   JSON_Value *root = NULL;
   int rc;
 
@@ -5103,7 +5077,8 @@ int c2openapi_cli_main(int argc, char **argv) {
  * @brief Executes the to docs json cli main operation.
  */
 int to_docs_json_cli_main(int argc, char **argv) {
-  const char *input_file = getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
+  const char *input_file =
+      getenv("CDD_INPUT") ? getenv("CDD_INPUT") : getenv("INPUT_FILE");
   int no_imports = getenv("CDD_NO_IMPORTS") ? 1 : 0;
   int no_wrapping = getenv("CDD_NO_WRAPPING") ? 1 : 0;
   int i;
@@ -5119,7 +5094,9 @@ int to_docs_json_cli_main(int argc, char **argv) {
   for (i = 0; i < argc; i++) {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       return EXIT_SUCCESS;
-    } else if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0) && i + 1 < argc) {
+    } else if ((strcmp(argv[i], "-i") == 0 ||
+                strcmp(argv[i], "--input") == 0) &&
+               i + 1 < argc) {
       input_file = argv[++i];
     } else if (strcmp(argv[i], "--no-imports") == 0) {
       no_imports = 1;
@@ -5128,14 +5105,17 @@ int to_docs_json_cli_main(int argc, char **argv) {
     }
   }
 
-  if (!input_file) return EXIT_FAILURE;
+  if (!input_file)
+    return EXIT_FAILURE;
 
   parsed_root = json_parse_file(input_file);
-  if (!parsed_root) return EXIT_FAILURE;
+  if (!parsed_root)
+    return EXIT_FAILURE;
 
   rc = openapi_load_from_json(parsed_root, &spec);
   json_value_free(parsed_root);
-  if (rc != 0) return rc;
+  if (rc != 0)
+    return rc;
 
   root_val = json_value_init_object();
   root_obj = json_value_get_object(root_val);
@@ -5147,8 +5127,8 @@ int to_docs_json_cli_main(int argc, char **argv) {
     JSON_Value *path_val = json_object_get_value(endpoints_obj, pi->route);
     JSON_Object *path_obj;
     if (!path_val) {
-        path_val = json_value_init_object();
-        json_object_set_value(endpoints_obj, pi->route, path_val);
+      path_val = json_value_init_object();
+      json_object_set_value(endpoints_obj, pi->route, path_val);
     }
     path_obj = json_value_get_object(path_val);
 
@@ -5160,32 +5140,56 @@ int to_docs_json_cli_main(int argc, char **argv) {
       const char *op_id = op->operation_id ? op->operation_id : "unknown";
 
       switch (op->verb) {
-        case OA_VERB_GET: method = "get"; break;
-        case OA_VERB_POST: method = "post"; break;
-        case OA_VERB_PUT: method = "put"; break;
-        case OA_VERB_DELETE: method = "delete"; break;
-        case OA_VERB_PATCH: method = "patch"; break;
-        case OA_VERB_HEAD: method = "head"; break;
-        case OA_VERB_OPTIONS: method = "options"; break;
-        case OA_VERB_TRACE: method = "trace"; break;
-        default: method = "custom"; break;
+      case OA_VERB_GET:
+        method = "get";
+        break;
+      case OA_VERB_POST:
+        method = "post";
+        break;
+      case OA_VERB_PUT:
+        method = "put";
+        break;
+      case OA_VERB_DELETE:
+        method = "delete";
+        break;
+      case OA_VERB_PATCH:
+        method = "patch";
+        break;
+      case OA_VERB_HEAD:
+        method = "head";
+        break;
+      case OA_VERB_OPTIONS:
+        method = "options";
+        break;
+      case OA_VERB_TRACE:
+        method = "trace";
+        break;
+      default:
+        method = "custom";
+        break;
       }
 
       snippet[0] = '\0';
       final_code[0] = '\0';
 
       if (!no_imports) {
-          strcat(final_code, "#include \"generated_client.h\"\n#include <stdio.h>\n\n");
+        strcat(final_code,
+               "#include \"generated_client.h\"\n#include <stdio.h>\n\n");
       }
       if (!no_wrapping) {
-          strcat(final_code, "int main(void) {\n  struct HttpClient client;\n  struct ApiError *err = NULL;\n  api_init(&client, \"https://api.example.com\");\n");
+        strcat(final_code, "int main(void) {\n  struct HttpClient client;\n  "
+                           "struct ApiError *err = NULL;\n  api_init(&client, "
+                           "\"https://api.example.com\");\n");
       }
 
-      sprintf(snippet, "  /* Call the %s API */\n  int rc = api_%s(&client, &err);\n  if (rc != 0) {\n    /* handle error */\n  }\n", op_id, op_id);
+      sprintf(snippet,
+              "  /* Call the %s API */\n  int rc = api_%s(&client, &err);\n  "
+              "if (rc != 0) {\n    /* handle error */\n  }\n",
+              op_id, op_id);
       strcat(final_code, snippet);
 
       if (!no_wrapping) {
-          strcat(final_code, "  api_cleanup(&client);\n  return 0;\n}\n");
+        strcat(final_code, "  api_cleanup(&client);\n  return 0;\n}\n");
       }
 
       json_object_set_string(path_obj, method, final_code);
@@ -5202,6 +5206,74 @@ int to_docs_json_cli_main(int argc, char **argv) {
 
   json_value_free(root_val);
   openapi_spec_free(&spec);
+  return EXIT_SUCCESS;
+}
+
+/**
+ * @brief CLI entry point for binding generation (e.g., `cdd-c bind`).
+ */
+int generate_bindings_cli_main(int argc, char **argv) {
+  cdd_generate_bindings_config_t config = {0};
+  int i;
+  int rc;
+
+  for (i = 0; i < argc; i++) {
+    if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      puts(
+          "Usage: cdd-c bind [OPTIONS]\n\n"
+          "Options:\n"
+          "  -i, --input <file|dir>    Input C header/source or directory\n"
+          "  -o, --output-dir <dir>    Output directory for bindings\n"
+          "  -l, --lang <langs>        Comma-separated list of languages "
+          "(e.g., python,rust)\n"
+          "  -n, --lib-name <name>     Name of the shared library (e.g., "
+          "sqlite3)\n"
+          "  -m, --module-name <name>  Name of the generated namespace/module\n"
+          "  --skip-static             Skip static inline functions\n"
+          "  --opaque-pointers         Treat unknown structs as void* "
+          "(opaque)\n"
+          "  --generate-tests          Generate basic sanity-check tests\n"
+          "  -h, --help                Show this help message\n");
+      return EXIT_SUCCESS;
+    } else if ((strcmp(argv[i], "-i") == 0 ||
+                strcmp(argv[i], "--input") == 0) &&
+               i + 1 < argc) {
+      config.input = argv[++i];
+    } else if ((strcmp(argv[i], "-o") == 0 ||
+                strcmp(argv[i], "--output-dir") == 0) &&
+               i + 1 < argc) {
+      config.output_dir = argv[++i];
+    } else if ((strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lang") == 0) &&
+               i + 1 < argc) {
+      config.target_langs = argv[++i];
+    } else if ((strcmp(argv[i], "-n") == 0 ||
+                strcmp(argv[i], "--lib-name") == 0) &&
+               i + 1 < argc) {
+      config.library_name = argv[++i];
+    } else if ((strcmp(argv[i], "-m") == 0 ||
+                strcmp(argv[i], "--module-name") == 0) &&
+               i + 1 < argc) {
+      config.module_name = argv[++i];
+    } else if (strcmp(argv[i], "--skip-static") == 0) {
+      config.skip_static = 1;
+    } else if (strcmp(argv[i], "--opaque-pointers") == 0) {
+      config.opaque_pointers = 1;
+    } else if (strcmp(argv[i], "--generate-tests") == 0) {
+      config.generate_tests = 1;
+    }
+  }
+
+  if (!config.input || !config.output_dir || !config.target_langs) {
+    fprintf(stderr, "Error: --input, --output-dir, and --lang are required.\n");
+    return EXIT_FAILURE;
+  }
+
+  rc = cdd_generate_bindings(&config);
+  if (rc != 0) {
+    fprintf(stderr, "Error: Binding generation failed with code %d\n", rc);
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
 

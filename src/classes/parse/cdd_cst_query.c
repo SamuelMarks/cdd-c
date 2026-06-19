@@ -1,13 +1,12 @@
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_query_err_fail;
-#endif
 /* clang-format off */
 #include "cdd_cst_query.h"
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_query_err_fail;
 C_CDD_EXPORT int g_cdd_query_err_fail = 0;
 C_CDD_EXPORT int g_cdd_query_realloc_fail = 0;
 #endif

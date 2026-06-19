@@ -73,6 +73,17 @@ cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 C_CDD_EXPORT int cdd_transform_safe_crt(cdd_cst_tree_t *tree,
                                         const cdd_transform_config_t *config);
 
+/**
+ * @brief Expands function-like macros (and handles stringification/token
+ * pasting) inside the AST.
+ *
+ * @param tree The CST tree.
+ * @param config Optional configuration for trivia generation.
+ * @return 0 on success, or an error code.
+ */
+C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
+                                      const cdd_transform_config_t *config);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

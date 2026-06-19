@@ -1,14 +1,15 @@
-#ifdef CDD_BUILD_TESTS
-extern int g_cdd_scope_alloc_fail;
-#endif
 /* clang-format off */
 #include "cdd_cst_scope.h"
+#include "c_cdd_export.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "c_cdd/log.h"
 /* clang-format on */
+
 #ifdef CDD_BUILD_TESTS
+extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
 C_CDD_EXPORT int g_cdd_scope_alloc_fail = 0;
 #endif
 

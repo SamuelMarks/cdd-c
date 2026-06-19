@@ -386,7 +386,7 @@ TEST test_query_call_expr_coverage(void) {
   cdd_cst_child_t id_child = {0};
   cdd_token_t tok2 = {0};
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_query_err_fail;
+  extern C_CDD_EXPORT int g_cdd_query_err_fail;
 #endif
 
   dummy_call.kind = CDD_CST_CALL_EXPR;

@@ -3,6 +3,50 @@ message(STATUS "RUNNING cdd-c CMakeLists.txt")
 cmake_minimum_required(VERSION 3.11)
 project(c_cdd VERSION 0.0.2 LANGUAGES C)
 
+# ==========================================
+# cdd-c CMake Platform Options & Support
+# ==========================================
+option(CDD_USE_STATIC_CRT "Use static CRT (/MT, /MTd) instead of shared" OFF)
+option(CDD_USE_UNICODE "Use UNICODE character set (Windows)" OFF)
+option(CDD_SINGLE_THREADED "Build single-threaded (no thread support)" OFF)
+option(CDD_ENABLE_LTO "Enable Link-Time Optimization (LTO)" OFF)
+option(CDD_MSVC_RTC_S "Enable MSVC Stack Frame Runtime Checks (/RTCs)" OFF)
+option(CDD_MSVC_RTC_U "Enable MSVC Uninitialized Variable Runtime Checks (/RTCu)" OFF)
+option(CDD_MSVC_RTC_1 "Enable MSVC All Runtime Checks (/RTC1)" OFF)
+
+if(MSVC)
+  if(CDD_USE_STATIC_CRT)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  endif()
+  
+  if(CDD_USE_UNICODE)
+    add_compile_definitions(UNICODE _UNICODE)
+  endif()
+  
+  if(CDD_MSVC_RTC_1)
+    add_compile_options(/RTC1)
+  elseif(CDD_MSVC_RTC_S AND CDD_MSVC_RTC_U)
+    add_compile_options(/RTCs /RTCu)
+  elseif(CDD_MSVC_RTC_S)
+    add_compile_options(/RTCs)
+  elseif(CDD_MSVC_RTC_U)
+    add_compile_options(/RTCu)
+  endif()
+endif()
+
+if(CDD_SINGLE_THREADED)
+  add_compile_definitions(CDD_SINGLE_THREADED=1)
+endif()
+
+if(CDD_ENABLE_LTO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT lto_supported)
+  if(lto_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  endif()
+endif()
+
+
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
@@ -19,6 +63,27 @@ endif()
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
     include(FetchContent)
+
+macro(FetchDependencyLocalOrArchive NAME LOCAL_DIR GITHUB_REPO)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}/CMakeLists.txt")
+        FetchContent_Declare(
+            ${NAME}
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${LOCAL_DIR}"
+        )
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../${LOCAL_DIR}/CMakeLists.txt")
+        FetchContent_Declare(
+            ${NAME}
+            SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../${LOCAL_DIR}"
+        )
+    else()
+        FetchContent_Declare(
+            ${NAME}
+            URL "https://github.com/${GITHUB_REPO}/archive/refs/heads/master.zip"
+        )
+    endif()
+    FetchContent_MakeAvailable(${NAME})
+endmacro()
+
     if(TARGET cfs)
         message(STATUS "cfs already provided by parent")
     elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../c-fs/CMakeLists.txt")
@@ -33,12 +98,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
             endif()
         endif()
         if(NOT cfs_RESOLVED)
-            FetchContent_Declare(
-                cfs
-                GIT_REPOSITORY https://github.com/SamuelMarks/c-fs.git
-                GIT_TAG master
-            )
-            FetchContent_MakeAvailable(cfs)
+            FetchDependencyLocalOrArchive(cfs "c-fs" "SamuelMarks/c-fs")
             include_directories(SYSTEM ${cfs_SOURCE_DIR}/include)
         endif()
     endif()
@@ -270,6 +330,7 @@ endif ()
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     include(FetchContent)
+    set(_GLOBAL_BSL ${BUILD_SHARED_LIBS})
     set(BUILD_SHARED_LIBS OFF)
 
     # c-str-span
@@ -288,13 +349,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             endif()
         endif()
         if(NOT c_str_span_RESOLVED)
-        FetchContent_Declare(
-            c_str_span
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-str-span.git
-            GIT_TAG master
-        )
-        set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-        FetchContent_MakeAvailable(c_str_span)
+        FetchDependencyLocalOrArchive(c_str_span "c-str-span" "SamuelMarks/c-str-span")
         include_directories(SYSTEM ${c_str_span_SOURCE_DIR})
         endif()
     endif()
@@ -314,12 +369,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             endif()
         endif()
         if(NOT c89stringutils_RESOLVED)
-        FetchContent_Declare(
-            c89stringutils
-            GIT_REPOSITORY https://github.com/offscale/c89stringutils.git
-            GIT_TAG master
-        )
-        FetchContent_MakeAvailable(c89stringutils)
+        FetchDependencyLocalOrArchive(c89stringutils "c89stringutils" "offscale/c89stringutils")
         include_directories(SYSTEM ${c89stringutils_SOURCE_DIR}/c89stringutils)
         endif()
     endif()
@@ -359,14 +409,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
             endif()
         endif()
         if(NOT parson_RESOLVED)
-            FetchContent_Declare(
-                parson
-                GIT_REPOSITORY https://github.com/SamuelMarks/parson.git
-                GIT_TAG master
-            )
-            set(OLD_BSL ${BUILD_SHARED_LIBS})
-            set(BUILD_SHARED_LIBS OFF)
-            FetchContent_MakeAvailable(parson)
+            FetchDependencyLocalOrArchive(parson "parson" "SamuelMarks/parson")
             set(BUILD_SHARED_LIBS ${OLD_BSL})
             include_directories(SYSTEM ${parson_SOURCE_DIR})
             if(TARGET parson AND NOT TARGET parson::parson)
@@ -384,6 +427,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
     endif ()
     endif ()
 
+    set(BUILD_SHARED_LIBS ${_GLOBAL_BSL})
     endif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11" AND NOT VCPKG_TOOLCHAIN)
 
     if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.11")
@@ -479,3 +523,6 @@ if (DOXYGEN_FOUND)
     )
 endif()
 message(STATUS "TARGET_ARCH is ${TARGET_ARCH}")
+
+
+

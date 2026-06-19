@@ -260,7 +260,7 @@ TEST test_cst_parse_format_extra(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_realloc_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_realloc_fail;
     /* fail node alloc inside format parser (use a high value to avoid parser
      * failing first) */
     g_cdd_cst_alloc_node_fail = 1000;

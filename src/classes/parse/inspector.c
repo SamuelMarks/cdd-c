@@ -370,8 +370,12 @@ void func_sig_list_free(struct FuncSigList *list) {
     return;
   if (list->items) {
     for (i = 0; i < list->size; ++i) {
-      free(list->items[i].name);
-      free(list->items[i].sig);
+      if (list->items[i].name)
+        free(list->items[i].name);
+      if (list->items[i].sig)
+        free(list->items[i].sig);
+      if (list->items[i].doc)
+        free(list->items[i].doc);
     }
     free(list->items);
     list->items = NULL;
@@ -442,6 +446,7 @@ int c_inspector_extract_signatures(const char *source_code,
       size_t sig_end_idx = start_idx;
       size_t name_idx = 0;
       int found_name = 0;
+      int is_variadic = 0;
 
       {
         size_t k = start_idx;
@@ -449,6 +454,9 @@ int c_inspector_extract_signatures(const char *source_code,
           if (tl->tokens[k].kind == TOKEN_LBRACE) {
             sig_end_idx = k;
             break;
+          }
+          if (tl->tokens[k].kind == TOKEN_ELLIPSIS) {
+            is_variadic = 1;
           }
           if (tl->tokens[k].kind == TOKEN_LPAREN && !found_name) {
             size_t n = k;
@@ -468,6 +476,18 @@ int c_inspector_extract_signatures(const char *source_code,
       }
 
       if (found_name) {
+        size_t comment_idx = start_idx;
+        int found_comment = 0;
+        while (comment_idx > 0) {
+          comment_idx--;
+          if (tl->tokens[comment_idx].kind == TOKEN_COMMENT) {
+            found_comment = 1;
+            break;
+          } else if (tl->tokens[comment_idx].kind != TOKEN_WHITESPACE) {
+            break;
+          }
+        }
+
         if (out->size >= out->capacity) {
           size_t c = (out->capacity == 0) ? 8 : out->capacity * 2;
           struct FuncSignature *new_items = (struct FuncSignature *)realloc(
@@ -486,6 +506,12 @@ int c_inspector_extract_signatures(const char *source_code,
         out->items[out->size].sig = NULL;
         extract_span_text(tl, start_idx, sig_end_idx,
                           &out->items[out->size].sig);
+        out->items[out->size].doc = NULL;
+        if (found_comment) {
+          extract_span_text(tl, comment_idx, comment_idx + 1,
+                            &out->items[out->size].doc);
+        }
+        out->items[out->size].is_variadic = is_variadic;
 
         if (!out->items[out->size].name || !out->items[out->size].sig) {
           rc = ENOMEM;

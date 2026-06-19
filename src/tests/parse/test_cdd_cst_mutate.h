@@ -234,7 +234,7 @@ TEST test_cst_splice_children(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_cst_alloc_node_fail;
+    extern C_CDD_EXPORT int g_cdd_cst_alloc_node_fail;
     cdd_cst_node_t *o_root = tree->root;
     g_cdd_cst_alloc_node_fail = 1;
     ASSERT_EQ(ENOMEM,

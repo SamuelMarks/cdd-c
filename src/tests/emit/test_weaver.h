@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+/* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@ extern "C" {
 
 #include "functions/emit/weaver.h"
 #include "functions/emit/weaver_attributes.h"
+/* clang-format on */
 
 /**
  * @brief test_weaver_wrap_ifdef_basic
@@ -112,8 +114,9 @@ TEST test_weaver_wrap_ifdef_invalid_args(void) {
 TEST test_weaver_inject_msvc_headers(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
-  const char *src = "#include <stdio.h>\n#include <stdlib.h>\n\n      int\n      main() {\n    return 0;\n  }\n  ";
-      int res;
+  const char *src = "#include <stdio.h>\n#include <stdlib.h>\n\n      int\n    "
+                    "  main() {\n    return 0;\n  }\n  ";
+  int res;
   char *out_code = NULL;
 
   res = tokenize(az_span_create_from_str((char *)src), &tokens);
@@ -144,58 +147,60 @@ TEST test_weaver_inject_msvc_headers(void) {
 TEST test_weaver_vla_to_alloca(void) {
   struct PatchList patches;
   struct TokenList *tokens = NULL;
-  const char *src = ""
-                    "int main() {\n      int n = 10;\n  int arr[n];\n  return 0;\n}\n";
-    int res;
-char *out_code = NULL;
-size_t start_idx = 0;
-size_t end_idx = 0;
-size_t i;
+  const char *src =
+      ""
+      "int main() {\n      int n = 10;\n  int arr[n];\n  return 0;\n}\n";
+  int res;
+  char *out_code = NULL;
+  size_t start_idx = 0;
+  size_t end_idx = 0;
+  size_t i;
 
-res = tokenize(az_span_create_from_str((char *)src), &tokens);
-ASSERT_EQ(0, res);
+  res = tokenize(az_span_create_from_str((char *)src), &tokens);
+  ASSERT_EQ(0, res);
 
-res = patch_list_init(&patches);
-ASSERT_EQ(0, res);
+  res = patch_list_init(&patches);
+  ASSERT_EQ(0, res);
 
-/* Find `int arr[n];` tokens manually for testing */
-for (i = 0; i < tokens->size; ++i) {
-  if (tokens->tokens[i].kind == TOKEN_KEYWORD_INT) {
-    size_t j = i + 1;
-    while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
-      j++;
-    if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
-      int is_arr = 0;
-      token_matches_string(&tokens->tokens[j], "arr", &is_arr);
-      if (is_arr) {
-        start_idx = i;
-        while (j < tokens->size && tokens->tokens[j].kind != TOKEN_SEMICOLON)
-          j++;
-        end_idx = j + 1;
-        break;
+  /* Find `int arr[n];` tokens manually for testing */
+  for (i = 0; i < tokens->size; ++i) {
+    if (tokens->tokens[i].kind == TOKEN_KEYWORD_INT) {
+      size_t j = i + 1;
+      while (j < tokens->size && tokens->tokens[j].kind == TOKEN_WHITESPACE)
+        j++;
+      if (j < tokens->size && tokens->tokens[j].kind == TOKEN_IDENTIFIER) {
+        int is_arr = 0;
+        token_matches_string(&tokens->tokens[j], "arr", &is_arr);
+        if (is_arr) {
+          start_idx = i;
+          while (j < tokens->size && tokens->tokens[j].kind != TOKEN_SEMICOLON)
+            j++;
+          end_idx = j + 1;
+          break;
+        }
       }
     }
   }
-}
-ASSERT(start_idx < end_idx);
+  ASSERT(start_idx < end_idx);
 
-res = weaver_vla_to_alloca(&patches, tokens, start_idx, end_idx, "int", "arr",
-                           "n", false);
-ASSERT_EQ(0, res);
+  res = weaver_vla_to_alloca(&patches, tokens, start_idx, end_idx, "int", "arr",
+                             "n", false);
+  ASSERT_EQ(0, res);
 
-res = patch_list_apply(&patches, tokens, &out_code);
-ASSERT_EQ(0, res);
+  res = patch_list_apply(&patches, tokens, &out_code);
+  ASSERT_EQ(0, res);
 
   ASSERT_STR_EQ(""
-"int main() {\n      int n = 10;\n  int *arr = (int *)_alloca((n) * sizeof(int));\n  return 0;\n}\n", out_code);
+                "int main() {\n      int n = 10;\n  int *arr = (int "
+                "*)_alloca((n) * sizeof(int));\n  return 0;\n}\n",
+                out_code);
 
-      free(out_code);
+  free(out_code);
   patch_list_free(&patches);
   free_token_list(tokens);
   g_fail_io_after = -1;
   PASS();
-  }
-
+}
 
 /**
  * @brief test_weaver_translate_gcc_attributes
@@ -218,35 +223,35 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
   /* noreturn */
   nodes[0].kind = CST_NODE_GCC_ATTRIBUTE;
-  nodes[0].start = (const uint8_t*)"__attribute__((noreturn))";
+  nodes[0].start = (const uint8_t *)"__attribute__((noreturn))";
   nodes[0].length = strlen("__attribute__((noreturn))");
   nodes[0].start_token = 0;
   nodes[0].end_token = 1;
 
   /* packed */
   nodes[1].kind = CST_NODE_GCC_ATTRIBUTE;
-  nodes[1].start = (const uint8_t*)"__attribute__((packed))";
+  nodes[1].start = (const uint8_t *)"__attribute__((packed))";
   nodes[1].length = strlen("__attribute__((packed))");
   nodes[1].start_token = 2;
   nodes[1].end_token = 3;
 
   /* visibility */
   nodes[2].kind = CST_NODE_GCC_ATTRIBUTE;
-  nodes[2].start = (const uint8_t*)"__attribute__((visibility(\"default\")))";
+  nodes[2].start = (const uint8_t *)"__attribute__((visibility(\"default\")))";
   nodes[2].length = strlen("__attribute__((visibility(\"default\")))");
   nodes[2].start_token = 4;
   nodes[2].end_token = 5;
 
   /* unused */
   nodes[3].kind = CST_NODE_GCC_ATTRIBUTE;
-  nodes[3].start = (const uint8_t*)"__attribute__((unused))";
+  nodes[3].start = (const uint8_t *)"__attribute__((unused))";
   nodes[3].length = strlen("__attribute__((unused))");
   nodes[3].start_token = 6;
   nodes[3].end_token = 7;
 
   /* format */
   nodes[4].kind = CST_NODE_GCC_ATTRIBUTE;
-  nodes[4].start = (const uint8_t*)"__attribute__((format(printf, 1, 2)))";
+  nodes[4].start = (const uint8_t *)"__attribute__((format(printf, 1, 2)))";
   nodes[4].length = strlen("__attribute__((format(printf, 1, 2)))");
   nodes[4].start_token = 8;
   nodes[4].end_token = 9;
@@ -261,10 +266,12 @@ TEST test_weaver_translate_gcc_attributes(void) {
   res = weaver_translate_gcc_attributes(&patches, &tokens, &cst);
   ASSERT_EQ(0, res);
 
-  /* Note: packed and unused don't currently generate a replacement, so we expect 3 patches total */
+  /* Note: packed and unused don't currently generate a replacement, so we
+   * expect 3 patches total */
   ASSERT_EQ(3, patches.size);
 
-  /* Validate some output exists for noreturn, visibility, and format. Order matches iteration */
+  /* Validate some output exists for noreturn, visibility, and format. Order
+   * matches iteration */
   ASSERT(strstr(patches.patches[0].text, "__declspec(noreturn)") != NULL);
   ASSERT(strstr(patches.patches[1].text, "visibility") != NULL);
   ASSERT(strstr(patches.patches[2].text, "format") != NULL);
@@ -284,7 +291,7 @@ TEST test_weaver_translate_gcc_attributes(void) {
 
     memset(nodes_oom, 0, sizeof(nodes_oom));
     nodes_oom[0].kind = CST_NODE_GCC_ATTRIBUTE;
-    nodes_oom[0].start = (const uint8_t*)"__attribute__((noreturn))";
+    nodes_oom[0].start = (const uint8_t *)"__attribute__((noreturn))";
     nodes_oom[0].length = 25;
 
     cst_oom.nodes = nodes_oom;
@@ -297,11 +304,13 @@ TEST test_weaver_translate_gcc_attributes(void) {
       int rc_wattr;
       g_cdd_fail_alloc = 2001;
       rc_wattr = weaver_translate_gcc_attributes(&patches2, &tokens, &cst_oom);
-      if (rc_wattr != ENOMEM) { printf("wattr=%d ENOMEM=%d\n", rc_wattr, ENOMEM); ASSERT_EQ(ENOMEM, rc_wattr); }
+      if (rc_wattr != ENOMEM) {
+        printf("wattr=%d ENOMEM=%d\n", rc_wattr, ENOMEM);
+        ASSERT_EQ(ENOMEM, rc_wattr);
+      }
       g_cdd_fail_alloc = 0;
     }
 #endif
-
 
     /* non-gcc attribute to test branch */
     nodes_oom[0].kind = CST_NODE_FUNCTION;
@@ -309,14 +318,15 @@ TEST test_weaver_translate_gcc_attributes(void) {
     /* visibility without default */
     memset(nodes2, 0, sizeof(nodes2));
     nodes2[0].kind = CST_NODE_GCC_ATTRIBUTE;
-    nodes2[0].start = (const uint8_t*)"__attribute__((visibility(\"hidden\")))";
+    nodes2[0].start =
+        (const uint8_t *)"__attribute__((visibility(\"hidden\")))";
     nodes2[0].length = strlen("__attribute__((visibility(\"hidden\")))");
     nodes2[0].start_token = 0;
     nodes2[0].end_token = 1;
 
     /* format without printf */
     nodes2[1].kind = CST_NODE_GCC_ATTRIBUTE;
-    nodes2[1].start = (const uint8_t*)"__attribute__((format(scanf, 1, 2)))";
+    nodes2[1].start = (const uint8_t *)"__attribute__((format(scanf, 1, 2)))";
     nodes2[1].length = strlen("__attribute__((format(scanf, 1, 2)))");
     nodes2[1].start_token = 2;
     nodes2[1].end_token = 3;
@@ -329,10 +339,11 @@ TEST test_weaver_translate_gcc_attributes(void) {
     cst2.capacity = 3;
 
     rc_t1 = weaver_translate_gcc_attributes(&patches2, &tokens, &cst2);
-    if (rc_t1 != 0) printf("FAILED cst2 rc=%d\n", rc_t1);
+    if (rc_t1 != 0)
+      printf("FAILED cst2 rc=%d\n", rc_t1);
     ASSERT_EQ(0, rc_t1);
 
-/* deleted rc_wattr2 */
+    /* deleted rc_wattr2 */
 
     patch_list_free(&patches2);
   }
@@ -355,7 +366,7 @@ TEST test_weaver_oom(void) {
 #endif
 
   patch_list_init(&patches);
-  tokenize(az_span_create((uint8_t*)src, strlen(src)), &tl);
+  tokenize(az_span_create((uint8_t *)src, strlen(src)), &tl);
 
 #ifdef CDD_BUILD_TESTS
   g_cdd_fail_alloc = 1;
@@ -392,7 +403,6 @@ TEST test_weaver_oom(void) {
   /* deleted r9 */
 #endif
 
-
   ASSERT_EQ(EINVAL, weaver_wrap_ifdef(NULL, tl, 0, 1, "COND", "else"));
   ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, NULL, 0, 1, "COND", "else"));
   ASSERT_EQ(EINVAL, weaver_wrap_ifdef(&patches, tl, 0, 1, NULL, "else"));
@@ -401,11 +411,16 @@ TEST test_weaver_oom(void) {
   ASSERT_EQ(EINVAL, weaver_inject_msvc_headers(&patches, NULL, 1, 1));
   ASSERT_EQ(0, weaver_inject_msvc_headers(&patches, tl, 0, 0));
 
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(NULL, tl, 0, 1, "type", "name", "sz", 0));
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, NULL, 0, 1, "type", "name", "sz", 0));
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, tl, 0, 1, NULL, "name", "sz", 0));
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, tl, 0, 1, "type", NULL, "sz", 0));
-  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", NULL, 0));
+  ASSERT_EQ(EINVAL,
+            weaver_vla_to_alloca(NULL, tl, 0, 1, "type", "name", "sz", 0));
+  ASSERT_EQ(EINVAL, weaver_vla_to_alloca(&patches, NULL, 0, 1, "type", "name",
+                                         "sz", 0));
+  ASSERT_EQ(EINVAL,
+            weaver_vla_to_alloca(&patches, tl, 0, 1, NULL, "name", "sz", 0));
+  ASSERT_EQ(EINVAL,
+            weaver_vla_to_alloca(&patches, tl, 0, 1, "type", NULL, "sz", 0));
+  ASSERT_EQ(EINVAL,
+            weaver_vla_to_alloca(&patches, tl, 0, 1, "type", "name", NULL, 0));
 
   free_token_list(tl);
   patch_list_free(&patches);
@@ -414,18 +429,18 @@ TEST test_weaver_oom(void) {
 }
 
 SUITE(weaver_suite) {
-    RUN_TEST(test_weaver_wrap_ifdef_basic);
-    RUN_TEST(test_weaver_wrap_ifdef_else);
-    RUN_TEST(test_weaver_wrap_ifdef_invalid_args);
-    RUN_TEST(test_weaver_inject_msvc_headers);
-    RUN_TEST(test_weaver_vla_to_alloca);
-    RUN_TEST(test_weaver_translate_gcc_attributes);
+  RUN_TEST(test_weaver_wrap_ifdef_basic);
+  RUN_TEST(test_weaver_wrap_ifdef_else);
+  RUN_TEST(test_weaver_wrap_ifdef_invalid_args);
+  RUN_TEST(test_weaver_inject_msvc_headers);
+  RUN_TEST(test_weaver_vla_to_alloca);
+  RUN_TEST(test_weaver_translate_gcc_attributes);
   RUN_TEST(test_weaver_oom);
   RUN_TEST(test_weaver_oom);
-  }
+}
 
 #ifdef __cplusplus
-  }
+}
 #endif /* __cplusplus */
 
 #endif /* TEST_WEAVER_H */

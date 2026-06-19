@@ -1,8 +1,10 @@
 #ifndef TEST_CDD_API_H
 #define TEST_CDD_API_H
 
+/* clang-format off */
 #include "cdd_api.h"
 #include <greatest.h>
+/* clang-format on */
 
 TEST test_cdd_generate_from_openapi(void) {
   cdd_from_openapi_config_t config = {0};

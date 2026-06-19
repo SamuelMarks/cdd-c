@@ -23,6 +23,7 @@
 #include "routes/emit/security.h"
 #include "routes/emit/url.h"
 #include "win_compat_sym.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -436,7 +437,7 @@ static void multipart_header_param_name(char *out, size_t outsz,
   char hdr_sanitized[128];
   out[0] = '\0';
   sanitize_ident(hdr_sanitized, sizeof(hdr_sanitized), header);
-  snprintf(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
+  CDD_SNPRINTF(out, outsz, "%s_hdr_%s", field, hdr_sanitized);
 }
 
 /**
@@ -2566,11 +2567,11 @@ static int write_multipart_part_headers(FILE *fp,
     if (param_name[0] == '\0')
       continue;
 
-    snprintf(joined_name, sizeof(joined_name), "%s_joined", param_name);
-    snprintf(joined_len_name, sizeof(joined_len_name), "%s_joined_len",
-             param_name);
-    snprintf(idx_name, sizeof(idx_name), "%s_i", param_name);
-    snprintf(first_name, sizeof(first_name), "%s_first", param_name);
+    CDD_SNPRINTF(joined_name, sizeof(joined_name), "%s_joined", param_name);
+    CDD_SNPRINTF(joined_len_name, sizeof(joined_len_name), "%s_joined_len",
+                 param_name);
+    CDD_SNPRINTF(idx_name, sizeof(idx_name), "%s_i", param_name);
+    CDD_SNPRINTF(first_name, sizeof(first_name), "%s_first", param_name);
 
     if (hdr_is_array) {
       const char *item_type = hdr->items_type ? hdr->items_type : "string";
@@ -2829,7 +2830,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_10),
              _ast_first_content_type_entry_10);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -2937,7 +2938,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_11),
              _ast_first_content_type_entry_11);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    if (req_body->%s) {\n", f->name));
@@ -2960,7 +2961,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_12),
              _ast_first_content_type_entry_12);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[32];\n"));
@@ -2985,7 +2986,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_13),
              _ast_first_content_type_entry_13);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp, "    {\n      char num_buf[64];\n"));
@@ -3010,7 +3011,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(content_type, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_14),
              _ast_first_content_type_entry_14);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", content_type);
         ct_arg = ct_buf;
       }
       CHECK_IO(fprintf(fp,
@@ -3039,7 +3040,7 @@ static int write_multipart_body(FILE *fp, const struct OpenAPI_Operation *op,
             (first_content_type_entry(final_ct, ct_clean, sizeof(ct_clean),
                                       &_ast_first_content_type_entry_15),
              _ast_first_content_type_entry_15);
-        snprintf(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
+        CDD_SNPRINTF(ct_buf, sizeof(ct_buf), "\"%s\"", final_ct);
         ct_arg = ct_buf;
       }
       if (f->ref[0] != '\0') {

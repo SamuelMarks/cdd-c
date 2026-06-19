@@ -44,7 +44,7 @@ TEST test_cdd_cst_scope_basic(void) {
 
 #ifdef CDD_BUILD_TESTS
   {
-    extern int g_cdd_scope_alloc_fail;
+    extern C_CDD_EXPORT int g_cdd_scope_alloc_fail;
     g_cdd_scope_alloc_fail = 2;
     ASSERT_EQ(ENOMEM, cdd_cst_scope_env_init(&env));
     g_cdd_scope_alloc_fail = 0;

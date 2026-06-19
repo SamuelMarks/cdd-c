@@ -428,3 +428,13 @@ remaining.txt
 test.txt
 test_c90
 test_codegen_enum_io
+
+# Test code generation outputs
+test_*_out/
+
+# Temporary and scratch files
+dummy_stl.h
+dummy_toposort.h
+impl.c
+test_codegen_schema_io.json.h
+union_array_schema.json.*

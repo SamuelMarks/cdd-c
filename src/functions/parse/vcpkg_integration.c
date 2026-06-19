@@ -14,6 +14,7 @@
 #include "functions/parse/tokenizer.h"
 #include "functions/parse/vcpkg_integration.h"
 #include "c_cdd/log.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -221,11 +222,11 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                      builder->project_name, builder->version_string,
                      builder->description);
 #else
-  len += snprintf(json + len, cap - len,
-                  "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
-                  "\"description\": \"%s\"",
-                  builder->project_name, builder->version_string,
-                  builder->description);
+  len += CDD_SNPRINTF(
+      json + len, cap - len,
+      "{\n  \"name\": \"%s\",\n  \"version-string\": \"%s\",\n  "
+      "\"description\": \"%s\"",
+      builder->project_name, builder->version_string, builder->description);
 #endif
 
   if (builder->deps_count > 0) {
@@ -233,7 +234,7 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
     len += _snprintf_s(json + len, cap - len, _TRUNCATE,
                        ",\n  \"dependencies\": [\n");
 #else
-    len += snprintf(json + len, cap - len, ",\n  \"dependencies\": [\n");
+    len += CDD_SNPRINTF(json + len, cap - len, ",\n  \"dependencies\": [\n");
 #endif
     for (i = 0; i < builder->deps_count; i++) {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
@@ -241,28 +242,28 @@ int vcpkg_builder_generate(const struct VcpkgManifestBuilder *builder,
                          builder->deps[i].name,
                          i == builder->deps_count - 1 ? "" : ",");
 #else
-      len += snprintf(json + len, cap - len, "    \"%s\"%s\\n",
-                      builder->deps[i].name,
-                      i == builder->deps_count - 1 ? "" : ",");
+      len += CDD_SNPRINTF(json + len, cap - len, "    \"%s\"%s\\n",
+                          builder->deps[i].name,
+                          i == builder->deps_count - 1 ? "" : ",");
 #endif
     }
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE, "  ]\\n");
 #else
-    len += snprintf(json + len, cap - len, "  ]\\n");
+    len += CDD_SNPRINTF(json + len, cap - len, "  ]\\n");
 #endif
   } else {
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
     len += _snprintf_s(json + len, cap - len, _TRUNCATE, "\\n");
 #else
-    len += snprintf(json + len, cap - len, "\\n");
+    len += CDD_SNPRINTF(json + len, cap - len, "\\n");
 #endif
   }
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
   len += _snprintf_s(json + len, cap - len, _TRUNCATE, "}\\n");
 #else
-  len += snprintf(json + len, cap - len, "}\\n");
+  len += CDD_SNPRINTF(json + len, cap - len, "}\\n");
 #endif
 
   *out_json = json;

@@ -11,6 +11,31 @@ jobs:
   build:
     uses: SamuelMarks/c-ci/.github/workflows/c-cmake-ci.yml@master
 
+  memory-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y valgrind clang cmake
+      - name: Build with ASAN
+        run: |
+          mkdir build_asan && cd build_asan
+          cmake .. -DCMAKE_C_COMPILER=clang -DC_CDD_USE_ASAN=ON -DCMAKE_BUILD_TYPE=Debug -DCDD_DEPS=FETCHCONTENT
+          make -j4
+      - name: Run Tests with ASAN
+        run: |
+          cd build_asan
+          ctest --output-on-failure
+      - name: Build without ASAN for Valgrind
+        run: |
+          mkdir build_valgrind && cd build_valgrind
+          cmake .. -DCMAKE_C_COMPILER=gcc -DC_CDD_USE_ASAN=OFF -DCMAKE_BUILD_TYPE=Debug -DCDD_DEPS=FETCHCONTENT
+          make -j4
+      - name: Run Tests with Valgrind
+        run: |
+          cd build_valgrind
+          ctest -T memcheck --output-on-failure
+
   release-wasm:
     needs: build
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')

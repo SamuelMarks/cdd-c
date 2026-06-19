@@ -1,3 +1,4 @@
+#include "c_cdd/safe_crt.h"
 /**
  * @file client_gen.c
  * @brief Implementation of client code generation.
@@ -3051,10 +3052,10 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
     char hpath[512], cpath[512];
     FILE *uh = NULL;
     FILE *uc = NULL;
-    snprintf(hpath, sizeof(hpath), "%s/src/url_utils.h",
-             dir_name ? dir_name : ".");
-    snprintf(cpath, sizeof(cpath), "%s/src/url_utils.c",
-             dir_name ? dir_name : ".");
+    CDD_SNPRINTF(hpath, sizeof(hpath), "%s/src/url_utils.h",
+                 dir_name ? dir_name : ".");
+    CDD_SNPRINTF(cpath, sizeof(cpath), "%s/src/url_utils.c",
+                 dir_name ? dir_name : ".");
     uh = fopen(hpath, "w");
     if (uh) {
       fprintf(
@@ -4202,9 +4203,9 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
   if (config && config->create_tests_and_mocks) {
     char tdir[512], tfile[640];
     FILE *tfp;
-    snprintf(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
+    CDD_SNPRINTF(tdir, sizeof(tdir), "%s/src/test", dir_name ? dir_name : ".");
     makedirs(tdir);
-    snprintf(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
+    CDD_SNPRINTF(tfile, sizeof(tfile), "%s/test_sdk.c", tdir);
     tfp = fopen(tfile, "w");
     if (tfp) {
       fprintf(tfp, "#include <stdio.h>\n#include <stdlib.h>\n#include "
@@ -4213,7 +4214,7 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
                    "<c_abstract_http/http_apple.h>\n#define "
                    "C_ABSTRACT_HTTP_INIT http_apple_context_init\n#define "
                    "C_ABSTRACT_HTTP_SEND http_apple_send\n#else\n#include "
-                   "<c_abstract_http/http_curl.h>\n#define "
+                   " < c_abstract_http / http_curl.h>\n #define "
                    "C_ABSTRACT_HTTP_INIT http_curl_context_init\n#define "
                    "C_ABSTRACT_HTTP_SEND http_curl_send\n#endif\n");
       fprintf(tfp, "int main(void) {\n  struct HttpClient client;\n  "
@@ -4345,14 +4346,15 @@ int openapi_client_generate(const struct OpenAPI_Spec *spec,
           fprintf(tfp, "    base_url = getenv(\"BASE_URL\");\n");
           fprintf(tfp, "    if (!base_url) {\n");
           fprintf(tfp,
-                  "        snprintf(url_buf, sizeof(url_buf), "
+                  "        CDD_SNPRINTF(url_buf, sizeof(url_buf), "
                   "\"http://localhost:8080/v2%%s\", \"%s\");\n",
                   formatted_path);
           fprintf(tfp, "    } else {\n");
-          fprintf(tfp,
-                  "        snprintf(url_buf, sizeof(url_buf), \"%%s%%s%%s\", "
-                  "base_url, \"%s\", \"%s\");\n",
-                  parsed_base_path, formatted_path);
+          fprintf(
+              tfp,
+              "        CDD_SNPRINTF(url_buf, sizeof(url_buf), \"%%s%%s%%s\", "
+              "base_url, \"%s\", \"%s\");\n",
+              parsed_base_path, formatted_path);
           fprintf(tfp, "    }\n");
           fprintf(tfp, "    req.url = url_buf;\n");
           fprintf(tfp, "    client.send(client.transport, &req, &res);\n");

@@ -144,7 +144,7 @@ TEST test_make_oom(void) {
   struct MakeConfig config3 = {0};
   const char *srcs2[] = {NULL};
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_fprintf_fail;
+  extern C_CDD_EXPORT int g_cdd_fprintf_fail;
   int i;
   int rc;
 #endif

@@ -1,3 +1,4 @@
+#include "c_cdd/safe_crt.h"
 /**
  * @file cli_gen.c
  * @brief Implementation of CLI code generation.
@@ -37,8 +38,8 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
     get_basename(config->filename_base, &base_name);
     sprintf(src_dir, "%s/src", dir_name ? dir_name : ".");
     makedirs(src_dir);
-    SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir,
-             base_name ? base_name : "generated_client");
+    CDD_SNPRINTF(path, sizeof(path), "%s/%s_cli.c", src_dir,
+                 base_name ? base_name : "generated_client");
     free(src_dir);
     if (dir_name)
       free(dir_name);
@@ -63,7 +64,7 @@ int openapi_cli_generate(const struct OpenAPI_Spec *spec,
   fprintf(fp, "#include <stdio.h>\n");
   fprintf(fp, "#include <stdlib.h>\n");
   fprintf(fp, "#include <string.h>\n");
-  fprintf(fp, "#include <parson.h>\n");
+  fprintf(fp, "#include <parson.h>\n ");
   {
     char *base = NULL;
     get_basename(config->filename_base, &base);

@@ -35,7 +35,6 @@
 
 static int join_tokens_range(const struct TokenList *tokens, size_t start,
                              size_t end, char **_out_val) {
-  char *_ast_strdup_0 = NULL;
   size_t len = 0;
   size_t i;
   char *buf, *p;
@@ -414,12 +413,6 @@ static int find_pivot(const struct TokenList *tokens, size_t start, size_t end,
  */
 int parse_declaration(const struct TokenList *tokens, size_t start, size_t end,
                       struct DeclInfo *out_info) {
-  char *_ast_join_tokens_range_15 = NULL;
-  char *_ast_join_tokens_range_22 = NULL;
-  char *_ast_join_tokens_range_26 = NULL;
-  char *_ast_join_tokens_range_29 = NULL;
-  char *_ast_join_tokens_range_35 = NULL;
-  char *_ast_strdup_1 = NULL;
   size_t pivot;
   size_t left, right;
   size_t left_limit = start;

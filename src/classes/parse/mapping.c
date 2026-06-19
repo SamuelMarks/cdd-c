@@ -141,6 +141,8 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
   int is_array = 0;
   int rc = 0;
   skip_qualifiers(c_type_in, &c_type);
+  printf("DEBUG c_mapping_map_type: c_type_in='%s', c_type='%s'\n", c_type_in,
+         c_type);
 
   if (!out)
     return EINVAL;
@@ -152,6 +154,13 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
     is_ptr = 1;
   if (decl_name && strchr(decl_name, '['))
     is_array = 1;
+
+  /* Check for templates */
+  if (strchr(c_type, '<') && strchr(c_type, '>')) {
+    /* Keep the exact type as object for templates so FFI extractor can parse it
+     */
+    return set_ref(out, c_type);
+  }
 
   /* Check for char* or char[] -> string */
   if (strstr(c_type, "char") && (is_ptr || is_array)) {
@@ -219,8 +228,12 @@ int c_mapping_map_type(const char *c_type_in, const char *decl_name,
       free(clean);
     } else {
       /* Fallback: Unknown type (defaults to string usually in schemas?) */
-      /* Let's set primitive string for safety in generation unless unknown */
-      rc = set_primitive(out, "string", NULL);
+      /* Keep generic T as object for templates */
+      if (strlen(c_type) == 1 || (strchr(c_type, '<') && strchr(c_type, '>'))) {
+        rc = set_ref(out, c_type);
+      } else {
+        rc = set_primitive(out, "string", NULL);
+      }
     }
   }
 

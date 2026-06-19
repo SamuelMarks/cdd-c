@@ -32,6 +32,7 @@ extern int g_cdd_cst_alloc_token_fail;
 #include "functions/emit/codegen.h"
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -3833,8 +3834,8 @@ int make_unique_variant_name(const struct StructFields *dest, const char *base,
       return 0;
     }
   }
-  snprintf(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
-           (size_t)(index + 1));
+  CDD_SNPRINTF(buf, sizeof(buf), "%s_%" CDD_SIZE_T_FMT "", sanitized,
+               (size_t)(index + 1));
   free(sanitized);
   c_cdd_strdup(buf, &out);
   if (!out) {
@@ -3850,8 +3851,8 @@ int make_unique_variant_name(const struct StructFields *dest, const char *base,
     }
   }
   free(out);
-  snprintf(buf, sizeof(buf), "Variant_%" CDD_SIZE_T_FMT "",
-           (size_t)(index + 1));
+  CDD_SNPRINTF(buf, sizeof(buf), "Variant_%" CDD_SIZE_T_FMT "",
+               (size_t)(index + 1));
   {
     c_cdd_strdup(buf, _out_val);
     return 0;
@@ -3869,9 +3870,10 @@ int make_inline_schema_name(const char *schema_name, const char *variant_name,
   const char *base_variant =
       (variant_name && *variant_name) ? variant_name : "Variant";
   if (suffix && *suffix)
-    snprintf(buf, sizeof(buf), "%s_%s_%s", base_schema, base_variant, suffix);
+    CDD_SNPRINTF(buf, sizeof(buf), "%s_%s_%s", base_schema, base_variant,
+                 suffix);
   else
-    snprintf(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
+    CDD_SNPRINTF(buf, sizeof(buf), "%s_%s", base_schema, base_variant);
   {
     sanitize_identifier(buf, _out_val);
     return 0;

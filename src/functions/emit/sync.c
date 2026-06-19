@@ -141,7 +141,6 @@ int sync_code_main(int argc, char **argv) {
  */
 int patch_header_from_source(const char *header_path,
                              const char *refactored_source) {
-  char *_ast_strdup_0 = NULL;
   struct FuncSigList sigs;
   struct PatchList patches;
   struct TokenList *hdr_tokens = NULL;

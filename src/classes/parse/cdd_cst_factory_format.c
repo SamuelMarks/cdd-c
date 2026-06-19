@@ -5,6 +5,7 @@
 
 /* clang-format off */
 #include "cdd_cst_factory.h"
+#include "c_cdd/safe_crt.h"
 #include "cdd_cst_mutate.h"
 #include "cdd_cst_parser.h"
 #include <errno.h>
@@ -53,12 +54,7 @@ int cdd_cst_parse_format(cdd_cst_tree_t *dest_tree, cdd_cst_node_t **out_node,
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) ||                         \
-    defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
-  vsnprintf_s(buf, 4096, _TRUNCATE, fmt, args);
-#else
-  vsnprintf(buf, 4096, fmt, args);
-#endif
+  CDD_VSNPRINTF(buf, 4096, fmt, args);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif

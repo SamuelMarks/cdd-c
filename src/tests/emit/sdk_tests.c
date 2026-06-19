@@ -1,3 +1,4 @@
+#include "c_cdd/safe_crt.h"
 /**
  * @file sdk_tests.c
  * @brief Implementation of SDK Test Generation.
@@ -85,10 +86,10 @@ static int write_test_operation(FILE *fp, const struct OpenAPI_Operation *op,
     {
       char group_buf[512];
       if (op->n_tags > 0 && op->tags[0] && op->tags[0][0]) {
-        snprintf(group_buf, sizeof(group_buf), "%s", op->tags[0]);
+        CDD_SNPRINTF(group_buf, sizeof(group_buf), "%s", op->tags[0]);
         group_buf[0] = toupper((unsigned char)group_buf[0]);
       } else {
-        snprintf(group_buf, sizeof(group_buf), "Default");
+        CDD_SNPRINTF(group_buf, sizeof(group_buf), "Default");
       }
       CHECK_IO(fprintf(fp, "  rc = %s_%s%s(&client", group_buf,
                        config->func_prefix, op->operation_id));
@@ -148,7 +149,7 @@ int codegen_sdk_tests_generate(FILE *fp, const struct OpenAPI_Spec *spec,
                    "#include <greatest.h>\n"
                    "#include <stdlib.h>\n"
                    "#include <string.h>\n"
-                   "#include <ctype.h>\n"
+                   "#include <ctype.h>\n "
                    "#include \"%s\"\n\n",
                    config->client_header));
 

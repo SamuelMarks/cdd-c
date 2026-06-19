@@ -915,7 +915,6 @@ int write_root_array_cleanup_func(FILE *fp, const char *name,
 int write_root_array_to_json_func(FILE *fp, const char *name,
                                   const char *item_type, const char *item_ref,
                                   const struct CodegenTypesConfig *config) {
-  char *_ast_get_type_from_ref_9 = NULL;
   char *_ast_get_type_from_ref_10 = NULL;
   if (!fp || !name || !item_type)
     return EINVAL;

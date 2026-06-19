@@ -304,7 +304,7 @@ TEST test_type_eval_branches(void) {
   cdd_token_t tok3 = {0};
   char buf2[300] = {0};
 #ifdef CDD_BUILD_TESTS
-  extern int g_cdd_cst_alloc_token_fail;
+  extern C_CDD_EXPORT int g_cdd_cst_alloc_token_fail;
   int rc;
 #endif
 

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "c_cdd_export.h"
+#include "c_cdd/safe_crt.h"
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -99,8 +100,8 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   char *dup_id = NULL;
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
-                  snprintf(id_buf, sizeof(id_buf), "out_%.*s", (int)tok->length,
-                           tok->start);
+                  CDD_SNPRINTF(id_buf, sizeof(id_buf), "out_%.*s",
+                               (int)tok->length, tok->start);
 
                   {
                     size_t c_len = strlen(id_buf);
@@ -156,9 +157,9 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   char *dup_id = NULL;
                   temp->kind = CDD_CST_UNKNOWN;
                   cdd_cst_builder_init(&bld, tree, temp);
-                  snprintf(id_buf, sizeof(id_buf), "out_%.*s",
-                           (int)modified_funcs[m]->length,
-                           modified_funcs[m]->start);
+                  CDD_SNPRINTF(id_buf, sizeof(id_buf), "out_%.*s",
+                               (int)modified_funcs[m]->length,
+                               modified_funcs[m]->start);
 
                   {
                     size_t c_len = strlen(id_buf);

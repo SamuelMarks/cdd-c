@@ -91,13 +91,25 @@ static void free_node(cdd_cst_node_t *node) {
   free(node);
 }
 
+typedef struct cdd_macro_def_t {
+  char *name;
+  char *value;
+} cdd_macro_def_t;
+
+typedef struct cdd_macro_env_t {
+  cdd_macro_def_t *defs;
+  size_t count;
+  size_t capacity;
+} cdd_macro_env_t;
+
 /** @brief parser_state_t struct */
 typedef struct parser_state_t {
   /** @brief pos field */
   cdd_token_list_t *list;
   /** @brief pos field */
   size_t pos;
-  int err; /**< err */
+  int err;                /**< err */
+  cdd_macro_env_t macros; /**< local macro evaluation environment */
 } parser_state_t;
 
 C_CDD_EXPORT int peek(parser_state_t *s, cdd_token_t **out_tok);
@@ -166,6 +178,79 @@ static int parse_block(parser_state_t *s, cdd_cst_node_t *parent,
   return 0;
 }
 
+static int eval_preproc_expr(parser_state_t *s, size_t start_pos,
+                             size_t end_pos, int *out_val) {
+  /* Simple placeholder for now: evaluate defined(X), 1, or 0.
+   * A full boolean expression parser requires an expression grammar tree.
+   * For the immediate milestone, we implement symbol lookup and literal int
+   * evaluation. */
+  size_t i;
+  int is_defined_check = 0;
+
+  if (start_pos >= end_pos) {
+    *out_val = 0;
+    return 0;
+  }
+
+  /* Fallback single token evaluation */
+  if (end_pos - start_pos == 1) {
+    cdd_token_t *t = &s->list->tokens[start_pos];
+    if (t->kind == CDD_TOKEN_NUMBER) {
+      if (t->length == 1 && t->start[0] == '0') {
+        *out_val = 0;
+      } else {
+        *out_val = 1;
+      }
+      return 0;
+    } else if (t->kind == CDD_TOKEN_IDENTIFIER) {
+      /* Macro value check */
+      size_t k;
+      for (k = 0; k < s->macros.count; k++) {
+        if (strlen(s->macros.defs[k].name) == t->length &&
+            strncmp(s->macros.defs[k].name, (const char *)t->start,
+                    t->length) == 0) {
+          *out_val = 1; /* Found */
+          return 0;
+        }
+      }
+      *out_val = 0;
+      return 0;
+    }
+  }
+
+  /* Scan for "defined ( X )" or "defined X" */
+  for (i = start_pos; i < end_pos; i++) {
+    cdd_token_t *t = &s->list->tokens[i];
+    if (t->kind == CDD_TOKEN_IDENTIFIER && t->length == 7 &&
+        strncmp((const char *)t->start, "defined", 7) == 0) {
+      size_t target_idx = i + 1;
+      if (target_idx < end_pos &&
+          s->list->tokens[target_idx].kind == CDD_TOKEN_LPAREN) {
+        target_idx++;
+      }
+      if (target_idx < end_pos &&
+          s->list->tokens[target_idx].kind == CDD_TOKEN_IDENTIFIER) {
+        size_t k;
+        cdd_token_t *target = &s->list->tokens[target_idx];
+        *out_val = 0;
+        for (k = 0; k < s->macros.count; k++) {
+          if (strlen(s->macros.defs[k].name) == target->length &&
+              strncmp(s->macros.defs[k].name, (const char *)target->start,
+                      target->length) == 0) {
+            *out_val = 1;
+            break;
+          }
+        }
+        return 0;
+      }
+    }
+  }
+
+  /* Default unresolvable expression to 0 (false) */
+  *out_val = 0;
+  return 0;
+}
+
 #if 0
 static int parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t *parent, cdd_cst_node_t **out_node) {
   cdd_cst_node_t *node = NULL; alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &node);
@@ -204,6 +289,23 @@ static int parse_preproc_conditional(parser_state_t *s, cdd_cst_node_t *parent, 
 }
 #endif
 
+static int get_class_name(cdd_cst_node_t *node, cdd_token_t **out_tok) {
+  while (node) {
+    if (node->kind == CDD_CST_CLASS_DECLARATION) {
+      size_t i;
+      for (i = 0; i < node->num_children; i++) {
+        if (node->children[i].kind == CDD_CST_CHILD_TOKEN &&
+            node->children[i].val.token->kind == CDD_TOKEN_IDENTIFIER) {
+          *out_tok = node->children[i].val.token;
+          return 1;
+        }
+      }
+    }
+    node = node->parent;
+  }
+  return 0;
+}
+
 static int parse_declaration_or_statement(parser_state_t *s,
                                           cdd_cst_node_t *parent,
                                           cdd_cst_node_t **out_node) {
@@ -215,10 +317,38 @@ static int parse_declaration_or_statement(parser_state_t *s,
     return ENOENT;
   }
 
+  /* Note: cdd_token.h does not currently map #if specifically to its own token;
+   * they come through as identifiers `# if` or `#if`. For now, we process
+   * IFDEF/IFNDEF and ELIF. */
   if (t->kind == CDD_TOKEN_PREPROC_IFDEF ||
-      t->kind == CDD_TOKEN_PREPROC_IFNDEF) {
+      t->kind == CDD_TOKEN_PREPROC_IFNDEF ||
+      t->kind == CDD_TOKEN_PREPROC_ELIF) {
     cdd_token_t *p = NULL;
+    int is_if_elif = (t->kind == CDD_TOKEN_PREPROC_ELIF);
+    size_t expr_start = s->pos + 1;
+    size_t expr_end = expr_start;
+
     advance(s, &p);
+
+    if (is_if_elif) {
+      /* advance to end of logical line for the expression evaluation */
+      while (expr_end < s->list->size &&
+             s->list->tokens[expr_end].kind != CDD_TOKEN_OTHER) {
+        /* simplistic boundary check for expressions on single lines */
+        if (s->list->tokens[expr_end].length == 1 &&
+            s->list->tokens[expr_end].start[0] == '\n')
+          break;
+        expr_end++;
+      }
+      {
+        int val = 0;
+        eval_preproc_expr(s, expr_start, expr_end, &val);
+        /* If we wanted a fully evaluating engine, we could skip/keep nodes
+         * based on val here. */
+        (void)val;
+      }
+    }
+
     alloc_node(CDD_CST_PREPROC_CONDITIONAL, parent, &n);
     if (!n) {
       s->err = ENOMEM;
@@ -235,6 +365,10 @@ static int parse_declaration_or_statement(parser_state_t *s,
         advance(s, &t);
         append_child_token(n, t);
         break;
+      }
+      if (nxt->kind == CDD_TOKEN_PREPROC_ELIF ||
+          nxt->kind == CDD_TOKEN_PREPROC_ELSE) {
+        /* Keep nested in current conditional until ENDIF, parsing linearly */
       }
       if (nxt->kind == CDD_TOKEN_LBRACE) {
         {
@@ -255,15 +389,348 @@ static int parse_declaration_or_statement(parser_state_t *s,
   if (t->kind >= CDD_TOKEN_PREPROC_INCLUDE &&
       t->kind <= CDD_TOKEN_PREPROC_PRAGMA) {
     alloc_node(CDD_CST_PREPROC_DIRECTIVE, parent, &n);
-    if (n)
+    if (n) {
       advance(s, &t);
-    append_child_token(n, t);
+      append_child_token(n, t);
+
+      if (t->kind == CDD_TOKEN_PREPROC_DEFINE) {
+        cdd_token_t *macro_name_tok = NULL;
+        peek(s, &macro_name_tok);
+        if (macro_name_tok && macro_name_tok->kind == CDD_TOKEN_IDENTIFIER) {
+          /* Add to local environment */
+          if (s->macros.count >= s->macros.capacity) {
+            size_t new_cap =
+                s->macros.capacity == 0 ? 16 : s->macros.capacity * 2;
+            cdd_macro_def_t *new_arr = (cdd_macro_def_t *)realloc(
+                s->macros.defs, new_cap * sizeof(cdd_macro_def_t));
+            if (new_arr) {
+              s->macros.defs = new_arr;
+              s->macros.capacity = new_cap;
+
+              /* Temporarily just capture name, we'll parse the rest as child
+               * tokens */
+              s->macros.defs[s->macros.count].name =
+                  (char *)malloc(macro_name_tok->length + 1);
+              if (s->macros.defs[s->macros.count].name) {
+                memcpy(s->macros.defs[s->macros.count].name,
+                       macro_name_tok->start, macro_name_tok->length);
+                s->macros.defs[s->macros.count].name[macro_name_tok->length] =
+                    '\0';
+                s->macros.defs[s->macros.count].value = NULL;
+                s->macros.count++;
+              }
+            }
+          }
+        }
+      }
+    }
     *out_node = n;
     return 0;
   }
 
   if (t->kind == CDD_TOKEN_LBRACE) {
     return parse_block(s, parent, out_node);
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_TEMPLATE) {
+    alloc_node(CDD_CST_TEMPLATE_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    advance(s, &t); /* template */
+    append_child_token(n, t);
+
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_LT) {
+      cdd_cst_node_t *param_list;
+      alloc_node(CDD_CST_TEMPLATE_PARAMETER_LIST, n, &param_list);
+      if (param_list) {
+        advance(s, &t); /* < */
+        append_child_token(param_list, t);
+
+        while (s->pos < s->list->size) {
+          peek(s, &t);
+          if (!t)
+            break;
+          if (t->kind == CDD_TOKEN_GT) {
+            advance(s, &t);
+            append_child_token(param_list, t);
+            break;
+          }
+          if (t->kind == CDD_TOKEN_COMMA) {
+            advance(s, &t);
+            append_child_token(param_list, t);
+            continue;
+          }
+
+          /* Parameter: [class|typename] Identifier */
+          if (t->kind == CDD_TOKEN_KEYWORD_CLASS ||
+              t->kind == CDD_TOKEN_KEYWORD_TYPENAME ||
+              t->kind == CDD_TOKEN_IDENTIFIER) {
+            cdd_cst_node_t *param;
+            alloc_node(CDD_CST_TEMPLATE_PARAMETER, param_list, &param);
+            if (param) {
+              advance(s, &t);
+              append_child_token(param, t);
+
+              peek(s, &t);
+              if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
+                advance(s, &t);
+                append_child_token(param, t);
+              }
+              append_child_node(param_list, param);
+            }
+          } else {
+            advance(s, &t);
+            append_child_token(param_list, t);
+          }
+        }
+        append_child_node(n, param_list);
+      }
+    }
+
+    /* Now parse the class or function it decorates */
+    {
+      cdd_cst_node_t *child = NULL;
+      parse_declaration_or_statement(s, n, &child);
+      if (child)
+        append_child_node(n, child);
+    }
+
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_NAMESPACE) {
+    alloc_node(CDD_CST_NAMESPACE_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    advance(s, &t); /* namespace */
+    append_child_token(n, t);
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_IDENTIFIER) {
+      advance(s, &t);
+      append_child_token(n, t);
+    }
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_LBRACE) {
+      cdd_cst_node_t *child = NULL;
+      parse_block(s, n, &child);
+      if (child)
+        append_child_node(n, child);
+    }
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_USING) {
+    alloc_node(CDD_CST_USING_DIRECTIVE, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    while (s->pos < s->list->size) {
+      cdd_token_t *nxt = NULL;
+      peek(s, &nxt);
+      if (!nxt)
+        break;
+      if (nxt->kind == CDD_TOKEN_SEMICOLON) {
+        advance(s, &t);
+        append_child_token(n, t);
+        break;
+      }
+      advance(s, &t);
+      append_child_token(n, t);
+    }
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_TRY) {
+    alloc_node(CDD_CST_TRY_BLOCK, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    advance(s, &t); /* try */
+    append_child_token(n, t);
+
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_LBRACE) {
+      cdd_cst_node_t *child = NULL;
+      parse_block(s, n, &child);
+      if (child)
+        append_child_node(n, child);
+    }
+
+    while (s->pos < s->list->size) {
+      cdd_cst_node_t *catch_node = NULL;
+
+      peek(s, &t);
+      if (!t || t->kind != CDD_TOKEN_KEYWORD_CATCH)
+        break;
+
+      alloc_node(CDD_CST_CATCH_BLOCK, n, &catch_node);
+      if (catch_node) {
+        advance(s, &t); /* catch */
+        append_child_token(catch_node, t);
+
+        peek(s, &t);
+        if (t && t->kind == CDD_TOKEN_LPAREN) {
+          while (s->pos < s->list->size) {
+            advance(s, &t);
+            append_child_token(catch_node, t);
+            if (t->kind == CDD_TOKEN_RPAREN)
+              break;
+          }
+        }
+
+        peek(s, &t);
+        if (t && t->kind == CDD_TOKEN_LBRACE) {
+          cdd_cst_node_t *child = NULL;
+          parse_block(s, catch_node, &child);
+          if (child)
+            append_child_node(catch_node, child);
+        }
+        append_child_node(n, catch_node);
+      } else {
+        break;
+      }
+    }
+
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_THROW) {
+    alloc_node(CDD_CST_THROW_EXPRESSION, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    advance(s, &t); /* throw */
+    append_child_token(n, t);
+
+    while (s->pos < s->list->size) {
+      peek(s, &t);
+      if (!t)
+        break;
+      if (t->kind == CDD_TOKEN_SEMICOLON) {
+        advance(s, &t);
+        append_child_token(n, t);
+        break;
+      }
+      advance(s, &t);
+      append_child_token(n, t);
+    }
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_CLASS) {
+    alloc_node(CDD_CST_CLASS_DECLARATION, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    while (s->pos < s->list->size) {
+      cdd_token_t *nxt = NULL;
+      peek(s, &nxt);
+      if (!nxt)
+        break;
+      if (nxt->kind == CDD_TOKEN_LBRACE) {
+        cdd_cst_node_t *child = NULL;
+        parse_block(s, n, &child);
+        if (child)
+          append_child_node(n, child);
+      } else if (nxt->kind == CDD_TOKEN_COLON) {
+        cdd_cst_node_t *base_list;
+        alloc_node(CDD_CST_BASE_CLASS_LIST, n, &base_list);
+        if (base_list) {
+          advance(s, &t); /* ':' */
+          append_child_token(base_list, t);
+
+          while (s->pos < s->list->size) {
+            cdd_cst_node_t *base_spec;
+            alloc_node(CDD_CST_BASE_CLASS_SPECIFIER, base_list, &base_spec);
+            if (base_spec) {
+              /* parse access modifier or virtual */
+              peek(s, &nxt);
+              if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
+                          nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
+                          nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
+                          nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
+                advance(s, &t);
+                append_child_token(base_spec, t);
+                /* might have virtual and access modifier in either order */
+                peek(s, &nxt);
+                if (nxt && (nxt->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
+                            nxt->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
+                            nxt->kind == CDD_TOKEN_KEYWORD_PROTECTED ||
+                            nxt->kind == CDD_TOKEN_KEYWORD_VIRTUAL)) {
+                  advance(s, &t);
+                  append_child_token(base_spec, t);
+                }
+              }
+              /* base class name */
+              peek(s, &nxt);
+              if (nxt && nxt->kind == CDD_TOKEN_IDENTIFIER) {
+                advance(s, &t);
+                append_child_token(base_spec, t);
+              }
+              append_child_node(base_list, base_spec);
+            }
+
+            peek(s, &nxt);
+            if (nxt && nxt->kind == CDD_TOKEN_COMMA) {
+              advance(s, &t);
+              append_child_token(base_list, t);
+            } else {
+              break;
+            }
+          }
+          append_child_node(n, base_list);
+        }
+      } else if (nxt->kind == CDD_TOKEN_SEMICOLON) {
+        advance(s, &t);
+        append_child_token(n, t);
+        break;
+      } else {
+        advance(s, &t);
+        append_child_token(n, t);
+      }
+    }
+    *out_node = n;
+    return 0;
+  }
+
+  if (t->kind == CDD_TOKEN_KEYWORD_PUBLIC ||
+      t->kind == CDD_TOKEN_KEYWORD_PRIVATE ||
+      t->kind == CDD_TOKEN_KEYWORD_PROTECTED) {
+    alloc_node(CDD_CST_ACCESS_SPECIFIER, parent, &n);
+    if (!n) {
+      s->err = ENOMEM;
+      *out_node = NULL;
+      return ENOENT;
+    }
+    advance(s, &t);
+    append_child_token(n, t);
+    peek(s, &t);
+    if (t && t->kind == CDD_TOKEN_OTHER && t->length == 1 && *t->start == ':') {
+      advance(s, &t);
+      append_child_token(n, t);
+    }
+    *out_node = n;
+    return 0;
   }
 
   if (t->kind == CDD_TOKEN_IDENTIFIER &&
@@ -295,11 +762,14 @@ static int parse_declaration_or_statement(parser_state_t *s,
 
   {
     size_t i;
-
     int is_func = 0;
+    int is_destructor = 0;
+    int is_operator = 0;
+    enum cdd_cst_node_kind_t node_kind = CDD_CST_UNKNOWN;
+    cdd_token_t *class_name_tok = NULL;
+
     for (i = s->pos; i < s->list->size; i++) {
       if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON) {
-        /* is_decl = 1; */
         break;
       }
       if (s->list->tokens[i].kind == CDD_TOKEN_LBRACE) {
@@ -310,8 +780,50 @@ static int parse_declaration_or_statement(parser_state_t *s,
         break; /* syntax error fallback */
     }
 
-    if (is_func) {
-      alloc_node(CDD_CST_FUNCTION_DEFINITION, parent, &n);
+    for (i = s->pos; i < s->list->size; i++) {
+      if (s->list->tokens[i].kind == CDD_TOKEN_TILDE) {
+        is_destructor = 1;
+        break;
+      }
+      if (s->list->tokens[i].kind == CDD_TOKEN_KEYWORD_OPERATOR) {
+        is_operator = 1;
+        break;
+      }
+      if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
+          s->list->tokens[i].kind == CDD_TOKEN_LBRACE) {
+        break;
+      }
+    }
+
+    node_kind = is_func ? CDD_CST_FUNCTION_DEFINITION : CDD_CST_UNKNOWN;
+    if (is_destructor) {
+      node_kind = CDD_CST_DESTRUCTOR;
+    } else if (is_operator) {
+      node_kind = CDD_CST_OPERATOR_OVERLOAD;
+    } else if (get_class_name(parent, &class_name_tok)) {
+      size_t paren_idx = 0;
+      for (i = s->pos; i < s->list->size; i++) {
+        if (s->list->tokens[i].kind == CDD_TOKEN_LPAREN) {
+          paren_idx = i;
+          break;
+        }
+        if (s->list->tokens[i].kind == CDD_TOKEN_SEMICOLON ||
+            s->list->tokens[i].kind == CDD_TOKEN_LBRACE)
+          break;
+      }
+      if (paren_idx > s->pos &&
+          s->list->tokens[paren_idx - 1].kind == CDD_TOKEN_IDENTIFIER) {
+        cdd_token_t *name_tok = &s->list->tokens[paren_idx - 1];
+        if (name_tok->length == class_name_tok->length &&
+            memcmp(name_tok->start, class_name_tok->start, name_tok->length) ==
+                0) {
+          node_kind = CDD_CST_CONSTRUCTOR;
+        }
+      }
+    }
+
+    if (is_func || node_kind != CDD_CST_UNKNOWN) {
+      alloc_node(node_kind, parent, &n);
       if (!n) {
         s->err = ENOMEM;
         *out_node = NULL;
@@ -320,13 +832,45 @@ static int parse_declaration_or_statement(parser_state_t *s,
       while (s->pos < s->list->size) {
         cdd_token_t *nxt = NULL;
         peek(s, &nxt);
-        if (nxt->kind == CDD_TOKEN_LBRACE) {
-          {
-            cdd_cst_node_t *child = NULL;
-            parse_block(s, n, &child);
-            if (child)
-              append_child_node(n, child);
+
+        if (nxt->kind == CDD_TOKEN_KEYWORD_NOEXCEPT) {
+          cdd_cst_node_t *noexcept_node = NULL;
+          alloc_node(CDD_CST_NOEXCEPT_SPECIFIER, n, &noexcept_node);
+          if (noexcept_node) {
+            advance(s, &t);
+            append_child_token(noexcept_node, t);
+
+            peek(s, &nxt);
+            if (nxt && nxt->kind == CDD_TOKEN_LPAREN) {
+              int noexcept_paren = 0;
+              while (s->pos < s->list->size) {
+                peek(s, &nxt);
+                if (nxt->kind == CDD_TOKEN_LPAREN)
+                  noexcept_paren++;
+                else if (nxt->kind == CDD_TOKEN_RPAREN)
+                  noexcept_paren--;
+
+                advance(s, &t);
+                append_child_token(noexcept_node, t);
+                if (noexcept_paren == 0)
+                  break;
+              }
+            }
+            append_child_node(n, noexcept_node);
+            continue;
           }
+        }
+
+        if (nxt->kind == CDD_TOKEN_LBRACE) {
+          cdd_cst_node_t *child = NULL;
+          parse_block(s, n, &child);
+          if (child)
+            append_child_node(n, child);
+          break;
+        }
+        if (!is_func && nxt->kind == CDD_TOKEN_SEMICOLON) {
+          advance(s, &t);
+          append_child_token(n, t);
           break;
         }
         advance(s, &t);
@@ -426,8 +970,27 @@ int cdd_cst_parse(az_span source, cdd_cst_tree_t **out_tree) {
   }
 
   if (state.err) {
+    if (state.macros.defs) {
+      size_t k;
+      for (k = 0; k < state.macros.count; k++) {
+        free(state.macros.defs[k].name);
+        if (state.macros.defs[k].value)
+          free(state.macros.defs[k].value);
+      }
+      free(state.macros.defs);
+    }
     cdd_cst_tree_free(tree);
     return state.err;
+  }
+
+  if (state.macros.defs) {
+    size_t k;
+    for (k = 0; k < state.macros.count; k++) {
+      free(state.macros.defs[k].name);
+      if (state.macros.defs[k].value)
+        free(state.macros.defs[k].value);
+    }
+    free(state.macros.defs);
   }
 
   *out_tree = tree;

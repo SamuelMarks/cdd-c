@@ -146,6 +146,8 @@ static void print_help(const char *prog_name) {
        "[-o <docs.json>]");
   puts("      Generate JSON documentation with code snippets for an OpenAPI "
        "specification.");
+  puts("  bind [OPTIONS]");
+  puts("      Generate SWIG-like FFI bindings for 40 languages.");
   puts("  serve_json_rpc [-p|--port <int>] [-l|--listen <address>]");
   puts("      Expose CLI interface as a JSON-RPC server.");
   puts("  mcp");
@@ -442,6 +444,8 @@ int cdd_main(int argc, char **argv) {
     rc = to_openapi_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "to_docs_json") == 0) {
     rc = to_docs_json_cli_main(argc - 1, argv + 1);
+  } else if (strcmp(cmd, "bind") == 0) {
+    rc = generate_bindings_cli_main(argc - 1, argv + 1);
   } else if (strcmp(cmd, "generate_build_system") == 0) {
     rc = generate_build_system_main(argc - 2, argv + 2);
   } else if (strcmp(cmd, "schema2code") == 0) {
