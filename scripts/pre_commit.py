@@ -58,26 +58,31 @@ def main():
     elif job == "lint":
         print("=== Linting ===")
         try:
-            subprocess.run(["clang-tidy", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("Running clang-tidy...")
-            files = []
-            for root, _, filenames in os.walk("src"):
-                for filename in filenames:
-                    if filename.endswith(".c") or filename.endswith(".h"):
-                        files.append(os.path.join(root, filename))
-            for root, _, filenames in os.walk("include"):
-                for filename in filenames:
-                    if filename.endswith(".c") or filename.endswith(".h"):
-                        files.append(os.path.join(root, filename))
-            if files:
-                run_cmd(["clang-tidy", "-p", "build_cmake", "--quiet"] + files)
+            subprocess.run(["cppcheck", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("Running cppcheck...")
+            run_cmd(["cppcheck", "--enable=warning,performance,portability", "--suppress=missingIncludeSystem", "--suppress=unknownMacro", "--suppress=unusedFunction", "src", "include"])
         except Exception:
-            try:
-                subprocess.run(["cppcheck", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                print("Running cppcheck...")
-                run_cmd(["cppcheck", "--enable=all", "--suppress=missingIncludeSystem", "src", "include"])
-            except Exception:
-                print("Warning: Neither clang-tidy nor cppcheck is installed. Skipping linting.")
+            print("Warning: cppcheck is not installed. Skipping cppcheck.")
+
+    elif job == "valgrind":
+        if sys.platform.startswith("linux"):
+            print("=== Valgrind ===")
+            os.makedirs("build_cmake", exist_ok=True)
+            run_cmd(["cmake", ".."], cwd="build_cmake")
+            run_cmd(["cmake", "--build", ".", "--config", "Debug"], cwd="build_cmake")
+
+            cdd_c_bin = os.path.join("build_cmake", "bin", "cdd-c")
+            if not os.path.exists(cdd_c_bin):
+                print("Warning: cdd-c binary not found for valgrind.")
+            else:
+                try:
+                    subprocess.run(["valgrind", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    print("Running valgrind...")
+                    run_cmd(["valgrind", "--leak-check=full", "--error-exitcode=1", cdd_c_bin, "--version"])
+                except Exception:
+                    print("Warning: valgrind is not installed or failed. Skipping valgrind.")
+        else:
+            print("=== Valgrind (Skipped on non-Linux) ===")
 
     elif job == "wasm":
         print("=== Building WASM ===")

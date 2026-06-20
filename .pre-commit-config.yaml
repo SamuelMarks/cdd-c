@@ -33,6 +33,12 @@ repos:
         language: python
         pass_filenames: false
         always_run: true
+      - id: valgrind
+        name: Valgrind
+        entry: python scripts/pre_commit.py valgrind
+        language: python
+        pass_filenames: false
+        always_run: true
       - id: update-shields
         name: Update Shields & Validate OpenAPI
         entry: python scripts/pre_commit.py shields
