@@ -21,6 +21,7 @@ extern "C" {
 
 #include "classes/emit/struct.h"
 #include "functions/emit/client_body.h"
+#include "functions/parse/str.h"
 #include "openapi/parse/openapi.h"
 /* clang-format on */
 

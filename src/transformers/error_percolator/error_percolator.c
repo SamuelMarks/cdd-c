@@ -343,6 +343,7 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 
             if (!cdd_cst_builder_has_error(&bld) && temp->num_children > 0) {
               cdd_trivia_t *rt = rparen_tok->trailing_trivia;
+              cdd_cst_node_t *old_rparen_parent = rparen_parent;
               rparen_tok->trailing_trivia = NULL;
               if (temp->children[temp->num_children - 1].kind ==
                   CDD_CST_CHILD_TOKEN) {
@@ -351,6 +352,9 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
               }
               cdd_cst_splice_children(tree, &rparen_parent, rparen_idx, 1,
                                       temp->children, temp->num_children);
+              if (old_rparen_parent == func) {
+                func = rparen_parent;
+              }
             }
             cdd_cst_builder_free(&bld);
             free(temp->children);

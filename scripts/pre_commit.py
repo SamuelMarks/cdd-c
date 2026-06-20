@@ -105,10 +105,19 @@ def main():
             run_cmd(["docker", "run", "-d", "--name", "petstore_oas3_test", "-e", "SWAGGER_HOST=http://localhost:8093", "-e", "SWAGGER_BASE_PATH=/api/v3", "-p", "8093:8080", "swaggerapi/petstore"], check=False)
 
             import time
+            import urllib.request
+            import urllib.error
+
             print("Waiting for Petstore containers to start...")
-            time.sleep(15)
-        else:
-            print("=== Docker not found. Skipping Petstore Docker Containers setup ===")
+            for _ in range(30):
+                try:
+                    urllib.request.urlopen("http://localhost:8092/v2/swagger.json")
+                    urllib.request.urlopen("http://localhost:8093/api/v3/openapi.json")
+                    break
+                except Exception:
+                    time.sleep(2)
+            else:
+                print("Warning: Petstore containers did not become ready in time.")
 
         # Test OpenAPI generation
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -116,9 +125,6 @@ def main():
 
         spec_oas3 = os.path.join(repo_root, "petstore_oas3.json")
         spec_sw2 = os.path.join(repo_root, "petstore.json")
-
-        import urllib.request
-        import urllib.error
 
         if has_docker:
             try:
@@ -151,11 +157,10 @@ def main():
             run_cmd(["cmake", "--build", "."], cwd="test_out_oas3")
             env_oas3 = os.environ.copy()
             env_oas3["BASE_URL"] = "http://localhost:8093"
-            result = run_cmd(["ctest", "--output-on-failure"], cwd="test_out_oas3", env=env_oas3, check=False)
-            if result.returncode != 0:
-                 print("Warning: CTest failed for OAS3. Continuing...")
+            run_cmd(["ctest", "--output-on-failure"], cwd="test_out_oas3", env=env_oas3, check=True)
         else:
              print(f"Warning: Spec {spec_oas3} or binary {cdd_c_bin} not found. Skipping OAS3 test.")
+             sys.exit(1)
 
         if os.path.exists(spec_sw2) and os.path.exists(cdd_c_bin):
             print("=== Swagger 2.0 Petstore Test ===")
@@ -168,11 +173,10 @@ def main():
             run_cmd(["cmake", "--build", "."], cwd="test_out_sw2")
             env_sw2 = os.environ.copy()
             env_sw2["BASE_URL"] = "http://localhost:8092"
-            result = run_cmd(["ctest", "--output-on-failure"], cwd="test_out_sw2", env=env_sw2, check=False)
-            if result.returncode != 0:
-                 print("Warning: CTest failed for Swagger 2.0. Continuing...")
+            run_cmd(["ctest", "--output-on-failure"], cwd="test_out_sw2", env=env_sw2, check=True)
         else:
              print(f"Warning: Spec {spec_sw2} or binary {cdd_c_bin} not found. Skipping Swagger 2 test.")
+             sys.exit(1)
 
         if has_docker:
             print("=== Tearing down Petstore Docker Containers ===")

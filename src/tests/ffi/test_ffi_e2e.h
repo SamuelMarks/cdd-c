@@ -74,7 +74,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
   if (f)
     fclose(f);
 
-    /* Assert Rust bindings generated */
+  /* Assert Rust bindings generated */
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Cargo.toml", "r");
 #else
@@ -84,7 +84,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
   if (f)
     fclose(f);
 
-    /* Assert C# bindings generated */
+  /* Assert C# bindings generated */
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Bindings.cs", "r");
 #else
