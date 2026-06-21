@@ -68,6 +68,7 @@ TEST test_macro_overlay_with_nodes(void) {
     cst.nodes[i].kind = CST_NODE_MACRO;
   }
 
+  macro_overlay_list_free(&list);
   macro_overlay_list_init(&list);
   ASSERT_EQ(0, cst_build_macro_overlay(&cst, tl, &list));
   ASSERT_EQ(10, list.size);

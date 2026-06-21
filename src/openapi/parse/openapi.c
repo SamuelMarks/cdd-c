@@ -10500,8 +10500,10 @@ static int parse_encoding_map(const JSON_Object *enc_obj,
     /* LCOV_EXCL_STOP */
     {
       int rc = parse_encoding_object(enc_def, curr, spec, resolve_refs);
-      if (rc != 0)
+      if (rc != 0) {
+        *out_count = valid + 1;
         return rc;
+      }
     }
     valid++;
   }
@@ -10549,8 +10551,10 @@ static int parse_encoding_array(const JSON_Array *enc_arr,
       continue;
     {
       int rc = parse_encoding_object(enc_def, curr, spec, resolve_refs);
-      if (rc != 0)
+      if (rc != 0) {
+        *out_count = valid + 1;
         return rc;
+      }
     }
     valid++;
   }
@@ -11439,6 +11443,7 @@ static int parse_parameters_array(const JSON_Array *arr,
         for (k = 0; k < valid; ++k) {
           if (param_key_equals(&tmp, &(*out_params)[k])) {
             free_parameter(&tmp);
+            *out_count = valid;
             return EINVAL;
           }
         }

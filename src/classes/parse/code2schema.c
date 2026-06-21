@@ -6243,6 +6243,8 @@ int code2schema_main(int argc, char **argv) {
 
   if (argc != 2) {
     json_value_free(root);
+    json_value_free(schemas_val);
+    json_value_free(comp_val);
     return EXIT_FAILURE;
   }
 
@@ -6258,6 +6260,8 @@ int code2schema_main(int argc, char **argv) {
 #endif
   if (!fp) {
     json_value_free(root);
+    json_value_free(schemas_val);
+    json_value_free(comp_val);
     return EXIT_FAILURE;
   }
 

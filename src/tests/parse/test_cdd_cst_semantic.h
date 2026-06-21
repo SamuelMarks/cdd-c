@@ -93,6 +93,7 @@ TEST test_cdd_cst_semantic_scope_basic(void) {
   ASSERT_EQ(EINVAL, cdd_cst_scope_leave(env)); /* cannot pop file scope */
 
   cdd_cst_scope_env_free(env);
+  env = NULL;
   cdd_cst_free_node_only(node);
   cdd_cst_scope_env_free(NULL); /* no-op */
   g_fail_io_after = -1;
@@ -110,6 +111,7 @@ TEST test_cdd_cst_semantic_basic(void) {
   ASSERT_NEQ(NULL, env);
 
   cdd_cst_scope_env_free(env);
+  env = NULL;
   /* no cdd_cst_tree_free for stack allocated zero init tree */
   g_fail_io_after = -1;
 
@@ -154,6 +156,7 @@ TEST test_cdd_cst_semantic_tree(void) {
   ASSERT_NEQ(NULL, env);
 
   cdd_cst_scope_env_free(env);
+  env = NULL;
 
   /* we will just free manually what we allocated if tree_free isn't safe */
   cdd_cst_free_node_only(id_node2);
@@ -163,6 +166,8 @@ TEST test_cdd_cst_semantic_tree(void) {
   cdd_cst_free_node_only(block);
   cdd_cst_free_node_only(func);
   cdd_cst_free_node_only(root);
+  if (env)
+    cdd_cst_scope_env_free(env);
   free(tok_var);
   free(tok_type);
   g_fail_io_after = -1;
@@ -218,6 +223,7 @@ TEST test_cdd_cst_semantic_errors(void) {
     ASSERT_NEQ(NULL, env);
 
     cdd_cst_scope_env_free(env);
+    env = NULL;
     cdd_cst_free_node_only(traverse_child);
     cdd_cst_free_node_only(traverse_parent);
   }
@@ -304,6 +310,8 @@ TEST test_cdd_cst_semantic_oom(void) {
   cdd_cst_free_node_only(block);
   cdd_cst_free_node_only(func);
   cdd_cst_free_node_only(root);
+  if (env)
+    cdd_cst_scope_env_free(env);
   free(tok_var);
   free(tok_type);
 #endif

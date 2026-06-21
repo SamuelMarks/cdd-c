@@ -1155,6 +1155,7 @@ TEST test_load_missing_openapi_and_swagger_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2046,6 +2047,7 @@ TEST test_load_info_missing_title_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }
@@ -2058,6 +2060,7 @@ TEST test_load_info_missing_version_rejected(void) {
   struct OpenAPI_Spec spec = {0};
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(0, rc);
+  openapi_spec_free(&spec);
   g_fail_io_after = -1;
   PASS();
 }

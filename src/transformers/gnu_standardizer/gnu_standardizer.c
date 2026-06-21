@@ -1946,13 +1946,19 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
             buf = (char *)malloc(val_len + 2);
             if (buf) {
               cdd_token_t *new_val = NULL;
+              const char *pooled;
               buf[0] = '&';
               memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
                      val_len);
               buf[val_len + 1] = '\0';
+              pooled = pool_string_safe(tree, buf);
               cdd_cst_create_token_len(
-                  tree, tree->base_tokens->tokens[rparen_idx + 1].kind, buf,
-                  val_len + 1, &new_val);
+                  tree, tree->base_tokens->tokens[rparen_idx + 1].kind,
+                  pooled ? pooled : buf, val_len + 1, &new_val);
+              if (!pooled)
+                free(buf);
+              else
+                free(buf);
               if (new_val) {
                 new_val->leading_trivia =
                     tree->base_tokens->tokens[rparen_idx + 1].leading_trivia;
@@ -2392,9 +2398,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                                           &parent);
               if (parent) {
                 cdd_token_t *new_tok = NULL;
+                const char *pooled;
                 strcpy(heap_buf, buf);
-                cdd_cst_create_token_len(tree, t->kind, heap_buf,
+                pooled = pool_string_safe(tree, heap_buf);
+                cdd_cst_create_token_len(tree, t->kind,
+                                         pooled ? pooled : heap_buf,
                                          strlen(heap_buf), &new_tok);
+                free(heap_buf);
                 if (new_tok) {
                   new_tok->leading_trivia = t->leading_trivia;
                   new_tok->trailing_trivia = t->trailing_trivia;

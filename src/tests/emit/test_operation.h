@@ -221,6 +221,7 @@ TEST test_operation_copy_doc_server_variables_op(void) {
   free_openapi_server_variables_op(&dst);
 
   /* Test validation for default_value in enum */
+  free(src.variables[0].enum_values[1]);
   src.variables[0].enum_values[1] = strdup("e2"); /* removed "def" */
   ASSERT_EQ(EINVAL, copy_doc_server_variables_op(&dst, &src));
 

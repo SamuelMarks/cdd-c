@@ -437,6 +437,7 @@ TEST test_cdd_cst_builder_quote_errors(void) {
   buf[2999] = '\0';
   cdd_cst_quote(&b, "123%s", buf);
 
+  cdd_cst_free_node_only(root);
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;
   PASS();

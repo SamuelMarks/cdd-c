@@ -95,8 +95,60 @@ def main():
 
         import shutil
         has_docker = shutil.which("docker") is not None
+        has_java = shutil.which("java") is not None
 
-        if has_docker:
+        jvm_started = False
+        if has_java:
+            print("=== Trying JVM Petstore Servers ===")
+            import urllib.request
+            import urllib.error
+            import subprocess
+            import time
+
+            os.makedirs(".cache", exist_ok=True)
+            oas3_jar = ".cache/openapi-petstore.jar"
+            sw2_war = ".cache/swagger-petstore.war"
+            jetty_jar = ".cache/jetty-runner.jar"
+
+            def download_if_missing(url, dest):
+                if not os.path.exists(dest):
+                    print(f"Downloading {dest}...")
+                    try:
+                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req) as response, open(dest, 'wb') as out_file:
+                            shutil.copyfileobj(response, out_file)
+                    except Exception as e:
+                        print(f"Failed to download {dest}: {e}")
+                        return False
+                return True
+
+            oas3_ok = download_if_missing("https://jitpack.io/com/github/OpenAPITools/openapi-petstore/master-SNAPSHOT/openapi-petstore-master-SNAPSHOT.jar", oas3_jar)
+            sw2_ok = download_if_missing("https://jitpack.io/com/github/swagger-api/swagger-petstore/master-SNAPSHOT/swagger-petstore-master-SNAPSHOT.war", sw2_war)
+            jetty_ok = download_if_missing("https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/9.4.53.v20231009/jetty-runner-9.4.53.v20231009.jar", jetty_jar)
+
+            if oas3_ok and sw2_ok and jetty_ok:
+                print("Starting JVM petstores in background...")
+                sw2_proc = subprocess.Popen(["java", "-jar", jetty_jar, "--port", "8092", sw2_war], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                oas3_proc = subprocess.Popen(["java", "--add-opens", "java.base/java.lang=ALL-UNNAMED", "-jar", oas3_jar, "--server.port=8093"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                print("Waiting for JVM Petstore containers to start...")
+                for _ in range(30):
+                    try:
+                        urllib.request.urlopen("http://localhost:8092/api/swagger.json")
+                        urllib.request.urlopen("http://localhost:8093/api/v3/openapi.json")
+                        jvm_started = True
+                        break
+                    except Exception:
+                        time.sleep(2)
+
+                if not jvm_started:
+                    print("Warning: JVM Petstore servers failed to start or become ready in time. Falling back...")
+                    sw2_proc.kill()
+                    oas3_proc.kill()
+            else:
+                print("Could not download required JVM jars. Falling back...")
+
+        if not jvm_started and has_docker:
             # Docker setup for petstore servers
             print("=== Starting Petstore Docker Containers ===")
             # We use swaggerapi/petstore for both, configuring the base path to match the respective specs
@@ -126,7 +178,21 @@ def main():
         spec_oas3 = os.path.join(repo_root, "petstore_oas3.json")
         spec_sw2 = os.path.join(repo_root, "petstore.json")
 
-        if has_docker:
+        if jvm_started:
+            import urllib.request
+            try:
+                print("Fetching Swagger 2.0 spec from JVM server...")
+                urllib.request.urlretrieve("http://localhost:8092/api/swagger.json", spec_sw2)
+            except Exception as e:
+                print(f"Warning: Failed to fetch Swagger 2.0 spec: {e}")
+
+            try:
+                print("Fetching OAS3 spec from JVM server...")
+                urllib.request.urlretrieve("http://localhost:8093/api/v3/openapi.json", spec_oas3)
+            except Exception as e:
+                print(f"Warning: Failed to fetch OAS3 spec: {e}")
+        elif has_docker:
+            import urllib.request
             try:
                 print("Fetching Swagger 2.0 spec from container...")
                 urllib.request.urlretrieve("http://localhost:8092/v2/swagger.json", spec_sw2)
@@ -178,7 +244,12 @@ def main():
              print(f"Warning: Spec {spec_sw2} or binary {cdd_c_bin} not found. Skipping Swagger 2 test.")
              sys.exit(1)
 
-        if has_docker:
+        if jvm_started:
+            print("=== Tearing down JVM Petstore Servers ===")
+            sw2_proc.kill()
+            oas3_proc.kill()
+
+        if not jvm_started and has_docker:
             print("=== Tearing down Petstore Docker Containers ===")
             run_cmd(["docker", "rm", "-f", "petstore_sw2_test", "petstore_oas3_test"], check=False)
 

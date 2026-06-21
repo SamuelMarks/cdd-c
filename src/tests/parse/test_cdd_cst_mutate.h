@@ -62,6 +62,7 @@ TEST test_cdd_cst_mutate_replace(void) {
   free(res.nodes);
   free(out);
   cdd_cst_tree_free(tree);
+  cdd_cst_free_node_only(target);
   g_fail_io_after = -1;
   PASS();
 }
@@ -173,7 +174,11 @@ TEST test_cdd_cst_mutate_errors(void) {
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, NULL, &clone));
   ASSERT_EQ(EINVAL, cdd_cst_clone_tree(tree, detach_parent, NULL));
 
-  /* we will leak node and node2... */
+  cdd_cst_free_node_only(node);
+  cdd_cst_free_node_only(node2);
+  cdd_cst_free_node_only(detach_parent);
+  cdd_cst_free_node_only(detach_child);
+  cdd_cst_free_node_only(parent_node);
   g_fail_io_after = -1;
 
   PASS();
