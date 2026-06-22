@@ -722,6 +722,7 @@ TEST test_load_allow_empty_value_non_query_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -871,6 +872,7 @@ TEST test_param_schema_and_content_conflict(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -887,6 +889,7 @@ TEST test_header_schema_and_content_conflict(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1144,6 +1147,7 @@ TEST test_load_server_duplicate_name_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1245,6 +1249,7 @@ TEST test_load_openapi_version_unsupported_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1258,6 +1263,7 @@ TEST test_load_server_url_query_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1413,6 +1419,7 @@ TEST test_load_security_scheme_http_missing_scheme_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1427,6 +1434,7 @@ TEST test_load_security_scheme_apikey_missing_name_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1441,6 +1449,7 @@ TEST test_load_security_scheme_apikey_missing_in_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1455,6 +1464,7 @@ TEST test_load_security_scheme_openid_missing_url_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1469,6 +1479,7 @@ TEST test_load_oauth2_missing_flows_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1486,6 +1497,7 @@ TEST test_load_oauth2_flow_missing_scopes_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1503,6 +1515,7 @@ TEST test_load_oauth2_flow_missing_required_urls_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1521,6 +1534,7 @@ TEST test_load_oauth2_flow_unknown_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1595,6 +1609,7 @@ TEST test_load_parameter_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1614,6 +1629,7 @@ TEST test_load_header_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1633,6 +1649,7 @@ TEST test_load_media_example_and_examples_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1649,6 +1666,7 @@ TEST test_load_example_data_value_and_value_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -1666,6 +1684,7 @@ TEST test_load_example_serialized_and_external_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -2078,6 +2097,7 @@ TEST test_load_license_identifier_and_url_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -2092,6 +2112,7 @@ TEST test_load_license_missing_name_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4170,6 +4191,7 @@ TEST test_load_path_template_missing_param(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4185,6 +4207,7 @@ TEST test_load_path_template_param_not_in_route(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4200,6 +4223,7 @@ TEST test_load_path_template_param_not_required(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4212,6 +4236,7 @@ TEST test_load_root_missing_paths_components_webhooks_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4231,6 +4256,7 @@ TEST test_param_style_invalid_for_in_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4251,6 +4277,7 @@ TEST test_param_style_deep_object_scalar_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4269,6 +4296,7 @@ TEST test_server_url_variable_missing_definition_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4288,6 +4316,7 @@ TEST test_server_url_variable_duplicate_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4301,6 +4330,7 @@ TEST test_load_server_missing_url_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4315,6 +4345,7 @@ TEST test_load_additional_operations_standard_method_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4329,6 +4360,7 @@ TEST test_load_link_missing_operation_ref_or_id_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 
@@ -4344,6 +4376,7 @@ TEST test_load_link_operation_ref_and_id_both_rejected(void) {
   int rc = load_spec_str(json, &spec);
   ASSERT_EQ(EINVAL, rc);
   g_fail_io_after = -1;
+  openapi_spec_free(&spec);
   PASS();
 }
 

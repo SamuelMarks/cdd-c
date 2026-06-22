@@ -238,26 +238,26 @@ int HazE_to_json(const struct HazE *haz_e, char **json) {
   if (json == NULL)
     return EINVAL;
   if (haz_e == NULL) {
-    jasprintf(json, "null");
+    c89stringutils_jasprintf(json, "null");
     return *json == NULL ? ENOMEM : 0;
   }
 
-  jasprintf(json, "{");
+  c89stringutils_jasprintf(json, "{");
   if (*json == NULL)
     return ENOMEM;
 
   if (haz_e->bzr) {
-    jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
+    c89stringutils_jasprintf(json, "\"bzr\": \"%s\"", haz_e->bzr);
     need_comma = 1;
   } else {
-    jasprintf(json, "\"bzr\": null");
+    c89stringutils_jasprintf(json, "\"bzr\": null");
     need_comma = 1;
   }
   if (*json == NULL)
     return ENOMEM;
 
   if (need_comma) {
-    jasprintf(json, ",");
+    c89stringutils_jasprintf(json, ",");
     if (*json == NULL)
       return ENOMEM;
   }
@@ -265,13 +265,13 @@ int HazE_to_json(const struct HazE *haz_e, char **json) {
     rc = ENOMEM;
     goto cleanup;
   }
-  jasprintf(json, "\"tank\": \"%s\"", tank_str);
+  c89stringutils_jasprintf(json, "\"tank\": \"%s\"", tank_str);
   if (*json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
 
-  jasprintf(json, "}");
+  c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
     rc = ENOMEM;
   }
@@ -497,23 +497,23 @@ int FooE_to_json(const struct FooE *foo_e, char **const json) {
   if (json == NULL)
     return EINVAL;
   if (foo_e == NULL) {
-    jasprintf(json, "null");
+    c89stringutils_jasprintf(json, "null");
     return *json == NULL ? ENOMEM : 0;
   }
 
-  jasprintf(json, "{");
+  c89stringutils_jasprintf(json, "{");
   if (*json == NULL)
     return ENOMEM;
 
   if (foo_e->bar) {
-    jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
+    c89stringutils_jasprintf(json, "\"bar\": \"%s\",", foo_e->bar);
   } else {
-    jasprintf(json, "\"bar\": null,");
+    c89stringutils_jasprintf(json, "\"bar\": null,");
   }
   if (*json == NULL)
     return ENOMEM;
 
-  jasprintf(json, "\"can\": %d,", foo_e->can);
+  c89stringutils_jasprintf(json, "\"can\": %d,", foo_e->can);
   if (*json == NULL)
     return ENOMEM;
 
@@ -522,13 +522,13 @@ int FooE_to_json(const struct FooE *foo_e, char **const json) {
     goto cleanup;
   }
 
-  jasprintf(json, "\"haz\":%s", haz_e_json);
+  c89stringutils_jasprintf(json, "\"haz\":%s", haz_e_json);
   if (*json == NULL) {
     rc = ENOMEM;
     goto cleanup;
   }
 
-  jasprintf(json, "}");
+  c89stringutils_jasprintf(json, "}");
   if (*json == NULL) {
     rc = ENOMEM;
   }

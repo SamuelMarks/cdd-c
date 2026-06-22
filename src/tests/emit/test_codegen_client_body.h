@@ -2087,6 +2087,8 @@ TEST test_client_body_find_encoding_not_found(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2154,6 +2156,8 @@ TEST test_client_body_array_items_statics(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2249,6 +2253,8 @@ TEST test_client_body_header_formatting_indirect(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2332,6 +2338,8 @@ TEST test_client_body_media_types_textual_binary_indirect(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2396,6 +2404,8 @@ TEST test_client_body_media_types_textual_binary_missing_branches_indirect(
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2455,6 +2465,8 @@ TEST test_client_body_media_type_caps_indirect(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2514,6 +2526,8 @@ TEST test_client_body_media_type_prefix_caps_indirect(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2576,6 +2590,8 @@ TEST test_client_body_media_type_prefix_suffix_short(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);
@@ -2827,6 +2843,8 @@ TEST test_client_body_form_object_style_form_explode(void) {
 
   free(spec.defined_schemas[0].fields);
   free(spec.defined_schemas);
+  if (spec.defined_schema_names && spec.defined_schema_names[0])
+    free(spec.defined_schema_names[0]);
   free(spec.defined_schema_names);
   free(op.req_body_media_types);
   fclose(fp);

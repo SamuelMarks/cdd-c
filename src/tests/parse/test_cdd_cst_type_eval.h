@@ -182,8 +182,7 @@ TEST test_cdd_cst_eval_sizeof_alignof_advanced(void) {
   ASSERT_EQ(ENOSYS, rc);
   rc = cdd_cst_eval_alignof(env, empty_node, CDD_CST_ABI_LP64, &align);
   ASSERT_EQ(ENOSYS, rc);
-  /* cdd_cst_node_free(empty_node); node free is an internal detail, maybe use
-   * an empty parse instead or leak one node for test */
+  cdd_cst_free_node(empty_node);
 
   /* Error paths */
 

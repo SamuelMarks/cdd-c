@@ -102,6 +102,23 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                   if (dup_id) {
                     CDD_SNPRINTF(dup_id, 256, "out_%.*s", (int)tok->length,
                                  tok->start);
+                    if (tree->num_strings >= tree->string_capacity) {
+                      size_t new_cap = tree->string_capacity == 0
+                                           ? 32
+                                           : tree->string_capacity * 2;
+                      char **new_pool = (char **)realloc(
+                          tree->string_pool, new_cap * sizeof(char *));
+                      if (new_pool) {
+                        tree->string_pool = new_pool;
+                        tree->string_capacity = new_cap;
+                      }
+                    }
+                    if (tree->num_strings < tree->string_capacity) {
+                      tree->string_pool[tree->num_strings++] = dup_id;
+                    } else {
+                      free(dup_id);
+                      dup_id = NULL;
+                    }
                   }
 
                   {
@@ -159,6 +176,23 @@ static void rewrite_call_sites(cdd_cst_tree_t *tree, cdd_cst_node_t *node,
                     CDD_SNPRINTF(dup_id, 256, "out_%.*s",
                                  (int)modified_funcs[m]->length,
                                  modified_funcs[m]->start);
+                    if (tree->num_strings >= tree->string_capacity) {
+                      size_t new_cap = tree->string_capacity == 0
+                                           ? 32
+                                           : tree->string_capacity * 2;
+                      char **new_pool = (char **)realloc(
+                          tree->string_pool, new_cap * sizeof(char *));
+                      if (new_pool) {
+                        tree->string_pool = new_pool;
+                        tree->string_capacity = new_cap;
+                      }
+                    }
+                    if (tree->num_strings < tree->string_capacity) {
+                      tree->string_pool[tree->num_strings++] = dup_id;
+                    } else {
+                      free(dup_id);
+                      dup_id = NULL;
+                    }
                   }
 
                   {
@@ -536,11 +570,9 @@ int cdd_transform_percolate_errors(cdd_cst_tree_t *tree,
 #endif
             /* Cleanup node is no longer needed since we inline the replacement
              * directly. */
-            if (!cdd_cst_builder_has_error(&bld)) {
-            } else {
-              free(cleanup_node->children);
-            }
             cdd_cst_builder_free(&bld);
+            if (cleanup_node->children)
+              free(cleanup_node->children);
             free(cleanup_node);
           }
         }

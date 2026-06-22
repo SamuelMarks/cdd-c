@@ -48,11 +48,17 @@ int cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
   if (!mod || !filepath)
     return EINVAL;
 
-  my_strdup(filepath, &mod->filepath);
-  if (target_name)
-    my_strdup(target_name, &mod->target_name);
-  else
-    mod->target_name = NULL;
+  mod->filepath = NULL;
+  mod->target_name = NULL;
+  if (my_strdup(filepath, &mod->filepath) != 0)
+    return ENOMEM;
+  if (target_name) {
+    if (my_strdup(target_name, &mod->target_name) != 0) {
+      free(mod->filepath);
+      mod->filepath = NULL;
+      return ENOMEM;
+    }
+  }
   mod->compile_opts = NULL;
   mod->compile_opts_n = 0;
   mod->link_libs = NULL;
@@ -60,6 +66,10 @@ int cmake_modifier_init(struct CMakeModifier *mod, const char *filepath,
 
   if (!mod->filepath) {
     C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+    if (mod->target_name) {
+      free(mod->target_name);
+      mod->target_name = NULL;
+    }
     return ENOMEM;
   }
 

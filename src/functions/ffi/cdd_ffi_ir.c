@@ -181,6 +181,9 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
     if (node->doc) {
       free(node->doc);
     }
+    if (node->evaluated_value) {
+      free(node->evaluated_value);
+    }
     free_type_recursive(&node->return_or_base_type);
 
     /* Free fields / arguments */
@@ -191,6 +194,9 @@ void cdd_ffi_ir_free(cdd_ffi_ir_t *ir) {
         }
         if (node->fields[j].doc) {
           free(node->fields[j].doc);
+        }
+        if (node->fields[j].array_length_ref) {
+          free(node->fields[j].array_length_ref);
         }
         free_type_recursive(&node->fields[j].type);
       }

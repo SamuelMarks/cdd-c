@@ -1485,6 +1485,10 @@ void openapi_spec_free(struct OpenAPI_Spec *spec) {
     free(spec->openapi_version);
     spec->openapi_version = NULL;
   }
+  if (spec->swagger_version) {
+    free(spec->swagger_version);
+    spec->swagger_version = NULL;
+  }
   if (spec->schema_root_json) {
     free(spec->schema_root_json);
     spec->schema_root_json = NULL;
@@ -8906,8 +8910,11 @@ apply_schema_ref_to_param(struct OpenAPI_Parameter *out_param,
           (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_193),
            _ast_strdup_193);
       /* LCOV_EXCL_START */
-      if (!out_param->items_type)
+      if (!out_param->items_type) {
+        free(out_param->type);
+        out_param->type = NULL;
         return ENOMEM;
+      }
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */ else /* LCOV_EXCL_START */
@@ -8978,8 +8985,11 @@ apply_schema_ref_to_header(struct OpenAPI_Header *out_hdr,
           (c_cdd_strdup(schema_ref->inline_type, &_ast_strdup_198),
            _ast_strdup_198);
       /* LCOV_EXCL_START */
-      if (!out_hdr->items_type)
+      if (!out_hdr->items_type) {
+        free(out_hdr->type);
+        out_hdr->type = NULL;
         return ENOMEM;
+      }
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */ else /* LCOV_EXCL_START */
@@ -9960,22 +9970,31 @@ static int parse_header_object(const JSON_Object *hdr_obj,
     /* LCOV_EXCL_STOP */
   }
 
-  if (object_has_example_and_examples(hdr_obj))
+  if (object_has_example_and_examples(hdr_obj)) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
     return EINVAL;
+  }
 
   {
     int rc = parse_examples_object(json_object_get_object(hdr_obj, "examples"),
                                    &out_hdr->examples, &out_hdr->n_examples,
                                    spec, resolve_refs);
-    if (rc != 0)
+    if (rc != 0) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return rc;
+    }
   }
   if (out_hdr->n_examples == 0) {
     {
       int _rc = parse_any_field(hdr_obj, "example", &out_hdr->example,
                                 &out_hdr->example_set);
-      if (_rc != 0)
+      if (_rc != 0) {
+        if (parsed_schema_set)
+          free_schema_ref_content(&parsed_schema);
         return _rc;
+      }
     }
   }
   if (out_hdr->example_set || out_hdr->n_examples > 0) {
@@ -9985,8 +10004,11 @@ static int parse_header_object(const JSON_Object *hdr_obj,
       int rc = parse_media_examples(media_obj, &out_hdr->example,
                                     &out_hdr->example_set, &out_hdr->examples,
                                     &out_hdr->n_examples, spec, resolve_refs);
-      if (rc != 0)
+      if (rc != 0) {
+        if (parsed_schema_set)
+          free_schema_ref_content(&parsed_schema);
         return rc;
+      }
     }
     if (out_hdr->example_set || out_hdr->n_examples > 0) {
       out_hdr->example_location = OA_EXAMPLE_LOC_MEDIA;
@@ -9995,8 +10017,11 @@ static int parse_header_object(const JSON_Object *hdr_obj,
 
   {
     int _rc = collect_extensions(hdr_obj, &out_hdr->extensions_json);
-    if (_rc != 0)
+    if (_rc != 0) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return _rc;
+    }
   }
 
   if (parsed_schema_set)
@@ -10314,15 +10339,19 @@ static int parse_headers_object(const JSON_Object *headers,
     if (name) {
       curr->name = (c_cdd_strdup(name, &_ast_strdup_231), _ast_strdup_231);
       /* LCOV_EXCL_START */
-      if (!curr->name)
+      if (!curr->name) {
+        *out_count = valid;
         return ENOMEM;
+      }
       /* LCOV_EXCL_STOP */
     }
     /* LCOV_EXCL_STOP */
     if (h_obj) {
       int rc = parse_header_object(h_obj, curr, spec, resolve_refs);
-      if (rc != 0)
+      if (rc != 0) {
+        *out_count = valid + 1;
         return rc;
+      }
     }
     valid++;
   }
@@ -10929,26 +10958,38 @@ static int parse_parameter_object(const JSON_Object *p_obj,
 
   {
     int rc = validate_parameter_style(out_param, content != NULL);
-    if (rc != 0)
+    if (rc != 0) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return rc;
+    }
   }
 
-  if (object_has_example_and_examples(p_obj))
+  if (object_has_example_and_examples(p_obj)) {
+    if (parsed_schema_set)
+      free_schema_ref_content(&parsed_schema);
     return EINVAL;
+  }
 
   {
     int rc = parse_examples_object(json_object_get_object(p_obj, "examples"),
                                    &out_param->examples, &out_param->n_examples,
                                    spec, resolve_refs);
-    if (rc != 0)
+    if (rc != 0) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return rc;
+    }
   }
   if (out_param->n_examples == 0) {
     {
       int _rc = parse_any_field(p_obj, "example", &out_param->example,
                                 &out_param->example_set);
-      if (_rc != 0)
+      if (_rc != 0) {
+        if (parsed_schema_set)
+          free_schema_ref_content(&parsed_schema);
         return _rc;
+      }
     }
   }
   if (out_param->example_set || out_param->n_examples > 0) {
@@ -10958,8 +10999,11 @@ static int parse_parameter_object(const JSON_Object *p_obj,
       int rc = parse_media_examples(
           media_obj, &out_param->example, &out_param->example_set,
           &out_param->examples, &out_param->n_examples, spec, resolve_refs);
-      if (rc != 0)
+      if (rc != 0) {
+        if (parsed_schema_set)
+          free_schema_ref_content(&parsed_schema);
         return rc;
+      }
     }
     if (out_param->example_set || out_param->n_examples > 0) {
       out_param->example_location = OA_EXAMPLE_LOC_MEDIA;
@@ -10968,8 +11012,11 @@ static int parse_parameter_object(const JSON_Object *p_obj,
 
   {
     int _rc = collect_extensions(p_obj, &out_param->extensions_json);
-    if (_rc != 0)
+    if (_rc != 0) {
+      if (parsed_schema_set)
+        free_schema_ref_content(&parsed_schema);
       return _rc;
+    }
   }
 
   if (parsed_schema_set)
@@ -11519,6 +11566,10 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
     desc = json_object_get_string(rb_obj, "description");
     /* LCOV_EXCL_START */
     if (desc) {
+      if (out_rb->description) {
+        free(out_rb->description);
+        out_rb->description = NULL;
+      }
       out_rb->description =
           (c_cdd_strdup(desc, &_ast_strdup_244), _ast_strdup_244);
       /* LCOV_EXCL_START */
@@ -11533,6 +11584,10 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
   desc = json_object_get_string(rb_obj, "description");
   /* LCOV_EXCL_START */
   if (desc) {
+    if (out_rb->description) {
+      free(out_rb->description);
+      out_rb->description = NULL;
+    }
     out_rb->description =
         (c_cdd_strdup(desc, &_ast_strdup_245), _ast_strdup_245);
     /* LCOV_EXCL_START */
@@ -11556,8 +11611,18 @@ static int parse_request_body_object(const JSON_Object *rb_obj,
     int rc = parse_content_object(content, &out_rb->content_media_types,
                                   &out_rb->n_content_media_types, spec,
                                   resolve_refs);
-    if (rc != 0)
+    if (rc != 0) {
+      if (out_rb->content_media_types) {
+        size_t k;
+        for (k = 0; k < out_rb->n_content_media_types; k++) {
+          free_media_type(&out_rb->content_media_types[k]);
+        }
+        free(out_rb->content_media_types);
+        out_rb->content_media_types = NULL;
+        out_rb->n_content_media_types = 0;
+      }
       return rc;
+    }
     primary_idx = select_primary_media_type_index(
         out_rb->content_media_types, out_rb->n_content_media_types);
     if (primary_idx >= 0) {
@@ -11755,6 +11820,10 @@ static int copy_request_body_fields(struct OpenAPI_RequestBody *dst,
   /* LCOV_EXCL_STOP */
   /* LCOV_EXCL_START */
   if (src->description) {
+    if (dst->description) {
+      free(dst->description);
+      dst->description = NULL;
+    }
     dst->description =
         (c_cdd_strdup(src->description, &_ast_strdup_249), _ast_strdup_249);
     /* LCOV_EXCL_START */
@@ -12464,8 +12533,10 @@ static int parse_operation(const char *verb_str, const JSON_Object *op_obj,
     memset(&rb, 0, sizeof(rb));
     rc_req =
         parse_request_body_object(req_body, &rb, spec, 1, out_op->operation_id);
-    if (rc_req != 0)
+    if (rc_req != 0) {
+      free_request_body(&rb);
       return rc_req;
+    }
     if (rb.ref) {
       out_op->req_body_ref =
           (c_cdd_strdup(rb.ref, &_ast_strdup_266), _ast_strdup_266);
@@ -12686,8 +12757,10 @@ static int parse_component_responses(const JSON_Object *components,
       {
         int _rc = parse_response_object(r_obj, &out->component_responses[i],
                                         out, 0, NULL, NULL);
-        if (_rc != 0)
+        if (_rc != 0) {
+          out->n_component_responses = i + 1;
           return _rc;
+        }
       }
     }
   }
@@ -12808,8 +12881,10 @@ static int parse_component_request_bodies(const JSON_Object *components,
       {
         int _rc = parse_request_body_object(
             rb_obj, &out->component_request_bodies[i], out, 0, NULL);
-        if (_rc != 0)
+        if (_rc != 0) {
+          out->n_component_request_bodies = i + 1;
           return _rc;
+        }
       }
     }
   }

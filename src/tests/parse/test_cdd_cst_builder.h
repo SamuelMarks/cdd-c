@@ -449,6 +449,8 @@ TEST test_cdd_cst_builder_errors_extra(void) {
   cdd_cst_node_t *root = NULL;
 
   cdd_cst_parse(az_span_create_from_str(""), &tree);
+  if (tree->root)
+    cdd_cst_free_node(tree->root);
   cdd_cst_alloc_node(CDD_CST_TRANSLATION_UNIT, &root);
   tree->root = root;
 

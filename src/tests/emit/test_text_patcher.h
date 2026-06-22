@@ -309,13 +309,22 @@ TEST test_patcher_oom(void) {
       patch_list_add(&list, 0, 1, strdup("a"));
     }
     g_cdd_fail_alloc = 2000;
-    ASSERT_EQ(ENOMEM, patch_list_add(&list, 0, 1, strdup("b")));
+    {
+      char *tmp = strdup("b");
+      int rc = patch_list_add(&list, 0, 1, tmp);
+      ASSERT_EQ(ENOMEM, rc);
+    }
     g_cdd_fail_alloc = 0;
 
     /* also test realloc success */
-    ASSERT_EQ(0, patch_list_add(&list, 0, 1, strdup("c")));
+    {
+      char *tmp_c = strdup("c");
+      ASSERT_EQ(0, patch_list_add(&list, 0, 1, tmp_c));
+    }
 
     /* also test patch with text = NULL in free */
+    if (list.patches[0].text)
+      free((void *)list.patches[0].text);
     list.patches[0].text = NULL;
     patch_list_free(&list);
 

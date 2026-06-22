@@ -196,14 +196,19 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             (tok->length == 8 && memcmp(tok->start, "__func__", 8) == 0)) {
           char *buf = (char *)malloc(ctx->func_len + 3);
           if (buf) {
+            const char *pooled;
             cdd_token_t *new_tok = NULL;
             buf[0] = '"';
             memcpy(buf + 1, ctx->func_name, ctx->func_len);
             buf[1 + ctx->func_len] = '"';
             buf[2 + ctx->func_len] = '\0';
 
-            cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, buf,
-                                     ctx->func_len + 2, &new_tok);
+            pooled = pool_string_safe(ctx->tree, buf);
+            cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING,
+                                     pooled ? pooled : buf, ctx->func_len + 2,
+                                     &new_tok);
+            free(buf);
+            buf = NULL;
             if (new_tok) {
               new_tok->leading_trivia = tok->leading_trivia;
               new_tok->trailing_trivia = tok->trailing_trivia;
@@ -555,10 +560,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                         cdd_cst_find_node_for_token(tree->root, tok, &child_idx,
                                                     &parent);
                         if (parent) {
+                          const char *pooled;
                           cdd_token_t *new_tok = NULL;
-                          cdd_cst_create_token_len(
-                              tree, CDD_TOKEN_PREPROC_DEFINE, out_buf,
-                              out_p - out_buf, &new_tok);
+                          pooled = pool_string_safe(tree, out_buf);
+                          cdd_cst_create_token_len(tree,
+                                                   CDD_TOKEN_PREPROC_DEFINE,
+                                                   pooled ? pooled : out_buf,
+                                                   out_p - out_buf, &new_tok);
+                          free(out_buf);
+                          out_buf = NULL;
                           if (new_tok) {
                             new_tok->leading_trivia = tok->leading_trivia;
                             new_tok->trailing_trivia = tok->trailing_trivia;
@@ -1945,8 +1955,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
 
             buf = (char *)malloc(val_len + 2);
             if (buf) {
-              cdd_token_t *new_val = NULL;
               const char *pooled;
+              cdd_token_t *new_val = NULL;
               buf[0] = '&';
               memcpy(buf + 1, tree->base_tokens->tokens[rparen_idx + 1].start,
                      val_len);
@@ -2067,9 +2077,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_node_t *parent = NULL;
               cdd_cst_find_node_for_token(tree->root, tok, &child_idx, &parent);
               if (parent) {
+                const char *pooled;
                 cdd_token_t *new_tok = NULL;
-                cdd_cst_create_token_len(tree, tok->kind, buf, strlen(buf),
-                                         &new_tok);
+                pooled = pool_string_safe(tree, buf);
+                cdd_cst_create_token_len(tree, tok->kind, pooled ? pooled : buf,
+                                         strlen(buf), &new_tok);
+                free(buf);
+                buf = NULL;
                 if (new_tok) {
                   new_tok->leading_trivia = tok->leading_trivia;
                   new_tok->trailing_trivia = tok->trailing_trivia;
@@ -2397,8 +2411,8 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               cdd_cst_find_node_for_token(tree->root, t, &child_idx_shadow,
                                           &parent);
               if (parent) {
-                cdd_token_t *new_tok = NULL;
                 const char *pooled;
+                cdd_token_t *new_tok = NULL;
                 strcpy(heap_buf, buf);
                 pooled = pool_string_safe(tree, heap_buf);
                 cdd_cst_create_token_len(tree, t->kind,
@@ -2497,11 +2511,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                                               &tree->base_tokens->tokens[k],
                                               &child_idx_dup, &parent);
                   if (parent) {
+                    const char *pooled;
                     cdd_token_t *new_tok = NULL;
                     strcpy(dup, buf);
-                    cdd_cst_create_token_len(tree,
-                                             tree->base_tokens->tokens[k].kind,
-                                             dup, strlen(dup), &new_tok);
+                    pooled = pool_string_safe(tree, dup);
+                    cdd_cst_create_token_len(
+                        tree, tree->base_tokens->tokens[k].kind,
+                        pooled ? pooled : dup, strlen(dup), &new_tok);
+                    free(dup);
+                    dup = NULL;
                     if (new_tok) {
                       new_tok->leading_trivia =
                           tree->base_tokens->tokens[k].leading_trivia;
@@ -2512,8 +2530,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       cdd_cst_replace_token_child(parent, child_idx_dup,
                                                   new_tok);
                     }
-                  } else {
+                  }
+                  if (dup) {
                     free(dup);
+                    dup = NULL;
                   }
                 }
               }
@@ -2740,10 +2760,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_cst_node_t *parent = NULL;
                 cdd_cst_find_node_for_token(tree->root, t, &child_idx, &parent);
                 if (parent) {
+                  const char *pooled;
                   cdd_token_t *new_tok = NULL;
                   strcpy(dup, local_labels[j].rename);
-                  cdd_cst_create_token_len(tree, t->kind, dup, strlen(dup),
-                                           &new_tok);
+                  pooled = pool_string_safe(tree, dup);
+                  cdd_cst_create_token_len(tree, t->kind, pooled ? pooled : dup,
+                                           strlen(dup), &new_tok);
+                  free(dup);
+                  dup = NULL;
                   if (new_tok) {
                     new_tok->leading_trivia = t->leading_trivia;
                     new_tok->trailing_trivia = t->trailing_trivia;
@@ -2751,8 +2775,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     t->trailing_trivia = NULL;
                     cdd_cst_replace_token_child(parent, child_idx, new_tok);
                   }
-                } else {
+                }
+                if (dup) {
                   free(dup);
+                  dup = NULL;
                 }
               }
               break;
@@ -3268,6 +3294,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               int v;
               heap_buf = (char *)malloc(alloc_sz);
               if (heap_buf) {
+                const char *pooled;
                 p = heap_buf;
                 /* If overlapping case, add a warning comment */
                 /* For now we just generate all cases. Semantic error detection
@@ -3290,10 +3317,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 if (is_neg_start) {
                   tree->base_tokens->tokens[i - 2].length = 0;
                 }
+                pooled = pool_string_safe(tree, heap_buf);
                 tree->base_tokens->tokens[is_case_idx].start =
-                    (const uint8_t *)heap_buf;
+                    (const uint8_t *)(pooled ? pooled : heap_buf);
                 tree->base_tokens->tokens[is_case_idx].length =
                     strlen(heap_buf);
+                if (pooled)
+                  free(heap_buf);
                 {
                   size_t c_idx;
                   cdd_cst_node_t *p_node = NULL;
@@ -3369,6 +3399,7 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     (end_val - start_val + 2) * (32 + assign_val->length) + 1;
                 heap_buf = (char *)malloc(alloc_sz);
                 if (heap_buf) {
+                  const char *pooled;
                   p = heap_buf;
                   for (v = start_val; v <= end_val; v++) {
                     *p++ = '[';
@@ -3385,10 +3416,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   }
                   *p = '\0';
 
+                  pooled = pool_string_safe(tree, heap_buf);
                   tree->base_tokens->tokens[is_range_idx].start =
-                      (const uint8_t *)heap_buf;
+                      (const uint8_t *)(pooled ? pooled : heap_buf);
                   tree->base_tokens->tokens[is_range_idx].length =
                       strlen(heap_buf);
+                  if (pooled)
+                    free(heap_buf);
                   {
                     size_t c_idx;
                     cdd_cst_node_t *p_node = NULL;

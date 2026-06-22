@@ -162,9 +162,11 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str((char *)code), &tree));
 
   /* Mock an unknown block node manually to hit the unknown branch logic */
+  cdd_token_t *rbrace_tok_to_free = NULL;
   {
     cdd_cst_node_t *unknown_node = calloc(1, sizeof(cdd_cst_node_t));
     cdd_token_t *rbrace_tok = calloc(1, sizeof(cdd_token_t));
+    rbrace_tok_to_free = rbrace_tok;
     cdd_cst_child_t *c = calloc(1, sizeof(cdd_cst_child_t));
     unknown_node->kind = CDD_CST_UNKNOWN;
     /* Add an RBRACE to it so it matches */
@@ -185,7 +187,13 @@ TEST test_cdd_transform_percolate_errors_bld_fail(void) {
   }
 
   cdd_transform_percolate_errors(tree, &config);
+  /* The unknown_node was appended. Does it get freed? No, append_child_node
+   * just adds it to the children array. But cdd_cst_tree_free frees tokens. The
+   * nodes must be freed. */
+
   cdd_cst_tree_free(tree);
+  if (rbrace_tok_to_free)
+    free(rbrace_tok_to_free);
   tree = NULL;
 
   g_err_perc_fail = 3; /* For return builder mock */

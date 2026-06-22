@@ -179,7 +179,7 @@ TEST test_write_union_array_to_json(void) {
 
   ASSERT(strstr(content, "case ArrU_vals:"));
   ASSERT(strstr(content, "obj->data.vals.n_vals"));
-  ASSERT(strstr(content, "jasprintf(json, \"[\")"));
+  ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"[\")"));
 
   free(content);
   struct_fields_free(&sf);
@@ -370,7 +370,7 @@ TEST test_root_array_obj_to_json(void) {
   fread(content, 1, sz, tmp);
 
   ASSERT(strstr(content, "Obj_to_json(in[i], &tmp)"));
-  ASSERT(strstr(content, "jasprintf(json_out, \"[\")"));
+  ASSERT(strstr(content, "c89stringutils_jasprintf(json_out, \"[\")"));
 
   free(content);
   fclose(tmp);
@@ -763,6 +763,7 @@ TEST test_types_exhaustive_io(void) {
       break;
   }
 
+  free(sf.union_discriminator);
   sf.union_discriminator = NULL;
   sf.union_variants = NULL;
   for (i = 0; i < 800; ++i) {

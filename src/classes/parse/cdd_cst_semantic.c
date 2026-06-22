@@ -159,8 +159,11 @@ int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
   if (g_cdd_semantic_oom_extract == 3)
     rc = ENOMEM;
 #endif
-  if (rc != 0)
+  if (rc != 0) {
+    if (env)
+      cdd_cst_scope_env_free(env);
     return rc;
+  }
 
   rc = analyze_node(env, tree->root);
 #ifdef CDD_BUILD_TESTS

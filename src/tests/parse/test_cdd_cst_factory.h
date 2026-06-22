@@ -238,6 +238,8 @@ TEST test_cdd_cst_parse_format_oom(void) {
   /* Create an invalid format string that triggers the parsing failure to return
      ENOMEM Or just an empty parsing result */
   ASSERT_EQ(0, cdd_cst_parse_format(tree, &node, ""));
+  if (node)
+    cdd_cst_free_node(node);
 
   cdd_cst_tree_free(tree);
   g_fail_io_after = -1;

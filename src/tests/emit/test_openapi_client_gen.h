@@ -799,6 +799,8 @@ TEST test_client_gen_render_server_url_default(void) {
   ASSERT(out == NULL);
 
   /* Valid var but missing default */
+  if (srv.variables)
+    free(srv.variables);
   srv.url = "http://{noval}/test";
   srv.n_variables = 1;
   srv.variables =

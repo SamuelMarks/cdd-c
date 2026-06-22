@@ -32,7 +32,11 @@ extern "C" {
 #include <io.h>
 #else
 #if !defined(_MSC_VER)
+#if defined(_MSC_VER)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #endif
 #endif
 #endif

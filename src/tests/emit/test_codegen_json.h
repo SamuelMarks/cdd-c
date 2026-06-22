@@ -58,11 +58,12 @@ TEST test_json_to_plain(void) {
   fread(content, 1, sz, tmp);
 
   /* Check structure */
-  ASSERT(strstr(content, "jasprintf(json, \"{\");"));
-  ASSERT(strstr(content, "jasprintf(json, \"\\\"id\\\": %d\", obj->id)"));
+  ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"{\");"));
   ASSERT(strstr(content,
-                "jasprintf(json, \"\\\"data\\\": \\\"%s\\\"\", obj->data)"));
-  ASSERT(strstr(content, "jasprintf(json, \"}\");"));
+                "c89stringutils_jasprintf(json, \"\\\"id\\\": %d\", obj->id)"));
+  ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"\\\"data\\\": "
+                         "\\\"%s\\\"\", obj->data)"));
+  ASSERT(strstr(content, "c89stringutils_jasprintf(json, \"}\");"));
 
   free(content);
   struct_fields_free(&sf);
@@ -132,7 +133,8 @@ TEST test_json_recursive_obj(void) {
 
   /* Check recursive call pattern */
   ASSERT(strstr(content, "rc = ChildType_to_json(obj->child, &s);"));
-  ASSERT(strstr(content, "jasprintf(json, \"\\\"child\\\": %s\", s);"));
+  ASSERT(strstr(content,
+                "c89stringutils_jasprintf(json, \"\\\"child\\\": %s\", s);"));
 
   free(content);
   struct_fields_free(&sf);

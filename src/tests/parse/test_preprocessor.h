@@ -551,6 +551,8 @@ TEST test_preprocessor_abort(void) {
   free(sys_dir);
   free(sys_file1);
   free(sys_file2);
+  if (tmp)
+    free(tmp);
   g_fail_io_after = -1;
   PASS();
 }

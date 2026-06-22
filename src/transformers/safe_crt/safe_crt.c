@@ -393,9 +393,23 @@ static int clone_trivia(cdd_trivia_t *head, cdd_trivia_t **out_trivia) {
   *out_trivia = NULL;
 
   while (head) {
-    cdd_trivia_t *tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+    cdd_trivia_t *tr;
+#ifdef CDD_BUILD_TESTS
+    if (g_safe_crt_malloc_fail == 1) {
+      tr = NULL;
+    } else {
+#endif
+      tr = (cdd_trivia_t *)calloc(1, sizeof(cdd_trivia_t));
+#ifdef CDD_BUILD_TESTS
+    }
+#endif
     if (!tr) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
+      while (new_head) {
+        cdd_trivia_t *n = new_head->next;
+        free(new_head);
+        new_head = n;
+      }
       return ENOMEM;
     }
     tr->kind = head->kind;
@@ -1136,10 +1150,10 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           cdd_cst_bld_punct(bld, "&");
           {
             cdd_token_t *ct = NULL;
-            clone_token(bld->tree, last_t->tok, &ct);
+            cdd_cst_create_token_len(bld->tree, last_t->tok->kind,
+                                     (const char *)last_t->tok->start,
+                                     last_t->tok->length, &ct);
             if (ct) {
-              ct->leading_trivia = NULL;
-              ct->trailing_trivia = NULL;
               cdd_cst_append_child_token(bld->target_node, ct);
             }
           }
@@ -1152,10 +1166,9 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
           sprintf(safe_call, "%s_s", call_name);
 
           if (node->tok->leading_trivia) {
-            cdd_token_t *ct_space =
-                (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-            ct_space->kind = CDD_TOKEN_OTHER;
-            ct_space->start = (const uint8_t *)"";
+            cdd_token_t *ct_space = NULL;
+            cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
+                                     &ct_space);
             clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
             cdd_cst_append_child_token(bld->target_node, ct_space);
           }
@@ -1187,25 +1200,25 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
         }
         cdd_cst_bld_punct(bld, ")");
         if (node->tok->trailing_trivia) {
-          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-          ct_space->kind = CDD_TOKEN_OTHER;
-          ct_space->start = (const uint8_t *)"";
+          cdd_token_t *ct_space = NULL;
+          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
+                                   &ct_space);
           clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }
       } else {
         if (node->tok->leading_trivia) {
-          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-          ct_space->kind = CDD_TOKEN_OTHER;
-          ct_space->start = (const uint8_t *)"";
+          cdd_token_t *ct_space = NULL;
+          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
+                                   &ct_space);
           clone_trivia(node->tok->leading_trivia, &ct_space->leading_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }
         cdd_cst_bld_punct(bld, "=");
         if (node->tok->trailing_trivia) {
-          cdd_token_t *ct_space = (cdd_token_t *)calloc(1, sizeof(cdd_token_t));
-          ct_space->kind = CDD_TOKEN_OTHER;
-          ct_space->start = (const uint8_t *)"";
+          cdd_token_t *ct_space = NULL;
+          cdd_cst_create_token_len(bld->tree, CDD_TOKEN_OTHER, "", 0,
+                                   &ct_space);
           clone_trivia(node->tok->trailing_trivia, &ct_space->trailing_trivia);
           cdd_cst_append_child_token(bld->target_node, ct_space);
         }

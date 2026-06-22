@@ -127,8 +127,8 @@ TEST test_root_int_array_to_json(void) {
   ASSERT(code);
   ASSERT(strstr(
       code, "int IntList_to_json(const int *in, size_t len, char **json_out)"));
-  ASSERT(strstr(code, "jasprintf(json_out, \"[\")"));
-  ASSERT(strstr(code, "jasprintf(json_out, \"%d\", in[i])"));
+  ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"[\")"));
+  ASSERT(strstr(code, "c89stringutils_jasprintf(json_out, \"%d\", in[i])"));
   free(code);
   g_fail_io_after = -1;
   PASS();

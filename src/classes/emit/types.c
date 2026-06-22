@@ -104,23 +104,29 @@ int write_union_to_json_func(FILE *fp, const char *union_name,
 
     CHECK_IO(FPRINTF_HOOK(fp, "    case %s_%s:\n", union_name, name));
     if (strcmp(type, "integer") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      jasprintf(json, \"%%d\", obj->data.%s);\n", name));
-    } else if (strcmp(type, "number") == 0) {
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "      jasprintf(json, \"%%g\", obj->data.%s);\n", name));
-    } else if (strcmp(type, "boolean") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp,
-                            "      jasprintf(json, \"%s\", obj->data.%s ? "
-                            "\"true\" : \"false\");\n",
-                            "%s", name));
+                            "      c89stringutils_jasprintf(json, "
+                            "\"%%d\", obj->data.%s);\n",
+                            name));
+    } else if (strcmp(type, "number") == 0) {
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "      c89stringutils_jasprintf(json, "
+                            "\"%%g\", obj->data.%s);\n",
+                            name));
+    } else if (strcmp(type, "boolean") == 0) {
+      CHECK_IO(FPRINTF_HOOK(
+          fp,
+          "      c89stringutils_jasprintf(json, \"%s\", obj->data.%s ? "
+          "\"true\" : \"false\");\n",
+          "%s", name));
     } else if (strcmp(type, "string") == 0) {
       CHECK_IO(FPRINTF_HOOK(fp, "      if (obj->data.%s) {\n", name));
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "        jasprintf(json, \"\\\"%%s\\\"\", obj->data.%s);\n",
-          name));
-      CHECK_IO(
-          FPRINTF_HOOK(fp, "      } else { jasprintf(json, \"null\"); }\n"));
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "        c89stringutils_jasprintf(json, "
+                            "\"\\\"%%s\\\"\", obj->data.%s);\n",
+                            name));
+      CHECK_IO(FPRINTF_HOOK(fp, "      } else { c89stringutils_jasprintf("
+                                "json, \"null\"); }\n"));
     } else if (strcmp(type, "enum") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
@@ -129,52 +135,58 @@ int write_union_to_json_func(FILE *fp, const char *union_name,
                        (get_type_from_ref(ref, &_ast_get_type_from_ref_0),
                         _ast_get_type_from_ref_0),
                        name));
-      CHECK_IO(FPRINTF_HOOK(
-          fp, "        jasprintf(json, \"\\\"%%s\\\"\", s); free(s); "
-              "}\n"));
+      CHECK_IO(FPRINTF_HOOK(fp, "        c89stringutils_jasprintf(json, "
+                                "\"\\\"%%s\\\"\", s); free(s); "
+                                "}\n"));
     } else if (strcmp(type, "object") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp,
-                            "      {\n"
-                            "        char *sub = NULL;\n"
-                            "        rc = %s_to_json(obj->data.%s, &sub);\n"
-                            "        if (rc != 0) return rc;\n"
-                            "        jasprintf(json, \"%%s\", sub);\n"
-                            "        free(sub);\n"
-                            "      }\n",
-                            (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
-                             _ast_get_type_from_ref_1),
-                            name));
+      CHECK_IO(
+          FPRINTF_HOOK(fp,
+                       "      {\n"
+                       "        char *sub = NULL;\n"
+                       "        rc = %s_to_json(obj->data.%s, &sub);\n"
+                       "        if (rc != 0) return rc;\n"
+                       "        c89stringutils_jasprintf(json, \"%%s\", sub);\n"
+                       "        free(sub);\n"
+                       "      }\n",
+                       (get_type_from_ref(ref, &_ast_get_type_from_ref_1),
+                        _ast_get_type_from_ref_1),
+                       name));
     } else if (strcmp(type, "array") == 0) {
       CHECK_IO(
           FPRINTF_HOOK(fp,
                        "      {\n"
                        "        size_t i;\n"
-                       "        jasprintf(json, \"[\");\n"
+                       "        c89stringutils_jasprintf(json, \"[\");\n"
                        "        if (!*json) return ENOMEM;\n"
                        "        for (i = 0; i < obj->data.%s.n_%s; ++i) {\n"
-                       "          if (i > 0) { jasprintf(json, \",\"); if "
+                       "          if (i > 0) { c89stringutils_jasprintf("
+                       "json, \",\"); if "
                        "(!*json) return ENOMEM; }\n",
                        name, name));
       if (strcmp(ref, "integer") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "          jasprintf(json, \"%%d\", "
-                              "obj->data.%s.%s[i]);\n",
-                              name, name));
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "          c89stringutils_jasprintf(json, \"%%d\", "
+                         "obj->data.%s.%s[i]);\n",
+                         name, name));
       } else if (strcmp(ref, "number") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "          jasprintf(json, \"%%g\", "
-                              "obj->data.%s.%s[i]);\n",
-                              name, name));
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "          c89stringutils_jasprintf(json, \"%%g\", "
+                         "obj->data.%s.%s[i]);\n",
+                         name, name));
       } else if (strcmp(ref, "boolean") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "          jasprintf(json, \"%%s\", "
-                              "obj->data.%s.%s[i] ? \"true\" : \"false\");\n",
-                              name, name));
+        CHECK_IO(
+            FPRINTF_HOOK(fp,
+                         "          c89stringutils_jasprintf(json, \"%%s\", "
+                         "obj->data.%s.%s[i] ? \"true\" : \"false\");\n",
+                         name, name));
       } else if (strcmp(ref, "string") == 0) {
-        CHECK_IO(FPRINTF_HOOK(fp,
-                              "          jasprintf(json, \"\\\"%%s\\\"\", "
-                              "obj->data.%s.%s[i]);\n",
-                              name, name));
+        CHECK_IO(FPRINTF_HOOK(
+            fp,
+            "          c89stringutils_jasprintf(json, \"\\\"%%s\\\"\", "
+            "obj->data.%s.%s[i]);\n",
+            name, name));
       } else {
         CHECK_IO(FPRINTF_HOOK(
             fp,
@@ -182,26 +194,28 @@ int write_union_to_json_func(FILE *fp, const char *union_name,
             "            char *sub = NULL;\n"
             "            rc = %s_to_json(obj->data.%s.%s[i], &sub);\n"
             "            if (rc != 0) return rc;\n"
-            "            jasprintf(json, \"%%s\", sub);\n"
+            "            c89stringutils_jasprintf(json, \"%%s\", sub);\n"
             "            free(sub);\n"
             "          }\n",
             (get_type_from_ref(ref, &_ast_get_type_from_ref_2),
              _ast_get_type_from_ref_2),
             name, name));
       }
-      CHECK_IO(FPRINTF_HOOK(fp, "          if (!*json) return ENOMEM;\n"
-                                "        }\n"
-                                "        jasprintf(json, \"]\");\n"
-                                "        if (!*json) return ENOMEM;\n"
-                                "      }\n"));
+      CHECK_IO(FPRINTF_HOOK(fp,
+                            "          if (!*json) return ENOMEM;\n"
+                            "        }\n"
+                            "        c89stringutils_jasprintf(json, \"]\");\n"
+                            "        if (!*json) return ENOMEM;\n"
+                            "      }\n"));
     } else if (strcmp(type, "null") == 0) {
-      CHECK_IO(FPRINTF_HOOK(fp, "      jasprintf(json, \"null\");\n"));
+      CHECK_IO(FPRINTF_HOOK(
+          fp, "      c89stringutils_jasprintf(json, \"null\");\n"));
     }
     CHECK_IO(FPRINTF_HOOK(fp, "      break;\n"));
   }
 
   CHECK_IO(FPRINTF_HOOK(fp, "    default:\n"
-                            "      jasprintf(json, \"null\");\n"
+                            "      c89stringutils_jasprintf(json, \"null\");\n"
                             "      break;\n"
                             "  }\n"
                             "  if (*json == NULL) return ENOMEM;\n"
@@ -946,20 +960,22 @@ int write_root_array_to_json_func(FILE *fp, const char *name,
         name));
   }
 
-  CHECK_IO(FPRINTF_HOOK(fp, "  size_t i;\n"
-                            "  if (!in && len > 0) return EINVAL;\n"
-                            "  if (!json_out) return EINVAL;\n"
-                            "  jasprintf(json_out, \"[\");\n"
-                            "  if (!*json_out) return ENOMEM;\n"
-                            "  for (i = 0; i < len; ++i) {\n"
-                            "    if (i > 0) { jasprintf(json_out, \",\"); "
-                            "if(!*json_out) return ENOMEM; }\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  size_t i;\n"
+          "  if (!in && len > 0) return EINVAL;\n"
+          "  if (!json_out) return EINVAL;\n"
+          "  c89stringutils_jasprintf(json_out, \"[\");\n"
+          "  if (!*json_out) return ENOMEM;\n"
+          "  for (i = 0; i < len; ++i) {\n"
+          "    if (i > 0) { c89stringutils_jasprintf(json_out, \",\"); "
+          "if(!*json_out) return ENOMEM; }\n"));
 
   if (strcmp(item_type, "integer") == 0) {
-    CHECK_IO(FPRINTF_HOOK(fp, "    jasprintf(json_out, \"%%d\", in[i]);\n"));
+    CHECK_IO(FPRINTF_HOOK(
+        fp, "    c89stringutils_jasprintf(json_out, \"%%d\", in[i]);\n"));
   } else if (strcmp(item_type, "string") == 0) {
-    CHECK_IO(
-        FPRINTF_HOOK(fp, "    jasprintf(json_out, \"\\\"%%s\\\"\", in[i]);\n"));
+    CHECK_IO(FPRINTF_HOOK(fp, "    c89stringutils_jasprintf(json_out, "
+                              "\"\\\"%%s\\\"\", in[i]);\n"));
   } else if (strcmp(item_type, "object") == 0) {
     CHECK_IO(
         FPRINTF_HOOK(fp,
@@ -967,15 +983,16 @@ int write_root_array_to_json_func(FILE *fp, const char *name,
                      "      char *tmp = NULL;\n"
                      "      int rc = %s_to_json(in[i], &tmp);\n"
                      "      if (rc != 0) return rc;\n"
-                     "      jasprintf(json_out, \"%%s\", tmp);\n"
+                     "      c89stringutils_jasprintf(json_out, \"%%s\", tmp);\n"
                      "      free(tmp);\n"
                      "    }\n",
                      (get_type_from_ref(item_ref, &_ast_get_type_from_ref_10),
                       _ast_get_type_from_ref_10)));
   }
   CHECK_IO(FPRINTF_HOOK(fp, "    if (!*json_out) return ENOMEM;\n  }\n"));
-  CHECK_IO(FPRINTF_HOOK(fp, "  jasprintf(json_out, \"]\");\n  if(!*json_out) "
-                            "return ENOMEM;\n  return 0;\n}\n"));
+  CHECK_IO(FPRINTF_HOOK(
+      fp, "  c89stringutils_jasprintf(json_out, \"]\");\n  if(!*json_out) "
+          "return ENOMEM;\n  return 0;\n}\n"));
 
   if (config && config->json_guard)
     CHECK_IO(FPRINTF_HOOK(fp, "#endif /* %s */\n\n", config->json_guard));

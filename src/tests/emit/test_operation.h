@@ -323,6 +323,9 @@ TEST test_operation_apply_example(void) {
 
   /* Now what if content_type is provided? */
   resp.example_set = 0;
+  if (resp.example.string)
+    free(resp.example.string);
+  resp.example.string = NULL;
   resp.n_content_media_types = 1;
   resp.content_media_types =
       (struct OpenAPI_MediaType *)calloc(1, sizeof(struct OpenAPI_MediaType));
@@ -333,12 +336,18 @@ TEST test_operation_apply_example(void) {
   ASSERT_EQ(0, resp.example_set);
 
   /* Content type provided and matches */
+  if (resp.content_media_types[0].example.string)
+    free(resp.content_media_types[0].example.string);
+  resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test6", "application/json"));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
   ASSERT_STR_EQ("test6", resp.content_media_types[0].example.string);
 
   /* No content type, applies to all */
   resp.content_media_types[0].example_set = 0;
+  if (resp.content_media_types[0].example.string)
+    free(resp.content_media_types[0].example.string);
+  resp.content_media_types[0].example.string = NULL;
   ASSERT_EQ(0, apply_example_to_response(&resp, "test7", NULL));
   ASSERT_EQ(1, resp.content_media_types[0].example_set);
   ASSERT_STR_EQ("test7", resp.content_media_types[0].example.string);
@@ -437,6 +446,8 @@ TEST test_operation_add_header_to_response(void) {
   free(resp.headers[0].type);
   free(resp.headers[0].content_type);
   free(resp.headers[0].schema.inline_type);
+  if (resp.headers[0].schema.format)
+    free(resp.headers[0].schema.format);
   free(resp.headers[0].example.string);
   free(resp.headers);
   g_fail_io_after = -1;

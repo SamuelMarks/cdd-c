@@ -179,6 +179,8 @@ TEST test_cdd_cst_mutate_errors(void) {
   cdd_cst_free_node_only(detach_parent);
   cdd_cst_free_node_only(detach_child);
   cdd_cst_free_node_only(parent_node);
+  if (valid_child)
+    cdd_cst_free_node(valid_child);
   g_fail_io_after = -1;
 
   PASS();
@@ -210,6 +212,8 @@ TEST test_cst_splice_children(void) {
   int rc;
 
   ASSERT_EQ(0, cdd_cst_parse(az_span_create_from_str(""), &tree));
+  if (tree->root)
+    cdd_cst_free_node(tree->root);
   ASSERT_EQ(0, cdd_cst_alloc_node(CDD_CST_DECLARATION, &root));
   tree->root = root;
 

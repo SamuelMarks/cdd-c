@@ -78,6 +78,7 @@ TEST test_ffi_ir_extract_exports_basic(void) {
   }
 
   cdd_ffi_ir_free(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -133,6 +134,7 @@ TEST test_ffi_ir_extract_macros(void) {
   }
 
   cdd_ffi_ir_free(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -177,6 +179,7 @@ TEST test_ffi_ir_extract_templates(void) {
   }
 
   cdd_ffi_ir_free(ir);
+  free(ir);
   remove(filename);
   PASS();
 }
@@ -219,6 +222,7 @@ TEST test_ffi_ir_extract_includes(void) {
   }
 
   cdd_ffi_ir_free(ir);
+  free(ir);
   remove(filename_main);
   remove(filename_inc);
   PASS();

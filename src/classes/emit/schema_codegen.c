@@ -360,12 +360,18 @@ int schema2code_main(int argc, char **argv) {
   JSON_Object *schemas = NULL;
   int i;
 
-  if (argc < 2)
+  if (argc < 2) {
+    if (basename)
+      free(basename);
     return EXIT_FAILURE;
+  }
   schema_file = argv[0];
   prefix = argv[1];
-  if (get_basename(prefix, &basename) != 0)
+  if (get_basename(prefix, &basename) != 0) {
+    if (basename)
+      free(basename);
     return EXIT_FAILURE;
+  }
 
   for (i = 2; i < argc; ++i) {
     int starts = 0;
@@ -378,8 +384,11 @@ int schema2code_main(int argc, char **argv) {
   }
 
   root = json_parse_file(schema_file);
-  if (!root)
+  if (!root) {
+    if (basename)
+      free(basename);
     return EXIT_FAILURE;
+  }
 
   schemas = json_object_get_object(json_value_get_object(root), "components");
   if (schemas)

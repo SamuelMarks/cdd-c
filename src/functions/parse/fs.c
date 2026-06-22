@@ -86,7 +86,11 @@
 #include <io.h>
 #else
 #if !defined(_MSC_VER)
+#if defined(_MSC_VER)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include "c_cdd/log.h"
 #endif
 #endif

@@ -203,6 +203,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
   rc = cdd_ffi_ir_topological_sort(ir);
   if (rc != 0) {
     cdd_ffi_ir_free(ir);
+    free(ir);
     free(file_content);
     return rc;
   }
@@ -215,6 +216,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_python(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -225,6 +227,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_rust(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -235,6 +238,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_csharp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -245,6 +249,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_typescript(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -255,6 +260,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_napi(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -265,6 +271,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_java(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -275,6 +282,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_cpp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -285,6 +293,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_go(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -295,6 +304,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_swift(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -305,6 +315,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_dart(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -315,6 +326,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_ruby(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -325,6 +337,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_kotlin(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -335,6 +348,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_php(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -345,6 +359,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_lua(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -355,6 +370,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_zig(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -365,6 +381,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_odin(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -375,6 +392,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_julia(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -385,6 +403,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_r(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -395,6 +414,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_matlab(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -405,6 +425,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_haskell(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -415,6 +436,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_ocaml(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -425,6 +447,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_elixir(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -435,6 +458,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_erlang(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -445,6 +469,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_common_lisp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -455,6 +480,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_racket(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -465,6 +491,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_scheme(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -475,6 +502,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_scala(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -485,6 +513,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_fsharp(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -495,6 +524,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_clojure(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -505,6 +535,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_groovy(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -516,6 +547,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_webassembly(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -526,6 +558,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_nim(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -536,6 +569,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_vlang(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -546,6 +580,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_d(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -556,6 +591,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_perl(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -566,6 +602,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_tcl(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -576,6 +613,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_fortran(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -587,6 +625,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_delphi(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -597,6 +636,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_ada(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -608,6 +648,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_objc(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -618,6 +659,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       rc = cdd_ffi_emit_crystal(ir, config);
       if (rc != 0) {
         cdd_ffi_ir_free(ir);
+        free(ir);
         free(file_content);
         return rc;
       }
@@ -626,6 +668,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
 
   /* Cleanup */
   cdd_ffi_ir_free(ir);
+  free(ir);
   free(file_content);
 
   return 0;

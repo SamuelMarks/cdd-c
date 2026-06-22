@@ -88,7 +88,11 @@ extern C_CDD_EXPORT int wide_to_ascii(const wchar_t *ws, char *s, size_t buf_cap
 #include <limits.h>
 #include <sys/stat.h>
 #if !defined(_MSC_VER)
+#if defined(_MSC_VER)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #endif
 /* clang-format on */
 
