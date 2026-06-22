@@ -83,6 +83,8 @@ TEST test_to_docs_json_basic(void) {
   JSON_Object *pet_obj;
   const char *code_str;
 
+  memset(&pos, 0, sizeof(pos));
+
   write_test_spec();
 
   /* Redirect stdout to capture output */
@@ -140,6 +142,8 @@ TEST test_to_docs_json_no_imports_no_wrapping(void) {
   JSON_Object *endpoints_obj;
   JSON_Object *pet_obj;
   const char *code_str;
+
+  memset(&pos, 0, sizeof(pos));
 
   write_test_spec();
 

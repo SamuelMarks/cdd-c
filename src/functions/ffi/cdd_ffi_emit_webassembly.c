@@ -245,7 +245,8 @@ int cdd_ffi_emit_webassembly(cdd_ffi_ir_t *ir,
       }
       fprintf(cpp_f, "wasm_%s(", node->name);
       for (j = 0; j < node->fields_count; j++) {
-        fprintf(cpp_f, "void* arg%" CDD_SIZE_T_FMT "%s", j,
+        /* cppcheck-suppress invalidPrintfArgType_uint */
+        fprintf(cpp_f, "void* arg%" CDD_SIZE_T_FMT "%s", (size_t)j,
                 j + 1 < node->fields_count ? ", " : "");
       }
       fprintf(cpp_f, ") {\n");

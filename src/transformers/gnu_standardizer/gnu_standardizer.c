@@ -3287,11 +3287,16 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
               }
             }
 
-            if (is_case && start_val <= end_val) {
+            if (is_case) {
               char *heap_buf;
-              size_t alloc_sz = (end_val - start_val + 2) * 32 + 128;
+              size_t alloc_sz;
               char *p;
               int v;
+              if (start_val > end_val) {
+                alloc_sz = 128;
+              } else {
+                alloc_sz = (end_val - start_val + 2) * 32 + 128;
+              }
               heap_buf = (char *)malloc(alloc_sz);
               if (heap_buf) {
                 const char *pooled;

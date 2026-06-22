@@ -105,24 +105,25 @@ int scan_for_designated_initializers(const struct TokenList *tokens,
   while (i < tokens->size) {
     if (tokens->tokens[i].kind == TOKEN_LBRACE) {
       if (brace_depth >= brace_cap) {
+        size_t *new_stack;
         brace_cap = brace_cap == 0 ? 16 : brace_cap * 2;
 #ifdef CDD_BUILD_TESTS
         {
           extern C_CDD_EXPORT int g_cdd_fail_alloc;
           if (g_cdd_fail_alloc && --g_cdd_fail_alloc == 0)
-            brace_stack = NULL;
+            new_stack = NULL;
           else
-            brace_stack =
+            new_stack =
                 (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
         }
 #else
-        brace_stack =
-            (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
+        new_stack = (size_t *)realloc(brace_stack, brace_cap * sizeof(size_t));
 #endif
-        if (!brace_stack) {
+        if (!new_stack) {
           res = ENOMEM;
           goto cleanup;
         }
+        brace_stack = new_stack;
       }
       brace_stack[brace_depth++] = i;
     } else if (tokens->tokens[i].kind == TOKEN_RBRACE) {

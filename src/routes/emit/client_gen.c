@@ -1579,10 +1579,9 @@ int write_docblock(FILE *fp, const struct OpenAPI_Path *path,
   }
 
   if (path && path->route) {
-    CHECK_IO(fprintf(fp, " * @route %s %s\n",
-                     (verb_to_string(op->verb, (char **)&_ast_verb_to_string_5),
-                      _ast_verb_to_string_5),
-                     path->route));
+    verb_to_string(op->verb, (char **)&_ast_verb_to_string_5);
+    CHECK_IO(
+        fprintf(fp, " * @route %s %s\n", _ast_verb_to_string_5, path->route));
   }
 
   if (op->description) {

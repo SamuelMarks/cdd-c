@@ -507,7 +507,9 @@ install(
         FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.h"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
-include(InstallRequiredSystemLibraries)
+if(NOT CMAKE_CROSSCOMPILING OR NOT MSVC)
+    include(InstallRequiredSystemLibraries)
+endif()
 set(CPACK_BUNDLE_NAME "${PROJECT_NAME}")
 set(CPACK_PACKAGE_VENDOR "SamuelMarks")
 set(CPACK_PACKAGE_DESCRIPTION "Frontend for C, concentrating on: generation from code; single-file analysis; modification; and emission (to C code).")

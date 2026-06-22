@@ -83,10 +83,11 @@ int cdd_ffi_emit_python(cdd_ffi_ir_t *ir,
   size_t i, j;
   char filepath[1024];
 
-  if (!ir || !config || !config->output_dir)
+  if (!ir || !config || !config->output_dir) {
     return EINVAL;
+  }
 
-    /* Use safe CRT if available */
+  /* Use safe CRT if available */
 #if defined(_MSC_VER)
   sprintf_s(filepath, sizeof(filepath), "%s\\cdd_bindings.py",
             config->output_dir);

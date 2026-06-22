@@ -350,16 +350,9 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                       (int)prev->length, prev->start, (int)next->length,
                       next->start, (int)prev->length, prev->start);
 #else
-#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-            sprintf_s(buf, sizeof(buf),
-                      "*%.*s = alloca(%.*s * sizeof(*%.*s));
-#else
-            sprintf(buf,
-                    "*%.*s = alloca(%.*s * sizeof(*%.*s));
-#endif ",
-                      (int)prev->length,
-                      prev->start, (int)next->length, next->start,
-                      (int)prev->length, prev->start);
+            sprintf(buf, "*%.*s = alloca(%.*s * sizeof(*%.*s));",
+                    (int)prev->length, prev->start, (int)next->length,
+                    next->start, (int)prev->length, prev->start);
 #endif
             heap_buf = strdup(buf);
             prev->start = (const uint8_t *)heap_buf;

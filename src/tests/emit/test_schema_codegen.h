@@ -525,6 +525,8 @@ extern C_CDD_EXPORT int g_schema_strdup_fail;
 #endif
 
 TEST test_schema_constraints_bounds(void) {
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
   struct SchemaConstraints sc;
 
   ASSERT_EQ(EINVAL, schema_constraints_init(NULL));

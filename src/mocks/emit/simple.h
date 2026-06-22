@@ -11,7 +11,6 @@ extern "C" {
 
 /** @brief haz */
 struct Haz *haz;
-};
 
 extern SIMPLE_MOCKS_EXPORT /**
                             * @brief Executes the Foo cleanup operation.

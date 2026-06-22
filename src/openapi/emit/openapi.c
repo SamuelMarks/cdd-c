@@ -2867,7 +2867,12 @@ static int write_paths(JSON_Object *root_obj, const struct OpenAPI_Spec *spec) {
   size_t i;
   int rc = 0;
 
-  if (spec && spec->paths_extensions_json) {
+  if (!spec) {
+    json_object_set_value(root_obj, "paths", paths_val);
+    return rc;
+  }
+
+  if (spec->paths_extensions_json) {
     merge_schema_extras_object_openapi(paths_obj, spec->paths_extensions_json);
   }
 

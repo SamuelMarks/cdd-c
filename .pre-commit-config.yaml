@@ -2,46 +2,76 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      - id: check-yaml
-      - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: end-of-file-fixer
       - id: mixed-line-ending
-        args: ['--fix=lf']
-        exclude: '\.(bat|cmd|ps1)$'
-  - repo: https://github.com/pocc/pre-commit-hooks
-    rev: v1.3.5
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v19.1.7
     hooks:
       - id: clang-format
-        args: ["--style=file", "-i"]
+        args: ['-style=LLVM']
+        types_or: [c, c++]
   - repo: local
     hooks:
-      - id: build
-        name: Build
-        entry: python scripts/pre_commit.py build
+      - id: cppcheck
+        name: Cppcheck
+        entry: python3 scripts/precommit_matrix.py cppcheck
         language: python
         pass_filenames: false
-        always_run: true
-      - id: test
-        name: Test
-        entry: python scripts/pre_commit.py test
+        types_or: [c, c++]
+      - id: build-gcc
+        name: Build (GCC)
+        entry: python3 scripts/precommit_matrix.py build gcc
         language: python
         pass_filenames: false
-        always_run: true
-      - id: lint
-        name: Lint
-        entry: python scripts/pre_commit.py lint
+      - id: test-gcc
+        name: Test (GCC)
+        entry: python3 scripts/precommit_matrix.py test gcc
         language: python
         pass_filenames: false
-        always_run: true
+      - id: build-clang
+        name: Build (Clang)
+        entry: python3 scripts/precommit_matrix.py build clang
+        language: python
+        pass_filenames: false
+      - id: test-clang
+        name: Test (Clang)
+        entry: python3 scripts/precommit_matrix.py test clang
+        language: python
+        pass_filenames: false
+      - id: msvc-wine
+        name: Build & Test (MSVC Wine)
+        entry: bash -c "curl -sS https://raw.githubusercontent.com/SamuelMarks/c-ci/master/build_msvc_wine.sh | bash"
+        language: system
+        pass_filenames: false
+      - id: build-msvc
+        name: Build (MSVC)
+        entry: python3 scripts/precommit_matrix.py build msvc
+        language: python
+        pass_filenames: false
+      - id: test-msvc
+        name: Test (MSVC)
+        entry: python3 scripts/precommit_matrix.py test msvc
+        language: python
+        pass_filenames: false
+      - id: build-mingw
+        name: Build (MinGW)
+        entry: python3 scripts/precommit_matrix.py build mingw
+        language: python
+        pass_filenames: false
+      - id: test-mingw
+        name: Test (MinGW)
+        entry: python3 scripts/precommit_matrix.py test mingw
+        language: python
+        pass_filenames: false
       - id: valgrind
-        name: Valgrind
-        entry: python scripts/pre_commit.py valgrind
+        name: Valgrind (GCC)
+        entry: python3 scripts/precommit_matrix.py valgrind gcc
         language: python
         pass_filenames: false
-        always_run: true
       - id: update-shields
-        name: Update Shields & Validate OpenAPI
-        entry: python scripts/pre_commit.py shields
+        name: Update README Shields
+        entry: python3 scripts/precommit_matrix.py shields
         language: python
+        additional_dependencies: [gcovr]
         pass_filenames: false
-        always_run: true

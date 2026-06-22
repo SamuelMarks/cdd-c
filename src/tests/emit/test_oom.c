@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/resource.h>
 /* clang-format on */
-int main() {
+int main(void) {
   struct rlimit rl;
   if (getrlimit(RLIMIT_AS, &rl) != 0) {
     perror("getrlimit");
@@ -13,10 +13,12 @@ int main() {
   rl.rlim_cur = 1024 * 1024 * 10; /* 10 MB */
   if (setrlimit(RLIMIT_AS, &rl) == 0) {
     void *p = malloc(1024 * 1024 * 20);
-    if (!p)
+    if (!p) {
       printf("OOM worked\n");
-    else
+    } else {
       printf("OOM failed\n");
+      free(p);
+    }
   } else {
     perror("setrlimit");
   }

@@ -149,7 +149,7 @@ static int analyze_node(cdd_cst_scope_env_t *env, cdd_cst_node_t *node) {
 int cdd_cst_build_semantic_info(cdd_cst_tree_t *tree,
                                 cdd_cst_scope_env_t **out_env) {
   int rc;
-  cdd_cst_scope_env_t *env;
+  cdd_cst_scope_env_t *env = NULL;
 
   if (!tree || !out_env)
     return EINVAL;

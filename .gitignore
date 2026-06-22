@@ -367,7 +367,7 @@ run_*.sh
 run_manual.c
 print_enums.c
 add_*.sh
-codecov_badge_gen.sh
+scripts/codecov_badge_gen.sh
 generated_*.c
 generated_*.h
 fix_sql.c

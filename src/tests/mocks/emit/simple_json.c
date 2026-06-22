@@ -12,6 +12,12 @@
 #define strdup _strdup
 #endif /* defined(_MSC_VER) && !defined(__INTEL_COMPILER) */
 
+#if !defined(_WIN32) && !defined(__WIN32__) && !defined(__WINDOWS__)
+#ifndef strdup
+char *strdup(const char *s);
+#endif
+#endif
+
 #include <parson.h>
 
 #include <c89stringutils_string_extras.h>

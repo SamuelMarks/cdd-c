@@ -54,7 +54,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
     cdd_cst_node_t *call_node = calls.nodes[i];
     if (call_node) {
       cdd_cst_builder_t bld;
-      cdd_cst_node_t *replacement;
+      cdd_cst_node_t *replacement = NULL;
 
       cdd_cst_alloc_node(CDD_CST_EXPRESSION, &replacement);
       cdd_cst_builder_init(&bld, tree, replacement);
@@ -78,7 +78,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
         cdd_cst_node_t *call_node = stringify_calls.nodes[i];
         if (call_node) {
           cdd_cst_builder_t bld;
-          cdd_cst_node_t *replacement;
+          cdd_cst_node_t *replacement = NULL;
 
           cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
           cdd_cst_builder_init(&bld, tree, replacement);
@@ -104,7 +104,7 @@ C_CDD_EXPORT int cdd_transform_macros(cdd_cst_tree_t *tree,
         cdd_cst_node_t *call_node = concat_calls.nodes[i];
         if (call_node) {
           cdd_cst_builder_t bld;
-          cdd_cst_node_t *replacement;
+          cdd_cst_node_t *replacement = NULL;
 
           cdd_cst_alloc_node(CDD_CST_LITERAL, &replacement);
           cdd_cst_builder_init(&bld, tree, replacement);

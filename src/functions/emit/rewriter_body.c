@@ -157,10 +157,11 @@ int rewrite_body(const struct TokenList *tokens,
   int injected_rc = 0;
   size_t tmp_var_counter = 0;
 
-  if (!tokens || !out_code)
+  if (!tokens || !out_code) {
     return EINVAL;
+  }
 
-    /* 1. Initialize Patcher */
+  /* 1. Initialize Patcher */
 #ifdef CDD_BUILD_TESTS
   {
     extern C_CDD_EXPORT int g_cdd_fail_alloc;

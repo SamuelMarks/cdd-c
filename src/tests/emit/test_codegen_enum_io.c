@@ -2,12 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 /* clang-format on */
-int main() {
-  FILE *f = fopen("test.txt", "w");
-  fclose(f);
+int main(void) {
+  FILE *f;
+  int res;
+  f = fopen("test.txt", "w");
+  if (f)
+    fclose(f);
   f = fopen("test.txt", "r");
-  int res = fprintf(f, "test");
+  /* cppcheck-suppress writeReadOnlyFile */
+  res = fprintf(f, "test");
   printf("res=%d\n", res);
-  fclose(f);
+  if (f)
+    fclose(f);
   return 0;
 }

@@ -1230,10 +1230,14 @@ static int emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld, int is_msc) {
 }
 
 static void get_indent_string(cdd_token_t *tok, char *out_indent) {
-  cdd_trivia_t *tr = tok->leading_trivia;
+  cdd_trivia_t *tr;
   cdd_trivia_t *last_ws = NULL;
 
   out_indent[0] = '\0';
+
+  if (!tok)
+    return;
+  tr = tok->leading_trivia;
 
   while (tr) {
     if (tr->kind == TRIVIA_WHITESPACE) {

@@ -541,7 +541,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "webassembly") ||
-        strcmp(config->target_langs, "wasm") ||
+        strcmp(config->target_langs, "wasm") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_webassembly(ir, config);
@@ -619,7 +619,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "delphi") ||
-        strcmp(config->target_langs, "pascal") ||
+        strcmp(config->target_langs, "pascal") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_delphi(ir, config);
@@ -642,7 +642,7 @@ int cdd_generate_bindings(const cdd_generate_bindings_config_t *config) {
       }
     }
     if (strstr(config->target_langs, "objc") ||
-        strcmp(config->target_langs, "objective-c") ||
+        strcmp(config->target_langs, "objective-c") == 0 ||
         strcmp(config->target_langs, "all") == 0 ||
         strcmp(config->target_langs, "*") == 0) {
       rc = cdd_ffi_emit_objc(ir, config);

@@ -71,20 +71,22 @@ TEST test_ffi_e2e_complex_codebase(void) {
   f = fopen("test_ffi_e2e_out/cdd_bindings.py", "r");
 #endif
   ASSERT_EQ(1, f != NULL);
-  if (f)
+  if (f) {
     fclose(f);
+  }
 
-    /* Assert Rust bindings generated */
+  /* Assert Rust bindings generated */
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Cargo.toml", "r");
 #else
   f = fopen("test_ffi_e2e_out/Cargo.toml", "r");
 #endif
   ASSERT_EQ(1, f != NULL);
-  if (f)
+  if (f) {
     fclose(f);
+  }
 
-    /* Assert C# bindings generated */
+  /* Assert C# bindings generated */
 #if defined(_MSC_VER)
   fopen_s(&f, "test_ffi_e2e_out\\Bindings.cs", "r");
 #else
