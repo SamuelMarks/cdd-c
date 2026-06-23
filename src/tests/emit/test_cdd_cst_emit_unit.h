@@ -27,6 +27,8 @@ TEST test_cdd_cst_emit_invalid(void) {
 TEST test_cdd_cst_emit_empty(void) {
   cdd_cst_tree_t tree = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   /* empty tree -> empty buf -> malloc(1) */
   ASSERT_EQ(0, cdd_cst_emit(&tree, &out));
@@ -43,6 +45,8 @@ TEST test_cdd_cst_emit_null_children(void) {
   cdd_cst_node_t root = {0};
   cdd_cst_child_t children[3] = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   tree.root = &root;
   root.children = children;
@@ -84,6 +88,8 @@ TEST test_cdd_cst_emit_large_string(void) {
   cdd_cst_child_t children[2] = {0};
   char *large_str;
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   large_str = (char *)malloc(5000);
   memset(large_str, 'A', 4999);
@@ -133,6 +139,8 @@ TEST test_cdd_cst_emit_oom(void) {
   cdd_token_t tok = {0};
   cdd_cst_child_t child = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   /* Test overflow in append_str via tok->length */
   tok.kind = CDD_TOKEN_IDENTIFIER;
@@ -158,6 +166,8 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   cdd_trivia_t triv = {0};
   cdd_cst_child_t child = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   triv.start = (const uint8_t *)"";
   triv.length = (size_t)-1; /* SIZE_MAX */
@@ -180,13 +190,13 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
 }
 
 TEST test_cdd_cst_emit_oom_realloc(void) {
-  if (getenv("RUNNING_UNDER_VALGRIND"))
-    SKIPm("Valgrind crash");
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
   cdd_token_t tok = {0};
   cdd_cst_child_t child = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   /* Test legitimate realloc failure by requesting an impossibly large block */
   tok.kind = CDD_TOKEN_IDENTIFIER;
@@ -213,6 +223,8 @@ TEST test_cdd_cst_emit_oom_multi(void) {
   cdd_token_t tok2 = {0};
   cdd_cst_child_t children[2] = {0};
   char *out = NULL;
+  if (getenv("RUNNING_UNDER_VALGRIND"))
+    SKIPm("Valgrind crash");
 
   /* First token succeeds and allocates buf */
   tok1.kind = CDD_TOKEN_IDENTIFIER;

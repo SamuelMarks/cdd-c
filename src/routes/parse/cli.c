@@ -4,7 +4,6 @@
  */
 
 /* clang-format off */
-/* clang-format off */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>

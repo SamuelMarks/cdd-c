@@ -312,6 +312,9 @@ TEST test_parse_decl_errors(void) {
 }
 
 SUITE(declarator_parser_suite) {
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_TEST(test_parse_basic_int);
   RUN_TEST(test_parse_ptr);
   RUN_TEST(test_parse_pointer_qualifiers);

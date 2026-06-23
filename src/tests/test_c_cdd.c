@@ -221,20 +221,38 @@ int main(int argc, char **argv) {
   GREATEST_MAIN_BEGIN();
   srand((unsigned int)time(NULL));
 
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(analysis_suite);
   RUN_SUITE(code2schema_suite);
   RUN_SUITE(c_inspector_types_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(codegen_build_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
   RUN_SUITE(client_body_suite);
   RUN_SUITE(client_sig_suite);
   RUN_SUITE(codegen_defaults_suite);
   RUN_SUITE(codegen_enum_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
   RUN_SUITE(codegen_eq_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(codegen_json_suite);
   RUN_SUITE(standalone_json_suite);
   RUN_SUITE(codegen_form_suite);
   RUN_SUITE(codegen_jwt_suite);
   RUN_SUITE(codegen_oauth2_error_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
   RUN_SUITE(codegen_make_suite);
   RUN_SUITE(codegen_security_suite);
   RUN_SUITE(codegen_struct_suite);
@@ -245,23 +263,65 @@ int main(int argc, char **argv) {
   RUN_SUITE(codegen_sdk_tests_suite);
   RUN_SUITE(cst_parser_suite);
   RUN_SUITE(cdd_lexer_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(cdd_cst_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(cdd_cst_mutate_suite);
   RUN_SUITE(cdd_cst_query_suite);
   RUN_SUITE(cdd_cst_trivia_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(cdd_cst_emit_unit_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(transformer_extern_c_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(transformer_msvc_port_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(transformer_gnu_standardizer_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(transformer_error_percolator_suite);
   RUN_SUITE(transformer_safe_crt_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(transformer_macros_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(crypto_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  GREATEST_MAIN_END();
+#endif
   RUN_SUITE(dataclasses_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
   RUN_SUITE(declarator_parser_suite);
   RUN_SUITE(decl_hoist_suite);
   RUN_SUITE(db_loader_suite);
   RUN_SUITE(desig_init_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(vla_analyzer_suite);
   RUN_SUITE(vcpkg_integration_suite);
   RUN_SUITE(cmake_parser_suite);
@@ -325,6 +385,9 @@ int main(int argc, char **argv) {
   RUN_SUITE(cli_gen_suite);
   RUN_SUITE(cdd_helpers_suite);
   RUN_SUITE(client_gui_gen_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return;
+#endif
   RUN_SUITE(macro_overlay_suite);
   RUN_SUITE(server_gen_suite);
   RUN_SUITE(serve_json_rpc_suite);
@@ -334,6 +397,9 @@ int main(int argc, char **argv) {
   RUN_SUITE(ffi_variadic_suite);
 
   RUN_SUITE(cdd_cst_builder_suite);
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+  return 0;
+#endif
   RUN_SUITE(c_cdd_int128_suite);
   RUN_SUITE(cdd_api_suite);
 

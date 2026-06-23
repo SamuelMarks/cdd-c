@@ -13,7 +13,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
-/* clang-format off */
 #include "c_cdd_export.h"
 #include <greatest.h>
 #include <stdlib.h>
