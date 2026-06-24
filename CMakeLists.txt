@@ -203,6 +203,12 @@ endif()
 
 add_library("${PROJECT_NAME}_compiler_flags" INTERFACE)
 
+if(MSVC)
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE /W4 /WX)
+else()
+    target_compile_options("${PROJECT_NAME}_compiler_flags" INTERFACE -Wall -Wextra -pedantic -Werror -Wdeclaration-after-statement)
+endif()
+
 if(C_CDD_USE_UNICODE)
     target_compile_definitions("${PROJECT_NAME}_compiler_flags" INTERFACE UNICODE _UNICODE)
 endif()

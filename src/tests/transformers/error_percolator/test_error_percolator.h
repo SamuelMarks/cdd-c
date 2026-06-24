@@ -1,10 +1,12 @@
 #ifndef CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 #define CDD_TEST_TRANSFORMER_ERROR_PERCOLATOR_H
 
+/* clang-format off */
 /* #include "cdd_cst.h" */
 #include "cdd_cst_transform.h"
 #include "greatest.h"
 #include <errno.h>
+/* clang-format on */
 
 #ifdef __cplusplus
 extern "C" {
