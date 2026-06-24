@@ -204,9 +204,12 @@ static int magic_visitor(cdd_cst_node_t *node, void *user_data) {
             buf[2 + ctx->func_len] = '\0';
 
             pooled = pool_string_safe(ctx->tree, buf);
-            cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING,
-                                     pooled ? pooled : buf, ctx->func_len + 2,
-                                     &new_tok);
+            if (!pooled) {
+              free(buf);
+              return ENOMEM;
+            }
+            cdd_cst_create_token_len(ctx->tree, CDD_TOKEN_STRING, pooled,
+                                     ctx->func_len + 2, &new_tok);
             free(buf);
             buf = NULL;
             if (new_tok) {
@@ -563,10 +566,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                           const char *pooled;
                           cdd_token_t *new_tok = NULL;
                           pooled = pool_string_safe(tree, out_buf);
-                          cdd_cst_create_token_len(tree,
-                                                   CDD_TOKEN_PREPROC_DEFINE,
-                                                   pooled ? pooled : out_buf,
-                                                   out_p - out_buf, &new_tok);
+                          if (!pooled) {
+                            free(out_buf);
+                            return ENOMEM;
+                          }
+                          cdd_cst_create_token_len(
+                              tree, CDD_TOKEN_PREPROC_DEFINE, pooled,
+                              out_p - out_buf, &new_tok);
                           free(out_buf);
                           out_buf = NULL;
                           if (new_tok) {
@@ -1962,13 +1968,14 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                      val_len);
               buf[val_len + 1] = '\0';
               pooled = pool_string_safe(tree, buf);
+              if (!pooled) {
+                free(buf);
+                return ENOMEM;
+              }
               cdd_cst_create_token_len(
-                  tree, tree->base_tokens->tokens[rparen_idx + 1].kind,
-                  pooled ? pooled : buf, val_len + 1, &new_val);
-              if (!pooled)
-                free(buf);
-              else
-                free(buf);
+                  tree, tree->base_tokens->tokens[rparen_idx + 1].kind, pooled,
+                  val_len + 1, &new_val);
+              free(buf);
               if (new_val) {
                 new_val->leading_trivia =
                     tree->base_tokens->tokens[rparen_idx + 1].leading_trivia;
@@ -2080,8 +2087,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 const char *pooled;
                 cdd_token_t *new_tok = NULL;
                 pooled = pool_string_safe(tree, buf);
-                cdd_cst_create_token_len(tree, tok->kind, pooled ? pooled : buf,
-                                         strlen(buf), &new_tok);
+                if (!pooled) {
+                  free(buf);
+                  return ENOMEM;
+                }
+                cdd_cst_create_token_len(tree, tok->kind, pooled, strlen(buf),
+                                         &new_tok);
                 free(buf);
                 buf = NULL;
                 if (new_tok) {
@@ -2415,8 +2426,11 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 cdd_token_t *new_tok = NULL;
                 strcpy(heap_buf, buf);
                 pooled = pool_string_safe(tree, heap_buf);
-                cdd_cst_create_token_len(tree, t->kind,
-                                         pooled ? pooled : heap_buf,
+                if (!pooled) {
+                  free(heap_buf);
+                  return ENOMEM;
+                }
+                cdd_cst_create_token_len(tree, t->kind, pooled,
                                          strlen(heap_buf), &new_tok);
                 free(heap_buf);
                 if (new_tok) {
@@ -2515,9 +2529,13 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                     cdd_token_t *new_tok = NULL;
                     strcpy(dup, buf);
                     pooled = pool_string_safe(tree, dup);
-                    cdd_cst_create_token_len(
-                        tree, tree->base_tokens->tokens[k].kind,
-                        pooled ? pooled : dup, strlen(dup), &new_tok);
+                    if (!pooled) {
+                      free(dup);
+                      return ENOMEM;
+                    }
+                    cdd_cst_create_token_len(tree,
+                                             tree->base_tokens->tokens[k].kind,
+                                             pooled, strlen(dup), &new_tok);
                     free(dup);
                     dup = NULL;
                     if (new_tok) {
@@ -2764,8 +2782,12 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   cdd_token_t *new_tok = NULL;
                   strcpy(dup, local_labels[j].rename);
                   pooled = pool_string_safe(tree, dup);
-                  cdd_cst_create_token_len(tree, t->kind, pooled ? pooled : dup,
-                                           strlen(dup), &new_tok);
+                  if (!pooled) {
+                    free(dup);
+                    return ENOMEM;
+                  }
+                  cdd_cst_create_token_len(tree, t->kind, pooled, strlen(dup),
+                                           &new_tok);
                   free(dup);
                   dup = NULL;
                   if (new_tok) {
@@ -3312,8 +3334,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                 for (v = start_val; v <= end_val; v++) {
                   strcpy(p, "case ");
                   p += 5;
-                  if (append_int(p, v, &p) != 0)
+                  if (append_int(p, v, &p) != 0) {
+                    free(heap_buf);
                     return ENOMEM;
+                  }
                   if (v != end_val) {
                     strcpy(p, ": ");
                     p += 2;
@@ -3323,12 +3347,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   tree->base_tokens->tokens[i - 2].length = 0;
                 }
                 pooled = pool_string_safe(tree, heap_buf);
+                if (!pooled) {
+                  free(heap_buf);
+                  return ENOMEM;
+                }
                 tree->base_tokens->tokens[is_case_idx].start =
-                    (const uint8_t *)(pooled ? pooled : heap_buf);
+                    (const uint8_t *)pooled;
                 tree->base_tokens->tokens[is_case_idx].length =
                     strlen(heap_buf);
-                if (pooled)
-                  free(heap_buf);
+                free(heap_buf);
                 {
                   size_t c_idx;
                   cdd_cst_node_t *p_node = NULL;
@@ -3408,8 +3435,10 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   p = heap_buf;
                   for (v = start_val; v <= end_val; v++) {
                     *p++ = '[';
-                    if (append_int(p, v, &p) != 0)
+                    if (append_int(p, v, &p) != 0) {
+                      free(heap_buf);
                       return ENOMEM;
+                    }
                     strcpy(p, "] = ");
                     p += 4;
                     memcpy(p, assign_val->start, assign_val->length);
@@ -3422,12 +3451,15 @@ int cdd_transform_gnu(cdd_cst_tree_t *tree,
                   *p = '\0';
 
                   pooled = pool_string_safe(tree, heap_buf);
+                  if (!pooled) {
+                    free(heap_buf);
+                    return ENOMEM;
+                  }
                   tree->base_tokens->tokens[is_range_idx].start =
-                      (const uint8_t *)(pooled ? pooled : heap_buf);
+                      (const uint8_t *)pooled;
                   tree->base_tokens->tokens[is_range_idx].length =
                       strlen(heap_buf);
-                  if (pooled)
-                    free(heap_buf);
+                  free(heap_buf);
                   {
                     size_t c_idx;
                     cdd_cst_node_t *p_node = NULL;

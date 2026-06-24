@@ -1,3 +1,4 @@
+cdd_test_tmp*.txt
 cov_final.txt
 patch_*
 vcpkg
