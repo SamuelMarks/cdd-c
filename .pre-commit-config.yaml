@@ -15,78 +15,78 @@ repos:
     hooks:
       - id: cppcheck
         name: Cppcheck
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" cppcheck
+        entry: python scripts/precommit_matrix.py cppcheck
         language: python
         pass_filenames: false
         types_or: [c, c++]
       - id: build-gcc
         name: Build (GCC)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build gcc
+        entry: python scripts/precommit_matrix.py build gcc
         language: python
         pass_filenames: false
       - id: test-gcc
         name: Test (GCC)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" test gcc
+        entry: python scripts/precommit_matrix.py test gcc
         language: python
         pass_filenames: false
       - id: build-clang
         name: Build (Clang)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build clang
+        entry: python scripts/precommit_matrix.py build clang
         language: python
         pass_filenames: false
       - id: test-clang
         name: Test (Clang)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" test clang
+        entry: python scripts/precommit_matrix.py test clang
         language: python
         pass_filenames: false
       - id: build-msvc-2005-wine
         name: Build and Test (MSVC 2005 Wine)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_2005_wine
+        entry: python scripts/precommit_matrix.py build msvc_2005_wine
         language: python
         pass_filenames: false
       - id: build-msvc-2005-wine
         name: Build and Test (MSVC 2005 Wine)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_2005_wine
+        entry: python scripts/precommit_matrix.py build msvc_2005_wine
         language: python
         pass_filenames: false
       - id: build-msvc-wine
         name: Build (MSVC Wine)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_wine
+        entry: python scripts/precommit_matrix.py build msvc_wine
         language: python
         pass_filenames: false
       - id: test-msvc-wine
         name: Test (MSVC Wine)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" test msvc_wine
+        entry: python scripts/precommit_matrix.py test msvc_wine
         language: python
         pass_filenames: false
       - id: build-msvc
         name: Build (MSVC)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc
+        entry: python scripts/precommit_matrix.py build msvc
         language: python
         pass_filenames: false
       - id: test-msvc
         name: Test (MSVC)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" test msvc
+        entry: python scripts/precommit_matrix.py test msvc
         language: python
         pass_filenames: false
       - id: build-mingw
         name: Build (MinGW)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build mingw
+        entry: python scripts/precommit_matrix.py build mingw
         language: python
         pass_filenames: false
       - id: test-mingw
         name: Test (MinGW)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" test mingw
+        entry: python scripts/precommit_matrix.py test mingw
         language: python
         pass_filenames: false
       - id: valgrind
         name: Valgrind (GCC)
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" valgrind gcc
+        entry: python scripts/precommit_matrix.py valgrind gcc
         language: python
         pass_filenames: false
       - id: update-shields
         name: Update README Shields
-        entry: python3 -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" shields
+        entry: python scripts/precommit_matrix.py shields
         language: python
         additional_dependencies: [gcovr]
         pass_filenames: false

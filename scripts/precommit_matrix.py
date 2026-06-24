@@ -161,7 +161,10 @@ def main():
                         winepath += f";{os.path.abspath(os.path.join(deps_dir, d))}"
             env["WINEPATH"] = winepath
 
-        run_cmd(["ctest", "--output-on-failure"], cwd=build_dir, env=env)
+        cmd = ["ctest", "--output-on-failure"]
+        if toolchain in ("msvc", "msvc_wine", "msvc2005", "msvc2022", "msvc2026"):
+            cmd.extend(["-C", "Debug"])
+        run_cmd(cmd, cwd=build_dir, env=env)
 
         # Run custom script for cdd-c or other repos that need extra test logic
         if toolchain == "gcc" and os.path.exists("scripts/pre_commit.py"):
