@@ -25,8 +25,10 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #if !defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#include <windef.h>
-#include <winbase.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 #include <fileapi.h>
 #include <winnls.h>
 #endif
@@ -35,9 +37,10 @@
 #include "c_cddConfig.h"
 /* windef.h must precede winbase.h to prevent DWORD redefinition errors */
 #include "win_compat_sym.h"
-#include <windef.h>
-
-#include <winbase.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 
 #include <direct.h>
 #if !defined(_MSC_VER) || _MSC_VER >= 1900

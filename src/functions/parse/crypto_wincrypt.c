@@ -25,9 +25,10 @@
 #pragma warning(disable: 4201 4214)
 #endif
 #include "win_compat_sym.h"
-#include <windef.h>
-
-#include <winbase.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <winsock2.h>
 
 #include <wincrypt.h>
 #ifdef _MSC_VER

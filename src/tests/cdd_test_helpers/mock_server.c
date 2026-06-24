@@ -24,18 +24,14 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include "c_cddConfig.h"
+#include <c_cddConfig.h>
 #include <process.h>
 /* winsock2.h must precede windef.h to prevent conflicts */
 #include <winsock2.h>
 
 #include <ws2tcpip.h>
 
-/* windef.h must precede winbase.h */
-#include "win_compat_sym.h"
-#include <windef.h>
-
-#include <winbase.h>
+#include "../../win_compat_sym.h"
 
 typedef SOCKET socket_t;
 typedef HANDLE thread_t;

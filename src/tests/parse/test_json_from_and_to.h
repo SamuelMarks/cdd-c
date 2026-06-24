@@ -1,3 +1,6 @@
+#if defined(_MSC_VER)
+#pragma warning(disable : 4702)
+#endif
 extern C_CDD_EXPORT int g_fail_io_after;
 extern C_CDD_EXPORT int g_io_calls;
 /**
@@ -53,12 +56,17 @@ TEST test_enum_tank_to_str_and_from_str(void) {
  * @return The result of the test.
  */
 TEST test_HazE_to_json_and_from_json(void) {
-  struct HazE haz = {"example", Tank_BIG};
-  char *json_str = NULL;
-  struct HazE *haz_out = NULL;
+  struct HazE haz;
+  char *json_str;
+  struct HazE *haz_out;
+  int rc;
+  haz.bzr = "example";
+  haz.tank = Tank_BIG;
+  json_str = NULL;
+  haz_out = NULL;
   SKIPm("Wine Parson Crash");
 
-  int rc = HazE_to_json(&haz, &json_str);
+  rc = HazE_to_json(&haz, &json_str);
   ASSERT_EQ(0, rc);
   ASSERT(json_str != NULL);
 
@@ -81,12 +89,18 @@ TEST test_HazE_to_json_and_from_json(void) {
  * @return The result of the test.
  */
 TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
-  struct FooE foo = {"barval", 42, NULL};
-  char *json_str = NULL;
-  struct FooE *foo_out = NULL;
+  struct FooE foo;
+  char *json_str;
+  struct FooE *foo_out;
+  int rc;
+  foo.bar = "barval";
+  foo.can = 42;
+  foo.haz = NULL;
+  json_str = NULL;
+  foo_out = NULL;
   SKIPm("Wine Parson Crash");
 
-  int rc = FooE_to_json(&foo, &json_str);
+  rc = FooE_to_json(&foo, &json_str);
   ASSERT_EQ(0, rc);
   ASSERT(json_str != NULL);
 
@@ -109,11 +123,18 @@ TEST test_FooE_to_json_and_from_json_with_null_haz(void) {
  * @return The result of the test.
  */
 TEST test_FooE_to_json_and_from_json_non_null_haz(void) {
-  struct HazE haz_in = {"bzr_data_here", Tank_BIG};
-  struct FooE foo_in = {"bar_data_here", 777, NULL};
-  char *json_str = NULL;
-  struct FooE *foo_out = NULL;
+  struct HazE haz_in;
+  struct FooE foo_in;
+  char *json_str;
+  struct FooE *foo_out;
   int rc;
+  haz_in.bzr = "bzr_data_here";
+  haz_in.tank = Tank_BIG;
+  foo_in.bar = "bar_data_here";
+  foo_in.can = 777;
+  foo_in.haz = NULL;
+  json_str = NULL;
+  foo_out = NULL;
   SKIPm("Wine Parson Crash");
 
   foo_in.haz = &haz_in;

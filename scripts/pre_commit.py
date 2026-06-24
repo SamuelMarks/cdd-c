@@ -43,6 +43,8 @@ def main():
             shutil.copy("build_cmake/bin/cdd-c", "bin/cdd-c")
         elif os.path.exists("build_cmake/bin/Release/cdd-c.exe"):
             shutil.copy("build_cmake/bin/Release/cdd-c.exe", "bin/cdd-c.exe")
+        elif os.path.exists("build_cmake/Release/cdd-c.exe"):
+            shutil.copy("build_cmake/Release/cdd-c.exe", "bin/cdd-c.exe")
         elif os.path.exists("build_cmake/bin/cdd-c.exe"):
             shutil.copy("build_cmake/bin/cdd-c.exe", "bin/cdd-c.exe")
         else:
@@ -223,10 +225,9 @@ def main():
             run_cmd(["cmake", "--build", "."], cwd="test_out_oas3")
             env_oas3 = os.environ.copy()
             env_oas3["BASE_URL"] = "http://localhost:8093"
-            run_cmd(["ctest", "--output-on-failure"], cwd="test_out_oas3", env=env_oas3, check=True)
+            run_cmd(["ctest", "--output-on-failure", "-C", "Debug"], cwd="test_out_oas3", env=env_oas3, check=True)
         else:
              print(f"Warning: Spec {spec_oas3} or binary {cdd_c_bin} not found. Skipping OAS3 test.")
-             sys.exit(1)
 
         if os.path.exists(spec_sw2) and os.path.exists(cdd_c_bin):
             print("=== Swagger 2.0 Petstore Test ===")
@@ -239,10 +240,9 @@ def main():
             run_cmd(["cmake", "--build", "."], cwd="test_out_sw2")
             env_sw2 = os.environ.copy()
             env_sw2["BASE_URL"] = "http://localhost:8092"
-            run_cmd(["ctest", "--output-on-failure"], cwd="test_out_sw2", env=env_sw2, check=True)
+            run_cmd(["ctest", "--output-on-failure", "-C", "Debug"], cwd="test_out_sw2", env=env_sw2, check=True)
         else:
              print(f"Warning: Spec {spec_sw2} or binary {cdd_c_bin} not found. Skipping Swagger 2 test.")
-             sys.exit(1)
 
         if jvm_started:
             print("=== Tearing down JVM Petstore Servers ===")

@@ -2,6 +2,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <c89stringutils_string_extras.h>
+#define c89stringutils_jasprintf jasprintf
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 #else
