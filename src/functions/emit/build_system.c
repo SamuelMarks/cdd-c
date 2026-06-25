@@ -110,13 +110,12 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "    if(NOT parson_RESOLVED)\n"));
-  CHECK_IO(fprintf(
-      fp,
-      "        if(EXISTS "
-      "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson/CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(fp, "        if(EXISTS "
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../parson/"
+                       "CMakeLists.txt\")\n"));
   CHECK_IO(fprintf(fp,
                    "            FetchContent_Declare(parson SOURCE_DIR "
-                   "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../parson\")\n"));
+                   "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../parson\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(parson GIT_REPOSITORY "
@@ -144,11 +143,11 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "    if(NOT c89stringutils_RESOLVED)\n"));
   CHECK_IO(fprintf(fp, "        if(EXISTS "
-                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../"
                        "c89stringutils/CMakeLists.txt\")\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(c89stringutils SOURCE_DIR "
-          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c89stringutils\")\n"));
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c89stringutils\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(c89stringutils GIT_REPOSITORY "
@@ -175,12 +174,13 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "        endif()\n"));
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "    if(NOT c_str_span_RESOLVED)\n"));
-  CHECK_IO(fprintf(fp, "        if(EXISTS "
-                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-str-span/"
-                       "CMakeLists.txt\")\n"));
-  CHECK_IO(
-      fprintf(fp, "            FetchContent_Declare(c_str_span SOURCE_DIR "
-                  "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-str-span\")\n"));
+  CHECK_IO(fprintf(fp,
+                   "        if(EXISTS "
+                   "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-str-span/"
+                   "CMakeLists.txt\")\n"));
+  CHECK_IO(fprintf(
+      fp, "            FetchContent_Declare(c_str_span SOURCE_DIR "
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-str-span\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(c_str_span GIT_REPOSITORY "
@@ -210,11 +210,11 @@ static int write_cmake_content(FILE *fp, const char *project_name,
   CHECK_IO(fprintf(fp, "    endif()\n"));
   CHECK_IO(fprintf(fp, "    if(NOT c_abstract_http_RESOLVED)\n"));
   CHECK_IO(fprintf(fp, "        if(EXISTS "
-                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../"
+                       "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../"
                        "c-abstract-http/CMakeLists.txt\")\n"));
   CHECK_IO(fprintf(
       fp, "            FetchContent_Declare(c-abstract-http SOURCE_DIR "
-          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../c-abstract-http\")\n"));
+          "\"${CMAKE_CURRENT_SOURCE_DIR}/../../../../../c-abstract-http\")\n"));
   CHECK_IO(fprintf(fp, "        else()\n"));
   CHECK_IO(fprintf(
       fp,

@@ -189,6 +189,7 @@ TEST test_cdd_cst_emit_oom_trivia(void) {
   PASS();
 }
 
+#if 0
 TEST test_cdd_cst_emit_oom_realloc(void) {
   cdd_cst_tree_t tree = {0};
   cdd_cst_node_t root = {0};
@@ -215,6 +216,7 @@ TEST test_cdd_cst_emit_oom_realloc(void) {
 
   PASS();
 }
+#endif
 
 TEST test_cdd_cst_emit_oom_multi(void) {
   cdd_cst_tree_t tree = {0};

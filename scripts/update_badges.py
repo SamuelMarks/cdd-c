@@ -56,19 +56,15 @@ def main():
 
     test_cov = None
     if os.name != 'nt':
+        # Check if build_gcc exists and we can get coverage from it using gcovr
         try:
-            os.makedirs("build_cov", exist_ok=True)
-            subprocess.run(["cmake", "..", "-DCMAKE_C_FLAGS=--coverage", "-DCMAKE_EXE_LINKER_FLAGS=--coverage"], cwd="build_cov", capture_output=True, text=True)
-            subprocess.run(["cmake", "--build", "."], cwd="build_cov", capture_output=True, text=True)
-            subprocess.run(["ctest"], cwd="build_cov", capture_output=True, text=True)
-            res = subprocess.run(["ctest", "-T", "Coverage"], cwd="build_cov", capture_output=True, text=True)
-            out = res.stdout + res.stderr
-            m = re.search(r'Coverage:\s+([0-9.]+)%', out)
-            if not m:
-                m = re.search(r'\s+([0-9.]+)%\s+covered', out)
-
-            if m:
-                test_cov = float(m.group(1))
+            import shutil
+            if shutil.which("gcovr") and os.path.exists("build_gcc"):
+                res = subprocess.run(["gcovr", "-r", "..", ".", "--gcov-ignore-parse-errors=negative_hits.warn", "--print-summary"], cwd="build_gcc", capture_output=True, text=True)
+                if res.returncode == 0:
+                    m = re.search(r'lines:\s+([0-9.]+)%', res.stdout)
+                    if m:
+                        test_cov = float(m.group(1))
         except Exception as e:
             print(f'Coverage calculation failed: {e}')
 

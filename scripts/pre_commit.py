@@ -95,6 +95,7 @@ def main():
         print("=== Updating Shields ===")
         run_cmd([sys.executable, "scripts/update_badges.py"])
 
+    elif job == "integration":
         import shutil
         has_docker = shutil.which("docker") is not None
         has_java = shutil.which("java") is not None
