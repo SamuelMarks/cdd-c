@@ -29,6 +29,10 @@
 #include "../../functions/ffi/cdd_ffi_emit_ocaml.h"
 /* clang-format on */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 TEST test_ffi_ir_extract_exports_basic(void) {
   const char *filename = "dummy_header.h";
   const char *code = "struct MyStruct { int x; char *s; };\n"
@@ -1622,4 +1626,7 @@ TEST test_cdd_ffi_mangle_cpp_name(void) {
   PASS();
 }
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* TEST_FFI_EXTRACTOR_H */

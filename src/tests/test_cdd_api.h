@@ -6,6 +6,10 @@
 #include <greatest.h>
 /* clang-format on */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 TEST test_cdd_generate_from_openapi(void) {
   cdd_from_openapi_config_t config = {0};
 
@@ -72,4 +76,7 @@ SUITE(cdd_api_suite) {
   RUN_TEST(test_cdd_serve_json_rpc);
 }
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif

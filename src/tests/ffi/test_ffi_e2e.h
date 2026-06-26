@@ -8,6 +8,10 @@
 #include "../../include/ffi/cdd_ffi_ir.h"
 /* clang-format on */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * @brief Headless E2E Automation test.
  *
@@ -100,4 +104,7 @@ TEST test_ffi_e2e_complex_codebase(void) {
   PASS();
 }
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* TEST_FFI_E2E_H */

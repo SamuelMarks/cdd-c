@@ -41,17 +41,12 @@ repos:
         pass_filenames: false
       - id: build-msvc-2005-wine
         name: Build and Test (MSVC 2005 Wine)
-        entry: python scripts/precommit_matrix.py build msvc_2005_wine
+        entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_2005_wine
         language: python
         pass_filenames: false
-      - id: build-msvc-wine
-        name: Build (MSVC Wine)
-        entry: python scripts/precommit_matrix.py build msvc_wine
-        language: python
-        pass_filenames: false
-      - id: test-msvc-wine
-        name: Test (MSVC Wine)
-        entry: python scripts/precommit_matrix.py test msvc_wine
+      - id: build-msvc-2026-wine
+        name: Build and Test (MSVC 2026 Wine)
+        entry: python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/SamuelMarks/c-ci/master/precommit_matrix.py').read())" build msvc_2026_wine
         language: python
         pass_filenames: false
       - id: build-msvc
