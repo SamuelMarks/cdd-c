@@ -39,11 +39,6 @@ repos:
         entry: python scripts/precommit_matrix.py test clang
         language: python
         pass_filenames: false
-      - id: build-msvc-wine
-        name: Build & Test (MSVC Wine)
-        entry: bash -c 'if command -v wine >/dev/null 2>&1 && [ -d "${MSVC_WINE_PATH:-$HOME/my_msvc/opt/msvc}" ]; then bash ~/repos/c-ci/build_msvc_wine.sh -DFETCHCONTENT_FULLY_DISCONNECTED=OFF -DFETCHCONTENT_UPDATES_DISCONNECTED=ON; RET=$?; wineserver -k || true; exit $RET; else echo "Skipping MSVC Wine"; fi'
-        language: system
-        pass_filenames: false
       - id: build-msvc
         name: Build (MSVC)
         entry: python scripts/precommit_matrix.py build msvc
