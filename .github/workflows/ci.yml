@@ -14,13 +14,13 @@ jobs:
   memory-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@master
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y valgrind clang cmake
       - name: Build with ASAN
         run: |
           mkdir build_asan && cd build_asan
-          cmake .. -DCMAKE_C_COMPILER=clang -DC_CDD_USE_ASAN=ON -DCMAKE_BUILD_TYPE=Debug -DCDD_DEPS=FETCHCONTENT
+          cmake .. -DCMAKE_C_COMPILER=gcc -DC_CDD_USE_ASAN=ON -DCMAKE_BUILD_TYPE=Debug -DCDD_DEPS=FETCHCONTENT
           make -j4
       - name: Run Tests with ASAN
         run: |
@@ -44,7 +44,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@master
       - name: Install binaryen
         run: sudo apt-get update && sudo apt-get install -y binaryen
       - name: Build WASM
