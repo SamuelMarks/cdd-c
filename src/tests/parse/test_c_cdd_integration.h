@@ -18,17 +18,19 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "cdd_test_helpers/cdd_helpers.h"
 #include "functions/parse/fs.h"
-
-/* Integration of the full pipeline (Audit & Fix & Gen command simulation) */
 #include "classes/emit/schema_codegen.h"
 #include "functions/emit/rewriter_body.h"
 #include "functions/parse/analysis.h"
 #include "functions/parse/audit.h"
 #include "functions/parse/orchestrator.h"
 #include "functions/parse/tokenizer.h"
+#include "classes/parse/cdd_cst_parser.h"
+#include "openapi/parse/openapi.h"
+
+
+/* Integration of the full pipeline (Audit & Fix & Gen command simulation) */
 /* clang-format on */
 /* LCOV_EXCL_START */
 
@@ -426,8 +428,6 @@ TEST test_integration_schema2code_with_guards(void) {
   PASS();
 }
 
-#include "classes/parse/cdd_cst_parser.h"
-#include "openapi/parse/openapi.h"
 SUITE(integration_suite) {
   RUN_TEST(test_integration_full_pipeline);
   RUN_TEST(test_integration_fix_file_io);

@@ -1,10 +1,10 @@
-#include "c_cdd/safe_crt.h"
 /**
  * @file server_gen.c
  * @brief Implementation of server code generation.
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include "server_gen.h"
 #include "routes/emit/security.h"
 #include <stdio.h>

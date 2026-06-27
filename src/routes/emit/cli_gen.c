@@ -1,10 +1,10 @@
-#include "c_cdd/safe_crt.h"
 /**
  * @file cli_gen.c
  * @brief Implementation of CLI code generation.
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include "cli_gen.h"
 #include <stdio.h>
 #include <stdlib.h>

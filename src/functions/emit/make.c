@@ -8,8 +8,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "functions/emit/make.h"
+#include <stdarg.h>
+
 /* clang-format on */
 
 #if defined(_MSC_VER)
@@ -39,7 +40,6 @@ static int check_io_helper_make(int rc) {
 #endif
 
 #ifdef CDD_BUILD_TESTS
-#include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

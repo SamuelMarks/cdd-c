@@ -5,7 +5,6 @@ extern C_CDD_EXPORT int g_io_calls;
  * @brief Unit tests for code to schema conversion.
  */
 
-#include "classes/emit/schema.h"
 #ifndef TEST_CODE2SCHEMA_H
 #define TEST_CODE2SCHEMA_H
 
@@ -24,24 +23,23 @@ typedef signed __int64 int64_t;
 typedef unsigned __int64 uint64_t;
 #else
 /* clang-format off */
+#include "classes/emit/schema.h"
 #include "c_cdd_export.h"
-#if !defined(_MSC_VER) || _MSC_VER >= 1800
-#if defined(_MSC_VER) && _MSC_VER < 1600
 #include "msvc/stdint.h"
-#else
 #include <stdint.h>
-#endif
-#endif
-#endif
 #include <string.h>
-
 #include <greatest.h>
-
 #include "functions/parse/fs.h"
-
 #include "classes/parse/code2schema.h"
 #include "functions/emit/codegen.h"
 #include <cdd_test_helpers/cdd_helpers.h>
+#if !defined(_MSC_VER) || _MSC_VER >= 1800
+#if defined(_MSC_VER) && _MSC_VER < 1600
+#else
+#endif
+#endif
+#endif
+
 /* clang-format on */
 /* LCOV_EXCL_START */
 

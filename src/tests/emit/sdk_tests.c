@@ -1,4 +1,3 @@
-#include "c_cdd/safe_crt.h"
 /**
  * @file sdk_tests.c
  * @brief Implementation of SDK Test Generation.
@@ -6,13 +5,14 @@
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
 #include "functions/emit/client_sig.h"
 #include "tests/emit/sdk_tests.h"
+
 /* clang-format on */
 /* LCOV_EXCL_START */
 

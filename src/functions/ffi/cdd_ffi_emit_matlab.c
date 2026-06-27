@@ -1,5 +1,5 @@
-#include "c_cdd/safe_crt.h"
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include "cdd_ffi_emit_matlab.h"
 #include <stdio.h>
 #include "c_cdd/format_specifiers.h"

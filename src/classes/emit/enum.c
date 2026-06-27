@@ -9,15 +9,15 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "classes/emit/enum.h"
 #include "functions/parse/str.h"
 #include "c_cdd/log.h"
+#include "c_cdd_export.h"
+#include <stdarg.h>
+
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-#include "c_cdd_export.h"
-#include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

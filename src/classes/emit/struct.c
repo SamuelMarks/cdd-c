@@ -16,12 +16,14 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "classes/emit/struct.h"
 #include "classes/parse/numeric.h"
 #include "functions/parse/str.h"
 #include "functions/str_includes.h" /* For NUM_LONG_FMT macros if needed, here mostly standard */
 #include "c_cdd/log.h"
+#include "c_cdd_export.h"
+#include <stdarg.h>
+
 /* clang-format on */
 
 /* Select correct strdup function name for generated code */
@@ -31,8 +33,6 @@ static const char *kStrDupFunc = "_strdup";
 static const char *kStrDupFunc = "strdup";
 #endif
 #ifdef CDD_BUILD_TESTS
-#include "c_cdd_export.h"
-#include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

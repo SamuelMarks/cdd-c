@@ -18,6 +18,7 @@ extern "C" {
 /* clang-format off */
 #include "c_cdd_export.h"
 #include "openapi/parse/openapi.h"
+#include "parson.h"
 /* clang-format on */
 
 /**
@@ -111,7 +112,6 @@ extern int oauth_flow_type_to_str_openapi(enum OpenAPI_OAuthFlowType t,
  */
 extern int is_schema_primitive_openapi(const char *type);
 
-#include "parson.h"
 /**
  * @brief Merges extra schema object properties.
  *

@@ -9,18 +9,18 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "classes/emit/types.h"
 #include "functions/parse/str.h"
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
+#include <stdarg.h>
+
 /* clang-format on */
 /* LCOV_EXCL_START */
 
 /* Wrapper for fprintf to check errors tersely */
 #ifdef CDD_BUILD_TESTS
-#include <stdarg.h>
 extern int g_fail_io_after;
 extern int g_io_calls;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

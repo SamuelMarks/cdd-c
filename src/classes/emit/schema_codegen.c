@@ -14,9 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <parson.h>
-
 #include "classes/emit/enum.h"
 #include "classes/emit/json.h"
 #include "classes/emit/form.h"
@@ -29,6 +27,10 @@
 #include "functions/emit/codegen.h" /* Facade header */
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
+#include <limits.h>
+#include <stdarg.h>
+
+
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef strdup
@@ -36,12 +38,10 @@
 #endif
 #define PATH_MAX _MAX_PATH
 #else
-#include <limits.h>
 #endif
 /* clang-format on */
 
 #ifdef CDD_BUILD_TESTS
-#include <stdarg.h>
 C_CDD_EXPORT int g_schema_fail_io_after = -1;
 C_CDD_EXPORT int g_schema_io_calls = 0;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

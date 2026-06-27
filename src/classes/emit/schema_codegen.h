@@ -13,6 +13,7 @@ extern "C" {
 
 /* clang-format off */
 #include <c_cdd_export.h>
+#include "parson.h"
 /* clang-format on */
 
 /**
@@ -25,7 +26,6 @@ extern "C" {
  * @return 0 on success, non-zero error code (errno or EXIT_FAILURE) on failure.
  */
 /* Forward declarations for testing */
-#include "parson.h"
 struct CodegenConfig;
 extern C_CDD_EXPORT int generate_header(const char *prefix,
                                         const char *basename,

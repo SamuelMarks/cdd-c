@@ -14,13 +14,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "c_cdd_stdbool.h"
 #include "classes/emit/json.h"
 #include "classes/emit/struct.h" /* for get_type_from_ref */
 #include "functions/parse/str.h" /* for string helpers */
 #include "win_compat_sym.h"
 #include "c_cdd/log.h"
+#include <stdarg.h>
+
 /* clang-format on */
 
 #if defined(_MSC_VER)
@@ -29,7 +30,6 @@
 #endif
 
 #ifdef CDD_BUILD_TESTS
-#include <stdarg.h>
 C_CDD_EXPORT int g_fail_io_after = -1;
 C_CDD_EXPORT int g_io_calls = 0;
 static int cdd_fprintf_hook(FILE *stream, const char *format, ...)

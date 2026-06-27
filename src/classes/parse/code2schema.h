@@ -6,6 +6,13 @@
  */
 
 /* clang-format off */
+#include <stdlib.h>
+#include <string.h>
+#include <c_cdd_stdbool.h>
+#include <parson.h>
+#include <c_cdd_export.h>
+#include "functions/emit/codegen.h"
+#include "parson.h"
 #ifndef CODE2SCHEMA_H
 #define CODE2SCHEMA_H
 
@@ -13,8 +20,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <stdlib.h>
-#include <string.h>
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #if defined(_MSC_VER) && _MSC_VER < 1800
@@ -42,12 +47,8 @@ typedef unsigned char bool;
 #endif
 #endif
 #else
-#include <c_cdd_stdbool.h>
 #endif /* __STDC_VERSION__ >= 199901L */
 
-#include <parson.h>
-#include <c_cdd_export.h>
-#include "functions/emit/codegen.h"
 /* clang-format on */
 
 /**
@@ -213,7 +214,6 @@ register_inline_schema_c2s(JSON_Object *root, const char *schema_name,
                            const char *variant_name, const char *suffix,
                            const JSON_Value *schema_val, char **out_name);
 
-#include "parson.h"
 extern C_CDD_EXPORT int
 parse_type_union_array_code2schema(const JSON_Array *arr, char ***out_union,
                                    size_t *out_count, const char **out_primary,

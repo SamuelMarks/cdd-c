@@ -1,10 +1,10 @@
-#include "c_cdd/safe_crt.h"
 /**
  * @file client_gui_gen.c
  * @brief Implementation of OAuth2 client GUI generation.
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include "routes/emit/client_gui_gen.h"
 #include <errno.h>
 #include <stdio.h>

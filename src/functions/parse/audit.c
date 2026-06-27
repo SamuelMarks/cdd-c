@@ -12,16 +12,16 @@
 #include "functions/parse/fs.h"
 #include "functions/parse/str.h"
 #include "functions/parse/tokenizer.h"
-
 #include <c89stringutils_string_extras.h>
 #include <ctype.h>
 #include <parson.h>
 #include <stdlib.h>
 #include <string.h>
 #include "c_cdd/log.h"
+#include "c_cdd_export.h"
+
 /* clang-format on */
 /* LCOV_EXCL_START */
-#include "c_cdd_export.h"
 
 C_CDD_EXPORT /** @brief g_cdd_fail_alloc_audit */
     int g_cdd_fail_alloc_audit = 0;

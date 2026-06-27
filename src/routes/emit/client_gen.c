@@ -1,16 +1,15 @@
-#include "c_cdd/safe_crt.h"
 /**
  * @file client_gen.c
  * @brief Implementation of client code generation.
  */
 
 /* clang-format off */
+#include "c_cdd/safe_crt.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "functions/emit/client_body.h"
 #include "functions/emit/client_sig.h"
 #include "functions/emit/codegen.h"

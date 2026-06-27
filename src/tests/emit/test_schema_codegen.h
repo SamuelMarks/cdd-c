@@ -5,7 +5,6 @@ extern C_CDD_EXPORT int g_io_calls;
  * @brief Unit tests for schema to code generation.
  */
 
-#include "classes/emit/schema.h"
 #ifndef TEST_SCHEMA_CODEGEN_H
 
 #define TEST_SCHEMA_CODEGEN_H
@@ -15,18 +14,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* clang-format off */
+#include "classes/emit/schema.h"
 #include "c_cdd_export.h"
 #include <greatest.h>
-
 #include "classes/emit/schema_codegen.h"
-
 #include "cdd_test_helpers/cdd_helpers.h"
-
 #include "classes/parse/code2schema.h" /* Included to avoid implicit declaration warnings */
-
 #include "functions/emit/codegen.h"
-
 #include "functions/parse/fs.h"
+
 /* clang-format on */
 
 /* Forward declare static functions from schema_codegen.c if we want unit-test
