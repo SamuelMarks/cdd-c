@@ -36,6 +36,8 @@ extern "C" {
 #else
 #define CDD_PRIz "lu"
 #endif
+#elif defined(__wasm__) || defined(__wasm32__)
+#define CDD_PRIz "lu"
 #else
 #define CDD_PRIz "u"
 #endif
