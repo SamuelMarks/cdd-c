@@ -164,8 +164,6 @@ TEST test_makedir_check(void) {
 
 TEST test_fs_fopen_error_from(void) {
   enum FopenError err;
-  extern enum cdd_c_error fopen_error_from(int fopen_error,
-                                           enum FopenError *_out_val);
 
   fopen_error_from(0, &err);
   ASSERT_EQ(FOPEN_OK, err);
@@ -187,7 +185,6 @@ TEST test_fs_fopen_error_from(void) {
 }
 
 TEST test_fs_cp(void) {
-  extern enum cdd_c_error cp(const char *dst, const char *src);
   FILE *f;
   int rc;
 
@@ -301,8 +298,6 @@ TEST test_fs_dirname_foo(void) {
 
 TEST test_fs_cdd_fopen_too_long(void) {
   enum FopenError err;
-  extern enum cdd_c_error fopen_error_from(int fopen_error,
-                                           enum FopenError *_out_val);
 
   ASSERT_EQ(0, fopen_error_from(ERANGE, &err));
   ASSERT_EQ(FOPEN_FILENAME_TOO_LONG, err);
@@ -319,8 +314,6 @@ TEST test_fs_write_to_file_errors(void) {
 }
 
 TEST test_read_from_fh_errors(void) {
-  extern enum cdd_c_error read_from_fh(FILE * fh, char **out_data,
-                                       size_t *out_size);
   FILE *f = tmpfile();
   char *data = NULL;
   size_t sz = 0;

@@ -541,7 +541,6 @@ TEST test_c2o_cli_source_file_checks(void) {
   write_to_file(no_ext_file, "no extension here");
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -620,7 +619,6 @@ TEST test_c2o_cli_doc_sec_unset(void) {
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -662,7 +660,6 @@ TEST test_c2o_cli_spec_has_tag_nulls(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -708,7 +705,6 @@ TEST test_c2o_cli_mappings_errors_find(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -745,7 +741,6 @@ TEST test_c2o_cli_set_str_mismatch(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -784,7 +779,6 @@ TEST test_c2o_cli_server_variables(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -824,7 +818,6 @@ TEST test_c2o_cli_server_variables_validation(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -867,7 +860,6 @@ TEST test_c2o_cli_merge_oauth_scopes(void) {
   write_to_file(c_file, src);
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -921,7 +913,6 @@ TEST test_c2o_cli_oauth_validation_errors(void) {
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 
@@ -986,7 +977,6 @@ TEST test_c2o_cli_merge_oauth_flow_collisions(void) {
   }
 
   char *argv[] = {"c2openapi", src_dir, out_json};
-  extern int c2openapi_cli_main(int argc, char **argv);
   int rc = c2openapi_cli_main(3, argv);
   ASSERT_EQ(0, rc);
 

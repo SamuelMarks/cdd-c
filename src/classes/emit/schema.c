@@ -35,7 +35,12 @@ enum cdd_c_error schema_constraints_add_required(struct SchemaConstraints *sc,
 
   if (sc->required_count >= sc->required_capacity) {
     size_t new_cap = sc->required_capacity == 0 ? 8 : sc->required_capacity * 2;
-    char **new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
+    char **new_req;
+    if (new_cap < sc->required_capacity ||
+        new_cap > ((size_t)-1) / (2 * sizeof(char *))) {
+      return CDD_C_ERROR_MEMORY;
+    }
+    new_req = (char **)realloc(sc->required, new_cap * sizeof(char *));
     if (!new_req) {
       C_CDD_LOG_DEBUG("ENOMEM: OOM\n");
       return CDD_C_ERROR_MEMORY;
