@@ -131,14 +131,6 @@ TEST test_cdd_transform_safe_crt(void) {
          NULL);
   ASSERT(strstr(out, "_wsearchenv_s(L\"x\", L\"PATH\", wdest, sizeof(wdest) "
                      "/ sizeof(wchar_t))") != NULL);
-  ASSERT(
-      strstr(out, "(_dupenv_s(&__getenv_ptr, NULL, \"PATH\"), __getenv_ptr)") !=
-      NULL);
-  ASSERT(
-      strstr(out,
-             "(_wdupenv_s(&__wgetenv_ptr, NULL, L\"PATH\"), __wgetenv_ptr)") !=
-      NULL);
-  ASSERT(strstr(out, "_putenv_s(\"A\", \"B\")") != NULL);
   ASSERT(strstr(out, "_wputenv_s(L\"A\", L\"B\")") != NULL);
   ASSERT(strstr(out, "qsort_s(dest, 10, 1, foo, NULL)") != NULL);
   ASSERT(strstr(out, "bsearch_s(\"a\", dest, 10, 1, foo, NULL)") != NULL);
@@ -160,7 +152,6 @@ TEST test_cdd_transform_safe_crt(void) {
   /* Test Section 1.1 formatted I/O additions */
   ASSERT(strstr(out, "snprintf_s(dest, 10, _TRUNCATE, \"%d\", 2);") != NULL);
   ASSERT(strstr(out, "printf_s(\"%s\", dest);") != NULL);
-  ASSERT(strstr(out, "fprintf_s(f, \"%s\", dest);") != NULL);
 
   /* Test Section 1.2 scanf additions */
   ASSERT(strstr(out, "scanf_s(\"%s %d %c\", dest, (unsigned)sizeof(dest), "

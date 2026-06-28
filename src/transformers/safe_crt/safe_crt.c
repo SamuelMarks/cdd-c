@@ -275,7 +275,7 @@ static enum cdd_c_error check_needs_transform(expr_t *head) {
           strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
           strcmp(name, "snprintf") == 0 || strcmp(name, "vsnprintf") == 0 ||
           strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
-          strcmp(name, "fprintf") == 0 || strcmp(name, "vfprintf") == 0 ||
+
           strcmp(name, "_snprintf") == 0 || strcmp(name, "_vsnprintf") == 0 ||
           strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0 ||
           strcmp(name, "wcscpy") == 0 || strcmp(name, "wcsncpy") == 0 ||
@@ -305,8 +305,7 @@ static enum cdd_c_error check_needs_transform(expr_t *head) {
           strcmp(name, "_fcvt") == 0 || strcmp(name, "tmpfile") == 0 ||
           strcmp(name, "tmpnam") == 0 || strcmp(name, "_splitpath") == 0 ||
           strcmp(name, "_makepath") == 0 || strcmp(name, "_wsplitpath") == 0 ||
-          strcmp(name, "_wmakepath") == 0 || strcmp(name, "getenv") == 0 ||
-          strcmp(name, "_wgetenv") == 0 || strcmp(name, "_putenv") == 0 ||
+          strcmp(name, "_wmakepath") == 0 || strcmp(name, "_putenv") == 0 ||
           strcmp(name, "_wputenv") == 0 || strcmp(name, "_searchenv") == 0 ||
           strcmp(name, "_wsearchenv") == 0 || strcmp(name, "qsort") == 0 ||
           strcmp(name, "bsearch") == 0 || strcmp(name, "_ultow") == 0) {
@@ -536,7 +535,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
                  strcmp(name, "_vsnprintf") == 0)
           is_safe = 3;
         else if (strcmp(name, "printf") == 0 || strcmp(name, "vprintf") == 0 ||
-                 strcmp(name, "fprintf") == 0 || strcmp(name, "vfprintf") == 0)
+                 strcmp(name, "vfprintf") == 0)
           is_safe = 4;
         else if (strcmp(name, "memcpy") == 0 || strcmp(name, "memmove") == 0 ||
                  strcmp(name, "wmemcpy") == 0 || strcmp(name, "wmemmove") == 0)
@@ -565,7 +564,7 @@ static enum cdd_c_error emit_ast_bld(expr_t *node, cdd_cst_builder_t *bld,
         else if (strcmp(name, "_searchenv") == 0 ||
                  strcmp(name, "_wsearchenv") == 0)
           is_safe = 22;
-        else if (strcmp(name, "getenv") == 0 || strcmp(name, "_wgetenv") == 0)
+        else if (strcmp(name, "_wgetenv") == 0)
           is_safe = 23;
         else if (strcmp(name, "_putenv") == 0 || strcmp(name, "_wputenv") == 0)
           is_safe = 24;

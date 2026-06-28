@@ -86,38 +86,8 @@ target_link_libraries(generated_client PRIVATE parson::parson)
 
 target_link_libraries(generated_client PRIVATE c89stringutils c89stringutils_compiler_flags)
 
-target_link_libraries(generated_client PRIVATE c_str_span c_str_span_compiler_flags)
+target_link_libraries(generated_client PRIVATE c_str_span c_str_span_compiler_flags c_cdd)
 
-option(C_ABSTRACT_HTTP_USE_CURL "Use libcurl as the HTTP backend" OFF)
-option(C_ABSTRACT_HTTP_USE_OPENSSL "Use OpenSSL for cryptography" OFF)
-
-include(FetchContent)
-if (TARGET c-abstract-http)
-    message(STATUS "c-abstract-http already provided by parent")
-else()
-    set(c_abstract_http_RESOLVED OFF)
-    if(VCPKG_TOOLCHAIN)
-        find_package(c-abstract-http CONFIG QUIET)
-        if(c-abstract-http_FOUND)
-            set(c_abstract_http_RESOLVED ON)
-        endif()
-    endif()
-    if(NOT c_abstract_http_RESOLVED)
-        FetchContent_Declare(
-            c-abstract-http
-            GIT_REPOSITORY https://github.com/SamuelMarks/c-abstract-http.git
-            GIT_TAG        master
-            PATCH_COMMAND ${CMAKE_COMMAND} -DSRC_DIR=<SOURCE_DIR> -P ${CMAKE_SOURCE_DIR}/cmake/patch_c_abstract_http.cmake
-        )
-        set(cdd_c_FOUND ON)
-        FetchContent_Declare(cdd_c SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-        set(FETCHCONTENT_SOURCE_DIR_CDD_C "${CMAKE_SOURCE_DIR}" CACHE PATH "..." FORCE)
-        FetchContent_MakeAvailable(c-abstract-http)
-        include_directories(SYSTEM ${c-abstract-http_SOURCE_DIR}/include)
-    endif()
-endif()
-
-target_link_libraries(generated_client PRIVATE c-abstract-http)
 
 target_include_directories(generated_client PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

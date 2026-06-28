@@ -189,7 +189,6 @@ static enum cdd_c_error eval_preproc_expr(parser_state_t *s, size_t start_pos,
    * For the immediate milestone, we implement symbol lookup and literal int
    * evaluation. */
   size_t i;
-  int is_defined_check = 0;
 
   if (start_pos >= end_pos) {
     *out_val = 0;
