@@ -18,6 +18,7 @@ extern "C" {
 
 /* clang-format off */
 #include "cdd_test_helpers_export.h"
+#include "cdd_c_error.h"
 #include <stddef.h>
 /* clang-format on */
 
@@ -42,7 +43,8 @@ struct MockServerRequest {
  *
  * @return A handle to the server, or NULL on failure.
  */
-extern CDD_TEST_HELPERS_EXPORT int mock_server_init(MockServerPtr *out);
+extern CDD_TEST_HELPERS_EXPORT enum cdd_c_error
+mock_server_init(MockServerPtr *out);
 
 /**
  * @brief Destroy a mock server instance.
@@ -61,7 +63,8 @@ extern CDD_TEST_HELPERS_EXPORT void mock_server_destroy(MockServerPtr server);
  * @param[in] server The server handle.
  * @return 0 on success, non-zero error code on failure.
  */
-extern CDD_TEST_HELPERS_EXPORT int mock_server_start(MockServerPtr server);
+extern CDD_TEST_HELPERS_EXPORT enum cdd_c_error
+mock_server_start(MockServerPtr server);
 
 /**
  * @brief Get the port number the server is listening on.
@@ -69,7 +72,8 @@ extern CDD_TEST_HELPERS_EXPORT int mock_server_start(MockServerPtr server);
  * @param[in] server The server handle.
  * @return The port number (host byte order), or 0 if not running.
  */
-extern CDD_TEST_HELPERS_EXPORT int mock_server_get_port(MockServerPtr server);
+extern CDD_TEST_HELPERS_EXPORT enum cdd_c_error
+mock_server_get_port(MockServerPtr server, int *out_port);
 
 /**
  * @brief Wait for a client request and capture the headers.
@@ -82,7 +86,7 @@ extern CDD_TEST_HELPERS_EXPORT int mock_server_get_port(MockServerPtr server);
  *                     Caller must free contents.
  * @return 0 on success, non-zero on timeout or error.
  */
-extern CDD_TEST_HELPERS_EXPORT int
+extern CDD_TEST_HELPERS_EXPORT enum cdd_c_error
 mock_server_wait_for_request(MockServerPtr server,
                              struct MockServerRequest *out_req);
 

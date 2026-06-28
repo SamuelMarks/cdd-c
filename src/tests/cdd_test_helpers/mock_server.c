@@ -222,19 +222,19 @@ static THREAD_FUNC_RETURN server_thread_func(THREAD_FUNC_ARG arg) {
 
 /* --- Wrapper API --- */
 
-int mock_server_init(MockServerPtr *out) {
+enum cdd_c_error mock_server_init(MockServerPtr *out) {
   struct MockServer_ *s;
   if (platform_init() != 0) {
     if (out)
       *out = NULL;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   s = (struct MockServer_ *)calloc(1, sizeof(struct MockServer_));
   if (!s) {
     if (out)
       *out = NULL;
-    return 1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   s->server_fd = INVALID_SOCK;
@@ -245,7 +245,7 @@ int mock_server_init(MockServerPtr *out) {
   cond_init(&s->cond_req_ready);
 
   *out = s;
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
 void mock_server_destroy(MockServerPtr server) {
@@ -288,7 +288,7 @@ void mock_server_destroy(MockServerPtr server) {
   platform_cleanup();
 }
 
-int mock_server_start(MockServerPtr server) {
+enum cdd_c_error mock_server_start(MockServerPtr server) {
   struct sockaddr_in addr;
 #if defined(_WIN32)
   int addr_len = sizeof(addr);
@@ -297,11 +297,11 @@ int mock_server_start(MockServerPtr server) {
 #endif
 
   if (!server || server->running)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   server->server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server->server_fd == INVALID_SOCK)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   /* Bind to loopback, port 0 (ephemeral) */
   memset(&addr, 0, sizeof(addr));
@@ -312,20 +312,20 @@ int mock_server_start(MockServerPtr server) {
   if (bind(server->server_fd, (struct sockaddr *)&addr, sizeof(addr)) ==
       SOCK_ERROR) {
     close_socket(server->server_fd);
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   /* Listen */
   if (listen(server->server_fd, 1) == SOCK_ERROR) {
     close_socket(server->server_fd);
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 
   /* Retrieve assigned port */
   if (getsockname(server->server_fd, (struct sockaddr *)&addr, &addr_len) ==
       SOCK_ERROR) {
     close_socket(server->server_fd);
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   }
   server->port = ntohs(addr.sin_port);
 
@@ -338,27 +338,32 @@ int mock_server_start(MockServerPtr server) {
   if (server->thread == 0) {
     server->running = 0;
     close_socket(server->server_fd);
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #else
   if (pthread_create(&server->thread, NULL, server_thread_func, server) != 0) {
     server->running = 0;
     close_socket(server->server_fd);
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
   }
 #endif
 
-  return 0;
+  return CDD_C_SUCCESS;
 }
 
-int mock_server_get_port(MockServerPtr server) {
-  return server ? server->port : 0;
+enum cdd_c_error mock_server_get_port(MockServerPtr server, int *out_port) {
+  if (server)
+    *out_port = server->port;
+  else
+    *out_port = 0;
+  return CDD_C_SUCCESS;
 }
 
-int mock_server_wait_for_request(MockServerPtr server,
-                                 struct MockServerRequest *out_req) {
+enum cdd_c_error
+mock_server_wait_for_request(MockServerPtr server,
+                             struct MockServerRequest *out_req) {
   if (!server || !out_req)
-    return -1;
+    return CDD_C_ERROR_UNKNOWN;
 
   mutex_lock(&server->lock);
   while (!server->has_request && server->running) {
@@ -380,11 +385,11 @@ int mock_server_wait_for_request(MockServerPtr server,
     server->has_request = 0;
 
     mutex_unlock(&server->lock);
-    return 0;
+    return CDD_C_SUCCESS;
   }
 
   mutex_unlock(&server->lock);
-  return -1;
+  return CDD_C_ERROR_UNKNOWN;
 }
 
 void mock_server_request_cleanup(struct MockServerRequest *req) {
